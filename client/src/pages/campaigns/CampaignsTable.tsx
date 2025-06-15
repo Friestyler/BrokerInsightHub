@@ -1,487 +1,375 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Link } from "wouter";
-import { Button } from "@/components/ui/button";
+import { useState } from 'react';
 import { Badge } from "@/components/ui/badge";
-import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { 
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  Mail, 
-  Users, 
-  Target, 
-  Clock, 
-  TrendingUp, 
-  Eye, 
-  MousePointer, 
-  Reply, 
-  AlertTriangle, 
-  Plus, 
-  Search, 
-  Filter, 
-  MoreHorizontal, 
-  ArrowUpDown,
-  Play,
-  Pause,
-  Edit,
-  Trash2,
-  ChevronUp,
-  ChevronDown
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import CampaignsSummaryCards from "./CampaignsSummaryCards";
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { MoreVertical, Mail, Users, TrendingUp, Calendar, Eye, Edit2, Trash2, Copy, BarChart3 } from "lucide-react";
 
-interface Campaign {
-  id: number;
-  name: string;
-  type: string;
-  description: string;
-  template_id?: number;
-  target_entity_type: string;
-  status: string;
-  created_by_name: string;
-  created_at: string;
-  engagement_summary: {
-    email1: {
-      sent: number;
-      opened: number;
-      clicked: number;
-      replied: number;
-      bounced: number;
-    };
-    email2: {
-      sent: number;
-      opened: number;
-      clicked: number;
-      replied: number;
-      bounced: number;
-    };
-  };
-  recipients: any[];
-  icon: string;
-  objective?: string;
+interface CampaignsTableProps {
+  campaigns: unknown;
+  selectedCampaigns: number[];
+  onSelectionChange: (selectedIds: number[]) => void;
 }
 
-export default function CampaignsTable() {
-  const { data: campaigns = [], isLoading } = useQuery({
-    queryKey: ['/api/degoudse/campaigns'],
-  });
+// Sortable table header component
+interface SortableTableHeadProps {
+  sortKey: string;
+  currentSortKey: string;
+  currentDirection: 'asc' | 'desc';
+  onSort: (key: string) => void;
+  children: React.ReactNode;
+  className?: string;
+}
 
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedCampaigns, setSelectedCampaigns] = useState<number[]>([]);
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [entityFilter, setEntityFilter] = useState("all");
-  const [sortBy, setSortBy] = useState<string>('name');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+const SortableTableHead = ({ 
+  sortKey, 
+  currentSortKey, 
+  currentDirection, 
+  onSort, 
+  children, 
+  className = "" 
+}: SortableTableHeadProps) => {
+  const isActive = currentSortKey === sortKey;
+  
+  return (
+    <th 
+      scope="col" 
+      className={`px-3 py-3.5 text-left text-sm font-semibold text-gray-900 cursor-pointer hover:bg-gray-50 bg-white ${className}`}
+      onClick={() => onSort(sortKey)}
+    >
+      <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
+        {children}
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          width="16" 
+          height="16" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="currentColor" 
+          strokeWidth="2" 
+          strokeLinecap="round" 
+          strokeLinejoin="round" 
+          className={`ml-1 transition-transform ${
+            isActive 
+              ? (currentDirection === 'desc' ? 'rotate-180' : '') 
+              : 'opacity-50'
+          }`}
+        >
+          <path d="M8 9l4-4 4 4"></path>
+          <path d="M16 15l-4 4-4-4"></path>
+        </svg>
+      </div>
+    </th>
+  );
+};
 
-  // Filter campaigns based on search and filters
-  const filteredCampaigns = campaigns.filter((campaign: any) => {
-    const matchesSearch = !searchTerm || 
-      campaign.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      campaign.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      campaign.objective?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesStatus = statusFilter === "all" || campaign.status === statusFilter;
-    const matchesEntity = entityFilter === "all" || campaign.target_entity_type === entityFilter;
-    
-    return matchesSearch && matchesStatus && matchesEntity;
-  });
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'sent':
+      return 'bg-green-100 text-green-800 border-green-200';
+    case 'in_progress':
+      return 'bg-blue-100 text-blue-800 border-blue-200';
+    case 'scheduled':
+      return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+    case 'draft':
+      return 'bg-gray-100 text-gray-800 border-gray-200';
+    default:
+      return 'bg-gray-100 text-gray-800 border-gray-200';
+  }
+};
 
-  // Sort campaigns
-  const sortedCampaigns = [...filteredCampaigns].sort((a: any, b: any) => {
-    let aValue = a[sortBy];
-    let bValue = b[sortBy];
-    
-    // Handle special sorting cases
-    if (sortBy === 'engagement_rate') {
-      aValue = getEngagementRate(a);
-      bValue = getEngagementRate(b);
-    } else if (sortBy === 'recipients_count') {
-      aValue = a.recipients?.length || 0;
-      bValue = b.recipients?.length || 0;
-    } else if (sortBy === 'created_at') {
-      aValue = new Date(a.created_at).getTime();
-      bValue = new Date(b.created_at).getTime();
+const getEntityColor = (entityType: string) => {
+  switch (entityType) {
+    case 'partners':
+      return 'bg-purple-100 text-purple-800 border-purple-200';
+    case 'customers':
+      return 'bg-blue-100 text-blue-800 border-blue-200';
+    case 'opportunities':
+      return 'bg-green-100 text-green-800 border-green-200';
+    case 'internal':
+      return 'bg-orange-100 text-orange-800 border-orange-200';
+    default:
+      return 'bg-gray-100 text-gray-800 border-gray-200';
+  }
+};
+
+export default function CampaignsTable({ campaigns, selectedCampaigns, onSelectionChange }: CampaignsTableProps) {
+  const [sortField, setSortField] = useState<string>('created_at');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+
+  const handleSort = (field: string) => {
+    if (sortField === field) {
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
     }
+  };
+
+  const toggleSelectCampaign = (campaignId: number) => {
+    if (selectedCampaigns.includes(campaignId)) {
+      onSelectionChange(selectedCampaigns.filter(id => id !== campaignId));
+    } else {
+      onSelectionChange([...selectedCampaigns, campaignId]);
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedCampaigns.length === campaignsArray.length && campaignsArray.length > 0) {
+      onSelectionChange([]);
+    } else {
+      onSelectionChange(campaignsArray.map((campaign: any) => campaign.id));
+    }
+  };
+
+  // Type guard to ensure campaigns is an array
+  const campaignsArray = Array.isArray(campaigns) ? campaigns : [];
+
+  const sortedCampaigns = [...campaignsArray].sort((a: any, b: any) => {
+    const aValue = a[sortField];
+    const bValue = b[sortField];
     
-    if (sortOrder === 'asc') {
+    if (sortDirection === 'asc') {
       return aValue > bValue ? 1 : -1;
     } else {
       return aValue < bValue ? 1 : -1;
     }
   });
 
-  // Handle column sorting
-  const handleSort = (column: string) => {
-    if (sortBy === column) {
-      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortBy(column);
-      setSortOrder('asc');
-    }
-  };
-
-  // Toggle campaign selection
-  const toggleCampaignSelection = (campaignId: number) => {
-    setSelectedCampaigns(prev => 
-      prev.includes(campaignId) 
-        ? prev.filter(id => id !== campaignId)
-        : [...prev, campaignId]
-    );
-  };
-
-  // Toggle select all
-  const toggleSelectAll = () => {
-    if (selectedCampaigns.length === sortedCampaigns.length) {
-      setSelectedCampaigns([]);
-    } else {
-      setSelectedCampaigns(sortedCampaigns.map((campaign: any) => campaign.id));
-    }
-  };
-
-  // Get entity type badge color
-  const getEntityColor = (entityType: string) => {
-    const colors = {
-      'partners': 'bg-purple-100 text-purple-800',
-      'customers': 'bg-blue-100 text-blue-800',
-      'opportunities': 'bg-green-100 text-green-800',
-      'internal': 'bg-orange-100 text-orange-800'
-    };
-    return colors[entityType as keyof typeof colors] || 'bg-gray-100 text-gray-800';
-  };
-
-  // Calculate engagement rate
-  const getEngagementRate = (campaign: Campaign) => {
-    const email1 = campaign.engagement_summary?.email1 || {};
-    const email2 = campaign.engagement_summary?.email2 || {};
-    const totalSent = (email1.sent || 0) + (email2.sent || 0);
-    const totalOpened = (email1.opened || 0) + (email2.opened || 0);
+  const calculateEngagementRate = (engagement: any) => {
+    if (!engagement) return 0;
     
-    if (totalSent === 0) return 0;
-    return Math.round((totalOpened / totalSent) * 100);
+    let totalSent = 0;
+    let totalOpens = 0;
+    
+    Object.values(engagement).forEach((metrics: any) => {
+      totalSent += metrics.sent || 0;
+      totalOpens += metrics.opens || 0;
+    });
+    
+    return totalSent > 0 ? (totalOpens / totalSent * 100) : 0;
   };
 
-  // Render sort icon
-  const renderSortIcon = (column: string) => {
-    if (sortBy !== column) {
-      return <ArrowUpDown className="h-3 w-3 text-gray-400" />;
-    }
-    return sortOrder === 'asc' 
-      ? <ChevronUp className="h-3 w-3 text-gray-600" />
-      : <ChevronDown className="h-3 w-3 text-gray-600" />;
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric'
+    });
   };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
 
   return (
-    <div className="max-w-7xl mx-auto p-6 space-y-6">
-      {/* Summary Cards */}
-      <CampaignsSummaryCards />
-
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Campaigns</h1>
-          <p className="text-gray-600">Manage and track your marketing campaigns</p>
-        </div>
-        <div className="flex gap-2">
-          <Link href="/campaigns/templates">
-            <Button variant="outline">
-              <Mail className="w-4 h-4 mr-2" />
-              Templates
-            </Button>
-          </Link>
-          <Link href="/campaigns/create">
-            <Button>
-              <Plus className="w-4 h-4 mr-2" />
-              New Campaign
-            </Button>
-          </Link>
-        </div>
-      </div>
-
-      {/* Search and Filters */}
-      <div className="flex items-center gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Search campaigns..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        
-        <div className="flex gap-2">
-          <select 
-            value={statusFilter}
-            onChange={(e) => setStatusFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-          >
-            <option value="all">All Status</option>
-            <option value="draft">Draft</option>
-            <option value="scheduled">Scheduled</option>
-            <option value="in_progress">In Progress</option>
-            <option value="sent">Sent</option>
-            <option value="completed">Completed</option>
-            <option value="paused">Paused</option>
-          </select>
-          
-          <select 
-            value={entityFilter}
-            onChange={(e) => setEntityFilter(e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-          >
-            <option value="all">All Entities</option>
-            <option value="partners">Partners</option>
-            <option value="customers">Customers</option>
-            <option value="opportunities">Opportunities</option>
-            <option value="internal">Internal</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Results count and bulk actions */}
-      <div className="flex items-center justify-between">
-        <p className="text-sm text-gray-600">
-          Showing {sortedCampaigns.length} of {campaigns.length} campaigns
-        </p>
-        {selectedCampaigns.length > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-gray-600">
-              {selectedCampaigns.length} selected
-            </span>
-            <Button size="sm" variant="outline">
-              <Play className="w-4 h-4 mr-1" />
-              Start
-            </Button>
-            <Button size="sm" variant="outline">
-              <Pause className="w-4 h-4 mr-1" />
-              Pause
-            </Button>
-            <Button size="sm" variant="outline">
-              <Trash2 className="w-4 h-4 mr-1" />
-              Delete
-            </Button>
-          </div>
-        )}
-      </div>
-
-      {/* Campaigns Table */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-        <Table>
-          <TableHeader className="bg-gray-50">
-            <TableRow className="border-b border-gray-200">
-              <TableHead className="w-12 pl-6">
-                <Checkbox 
-                  checked={selectedCampaigns.length === sortedCampaigns.length && sortedCampaigns.length > 0}
-                  onCheckedChange={toggleSelectAll}
-                />
-              </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-gray-100 py-4"
-                onClick={() => handleSort('name')}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-gray-700">Campaign</span>
-                  {renderSortIcon('name')}
-                </div>
-              </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('target_entity_type')}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-gray-700">Entity</span>
-                  {renderSortIcon('target_entity_type')}
-                </div>
-              </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('status')}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-gray-700">Status</span>
-                  {renderSortIcon('status')}
-                </div>
-              </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('recipients_count')}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-gray-700">Recipients</span>
-                  {renderSortIcon('recipients_count')}
-                </div>
-              </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('engagement_rate')}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-gray-700">Engagement</span>
-                  {renderSortIcon('engagement_rate')}
-                </div>
-              </TableHead>
-              <TableHead 
-                className="cursor-pointer hover:bg-gray-100"
-                onClick={() => handleSort('created_at')}
-              >
-                <div className="flex items-center gap-2">
-                  <span className="font-medium text-gray-700">Created</span>
-                  {renderSortIcon('created_at')}
-                </div>
-              </TableHead>
-              <TableHead className="w-24 text-center">
-                <span className="font-medium text-gray-700">Actions</span>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {sortedCampaigns.map((campaign: any, index: number) => {
-              const email1 = campaign.engagement_summary?.email1 || {};
-              const email2 = campaign.engagement_summary?.email2 || {};
-              const totalSent = (email1.sent || 0) + (email2.sent || 0);
-              const totalOpened = (email1.opened || 0) + (email2.opened || 0);
-              const engagementRate = getEngagementRate(campaign);
-
-              return (
-                <TableRow 
-                  key={campaign.id} 
-                  className={cn(
-                    "border-b border-gray-100 hover:bg-gray-50/50 transition-colors",
-                    selectedCampaigns.includes(campaign.id) && "bg-blue-50/50"
-                  )}
-                >
-                  <TableCell className="pl-6">
-                    <Checkbox 
-                      checked={selectedCampaigns.includes(campaign.id)}
-                      onCheckedChange={() => toggleCampaignSelection(campaign.id)}
-                    />
-                  </TableCell>
-                  
-                  <TableCell className="py-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                        <span className="text-xs font-medium text-blue-700">
-                          {campaign.name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                      <div>
-                        <div className="font-medium text-gray-900">{campaign.name}</div>
-                        <div className="text-sm text-gray-500 line-clamp-1 max-w-xs">
-                          {campaign.description || campaign.objective}
-                        </div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  
-                  <TableCell>
-                    <span className={cn(
-                      "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium",
-                      getEntityColor(campaign.target_entity_type)
-                    )}>
-                      {campaign.target_entity_type === 'partners' && 'Partner'}
-                      {campaign.target_entity_type === 'customers' && 'Customer'}
-                      {campaign.target_entity_type === 'opportunities' && 'Opportunity'}
-                      {campaign.target_entity_type === 'internal' && 'Internal'}
-                    </span>
-                  </TableCell>
-                  
-                  <TableCell>
-                    <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                      {campaign.status === 'draft' && 'Draft'}
-                      {campaign.status === 'scheduled' && 'Scheduled'}
-                      {campaign.status === 'in_progress' && 'In Progress'}
-                      {campaign.status === 'sent' && 'Sent'}
-                      {campaign.status === 'completed' && 'Completed'}
-                      {campaign.status === 'paused' && 'Paused'}
-                    </div>
-                  </TableCell>
-                  
-                  <TableCell>
-                    <span className="text-sm text-gray-900 font-medium">
-                      {campaign.recipients?.length || 0}
-                    </span>
-                  </TableCell>
-                  
-                  <TableCell>
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm font-medium text-gray-900">{engagementRate}%</span>
-                      <div className="w-16 bg-gray-200 rounded-full h-2">
-                        <div 
-                          className="bg-blue-600 h-2 rounded-full transition-all" 
-                          style={{ width: `${Math.min(engagementRate, 100)}%` }}
-                        ></div>
-                      </div>
-                    </div>
-                  </TableCell>
-                  
-                  <TableCell>
-                    <div>
-                      <div className="text-sm text-gray-900">
-                        {new Date(campaign.created_at).toLocaleDateString()}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        by {campaign.created_by_name}
-                      </div>
-                    </div>
-                  </TableCell>
-                  
-                  <TableCell>
-                    <div className="flex items-center justify-center gap-1">
-                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                        <Eye className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                        <Edit className="h-4 w-4" />
-                      </Button>
-                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
-                        <MoreHorizontal className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
-          </TableBody>
-        </Table>
-        
-        {sortedCampaigns.length === 0 && (
-          <div className="text-center py-12">
-            <Mail className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No campaigns found</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              {searchTerm || statusFilter !== "all" || entityFilter !== "all" 
-                ? "Try adjusting your search or filters"
-                : "Get started by creating your first campaign"}
-            </p>
-            {!searchTerm && statusFilter === "all" && entityFilter === "all" && (
-              <div className="mt-6">
-                <Link href="/campaigns/create">
-                  <Button>
-                    <Plus className="w-4 h-4 mr-2" />
-                    New Campaign
-                  </Button>
-                </Link>
+    <div className="bg-white overflow-x-auto rounded-lg">
+      <table className="min-w-full divide-y divide-gray-200">
+        <thead className="bg-white">
+          <tr>
+            <th scope="col" className="relative px-3 py-3.5 w-10 bg-white group">
+              <input
+                type="checkbox"
+                className={`absolute h-4 w-4 rounded border-gray-300 ${
+                  selectedCampaigns.length > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 transition-opacity'
+                }`}
+                checked={selectedCampaigns.length === campaignsArray.length && campaignsArray.length > 0}
+                onChange={toggleSelectAll}
+              />
+            </th>
+            <SortableTableHead 
+              sortKey="name" 
+              currentSortKey={sortField} 
+              currentDirection={sortDirection} 
+              onSort={handleSort} 
+              className="w-[250px]"
+            >
+              Campaign Name
+            </SortableTableHead>
+            <SortableTableHead 
+              sortKey="status" 
+              currentSortKey={sortField} 
+              currentDirection={sortDirection} 
+              onSort={handleSort} 
+              className="w-[120px]"
+            >
+              Status
+            </SortableTableHead>
+            <SortableTableHead 
+              sortKey="target_entity_type" 
+              currentSortKey={sortField} 
+              currentDirection={sortDirection} 
+              onSort={handleSort} 
+              className="w-[120px]"
+            >
+              Target Type
+            </SortableTableHead>
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[140px] bg-white">
+              <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
+                Engagement Rate
               </div>
-            )}
+            </th>
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[100px] bg-white">
+              <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
+                Recipients
+              </div>
+            </th>
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[100px] bg-white">
+              <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
+                Emails
+              </div>
+            </th>
+            <SortableTableHead 
+              sortKey="created_by_name" 
+              currentSortKey={sortField} 
+              currentDirection={sortDirection} 
+              onSort={handleSort} 
+              className="w-[120px]"
+            >
+              Created By
+            </SortableTableHead>
+            <SortableTableHead 
+              sortKey="created_at" 
+              currentSortKey={sortField} 
+              currentDirection={sortDirection} 
+              onSort={handleSort} 
+              className="w-[120px]"
+            >
+              Created Date
+            </SortableTableHead>
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[200px] bg-white">
+              <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
+                Objective
+              </div>
+            </th>
+            <th scope="col" className="relative px-3 py-3.5 w-10 bg-white">
+              <span className="sr-only">Actions</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody className="bg-white divide-y divide-gray-200">
+          {sortedCampaigns.map((campaign: any) => {
+            const engagementRate = calculateEngagementRate(campaign.engagement_summary);
+            
+            return (
+              <tr 
+                key={campaign.id}
+                className={`hover:bg-gray-50 cursor-pointer group ${
+                  selectedCampaigns.includes(campaign.id) ? 'bg-blue-50' : ''
+                }`}
+                onClick={(e) => {
+                  // Don't trigger when clicking on checkbox or actions
+                  if (!(e.target as any).type || (e.target as any).type !== 'checkbox') {
+                    // Navigate to campaign detail view
+                    console.log('Navigate to campaign:', campaign.id);
+                  }
+                }}
+              >
+                <td className="relative px-3 py-4 w-10">
+                  <input
+                    type="checkbox"
+                    className={`absolute h-4 w-4 rounded border-gray-300 ${
+                      selectedCampaigns.includes(campaign.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 transition-opacity'
+                    }`}
+                    checked={selectedCampaigns.includes(campaign.id)}
+                    onChange={() => toggleSelectCampaign(campaign.id)}
+                  />
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[250px]">
+                  <div className="max-w-[230px]">
+                    <div className="font-medium text-gray-900 truncate">
+                      {campaign.name}
+                    </div>
+                    <div className="text-gray-500 text-xs truncate">
+                      {campaign.description}
+                    </div>
+                  </div>
+                </td>
+                <td className="px-3 py-4 text-sm w-[120px]">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(campaign.status)}`}>
+                    {campaign.status.replace('_', ' ')}
+                  </span>
+                </td>
+                <td className="px-3 py-4 text-sm w-[120px]">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getEntityColor(campaign.target_entity_type)}`}>
+                    {campaign.target_entity_type}
+                  </span>
+                </td>
+                <td className="px-3 py-4 text-sm w-[140px]">
+                  <div className="flex items-center gap-2">
+                    <Progress 
+                      value={engagementRate}
+                      className="h-2 flex-1"
+                    />
+                    <span className="text-xs text-gray-600 min-w-[40px]">
+                      {engagementRate.toFixed(1)}%
+                    </span>
+                  </div>
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
+                  {campaign.recipients?.length || 0}
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
+                  {campaign.emails?.length || 0}
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[120px] truncate">
+                  {campaign.created_by_name}
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
+                  {formatDate(campaign.created_at)}
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-500 w-[200px]">
+                  <div className="truncate" title={campaign.objective}>
+                    {campaign.objective || '-'}
+                  </div>
+                </td>
+                <td className="px-3 py-4 text-sm w-10">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-48">
+                      <DropdownMenuItem className="flex items-center gap-2">
+                        <Eye className="w-4 h-4" />
+                        View Details
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="flex items-center gap-2">
+                        <Edit2 className="w-4 h-4" />
+                        Edit Campaign
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="flex items-center gap-2">
+                        <Copy className="w-4 h-4" />
+                        Duplicate
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="flex items-center gap-2">
+                        <BarChart3 className="w-4 h-4" />
+                        View Analytics
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem className="flex items-center gap-2 text-red-600 focus:text-red-600">
+                        <Trash2 className="w-4 h-4" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </td>
+              </tr>
+            );
+          })}
+        </tbody>
+      </table>
+      
+      {campaignsArray.length === 0 && (
+        <div className="text-center py-12">
+          <div className="text-gray-500">
+            No campaigns found matching your criteria.
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 }
