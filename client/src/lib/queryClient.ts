@@ -108,24 +108,36 @@ export const getQueryFn: <T>(options: {
     const baseUrl = queryKey[0] as string;
     const envUrl = getEnvironmentUrl(baseUrl);
     
-    const res = await fetch(envUrl, {
-      method: 'GET',
-      credentials: "include",
-      headers: {
-        'Accept': 'application/json',
-      }
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', envUrl, true);
+      xhr.withCredentials = true;
+      xhr.setRequestHeader('Accept', 'application/json');
+      
+      xhr.onload = function() {
+        if (xhr.status === 401 && unauthorizedBehavior === "returnNull") {
+          resolve(null);
+          return;
+        }
+        
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            resolve(data);
+          } catch (e) {
+            reject(new Error('Invalid JSON response'));
+          }
+        } else {
+          reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
+        }
+      };
+      
+      xhr.onerror = function() {
+        reject(new Error('Network error'));
+      };
+      
+      xhr.send();
     });
-
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
-    }
-
-    if (!res.ok) {
-      const errorText = await res.text();
-      throw new Error(`HTTP ${res.status}: ${errorText}`);
-    }
-
-    return await res.json();
   };
 
 export const queryClient = new QueryClient({
