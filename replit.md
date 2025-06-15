@@ -139,6 +139,7 @@ Each environment maintains its own data isolation while sharing the same applica
 - June 15, 2025: Cleaned up legacy template creation flows by removing old components (TemplateCreator, CleanEmailBuilder, EnhancedEmailBuilder) and ensured single source of truth for template creation through CampaignCreator
 - June 15, 2025: Completed campaign template save functionality with full database integration, mutation handling, loading states, error handling, and automatic redirection to templates page after successful save
 - June 15, 2025: Fixed critical template save validation bug where email subject field was updating wrong email index, preventing save button activation. Corrected ImprovedEmailBuilder to use activeEmailIndex instead of expandedEmailIndex for updateEmailField function
+- June 15, 2025: Added custom AI blocks - AI Paragraph Generator and AI Data Fetching blocks with specialized editing interfaces, removed Fundraising content option, fixed redundancy issues where content appeared twice
 
 ## User Preferences
 

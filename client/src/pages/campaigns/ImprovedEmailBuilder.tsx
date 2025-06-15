@@ -90,11 +90,10 @@ export default function ImprovedEmailBuilder({
       'lowlights': `We want to be transparent about some challenges we've faced recently. While these areas need improvement, we're committed to addressing them.`,
       'product-launches': `We're excited to announce new product developments that will benefit our ${entityName}. These innovations represent our commitment to excellence.`,
       'kpis': `Here's a summary of our key performance indicators for this period. These metrics show our progress toward our shared goals.`,
-      'fundraising': `We have important updates regarding our funding and investment activities that will strengthen our partnership.`,
       'team': `We're growing our team with talented individuals who share our vision and commitment to serving our ${entityName}.`,
       'asks': `We'd like to request your support in several areas where your expertise and partnership can make a meaningful difference.`,
-      'ai-paragraph': `[AI PARAGRAPH] Click to edit and provide your prompt for AI to generate a custom paragraph tailored to your ${entityName}.`,
-      'ai-data-fetch': `[AI DATA FETCH] Click to edit and specify what data you want to fetch for the selected ${entityName} (e.g., "Show open tasks for this partner", "Display recent opportunities", "List active products").`
+      'ai-paragraph': `Click to edit and provide your prompt for AI to generate a custom paragraph tailored to your ${entityName}.`,
+      'ai-data-fetch': `Click to edit and specify what data you want to fetch for the selected ${entityName} (e.g., "Show open tasks for this partner", "Display recent opportunities", "List active products").`
     };
     
     return contentTemplates[blockType as keyof typeof contentTemplates] || `Content for ${entityName} regarding ${blockType}.`;
@@ -300,7 +299,6 @@ Status: Ready for deployment`;
     { id: 'lowlights', icon: AlertTriangle, title: 'Lowlights' },
     { id: 'product-launches', icon: Rocket, title: 'Product launches' },
     { id: 'kpis', icon: BarChart3, title: 'KPIs' },
-    { id: 'fundraising', icon: DollarSign, title: 'Fundraising' },
     { id: 'team', icon: UserPlus, title: 'Team' },
     { id: 'asks', icon: HelpCircle, title: 'Asks' },
     { id: 'ai-paragraph', icon: Sparkles, title: 'AI Paragraph Generator' },
@@ -713,13 +711,12 @@ Status: Ready for deployment`;
                               <Sparkles className="h-3 w-3 mr-1" />
                               Generate Content
                             </Button>
+                            {block.content && block.content.trim() && (
+                              <div className="mt-3 p-3 bg-gray-50 rounded border">
+                                <div className="text-sm text-gray-700 whitespace-pre-wrap">{block.content}</div>
+                              </div>
+                            )}
                           </div>
-                          <Textarea
-                            value={block.content}
-                            onChange={(e) => updateBlockContent(blockIndex, e.target.value)}
-                            placeholder="AI-generated content will appear here..."
-                            className="border-none p-0 resize-none min-h-[100px] focus:ring-0 bg-transparent"
-                          />
                         </div>
                       )}
                       {block.type === 'ai' && block.properties?.aiType === 'ai-data-fetch' && (
@@ -751,13 +748,12 @@ Status: Ready for deployment`;
                               <Database className="h-3 w-3 mr-1" />
                               Fetch Data
                             </Button>
+                            {block.content && block.content.trim() && (
+                              <div className="mt-3 p-3 bg-gray-50 rounded border">
+                                <div className="text-sm text-gray-700 whitespace-pre-wrap">{block.content}</div>
+                              </div>
+                            )}
                           </div>
-                          <Textarea
-                            value={block.content}
-                            onChange={(e) => updateBlockContent(blockIndex, e.target.value)}
-                            placeholder="Data fetching results will appear here..."
-                            className="border-none p-0 resize-none min-h-[100px] focus:ring-0 bg-transparent"
-                          />
                         </div>
                       )}
                       {block.type === 'ai' && block.properties?.aiType && !['ai-paragraph', 'ai-data-fetch'].includes(block.properties.aiType) && (
