@@ -55,7 +55,7 @@ export default function CampaignsOverview() {
           </div>
         </div>
       </div>
-      <div className="flex-1 bg-gray-50">
+      <div className="flex-1 bg-white">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
           <TabsContent value="templates" className="h-full m-0">
             <TemplatesPage />
