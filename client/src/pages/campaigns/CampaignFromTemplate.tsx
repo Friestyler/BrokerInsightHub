@@ -685,10 +685,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
       {/* Content */}
       <div className="max-w-6xl mx-auto px-6 py-8">
-        {renderStepContent()}
-
         {/* Navigation */}
-        <div className="flex justify-between mt-8">
+        <div className="flex justify-between mb-8">
           <Button
             variant="outline"
             onClick={handlePrevious}
@@ -720,6 +718,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             )}
           </div>
         </div>
+
+        {renderStepContent()}
       </div>
     </div>
   );
