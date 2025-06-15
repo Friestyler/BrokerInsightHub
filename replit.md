@@ -136,6 +136,7 @@ Each environment maintains its own data isolation while sharing the same applica
 ## Changelog
 - June 14, 2025: Initial setup
 - June 14, 2025: Completed tabbed campaigns interface with Templates and Campaigns tabs, updated entity selection styling to grey default with color on hover/selection, removed heavy frames for seamless design
+- June 15, 2025: Cleaned up legacy template creation flows by removing old components (TemplateCreator, CleanEmailBuilder, EnhancedEmailBuilder) and ensured single source of truth for template creation through CampaignCreator
 
 ## User Preferences
 

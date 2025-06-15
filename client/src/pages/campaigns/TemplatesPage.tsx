@@ -32,11 +32,11 @@ export default function TemplatesPage() {
   };
 
   const handleEditTemplate = (templateId: string) => {
-    setLocation(`/campaigns/templates/${templateId}/edit`);
+    setLocation(`/campaigns/create?edit=${templateId}`);
   };
 
   const handlePreviewTemplate = (templateId: string) => {
-    setLocation(`/campaigns/templates/${templateId}/preview`);
+    setLocation(`/campaigns/create?preview=${templateId}`);
   };
 
   if (isLoading) {
