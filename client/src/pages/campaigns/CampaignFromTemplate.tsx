@@ -250,7 +250,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     if (stepNum === 1) return true;
     if (stepNum === 2) return isStepCompleted(1);
     if (stepNum === 3) return isStepCompleted(2);
-    if (stepNum === 4) return isStepCompleted(3);
+    if (stepNum === 4) return isStepCompleted(2); // Allow Flow Builder access after target group selection
     if (stepNum === 5) return isStepCompleted(4);
     return false;
   };
@@ -503,6 +503,9 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             <div className="p-4 bg-green-50 rounded-lg border border-green-200 mb-6">
               <p className="text-sm text-green-700">
                 <strong>Email content has been duplicated from the template.</strong> You can review and modify it below.
+              </p>
+              <p className="text-xs text-green-600 mt-1">
+                Debug: {campaignData.emails.length} emails loaded, First email has {campaignData.emails[0]?.blocks?.length || 0} blocks
               </p>
             </div>
             
