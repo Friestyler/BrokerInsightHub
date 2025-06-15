@@ -69,18 +69,18 @@ export default function TemplatesPage() {
     }
   };
 
-  // Get icon color based on icon type (matching the icon selector colors)
+  // Get icon color based on icon type (matching the exact icon selector colors from the screenshot)
   const getIconColor = (iconName: string) => {
     switch (iconName) {
-      case 'settings': return 'bg-blue-500';
-      case 'trending-up': return 'bg-green-500';
-      case 'zap': return 'bg-yellow-500';
-      case 'star': return 'bg-purple-500';
-      case 'heart': return 'bg-pink-500';
-      case 'gift': return 'bg-red-500';
-      case 'mail': return 'bg-gray-500';
-      case 'sparkles': return 'bg-indigo-500';
-      default: return 'bg-gray-500';
+      case 'settings': return 'bg-blue-500';      // Blue from screenshot
+      case 'trending-up': return 'bg-green-500';  // Green from screenshot  
+      case 'zap': return 'bg-orange-500';         // Orange from screenshot
+      case 'star': return 'bg-purple-500';        // Purple from screenshot
+      case 'heart': return 'bg-pink-500';         // Pink from screenshot
+      case 'gift': return 'bg-red-500';           // Red from screenshot
+      case 'mail': return 'bg-slate-500';         // Slate gray from screenshot
+      case 'sparkles': return 'bg-indigo-500';    // Indigo from screenshot
+      default: return 'bg-slate-500';
     }
   };
 
@@ -192,7 +192,7 @@ export default function TemplatesPage() {
             return (
               <div
                 key={template.id}
-                className={`bg-white rounded-2xl border-2 p-6 transition-all duration-200 hover:shadow-md group ${entityConfig.borderColor}`}
+                className="bg-white rounded-2xl border border-gray-200 p-6 transition-all duration-200 hover:shadow-md group"
               >
                 {/* Entity Type Tag */}
                 <div className="flex justify-start items-start mb-4">
@@ -216,27 +216,28 @@ export default function TemplatesPage() {
                   <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
                     {template.description}
                   </p>
-                  <p className="text-xs text-gray-500">
-                    {template.emailCount} email{template.emailCount !== 1 ? 's' : ''}
-                  </p>
+                  <div className="flex items-center justify-center gap-1 text-xs text-gray-500">
+                    <Mail className="h-3 w-3" />
+                    <span>{template.emailCount}</span>
+                  </div>
                 </div>
 
                 {/* Action Buttons */}
                 <div className="flex gap-2">
                   <Button
-                    variant="outline"
+                    variant="ghost"
                     size="sm"
                     onClick={() => handlePreviewTemplate(template.id)}
-                    className="flex-1 text-xs"
+                    className="flex-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <Eye className="h-3 w-3 mr-1" />
                     Preview
                   </Button>
                   <Button
-                    variant="default"
+                    variant="ghost"
                     size="sm"
                     onClick={() => handleEditTemplate(template.id)}
-                    className="flex-1 text-xs"
+                    className="flex-1 text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-50"
                   >
                     <Settings className="h-3 w-3 mr-1" />
                     Edit
