@@ -2,10 +2,20 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Mail, Users, Target, Clock, TrendingUp, Eye, MousePointer, Reply, AlertTriangle, Plus } from "lucide-react";
+import { 
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Mail, Users, Target, Clock, TrendingUp, Eye, MousePointer, Reply, AlertTriangle, Plus, Search, Filter, MoreHorizontal, ArrowUpDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface Campaign {

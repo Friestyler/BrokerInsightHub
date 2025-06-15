@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import TemplatesPage from './TemplatesPage';
-import CampaignsPage from './CampaignsPage';
+import CampaignsTable from './CampaignsTable';
 import { FileText, Send } from 'lucide-react';
 
 export default function CampaignsOverview() {
