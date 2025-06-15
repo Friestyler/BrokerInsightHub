@@ -133,18 +133,25 @@ export default function CampaignCreator() {
   const { data: templateData, isLoading: templateLoading } = useQuery({
     queryKey: [`/api/campaign-templates/${editTemplateId}`],
     enabled: isEditMode && !!editTemplateId,
+    queryFn: async () => {
+      const envId = window.localStorage.getItem('environment') || 'degoudse';
+      const url = `/api/${envId}/campaign-templates/${editTemplateId}`;
+      return fetch(url).then(res => res.json());
+    }
   });
 
   // Load template data into form when available
   useEffect(() => {
     if (templateData && isEditMode) {
+      console.log('Loading template data for editing:', templateData);
+      
       const emails = templateData.emails?.map((email: any, index: number) => ({
-        id: (index + 1).toString(),
+        id: email.id || (index + 1).toString(),
         subject: email.subject || '',
-        blocks: email.content ? JSON.parse(email.content) : [],
+        blocks: email.blocks || [],
         followUpDays: email.followUpDays || 0,
-        leftLogo: null,
-        rightLogo: null,
+        leftLogo: email.leftLogo || null,
+        rightLogo: email.rightLogo || null,
         condition: email.condition || (index > 0 ? { type: 'always' } : undefined)
       })) || [{
         id: '1',
@@ -163,6 +170,13 @@ export default function CampaignCreator() {
         icon: templateData.icon || '',
         attachments: templateData.attachments || [],
         emails: emails
+      });
+      
+      console.log('Campaign data set for editing:', { 
+        entity: templateData.entity,
+        name: templateData.name,
+        emailCount: emails.length,
+        firstEmailBlocks: emails[0]?.blocks?.length
       });
     }
   }, [templateData, isEditMode]);
@@ -700,6 +714,18 @@ export default function CampaignCreator() {
 
   // Helper functions
 
+  // Show loading state when fetching template data
+  if (isEditMode && templateLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading template...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
@@ -712,8 +738,12 @@ export default function CampaignCreator() {
                 Back
               </Button>
               <div>
-                <h1 className="text-lg font-medium text-gray-900">Step {currentStep} of {totalSteps}</h1>
-                <p className="text-sm text-gray-600">{Math.round(progress)}% Complete</p>
+                <h1 className="text-lg font-medium text-gray-900">
+                  {isEditMode ? `Edit Template: ${campaignData.name || 'Untitled'}` : `Step ${currentStep} of ${totalSteps}`}
+                </h1>
+                <p className="text-sm text-gray-600">
+                  {isEditMode ? 'Make changes and save when ready' : `${Math.round(progress)}% Complete`}
+                </p>
               </div>
             </div>
           </div>
