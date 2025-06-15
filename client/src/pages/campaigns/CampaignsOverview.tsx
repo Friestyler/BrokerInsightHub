@@ -29,18 +29,32 @@ export default function CampaignsOverview() {
     <div className="h-full flex flex-col">
       <div className="bg-white">
         <div className="max-w-6xl mx-auto px-6 py-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full max-w-md grid-cols-2">
-              <TabsTrigger value="templates" className="flex items-center gap-2">
-                <FileText className="h-4 w-4" />
-                Templates
-              </TabsTrigger>
-              <TabsTrigger value="campaigns" className="flex items-center gap-2">
-                <Send className="h-4 w-4" />
-                Campaigns
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="flex space-x-1">
+            <Button 
+              variant="ghost" 
+              className={`flex items-center gap-2 ${
+                activeTab === 'templates' 
+                  ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+              onClick={() => setActiveTab('templates')}
+            >
+              <FileText className="h-4 w-4" />
+              Templates
+            </Button>
+            <Button 
+              variant="ghost" 
+              className={`flex items-center gap-2 ${
+                activeTab === 'campaigns' 
+                  ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+              onClick={() => setActiveTab('campaigns')}
+            >
+              <Send className="h-4 w-4" />
+              Campaigns
+            </Button>
+          </div>
         </div>
       </div>
 
