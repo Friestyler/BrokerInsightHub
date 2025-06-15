@@ -48,7 +48,8 @@ interface Contact {
 
 interface Entity {
   id: number;
-  name: string;
+  name?: string;
+  title?: string; // For opportunities
   type: string;
   email?: string;
   phone?: string;
@@ -242,9 +243,10 @@ export default function RecipientSelector({
     return null;
   };
 
-  const filteredEntities = (entities as any[] || []).filter((entity: Entity) => 
-    entity.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredEntities = (entities as any[] || []).filter((entity: Entity) => {
+    const entityName = entity.name || entity.title || '';
+    return entityName.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   const filteredContacts = (allContacts as any[] || []).filter((contact: Contact) => {
     const fullName = contact.fullName || `${contact.firstName || (contact as any).first_name || ''} ${contact.lastName || (contact as any).last_name || ''}`.trim();
@@ -271,6 +273,11 @@ export default function RecipientSelector({
   // Helper function to get contact job title
   const getContactJobTitle = (contact: Contact) => {
     return contact.jobTitle || contact.job_title;
+  };
+
+  // Helper function to get entity display name
+  const getEntityDisplayName = (entity: Entity) => {
+    return entity.name || entity.title || 'Unknown Entity';
   };
 
   return (
@@ -473,7 +480,7 @@ export default function RecipientSelector({
                                 )}
                               />
                               <div>
-                                <p className="font-medium text-gray-900">{entity.name}</p>
+                                <p className="font-medium text-gray-900">{getEntityDisplayName(entity)}</p>
                                 {entity.email && (
                                   <p className="text-sm text-gray-500 flex items-center gap-1">
                                     <Mail className="h-3 w-3" />
@@ -680,7 +687,7 @@ export default function RecipientSelector({
                                     )}
                                   />
                                   <div>
-                                    <p className="font-medium text-gray-900">{entity.name}</p>
+                                    <p className="font-medium text-gray-900">{getEntityDisplayName(entity)}</p>
                                     {entity.email && (
                                       <p className="text-sm text-gray-500 flex items-center gap-1">
                                         <Mail className="h-3 w-3" />
