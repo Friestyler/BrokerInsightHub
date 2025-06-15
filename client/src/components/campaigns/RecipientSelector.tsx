@@ -278,14 +278,79 @@ export default function RecipientSelector({
     );
 
     if (isSelected) {
+      // When deselecting, remove the entity and all its related contacts
+      const relatedKeys = [`${type}-${recipient.id}`];
+      
+      // Add related contacts to removal list
+      const relatedContacts = entityContacts[recipient.id] || [];
+      relatedContacts.forEach(contact => {
+        relatedKeys.push(`contact-${contact.id}`);
+      });
+      
+      // For opportunities, also remove customer contacts
+      if (type === 'entity' && entityType === 'opportunities') {
+        const customer = getCustomerForOpportunity(recipient.id);
+        if (customer) {
+          relatedKeys.push(`customer-${customer.id}`);
+          const customerContacts = entityContacts[customer.id] || [];
+          customerContacts.forEach(contact => {
+            relatedKeys.push(`contact-${contact.id}`);
+          });
+        }
+      }
+      
       onRecipientsChange(selectedRecipients.filter(r => 
-        `${r.type}-${r.id}` !== recipientKey
+        !relatedKeys.includes(`${r.type}-${r.id}`)
       ));
     } else {
-      onRecipientsChange([
+      // When selecting, add the entity and all its related contacts
+      const newRecipients = [
         ...selectedRecipients,
         { ...recipient, type, recipientKey }
-      ]);
+      ];
+      
+      // Add related contacts
+      const relatedContacts = entityContacts[recipient.id] || [];
+      relatedContacts.forEach(contact => {
+        const contactKey = `contact-${contact.id}`;
+        if (!selectedRecipients.some(r => `${r.type}-${r.id}` === contactKey)) {
+          newRecipients.push({
+            ...contact,
+            type: 'contact',
+            recipientKey: contactKey
+          });
+        }
+      });
+      
+      // For opportunities, also select customer and customer contacts
+      if (type === 'entity' && entityType === 'opportunities') {
+        const customer = getCustomerForOpportunity(recipient.id);
+        if (customer) {
+          const customerKey = `customer-${customer.id}`;
+          if (!selectedRecipients.some(r => `${r.type}-${r.id}` === customerKey)) {
+            newRecipients.push({
+              ...customer,
+              type: 'customer',
+              recipientKey: customerKey
+            });
+          }
+          
+          // Add customer contacts
+          const customerContacts = entityContacts[customer.id] || [];
+          customerContacts.forEach(contact => {
+            const contactKey = `contact-${contact.id}`;
+            if (!selectedRecipients.some(r => `${r.type}-${r.id}` === contactKey)) {
+              newRecipients.push({
+                ...contact,
+                type: 'contact',
+                recipientKey: contactKey
+              });
+            }
+          });
+        }
+      }
+      
+      onRecipientsChange(newRecipients);
     }
   };
 
@@ -469,12 +534,6 @@ export default function RecipientSelector({
               Bulk Select
             </Button>
             <Dialog open={showAddContact} onOpenChange={setShowAddContact}>
-              <DialogTrigger asChild>
-                <Button size="sm" className="gap-2">
-                  <UserPlus className="h-4 w-4" />
-                  Add Contact
-                </Button>
-              </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
                   <DialogTitle>Add New Contact</DialogTitle>

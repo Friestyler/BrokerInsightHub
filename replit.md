@@ -148,6 +148,7 @@ Each environment maintains its own data isolation while sharing the same applica
 - June 15, 2025: Redesigned Campaign Creator step progress indicator with vertical layout placing step text below check marker icons, improved connecting lines, and proper visual hierarchy for both new and existing template workflows
 - June 15, 2025: Completed campaign creation flow from templates with database integration, API routes, step-by-step wizard (campaign naming, recipient selection, settings), and simplified template action button text to "Use"
 - June 15, 2025: Implemented comprehensive recipient selection system with real-time selection counter in tab labels, structured "Selected" tab with dropdown organization starting from contacts level, visual hierarchy for Direct vs Entity Contacts, individual removal capabilities, and clean Apple/Google style UX without redundant interface elements
+- June 15, 2025: Enhanced hierarchical selection behavior where selecting an entity automatically selects all underlying contacts and related entities, removed standalone "Add Contact" button in favor of inline entity-specific contact creation forms, and ensured proper entity-contact linking in database upon creation
 
 ## User Preferences
 
