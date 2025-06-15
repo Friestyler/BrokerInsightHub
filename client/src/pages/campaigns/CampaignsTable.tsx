@@ -31,9 +31,12 @@ import {
   Play,
   Pause,
   Edit,
-  Trash2
+  Trash2,
+  ChevronUp,
+  ChevronDown
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import CampaignsSummaryCards from "./CampaignsSummaryCards";
 
 interface Campaign {
   id: number;
@@ -75,6 +78,8 @@ export default function CampaignsTable() {
   const [selectedCampaigns, setSelectedCampaigns] = useState<number[]>([]);
   const [statusFilter, setStatusFilter] = useState("all");
   const [entityFilter, setEntityFilter] = useState("all");
+  const [sortBy, setSortBy] = useState<string>('name');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
 
   // Filter campaigns based on search and filters
   const filteredCampaigns = campaigns.filter((campaign: any) => {
@@ -89,6 +94,40 @@ export default function CampaignsTable() {
     return matchesSearch && matchesStatus && matchesEntity;
   });
 
+  // Sort campaigns
+  const sortedCampaigns = [...filteredCampaigns].sort((a: any, b: any) => {
+    let aValue = a[sortBy];
+    let bValue = b[sortBy];
+    
+    // Handle special sorting cases
+    if (sortBy === 'engagement_rate') {
+      aValue = getEngagementRate(a);
+      bValue = getEngagementRate(b);
+    } else if (sortBy === 'recipients_count') {
+      aValue = a.recipients?.length || 0;
+      bValue = b.recipients?.length || 0;
+    } else if (sortBy === 'created_at') {
+      aValue = new Date(a.created_at).getTime();
+      bValue = new Date(b.created_at).getTime();
+    }
+    
+    if (sortOrder === 'asc') {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
+
+  // Handle column sorting
+  const handleSort = (column: string) => {
+    if (sortBy === column) {
+      setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortBy(column);
+      setSortOrder('asc');
+    }
+  };
+
   // Toggle campaign selection
   const toggleCampaignSelection = (campaignId: number) => {
     setSelectedCampaigns(prev => 
@@ -100,24 +139,11 @@ export default function CampaignsTable() {
 
   // Toggle select all
   const toggleSelectAll = () => {
-    if (selectedCampaigns.length === filteredCampaigns.length) {
+    if (selectedCampaigns.length === sortedCampaigns.length) {
       setSelectedCampaigns([]);
     } else {
-      setSelectedCampaigns(filteredCampaigns.map((campaign: any) => campaign.id));
+      setSelectedCampaigns(sortedCampaigns.map((campaign: any) => campaign.id));
     }
-  };
-
-  // Get status badge variant
-  const getStatusBadge = (status: string) => {
-    const variants = {
-      'draft': 'secondary',
-      'scheduled': 'default',
-      'in_progress': 'default', 
-      'sent': 'default',
-      'completed': 'default',
-      'paused': 'secondary'
-    };
-    return variants[status as keyof typeof variants] || 'secondary';
   };
 
   // Get entity type badge color
@@ -142,6 +168,16 @@ export default function CampaignsTable() {
     return Math.round((totalOpened / totalSent) * 100);
   };
 
+  // Render sort icon
+  const renderSortIcon = (column: string) => {
+    if (sortBy !== column) {
+      return <ArrowUpDown className="h-3 w-3 text-gray-400" />;
+    }
+    return sortOrder === 'asc' 
+      ? <ChevronUp className="h-3 w-3 text-gray-600" />
+      : <ChevronDown className="h-3 w-3 text-gray-600" />;
+  };
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-64">
@@ -152,6 +188,9 @@ export default function CampaignsTable() {
 
   return (
     <div className="max-w-7xl mx-auto p-6 space-y-6">
+      {/* Summary Cards */}
+      <CampaignsSummaryCards />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -215,10 +254,10 @@ export default function CampaignsTable() {
         </div>
       </div>
 
-      {/* Results count */}
+      {/* Results count and bulk actions */}
       <div className="flex items-center justify-between">
         <p className="text-sm text-gray-600">
-          Showing {filteredCampaigns.length} of {campaigns.length} campaigns
+          Showing {sortedCampaigns.length} of {campaigns.length} campaigns
         </p>
         {selectedCampaigns.length > 0 && (
           <div className="flex items-center gap-2">
@@ -242,27 +281,77 @@ export default function CampaignsTable() {
       </div>
 
       {/* Campaigns Table */}
-      <div className="bg-white rounded-lg border">
+      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
         <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-12">
+          <TableHeader className="bg-gray-50">
+            <TableRow className="border-b border-gray-200">
+              <TableHead className="w-12 pl-6">
                 <Checkbox 
-                  checked={selectedCampaigns.length === filteredCampaigns.length && filteredCampaigns.length > 0}
+                  checked={selectedCampaigns.length === sortedCampaigns.length && sortedCampaigns.length > 0}
                   onCheckedChange={toggleSelectAll}
                 />
               </TableHead>
-              <TableHead>Campaign</TableHead>
-              <TableHead>Target</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead>Recipients</TableHead>
-              <TableHead>Engagement</TableHead>
-              <TableHead>Created</TableHead>
-              <TableHead>Actions</TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-gray-100 py-4"
+                onClick={() => handleSort('name')}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-gray-700">Campaign</span>
+                  {renderSortIcon('name')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('target_entity_type')}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-gray-700">Entity</span>
+                  {renderSortIcon('target_entity_type')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('status')}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-gray-700">Status</span>
+                  {renderSortIcon('status')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('recipients_count')}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-gray-700">Recipients</span>
+                  {renderSortIcon('recipients_count')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('engagement_rate')}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-gray-700">Engagement</span>
+                  {renderSortIcon('engagement_rate')}
+                </div>
+              </TableHead>
+              <TableHead 
+                className="cursor-pointer hover:bg-gray-100"
+                onClick={() => handleSort('created_at')}
+              >
+                <div className="flex items-center gap-2">
+                  <span className="font-medium text-gray-700">Created</span>
+                  {renderSortIcon('created_at')}
+                </div>
+              </TableHead>
+              <TableHead className="w-24 text-center">
+                <span className="font-medium text-gray-700">Actions</span>
+              </TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredCampaigns.map((campaign: any) => {
+            {sortedCampaigns.map((campaign: any, index: number) => {
               const email1 = campaign.engagement_summary?.email1 || {};
               const email2 = campaign.engagement_summary?.email2 || {};
               const totalSent = (email1.sent || 0) + (email2.sent || 0);
@@ -270,72 +359,79 @@ export default function CampaignsTable() {
               const engagementRate = getEngagementRate(campaign);
 
               return (
-                <TableRow key={campaign.id}>
-                  <TableCell>
+                <TableRow 
+                  key={campaign.id} 
+                  className={cn(
+                    "border-b border-gray-100 hover:bg-gray-50/50 transition-colors",
+                    selectedCampaigns.includes(campaign.id) && "bg-blue-50/50"
+                  )}
+                >
+                  <TableCell className="pl-6">
                     <Checkbox 
                       checked={selectedCampaigns.includes(campaign.id)}
                       onCheckedChange={() => toggleCampaignSelection(campaign.id)}
                     />
                   </TableCell>
                   
-                  <TableCell>
-                    <div className="space-y-1">
-                      <div className="font-medium text-gray-900">{campaign.name}</div>
-                      <div className="text-sm text-gray-500 line-clamp-1">
-                        {campaign.description || campaign.objective}
+                  <TableCell className="py-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                        <span className="text-xs font-medium text-blue-700">
+                          {campaign.name.charAt(0).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">{campaign.name}</div>
+                        <div className="text-sm text-gray-500 line-clamp-1 max-w-xs">
+                          {campaign.description || campaign.objective}
+                        </div>
                       </div>
                     </div>
                   </TableCell>
                   
                   <TableCell>
                     <span className={cn(
-                      "inline-flex items-center px-2 py-1 rounded-full text-xs font-medium",
+                      "inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium",
                       getEntityColor(campaign.target_entity_type)
                     )}>
-                      {campaign.target_entity_type === 'partners' && 'Partners'}
-                      {campaign.target_entity_type === 'customers' && 'Customers'}
-                      {campaign.target_entity_type === 'opportunities' && 'Opportunities'}
+                      {campaign.target_entity_type === 'partners' && 'Partner'}
+                      {campaign.target_entity_type === 'customers' && 'Customer'}
+                      {campaign.target_entity_type === 'opportunities' && 'Opportunity'}
                       {campaign.target_entity_type === 'internal' && 'Internal'}
                     </span>
                   </TableCell>
                   
                   <TableCell>
-                    <Badge variant={getStatusBadge(campaign.status)}>
+                    <div className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
                       {campaign.status === 'draft' && 'Draft'}
                       {campaign.status === 'scheduled' && 'Scheduled'}
                       {campaign.status === 'in_progress' && 'In Progress'}
                       {campaign.status === 'sent' && 'Sent'}
                       {campaign.status === 'completed' && 'Completed'}
                       {campaign.status === 'paused' && 'Paused'}
-                    </Badge>
-                  </TableCell>
-                  
-                  <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Users className="h-3 w-3 text-gray-400" />
-                      <span className="text-sm">{campaign.recipients?.length || 0}</span>
                     </div>
                   </TableCell>
                   
                   <TableCell>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium">{engagementRate}%</span>
-                        <div className="w-16 bg-gray-200 rounded-full h-1.5">
-                          <div 
-                            className="bg-blue-600 h-1.5 rounded-full" 
-                            style={{ width: `${Math.min(engagementRate, 100)}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {totalOpened}/{totalSent} opened
+                    <span className="text-sm text-gray-900 font-medium">
+                      {campaign.recipients?.length || 0}
+                    </span>
+                  </TableCell>
+                  
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium text-gray-900">{engagementRate}%</span>
+                      <div className="w-16 bg-gray-200 rounded-full h-2">
+                        <div 
+                          className="bg-blue-600 h-2 rounded-full transition-all" 
+                          style={{ width: `${Math.min(engagementRate, 100)}%` }}
+                        ></div>
                       </div>
                     </div>
                   </TableCell>
                   
                   <TableCell>
-                    <div className="space-y-1">
+                    <div>
                       <div className="text-sm text-gray-900">
                         {new Date(campaign.created_at).toLocaleDateString()}
                       </div>
@@ -346,15 +442,15 @@ export default function CampaignsTable() {
                   </TableCell>
                   
                   <TableCell>
-                    <div className="flex items-center gap-1">
-                      <Button size="sm" variant="ghost">
-                        <Eye className="h-3 w-3" />
+                    <div className="flex items-center justify-center gap-1">
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                        <Eye className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="ghost">
-                        <Edit className="h-3 w-3" />
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                        <Edit className="h-4 w-4" />
                       </Button>
-                      <Button size="sm" variant="ghost">
-                        <MoreHorizontal className="h-3 w-3" />
+                      <Button size="sm" variant="ghost" className="h-8 w-8 p-0">
+                        <MoreHorizontal className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>
@@ -364,7 +460,7 @@ export default function CampaignsTable() {
           </TableBody>
         </Table>
         
-        {filteredCampaigns.length === 0 && (
+        {sortedCampaigns.length === 0 && (
           <div className="text-center py-12">
             <Mail className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">No campaigns found</h3>
