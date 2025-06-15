@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading } from "lucide-react";
-import { useLocation, useRoute } from 'wouter';
+import { useLocation, useRoute, useParams } from 'wouter';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -18,7 +18,13 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { templateId, campaignId } = params || {};
+  
+  // Extract route parameters properly using wouter
+  const [match, routeParams] = useRoute('/campaigns/edit/:campaignId');
+  const [templateMatch, templateRouteParams] = useRoute('/campaigns/create-from-template/:templateId');
+  
+  const campaignId = routeParams?.campaignId || params?.campaignId;
+  const templateId = templateRouteParams?.templateId || params?.templateId;
   const [currentStep, setCurrentStep] = useState(1);
   const [activeEmailIndex, setActiveEmailIndex] = useState(0);
   
