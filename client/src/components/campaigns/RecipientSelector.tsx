@@ -560,7 +560,9 @@ export default function RecipientSelector({
                                               <Users className="h-4 w-4 text-gray-600" />
                                             </div>
                                             <div className="flex-1">
-                                              <p className="font-medium text-gray-900">{contact.fullName}</p>
+                                              <p className="font-medium text-gray-900">
+                                                {getContactDisplayName(contact)}
+                                              </p>
                                               <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
                                                 {contact.email && (
                                                   <span className="flex items-center gap-1">
@@ -568,10 +570,10 @@ export default function RecipientSelector({
                                                     {contact.email}
                                                   </span>
                                                 )}
-                                                {contact.jobTitle && (
+                                                {getContactJobTitle(contact) && (
                                                   <span className="flex items-center gap-1">
                                                     <Briefcase className="h-3 w-3" />
-                                                    {contact.jobTitle}
+                                                    {getContactJobTitle(contact)}
                                                   </span>
                                                 )}
                                               </div>
@@ -584,8 +586,8 @@ export default function RecipientSelector({
                                 ) : null;
                               })()}
 
-                              {/* Direct entity contacts (for partners, customers, internal) */}
-                              {entityContacts[entity.id] && entityType !== 'opportunities' && (
+                              {/* Direct entity contacts (for partners, customers, opportunities) */}
+                              {entityContacts[entity.id] && (
                                 <div className="space-y-2">
                                   {entityContacts[entity.id].map((contact: Contact) => (
                                     <div key={contact.id} className="flex items-center gap-3 p-3 bg-white border rounded-lg">
