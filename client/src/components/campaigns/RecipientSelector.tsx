@@ -122,6 +122,11 @@ export default function RecipientSelector({
     enabled: entityType === 'opportunities'
   });
 
+  // Fetch partners for contact relationship mapping
+  const { data: partners = [], isLoading: partnersLoading } = useQuery({
+    queryKey: ['/api/degoudse/partners']
+  });
+
   // Fetch all contacts related to the entity type
   const { data: allContacts = [], isLoading: contactsLoading } = useQuery({
     queryKey: [`/api/degoudse/contacts`],
