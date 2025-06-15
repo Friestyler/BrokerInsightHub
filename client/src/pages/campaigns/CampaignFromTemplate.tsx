@@ -11,19 +11,21 @@ import ImprovedFlowBuilder from './ImprovedEmailBuilder';
 import RecipientSelector from '@/components/campaigns/RecipientSelector';
 
 interface CampaignFromTemplateProps {
-  params?: { templateId?: string };
+  params?: { templateId?: string; campaignId?: string };
 }
 
 export default function CampaignFromTemplate({ params }: CampaignFromTemplateProps) {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { templateId } = params || {};
+  const { templateId, campaignId } = params || {};
   const [currentStep, setCurrentStep] = useState(1);
   const [activeEmailIndex, setActiveEmailIndex] = useState(0);
   
-  // Check if this is "new campaign" mode (no templateId)
-  const isNewCampaign = !templateId;
+  // Determine the mode: editing existing campaign, new campaign, or template-based campaign
+  const isEditingCampaign = !!campaignId;
+  const isNewCampaign = !templateId && !campaignId;
+  const isFromTemplate = !!templateId && !campaignId;
   
   const [campaignData, setCampaignData] = useState({
     name: '',
@@ -54,7 +56,13 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   // Load template data to duplicate (only for template-based campaigns)
   const { data: templateData, isLoading: templateLoading } = useQuery({
     queryKey: [`/api/campaign-templates/${templateId}`],
-    enabled: !!templateId && !isNewCampaign
+    enabled: !!templateId && isFromTemplate
+  });
+
+  // Load existing campaign data for editing
+  const { data: campaignDataFromAPI, isLoading: campaignLoading } = useQuery({
+    queryKey: [`/api/campaigns/${campaignId}`],
+    enabled: isEditingCampaign
   });
 
   // Set default data for new campaigns
@@ -80,9 +88,65 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     }
   }, [isNewCampaign]);
 
+  // Load existing campaign data for editing
+  useEffect(() => {
+    if (campaignDataFromAPI && isEditingCampaign) {
+      console.log('Loading existing campaign data for editing:', campaignDataFromAPI);
+      
+      const emails = campaignDataFromAPI.emails?.map((email: any, index: number) => {
+        let blocks = [];
+        try {
+          // Campaign emails store content as JSON string, parse it to get blocks
+          if (typeof email.content === 'string') {
+            blocks = JSON.parse(email.content);
+          } else if (email.blocks) {
+            blocks = email.blocks;
+          }
+        } catch (e) {
+          console.warn('Failed to parse email content:', e);
+        }
+        
+        return {
+          id: email.id || (index + 1).toString(),
+          subject: email.subject || '',
+          blocks: blocks,
+          followUpDays: email.followUpDays || 0,
+          leftLogo: null,
+          rightLogo: null
+        };
+      }) || [{
+        id: '1',
+        subject: '',
+        blocks: [],
+        followUpDays: 0,
+        leftLogo: null,
+        rightLogo: null
+      }];
+
+      setCampaignData({
+        name: campaignDataFromAPI.name || '',
+        entity: campaignDataFromAPI.target_entity_type || 'partners',
+        description: campaignDataFromAPI.description || '',
+        objective: campaignDataFromAPI.objective || '',
+        icon: campaignDataFromAPI.icon || 'target',
+        attachments: campaignDataFromAPI.attachments || [],
+        emails: emails,
+        recipients: campaignDataFromAPI.recipients || [],
+        settings: campaignDataFromAPI.settings || {
+          sendTime: '',
+          timezone: 'UTC',
+          trackOpens: true,
+          trackClicks: true,
+          unsubscribeLink: true,
+          replyTo: ''
+        }
+      });
+    }
+  }, [campaignDataFromAPI, isEditingCampaign]);
+
   // Load template data into campaign when available
   useEffect(() => {
-    if (templateData && !isNewCampaign) {
+    if (templateData && isFromTemplate) {
       console.log('Loading template data for campaign creation:', templateData);
       
       const emails = templateData.emails?.map((email: any, index: number) => {
@@ -174,9 +238,9 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   });
 
   const handleBack = () => {
-    if (isNewCampaign) {
+    if (isEditingCampaign || isNewCampaign) {
       setLocation('/campaigns');
-    } else {
+    } else if (isFromTemplate) {
       setLocation('/campaigns/templates');
     }
   };
@@ -661,15 +725,20 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="sm" onClick={handleBack} className="gap-2">
                 <ArrowLeft className="h-4 w-4" />
-                {isNewCampaign ? "Back to Campaigns" : "Back to Templates"}
+                {isEditingCampaign || isNewCampaign ? "Back to Campaigns" : "Back to Templates"}
               </Button>
               <div>
                 <h1 className="text-lg font-medium text-gray-900">
-                  {isNewCampaign ? "Create New Campaign" : "Create Campaign from Template"}
+                  {isEditingCampaign ? "Edit Campaign" : isNewCampaign ? "Create New Campaign" : "Create Campaign from Template"}
                 </h1>
-                {!isNewCampaign && (
+                {isFromTemplate && (
                   <p className="text-sm text-gray-600">
                     Based on: {templateData?.name}
+                  </p>
+                )}
+                {isEditingCampaign && (
+                  <p className="text-sm text-gray-600">
+                    Campaign: {campaignDataFromAPI?.name}
                   </p>
                 )}
               </div>

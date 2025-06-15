@@ -92,6 +92,7 @@ function Router() {
               {/* Campaigns routes */}
               <Route path="/campaigns" component={CampaignsOverview} />
               <Route path="/campaigns/new" component={CampaignFromTemplate} />
+              <Route path="/campaigns/edit/:campaignId" component={CampaignFromTemplate} />
               <Route path="/campaigns/create-template" component={CampaignCreator} />
               <Route path="/campaigns/templates" component={TemplatesPage} />
               <Route path="/campaigns/create-from-template/:templateId" component={CampaignFromTemplate} />
