@@ -72,7 +72,7 @@ interface SavedList {
   name: string;
   description: string;
   entityType: string;
-  entityIds: number[];
+  members: number[];
   contactIds: number[];
   itemCount: number;
 }
@@ -672,7 +672,7 @@ export default function RecipientSelector({
                     {/* Expanded List Items with Drill-down */}
                     {expandedItems.has(`list-${list.id}`) && (
                       <div className="mt-4 space-y-2 pl-6 border-l-2 border-gray-100">
-                        {(list.entityIds || []).map(entityId => {
+                        {(list.members || []).map((entityId: number) => {
                           const entity = (entities as any[] || []).find((e: any) => e.id === entityId);
                           if (!entity) return null;
                           
