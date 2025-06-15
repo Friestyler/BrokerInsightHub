@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -194,6 +194,7 @@ const getEntityColor = (entityType: string) => {
 export default function CampaignsTable({ campaigns, selectedCampaigns, onSelectionChange }: CampaignsTableProps) {
   const [sortField, setSortField] = useState<string>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [, setLocation] = useLocation();
 
   const handleSort = (field: string) => {
     if (sortField === field) {
@@ -361,8 +362,8 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
                 onClick={(e) => {
                   // Don't trigger when clicking on checkbox or actions
                   if (!(e.target as any).type || (e.target as any).type !== 'checkbox') {
-                    // Navigate to campaign detail view
-                    console.log('Navigate to campaign:', campaign.id);
+                    // Navigate to campaign edit view
+                    setLocation(`/campaigns/edit/${campaign.id}`);
                   }
                 }}
               >
