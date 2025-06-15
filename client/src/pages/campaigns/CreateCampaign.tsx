@@ -105,7 +105,7 @@ export function CreateCampaign({ params }: CreateCampaignProps) {
   // Create campaign mutation
   const createCampaignMutation = useMutation({
     mutationFn: async (data: CampaignFormData) => {
-      const response = await fetch('/api/campaigns', {
+      const response = await fetch('/api/degoudse/campaigns', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
