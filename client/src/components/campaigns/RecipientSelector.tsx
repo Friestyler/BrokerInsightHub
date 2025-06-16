@@ -1891,7 +1891,15 @@ export default function RecipientSelector({
                               {/* For opportunities, show customer hierarchy */}
                               {entityType === 'opportunities' && (() => {
                                 const customer = getCustomerForOpportunity(entity.id);
-                                if (!customer) return null;
+                                if (!customer) {
+                                  return (
+                                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                      <p className="text-sm text-yellow-800">
+                                        ⚠️ No customer organization found for this opportunity
+                                      </p>
+                                    </div>
+                                  );
+                                }
 
                                 const customerContacts = entityContacts[customer.id] || [];
                                 const hasContacts = customerContacts.length > 0;
