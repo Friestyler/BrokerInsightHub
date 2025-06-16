@@ -2244,6 +2244,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Cache clearing endpoint
+  app.post('/api/admin/clear-cache', (req, res) => {
+    clearCache();
+    res.json({ message: 'Cache cleared successfully' });
+  });
+
   // WORKING TEST ROUTE
   app.get('/api/degoudse/saved-views-test', async (req, res) => {
     res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
