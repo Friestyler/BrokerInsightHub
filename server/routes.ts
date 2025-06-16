@@ -5084,6 +5084,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/:envId/campaigns', async (req, res) => {
     try {
       const { envId } = req.params;
+      const { partner_id } = req.query;
       
       // For degoudse environment, check for shared templates
       if (envId === 'degoudse') {
@@ -5092,14 +5093,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userId = 1; // John Smith's user ID
         
         try {
-          // Get all campaigns with user info
-          const result = await pool.query(`
+          let query = `
             SELECT c.*, u.name as created_by_name 
             FROM ${envId}.campaigns c
             LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
             WHERE c.is_template = false
-            ORDER BY c.created_at DESC
-          `);
+          `;
+          
+          const queryParams = [];
+          
+          // If partner_id is specified, filter campaigns linked to that partner
+          if (partner_id) {
+            // For now, we'll simulate that campaigns can be linked to partners through sharing
+            // This would normally involve checking campaign recipients or shared_with fields
+            query += ` AND (c.is_shared = true OR c.created_by_id = $1)`;
+            queryParams.push(userId);
+          }
+          
+          query += ` ORDER BY c.created_at DESC`;
+          
+          // Get campaigns with user info
+          const result = await pool.query(query, queryParams);
           
           // Return campaigns with proper data structure matching frontend expectations
           const campaigns = result.rows.map(campaign => ({
