@@ -1054,7 +1054,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tasksResult = await db.execute(sql`
         SELECT t.*, u.name as assigned_to_name
         FROM ${sql.identifier(envId)}.activity_tasks t
-        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id::text
+        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id
         WHERE t.partner_id = ${partnerId}
         ORDER BY t.created_at DESC
       `);
@@ -1122,7 +1122,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           null as priority,
           null as completed,
           visible_to_partner,
-          user_id::text as assigned_to,
+          user_id as assigned_to,
           created_at,
           updated_at
         FROM ${sql.identifier(envId)}.activity_comments 
@@ -1139,7 +1139,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           null as priority,
           null as completed,
           visible_to_partner,
-          uploaded_by_id::text as assigned_to,
+          uploaded_by_id as assigned_to,
           created_at,
           null as updated_at
         FROM ${sql.identifier(envId)}.activity_attachments 
