@@ -118,6 +118,7 @@ const useCustomers = () => {
     queryKey: ['/api/customers'],
     queryFn: () => apiRequest('GET', '/api/customers'),
     staleTime: 5 * 60 * 1000,
+    select: (data) => data?.data || [],
   });
 };
 

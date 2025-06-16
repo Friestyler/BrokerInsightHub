@@ -142,10 +142,11 @@ export default function RecipientSelector({
   });
 
   // Fetch customers for opportunity drill-down
-  const { data: customers = [], isLoading: customersLoading } = useQuery({
+  const { data: customersResponse, isLoading: customersLoading } = useQuery({
     queryKey: ['/api/degoudse/customers'],
     enabled: entityType === 'opportunities'
   });
+  const customers = customersResponse?.data || [];
 
   // Fetch partners for contact relationship mapping
   const { data: partners = [], isLoading: partnersLoading } = useQuery({
