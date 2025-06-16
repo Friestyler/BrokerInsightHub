@@ -1029,13 +1029,10 @@ export default function ProcessingStep({
             // This includes 'create_duplicate' solution and no duplicate issue
             console.log('Creating new record for row:', row._rowNumber);
             console.log('Using target entity type:', targetEntityType);
-            response = await fetch(`/api/degoudse/create-record`, {
+            response = await fetch(`/api/degoudse/${targetEntityType}`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                entityType: targetEntityType,
-                data: transformedData
-              })
+              body: JSON.stringify(transformedData)
             });
           }
 
