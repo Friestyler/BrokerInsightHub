@@ -341,6 +341,74 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     }
   };
 
+  // Handler for sharing campaign with selected partners
+  const handleShareWithPartners = async () => {
+    if (!campaignId && !isEditingCampaign) {
+      toast({
+        title: "Save Required",
+        description: "Please save the campaign first before sharing with partners.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const sharePromises = selectedPartnersForSharing.map(partnerId => 
+        apiRequest('POST', '/api/campaign-shares', {
+          campaign_id: parseInt(campaignId!),
+          shared_with_type: 'partner',
+          shared_with_id: partnerId,
+          access_level: 'view',
+          shared_by_id: 1,
+          is_active: true
+        })
+      );
+
+      await Promise.all(sharePromises);
+      
+      toast({
+        title: "Campaign Shared",
+        description: `Campaign shared with ${selectedPartnersForSharing.length} partner(s).`
+      });
+      
+      setSharePartnersDialogOpen(false);
+      setSelectedPartnersForSharing([]);
+    } catch (error) {
+      toast({
+        title: "Share Failed",
+        description: "Failed to share campaign with partners. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Get partners related to selected recipients
+  const getRelatedPartners = () => {
+    if (!campaignData.recipients || !allPartners) return [];
+    
+    const relatedPartnerIds = new Set<number>();
+    
+    // Extract partner IDs from recipients based on entity relationships
+    campaignData.recipients.forEach((recipient: any) => {
+      if (recipient.assigned_partner_id) {
+        relatedPartnerIds.add(recipient.assigned_partner_id);
+      }
+      if (recipient.partner_id) {
+        relatedPartnerIds.add(recipient.partner_id);
+      }
+    });
+    
+    return allPartners.filter((partner: any) => relatedPartnerIds.has(partner.id));
+  };
+
+  const togglePartnerSelection = (partnerId: number) => {
+    setSelectedPartnersForSharing(prev => 
+      prev.includes(partnerId) 
+        ? prev.filter(id => id !== partnerId)
+        : [...prev, partnerId]
+    );
+  };
+
   const getStepDescription = (stepNum: number): string => {
     switch (stepNum) {
       case 1:
@@ -738,7 +806,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             </div>
 
             <div className="max-w-2xl mx-auto space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="p-6 border-2 border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-sm transition-all cursor-pointer">
                   <div className="text-center">
                     <div className="p-3 rounded-lg bg-blue-500 text-white w-12 h-12 mx-auto mb-4 flex items-center justify-center">
@@ -758,6 +826,73 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                     <p className="text-sm text-gray-600">Generate a shareable link for others to view or collaborate</p>
                   </div>
                 </div>
+
+                <Dialog open={sharePartnersDialogOpen} onOpenChange={setSharePartnersDialogOpen}>
+                  <DialogTrigger asChild>
+                    <div className="p-6 border-2 border-gray-200 rounded-lg hover:border-purple-300 hover:shadow-sm transition-all cursor-pointer">
+                      <div className="text-center">
+                        <div className="p-3 rounded-lg bg-purple-500 text-white w-12 h-12 mx-auto mb-4 flex items-center justify-center">
+                          <Share className="h-6 w-6" />
+                        </div>
+                        <h3 className="font-semibold text-gray-900 mb-2">Share with Partner(s)</h3>
+                        <p className="text-sm text-gray-600">Share campaign with related partners for collaboration</p>
+                      </div>
+                    </div>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-md">
+                    <DialogHeader>
+                      <DialogTitle>Share with Partner(s)</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                      <p className="text-sm text-gray-600">
+                        Select partners to share this campaign with based on your recipient relationships.
+                      </p>
+                      
+                      {getRelatedPartners().length === 0 ? (
+                        <div className="text-center py-8">
+                          <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                          <p className="text-gray-500 text-sm">
+                            No related partners found for the selected recipients.
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="space-y-3 max-h-60 overflow-y-auto">
+                          {getRelatedPartners().map((partner: any) => (
+                            <div key={partner.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
+                              <Checkbox
+                                checked={selectedPartnersForSharing.includes(partner.id)}
+                                onCheckedChange={() => togglePartnerSelection(partner.id)}
+                              />
+                              <div className="flex-1">
+                                <p className="font-medium text-sm">{partner.name}</p>
+                                {partner.email && (
+                                  <p className="text-xs text-gray-500">{partner.email}</p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                      
+                      {getRelatedPartners().length > 0 && (
+                        <div className="flex justify-end space-x-2 pt-4 border-t">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => setSharePartnersDialogOpen(false)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button 
+                            onClick={handleShareWithPartners}
+                            disabled={selectedPartnersForSharing.length === 0}
+                          >
+                            Share Campaign
+                          </Button>
+                        </div>
+                      )}
+                    </div>
+                  </DialogContent>
+                </Dialog>
               </div>
 
               <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
