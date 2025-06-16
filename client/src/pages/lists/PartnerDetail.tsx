@@ -2358,8 +2358,8 @@ export default function PartnerDetail() {
               )}
             </div>
 
-            {/* Customer Statistics Cards by Status */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Statistics Overview - matching Customers page design */}
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
               {(() => {
                 // Get filtered customers based on current filters
                 const filteredCustomers = (relatedCustomers as any[] || []).filter((customer: any) => {
@@ -2374,45 +2374,59 @@ export default function PartnerDetail() {
                   return matchesSearch && matchesStatus && matchesIndustry;
                 });
 
-                // Group customers by status and calculate statistics
-                const statusStats = filteredCustomers.reduce((acc: any, customer: any) => {
-                  const status = customer.status || 'Unknown';
-                  if (!acc[status]) {
-                    acc[status] = {
-                      count: 0,
-                      totalOpportunities: 0,
-                      customers: []
-                    };
-                  }
-                  acc[status].count += 1;
-                  
-                  // Count opportunities for this customer
+                // Calculate statistics
+                const totalOpportunities = filteredCustomers.reduce((total, customer) => {
                   const customerOpportunities = (relatedOpportunities as any[] || []).filter((o: any) => o.clientName === customer.name);
-                  acc[status].totalOpportunities += customerOpportunities.length;
-                  acc[status].customers.push(customer);
-                  return acc;
-                }, {});
+                  return total + customerOpportunities.length;
+                }, 0);
 
-                // Get top 4 statuses by customer count
-                const topStatuses = Object.entries(statusStats)
-                  .sort(([,a]: any, [,b]: any) => b.count - a.count)
-                  .slice(0, 4);
+                const activeCustomers = filteredCustomers.filter((c: any) => c.status === 'Active').length;
 
-                return topStatuses.map(([status, stats]: any) => {
-                  const statusColor = status === 'Active' ? 'text-green-600' : 
-                                    status === 'Inactive' ? 'text-gray-600' :
-                                    status === 'Prospect' ? 'text-blue-600' : 'text-purple-600';
-                  
-                  return (
-                    <div key={status} className="bg-white p-4 rounded-md border border-gray-200">
-                      <div className="text-xl font-semibold text-[#282A3F]">{stats.count}</div>
-                      <div className={`text-sm ${statusColor}`}>{status}</div>
-                      <div className="text-xs text-gray-400 mt-1">
-                        {stats.totalOpportunities} total opportunities
-                      </div>
+                const totalValue = filteredCustomers.reduce((total, customer) => {
+                  const customerOpportunities = (relatedOpportunities as any[] || []).filter((o: any) => o.clientName === customer.name);
+                  return total + customerOpportunities.reduce((oppTotal: number, opp: any) => {
+                    const value = parseFloat(opp.value?.replace(/[€,]/g, '') || '0') || 0;
+                    return oppTotal + value;
+                  }, 0);
+                }, 0);
+
+                const weightedValue = filteredCustomers.reduce((total, customer) => {
+                  const customerOpportunities = (relatedOpportunities as any[] || []).filter((o: any) => o.clientName === customer.name);
+                  return total + customerOpportunities.reduce((oppTotal: number, opp: any) => {
+                    const value = parseFloat(opp.value?.replace(/[€,]/g, '') || '0') || 0;
+                    const probability = parseFloat(opp.probability || '0') / 100;
+                    return oppTotal + (value * probability);
+                  }, 0);
+                }, 0);
+
+                return (
+                  <>
+                    <div className="bg-white p-4 rounded-md border border-gray-200">
+                      <div className="text-xl font-semibold text-[#282A3F]">{filteredCustomers.length}</div>
+                      <div className="text-sm text-gray-500">Total Customers</div>
                     </div>
-                  );
-                });
+                    
+                    <div className="bg-white p-4 rounded-md border border-gray-200">
+                      <div className="text-xl font-semibold text-[#282A3F]">{totalOpportunities}</div>
+                      <div className="text-sm text-gray-500">Total Opportunities</div>
+                    </div>
+                    
+                    <div className="bg-white p-4 rounded-md border border-gray-200">
+                      <div className="text-xl font-semibold text-[#282A3F]">{activeCustomers}</div>
+                      <div className="text-sm text-gray-500">Active</div>
+                    </div>
+                    
+                    <div className="bg-white p-4 rounded-md border border-gray-200">
+                      <div className="text-xl font-semibold text-[#282A3F]">€{totalValue.toLocaleString()}</div>
+                      <div className="text-sm text-gray-500">Total Value</div>
+                    </div>
+                    
+                    <div className="bg-white p-4 rounded-md border border-gray-200">
+                      <div className="text-xl font-semibold text-[#282A3F]">€{Math.round(weightedValue).toLocaleString()}</div>
+                      <div className="text-sm text-gray-500">Weighted Value</div>
+                    </div>
+                  </>
+                );
               })()}
             </div>
 
@@ -2443,10 +2457,27 @@ export default function PartnerDetail() {
                         selectedCustomers.length > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                       }`}>
                         <Checkbox 
-                          checked={selectedCustomers.length === (relatedCustomers as any[] || []).length && (relatedCustomers as any[] || []).length > 0}
+                          checked={selectedCustomers.length === (relatedCustomers as any[] || []).filter((customer: any) => {
+                            const matchesSearch = !customerSearchText || 
+                              customer.name?.toLowerCase().includes(customerSearchText.toLowerCase()) ||
+                              customer.contact_name?.toLowerCase().includes(customerSearchText.toLowerCase()) ||
+                              customer.contact_email?.toLowerCase().includes(customerSearchText.toLowerCase());
+                            const matchesStatus = !selectedCustomerStatus || customer.status === selectedCustomerStatus;
+                            const matchesIndustry = !selectedIndustry || customer.industry === selectedIndustry;
+                            return matchesSearch && matchesStatus && matchesIndustry;
+                          }).length && (relatedCustomers as any[] || []).length > 0}
                           onCheckedChange={(checked) => {
+                            const filteredCustomers = (relatedCustomers as any[] || []).filter((customer: any) => {
+                              const matchesSearch = !customerSearchText || 
+                                customer.name?.toLowerCase().includes(customerSearchText.toLowerCase()) ||
+                                customer.contact_name?.toLowerCase().includes(customerSearchText.toLowerCase()) ||
+                                customer.contact_email?.toLowerCase().includes(customerSearchText.toLowerCase());
+                              const matchesStatus = !selectedCustomerStatus || customer.status === selectedCustomerStatus;
+                              const matchesIndustry = !selectedIndustry || customer.industry === selectedIndustry;
+                              return matchesSearch && matchesStatus && matchesIndustry;
+                            });
                             if (checked) {
-                              setSelectedCustomers((relatedCustomers as any[] || []).map((c: any) => c.id));
+                              setSelectedCustomers(filteredCustomers.map((c: any) => c.id));
                             } else {
                               setSelectedCustomers([]);
                             }
