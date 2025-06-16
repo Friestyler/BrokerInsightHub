@@ -25,9 +25,9 @@ async function processStructuredZonnepanelenFile() {
       return;
     }
     
-    // Skip header row and process first 20 rows for testing
-    const dataRows = data.slice(1, 21);
-    console.log(`Processing ${dataRows.length} data rows (testing batch)`);
+    // Skip header row and process all data rows
+    const dataRows = data.slice(1);
+    console.log(`Processing ${dataRows.length} data rows`);
     
     // Sample first few rows to understand structure
     console.log('First few rows structure:');
@@ -137,19 +137,20 @@ async function processStructuredZonnepanelenFile() {
           }
         }
         
-        // Create the opportunity
+        // Create the opportunity with solar panel product ID and default values
         const opportunityResult = await pool.query(`
           INSERT INTO degoudse.opportunities (
-            title, description, status, client_id, partner_id, 
-            insurance_description, start_date, stage, probability,
+            title, description, status, client_id, partner_id, product_id,
+            insurance_description, start_date, stage, probability, estimated_value,
             created_at, updated_at
-          ) VALUES ($1, $2, 'prospect', $3, $4, $5, $6, 'prospect', 25, NOW(), NOW())
+          ) VALUES ($1, $2, 'prospect', $3, $4, $5, $6, $7, 'prospect', 25, 5000, NOW(), NOW())
           RETURNING id
         `, [
           title,
           `Solar panel insurance opportunity: ${title}`,
           customerId,
           partnerId,
+          13, // Solar Panel Insurance product ID
           insuranceDescription || 'Solar Panel Insurance',
           parsedStartDate
         ]);
