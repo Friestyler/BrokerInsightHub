@@ -57,6 +57,15 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   });
   
   const [currentStep, setCurrentStep] = useState(getStepNumber(stepParam));
+
+  // Add effect to ensure URL parameters are respected after component mounts
+  useEffect(() => {
+    const targetStep = getStepNumber(stepParam);
+    if (targetStep !== currentStep) {
+      console.log('Adjusting step based on URL parameter:', { stepParam, targetStep, currentStep });
+      setCurrentStep(targetStep);
+    }
+  }, [stepParam, currentStep]);
   const [activeEmailIndex, setActiveEmailIndex] = useState(0);
   const [sharePartnersDialogOpen, setSharePartnersDialogOpen] = useState(false);
   const [selectedPartnersForSharing, setSelectedPartnersForSharing] = useState<number[]>([]);
