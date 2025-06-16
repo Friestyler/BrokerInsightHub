@@ -126,15 +126,15 @@ async function processDataRows(data) {
         let partnerId = existingPartners.get(mappedData.partnerName.toLowerCase().trim());
         if (!partnerId) {
           const partnerResult = await client.query(`
-            INSERT INTO degoudse.partners (name, type, specialization, city, country)
+            INSERT INTO degoudse.partners (name, partner_type, description, location, status)
             VALUES ($1, $2, $3, $4, $5)
             RETURNING id
           `, [
             mappedData.partnerName,
-            mappedData.partnerType || 'Insurance Broker',
-            mappedData.specialization || 'General Insurance',
-            mappedData.city || 'Unknown',
-            mappedData.country || 'Netherlands'
+            'Insurance Broker',
+            `Insurance partner: ${mappedData.partnerName}`,
+            'Netherlands',
+            'active'
           ]);
           partnerId = partnerResult.rows[0].id;
           existingPartners.set(mappedData.partnerName.toLowerCase().trim(), partnerId);
@@ -157,20 +157,23 @@ async function processDataRows(data) {
         // Create opportunity
         const opportunityResult = await client.query(`
           INSERT INTO degoudse.opportunities (
-            title, description, value, currency, stage, probability,
-            client_id, partner_id, created_at, updated_at
+            title, description, estimated_value, stage, probability,
+            client_id, partner_id, product_id, insurance_description, start_date, status, created_at, updated_at
           )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW())
           RETURNING id
         `, [
           mappedData.opportunityTitle,
           mappedData.description || `${mappedData.opportunityTitle} for ${mappedData.customerName}`,
-          mappedData.value || 50000,
-          mappedData.currency || 'EUR',
-          mappedData.stage || 'Prospecting',
-          mappedData.probability || 25,
+          mappedData.value || 75000,
+          mappedData.stage || 'Active',
+          mappedData.probability || 90,
           customerId,
-          partnerId
+          partnerId,
+          1, // Property Insurance product for business building insurance
+          mappedData.insuranceType || 'Business Building Insurance',
+          mappedData.startDate || new Date(),
+          'active'
         ]);
         
         const opportunityId = opportunityResult.rows[0].id;
