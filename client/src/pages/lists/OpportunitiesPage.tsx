@@ -387,8 +387,11 @@ function OpportunitiesTable() {
   const queryClient = useQueryClient();
   
   // Fetch customers and products for opportunity creation
-  const { data: customers = [] } = useCustomers();
+  const { data: customersResponse } = useCustomers();
   const { data: products = [] } = useProducts();
+  
+  // Extract customers array from paginated response
+  const customers = customersResponse?.data || [];
 
   // Filter saved lists to only show opportunity-related lists (client-side filtering)
   const opportunitySavedListsData = savedListsData.filter((list: any) => 
