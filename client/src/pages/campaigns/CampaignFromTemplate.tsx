@@ -578,7 +578,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       return Boolean(firstEmail && firstEmail.subject && firstEmail.subject.trim());
     }
     if (stepNum === 4) return campaignData.recipients.length > 0;
-    if (stepNum === 5) return Boolean(campaignData.settings.sendTime);
+    if (stepNum === 5) return true; // Settings step - allow progression as it has default settings
     if (stepNum === 6) return false; // Share or Send step - never auto-completed
     return stepNum < currentStep;
   };
