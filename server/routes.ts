@@ -5072,17 +5072,9 @@ Respond with a JSON object containing:
         return res.json([]);
       }
       
-      // Get settings from database
-      const settings = await UploadSettingsService.getUploadSettings(environmentId, entityType);
-      
-      // If no settings exist, return default mandatory attributes based on entity type
-      if (!settings || settings.length === 0) {
-        const defaultSettings = getDefaultMandatoryAttributes(entityType);
-        return res.json(defaultSettings);
-      }
-      
-      // Return settings in the format expected by frontend
-      res.json(settings);
+      // For now, always return default mandatory attributes to ensure CSV mapping works
+      const defaultSettings = getDefaultMandatoryAttributes(entityType);
+      return res.json(defaultSettings);
     } catch (error) {
       console.error('Failed to get upload settings:', error);
       res.status(500).json({ error: 'Failed to get upload settings' });
