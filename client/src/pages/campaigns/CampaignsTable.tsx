@@ -17,6 +17,7 @@ interface CampaignsTableProps {
   selectedCampaigns: number[];
   onSelectionChange: (selectedIds: number[]) => void;
   isPartnerView?: boolean;
+  partnerId?: string;
 }
 
 // Sortable table header component
@@ -192,7 +193,7 @@ const getEntityColor = (entityType: string) => {
   }
 };
 
-export default function CampaignsTable({ campaigns, selectedCampaigns, onSelectionChange, isPartnerView }: CampaignsTableProps) {
+export default function CampaignsTable({ campaigns, selectedCampaigns, onSelectionChange, isPartnerView, partnerId }: CampaignsTableProps) {
   const [sortField, setSortField] = useState<string>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [, setLocation] = useLocation();
@@ -297,16 +298,20 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
         }
       }
       
+      // Build URL with partner context if available
+      const partnerParam = partnerId ? `&from_partner=${partnerId}` : '';
+      
       if (hasMissingContacts) {
         // Open on Missing Contacts tab
-        setLocation(`/campaigns/edit/${campaign.id}?step=recipients&tab=missing-contacts`);
+        setLocation(`/campaigns/edit/${campaign.id}?step=recipients&tab=missing-contacts${partnerParam}`);
       } else {
         // Open on Selected tab
-        setLocation(`/campaigns/edit/${campaign.id}?step=recipients&tab=selected`);
+        setLocation(`/campaigns/edit/${campaign.id}?step=recipients&tab=selected${partnerParam}`);
       }
     } else {
       // Normal behavior - navigate to campaign edit view
-      setLocation(`/campaigns/edit/${campaign.id}`);
+      const partnerParam = partnerId ? `?from_partner=${partnerId}` : '';
+      setLocation(`/campaigns/edit/${campaign.id}${partnerParam}`);
     }
   };
 

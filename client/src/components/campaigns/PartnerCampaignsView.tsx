@@ -342,6 +342,7 @@ export default function PartnerCampaignsView({ partnerId, partnerName }: Partner
           selectedCampaigns={selectedCampaigns}
           onSelectionChange={setSelectedCampaigns}
           isPartnerView={true}
+          partnerId={partnerId}
         />
       )}
     </div>
