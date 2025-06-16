@@ -25,9 +25,9 @@ async function processStructuredZonnepanelenFile() {
       return;
     }
     
-    // Skip header row and process data rows - limit to first 10 for testing
-    const dataRows = data.slice(1, 11);
-    console.log(`Processing ${dataRows.length} data rows (limited for testing)`);
+    // Skip header row and process first 20 rows for testing
+    const dataRows = data.slice(1, 21);
+    console.log(`Processing ${dataRows.length} data rows (testing batch)`);
     
     // Sample first few rows to understand structure
     console.log('First few rows structure:');
@@ -121,17 +121,19 @@ async function processStructuredZonnepanelenFile() {
           }
         }
         
-        // Parse start date
+        // Parse start date - skip if parsing fails
         let parsedStartDate = null;
-        if (startDate) {
+        if (startDate && typeof startDate === 'number') {
           try {
-            // Handle various date formats
-            const dateValue = new Date(startDate);
-            if (!isNaN(dateValue.getTime())) {
-              parsedStartDate = dateValue.toISOString().split('T')[0];
+            // Excel date serial number to JavaScript Date
+            // Excel counts days since 1900-01-01, but has a leap year bug
+            const excelEpoch = new Date(1899, 11, 30); // December 30, 1899
+            const jsDate = new Date(excelEpoch.getTime() + startDate * 24 * 60 * 60 * 1000);
+            if (!isNaN(jsDate.getTime()) && jsDate.getFullYear() > 1900 && jsDate.getFullYear() < 2100) {
+              parsedStartDate = jsDate.toISOString().split('T')[0];
             }
           } catch (e) {
-            console.log(`Could not parse date: ${startDate}`);
+            // Skip date parsing on error
           }
         }
         
@@ -139,17 +141,16 @@ async function processStructuredZonnepanelenFile() {
         const opportunityResult = await pool.query(`
           INSERT INTO degoudse.opportunities (
             title, description, status, client_id, partner_id, 
-            product_category, account_manager, start_date, stage, probability,
+            insurance_description, start_date, stage, probability,
             created_at, updated_at
-          ) VALUES ($1, $2, 'prospect', $3, $4, $5, $6, $7, 'prospect', 25, NOW(), NOW())
+          ) VALUES ($1, $2, 'prospect', $3, $4, $5, $6, 'prospect', 25, NOW(), NOW())
           RETURNING id
         `, [
           title,
-          insuranceDescription || `Solar panel insurance opportunity: ${title}`,
+          `Solar panel insurance opportunity: ${title}`,
           customerId,
           partnerId,
-          'Solar Panel Insurance',
-          accountManagerName || 'Unassigned',
+          insuranceDescription || 'Solar Panel Insurance',
           parsedStartDate
         ]);
         
@@ -197,7 +198,7 @@ async function processStructuredZonnepanelenFile() {
     await pool.query(`
       UPDATE degoudse.partners 
       SET linked_opportunity_ids = (
-        SELECT ARRAY_AGG(id::text) 
+        SELECT ARRAY_AGG(id) 
         FROM degoudse.opportunities 
         WHERE partner_id = degoudse.partners.id
       )
