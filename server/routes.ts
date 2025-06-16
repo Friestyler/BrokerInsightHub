@@ -2130,23 +2130,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get('/api/degoudse/customers', async (req, res) => {
-    const cacheKey = 'degoudse_customers';
-    // Clear cache to ensure fresh data with all customers (no limit)
-    cache.delete(cacheKey);
-    // Skip cache entirely to always return fresh data with all customers
-    // const cached = getCached(cacheKey);
-    
-    // if (cached) {
-    //   console.log(`Returning ${cached.length} customers from cache`);
-    //   return res.json(cached);
-    // }
+    // Add pagination parameters
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 100;
+    const offset = (page - 1) * limit;
     
     // Add caching headers
     res.set('Cache-Control', 'public, max-age=60');
     
     try {
       const envPool = pool;
-      // Query with proper counts for accurate statistics
+      
+      // Get total count first
+      const countResult = await envPool.query(`
+        SELECT COUNT(*) as total_count FROM degoudse.customers
+      `);
+      const totalCount = parseInt(countResult.rows[0].total_count);
+      const totalPages = Math.ceil(totalCount / limit);
+      
+      // Query with pagination
       const result = await envPool.query(`
         SELECT c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt",
                COUNT(DISTINCT pc.partner_id) as partner_count,
@@ -2156,7 +2158,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
         GROUP BY c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt"
         ORDER BY c.id
-      `);
+        LIMIT $1 OFFSET $2
+      `, [limit, offset]);
       
       // Get partner details for each customer separately
       const customerIds = result.rows.map(c => c.id);
@@ -2186,11 +2189,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
       
-      // Cache the result for fast subsequent requests
-      setCache(cacheKey, customers);
-      
-      console.log(`Returning ${customers.length} customers from De Goudse database`);
-      res.json(customers);
+      // Return paginated response with metadata
+      console.log(`Returning ${customers.length} customers from De Goudse database (page ${page} of ${totalPages})`);
+      res.json({
+        data: customers,
+        pagination: {
+          page,
+          limit,
+          totalCount,
+          totalPages,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1
+        }
+      });
     } catch (error) {
       console.error('De Goudse customers API error:', error);
       res.status(500).json({ message: 'Failed to fetch customers for De Goudse environment' });
