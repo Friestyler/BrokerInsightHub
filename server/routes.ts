@@ -5755,29 +5755,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const result = await pool.query(`
         SELECT 
-          ct.*,
-          COUNT(ce.id) as email_count,
-          u.full_name as created_by_name
-        FROM campaign_templates ct
-        LEFT JOIN campaign_emails ce ON ct.id = ce.template_id
-        LEFT JOIN users u ON ct.created_by = u.id
-        GROUP BY ct.id, u.full_name
-        ORDER BY ct.created_at DESC
+          c.*,
+          u.name as created_by_name
+        FROM ${envId}.campaigns c
+        LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
+        WHERE c.is_template = true
+        ORDER BY c.created_at DESC
       `);
       
       const templates = result.rows.map(template => ({
-        id: template.id.toString(),
+        id: template.id,
         name: template.name,
         description: template.description || '',
-        objective: template.objective || '',
-        emailCount: parseInt(template.email_count) || 0,
+        type: template.type,
+        category: template.category,
         status: template.status,
-        entity: template.entity,
-        icon: template.icon,
-        attachments: template.attachments || [],
+        created_by_id: template.created_by_id,
+        sponsor_id: template.sponsor_id,
+        subject: template.subject,
+        email_body: template.email_body,
+        email_logo: template.email_logo,
+        from_name: template.from_name,
+        from_email: template.from_email,
+        frequency: template.frequency,
+        is_shared: template.is_shared,
+        is_template: template.is_template,
+        tags: template.tags || [],
+        created_at: template.created_at,
+        updated_at: template.updated_at,
+        heading: template.heading,
+        button_link: template.button_link,
+        button_text: template.button_text,
+        button_color: template.button_color,
+        follow_up_emails: template.follow_up_emails || [],
+        createdById: template.created_by_id,
+        isShared: template.is_shared,
+        isTemplate: template.is_template,
+        sponsorId: template.sponsor_id,
         createdAt: template.created_at,
-        updatedAt: template.updated_at,
-        createdBy: template.created_by_name
+        emailBody: template.email_body,
+        emailLogo: template.email_logo,
+        fromName: template.from_name,
+        fromEmail: template.from_email,
+        scheduledTime: template.scheduled_time,
+        followUpEmails: template.follow_up_emails || []
       }));
       
       res.json(templates);
@@ -5794,7 +5815,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Get template
       const templateResult = await pool.query(`
-        SELECT * FROM campaign_templates WHERE id = $1
+        SELECT * FROM ${envId}.campaigns WHERE id = $1 AND is_template = true
       `, [id]);
       
       if (templateResult.rows.length === 0) {
