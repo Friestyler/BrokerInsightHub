@@ -206,9 +206,8 @@ export default function OpportunityDetail() {
           <div className="flex items-center justify-between py-6">
             <div className="flex items-center space-x-4">
               <Link href={backUrl}>
-                <Button variant="ghost" size="sm" className="group hover:bg-[#F5F6FE]">
-                  <ArrowLeft className="w-4 h-4 mr-2 group-hover:text-[#5567E5]" />
-                  {backLabel}
+                <Button variant="ghost" size="sm" className="p-2 group hover:bg-[#F5F6FE]">
+                  <ArrowLeft className="w-4 h-4 group-hover:text-[#5567E5]" />
                 </Button>
               </Link>
               <div>
