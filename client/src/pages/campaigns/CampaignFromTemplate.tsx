@@ -49,14 +49,20 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   
   const [currentStep, setCurrentStep] = useState(getStepNumber(stepParam));
 
-  // Add effect to ensure URL parameters are respected after component mounts, but only on initial load
+  // Track if this is initial load to prevent URL conflicts with manual navigation
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  
+  // Add effect to ensure URL parameters are respected only on initial load
   useEffect(() => {
-    const targetStep = getStepNumber(stepParam);
-    if (targetStep !== currentStep && stepParam) {
-      console.log('Adjusting step based on URL parameter:', { stepParam, targetStep, currentStep });
-      setCurrentStep(targetStep);
+    if (isInitialLoad && stepParam) {
+      const targetStep = getStepNumber(stepParam);
+      if (targetStep !== currentStep) {
+        console.log('Adjusting step based on URL parameter (initial load):', { stepParam, targetStep, currentStep });
+        setCurrentStep(targetStep);
+      }
     }
-  }, [stepParam]); // Remove currentStep dependency to prevent infinite loops
+    setIsInitialLoad(false);
+  }, [stepParam, isInitialLoad, currentStep]);
   const [activeEmailIndex, setActiveEmailIndex] = useState(0);
   const [sharePartnersDialogOpen, setSharePartnersDialogOpen] = useState(false);
   const [selectedPartnersForSharing, setSelectedPartnersForSharing] = useState<number[]>([]);
@@ -613,35 +619,14 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   };
 
   const handleNext = () => {
-    console.log('Next button clicked:', {
-      currentStep,
-      totalSteps,
-      nextStepAccessible: isStepAccessible(currentStep + 1),
-      nextStepCompleted: isStepCompleted(currentStep + 1),
-      campaignData: {
-        name: campaignData.name,
-        entity: campaignData.entity,
-        description: campaignData.description,
-        objective: campaignData.objective,
-        emails: campaignData.emails.length,
-        recipients: campaignData.recipients.length
-      }
-    });
-    
     if (currentStep < totalSteps && isStepAccessible(currentStep + 1)) {
       const nextStep = currentStep + 1;
       setCurrentStep(nextStep);
       updateUrlStep(nextStep);
-    } else {
-      console.log('Navigation blocked:', {
-        canProgress: currentStep < totalSteps,
-        stepAccessible: isStepAccessible(currentStep + 1)
-      });
     }
   };
 
   const handlePrevious = () => {
-    console.log('Previous button clicked:', { currentStep });
     if (currentStep > 1) {
       const prevStep = currentStep - 1;
       setCurrentStep(prevStep);
