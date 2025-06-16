@@ -157,7 +157,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
       setCampaignData({
         name: campaignDataFromAPI.name || '',
-        entity: campaignDataFromAPI.type || 'email',
+        entity: campaignDataFromAPI.target_entity_type || '',
         description: campaignDataFromAPI.description || '',
         objective: campaignDataFromAPI.objective || '',
         icon: campaignDataFromAPI.icon || 'target',

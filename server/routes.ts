@@ -5313,7 +5313,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             fromName: campaign.from_name,
             fromEmail: campaign.from_email,
             scheduledTime: campaign.scheduled_time,
-            followUpEmails: campaign.follow_up_emails || []
+            followUpEmails: campaign.follow_up_emails || [],
+            target_entity_type: campaign.target_entity_type,
+            recipients: campaign.recipients ? JSON.parse(campaign.recipients) : []
           };
           
           console.log(`Returning campaign ${campaign.name} from ${envId} environment`);
