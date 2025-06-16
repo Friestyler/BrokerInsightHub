@@ -70,11 +70,29 @@ const csvUpload = multer({
     fileSize: 50 * 1024 * 1024, // Limit file size to 50MB for CSV files
   },
   fileFilter: (req, file, cb) => {
-    // Accept CSV files and text files
-    if (file.mimetype === 'text/csv' || file.mimetype === 'application/csv' || file.originalname.endsWith('.csv')) {
+    // Accept CSV files with various MIME types and extensions
+    const csvMimeTypes = [
+      'text/csv',
+      'application/csv',
+      'text/plain',
+      'application/vnd.ms-excel',
+      'text/x-csv'
+    ];
+    
+    const isCsvFile = csvMimeTypes.includes(file.mimetype) || 
+                     file.originalname.toLowerCase().endsWith('.csv') ||
+                     file.originalname.toLowerCase().endsWith('.txt');
+    
+    console.log('File filter check:', {
+      filename: file.originalname,
+      mimetype: file.mimetype,
+      isCsvFile
+    });
+    
+    if (isCsvFile) {
       cb(null, true);
     } else {
-      cb(new Error('Only CSV files are allowed for transformation'));
+      cb(new Error(`File type not supported for transformation. Received: ${file.mimetype}, filename: ${file.originalname}`));
     }
   }
 });
