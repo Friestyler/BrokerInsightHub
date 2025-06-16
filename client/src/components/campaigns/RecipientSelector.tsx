@@ -1361,7 +1361,7 @@ export default function RecipientSelector({
                                     Contact Persons
                                   </div>
                                   {customerContacts.map((contact: Contact) => (
-                                    <div key={`customer-contact-${contact.id}`} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+                                    <div key={`customer-${customer.id}-contact-${contact.id}`} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
                                       <div className="flex items-center gap-3">
                                         <div className="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center">
                                           <Mail className="h-3 w-3 text-white" />
