@@ -2163,6 +2163,175 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update opportunity in De Goudse environment
+  app.put('/api/degoudse/opportunities/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { 
+        title, 
+        description, 
+        clientId,
+        productId,
+        estimatedValue,
+        probability,
+        status,
+        type,
+        expectedCloseDate
+      } = req.body;
+      
+      console.log('Updating De Goudse opportunity:', id, req.body);
+      
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        UPDATE degoudse.opportunities 
+        SET 
+          title = $1, 
+          description = $2, 
+          "clientId" = $3, 
+          "productId" = $4, 
+          "estimatedValue" = $5, 
+          probability = $6, 
+          status = $7, 
+          type = $8, 
+          "expectedCloseDate" = $9,
+          "updatedAt" = NOW()
+        WHERE id = $10
+        RETURNING *
+      `, [
+        title, 
+        description, 
+        clientId,
+        productId,
+        estimatedValue || 0,
+        probability,
+        status,
+        type,
+        expectedCloseDate || null,
+        id
+      ]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Opportunity not found' });
+      }
+      
+      const updatedOpportunity = result.rows[0];
+      console.log('De Goudse opportunity updated successfully:', updatedOpportunity.id);
+      
+      res.json({
+        id: updatedOpportunity.id,
+        title: updatedOpportunity.title,
+        description: updatedOpportunity.description,
+        status: updatedOpportunity.status,
+        type: updatedOpportunity.type,
+        probability: updatedOpportunity.probability,
+        estimatedValue: updatedOpportunity.estimatedValue,
+        expectedCloseDate: updatedOpportunity.expectedCloseDate,
+        createdAt: updatedOpportunity.createdAt,
+        updatedAt: updatedOpportunity.updatedAt
+      });
+    } catch (error) {
+      console.error('Error updating De Goudse opportunity:', error);
+      res.status(500).json({ message: 'Failed to update opportunity in De Goudse environment' });
+    }
+  });
+
+  // Update partners in De Goudse environment
+  app.put('/api/degoudse/partners/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { name, description, type, status, location, contact_email, contact_phone } = req.body;
+      
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        UPDATE degoudse.partners 
+        SET 
+          name = $1,
+          description = $2,
+          type = $3,
+          status = $4,
+          location = $5,
+          contact_email = $6,
+          contact_phone = $7,
+          updated_at = NOW()
+        WHERE id = $8
+        RETURNING *
+      `, [name, description, type, status, location, contact_email, contact_phone, id]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Partner not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating De Goudse partner:', error);
+      res.status(500).json({ error: 'Failed to update partner' });
+    }
+  });
+
+  // Update customers in De Goudse environment
+  app.put('/api/degoudse/customers/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { name, description, status, type, location, contact_email, contact_phone } = req.body;
+      
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        UPDATE degoudse.customers 
+        SET 
+          name = $1,
+          description = $2,
+          status = $3,
+          type = $4,
+          location = $5,
+          contact_email = $6,
+          contact_phone = $7,
+          updated_at = NOW()
+        WHERE id = $8
+        RETURNING *
+      `, [name, description, status, type, location, contact_email, contact_phone, id]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Customer not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating De Goudse customer:', error);
+      res.status(500).json({ error: 'Failed to update customer' });
+    }
+  });
+
+  // Update products in De Goudse environment
+  app.put('/api/degoudse/products/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { name, description, category, colorCode, aiContext } = req.body;
+      
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        UPDATE degoudse.products 
+        SET 
+          name = $1,
+          description = $2,
+          category = $3,
+          color_code = $4,
+          ai_context = $5,
+          updated_at = NOW()
+        WHERE id = $6
+        RETURNING *
+      `, [name, description, category, colorCode, aiContext, id]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating De Goudse product:', error);
+      res.status(500).json({ error: 'Failed to update product' });
+    }
+  });
+
   // De Goudse OKR Metrics endpoints
   app.get('/api/degoudse/okr-metrics', async (req, res) => {
     try {
@@ -2263,6 +2432,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update contact in De Goudse environment
+  app.put('/api/degoudse/contacts/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { 
+        firstName, lastName, email, phone, 
+        company, position, department, linkedEntityType, linkedEntityId, 
+        notes, isActive 
+      } = req.body;
+      
+      const fullName = `${firstName} ${lastName}`.trim();
+      
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        UPDATE degoudse.contacts 
+        SET 
+          first_name = $1,
+          last_name = $2,
+          full_name = $3,
+          email = $4,
+          phone = $5,
+          job_title = $6,
+          department = $7,
+          company = $8,
+          linked_entity_type = $9,
+          linked_entity_id = $10,
+          notes = $11,
+          is_active = $12,
+          updated_at = NOW()
+        WHERE id = $13
+        RETURNING id, first_name, last_name, full_name, email, phone, 
+                 job_title, department, company, linked_entity_type, 
+                 linked_entity_id, is_primary, notes, tags, is_active, 
+                 created_at, updated_at
+      `, [
+        firstName, lastName, fullName, email || null, 
+        phone || null, position || null, department || null, company || null,
+        linkedEntityType || null, linkedEntityId || null, 
+        notes || null, isActive !== false, id
+      ]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Contact not found' });
+      }
+      
+      console.log(`Contact updated successfully in De Goudse environment:`, result.rows[0]);
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating De Goudse contact:', error);
+      res.status(500).json({ error: 'Failed to update contact' });
+    }
+  });
+
   // De Goudse Vendors endpoints
   app.get('/api/degoudse/vendors', async (req, res) => {
     try {
@@ -2327,6 +2549,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error creating De Goudse vendor:', error);
       res.status(500).json({ error: 'Failed to create vendor' });
+    }
+  });
+
+  // Update vendor in De Goudse environment
+  app.put('/api/degoudse/vendors/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { 
+        name, 
+        description, 
+        location, 
+        contactEmail, 
+        primaryContact, 
+        partnerType, 
+        region, 
+        status, 
+        industry, 
+        size 
+      } = req.body;
+      
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        UPDATE degoudse.vendors 
+        SET 
+          name = $1,
+          description = $2,
+          location = $3,
+          contact_email = $4,
+          primary_contact = $5,
+          partner_type = $6,
+          region = $7,
+          status = $8,
+          industry = $9,
+          size = $10,
+          "updatedAt" = NOW()
+        WHERE id = $11
+        RETURNING *
+      `, [
+        name, description, location || null, contactEmail || null, primaryContact || null,
+        partnerType, region || null, status, industry, size, id
+      ]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Vendor not found' });
+      }
+      
+      const vendor = result.rows[0];
+      console.log('Vendor updated successfully in De Goudse environment:', vendor);
+      res.json(vendor);
+    } catch (error) {
+      console.error('Error updating De Goudse vendor:', error);
+      res.status(500).json({ error: 'Failed to update vendor' });
     }
   });
 
