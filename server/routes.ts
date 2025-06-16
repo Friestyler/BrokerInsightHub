@@ -5104,10 +5104,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // If partner_id is specified, filter campaigns linked to that partner
           if (partner_id) {
-            // For now, we'll simulate that campaigns can be linked to partners through sharing
-            // This would normally involve checking campaign recipients or shared_with fields
-            query += ` AND (c.is_shared = true OR c.created_by_id = $1)`;
-            queryParams.push(userId);
+            // Only show campaigns that are specifically shared with this partner
+            // If no campaigns are shared with this partner, return empty array
+            query = `
+              SELECT DISTINCT c.*, u.name as created_by_name 
+              FROM ${envId}.campaigns c
+              LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
+              INNER JOIN ${envId}.campaign_shares cs ON c.id = cs.campaign_id
+              WHERE c.is_template = false
+              AND cs.shared_with_type = 'partner' 
+              AND cs.shared_with_id = $1 
+              AND cs.is_active = true
+            `;
+            queryParams.push(parseInt(partner_id));
           }
           
           query += ` ORDER BY c.created_at DESC`;
