@@ -1734,11 +1734,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const opportunityCountMap = new Map();
       
       relationshipCounts[0].rows.forEach((row: any) => {
-        customerCountMap.set(row.partner_id, row.customer_count);
+        customerCountMap.set(row.partner_id, parseInt(row.customer_count) || 0);
       });
       
       relationshipCounts[1].rows.forEach((row: any) => {
-        opportunityCountMap.set(row.partner_id, row.opportunity_count);
+        opportunityCountMap.set(row.partner_id, parseInt(row.opportunity_count) || 0);
       });
       
       const partners = result.rows.map((partner: any) => ({
