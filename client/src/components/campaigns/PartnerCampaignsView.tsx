@@ -1,6 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -18,7 +19,10 @@ import {
   Archive,
   Plus,
   AlertCircle,
-  Mail
+  Mail,
+  Users,
+  Target,
+  TrendingUp
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -50,6 +54,67 @@ export default function PartnerCampaignsView({ partnerId, partnerName }: Partner
     if (!campaigns || selectedFilter === 'all') return campaigns || [];
     return campaigns.filter((campaign: any) => campaign.type === selectedFilter);
   }, [campaigns, selectedFilter]);
+
+  // Calculate summary statistics for partner-specific campaigns
+  const summaryStats = useMemo(() => {
+    const campaignData = campaigns || [];
+    
+    const totalCampaigns = campaignData.length;
+    const activeCampaigns = campaignData.filter((c: any) => 
+      c.status === 'active' || c.status === 'scheduled'
+    ).length;
+    
+    const totalRecipients = campaignData.reduce((acc: number, campaign: any) => 
+      acc + (campaign.recipients?.length || 0), 0
+    );
+    
+    const totalSent = campaignData.reduce((acc: number, campaign: any) => {
+      const email1 = campaign.engagement_summary?.email1 || {};
+      const email2 = campaign.engagement_summary?.email2 || {};
+      return acc + (email1.sent || 0) + (email2.sent || 0);
+    }, 0);
+    
+    const totalOpened = campaignData.reduce((acc: number, campaign: any) => {
+      const email1 = campaign.engagement_summary?.email1 || {};
+      const email2 = campaign.engagement_summary?.email2 || {};
+      return acc + (email1.opened || 0) + (email2.opened || 0);
+    }, 0);
+
+    const overallEngagementRate = totalSent > 0 ? Math.round((totalOpened / totalSent) * 100) : 0;
+
+    return [
+      {
+        title: "Partner Campaigns",
+        value: totalCampaigns,
+        icon: Mail,
+        color: "text-blue-600"
+      },
+      {
+        title: "Active Campaigns",
+        value: activeCampaigns,
+        icon: TrendingUp,
+        color: "text-green-600"
+      },
+      {
+        title: "Total Recipients",
+        value: totalRecipients,
+        icon: Users,
+        color: "text-purple-600"
+      },
+      {
+        title: "Emails Sent",
+        value: totalSent,
+        icon: Target,
+        color: "text-orange-600"
+      },
+      {
+        title: "Engagement Rate",
+        value: `${overallEngagementRate}%`,
+        icon: Clock,
+        color: "text-indigo-600"
+      }
+    ];
+  }, [campaigns]);
 
   // Status options and handlers
   const statusOptions = [
@@ -136,6 +201,25 @@ export default function PartnerCampaignsView({ partnerId, partnerName }: Partner
 
   return (
     <div className="p-6 space-y-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-5 gap-6 mb-6">
+        {summaryStats.map((item) => (
+          <Card key={item.title} className="bg-white">
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-2xl font-bold text-gray-900">
+                    {typeof item.value === 'number' ? item.value.toLocaleString() : item.value}
+                  </p>
+                  <p className="text-sm text-gray-600 mt-1">{item.title}</p>
+                </div>
+                <item.icon className={`h-8 w-8 ${item.color}`} />
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
       {/* Action Bar */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
