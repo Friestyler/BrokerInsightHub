@@ -503,7 +503,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
               {/* Comments Timeline */}
               <div className="space-y-3 max-h-64 overflow-y-auto">
                 {comments
-                  .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+                  .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
                   .map((comment: any, index: number) => (
                   <div key={comment.id} className="flex items-start gap-3">
                     <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
@@ -635,7 +635,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                     const isAttachment = item.activity_type === 'attachment';
 
                     return (
-                      <div key={`timeline-${item.activity_type}-${item.id}-${item.created_at}`} className="flex items-start gap-3 relative">
+                      <div key={`timeline-${item.activity_type}-${item.id}-${index}-${item.created_at.replace(/[^\w]/g, '')}`} className="flex items-start gap-3 relative">
                         {/* Timeline line */}
                         {index < timelineData.length - 1 && (
                           <div className="absolute left-4 top-10 w-px h-8 bg-gray-200"></div>
