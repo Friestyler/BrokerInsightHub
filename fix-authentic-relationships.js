@@ -1,5 +1,5 @@
-const XLSX = require('xlsx');
-const { Pool } = require('@neondatabase/serverless');
+import XLSX from 'xlsx';
+import { Pool } from '@neondatabase/serverless';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
