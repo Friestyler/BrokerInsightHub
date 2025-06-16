@@ -1906,7 +1906,7 @@ export default function RecipientSelector({
 
                                 return (
                                   <div className="space-y-2">
-                                    {/* Customer Organization */}
+                                    {/* Customer Organization - Always visible in Missing Contacts tab */}
                                     <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-blue-200 shadow-sm">
                                       <div className="flex items-center gap-4">
                                         <input
@@ -1923,69 +1923,86 @@ export default function RecipientSelector({
                                         <div>
                                           <p className="font-bold text-blue-900 text-lg">{customer.name}</p>
                                           <p className="text-sm text-blue-700 font-medium">🏢 CUSTOMER ORGANIZATION</p>
+                                          {!hasContacts && (
+                                            <p className="text-xs text-orange-600 font-medium mt-1">
+                                              ⚠️ No contacts available
+                                            </p>
+                                          )}
                                         </div>
                                       </div>
-                                      {hasContacts && (
-                                        <div className="flex items-center gap-2">
-                                          <span className="text-xs text-blue-600 font-medium">
-                                            {customerContacts.length} contacts
-                                          </span>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => toggleItemExpansion(`customer-${customer.id}`)}
-                                            className="bg-blue-200 hover:bg-blue-300"
-                                          >
-                                            {expandedItems.has(`customer-${customer.id}`) ? (
-                                              <ChevronDown className="h-4 w-4 text-blue-800" />
-                                            ) : (
-                                              <ChevronRight className="h-4 w-4 text-blue-800" />
-                                            )}
-                                          </Button>
-                                        </div>
-                                      )}
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-xs text-blue-600 font-medium">
+                                          {customerContacts.length} contacts
+                                        </span>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          onClick={() => toggleItemExpansion(`customer-${customer.id}`)}
+                                          className="bg-blue-200 hover:bg-blue-300"
+                                        >
+                                          {expandedItems.has(`customer-${customer.id}`) ? (
+                                            <ChevronDown className="h-4 w-4 text-blue-800" />
+                                          ) : (
+                                            <ChevronRight className="h-4 w-4 text-blue-800" />
+                                          )}
+                                        </Button>
+                                      </div>
                                     </div>
                                     
-                                    {/* Customer contacts */}
-                                    {hasContacts && expandedItems.has(`customer-${customer.id}`) && (
+                                    {/* Customer contacts or missing contacts message */}
+                                    {expandedItems.has(`customer-${customer.id}`) && (
                                       <div className="ml-8 space-y-2 border-l-2 border-gray-200 pl-4">
                                         <div className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-2">
                                           👤 Contact Persons
                                         </div>
-                                        {customerContacts.map((contact: Contact) => (
-                                          <div key={contact.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
-                                            <input
-                                              type="checkbox"
-                                              className="rounded border-gray-300 w-4 h-4"
-                                              onChange={() => handleSelectRecipient(contact, 'contact')}
-                                              checked={selectedRecipients.some(r => 
-                                                r.type === 'contact' && r.id === contact.id
-                                              )}
-                                            />
-                                            <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
-                                              <Users className="h-4 w-4 text-white" />
-                                            </div>
-                                            <div className="flex-1">
-                                              <p className="font-semibold text-gray-800">
-                                                {getContactDisplayName(contact)}
-                                              </p>
-                                              <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                                                {contact.email && (
-                                                  <span className="flex items-center gap-1 bg-blue-100 px-2 py-1 rounded text-blue-700">
-                                                    <Mail className="h-3 w-3" />
-                                                    {contact.email}
-                                                  </span>
+                                        {hasContacts ? (
+                                          customerContacts.map((contact: Contact) => (
+                                            <div key={contact.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
+                                              <input
+                                                type="checkbox"
+                                                className="rounded border-gray-300 w-4 h-4"
+                                                onChange={() => handleSelectRecipient(contact, 'contact')}
+                                                checked={selectedRecipients.some(r => 
+                                                  r.type === 'contact' && r.id === contact.id
                                                 )}
-                                                {getContactJobTitle(contact) && (
-                                                  <span className="flex items-center gap-1 text-gray-500">
-                                                    <Briefcase className="h-3 w-3" />
-                                                    {getContactJobTitle(contact)}
-                                                  </span>
-                                                )}
+                                              />
+                                              <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+                                                <Users className="h-4 w-4 text-white" />
+                                              </div>
+                                              <div className="flex-1">
+                                                <p className="font-semibold text-gray-800">
+                                                  {getContactDisplayName(contact)}
+                                                </p>
+                                                <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                                                  {contact.email && (
+                                                    <span className="flex items-center gap-1 bg-blue-100 px-2 py-1 rounded text-blue-700">
+                                                      <Mail className="h-3 w-3" />
+                                                      {contact.email}
+                                                    </span>
+                                                  )}
+                                                  {getContactJobTitle(contact) && (
+                                                    <span className="flex items-center gap-1 text-gray-500">
+                                                      <Briefcase className="h-3 w-3" />
+                                                      {getContactJobTitle(contact)}
+                                                    </span>
+                                                  )}
+                                                </div>
                                               </div>
                                             </div>
+                                          ))
+                                        ) : (
+                                          <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                                            <div className="flex items-center gap-2 mb-2">
+                                              <UserPlus className="h-4 w-4 text-orange-600" />
+                                              <p className="text-sm text-orange-800 font-medium">
+                                                No contacts found for {customer.name}
+                                              </p>
+                                            </div>
+                                            <p className="text-xs text-orange-700">
+                                              Add contacts to enable communication with this customer organization.
+                                            </p>
                                           </div>
-                                        ))}
+                                        )}
                                       </div>
                                     )}
                                   </div>
