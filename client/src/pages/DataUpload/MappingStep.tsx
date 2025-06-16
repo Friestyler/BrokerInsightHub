@@ -42,7 +42,7 @@ export default function MappingStep({
 
     try {
       // Check if this is a special format that needs transformation
-      const isSpecialFormat = uploadType && (uploadType.includes('-') || uploadType === 'degoudse');
+      const isSpecialFormat = uploadType && (uploadType.includes('-') || uploadType === 'degoudse' || uploadType === 'salesforce' || uploadType === 'brio');
       
       let finalHeaders: string[] = [];
       
