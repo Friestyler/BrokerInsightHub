@@ -1702,12 +1702,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // De Goudse environment API routes (using proper database isolation)
   app.get('/api/degoudse/partners', async (req, res) => {
     const cacheKey = 'degoudse_partners';
-    const cached = getCached(cacheKey);
-    
-    if (cached) {
-      console.log(`Returning ${cached.length} partners from cache`);
-      return res.json(cached);
-    }
+    // Force cache refresh for relationship count updates
+    clearCache(cacheKey);
     
     try {
       const envPool = pool;
