@@ -5234,33 +5234,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
               name = $1,
               type = $2,
               description = $3,
-              template_id = $4,
-              target_entity_type = $5,
-              target_entity_id = $6,
-              status = $7,
-              emails = $8,
-              recipients = $9,
-              settings = $10,
-              icon = $11,
-              objective = $12,
-              is_ai_generated = $13,
+              status = $4,
+              subject = $5,
+              email_body = $6,
               updated_at = CURRENT_TIMESTAMP
-            WHERE id = $14
+            WHERE id = $7
             RETURNING *
           `, [
             campaignData.name,
             campaignData.type || 'email',
             campaignData.description,
-            campaignData.template_id || null,
-            campaignData.target_entity_type,
-            campaignData.target_entity_id || null,
             campaignData.status || 'draft',
-            JSON.stringify(campaignData.emails || []),
-            JSON.stringify(campaignData.recipients || []),
-            JSON.stringify(campaignData.settings || {}),
-            campaignData.icon || 'mail',
-            campaignData.objective,
-            campaignData.is_ai_generated || false,
+            campaignData.emails?.[0]?.subject || null,
+            campaignData.emails?.[0]?.content || null,
             parseInt(id)
           ]);
           
@@ -5390,62 +5376,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Update existing campaign
-  app.put('/api/:envId/campaigns/:id', async (req, res) => {
-    try {
-      const { envId, id } = req.params;
-      const campaignData = req.body;
-      
-      // Update campaign in database
-      const result = await pool.query(`
-        UPDATE ${envId}.campaigns SET
-          name = $1, description = $2, type = $3, category = $4, status = $5,
-          sponsor_id = $6, list_id = $7, subject = $8, heading = $9, email_body = $10,
-          email_logo = $11, from_name = $12, from_email = $13, button_link = $14,
-          button_text = $15, button_color = $16, follow_up_emails = $17,
-          scheduled_time = $18, frequency = $19, is_shared = $20, is_template = $21,
-          tags = $22, updated_at = NOW()
-        WHERE id = $23
-        RETURNING *
-      `, [
-        campaignData.name,
-        campaignData.description || null,
-        campaignData.type,
-        campaignData.category || null,
-        campaignData.status || 'draft',
-        campaignData.sponsorId || null,
-        campaignData.listId || null,
-        campaignData.subject || null,
-        campaignData.heading || null,
-        campaignData.emailBody || null,
-        campaignData.emailLogo || null,
-        campaignData.fromName || null,
-        campaignData.fromEmail || null,
-        campaignData.buttonLink || null,
-        campaignData.buttonText || null,
-        campaignData.buttonColor || null,
-        campaignData.followUpEmails ? JSON.stringify(campaignData.followUpEmails) : null,
-        campaignData.scheduledTime || null,
-        campaignData.frequency || 'one_time',
-        campaignData.isShared || false,
-        campaignData.isTemplate || false,
-        campaignData.tags || null,
-        id
-      ]);
-      
-      if (result.rows.length === 0) {
-        return res.status(404).json({ error: 'Campaign not found' });
-      }
-      
-      const updatedCampaign = result.rows[0];
-      
-      console.log(`Updated campaign: ${updatedCampaign.name} in ${envId} environment`);
-      res.json(updatedCampaign);
-    } catch (error) {
-      console.error('Error updating campaign:', error);
-      res.status(500).json({ error: 'Failed to update campaign' });
-    }
-  });
+
 
   // Delete campaign
   app.delete('/api/:envId/campaigns/:id', async (req, res) => {
