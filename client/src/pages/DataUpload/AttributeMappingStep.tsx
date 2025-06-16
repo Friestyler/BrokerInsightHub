@@ -294,7 +294,36 @@ export default function AttributeMappingStep({
     }
     
     if (isCodeBased && customCode) {
-      return ['Custom transformation code will be applied', 'Select a CSV column to see input data'];
+      // Try to execute the custom code for preview
+      try {
+        const previewResults = csvData.slice(0, 3).map((row, idx) => {
+          try {
+            // Simple transformation for common pandas operations
+            let result = customCode;
+            
+            // Replace df['column'] with actual values
+            result = result.replace(/df\['([^']+)'\]/g, (match, columnName) => {
+              const value = row[columnName];
+              return value !== undefined ? `"${value}"` : '""';
+            });
+            
+            // Handle string concatenation
+            if (result.includes('+')) {
+              // Evaluate simple string concatenation
+              const parts = result.split('+').map(part => part.trim().replace(/['"]/g, ''));
+              result = parts.join('');
+            }
+            
+            return `Row ${idx + 1}: ${result}`;
+          } catch (error) {
+            return `Row ${idx + 1}: Error in transformation`;
+          }
+        });
+        
+        return [...previewResults, '↓ Custom code preview (actual processing may differ)'];
+      } catch (error) {
+        return ['Custom transformation code will be applied', 'Preview unavailable - code will execute during processing'];
+      }
     }
     
     return ['Select a CSV column to see preview'];
