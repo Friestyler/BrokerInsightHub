@@ -45,16 +45,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     }
   };
   
-  // Debug logging
-  console.log('CampaignFromTemplate Debug:', {
-    windowPath: window.location.pathname,
-    currentPath,
-    campaignId,
-    templateId,
-    params,
-    stepParam,
-    tabParam
-  });
+
   
   const [currentStep, setCurrentStep] = useState(getStepNumber(stepParam));
 
@@ -369,7 +360,14 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   });
 
   const handleBack = () => {
-    if (isEditingCampaign || isNewCampaign) {
+    // Check if campaign was opened from partner details page
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromPartner = urlParams.get('from_partner');
+    
+    if (fromPartner) {
+      // Redirect back to partner details page with campaigns tab active
+      setLocation(`/partners/${fromPartner}?tab=campaigns`);
+    } else if (isEditingCampaign || isNewCampaign) {
       setLocation('/campaigns');
     } else if (isFromTemplate) {
       setLocation('/campaigns/templates');

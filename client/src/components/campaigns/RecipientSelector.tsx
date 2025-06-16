@@ -110,12 +110,6 @@ export default function RecipientSelector({
   };
   
   const initialTabValue = getInitialTab(initialTab ?? null);
-  console.log('RecipientSelector tab debug:', {
-    initialTab,
-    initialTabValue,
-    entityType
-  });
-  
   const [selectedTab, setSelectedTab] = useState<'lists' | 'contacts' | 'selected' | 'missing'>(initialTabValue);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [showAddContact, setShowAddContact] = useState(false);

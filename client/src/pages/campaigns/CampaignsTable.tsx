@@ -234,11 +234,6 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
 
       if (campaign.recipients && campaign.recipients.length > 0) {
         try {
-          console.log('Checking for missing contacts:', {
-            targetEntityType: campaign.target_entity_type,
-            recipientCount: campaign.recipients.length
-          });
-
           if (campaign.target_entity_type === 'opportunities') {
             // Check opportunities for missing customer relationships and contacts
             const opportunityIds = campaign.recipients.map((r: any) => r.id);
@@ -276,7 +271,6 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
               );
               
               if (partnerContacts.length === 0) {
-                console.log(`Partner ${partnerId} has no contacts`);
                 hasMissingContacts = true;
                 break;
               }
@@ -297,7 +291,7 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
             }
           }
 
-          console.log('Missing contacts check result:', { hasMissingContacts });
+
         } catch (error) {
           console.error('Error checking for missing contacts:', error);
         }
