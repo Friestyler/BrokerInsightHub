@@ -1049,10 +1049,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const envId = req.params.envId;
       const partnerId = parseInt(req.params.id);
-      const envPool = pool;
       
-      // Return empty array for now - activities will be handled by timeline
-      res.json([]);
+      // Fetch tasks
+      const tasksResult = await db.execute(sql`
+        SELECT t.*, u.name as assigned_to_name
+        FROM ${sql.identifier(envId)}.activity_tasks t
+        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id::text
+        WHERE t.partner_id = ${partnerId}
+        ORDER BY t.created_at DESC
+      `);
+      
+      // Fetch comments
+      const commentsResult = await db.execute(sql`
+        SELECT c.*, u.name as author_name
+        FROM ${sql.identifier(envId)}.activity_comments c
+        LEFT JOIN ${sql.identifier(envId)}.users u ON c.user_id = u.id
+        WHERE c.partner_id = ${partnerId}
+        ORDER BY c.created_at DESC
+      `);
+      
+      // Fetch attachments
+      const attachmentsResult = await db.execute(sql`
+        SELECT a.*, u.name as author_name
+        FROM ${sql.identifier(envId)}.activity_attachments a
+        LEFT JOIN ${sql.identifier(envId)}.users u ON a.uploaded_by_id = u.id
+        WHERE a.partner_id = ${partnerId}
+        ORDER BY a.created_at DESC
+      `);
+      
+      res.json({
+        tasks: tasksResult.rows,
+        comments: commentsResult.rows,
+        attachments: attachmentsResult.rows
+      });
     } catch (error) {
       console.error('Error fetching partner activities:', error);
       res.status(500).json({ error: 'Failed to fetch partner activities' });
@@ -1064,44 +1093,169 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const envId = req.params.envId;
       const partnerId = parseInt(req.params.id);
-      const envPool = pool;
       
-      // Mock timeline data that matches the expected structure
-      const mockTimeline = [
-        {
-          id: 1,
-          activity_type: 'comment',
-          title: 'Initial partner review completed',
-          content: 'Completed comprehensive review of partner capabilities and market position',
-          created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-          author_name: 'System',
-          visible_to_partner: true
-        },
-        {
-          id: 2,
-          activity_type: 'task',
-          title: 'Follow up on Q1 targets',
-          content: 'Review quarterly performance metrics and discuss improvement strategies',
-          created_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
-          author_name: 'Account Manager',
-          priority: 'high',
-          visible_to_partner: false
-        },
-        {
-          id: 3,
-          activity_type: 'attachment',
-          title: 'Contract renewal documents',
-          content: 'Updated partnership agreement for 2025',
-          created_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
-          author_name: 'Legal Team',
-          visible_to_partner: true
-        }
-      ];
+      // Fetch all timeline activities from database
+      const timelineQuery = sql`
+        SELECT 
+          id, 
+          'task' as activity_type, 
+          title, 
+          title as content, 
+          description,
+          priority,
+          completed,
+          visible_to_partner,
+          assigned_to,
+          created_at,
+          updated_at
+        FROM ${sql.identifier(envId)}.activity_tasks 
+        WHERE partner_id = ${partnerId}
+        
+        UNION ALL
+        
+        SELECT 
+          id, 
+          'comment' as activity_type, 
+          'Comment' as title, 
+          content, 
+          null as description,
+          null as priority,
+          null as completed,
+          visible_to_partner,
+          user_id::text as assigned_to,
+          created_at,
+          updated_at
+        FROM ${sql.identifier(envId)}.activity_comments 
+        WHERE partner_id = ${partnerId}
+        
+        UNION ALL
+        
+        SELECT 
+          id, 
+          'attachment' as activity_type, 
+          'Document' as title, 
+          filename as content, 
+          null as description,
+          null as priority,
+          null as completed,
+          visible_to_partner,
+          uploaded_by_id::text as assigned_to,
+          created_at,
+          null as updated_at
+        FROM ${sql.identifier(envId)}.activity_attachments 
+        WHERE partner_id = ${partnerId}
+        
+        ORDER BY created_at DESC
+      `;
       
-      res.json(mockTimeline);
+      const timelineResult = await db.execute(timelineQuery);
+      
+      // Transform the results to match expected frontend format
+      const timeline = timelineResult.rows.map((item: any) => ({
+        id: item.id,
+        activity_type: item.activity_type,
+        title: item.title,
+        content: item.content,
+        description: item.description,
+        priority: item.priority,
+        completed: item.completed,
+        visible_to_partner: item.visible_to_partner,
+        assigned_to: item.assigned_to,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        author_name: 'User' // Will be populated with actual user names when user system is connected
+      }));
+      
+      res.json(timeline);
     } catch (error) {
       console.error('Error fetching partner timeline:', error);
       res.status(500).json({ error: 'Failed to fetch partner timeline' });
+    }
+  });
+
+  // Get next best actions for a specific partner
+  app.get('/api/:envId/partners/:id/next-actions', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const partnerId = parseInt(req.params.id);
+      
+      const actionsResult = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(envId)}.next_best_actions 
+        WHERE partner_id = ${partnerId}
+        ORDER BY priority DESC, created_at DESC
+      `);
+      
+      res.json(actionsResult.rows);
+    } catch (error) {
+      console.error('Error fetching next best actions:', error);
+      res.status(500).json({ error: 'Failed to fetch next best actions' });
+    }
+  });
+
+  // Create a new task for a partner
+  app.post('/api/:envId/partners/:id/tasks', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const partnerId = parseInt(req.params.id);
+      const { title, description, priority, visible_to_partner, assigned_to } = req.body;
+      
+      const result = await db.execute(sql`
+        INSERT INTO ${sql.identifier(envId)}.activity_tasks 
+        (partner_id, title, description, priority, visible_to_partner, assigned_to, completed)
+        VALUES (${partnerId}, ${title}, ${description || null}, ${priority || 'medium'}, ${visible_to_partner || false}, ${assigned_to || null}, false)
+        RETURNING *
+      `);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating task:', error);
+      res.status(500).json({ error: 'Failed to create task' });
+    }
+  });
+
+  // Create a new comment for a partner
+  app.post('/api/:envId/partners/:id/comments', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const partnerId = parseInt(req.params.id);
+      const { content, visible_to_partner, user_id } = req.body;
+      
+      const result = await db.execute(sql`
+        INSERT INTO ${sql.identifier(envId)}.activity_comments 
+        (partner_id, content, visible_to_partner, user_id)
+        VALUES (${partnerId}, ${content}, ${visible_to_partner || false}, ${user_id || 1})
+        RETURNING *
+      `);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating comment:', error);
+      res.status(500).json({ error: 'Failed to create comment' });
+    }
+  });
+
+  // Update task completion status
+  app.patch('/api/:envId/tasks/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const taskId = parseInt(req.params.id);
+      const { completed } = req.body;
+      
+      const result = await db.execute(sql`
+        UPDATE ${sql.identifier(envId)}.activity_tasks 
+        SET completed = ${completed}, completed_at = ${completed ? new Date().toISOString() : null}
+        WHERE id = ${taskId}
+        RETURNING *
+      `);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Task not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating task:', error);
+      res.status(500).json({ error: 'Failed to update task' });
     }
   });
 

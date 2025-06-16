@@ -157,7 +157,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
   // Toggle task completion
   const toggleTaskMutation = useMutation({
     mutationFn: ({ taskId, completed }: { taskId: number, completed: boolean }) =>
-      fetch(`/api/${currentEnv}/activity/tasks/${taskId}`, {
+      fetch(`/api/${currentEnv}/tasks/${taskId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ completed, completedAt: completed ? new Date().toISOString() : null })
