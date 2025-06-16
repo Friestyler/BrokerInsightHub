@@ -2509,6 +2509,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stage: opp.stage,
         estimatedValue: opp.estimatedValue,
         expectedCloseDate: opp.expectedCloseDate,
+        startDate: opp.start_date,
         clientId: opp.clientId,
         clientName: opp.customer_names || '',
         customerNames: opp.customer_names || '',
@@ -2558,7 +2559,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LEFT JOIN degoudse.products pr ON pr.id = op.product_id
         WHERE o.id = $1
         GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
-                 o."expectedCloseDate", o."clientId", o."partnerId", o."productId", 
+                 o."expectedCloseDate", o.start_date, o."clientId", o."partnerId", o."productId", 
                  o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
       `, [opportunityId]);
       
@@ -2575,6 +2576,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stage: opp.stage,
         estimatedValue: opp.estimatedValue,
         expectedCloseDate: opp.expectedCloseDate,
+        startDate: opp.start_date,
         clientId: opp.clientId,
         clientName: opp.customer_names || '',
         customerNames: opp.customer_names || '',
