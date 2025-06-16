@@ -41,7 +41,7 @@ import PartnerView from "@/pages/PartnerView";
 
 // Import campaign components
 import CampaignsOverview from "@/pages/campaigns/CampaignsOverview";
-import CampaignCreator from "@/pages/campaigns/CampaignCreator";
+import CampaignTemplateCreator from "@/pages/campaigns/CampaignTemplateCreator";
 import TemplatesPage from "@/pages/campaigns/TemplatesPage";
 import CampaignFromTemplate from "@/pages/campaigns/CampaignFromTemplate";
 import NewCampaign from "@/pages/campaigns/NewCampaign";
@@ -93,7 +93,7 @@ function Router() {
               <Route path="/campaigns" component={CampaignsOverview} />
               <Route path="/campaigns/new" component={CampaignFromTemplate} />
               <Route path="/campaigns/edit/:campaignId" component={CampaignFromTemplate} />
-              <Route path="/campaigns/create-template" component={CampaignCreator} />
+              <Route path="/campaigns/create-template" component={CampaignTemplateCreator} />
               <Route path="/campaigns/templates" component={TemplatesPage} />
               <Route path="/campaigns/create-from-template/:templateId" component={CampaignFromTemplate} />
               

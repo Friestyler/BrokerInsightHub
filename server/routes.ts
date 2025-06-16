@@ -5824,45 +5824,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const template = templateResult.rows[0];
       
-      // Get emails
-      const emailsResult = await pool.query(`
-        SELECT * FROM campaign_emails WHERE template_id = $1 ORDER BY email_order
-      `, [id]);
-      
-      // Get blocks for each email
-      const emails = [];
-      for (const email of emailsResult.rows) {
-        const blocksResult = await pool.query(`
-          SELECT * FROM email_blocks WHERE email_id = $1 ORDER BY block_order
-        `, [email.id]);
-        
-        emails.push({
-          id: email.id.toString(),
-          subject: email.subject,
-          followUpDays: email.follow_up_days,
-          leftLogo: email.left_logo,
-          rightLogo: email.right_logo,
-          blocks: blocksResult.rows.map(block => ({
-            id: block.id.toString(),
-            type: block.type,
-            content: block.content,
-            properties: block.properties || {}
-          }))
-        });
-      }
+      // For templates, we don't need separate emails/blocks structure
+      // The template data is stored directly in the campaigns table
       
       const templateData = {
-        id: template.id.toString(),
+        id: template.id,
         name: template.name,
         description: template.description || '',
-        objective: template.objective || '',
-        entity: template.entity,
-        icon: template.icon || '',
+        type: template.type,
+        category: template.category,
         status: template.status,
-        attachments: template.attachments || [],
-        emails: emails,
-        createdAt: template.created_at,
-        updatedAt: template.updated_at
+        created_by_id: template.created_by_id,
+        sponsor_id: template.sponsor_id,
+        subject: template.subject,
+        email_body: template.email_body,
+        email_logo: template.email_logo,
+        from_name: template.from_name,
+        from_email: template.from_email,
+        frequency: template.frequency,
+        is_shared: template.is_shared,
+        is_template: template.is_template,
+        tags: template.tags || [],
+        created_at: template.created_at,
+        updated_at: template.updated_at,
+        heading: template.heading,
+        button_link: template.button_link,
+        button_text: template.button_text,
+        button_color: template.button_color,
+        follow_up_emails: template.follow_up_emails || [],
+        scheduled_time: template.scheduled_time
       };
       
       res.json(templateData);
