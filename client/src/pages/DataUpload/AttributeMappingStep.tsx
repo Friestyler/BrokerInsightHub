@@ -107,7 +107,8 @@ export default function AttributeMappingStep({
 
   // Initialize attribute mappings based on upload settings
   useEffect(() => {
-    if (uploadSettings.length > 0 && attributeMappings.length === 0 && selectedTemplateId === 'none') {
+    if (uploadSettings.length > 0 && attributeMappings.length === 0 && (selectedTemplateId === 'none' || selectedTemplateId === '')) {
+      console.log('Initializing attribute mappings from upload settings:', uploadSettings);
       const mandatoryAttributes = uploadSettings.filter((setting: any) => setting.is_mandatory);
       const mappings = mandatoryAttributes.map((setting: any) => ({
         attribute: setting.attribute_name,
@@ -116,6 +117,7 @@ export default function AttributeMappingStep({
         isCodeBased: false
       }));
       setAttributeMappings(mappings);
+      console.log('Created attribute mappings:', mappings);
     }
   }, [uploadSettings, attributeMappings.length, selectedTemplateId]);
 
@@ -885,6 +887,47 @@ Examples:
           </div>
         </CardContent>
       </Card>
+
+      {/* CSV Data Preview */}
+      {csvData.length > 0 && (
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base">Data Preview</CardTitle>
+            <p className="text-sm text-gray-600">First 5 rows from your uploaded CSV file</p>
+          </CardHeader>
+          <CardContent>
+            <div className="overflow-x-auto">
+              <table className="w-full border-collapse border border-gray-200 text-sm">
+                <thead>
+                  <tr className="bg-gray-50">
+                    {csvHeaders.map((header, index) => (
+                      <th key={index} className="border border-gray-200 px-3 py-2 text-left font-medium">
+                        {header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {csvData.slice(0, 5).map((row, rowIndex) => (
+                    <tr key={rowIndex} className="hover:bg-gray-50">
+                      {csvHeaders.map((header, colIndex) => (
+                        <td key={colIndex} className="border border-gray-200 px-3 py-2">
+                          {row[header] || '-'}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            {csvData.length > 5 && (
+              <p className="text-sm text-gray-500 mt-2">
+                Showing 5 of {csvData.length} rows
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Actions */}
       <div className="flex justify-between">
