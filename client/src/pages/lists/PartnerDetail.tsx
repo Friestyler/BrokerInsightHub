@@ -93,8 +93,7 @@ export default function PartnerDetail() {
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<number[]>([]);
 
   // Campaigns state
-  const [selectedCampaigns, setSelectedCampaigns] = useState<number[]>([]);
-  const [selectedFilter, setSelectedFilter] = useState('all');
+
 
   // Get collaborators for the currently active list
   const getCollaboratorsForList = (listId: number) => {
@@ -468,11 +467,7 @@ export default function PartnerDetail() {
   });
 
   // Fetch campaigns linked to this partner
-  const { data: partnerCampaigns = [] } = useQuery({
-    queryKey: ['/api/campaigns', 'partner', id],
-    queryFn: () => apiRequest('GET', `/api/campaigns?partner_id=${id}`),
-    enabled: !!id,
-  });
+
 
   // Filter saved lists to show partner-relevant lists
   const partnerRelevantLists = (savedListsData as any[] || []).filter((list: any) => {
@@ -522,35 +517,7 @@ export default function PartnerDetail() {
   const uniqueStatuses = Array.from(new Set((relatedOpportunities as any[] || []).map((opp: any) => opp.stage).filter(Boolean)));
   const uniqueCustomers = Array.from(new Set((relatedOpportunities as any[] || []).map((opp: any) => opp.clientName).filter(Boolean)));
 
-  // Filter campaigns based on selected filter
-  const filteredCampaigns = (partnerCampaigns as any[] || []).filter((campaign: any) => {
-    if (selectedFilter === 'all') return true;
-    return campaign.type === selectedFilter;
-  });
 
-  // Campaign status options and handlers
-  const statusOptions = [
-    { value: 'draft', label: 'Draft', icon: <AlertCircle className="w-4 h-4" /> },
-    { value: 'scheduled', label: 'Scheduled', icon: <Clock className="w-4 h-4" /> },
-    { value: 'active', label: 'Active', icon: <Play className="w-4 h-4" /> },
-    { value: 'paused', label: 'Paused', icon: <Pause className="w-4 h-4" /> },
-    { value: 'completed', label: 'Completed', icon: <CheckCircle className="w-4 h-4" /> },
-  ];
-
-  const getStatusIcon = (status: string) => {
-    const option = statusOptions.find(opt => opt.value === status);
-    return option ? option.icon : <AlertCircle className="w-4 h-4" />;
-  };
-
-  const handleBulkStatusChange = (newStatus: string) => {
-    // Implementation for bulk status change
-    console.log('Changing status to:', newStatus, 'for campaigns:', selectedCampaigns);
-  };
-
-  const handleBulkDelete = () => {
-    // Implementation for bulk delete
-    console.log('Deleting campaigns:', selectedCampaigns);
-  };
 
   // Filter opportunities based on search, filters, and active list
   const filteredOpportunities = (relatedOpportunities as any[] || []).filter((opportunity: any) => {
