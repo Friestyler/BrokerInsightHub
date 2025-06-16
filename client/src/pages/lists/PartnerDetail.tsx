@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Copy, Users, Trash2, MoreHorizontal, MessageSquare, ArrowLeft } from "lucide-react";
+import { Search, Copy, Users, Trash2, MoreHorizontal, MessageSquare, ArrowLeft, Plus, Mail, Calendar, Clock, Play, Pause, AlertCircle, CheckCircle, Eye } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
@@ -90,6 +90,10 @@ export default function PartnerDetail() {
   const [editedPartner, setEditedPartner] = useState<any>({});
   const [selectedOpportunityIds, setSelectedOpportunityIds] = useState<number[]>([]);
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<number[]>([]);
+
+  // Campaigns state
+  const [selectedCampaigns, setSelectedCampaigns] = useState<number[]>([]);
+  const [selectedFilter, setSelectedFilter] = useState('all');
 
   // Get collaborators for the currently active list
   const getCollaboratorsForList = (listId: number) => {
@@ -462,6 +466,13 @@ export default function PartnerDetail() {
     queryFn: () => apiRequest('GET', '/api/saved-views?entity_type=customers'),
   });
 
+  // Fetch campaigns linked to this partner
+  const { data: partnerCampaigns = [] } = useQuery({
+    queryKey: ['/api/campaigns', 'partner', id],
+    queryFn: () => apiRequest('GET', `/api/campaigns?partner_id=${id}`),
+    enabled: !!id,
+  });
+
   // Filter saved lists to show partner-relevant lists
   const partnerRelevantLists = (savedListsData as any[] || []).filter((list: any) => {
     // Show lists that belong to this partner (partner_id matches) or are general lists (partner_id is null)
@@ -509,6 +520,36 @@ export default function PartnerDetail() {
   // Extract unique filter values from opportunities data
   const uniqueStatuses = Array.from(new Set((relatedOpportunities as any[] || []).map((opp: any) => opp.stage).filter(Boolean)));
   const uniqueCustomers = Array.from(new Set((relatedOpportunities as any[] || []).map((opp: any) => opp.clientName).filter(Boolean)));
+
+  // Filter campaigns based on selected filter
+  const filteredCampaigns = (partnerCampaigns as any[] || []).filter((campaign: any) => {
+    if (selectedFilter === 'all') return true;
+    return campaign.type === selectedFilter;
+  });
+
+  // Campaign status options and handlers
+  const statusOptions = [
+    { value: 'draft', label: 'Draft', icon: <AlertCircle className="w-4 h-4" /> },
+    { value: 'scheduled', label: 'Scheduled', icon: <Clock className="w-4 h-4" /> },
+    { value: 'active', label: 'Active', icon: <Play className="w-4 h-4" /> },
+    { value: 'paused', label: 'Paused', icon: <Pause className="w-4 h-4" /> },
+    { value: 'completed', label: 'Completed', icon: <CheckCircle className="w-4 h-4" /> },
+  ];
+
+  const getStatusIcon = (status: string) => {
+    const option = statusOptions.find(opt => opt.value === status);
+    return option ? option.icon : <AlertCircle className="w-4 h-4" />;
+  };
+
+  const handleBulkStatusChange = (newStatus: string) => {
+    // Implementation for bulk status change
+    console.log('Changing status to:', newStatus, 'for campaigns:', selectedCampaigns);
+  };
+
+  const handleBulkDelete = () => {
+    // Implementation for bulk delete
+    console.log('Deleting campaigns:', selectedCampaigns);
+  };
 
   // Filter opportunities based on search, filters, and active list
   const filteredOpportunities = (relatedOpportunities as any[] || []).filter((opportunity: any) => {
@@ -2339,41 +2380,236 @@ export default function PartnerDetail() {
         )}
 
         {activeTab === "campaigns" && (
-          <div className="space-y-6">
-            <div className="text-center py-12">
-              <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                  <path d="M22 2 11 13" />
-                  <path d="M22 2 15 22 11 13 2 9 22 2z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Campaigns</h3>
-              <p className="text-gray-500 mb-6">Campaign management functionality will be available here soon.</p>
-              <div className="flex justify-center space-x-3">
-                <Button 
-                  variant="outline" 
-                  onClick={() => window.open('/campaigns', '_blank')}
-                  className="text-indigo-600"
+          <div className="p-6 space-y-6">
+            {/* Action Bar */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={selectedFilter === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedFilter('all')}
+                  className={selectedFilter === 'all' ? 'bg-indigo-600 hover:bg-indigo-700' : ''}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <path d="M22 2 11 13" />
-                    <path d="M22 2 15 22 11 13 2 9 22 2z" />
-                  </svg>
-                  Go to Campaigns
+                  All Campaigns
                 </Button>
-                <Button 
-                  variant="outline"
-                  onClick={() => window.open('/campaigns/new', '_blank')}
-                  className="text-indigo-600"
+                <Button
+                  variant={selectedFilter === 'cross_sell' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedFilter('cross_sell')}
+                  className={selectedFilter === 'cross_sell' ? 'bg-purple-600 hover:bg-purple-700' : ''}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <path d="M12 5v14" />
-                    <path d="M5 12h14" />
-                  </svg>
-                  Create Campaign
+                  Cross-sell
+                </Button>
+                <Button
+                  variant={selectedFilter === 'email' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedFilter('email')}
+                  className={selectedFilter === 'email' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                >
+                  Email
+                </Button>
+                <Button
+                  variant={selectedFilter === 'retention' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedFilter('retention')}
+                  className={selectedFilter === 'retention' ? 'bg-green-600 hover:bg-green-700' : ''}
+                >
+                  Retention
                 </Button>
               </div>
+              
+              <Button
+                onClick={() => window.location.href = '/campaigns/new'}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg flex items-center gap-2"
+              >
+                <Plus className="h-4 w-4" />
+                Create New Campaign
+              </Button>
             </div>
+
+            {/* Bulk actions bar - show when campaigns are selected */}
+            {selectedCampaigns.length > 0 && (
+              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-medium text-indigo-700">
+                    {selectedCampaigns.length} campaign(s) selected
+                  </span>
+                  
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="flex items-center gap-2">
+                        {getStatusIcon('draft')}
+                        Change Status
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-48">
+                      {statusOptions.map((option) => (
+                        <DropdownMenuItem
+                          key={option.value}
+                          onClick={() => handleBulkStatusChange(option.value)}
+                          className="flex items-center gap-2"
+                        >
+                          {option.icon}
+                          {option.label}
+                        </DropdownMenuItem>
+                      ))}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setSelectedCampaigns([])}
+                  >
+                    Clear Selection
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleBulkDelete}
+                  >
+                    <Trash2 className="w-4 h-4 mr-1" />
+                    Delete
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Campaigns Table */}
+            {filteredCampaigns.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <Mail className="w-8 h-8 text-gray-400" />
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No campaigns found</h3>
+                <p className="text-gray-500 mb-6">
+                  {selectedFilter === 'all' 
+                    ? 'No campaigns have been shared with this partner yet.' 
+                    : `No ${selectedFilter} campaigns have been shared with this partner.`}
+                </p>
+                <Button
+                  onClick={() => window.location.href = '/campaigns/new'}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create First Campaign
+                </Button>
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg border border-gray-200">
+                <Table>
+                  <TableHeader>
+                    <TableRow className="border-b border-gray-200">
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={selectedCampaigns.length === filteredCampaigns.length && filteredCampaigns.length > 0}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedCampaigns(filteredCampaigns.map((c: any) => c.id));
+                            } else {
+                              setSelectedCampaigns([]);
+                            }
+                          }}
+                        />
+                      </TableHead>
+                      <TableHead>Campaign</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead>Created By</TableHead>
+                      <TableHead className="w-12"></TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredCampaigns.map((campaign: any) => (
+                      <TableRow key={campaign.id} className="border-b border-gray-100 hover:bg-gray-50">
+                        <TableCell>
+                          <Checkbox
+                            checked={selectedCampaigns.includes(campaign.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedCampaigns([...selectedCampaigns, campaign.id]);
+                              } else {
+                                setSelectedCampaigns(selectedCampaigns.filter(id => id !== campaign.id));
+                              }
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
+                              <Mail className="w-4 h-4 text-indigo-600" />
+                            </div>
+                            <div>
+                              <div className="font-medium text-gray-900">{campaign.name}</div>
+                              <div className="text-sm text-gray-500">{campaign.description}</div>
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            campaign.type === 'cross_sell' ? 'bg-purple-100 text-purple-800' :
+                            campaign.type === 'email' ? 'bg-blue-100 text-blue-800' :
+                            campaign.type === 'retention' ? 'bg-green-100 text-green-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {campaign.type}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            {getStatusIcon(campaign.status)}
+                            <span className={`text-sm font-medium ${
+                              campaign.status === 'active' ? 'text-green-600' :
+                              campaign.status === 'completed' ? 'text-blue-600' :
+                              campaign.status === 'paused' ? 'text-yellow-600' :
+                              campaign.status === 'scheduled' ? 'text-purple-600' :
+                              'text-gray-600'
+                            }`}>
+                              {campaign.status.charAt(0).toUpperCase() + campaign.status.slice(1)}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm text-gray-500">
+                            {new Date(campaign.created_at).toLocaleDateString()}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm text-gray-900">{campaign.created_by_name}</div>
+                        </TableCell>
+                        <TableCell>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreHorizontal className="w-4 h-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => window.location.href = `/campaigns/${campaign.id}`}>
+                                <Eye className="w-4 h-4 mr-2" />
+                                View Details
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <Copy className="w-4 h-4 mr-2" />
+                                Duplicate
+                              </DropdownMenuItem>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuItem className="text-red-600">
+                                <Trash2 className="w-4 h-4 mr-2" />
+                                Remove Access
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            )}
           </div>
         )}
       </div>
