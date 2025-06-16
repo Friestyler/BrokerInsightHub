@@ -5155,7 +5155,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             button_text: campaign.button_text,
             button_color: campaign.button_color,
             follow_up_emails: campaign.follow_up_emails || [],
-            scheduled_time: campaign.scheduled_time
+            scheduled_time: campaign.scheduled_time,
+            target_entity_type: campaign.target_entity_type,
+            recipients: campaign.recipients ? JSON.parse(campaign.recipients) : []
           }));
           
           console.log(`Returning ${campaigns.length} campaigns from ${envId} environment:`, campaigns);
