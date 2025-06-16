@@ -97,6 +97,10 @@ export default function PartnerDetail() {
 
   // Logo upload state
   const [showLogoUploadModal, setShowLogoUploadModal] = useState(false);
+
+  // Navigation state
+  const [backUrl, setBackUrl] = useState("/partners");
+  const [backLabel, setBackLabel] = useState("Back to Partners");
   
   // Details dialog state
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
@@ -244,6 +248,57 @@ export default function PartnerDetail() {
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Detect navigation context and set appropriate back URL
+  useEffect(() => {
+    // Try multiple methods to detect the source page
+    const referrer = document.referrer;
+    const currentOrigin = window.location.origin;
+    
+    // Method 1: Check document.referrer
+    if (referrer && referrer.startsWith(currentOrigin)) {
+      const referrerPath = new URL(referrer).pathname;
+      const customerDetailMatch = referrerPath.match(/\/customers\/(\d+)/);
+      const opportunityDetailMatch = referrerPath.match(/\/opportunities\/(\d+)/);
+      
+      if (customerDetailMatch) {
+        const customerId = customerDetailMatch[1];
+        setBackUrl(`/customers/${customerId}`);
+        setBackLabel("Back to Customer");
+        return;
+      }
+      
+      if (opportunityDetailMatch) {
+        const opportunityId = opportunityDetailMatch[1];
+        setBackUrl(`/opportunities/${opportunityId}`);
+        setBackLabel("Back to Opportunity");
+        return;
+      }
+    }
+    
+    // Method 2: Check for context in session storage
+    const sessionReferrer = sessionStorage.getItem('partnerReferrer');
+    if (sessionReferrer) {
+      const customerDetailMatch = sessionReferrer.match(/\/customers\/(\d+)/);
+      const opportunityDetailMatch = sessionReferrer.match(/\/opportunities\/(\d+)/);
+      
+      if (customerDetailMatch) {
+        const customerId = customerDetailMatch[1];
+        setBackUrl(`/customers/${customerId}`);
+        setBackLabel("Back to Customer");
+        sessionStorage.removeItem('partnerReferrer');
+        return;
+      }
+      
+      if (opportunityDetailMatch) {
+        const opportunityId = opportunityDetailMatch[1];
+        setBackUrl(`/opportunities/${opportunityId}`);
+        setBackLabel("Back to Opportunity");
+        sessionStorage.removeItem('partnerReferrer');
+        return;
+      }
+    }
+  }, []);
 
   // Effect to clear active view when filters are manually changed
   useEffect(() => {
@@ -795,7 +850,7 @@ export default function PartnerDetail() {
         <div className="px-6 py-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-4">
-              <Link href="/partners">
+              <Link href={backUrl}>
                 <Button variant="ghost" size="sm" className="p-2 group hover:bg-[#F5F6FE]">
                   <ArrowLeft className="w-4 h-4 group-hover:text-[#5567E5]" />
                 </Button>
