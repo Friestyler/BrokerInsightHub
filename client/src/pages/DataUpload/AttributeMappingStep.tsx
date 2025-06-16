@@ -162,9 +162,12 @@ export default function AttributeMappingStep({
   // Parse CSV data for preview
   useEffect(() => {
     if (uploadedFile && (uploadedFile.type === 'text/csv' || uploadedFile.name.endsWith('.csv'))) {
+      console.log('📊 AttributeMappingStep: Processing CSV file:', uploadedFile.name, 'Size:', uploadedFile.size);
       const reader = new FileReader();
       reader.onload = (e) => {
         const text = e.target?.result as string;
+        console.log('📊 CSV file content length:', text.length);
+        console.log('📊 First 200 characters:', text.substring(0, 200));
         const lines = text.split('\n').filter(line => line.trim());
         if (lines.length > 1) {
           // Handle CSV parsing with proper quote handling
