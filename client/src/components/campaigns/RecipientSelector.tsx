@@ -98,6 +98,7 @@ export default function RecipientSelector({
   const [selectedTab, setSelectedTab] = useState<'lists' | 'contacts' | 'selected'>('lists');
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [showAddContact, setShowAddContact] = useState(false);
+  const [showOnlyMissingContacts, setShowOnlyMissingContacts] = useState(false);
 
   const [newContact, setNewContact] = useState({
     firstName: '',
@@ -365,7 +366,19 @@ export default function RecipientSelector({
 
   const filteredEntities = (entities as any[] || []).filter((entity: Entity) => {
     const entityName = entity.name || entity.title || '';
-    return entityName.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesSearch = entityName.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    // If showing only missing contacts, filter to entities without contacts
+    if (showOnlyMissingContacts) {
+      const entityContactsList = entityContacts[entity.id] || [];
+      const hasContacts = entityContactsList.length > 0;
+      const hasSelectedContacts = selectedRecipients.some(r => 
+        r.type === 'contact' && (r.linkedEntityId === entity.id || r.linked_entity_id === entity.id)
+      );
+      return matchesSearch && !hasContacts && !hasSelectedContacts;
+    }
+    
+    return matchesSearch;
   });
 
   const filteredContacts = (allContacts as any[] || []).filter((contact: Contact) => {
@@ -443,11 +456,19 @@ export default function RecipientSelector({
       {/* Summary Cards - Always Present with Placeholders */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {/* Total Selection Summary */}
-        <div className={`rounded-lg p-4 transition-all duration-200 ${
-          selectedRecipients.length > 0 
-            ? 'bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200' 
-            : 'bg-gray-50 border border-gray-200'
-        }`}>
+        <div 
+          className={`rounded-lg p-4 transition-all duration-200 cursor-pointer hover:shadow-md ${
+            selectedRecipients.length > 0 
+              ? 'bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 hover:from-blue-100 hover:to-blue-150' 
+              : 'bg-gray-50 border border-gray-200 hover:bg-gray-100'
+          }`}
+          onClick={() => {
+            if (selectedRecipients.length > 0) {
+              setSelectedTab('selected');
+              setShowOnlyMissingContacts(false);
+            }
+          }}
+        >
           <div className="flex items-center gap-3">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
               selectedRecipients.length > 0 ? 'bg-blue-600' : 'bg-gray-400'
@@ -478,13 +499,23 @@ export default function RecipientSelector({
         </div>
 
         {/* Status Card - Changes based on selection state */}
-        <div className={`rounded-lg p-4 transition-all duration-200 ${
-          selectedRecipients.length === 0 
-            ? 'bg-gray-50 border border-gray-200'
-            : summaryStats.entitiesWithoutContacts > 0 
-              ? 'bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200'
-              : 'bg-gradient-to-r from-green-50 to-green-100 border border-green-200'
-        }`}>
+        <div 
+          className={`rounded-lg p-4 transition-all duration-200 ${
+            summaryStats.entitiesWithoutContacts > 0 ? 'cursor-pointer hover:shadow-md' : ''
+          } ${
+            selectedRecipients.length === 0 
+              ? 'bg-gray-50 border border-gray-200'
+              : summaryStats.entitiesWithoutContacts > 0 
+                ? 'bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 hover:from-orange-100 hover:to-orange-150'
+                : 'bg-gradient-to-r from-green-50 to-green-100 border border-green-200'
+          }`}
+          onClick={() => {
+            if (summaryStats.entitiesWithoutContacts > 0) {
+              setSelectedTab('lists');
+              setShowOnlyMissingContacts(true);
+            }
+          }}
+        >
           <div className="flex items-start gap-3">
             <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
               selectedRecipients.length === 0 
