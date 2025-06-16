@@ -47,7 +47,7 @@ async function testSpecialFormatFlow() {
     formData.append('file', fs.createReadStream('test-sfdc-format.csv'));
     formData.append('scriptId', sfdcScript.id.toString());
     
-    const transformResponse = await fetch(`${BASE_URL}/api/${ENVIRONMENT_ID}/execute-transformation-script`, {
+    const transformResponse = await fetch(`${BASE_URL}/api/${ENVIRONMENT_ID}/transformation-scripts/execute`, {
       method: 'POST',
       body: formData
     });

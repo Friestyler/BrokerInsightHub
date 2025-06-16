@@ -413,79 +413,131 @@ export class UploadSettingsService {
     rowCount: number;
   }> {
     try {
+      console.log('🔄 TRANSFORMATION DEBUG: Starting transformation');
+      console.log('🔄 Script content length:', scriptContent?.length || 0);
+      console.log('🔄 CSV data length:', csvData?.length || 0);
+      
       // Parse the original CSV
       const lines = csvData.trim().split('\n');
       if (lines.length === 0) {
         throw new Error('Empty CSV data');
       }
 
-      // Extract headers and data lines
-      let headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-      let dataLines = lines.slice(1);
-      
-      // Check for empty rows at the beginning and find the actual header row
-      const firstRowIsEmpty = headers.every(h => h === '' || h.trim() === '');
-      
-      if (firstRowIsEmpty && lines.length > 1) {
-        // Look for the first non-empty row to use as headers
-        let headerRowIndex = -1;
+      console.log('🔄 Original CSV lines:', lines.length);
+      console.log('🔄 First 3 lines:', lines.slice(0, 3));
+
+      // Parse CSV more carefully, handling quoted fields
+      const parseCSVLine = (line: string): string[] => {
+        const result: string[] = [];
+        let current = '';
+        let inQuotes = false;
         
-        for (let i = 1; i < lines.length; i++) {
-          const rowHeaders = lines[i].split(',').map(h => h.trim().replace(/"/g, ''));
-          const hasContent = rowHeaders.some(h => h !== '' && h.trim() !== '');
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
           
-          if (hasContent) {
-            headerRowIndex = i;
-            headers = rowHeaders;
-            break;
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            result.push(current.trim());
+            current = '';
+          } else {
+            current += char;
           }
         }
+        result.push(current.trim());
+        return result;
+      };
+
+      // Find the first row with actual content (headers)
+      let headerRowIndex = 0;
+      let headers: string[] = [];
+      
+      for (let i = 0; i < lines.length; i++) {
+        const parsedLine = parseCSVLine(lines[i]);
+        const hasValidContent = parsedLine.some(cell => 
+          cell && cell.trim() !== '' && !cell.match(/^"*"*$/)
+        );
         
-        if (headerRowIndex !== -1) {
-          // Start data from the row after the header row
-          dataLines = lines.slice(headerRowIndex + 1);
-        } else {
-          // No valid headers found, use original logic
-          dataLines = lines.slice(2);
+        if (hasValidContent) {
+          headers = parsedLine.map(h => h.replace(/^"/, '').replace(/"$/, '').trim());
+          headerRowIndex = i;
+          console.log('🔄 Found headers at row', i, ':', headers);
+          break;
         }
       }
 
-      // Apply transformations based on script patterns
-      
-      // Remove empty rows (dropna)
-      if (scriptContent.includes('dropna(how=\'all\')')) {
-        dataLines = dataLines.filter((line: string) => {
-          const cells = line.split(',');
-          return cells.some((cell: string) => cell.trim().length > 0);
-        });
+      if (headers.length === 0) {
+        throw new Error('No valid headers found in CSV');
       }
 
-      // Remove empty columns and unnamed columns
-      if (scriptContent.includes('dropna(axis=1, how=\'all\')') || 
-          scriptContent.includes('columns.str.contains(')) {
-        
-        const validColumnIndices: number[] = [];
-        headers.forEach((header, index) => {
-          const cleanHeader = header.trim();
-          
-          // Keep columns that are not empty and not unnamed
-          if (cleanHeader.length > 0 && 
-              cleanHeader !== '' && 
-              !cleanHeader.toLowerCase().includes('unnamed')) {
-            validColumnIndices.push(index);
-          }
-        });
+      // Get data lines after headers
+      let dataLines = lines.slice(headerRowIndex + 1);
+      console.log('🔄 Data lines before transformation:', dataLines.length);
 
-        // Filter headers and data to keep only valid columns
-        headers = validColumnIndices.map(i => headers[i]);
-        dataLines = dataLines.map((line: string) => {
-          const cells = line.split(',');
-          return validColumnIndices.map(i => cells[i] || '').join(',');
-        });
+      // Apply comprehensive cleaning transformations
+      console.log('🔄 Applying transformations...');
+      
+      // 1. Remove completely empty rows
+      dataLines = dataLines.filter((line: string) => {
+        const cells = parseCSVLine(line);
+        return cells.some((cell: string) => cell && cell.trim() !== '');
+      });
+      console.log('🔄 After removing empty rows:', dataLines.length);
+
+      // 2. Remove empty/unnamed columns
+      const validColumnIndices: number[] = [];
+      headers.forEach((header, index) => {
+        const cleanHeader = header.trim();
+        
+        // Keep columns that have valid names (not empty, not "Unnamed", not just quotes)
+        if (cleanHeader.length > 0 && 
+            cleanHeader !== '' && 
+            !cleanHeader.toLowerCase().includes('unnamed') &&
+            cleanHeader !== '""' &&
+            cleanHeader !== '"') {
+          validColumnIndices.push(index);
+        }
+      });
+
+      console.log('🔄 Valid column indices:', validColumnIndices);
+      console.log('🔄 Original headers:', headers);
+
+      // Filter headers and data to keep only valid columns
+      headers = validColumnIndices.map(i => headers[i]);
+      console.log('🔄 Filtered headers:', headers);
+
+      // Filter data rows to keep only valid columns
+      dataLines = dataLines.map((line: string) => {
+        const cells = parseCSVLine(line);
+        const filteredCells = validColumnIndices.map(i => cells[i] || '');
+        return filteredCells.map(cell => 
+          cell.includes(',') || cell.includes('"') ? `"${cell}"` : cell
+        ).join(',');
+      });
+
+      // 3. Remove rows that are completely empty after column filtering
+      dataLines = dataLines.filter((line: string) => {
+        const cells = parseCSVLine(line);
+        return cells.some((cell: string) => cell && cell.trim() !== '');
+      });
+
+      console.log('🔄 Final data lines:', dataLines.length);
+      console.log('🔄 Final headers:', headers);
+
+      // Ensure we have valid headers
+      if (headers.length === 0) {
+        throw new Error('No valid column headers found after transformation');
       }
 
       // Rebuild CSV
       const transformedCsv = [headers.join(','), ...dataLines].join('\n');
+      
+      console.log('🔄 Transformation completed successfully');
+      console.log('🔄 Result:', {
+        headers: headers,
+        rowCount: dataLines.length,
+        transformedCsvLength: transformedCsv.length
+      });
 
       return {
         transformedCsv,
