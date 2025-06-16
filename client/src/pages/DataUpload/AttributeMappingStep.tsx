@@ -257,6 +257,7 @@ export default function AttributeMappingStep({
           };
           
           const headers = parseCSVLine(lines[0]);
+          console.log('📊 Parsed headers:', headers);
           const dataRows = lines.slice(1, 4).map(line => {
             const values = parseCSVLine(line);
             const row: any = {};
@@ -265,6 +266,7 @@ export default function AttributeMappingStep({
             });
             return row;
           });
+          console.log('📊 Parsed CSV data rows:', dataRows);
           setCsvData(dataRows);
         }
       };
