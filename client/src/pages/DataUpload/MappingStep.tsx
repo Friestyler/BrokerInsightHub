@@ -120,10 +120,17 @@ export default function MappingStep({
         throw new Error('No valid column headers found');
       }
 
-      setCsvHeaders(finalHeaders.filter(h => h)); // Remove empty headers
+      const validHeaders = finalHeaders.filter(h => h);
+      setCsvHeaders(validHeaders);
+      
+      // For special formats, automatically proceed to next step after successful transformation
+      if (!selectedTransformationScript) {
+        // Only show manual interface for non-transformation scenarios
+        setIsProcessing(false);
+      }
+      // Note: Auto-proceed is handled in the transformation success callback above
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to parse CSV file');
-    } finally {
       setIsProcessing(false);
     }
   };
