@@ -5165,7 +5165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             follow_up_emails: campaign.follow_up_emails || [],
             scheduled_time: campaign.scheduled_time,
             target_entity_type: campaign.target_entity_type,
-            recipients: campaign.recipients ? JSON.parse(campaign.recipients) : []
+            recipients: campaign.recipients || []
           }));
           
           console.log(`Returning ${campaigns.length} campaigns from ${envId} environment:`, campaigns);
@@ -5326,7 +5326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             scheduledTime: campaign.scheduled_time,
             followUpEmails: campaign.follow_up_emails || [],
             target_entity_type: campaign.target_entity_type,
-            recipients: campaign.recipients ? JSON.parse(campaign.recipients) : []
+            recipients: campaign.recipients || []
           };
           
           console.log(`Returning campaign ${campaign.name} from ${envId} environment`);
