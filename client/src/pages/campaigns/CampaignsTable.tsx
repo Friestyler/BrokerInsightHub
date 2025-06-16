@@ -16,6 +16,7 @@ interface CampaignsTableProps {
   campaigns: unknown;
   selectedCampaigns: number[];
   onSelectionChange: (selectedIds: number[]) => void;
+  isPartnerView?: boolean;
 }
 
 // Sortable table header component
