@@ -336,11 +336,11 @@ function OpportunityDetailsModal({ opportunityId, onClose }: { opportunityId: nu
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">Customer</label>
-              <p className="mt-1">{opportunity.clientName || opportunity.customerNames}</p>
+              <p className="mt-1">{opportunity.clientName || opportunity.customerName}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">Partner</label>
-              <p className="mt-1">{opportunity.partnerNames || 'Not assigned'}</p>
+              <p className="mt-1">{opportunity.partnerName || 'Not assigned'}</p>
             </div>
           </div>
 
@@ -668,8 +668,8 @@ function OpportunitiesTable() {
     return opportunitiesData.filter((opportunity: any) => {
       // Text search - using actual API response fields
       const title = opportunity.title || '';
-      const customerName = opportunity.clientName || opportunity.customerNames || '';
-      const partnerName = opportunity.partnerNames || '';
+      const customerName = opportunity.clientName || opportunity.customerName || '';
+      const partnerName = opportunity.partnerName || '';
       
       const matchesText = !filterText || 
         title.toLowerCase().includes(filterText.toLowerCase()) ||
@@ -1766,10 +1766,10 @@ function OpportunitiesTable() {
                   <TemplateBadges opportunityId={opportunity.id} />
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[140px] truncate">
-                  {opportunity.clientName || opportunity.customerNames}
+                  {opportunity.clientName || opportunity.customerName}
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[140px] truncate">
-                  {opportunity.partnerNames}
+                  {opportunity.partnerName}
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
                   {formatCurrency(opportunity.estimatedValue || 0)}
