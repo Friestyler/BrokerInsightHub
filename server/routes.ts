@@ -5107,7 +5107,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Only show campaigns that are specifically shared with this partner
             // If no campaigns are shared with this partner, return empty array
             query = `
-              SELECT DISTINCT c.*, u.name as created_by_name 
+              SELECT c.id, c.name, c.description, c.type, c.category, c.status, 
+                     c.created_by_id, c.sponsor_id, c.list_id, c.subject, c.email_body, 
+                     c.email_logo, c.from_name, c.from_email, c.scheduled_time, 
+                     c.frequency, c.is_shared, c.is_template, c.tags, c.created_at, 
+                     c.updated_at, c.heading, c.button_link, c.button_text, 
+                     c.button_color, c.follow_up_emails, u.name as created_by_name 
               FROM ${envId}.campaigns c
               LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
               INNER JOIN ${envId}.campaign_shares cs ON c.id = cs.campaign_id
