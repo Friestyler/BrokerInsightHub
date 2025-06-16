@@ -296,32 +296,48 @@ export default function AttributeMappingStep({
     if (isCodeBased && customCode) {
       // Try to execute the custom code for preview
       try {
+        console.log('🔍 Custom code preview debug:', { customCode, csvDataLength: csvData.length });
+        console.log('🔍 First CSV row:', csvData[0]);
+        
+        if (csvData.length === 0) {
+          return ['No CSV data available for preview', 'Upload a file first'];
+        }
+        
         const previewResults = csvData.slice(0, 3).map((row, idx) => {
           try {
+            console.log(`🔍 Processing row ${idx + 1}:`, row);
+            
             // Simple transformation for common pandas operations
             let result = customCode;
+            console.log('🔍 Original code:', result);
             
             // Replace df['column'] with actual values
             result = result.replace(/df\['([^']+)'\]/g, (match, columnName) => {
               const value = row[columnName];
+              console.log(`🔍 Column ${columnName}: ${value}`);
               return value !== undefined ? `"${value}"` : '""';
             });
+            
+            console.log('🔍 After column replacement:', result);
             
             // Handle string concatenation
             if (result.includes('+')) {
               // Evaluate simple string concatenation
               const parts = result.split('+').map(part => part.trim().replace(/['"]/g, ''));
               result = parts.join('');
+              console.log('🔍 After concatenation:', result);
             }
             
             return `Row ${idx + 1}: ${result}`;
           } catch (error) {
+            console.error('🔍 Error in row processing:', error);
             return `Row ${idx + 1}: Error in transformation`;
           }
         });
         
         return [...previewResults, '↓ Custom code preview (actual processing may differ)'];
       } catch (error) {
+        console.error('🔍 Error in custom code preview:', error);
         return ['Custom transformation code will be applied', 'Preview unavailable - code will execute during processing'];
       }
     }
