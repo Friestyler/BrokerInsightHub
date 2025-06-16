@@ -1019,7 +1019,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT o.*, c.name as client_name
         FROM degoudse.opportunities o
         INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN degoudse.customers c ON o.client_id = c.id
+        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
         WHERE po.partner_id = ${partnerId}
         ORDER BY o.id
       `);
@@ -1812,7 +1812,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                COUNT(DISTINCT contacts.id) as contact_count
         FROM degoudse.opportunities o
         INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN degoudse.customers c ON o.client_id = c.id
+        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
         LEFT JOIN degoudse.contacts contacts ON contacts.linked_entity_id = c.id AND contacts.linked_entity_type = 'customer'
         WHERE po.partner_id = $1
         GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
@@ -1905,12 +1905,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const customerId = parseInt(req.params.id);
       const envPool = pool;
       const result = await envPool.query(`
-        SELECT o.*, p.name as partner_name
+        SELECT o.*, 
+               STRING_AGG(DISTINCT p.name, ', ') as partner_names
         FROM degoudse.opportunities o
         INNER JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
         LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
         LEFT JOIN degoudse.partners p ON p.id = po.partner_id
         WHERE co.customer_id = $1
+        GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", o."expectedCloseDate", o."clientId", o."partnerId", o."productId", o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
         ORDER BY o.id
       `, [customerId]);
       
@@ -1920,9 +1922,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: opp.description,
         status: opp.status,
         stage: opp.stage,
-        estimated_value: opp.estimated_value,
-        partner_name: opp.partner_name,
-        expected_close_date: opp.expected_close_date
+        estimated_value: opp.estimatedValue,
+        partnerNames: opp.partner_names,
+        expected_close_date: opp.expectedCloseDate
       }));
       
       res.json(opportunities);
