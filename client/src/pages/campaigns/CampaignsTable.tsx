@@ -239,7 +239,8 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
             // Check opportunities for missing customer relationships and contacts
             const opportunityIds = campaign.recipients.map((r: any) => r.id);
             const opportunities = await fetch(`/api/opportunities`).then(res => res.json());
-            const customers = await fetch(`/api/customers`).then(res => res.json());
+            const customersResponse = await fetch(`/api/customers`).then(res => res.json());
+            const customers = customersResponse?.data || [];
             const contacts = await fetch(`/api/contacts`).then(res => res.json());
             
             for (const recipientId of opportunityIds) {

@@ -75,10 +75,11 @@ export function CreateCampaign({ params }: CreateCampaignProps) {
   });
 
   // Fetch potential recipients based on entity type
-  const { data: customers } = useQuery<Customer[]>({
+  const { data: customersResponse } = useQuery({
     queryKey: ['/api/customers'],
     enabled: formData.entity === 'customers',
   });
+  const customers = customersResponse?.data || [];
 
   const { data: contacts } = useQuery<CustomerTeamMember[]>({
     queryKey: ['/api/contacts'],

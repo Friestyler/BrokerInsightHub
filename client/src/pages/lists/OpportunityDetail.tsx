@@ -152,9 +152,10 @@ export default function OpportunityDetail() {
   });
 
   // Fetch all customers for multi-select
-  const { data: allCustomers } = useQuery({
+  const { data: allCustomersResponse } = useQuery({
     queryKey: ['/api/customers'],
   });
+  const allCustomers = allCustomersResponse?.data || [];
 
   // Fetch all partners for multi-select
   const { data: allPartners } = useQuery({
