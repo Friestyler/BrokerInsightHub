@@ -2453,6 +2453,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                    STRING_AGG(DISTINCT c.name, ', ') as customer_names,
                    STRING_AGG(DISTINCT p.name, ', ') as partner_names,
                    STRING_AGG(DISTINCT pr.name, ', ') as product_names,
+                   am.name as account_manager_name,
                    COUNT(DISTINCT co.customer_id) as customer_count,
                    COUNT(DISTINCT po.partner_id) as partner_count,
                    COUNT(DISTINCT op.product_id) as product_count,
@@ -2465,10 +2466,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
             LEFT JOIN degoudse.products pr ON pr.id = op.product_id
             LEFT JOIN degoudse.contacts contacts ON contacts.linked_entity_id = c.id AND contacts.linked_entity_type = 'customer'
+            LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
             WHERE po.partner_id = $1
             GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
-                     o."expectedCloseDate", o.start_date, o."clientId", o."partnerId", o."productId", 
-                     o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
+                     o."expectedCloseDate", o.start_date, o.account_manager_id, o."clientId", o."partnerId", o."productId", 
+                     o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt", am.name
             ORDER BY o.id
           `, [assignedPartnerId]);
         } else {
@@ -2482,6 +2484,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                  STRING_AGG(DISTINCT c.name, ', ') as customer_names,
                  STRING_AGG(DISTINCT p.name, ', ') as partner_names,
                  STRING_AGG(DISTINCT pr.name, ', ') as product_names,
+                 am.name as account_manager_name,
                  COUNT(DISTINCT co.customer_id) as customer_count,
                  COUNT(DISTINCT po.partner_id) as partner_count,
                  COUNT(DISTINCT op.product_id) as product_count,
@@ -2494,9 +2497,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
           LEFT JOIN degoudse.products pr ON pr.id = op.product_id
           LEFT JOIN degoudse.contacts contacts ON contacts.linked_entity_id = c.id AND contacts.linked_entity_type = 'customer'
+          LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
           GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
-                   o."expectedCloseDate", o.start_date, o."clientId", o."partnerId", o."productId", 
-                   o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
+                   o."expectedCloseDate", o.start_date, o.account_manager_id, o."clientId", o."partnerId", o."productId", 
+                   o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt", am.name
           ORDER BY o.id
         `);
       }
@@ -2518,6 +2522,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         productId: opp.productId,
         productNames: opp.product_names || '',
         ownerId: opp.ownerId,
+        accountManagerId: opp.account_manager_id,
+        accountManagerName: opp.account_manager_name || '',
         probability: opp.probability,
         type: opp.type,
         createdAt: opp.createdAt,

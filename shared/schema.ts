@@ -158,6 +158,7 @@ export const opportunities = pgTable("opportunities", {
   startDate: timestamp("start_date"),
   partnerId: integer("partner_id"),
   ownerId: integer("owner_id"),
+  accountManagerId: integer("account_manager_id").references(() => users.id),
   createdAt: timestamp("created_at"),
   updatedAt: timestamp("updated_at"),
 });
@@ -325,6 +326,7 @@ export const insertOpportunitySchema = createInsertSchema(opportunities).pick({
   estimatedValue: true,
   ownerId: true,
   partnerId: true,
+  accountManagerId: true,
   description: true,
   notes: true,
   expectedCloseDate: true,
