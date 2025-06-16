@@ -2141,12 +2141,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const envPool = pool;
       
-      // Get total count first
-      const countResult = await envPool.query(`
-        SELECT COUNT(*) as total_count FROM degoudse.customers
-      `);
+      // Get total count and summary statistics
+      const [countResult, summaryResult] = await Promise.all([
+        envPool.query(`
+          SELECT COUNT(*) as total_count FROM degoudse.customers
+        `),
+        envPool.query(`
+          SELECT 
+            COUNT(DISTINCT c.id) as total_customers,
+            COUNT(DISTINCT co.opportunity_id) as total_opportunities,
+            COALESCE(SUM(CASE WHEN o.value IS NOT NULL THEN o.value ELSE 0 END), 0) as total_value,
+            COALESCE(SUM(CASE WHEN o.weighted_value IS NOT NULL THEN o.weighted_value ELSE 0 END), 0) as weighted_value
+          FROM degoudse.customers c
+          LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
+          LEFT JOIN degoudse.opportunities o ON co.opportunity_id = o.id
+        `)
+      ]);
+      
       const totalCount = parseInt(countResult.rows[0].total_count);
       const totalPages = Math.ceil(totalCount / limit);
+      const summary = summaryResult.rows[0];
       
       // Query with pagination
       const result = await envPool.query(`
@@ -2189,7 +2203,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       });
       
-      // Return paginated response with metadata
+      // Return paginated response with metadata and summary totals
       console.log(`Returning ${customers.length} customers from De Goudse database (page ${page} of ${totalPages})`);
       res.json({
         data: customers,
@@ -2200,7 +2214,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           totalPages,
           hasNextPage: page < totalPages,
           hasPreviousPage: page > 1
-        }
+        },
+        totalOpportunities: parseInt(summary.total_opportunities) || 0,
+        totalValue: parseFloat(summary.total_value) || 0,
+        weightedValue: parseFloat(summary.weighted_value) || 0
       });
     } catch (error) {
       console.error('De Goudse customers API error:', error);

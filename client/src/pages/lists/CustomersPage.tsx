@@ -720,29 +720,29 @@ export default function CustomersPageClean() {
         {/* Statistics overview - exact match to Opportunities */}
         <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="bg-white p-4 rounded-md border border-gray-200">
-            <div className="text-xl font-semibold text-[#282A3F]">{filteredCustomers.length}</div>
+            <div className="text-xl font-semibold text-[#282A3F]">{pagination.totalCount}</div>
             <div className="text-sm text-gray-500">Total Customers</div>
           </div>
           
           <div className="bg-white p-4 rounded-md border border-gray-200">
             <div className="text-xl font-semibold text-[#282A3F]">
-              {filteredCustomers.reduce((total, customer) => total + (customer.opportunityCount || 0), 0)}
+              {customersResponse?.totalOpportunities || 0}
             </div>
             <div className="text-sm text-gray-500">Total Opportunities</div>
           </div>
           
           <div className="bg-white p-4 rounded-md border border-gray-200">
-            <div className="text-xl font-semibold text-[#282A3F]">1</div>
+            <div className="text-xl font-semibold text-[#282A3F]">{pagination.totalCount}</div>
             <div className="text-sm text-gray-500">Active</div>
           </div>
           
           <div className="bg-white p-4 rounded-md border border-gray-200">
-            <div className="text-xl font-semibold text-[#282A3F]">€10K</div>
+            <div className="text-xl font-semibold text-[#282A3F]">€{customersResponse?.totalValue || '0'}</div>
             <div className="text-sm text-gray-500">Total Value</div>
           </div>
           
           <div className="bg-white p-4 rounded-md border border-gray-200">
-            <div className="text-xl font-semibold text-[#282A3F]">€5K</div>
+            <div className="text-xl font-semibold text-[#282A3F]">€{customersResponse?.weightedValue || '0'}</div>
             <div className="text-sm text-gray-500">Weighted Value</div>
           </div>
         </div>
