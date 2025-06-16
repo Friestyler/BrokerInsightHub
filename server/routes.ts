@@ -5094,9 +5094,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           // Get all campaigns with user info
           const result = await pool.query(`
-            SELECT c.*, u.full_name as created_by_name 
+            SELECT c.*, u.name as created_by_name 
             FROM ${envId}.campaigns c
-            LEFT JOIN ${envId}.users u ON c.created_by = u.id
+            LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
+            WHERE c.is_template = false
             ORDER BY c.created_at DESC
           `);
           
@@ -5104,30 +5105,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const campaigns = result.rows.map(campaign => ({
             id: campaign.id,
             name: campaign.name || 'Untitled Campaign',
-            type: campaign.type || 'email',
+            type: campaign.type || 'cross_sell',
             description: campaign.description || '',
-            template_id: campaign.template_id,
-            target_entity_type: campaign.target_entity_type || 'partners',
-            target_entity_id: campaign.target_entity_id,
             status: campaign.status || 'draft',
-            created_by: campaign.created_by,
+            created_by_id: campaign.created_by_id,
             created_by_name: campaign.created_by_name || 'Unknown User',
             created_at: campaign.created_at,
             updated_at: campaign.updated_at,
-            send_at: campaign.send_at,
-            shared_with: campaign.shared_with || [],
-            is_ai_generated: campaign.is_ai_generated || false,
-            engagement_summary: campaign.engagement_summary || {
-              email1: { sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0 },
-              email2: { sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0 }
-            },
-            last_sent_at: campaign.last_sent_at,
-            emails: campaign.emails || [],
-            recipients: campaign.recipients || [],
-            settings: campaign.settings || {},
-            icon: campaign.icon || 'mail',
-            objective: campaign.objective,
-            attachments: campaign.attachments || []
+            subject: campaign.subject,
+            email_body: campaign.email_body,
+            email_logo: campaign.email_logo,
+            from_name: campaign.from_name,
+            from_email: campaign.from_email,
+            frequency: campaign.frequency,
+            is_shared: campaign.is_shared,
+            is_template: campaign.is_template,
+            tags: campaign.tags || [],
+            heading: campaign.heading,
+            button_link: campaign.button_link,
+            button_text: campaign.button_text,
+            button_color: campaign.button_color,
+            follow_up_emails: campaign.follow_up_emails || [],
+            scheduled_time: campaign.scheduled_time
           }));
           
           console.log(`Returning ${campaigns.length} campaigns from ${envId} environment:`, campaigns);
