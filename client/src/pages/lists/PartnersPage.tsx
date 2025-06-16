@@ -49,7 +49,7 @@ import { SortableTableHead } from "@/components/ui/sortable-table-head";
 const usePartnersData = () => {
   return useQuery({
     queryKey: ['/api/partners'],
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 0, // Force fresh data to show updated relationship counts
   });
 };
 
