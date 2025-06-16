@@ -100,17 +100,6 @@ export default function RecipientSelector({
   const [showAddContact, setShowAddContact] = useState(false);
   const [showOnlyMissingContacts, setShowOnlyMissingContacts] = useState(false);
 
-  // Debug logging to track recipient loading
-  useEffect(() => {
-    if (selectedRecipients.length > 0) {
-      console.log('RecipientSelector received recipients:', {
-        entityType,
-        selectedRecipients,
-        count: selectedRecipients.length
-      });
-    }
-  }, [selectedRecipients, entityType]);
-
   const [newContact, setNewContact] = useState({
     firstName: '',
     lastName: '',
