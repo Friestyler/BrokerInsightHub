@@ -2497,29 +2497,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           result = { rows: [] };
         }
       } else {
-        // Regular access - show all opportunities
+        // Regular access - show all opportunities using direct foreign key relationships
         result = await envPool.query(`
           SELECT o.*, 
-                 STRING_AGG(DISTINCT c.name, ', ') as customer_names,
-                 STRING_AGG(DISTINCT p.name, ', ') as partner_names,
-                 STRING_AGG(DISTINCT pr.name, ', ') as product_names,
-                 am.name as account_manager_name,
-                 COUNT(DISTINCT co.customer_id) as customer_count,
-                 COUNT(DISTINCT po.partner_id) as partner_count,
-                 COUNT(DISTINCT op.product_id) as product_count,
-                 COUNT(DISTINCT contacts.id) as contact_count
+                 c.name as customer_name,
+                 p.name as partner_name,
+                 pr.name as product_name,
+                 am.name as account_manager_name
           FROM degoudse.opportunities o
-          LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
-          LEFT JOIN degoudse.customers c ON c.id = co.customer_id
-          LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-          LEFT JOIN degoudse.partners p ON p.id = po.partner_id
-          LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
-          LEFT JOIN degoudse.products pr ON pr.id = op.product_id
-          LEFT JOIN degoudse.contacts contacts ON contacts.linked_entity_id = c.id AND contacts.linked_entity_type = 'customer'
+          LEFT JOIN degoudse.customers c ON o.client_id = c.id
+          LEFT JOIN degoudse.partners p ON o.partner_id = p.id
+          LEFT JOIN degoudse.insurance_products pr ON o.product_id = pr.id
           LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
-          GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
-                   o."expectedCloseDate", o.start_date, o.account_manager_id, o."clientId", o."partnerId", o."productId", 
-                   o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt", am.name
           ORDER BY o.id
         `);
       }
@@ -2531,27 +2520,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
         insuranceDescription: opp.insurance_description,
         status: opp.status,
         stage: opp.stage,
-        estimatedValue: opp.estimatedValue,
-        expectedCloseDate: opp.expectedCloseDate,
+        estimatedValue: opp.estimated_value,
+        expectedCloseDate: opp.expected_close_date,
         startDate: opp.start_date,
-        clientId: opp.clientId,
-        clientName: opp.customer_names || '',
-        customerNames: opp.customer_names || '',
-        partnerId: opp.partnerId,
-        partnerNames: opp.partner_names || '',
-        productId: opp.productId,
-        productNames: opp.product_names || '',
-        ownerId: opp.ownerId,
+        clientId: opp.client_id,
+        clientName: opp.customer_name || '',
+        customerNames: opp.customer_name || '',
+        partnerId: opp.partner_id,
+        partnerNames: opp.partner_name || '',
+        productId: opp.product_id,
+        productNames: opp.product_name || '',
+        ownerId: opp.owner_id,
         accountManagerId: opp.account_manager_id,
         accountManagerName: opp.account_manager_name || '',
         probability: opp.probability,
         type: opp.type,
-        createdAt: opp.createdAt,
-        updatedAt: opp.updatedAt,
-        customerCount: parseInt(opp.customer_count) || 0,
-        partnerCount: parseInt(opp.partner_count) || 0,
-        productCount: parseInt(opp.product_count) || 0,
-        contactCount: parseInt(opp.contact_count) || 0
+        createdAt: opp.created_at,
+        updatedAt: opp.updated_at
       }));
       
       console.log(`Returning ${opportunities.length} opportunities from De Goudse database`);
