@@ -426,45 +426,34 @@ export default function RecipientSelector({
     const selectedEntities = selectedRecipients.filter(r => r.type === 'entity' || r.type === 'customer');
     const selectedContacts = selectedRecipients.filter(r => r.type === 'contact');
     
-    // Find entities that have no contacts assigned
-    const entitiesWithoutContacts = selectedEntities.filter(entity => {
+    // Find entities that have no contacts assigned (check ALL entities, not just selected ones)
+    const allEntitiesList = (() => {
+      if (entityType === 'opportunities') return filteredEntities;
+      if (entityType === 'customers') return entities || [];
+      if (entityType === 'partners') return entities || [];
+      return entities || [];
+    })();
+
+    const entitiesWithoutContactsList = allEntitiesList.filter(entity => {
       // Special handling for opportunities - check their customer's contacts
-      if (entityType === 'opportunities' && entity.type === 'entity') {
+      if (entityType === 'opportunities') {
         const customer = getCustomerForOpportunity(entity.id);
         if (!customer) return true; // No customer found, so no contacts
         
         const customerContacts = entityContacts[customer.id] || [];
-        const hasDirectContacts = customerContacts.length > 0;
-        
-        // Check if any individually selected contacts belong to this customer
-        const hasIndirectContacts = selectedContacts.some(contact => {
-          const contactEntityId = contact.linkedEntityId || contact.linked_entity_id;
-          return contactEntityId === customer.id;
-        });
-        
-        return !hasDirectContacts && !hasIndirectContacts;
+        return customerContacts.length === 0;
       }
       
       // For non-opportunity entities, check their direct contacts
       const entityContactsList = entityContacts[entity.id] || [];
-      
-      // Check if this entity has any contacts assigned to it
-      const hasDirectContacts = entityContactsList.length > 0;
-      
-      // Also check if any individually selected contacts belong to this entity
-      const hasIndirectContacts = selectedContacts.some(contact => {
-        const contactEntityId = contact.linkedEntityId || contact.linked_entity_id;
-        return contactEntityId === entity.id;
-      });
-      
-      return !hasDirectContacts && !hasIndirectContacts;
+      return entityContactsList.length === 0;
     });
 
     return {
       totalSelectedEntities: selectedEntities.length,
       totalSelectedContacts: selectedContacts.length,
-      entitiesWithoutContacts: entitiesWithoutContacts.length,
-      entitiesWithoutContactsList: entitiesWithoutContacts, // For detailed display
+      entitiesWithoutContacts: entitiesWithoutContactsList.length,
+      entitiesWithoutContactsList: entitiesWithoutContactsList, // For detailed display
       totalRecipients: selectedEntities.length + selectedContacts.length
     };
   })();
