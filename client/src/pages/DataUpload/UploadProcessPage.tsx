@@ -95,6 +95,7 @@ export default function UploadProcessPage() {
   
   const [currentStep, setCurrentStep] = useState(1); // Always start at step 1
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [transformedFile, setTransformedFile] = useState<File | null>(null); // Store transformed CSV for special formats
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const [attributeMappings, setAttributeMappings] = useState<Array<{
@@ -526,8 +527,11 @@ export default function UploadProcessPage() {
               stepName={currentStepData?.name || 'Mapping'}
               currentStep={currentStep}
               selectedTransformationScript={selectedTransformationScript}
-              onNext={(headers) => {
+              onNext={(headers, transformedFile) => {
                 setCsvHeaders(headers);
+                if (transformedFile) {
+                  setTransformedFile(transformedFile);
+                }
                 goToNextStep();
               }}
               onBack={goToPreviousStep}
@@ -535,9 +539,9 @@ export default function UploadProcessPage() {
           )}
 
           {/* Attribute Mapping Step */}
-          {((currentStep === 3 && (isSpecialFormat || isEntityUpload)) || (currentStep === 2 && !isSpecialFormat && !isEntityUpload)) && (
+          {((currentStep === 4 && isSpecialFormat) || (currentStep === 3 && isEntityUpload) || (currentStep === 2 && !isSpecialFormat && !isEntityUpload)) && (
             <AttributeMappingStep 
-              uploadedFile={uploadedFile}
+              uploadedFile={isSpecialFormat && transformedFile ? transformedFile : uploadedFile}
               csvHeaders={csvHeaders}
               uploadType={isEntityUpload ? selectedEntityType : uploadType || ''}
               stepName={currentStepData?.name || 'Attribute Mapping'}
@@ -553,9 +557,9 @@ export default function UploadProcessPage() {
           )}
 
           {/* Processing Step */}
-          {((currentStep === 4 && (isSpecialFormat || isEntityUpload)) || (currentStep === 3 && !isSpecialFormat && !isEntityUpload)) && (
+          {((currentStep === 5 && isSpecialFormat) || (currentStep === 4 && isEntityUpload) || (currentStep === 3 && !isSpecialFormat && !isEntityUpload)) && (
             <ProcessingStep 
-              uploadedFile={uploadedFile}
+              uploadedFile={isSpecialFormat && transformedFile ? transformedFile : uploadedFile}
               attributeMappings={attributeMappings}
               uploadType={isEntityUpload ? selectedEntityType : uploadType || ''}
               stepName={currentStepData?.name || 'Processing'}
@@ -574,7 +578,7 @@ export default function UploadProcessPage() {
           )}
 
           {/* Results Step */}
-          {((currentStep === 5 && (isSpecialFormat || isEntityUpload)) || (currentStep === 4 && !isSpecialFormat && !isEntityUpload)) && (
+          {((currentStep === 6 && isSpecialFormat) || (currentStep === 5 && isEntityUpload) || (currentStep === 4 && !isSpecialFormat && !isEntityUpload)) && (
             <div className="text-center py-16">
               <div className="mx-auto w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-lg mb-6">
                 <CheckCircle className="h-10 w-10 text-white" strokeWidth={2} />

@@ -10,7 +10,7 @@ interface MappingStepProps {
   stepName: string;
   currentStep: number;
   selectedTransformationScript?: { id: number; name: string } | null;
-  onNext: (csvHeaders: string[]) => void;
+  onNext: (csvHeaders: string[], transformedFile?: File) => void;
   onBack: () => void;
 }
 
@@ -74,6 +74,17 @@ export default function MappingStep({
             console.log('Transformation result:', result);
             finalHeaders = result.headers || [];
             console.log('Final headers after transformation:', finalHeaders);
+            
+            // Create a new File object from the transformed CSV data
+            if (result.transformedCsv) {
+              const transformedBlob = new Blob([result.transformedCsv], { type: 'text/csv' });
+              const transformedFile = new File([transformedBlob], `transformed_${uploadedFile.name}`, { type: 'text/csv' });
+              
+              setCsvHeaders(finalHeaders);
+              setIsProcessing(false);
+              onNext(finalHeaders, transformedFile);
+              return;
+            }
           } else {
             const errorText = await response.text();
             console.error('Transformation failed:', response.status, errorText);
