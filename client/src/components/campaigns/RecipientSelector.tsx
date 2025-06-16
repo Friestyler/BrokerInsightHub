@@ -698,6 +698,19 @@ export default function RecipientSelector({
           </Button>
 
           <Button
+            variant={selectedTab === 'selected' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => {
+              setSelectedTab('selected');
+              setShowOnlyMissingContacts(false);
+            }}
+            className="gap-2"
+          >
+            <Eye className="h-4 w-4" />
+            Selected ({selectedRecipients.length})
+          </Button>
+
+          <Button
             variant={selectedTab === 'missing' ? 'default' : 'outline'}
             size="sm"
             onClick={() => {
@@ -709,19 +722,6 @@ export default function RecipientSelector({
           >
             <UserPlus className="h-4 w-4" />
             Missing Contacts
-          </Button>
-
-          <Button
-            variant={selectedTab === 'selected' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => {
-              setSelectedTab('selected');
-              setShowOnlyMissingContacts(false);
-            }}
-            className="gap-2"
-          >
-            <Eye className="h-4 w-4" />
-            Selected ({selectedRecipients.length})
           </Button>
         </div>
       </div>
