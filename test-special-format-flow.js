@@ -3,9 +3,9 @@
  * Tests that transformation works and data flows through all steps
  */
 
-const fs = require('fs');
-const FormData = require('form-data');
-const fetch = require('node-fetch');
+import fs from 'fs';
+import FormData from 'form-data';
+import fetch from 'node-fetch';
 
 const BASE_URL = 'http://localhost:5000';
 const ENVIRONMENT_ID = 'degoudse';
