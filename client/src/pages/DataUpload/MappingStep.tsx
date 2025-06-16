@@ -50,7 +50,7 @@ export default function MappingStep({
         // Apply transformation script for special formats using selected script ID
         try {
           const formData = new FormData();
-          formData.append('csvFile', uploadedFile);
+          formData.append('file', uploadedFile);
           formData.append('scriptId', selectedTransformationScript.id.toString());
 
           // Get environment ID from URL or default to degoudse
@@ -137,8 +137,8 @@ export default function MappingStep({
 
   const canProceed = csvHeaders.length > 0 && !isProcessing && !error;
 
-  // For special formats with transformation scripts, don't show the manual interface
-  if (selectedTransformationScript && !error) {
+  // For special formats with transformation scripts, show loading state while processing
+  if (selectedTransformationScript && isProcessing) {
     return (
       <div className="space-y-6">
         <Card>
@@ -155,6 +155,15 @@ export default function MappingStep({
       </div>
     );
   }
+
+  // Debug logging to understand current state
+  console.log('MappingStep render state:', {
+    selectedTransformationScript: !!selectedTransformationScript,
+    isProcessing,
+    error,
+    csvHeaders: csvHeaders.length,
+    uploadType
+  });
 
   return (
     <div className="space-y-6">
