@@ -120,39 +120,44 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     if (campaignDataFromAPI && isEditingCampaign) {
       console.log('Loading existing campaign data for editing:', campaignDataFromAPI);
       
-      const emails = campaignDataFromAPI.emails?.map((email: any, index: number) => {
-        let blocks = [];
+      // Parse email_body from database which contains the blocks
+      let emails = [];
+      if (campaignDataFromAPI.email_body) {
         try {
-          // Campaign emails store content as JSON string, parse it to get blocks
-          if (typeof email.content === 'string') {
-            blocks = JSON.parse(email.content);
-          } else if (email.blocks) {
-            blocks = email.blocks;
-          }
+          const blocks = JSON.parse(campaignDataFromAPI.email_body);
+          emails = [{
+            id: '1',
+            subject: campaignDataFromAPI.subject || '',
+            blocks: blocks,
+            followUpDays: 0,
+            leftLogo: null,
+            rightLogo: null
+          }];
         } catch (e) {
-          console.warn('Failed to parse email content:', e);
+          console.warn('Failed to parse email_body:', e);
+          emails = [{
+            id: '1',
+            subject: campaignDataFromAPI.subject || '',
+            blocks: [],
+            followUpDays: 0,
+            leftLogo: null,
+            rightLogo: null
+          }];
         }
-        
-        return {
-          id: email.id || (index + 1).toString(),
-          subject: email.subject || '',
-          blocks: blocks,
-          followUpDays: email.followUpDays || 0,
+      } else {
+        emails = [{
+          id: '1',
+          subject: campaignDataFromAPI.subject || '',
+          blocks: [],
+          followUpDays: 0,
           leftLogo: null,
           rightLogo: null
-        };
-      }) || [{
-        id: '1',
-        subject: '',
-        blocks: [],
-        followUpDays: 0,
-        leftLogo: null,
-        rightLogo: null
-      }];
+        }];
+      }
 
       setCampaignData({
         name: campaignDataFromAPI.name || '',
-        entity: campaignDataFromAPI.target_entity_type || 'partners',
+        entity: campaignDataFromAPI.type || 'email',
         description: campaignDataFromAPI.description || '',
         objective: campaignDataFromAPI.objective || '',
         icon: campaignDataFromAPI.icon || 'target',
