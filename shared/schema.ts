@@ -886,6 +886,12 @@ export const campaigns = pgTable("campaigns", {
   engagement_summary: json("engagement_summary"), // aggregated stats object
   last_sent_at: timestamp("last_sent_at"), // timestamp of last email sent
   
+  // Email tracking metrics
+  emails_sent: integer("emails_sent").default(0), // total emails sent
+  emails_opened: integer("emails_opened").default(0), // total unique opens
+  open_rate: numeric("open_rate", { precision: 5, scale: 2 }).default("0.00"), // percentage of emails opened
+  total_clicks: integer("total_clicks").default(0), // total number of clicks
+  
   // Campaign content and configuration
   emails: json("emails").notNull(), // array of email objects with content
   recipients: json("recipients").notNull(), // array of selected recipients
