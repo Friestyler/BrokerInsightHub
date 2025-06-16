@@ -518,6 +518,22 @@ export default function UploadProcessPage() {
             </div>
           )}
 
+          {/* Mapping Step (Special Formats Only) - Apply transformation and extract headers */}
+          {currentStep === 3 && isSpecialFormat && (
+            <MappingStep 
+              uploadedFile={uploadedFile}
+              uploadType={uploadType || ''}
+              stepName={currentStepData?.name || 'Mapping'}
+              currentStep={currentStep}
+              selectedTransformationScript={selectedTransformationScript}
+              onNext={(headers) => {
+                setCsvHeaders(headers);
+                goToNextStep();
+              }}
+              onBack={goToPreviousStep}
+            />
+          )}
+
           {/* Attribute Mapping Step */}
           {((currentStep === 3 && (isSpecialFormat || isEntityUpload)) || (currentStep === 2 && !isSpecialFormat && !isEntityUpload)) && (
             <AttributeMappingStep 

@@ -9,6 +9,7 @@ interface MappingStepProps {
   uploadType: string;
   stepName: string;
   currentStep: number;
+  selectedTransformationScript?: { id: number; name: string } | null;
   onNext: (csvHeaders: string[]) => void;
   onBack: () => void;
 }
@@ -18,6 +19,7 @@ export default function MappingStep({
   uploadType, 
   stepName, 
   currentStep,
+  selectedTransformationScript,
   onNext, 
   onBack 
 }: MappingStepProps) {
@@ -44,12 +46,12 @@ export default function MappingStep({
       
       let finalHeaders: string[] = [];
       
-      if (isSpecialFormat) {
-        // Apply transformation script for special formats
+      if (isSpecialFormat && selectedTransformationScript) {
+        // Apply transformation script for special formats using selected script ID
         try {
           const formData = new FormData();
           formData.append('csvFile', uploadedFile);
-          formData.append('entityType', uploadType);
+          formData.append('scriptId', selectedTransformationScript.id.toString());
 
           // Get environment ID from URL or default to degoudse
           const getCurrentEnvironment = () => {
@@ -57,6 +59,8 @@ export default function MappingStep({
             const envMatch = path.match(/\/data-upload-2\/process\/([^\/]+)/);
             return envMatch ? envMatch[1] : 'degoudse';
           };
+
+          console.log('Executing transformation script:', selectedTransformationScript.name, 'ID:', selectedTransformationScript.id);
 
           const response = await fetch(`/api/${getCurrentEnvironment()}/transformation-scripts/execute`, {
             method: 'POST',
