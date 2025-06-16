@@ -409,14 +409,19 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
             >
               Target Type
             </SortableTableHead>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[140px] bg-white">
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[100px] bg-white">
               <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
-                Engagement Rate
+                Recipients
               </div>
             </th>
             <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[100px] bg-white">
               <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
-                Recipients
+                Opened (%)
+              </div>
+            </th>
+            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[100px] bg-white">
+              <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
+                Clicked (#)
               </div>
             </th>
             <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[100px] bg-white">
@@ -537,19 +542,25 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
                     {campaign.target_entity_type}
                   </span>
                 </td>
-                <td className="px-3 py-4 text-sm w-[140px]">
+                <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
+                  {campaign.recipients?.length || 0}
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
                   <div className="flex items-center gap-2">
-                    <Progress 
-                      value={engagementRate}
-                      className="h-2 flex-1"
-                    />
-                    <span className="text-xs text-gray-600 min-w-[40px]">
-                      {engagementRate.toFixed(1)}%
+                    <span className="text-sm font-medium">
+                      {campaign.open_rate ? parseFloat(campaign.open_rate).toFixed(1) : '0.0'}%
                     </span>
+                    {campaign.emails_sent > 0 && (
+                      <span className="text-xs text-gray-500">
+                        ({campaign.emails_opened || 0}/{campaign.emails_sent || 0})
+                      </span>
+                    )}
                   </div>
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
-                  {campaign.recipients?.length || 0}
+                  <span className="font-medium">
+                    {campaign.total_clicks || 0}
+                  </span>
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
                   {campaign.emails?.length || 0}
