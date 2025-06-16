@@ -598,12 +598,33 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   };
 
   const handleNext = () => {
+    console.log('Next button clicked:', {
+      currentStep,
+      totalSteps,
+      nextStepAccessible: isStepAccessible(currentStep + 1),
+      nextStepCompleted: isStepCompleted(currentStep + 1),
+      campaignData: {
+        name: campaignData.name,
+        entity: campaignData.entity,
+        description: campaignData.description,
+        objective: campaignData.objective,
+        emails: campaignData.emails.length,
+        recipients: campaignData.recipients.length
+      }
+    });
+    
     if (currentStep < totalSteps && isStepAccessible(currentStep + 1)) {
       setCurrentStep(currentStep + 1);
+    } else {
+      console.log('Navigation blocked:', {
+        canProgress: currentStep < totalSteps,
+        stepAccessible: isStepAccessible(currentStep + 1)
+      });
     }
   };
 
   const handlePrevious = () => {
+    console.log('Previous button clicked:', { currentStep });
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
