@@ -78,13 +78,26 @@ export default function MappingStep({
           };
 
           console.log('Executing transformation script:', selectedTransformationScript.name, 'ID:', selectedTransformationScript.id);
-
-          const response = await fetch(`/api/${getCurrentEnvironment()}/transformation-scripts/execute`, {
-            method: 'POST',
-            body: formData
+          console.log('FormData contents:', {
+            file: fileToTransform.name,
+            fileType: fileToTransform.type,
+            fileSize: fileToTransform.size,
+            scriptId: selectedTransformationScript.id.toString()
           });
 
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
+          
+          const response = await fetch(`/api/${getCurrentEnvironment()}/transformation-scripts/execute`, {
+            method: 'POST',
+            body: formData,
+            signal: controller.signal
+          });
+          
+          clearTimeout(timeoutId);
+
           console.log('Transformation response status:', response.status);
+          console.log('Response headers:', Object.fromEntries(response.headers.entries()));
           
           if (response.ok) {
             const result = await response.json();
@@ -113,7 +126,14 @@ export default function MappingStep({
             }
           }
         } catch (transformError) {
-          console.warn('Transformation failed, using original CSV:', transformError);
+          console.error('Transformation failed:', transformError);
+          if (transformError instanceof Error && transformError.name === 'AbortError') {
+            setError('Transformation timed out after 30 seconds. Please try with a smaller file or simpler script.');
+            setIsProcessing(false);
+            return;
+          }
+          
+          console.warn('Transformation failed, falling back to original CSV parsing:', transformError);
           // Fall back to regular parsing
           const text = await uploadedFile.text();
           const lines = text.split('\n');
