@@ -2131,14 +2131,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/degoudse/customers', async (req, res) => {
     const cacheKey = 'degoudse_customers';
-    // Clear cache to ensure fresh data with opportunity counts
+    // Clear cache to ensure fresh data with all customers (no limit)
     cache.delete(cacheKey);
-    const cached = getCached(cacheKey);
+    // Skip cache entirely to always return fresh data with all customers
+    // const cached = getCached(cacheKey);
     
-    if (cached) {
-      console.log(`Returning ${cached.length} customers from cache`);
-      return res.json(cached);
-    }
+    // if (cached) {
+    //   console.log(`Returning ${cached.length} customers from cache`);
+    //   return res.json(cached);
+    // }
     
     // Add caching headers
     res.set('Cache-Control', 'public, max-age=60');
@@ -2155,7 +2156,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
         GROUP BY c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt"
         ORDER BY c.id
-        LIMIT 100
       `);
       
       // Get partner details for each customer separately
