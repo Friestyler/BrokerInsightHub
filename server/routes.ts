@@ -64,6 +64,11 @@ function setCache(key: string, data: any) {
   }
 }
 
+function clearCache() {
+  cache.clear();
+  console.log('Server cache cleared');
+}
+
 // Setup multer storage for file uploads
 const storage_config = multer.diskStorage({
   destination: (req, file, cb) => {
