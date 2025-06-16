@@ -5112,7 +5112,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                      c.email_logo, c.from_name, c.from_email, c.scheduled_time, 
                      c.frequency, c.is_shared, c.is_template, c.tags, c.created_at, 
                      c.updated_at, c.heading, c.button_link, c.button_text, 
-                     c.button_color, c.follow_up_emails, u.name as created_by_name 
+                     c.button_color, c.follow_up_emails, c.target_entity_type, c.recipients, 
+                     u.name as created_by_name 
               FROM ${envId}.campaigns c
               LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
               INNER JOIN ${envId}.campaign_shares cs ON c.id = cs.campaign_id
@@ -5188,8 +5189,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const result = await pool.query(`
             INSERT INTO ${envId}.campaigns (
               name, type, description, status, created_by_id, subject, email_body, 
-              objective, is_template, frequency
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+              objective, is_template, frequency, target_entity_type, recipients
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
             RETURNING *
           `, [
             campaignData.name,
@@ -5201,7 +5202,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             campaignData.emails?.[0]?.content || JSON.stringify(campaignData.emails || []),
             campaignData.objective || null,
             false,
-            'one_time'
+            'one_time',
+            campaignData.target_entity_type || null,
+            JSON.stringify(campaignData.recipients || [])
           ]);
           
           const campaign = result.rows[0];
@@ -5239,8 +5242,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
               subject = $5,
               email_body = $6,
               objective = $7,
+              target_entity_type = $8,
+              recipients = $9,
               updated_at = CURRENT_TIMESTAMP
-            WHERE id = $8
+            WHERE id = $10
             RETURNING *
           `, [
             campaignData.name,
@@ -5250,6 +5255,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             campaignData.emails?.[0]?.subject || null,
             campaignData.emails?.[0]?.content || JSON.stringify(campaignData.emails || []),
             campaignData.objective || null,
+            campaignData.target_entity_type || null,
+            JSON.stringify(campaignData.recipients || []),
             parseInt(id)
           ]);
           
