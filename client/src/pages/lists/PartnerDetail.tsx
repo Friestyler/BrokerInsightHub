@@ -2359,7 +2359,7 @@ export default function PartnerDetail() {
             </div>
 
             {/* Statistics Overview - matching Customers page design */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {(() => {
                 // Get filtered customers based on current filters
                 const filteredCustomers = (relatedCustomers as any[] || []).filter((customer: any) => {
@@ -2379,8 +2379,6 @@ export default function PartnerDetail() {
                   const customerOpportunities = (relatedOpportunities as any[] || []).filter((o: any) => o.clientName === customer.name);
                   return total + customerOpportunities.length;
                 }, 0);
-
-                const activeCustomers = filteredCustomers.filter((c: any) => c.status === 'Active').length;
 
                 const totalValue = filteredCustomers.reduce((total, customer) => {
                   const customerOpportunities = (relatedOpportunities as any[] || []).filter((o: any) => o.clientName === customer.name);
@@ -2409,11 +2407,6 @@ export default function PartnerDetail() {
                     <div className="bg-white p-4 rounded-md border border-gray-200">
                       <div className="text-xl font-semibold text-[#282A3F]">{totalOpportunities}</div>
                       <div className="text-sm text-gray-500">Total Opportunities</div>
-                    </div>
-                    
-                    <div className="bg-white p-4 rounded-md border border-gray-200">
-                      <div className="text-xl font-semibold text-[#282A3F]">{activeCustomers}</div>
-                      <div className="text-sm text-gray-500">Active</div>
                     </div>
                     
                     <div className="bg-white p-4 rounded-md border border-gray-200">
