@@ -232,32 +232,72 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
       // Check if campaign has missing contacts for recipients
       let hasMissingContacts = false;
 
-      if (campaign.recipients && campaign.recipients.length > 0 && campaign.target_entity_type === 'opportunities') {
+      if (campaign.recipients && campaign.recipients.length > 0) {
         try {
-          // Use environment-aware API calls
-          const opportunityIds = campaign.recipients.map((r: any) => r.id);
-          const opportunities = await fetch(`/api/opportunities`).then(res => res.json());
-          const customers = await fetch(`/api/customers`).then(res => res.json());
-          const contacts = await fetch(`/api/contacts`).then(res => res.json());
-          
-          for (const recipientId of opportunityIds) {
-            const opportunity = opportunities.find((o: any) => o.id === recipientId);
+          console.log('Checking for missing contacts:', {
+            targetEntityType: campaign.target_entity_type,
+            recipientCount: campaign.recipients.length
+          });
+
+          if (campaign.target_entity_type === 'opportunities') {
+            // Check opportunities for missing customer relationships and contacts
+            const opportunityIds = campaign.recipients.map((r: any) => r.id);
+            const opportunities = await fetch(`/api/opportunities`).then(res => res.json());
+            const customers = await fetch(`/api/customers`).then(res => res.json());
+            const contacts = await fetch(`/api/contacts`).then(res => res.json());
             
-            // Check if opportunity has no customer relationship
-            if (!opportunity?.clientId) {
-              hasMissingContacts = true;
-              break;
+            for (const recipientId of opportunityIds) {
+              const opportunity = opportunities.find((o: any) => o.id === recipientId);
+              
+              // Check if opportunity has no customer relationship
+              if (!opportunity?.clientId) {
+                hasMissingContacts = true;
+                break;
+              }
+              
+              // Check if customer has no contacts
+              const customer = customers.find((c: any) => c.id === opportunity.clientId);
+              const customerContacts = contacts.filter((contact: any) => contact.customer_id === customer?.id);
+              
+              if (customerContacts.length === 0) {
+                hasMissingContacts = true;
+                break;
+              }
             }
+          } else if (campaign.target_entity_type === 'partners') {
+            // Check partners for missing contacts
+            const partnerIds = campaign.recipients.map((r: any) => r.id);
+            const contacts = await fetch(`/api/contacts`).then(res => res.json());
             
-            // Check if customer has no contacts
-            const customer = customers.find((c: any) => c.id === opportunity.clientId);
-            const customerContacts = contacts.filter((contact: any) => contact.customer_id === customer?.id);
+            for (const partnerId of partnerIds) {
+              // Check if partner has contacts
+              const partnerContacts = contacts.filter((contact: any) => 
+                contact.linked_entity_type === 'partner' && contact.linked_entity_id === partnerId
+              );
+              
+              if (partnerContacts.length === 0) {
+                console.log(`Partner ${partnerId} has no contacts`);
+                hasMissingContacts = true;
+                break;
+              }
+            }
+          } else if (campaign.target_entity_type === 'customers') {
+            // Check customers for missing contacts
+            const customerIds = campaign.recipients.map((r: any) => r.id);
+            const contacts = await fetch(`/api/contacts`).then(res => res.json());
             
-            if (customerContacts.length === 0) {
-              hasMissingContacts = true;
-              break;
+            for (const customerId of customerIds) {
+              // Check if customer has contacts
+              const customerContacts = contacts.filter((contact: any) => contact.customer_id === customerId);
+              
+              if (customerContacts.length === 0) {
+                hasMissingContacts = true;
+                break;
+              }
             }
           }
+
+          console.log('Missing contacts check result:', { hasMissingContacts });
         } catch (error) {
           console.error('Error checking for missing contacts:', error);
         }
