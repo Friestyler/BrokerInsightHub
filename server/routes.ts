@@ -1691,7 +1691,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const partnerId = parseInt(req.params.id);
       const envPool = pool;
       const result = await envPool.query(`
-        SELECT p.id, p.name, p.description, p.category, p.type, p.price, p.status,
+        SELECT p.id, p.name, p.description, p.category, p.sku, p.price, p.vendor_id,
                p.created_at, p.updated_at
         FROM degoudse.products p
         INNER JOIN degoudse.partner_products pp ON p.id = pp.product_id
@@ -1704,9 +1704,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: product.name,
         description: product.description,
         category: product.category,
-        type: product.type,
+        sku: product.sku,
         price: product.price,
-        status: product.status,
+        vendor_id: product.vendor_id,
         created_at: product.created_at,
         updated_at: product.updated_at
       }));
