@@ -5198,7 +5198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             campaignData.status || 'draft',
             campaignData.created_by || 1,
             campaignData.emails?.[0]?.subject || 'Campaign Subject',
-            campaignData.emails?.[0]?.content || 'Campaign Content',
+            campaignData.emails?.[0]?.content || JSON.stringify(campaignData.emails || []),
             campaignData.objective || null,
             false,
             'one_time'
@@ -5248,7 +5248,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             campaignData.description,
             campaignData.status || 'draft',
             campaignData.emails?.[0]?.subject || null,
-            campaignData.emails?.[0]?.content || null,
+            campaignData.emails?.[0]?.content || JSON.stringify(campaignData.emails || []),
             campaignData.objective || null,
             parseInt(id)
           ]);
