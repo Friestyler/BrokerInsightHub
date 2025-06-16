@@ -2423,26 +2423,9 @@ export default function PartnerDetail() {
               })()}
             </div>
 
-            {/* Customer table */}
-            <div className="bg-white rounded-lg border border-gray-200">
-              <div className="px-6 py-4 border-b border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900">Customers ({
-                  (relatedCustomers as any[] || []).filter((customer: any) => {
-                    const matchesSearch = !customerSearchText || 
-                      customer.name?.toLowerCase().includes(customerSearchText.toLowerCase()) ||
-                      customer.contact_name?.toLowerCase().includes(customerSearchText.toLowerCase()) ||
-                      customer.contact_email?.toLowerCase().includes(customerSearchText.toLowerCase());
-                    
-                    const matchesStatus = !selectedCustomerStatus || customer.status === selectedCustomerStatus;
-                    const matchesIndustry = !selectedIndustry || customer.industry === selectedIndustry;
-                    
-                    return matchesSearch && matchesStatus && matchesIndustry;
-                  }).length
-                })</h3>
-                <p className="text-sm text-gray-600 mt-1">Customers associated with this partner</p>
-              </div>
-              <div className="overflow-x-auto">
-                <Table>
+            {/* Customers Table - Enhanced version matching opportunities tab */}
+            <div className="bg-white rounded-lg shadow-sm">
+              <Table>
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-12 group">
@@ -2450,15 +2433,20 @@ export default function PartnerDetail() {
                         selectedCustomers.length > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                       }`}>
                         <Checkbox 
-                          checked={selectedCustomers.length === (relatedCustomers as any[] || []).filter((customer: any) => {
-                            const matchesSearch = !customerSearchText || 
-                              customer.name?.toLowerCase().includes(customerSearchText.toLowerCase()) ||
-                              customer.contact_name?.toLowerCase().includes(customerSearchText.toLowerCase()) ||
-                              customer.contact_email?.toLowerCase().includes(customerSearchText.toLowerCase());
-                            const matchesStatus = !selectedCustomerStatus || customer.status === selectedCustomerStatus;
-                            const matchesIndustry = !selectedIndustry || customer.industry === selectedIndustry;
-                            return matchesSearch && matchesStatus && matchesIndustry;
-                          }).length && (relatedCustomers as any[] || []).length > 0}
+                          checked={
+                            (() => {
+                              const filteredCustomers = (relatedCustomers as any[] || []).filter((customer: any) => {
+                                const matchesSearch = !customerSearchText || 
+                                  customer.name?.toLowerCase().includes(customerSearchText.toLowerCase()) ||
+                                  customer.contact_name?.toLowerCase().includes(customerSearchText.toLowerCase()) ||
+                                  customer.contact_email?.toLowerCase().includes(customerSearchText.toLowerCase());
+                                const matchesStatus = !selectedCustomerStatus || customer.status === selectedCustomerStatus;
+                                const matchesIndustry = !selectedIndustry || customer.industry === selectedIndustry;
+                                return matchesSearch && matchesStatus && matchesIndustry;
+                              });
+                              return selectedCustomers.length === filteredCustomers.length && filteredCustomers.length > 0;
+                            })()
+                          }
                           onCheckedChange={(checked) => {
                             const filteredCustomers = (relatedCustomers as any[] || []).filter((customer: any) => {
                               const matchesSearch = !customerSearchText || 
@@ -2478,71 +2466,95 @@ export default function PartnerDetail() {
                         />
                       </div>
                     </TableHead>
-                    <TableHead>Customer Name</TableHead>
+                    <TableHead>Customer</TableHead>
                     <TableHead>Contact</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Phone</TableHead>
+                    <TableHead>Industry</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Opportunities</TableHead>
+                    <TableHead>Total Value</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {(relatedCustomers as any[] || [])
                     .filter((customer: any) => {
-                      // Apply search filter
                       const matchesSearch = !customerSearchText || 
                         customer.name?.toLowerCase().includes(customerSearchText.toLowerCase()) ||
                         customer.contact_name?.toLowerCase().includes(customerSearchText.toLowerCase()) ||
                         customer.contact_email?.toLowerCase().includes(customerSearchText.toLowerCase());
-                      
-                      // Apply status filter
                       const matchesStatus = !selectedCustomerStatus || customer.status === selectedCustomerStatus;
-                      
-                      // Apply industry filter
                       const matchesIndustry = !selectedIndustry || customer.industry === selectedIndustry;
-                      
                       return matchesSearch && matchesStatus && matchesIndustry;
                     })
                     .map((customer: any) => {
-                    const customerOpportunities = (relatedOpportunities as any[] || []).filter((o: any) => o.clientName === customer.name);
-                    return (
-                      <TableRow key={customer.id} className="group hover:bg-gray-50">
-                        <TableCell>
-                          <div className={`transition-opacity ${
-                            selectedCustomers.includes(customer.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                          }`}>
-                            <Checkbox 
-                              checked={selectedCustomers.includes(customer.id)}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setSelectedCustomers([...selectedCustomers, customer.id]);
-                                } else {
-                                  setSelectedCustomers(selectedCustomers.filter(id => id !== customer.id));
-                                }
+                      const customerOpportunities = (relatedOpportunities as any[] || []).filter((o: any) => o.clientName === customer.name);
+                      const totalValue = customerOpportunities.reduce((sum: number, opp: any) => sum + (Number(opp.estimated_value) || 0), 0);
+                      
+                      return (
+                        <TableRow key={customer.id} className="group hover:bg-gray-50">
+                          <TableCell>
+                            <div className={`transition-opacity ${
+                              selectedCustomers.includes(customer.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                            }`}>
+                              <Checkbox 
+                                checked={selectedCustomers.includes(customer.id)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setSelectedCustomers([...selectedCustomers, customer.id]);
+                                  } else {
+                                    setSelectedCustomers(selectedCustomers.filter(id => id !== customer.id));
+                                  }
+                                }}
+                              />
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Link 
+                              href={`/lists/customers/${customer.id}`}
+                              onClick={() => {
+                                sessionStorage.setItem('customerReferrer', window.location.pathname);
                               }}
-                            />
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <Link href={`/lists/customers/${customer.id}`}>
-                            <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
-                              {customer.name}
+                            >
+                              <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
+                                {customer.name}
+                              </span>
+                            </Link>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col">
+                              <span className="text-gray-900">{customer.contact_name || 'Not set'}</span>
+                              {customer.contact_email && (
+                                <span className="text-xs text-gray-500">{customer.contact_email}</span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-gray-900">
+                              {customer.industry || 'Not specified'}
                             </span>
-                          </Link>
-                        </TableCell>
-                        <TableCell>{customer.contact_name || 'Not set'}</TableCell>
-                        <TableCell>{customer.contact_email || 'Not set'}</TableCell>
-                        <TableCell>{customer.contact_phone || 'Not set'}</TableCell>
-                        <TableCell>
-                          <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                            {customerOpportunities.length} opportunities
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
+                          </TableCell>
+                          <TableCell>
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              customer.status === 'Active' ? 'bg-green-100 text-green-800' :
+                              customer.status === 'Inactive' ? 'bg-red-100 text-red-800' :
+                              customer.status === 'Prospect' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {customer.status || 'Unknown'}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-gray-600">
+                              {customerOpportunities.length}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            €{totalValue ? Number(totalValue).toLocaleString() : '0'}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                 </TableBody>
-                </Table>
-              </div>
+              </Table>
             </div>
           </div>
         )}
