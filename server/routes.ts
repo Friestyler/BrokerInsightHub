@@ -2171,6 +2171,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const customers = result.rows.map((customer: any) => {
         const customerPartners = partnerDetails.rows.filter((p: any) => p.customer_id === customer.id);
         const partnerNames = customerPartners.map((p: any) => p.partner_name).join(', ');
+        const partnerIds = customerPartners.map((p: any) => p.partner_id).join(',');
         
         return {
           id: customer.id,
@@ -2182,7 +2183,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updatedAt: customer.updatedAt,
           partnerCount: parseInt(customer.partner_count) || 0,
           opportunityCount: parseInt(customer.opportunity_count) || 0,
-          partnerNames: partnerNames
+          partnerNames: partnerNames,
+          partnerIds: partnerIds
         };
       });
       
