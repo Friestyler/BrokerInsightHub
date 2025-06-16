@@ -974,78 +974,37 @@ Examples:
                     placeholder="Select attribute to add"
                     searchPlaceholder="Search attributes..."
                     options={(() => {
-                      // Get current entity schema
-                      const currentSchema = entitySchemas.find((schema: any) => 
-                        schema.entityType === actualEntityType
-                      );
-                      
                       // Get already mapped attributes to exclude them
                       const mappedAttributes = attributeMappings.map(m => m.attribute);
                       
-                      // Common attributes available for all entity types
-                      const commonAttributes = [
-                        { value: 'description', label: 'Description', description: 'Detailed description of the entity' },
-                        { value: 'notes', label: 'Notes', description: 'Additional notes and comments' },
-                        { value: 'tags', label: 'Tags', description: 'Category tags for organization' },
-                        { value: 'priority', label: 'Priority', description: 'Priority level (High, Medium, Low)' },
-                        { value: 'status', label: 'Status', description: 'Current status of the entity' },
-                        { value: 'value', label: 'Value', description: 'Monetary or numerical value' },
-                        { value: 'date_created', label: 'Date Created', description: 'Creation timestamp' },
-                        { value: 'date_modified', label: 'Date Modified', description: 'Last modification timestamp' },
-                        { value: 'external_id', label: 'External ID', description: 'Reference ID from external system' },
-                        { value: 'category', label: 'Category', description: 'Classification category' }
+                      // Get non-mandatory attributes from upload settings
+                      const nonMandatoryAttributes = uploadSettings
+                        .filter((setting: any) => !setting.is_mandatory)
+                        .map((setting: any) => ({
+                          value: setting.attribute_name,
+                          label: setting.attribute_name
+                        }));
+                      
+                      // Additional common optional attributes not in upload settings
+                      const additionalAttributes = [
+                        { value: 'description', label: 'description' },
+                        { value: 'notes', label: 'notes' },
+                        { value: 'tags', label: 'tags' },
+                        { value: 'priority', label: 'priority' },
+                        { value: 'status', label: 'status' },
+                        { value: 'value', label: 'value' },
+                        { value: 'date_created', label: 'date_created' },
+                        { value: 'date_modified', label: 'date_modified' },
+                        { value: 'external_id', label: 'external_id' },
+                        { value: 'category', label: 'category' }
                       ];
                       
-                      // Entity-specific attributes
-                      const entitySpecificAttributes: Record<string, SearchableSelectOption[]> = {
-                        opportunities: [
-                          { value: 'probability', label: 'Probability', description: 'Success probability percentage' },
-                          { value: 'expected_close_date', label: 'Expected Close Date', description: 'Anticipated closing date' },
-                          { value: 'lead_source', label: 'Lead Source', description: 'Origin of the opportunity' },
-                          { value: 'stage', label: 'Stage', description: 'Current sales stage' },
-                          { value: 'commission', label: 'Commission', description: 'Commission amount or percentage' }
-                        ],
-                        partners: [
-                          { value: 'company_size', label: 'Company Size', description: 'Number of employees' },
-                          { value: 'industry', label: 'Industry', description: 'Business industry sector' },
-                          { value: 'territory', label: 'Territory', description: 'Geographic territory' },
-                          { value: 'tier', label: 'Tier', description: 'Partner tier level' },
-                          { value: 'commission_rate', label: 'Commission Rate', description: 'Default commission percentage' }
-                        ],
-                        customers: [
-                          { value: 'industry', label: 'Industry', description: 'Customer industry sector' },
-                          { value: 'company_size', label: 'Company Size', description: 'Number of employees' },
-                          { value: 'annual_revenue', label: 'Annual Revenue', description: 'Yearly revenue amount' },
-                          { value: 'credit_rating', label: 'Credit Rating', description: 'Financial credit score' },
-                          { value: 'preferred_contact_method', label: 'Preferred Contact Method', description: 'Email, phone, etc.' }
-                        ],
-                        products: [
-                          { value: 'sku', label: 'SKU', description: 'Stock keeping unit identifier' },
-                          { value: 'price', label: 'Price', description: 'Product price' },
-                          { value: 'cost', label: 'Cost', description: 'Product cost' },
-                          { value: 'inventory_level', label: 'Inventory Level', description: 'Stock quantity' },
-                          { value: 'supplier', label: 'Supplier', description: 'Product supplier name' }
-                        ],
-                        vendors: [
-                          { value: 'payment_terms', label: 'Payment Terms', description: 'Payment terms and conditions' },
-                          { value: 'rating', label: 'Rating', description: 'Vendor performance rating' },
-                          { value: 'contract_end_date', label: 'Contract End Date', description: 'Contract expiration date' },
-                          { value: 'primary_contact', label: 'Primary Contact', description: 'Main contact person' },
-                          { value: 'service_type', label: 'Service Type', description: 'Type of services provided' }
-                        ],
-                        contacts: [
-                          { value: 'job_title', label: 'Job Title', description: 'Professional position' },
-                          { value: 'department', label: 'Department', description: 'Organizational department' },
-                          { value: 'phone', label: 'Phone', description: 'Phone number' },
-                          { value: 'email', label: 'Email', description: 'Email address' },
-                          { value: 'linkedin_url', label: 'LinkedIn URL', description: 'LinkedIn profile link' }
-                        ]
-                      };
-                      
-                      // Combine common and entity-specific attributes
+                      // Combine non-mandatory upload settings attributes with additional ones
                       const allAttributes = [
-                        ...commonAttributes,
-                        ...(entitySpecificAttributes[actualEntityType] || [])
+                        ...nonMandatoryAttributes,
+                        ...additionalAttributes.filter(attr => 
+                          !nonMandatoryAttributes.some(uploadAttr => uploadAttr.value === attr.value)
+                        )
                       ];
                       
                       // Filter out already mapped attributes
