@@ -5760,6 +5760,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Campaign Shares API endpoint
+  app.post('/api/:envId/campaign-shares', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const shareData = req.body;
+      
+      console.log(`Creating campaign share in ${envId} environment:`, shareData);
+      
+      if (envId === 'degoudse') {
+        // Insert campaign share into degoudse environment
+        const result = await pool.query(`
+          INSERT INTO degoudse.campaign_shares (
+            campaign_id, shared_with_type, shared_with_id, access_level, 
+            shared_by_id, is_active, created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+          RETURNING *
+        `, [
+          shareData.campaign_id,
+          shareData.shared_with_type,
+          shareData.shared_with_id,
+          shareData.access_level,
+          shareData.shared_by_id,
+          shareData.is_active
+        ]);
+        
+        const campaignShare = result.rows[0];
+        console.log(`Campaign share created successfully in ${envId}:`, campaignShare);
+        res.status(201).json(campaignShare);
+      } else {
+        res.status(400).json({ error: 'Environment not supported' });
+      }
+    } catch (error) {
+      console.error('Error creating campaign share:', error);
+      res.status(500).json({ error: 'Failed to create campaign share' });
+    }
+  });
+
   // Campaign Templates API endpoints
   app.get('/api/:envId/campaign-templates', async (req, res) => {
     try {
