@@ -95,7 +95,7 @@ export default function RecipientSelector({
   onRecipientsChange 
 }: RecipientSelectorProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTab, setSelectedTab] = useState<'lists' | 'contacts' | 'selected'>('lists');
+  const [selectedTab, setSelectedTab] = useState<'lists' | 'contacts' | 'selected' | 'missing'>('lists');
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [showAddContact, setShowAddContact] = useState(false);
   const [showOnlyMissingContacts, setShowOnlyMissingContacts] = useState(false);
@@ -529,8 +529,10 @@ export default function RecipientSelector({
           }`}
           onClick={() => {
             if (summaryStats.entitiesWithoutContacts > 0) {
-              setSelectedTab('selected');
+              setSelectedTab('missing');
               setShowOnlyMissingContacts(true);
+              // Auto-expand the entity selection to show drill-down
+              setExpandedItems(new Set(['all-entities']));
             }
           }}
         >
@@ -685,7 +687,10 @@ export default function RecipientSelector({
           <Button
             variant={selectedTab === 'lists' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setSelectedTab('lists')}
+            onClick={() => {
+              setSelectedTab('lists');
+              setShowOnlyMissingContacts(false);
+            }}
             className="gap-2"
           >
             <Users className="h-4 w-4" />
@@ -693,9 +698,26 @@ export default function RecipientSelector({
           </Button>
 
           <Button
+            variant={selectedTab === 'missing' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => {
+              setSelectedTab('missing');
+              setShowOnlyMissingContacts(true);
+              setExpandedItems(new Set(['all-entities']));
+            }}
+            className="gap-2"
+          >
+            <UserPlus className="h-4 w-4" />
+            Missing Contacts
+          </Button>
+
+          <Button
             variant={selectedTab === 'selected' ? 'default' : 'outline'}
             size="sm"
-            onClick={() => setSelectedTab('selected')}
+            onClick={() => {
+              setSelectedTab('selected');
+              setShowOnlyMissingContacts(false);
+            }}
             className="gap-2"
           >
             <Eye className="h-4 w-4" />
@@ -1768,6 +1790,395 @@ export default function RecipientSelector({
                 </div>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Missing Contacts Tab - Drill-down component filtered for entities without contacts */}
+        {selectedTab === 'missing' && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-medium text-gray-900">
+                Entities Missing Contact Information
+              </h3>
+              <div className="text-sm text-gray-600">
+                {summaryStats.entitiesWithoutContacts} {entityType.slice(0, -1)}{summaryStats.entitiesWithoutContacts !== 1 ? 's' : ''} need contacts
+              </div>
+            </div>
+
+            {summaryStats.entitiesWithoutContacts === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-400" />
+                <p className="font-medium mb-2 text-green-600">All entities have contacts</p>
+                <p className="text-sm">No missing contact information found.</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {/* All Entities List - Filtered for missing contacts */}
+                <div className="bg-white rounded-lg border border-gray-200 p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className={`p-2 rounded-lg ${getEntityColor(entityType)}`}>
+                        {(() => {
+                          const Icon = getEntityIcon(entityType);
+                          return <Icon className="h-5 w-5" />;
+                        })()}
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">
+                          {entityType.charAt(0).toUpperCase() + entityType.slice(1)} Missing Contacts
+                        </h4>
+                        <p className="text-sm text-gray-500">
+                          {summaryStats.entitiesWithoutContactsList.length} items need contact information
+                        </p>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleItemExpansion('all-entities')}
+                    >
+                      {expandedItems.has('all-entities') ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Expanded Entity List with Drill-down - Only entities missing contacts */}
+                  {expandedItems.has('all-entities') && (
+                    <div className="mt-4 space-y-2 pl-6 border-l-2 border-gray-100">
+                      {summaryStats.entitiesWithoutContactsList.map((entity: Entity) => (
+                        <div key={entity.id} className="space-y-2">
+                          <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
+                            <div className="flex items-center gap-3">
+                              <input
+                                type="checkbox"
+                                className="rounded border-gray-300"
+                                onChange={() => handleSelectRecipient(entity, 'entity')}
+                                checked={selectedRecipients.some(r => 
+                                  r.type === 'entity' && r.id === entity.id
+                                )}
+                              />
+                              <div>
+                                <p className="font-medium text-gray-900">{getEntityDisplayName(entity)}</p>
+                                {entity.email && (
+                                  <p className="text-sm text-gray-500 flex items-center gap-1">
+                                    <Mail className="h-3 w-3" />
+                                    {entity.email}
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+                            
+                            {/* Drill-down button for hierarchical relationships */}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleItemExpansion(`entity-${entity.id}`)}
+                            >
+                              {expandedItems.has(`entity-${entity.id}`) ? (
+                                <ChevronDown className="h-4 w-4" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4" />
+                              )}
+                            </Button>
+                          </div>
+
+                          {/* Drill-down content */}
+                          {expandedItems.has(`entity-${entity.id}`) && (
+                            <div className="ml-6 space-y-2">
+                              {/* For opportunities, show customer hierarchy */}
+                              {entityType === 'opportunities' && (() => {
+                                const customer = getCustomerForOpportunity(entity.id);
+                                if (!customer) return null;
+
+                                const customerContacts = entityContacts[customer.id] || [];
+                                const hasContacts = customerContacts.length > 0;
+
+                                return (
+                                  <div className="space-y-2">
+                                    {/* Customer Organization */}
+                                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-blue-200 shadow-sm">
+                                      <div className="flex items-center gap-4">
+                                        <input
+                                          type="checkbox"
+                                          className="rounded border-gray-300 w-4 h-4"
+                                          onChange={() => handleSelectRecipient(customer, 'customer')}
+                                          checked={selectedRecipients.some(r => 
+                                            r.type === 'customer' && r.id === customer.id
+                                          )}
+                                        />
+                                        <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                                          <Users className="h-5 w-5 text-white" />
+                                        </div>
+                                        <div>
+                                          <p className="font-bold text-blue-900 text-lg">{customer.name}</p>
+                                          <p className="text-sm text-blue-700 font-medium">🏢 CUSTOMER ORGANIZATION</p>
+                                        </div>
+                                      </div>
+                                      {hasContacts && (
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-xs text-blue-600 font-medium">
+                                            {customerContacts.length} contacts
+                                          </span>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => toggleItemExpansion(`customer-${customer.id}`)}
+                                            className="bg-blue-200 hover:bg-blue-300"
+                                          >
+                                            {expandedItems.has(`customer-${customer.id}`) ? (
+                                              <ChevronDown className="h-4 w-4 text-blue-800" />
+                                            ) : (
+                                              <ChevronRight className="h-4 w-4 text-blue-800" />
+                                            )}
+                                          </Button>
+                                        </div>
+                                      )}
+                                    </div>
+                                    
+                                    {/* Customer contacts */}
+                                    {hasContacts && expandedItems.has(`customer-${customer.id}`) && (
+                                      <div className="ml-8 space-y-2 border-l-2 border-gray-200 pl-4">
+                                        <div className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-2">
+                                          👤 Contact Persons
+                                        </div>
+                                        {customerContacts.map((contact: Contact) => (
+                                          <div key={contact.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
+                                            <input
+                                              type="checkbox"
+                                              className="rounded border-gray-300 w-4 h-4"
+                                              onChange={() => handleSelectRecipient(contact, 'contact')}
+                                              checked={selectedRecipients.some(r => 
+                                                r.type === 'contact' && r.id === contact.id
+                                              )}
+                                            />
+                                            <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+                                              <Users className="h-4 w-4 text-white" />
+                                            </div>
+                                            <div className="flex-1">
+                                              <p className="font-semibold text-gray-800">
+                                                {getContactDisplayName(contact)}
+                                              </p>
+                                              <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                                                {contact.email && (
+                                                  <span className="flex items-center gap-1 bg-blue-100 px-2 py-1 rounded text-blue-700">
+                                                    <Mail className="h-3 w-3" />
+                                                    {contact.email}
+                                                  </span>
+                                                )}
+                                                {getContactJobTitle(contact) && (
+                                                  <span className="flex items-center gap-1 text-gray-500">
+                                                    <Briefcase className="h-3 w-3" />
+                                                    {getContactJobTitle(contact)}
+                                                  </span>
+                                                )}
+                                              </div>
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })()}
+
+                              {/* Direct entity contacts for all entity types */}
+                              <div className="space-y-2">
+                                {/* Existing contacts */}
+                                {entityContacts[entity.id] && entityContacts[entity.id].map((contact: Contact) => (
+                                  <div key={contact.id} className="flex items-center gap-3 p-3 bg-white border rounded-lg">
+                                    <input
+                                      type="checkbox"
+                                      className="rounded border-gray-300"
+                                      onChange={() => handleSelectRecipient(contact, 'contact')}
+                                      checked={selectedRecipients.some(r => 
+                                        r.type === 'contact' && r.id === contact.id
+                                      )}
+                                    />
+                                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                                      <Users className="h-4 w-4 text-gray-600" />
+                                    </div>
+                                    <div className="flex-1">
+                                      <p className="font-medium text-gray-900">
+                                        {getContactDisplayName(contact)}
+                                      </p>
+                                      <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                                        {contact.email && (
+                                          <span className="flex items-center gap-1">
+                                            <Mail className="h-3 w-3" />
+                                            {contact.email}
+                                          </span>
+                                        )}
+                                        {getContactJobTitle(contact) && (
+                                          <span className="flex items-center gap-1">
+                                            <Briefcase className="h-3 w-3" />
+                                            {getContactJobTitle(contact)}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                                
+                                {/* Add Contact Button */}
+                                {showInlineContactForm !== `${entity.id}-${entityType}` ? (
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={() => setShowInlineContactForm(`${entity.id}-${entityType}`)}
+                                    className="w-full mt-2 border-dashed border-orange-300 text-orange-600 hover:text-orange-800 hover:border-orange-400 bg-orange-50 hover:bg-orange-100"
+                                  >
+                                    <UserPlus className="h-4 w-4 mr-2" />
+                                    Add Contact for {entity.name}
+                                  </Button>
+                                ) : (
+                                  /* Inline Contact Creation Form */
+                                  <div className="mt-2 p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                                    <div className="flex items-center justify-between mb-3">
+                                      <h4 className="font-medium text-gray-900">Add New Contact</h4>
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                          setShowInlineContactForm(null);
+                                          setInlineContactData({
+                                            first_name: '',
+                                            last_name: '',
+                                            email: '',
+                                            job_title: '',
+                                            phone: ''
+                                          });
+                                        }}
+                                      >
+                                        <X className="h-4 w-4" />
+                                      </Button>
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-3 mb-3">
+                                      <div>
+                                        <Label htmlFor="first_name" className="text-xs font-medium text-gray-700">First Name</Label>
+                                        <Input
+                                          id="first_name"
+                                          placeholder="John"
+                                          value={inlineContactData.first_name}
+                                          onChange={(e) => setInlineContactData({
+                                            ...inlineContactData,
+                                            first_name: e.target.value
+                                          })}
+                                          className="mt-1"
+                                        />
+                                      </div>
+                                      <div>
+                                        <Label htmlFor="last_name" className="text-xs font-medium text-gray-700">Last Name</Label>
+                                        <Input
+                                          id="last_name"
+                                          placeholder="Doe"
+                                          value={inlineContactData.last_name}
+                                          onChange={(e) => setInlineContactData({
+                                            ...inlineContactData,
+                                            last_name: e.target.value
+                                          })}
+                                          className="mt-1"
+                                        />
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="mb-3">
+                                      <Label htmlFor="email" className="text-xs font-medium text-gray-700">Email *</Label>
+                                      <Input
+                                        id="email"
+                                        type="email"
+                                        placeholder="john.doe@company.com"
+                                        value={inlineContactData.email}
+                                        onChange={(e) => setInlineContactData({
+                                          ...inlineContactData,
+                                          email: e.target.value
+                                        })}
+                                        className="mt-1"
+                                      />
+                                    </div>
+                                    
+                                    <div className="grid grid-cols-2 gap-3 mb-4">
+                                      <div>
+                                        <Label htmlFor="job_title" className="text-xs font-medium text-gray-700">Job Title</Label>
+                                        <Input
+                                          id="job_title"
+                                          placeholder="Account Manager"
+                                          value={inlineContactData.job_title}
+                                          onChange={(e) => setInlineContactData({
+                                            ...inlineContactData,
+                                            job_title: e.target.value
+                                          })}
+                                          className="mt-1"
+                                        />
+                                      </div>
+                                      <div>
+                                        <Label htmlFor="phone" className="text-xs font-medium text-gray-700">Phone</Label>
+                                        <Input
+                                          id="phone"
+                                          placeholder="+31 6 12345678"
+                                          value={inlineContactData.phone}
+                                          onChange={(e) => setInlineContactData({
+                                            ...inlineContactData,
+                                            phone: e.target.value
+                                          })}
+                                          className="mt-1"
+                                        />
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="flex justify-end gap-2">
+                                      <Button
+                                        variant="ghost"
+                                        size="sm"
+                                        onClick={() => {
+                                          setShowInlineContactForm(null);
+                                          setInlineContactData({
+                                            first_name: '',
+                                            last_name: '',
+                                            email: '',
+                                            job_title: '',
+                                            phone: ''
+                                          });
+                                        }}
+                                      >
+                                        Cancel
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        onClick={() => {
+                                          if (!inlineContactData.email.trim()) {
+                                            toast({
+                                              title: "Error",
+                                              description: "Email is required",
+                                              variant: "destructive",
+                                            });
+                                            return;
+                                          }
+                                          createInlineContactMutation.mutate({
+                                            contactData: inlineContactData,
+                                            entityId: entity.id
+                                          });
+                                        }}
+                                        disabled={createInlineContactMutation.isPending || !inlineContactData.email.trim()}
+                                      >
+                                        {createInlineContactMutation.isPending ? 'Adding...' : 'Add Contact'}
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
