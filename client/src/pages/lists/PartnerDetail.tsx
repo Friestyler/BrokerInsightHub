@@ -2770,6 +2770,65 @@ export default function PartnerDetail() {
               )}
             </div>
 
+            {/* Product Statistics Cards by Category */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {(() => {
+                // Get filtered products based on current filters
+                const filteredProducts = (relatedProducts as any[] || []).filter((product: any) => {
+                  const matchesSearch = !productSearchText || 
+                    product.name?.toLowerCase().includes(productSearchText.toLowerCase()) ||
+                    product.description?.toLowerCase().includes(productSearchText.toLowerCase()) ||
+                    product.sku?.toLowerCase().includes(productSearchText.toLowerCase());
+                  
+                  const matchesCategory = !selectedProductCategory || product.category === selectedProductCategory;
+                  
+                  const matchesPrice = !selectedPriceRange || (() => {
+                    const price = parseFloat(product.price || '0');
+                    switch(selectedPriceRange) {
+                      case '€0 - €50K': return price >= 0 && price <= 50000;
+                      case '€50K - €100K': return price > 50000 && price <= 100000;
+                      case '€100K - €150K': return price > 100000 && price <= 150000;
+                      case '€150K+': return price > 150000;
+                      default: return true;
+                    }
+                  })();
+                  
+                  return matchesSearch && matchesCategory && matchesPrice;
+                });
+
+                // Group products by category and calculate statistics
+                const categoryStats = filteredProducts.reduce((acc: any, product: any) => {
+                  const category = product.category || 'Other';
+                  if (!acc[category]) {
+                    acc[category] = {
+                      count: 0,
+                      totalValue: 0,
+                      products: []
+                    };
+                  }
+                  acc[category].count += 1;
+                  acc[category].totalValue += parseFloat(product.price || '0');
+                  acc[category].products.push(product);
+                  return acc;
+                }, {});
+
+                // Get top 4 categories by product count
+                const topCategories = Object.entries(categoryStats)
+                  .sort(([,a]: any, [,b]: any) => b.count - a.count)
+                  .slice(0, 4);
+
+                return topCategories.map(([category, stats]: any) => (
+                  <div key={category} className="bg-white p-4 rounded-md border border-gray-200">
+                    <div className="text-xl font-semibold text-[#282A3F]">{stats.count}</div>
+                    <div className="text-sm text-gray-500">{category}</div>
+                    <div className="text-xs text-gray-400 mt-1">
+                      €{stats.totalValue.toLocaleString()} total value
+                    </div>
+                  </div>
+                ));
+              })()}
+            </div>
+
             {/* Products Table Content */}
             <div className="space-y-6">
               {productsLoading ? (
