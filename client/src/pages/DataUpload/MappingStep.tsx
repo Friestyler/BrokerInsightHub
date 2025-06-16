@@ -49,8 +49,25 @@ export default function MappingStep({
       if (isSpecialFormat && selectedTransformationScript) {
         // Apply transformation script for special formats using selected script ID
         try {
+          let fileToTransform = uploadedFile;
+          
+          // Convert Excel files to CSV first if needed
+          if (uploadedFile.name.endsWith('.xlsx') || uploadedFile.name.endsWith('.xls')) {
+            const XLSX = await import('xlsx');
+            const arrayBuffer = await uploadedFile.arrayBuffer();
+            const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+            const sheetName = workbook.SheetNames[0];
+            const worksheet = workbook.Sheets[sheetName];
+            const csvData = XLSX.utils.sheet_to_csv(worksheet);
+            
+            // Create a new CSV file from the Excel data
+            const csvBlob = new Blob([csvData], { type: 'text/csv' });
+            fileToTransform = new File([csvBlob], uploadedFile.name.replace(/\.(xlsx|xls)$/, '.csv'), { type: 'text/csv' });
+            console.log('Converted Excel to CSV for transformation');
+          }
+          
           const formData = new FormData();
-          formData.append('file', uploadedFile);
+          formData.append('file', fileToTransform);
           formData.append('scriptId', selectedTransformationScript.id.toString());
 
           // Get environment ID from URL or default to degoudse
