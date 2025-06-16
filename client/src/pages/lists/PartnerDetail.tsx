@@ -151,6 +151,12 @@ export default function PartnerDetail() {
     queryKey: [`/api/partners/${id}/opportunities`],
     enabled: !!id,
   });
+
+  // Fetch related products for this partner
+  const { data: relatedProducts, isLoading: productsLoading } = useQuery({
+    queryKey: [`/api/partners/${id}/products`],
+    enabled: !!id,
+  });
   
   // Initialize dialog data when it opens (needs to be here for hooks order)
   useEffect(() => {
@@ -885,6 +891,16 @@ export default function PartnerDetail() {
                 }`}
               >
                 Campaigns
+              </button>
+              <button 
+                onClick={() => setActiveTab("products")}
+                className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                  activeTab === "products" 
+                    ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                    : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                }`}
+              >
+                Products ({(relatedProducts as any[] || []).length})
               </button>
             </nav>
           </div>

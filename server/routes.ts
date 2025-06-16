@@ -1686,6 +1686,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/degoudse/partners/:id/products', async (req, res) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+      const envPool = pool;
+      const result = await envPool.query(`
+        SELECT p.id, p.name, p.description, p.category, p.type, p.price, p.status,
+               p.created_at, p.updated_at
+        FROM degoudse.products p
+        INNER JOIN degoudse.partner_products pp ON p.id = pp.product_id
+        WHERE pp.partner_id = $1
+        ORDER BY p.name
+      `, [partnerId]);
+      
+      const products = result.rows.map((product: any) => ({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        category: product.category,
+        type: product.type,
+        price: product.price,
+        status: product.status,
+        created_at: product.created_at,
+        updated_at: product.updated_at
+      }));
+      
+      res.json(products);
+    } catch (error) {
+      console.error('Error fetching De Goudse partner products:', error);
+      res.status(500).json({ error: 'Failed to fetch partner products' });
+    }
+  });
+
   app.get('/api/degoudse/customers/:id/partners', async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
