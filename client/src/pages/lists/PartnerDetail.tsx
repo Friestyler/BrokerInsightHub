@@ -71,6 +71,7 @@ export default function PartnerDetail() {
   const [showProductViewsDropdown, setShowProductViewsDropdown] = useState(false);
   const [showProductCategoryDropdown, setShowProductCategoryDropdown] = useState(false);
   const [showPriceRangeDropdown, setShowPriceRangeDropdown] = useState(false);
+  const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
   
   // Stage editing state
   const [editingStageId, setEditingStageId] = useState<number | null>(null);
