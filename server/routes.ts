@@ -2150,8 +2150,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           SELECT 
             COUNT(DISTINCT c.id) as total_customers,
             COUNT(DISTINCT co.opportunity_id) as total_opportunities,
-            COALESCE(SUM(CASE WHEN o.value IS NOT NULL THEN o.value ELSE 0 END), 0) as total_value,
-            COALESCE(SUM(CASE WHEN o.weighted_value IS NOT NULL THEN o.weighted_value ELSE 0 END), 0) as weighted_value
+            COALESCE(SUM(CASE WHEN o.estimated_value IS NOT NULL THEN o.estimated_value ELSE 0 END), 0) as total_value,
+            COALESCE(SUM(CASE WHEN o.estimated_value IS NOT NULL THEN o.estimated_value * o.probability / 100.0 ELSE 0 END), 0) as weighted_value
           FROM degoudse.customers c
           LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
           LEFT JOIN degoudse.opportunities o ON co.opportunity_id = o.id
