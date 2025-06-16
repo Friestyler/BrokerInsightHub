@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "wouter";
+import { useParams, Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -19,8 +19,11 @@ import { useToast } from "@/hooks/use-toast";
 export default function CustomerDetailNew() {
   const { id } = useParams();
   const { environment } = useEnvironment();
+  const [location] = useLocation();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("okr-plans");
+  const [backUrl, setBackUrl] = useState("/customers");
+  const [backLabel, setBackLabel] = useState("Back to Customers");
   
   // OKR metrics state management
   const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
@@ -40,6 +43,57 @@ export default function CustomerDetailNew() {
   const [editedCustomer, setEditedCustomer] = useState<any>({});
   const [selectedOpportunityIds, setSelectedOpportunityIds] = useState<number[]>([]);
   const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
+
+  // Detect navigation context and set appropriate back URL
+  useEffect(() => {
+    // Try multiple methods to detect the source page
+    const referrer = document.referrer;
+    const currentOrigin = window.location.origin;
+    
+    // Method 1: Check document.referrer
+    if (referrer && referrer.startsWith(currentOrigin)) {
+      const referrerPath = new URL(referrer).pathname;
+      const partnerDetailMatch = referrerPath.match(/\/lists\/partners\/(\d+)/);
+      const opportunityDetailMatch = referrerPath.match(/\/opportunities\/(\d+)/);
+      
+      if (partnerDetailMatch) {
+        const partnerId = partnerDetailMatch[1];
+        setBackUrl(`/lists/partners/${partnerId}`);
+        setBackLabel("Back to Partner");
+        return;
+      }
+      
+      if (opportunityDetailMatch) {
+        const opportunityId = opportunityDetailMatch[1];
+        setBackUrl(`/opportunities/${opportunityId}`);
+        setBackLabel("Back to Opportunity");
+        return;
+      }
+    }
+    
+    // Method 2: Check for context in session storage
+    const sessionReferrer = sessionStorage.getItem('customerReferrer');
+    if (sessionReferrer) {
+      const partnerDetailMatch = sessionReferrer.match(/\/lists\/partners\/(\d+)/);
+      const opportunityDetailMatch = sessionReferrer.match(/\/opportunities\/(\d+)/);
+      
+      if (partnerDetailMatch) {
+        const partnerId = partnerDetailMatch[1];
+        setBackUrl(`/lists/partners/${partnerId}`);
+        setBackLabel("Back to Partner");
+        sessionStorage.removeItem('customerReferrer');
+        return;
+      }
+      
+      if (opportunityDetailMatch) {
+        const opportunityId = opportunityDetailMatch[1];
+        setBackUrl(`/opportunities/${opportunityId}`);
+        setBackLabel("Back to Opportunity");
+        sessionStorage.removeItem('customerReferrer');
+        return;
+      }
+    }
+  }, []);
 
   // Load existing logo on component mount
   useEffect(() => {
@@ -207,7 +261,7 @@ export default function CustomerDetailNew() {
       {/* Header section */}
       <div className="px-6 py-4">
         <div className="flex items-center mb-4">
-          <Link href="/customers">
+          <Link href={backUrl}>
             <Button variant="ghost" size="sm" className="mr-4 p-2 group hover:bg-[#F5F6FE]">
               <ArrowLeft className="w-4 h-4 group-hover:text-[#5567E5]" />
             </Button>
