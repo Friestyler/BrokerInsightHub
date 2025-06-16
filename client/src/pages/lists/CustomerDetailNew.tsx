@@ -63,7 +63,7 @@ export default function CustomerDetailNew() {
   }, [id, environment]);
 
   // Fetch customer data from database
-  const { data: customers, isLoading: customersLoading } = useQuery({
+  const { data: customersResponse, isLoading: customersLoading } = useQuery({
     queryKey: ['/api/customers'],
   });
 
@@ -117,10 +117,8 @@ export default function CustomerDetailNew() {
     queryKey: ['/api/products'],
   });
 
-  if (customersLoading) {
-    return <div className="p-6">Loading...</div>;
-  }
-
+  // Extract customers array from paginated response
+  const customers = customersResponse?.data || [];
   const customer = customers?.find((c: any) => c.id === parseInt(id || '0'));
   
   // Initialize dialog data when it opens (after customer is declared)
@@ -148,6 +146,10 @@ export default function CustomerDetailNew() {
       setSelectedProductIds(productIds);
     }
   }, [showDetailsDialog, customer, relatedOpportunities, relatedProducts]);
+  
+  if (customersLoading) {
+    return <div className="p-6">Loading...</div>;
+  }
   
   if (!customer) {
     return <div className="p-6">Customer not found</div>;
