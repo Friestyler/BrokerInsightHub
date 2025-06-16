@@ -5104,25 +5104,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           // If partner_id is specified, filter campaigns linked to that partner
           if (partner_id) {
-            // Only show campaigns that are specifically shared with this partner
-            // If no campaigns are shared with this partner, return empty array
-            query = `
-              SELECT c.id, c.name, c.description, c.type, c.category, c.status, 
-                     c.created_by_id, c.sponsor_id, c.list_id, c.subject, c.email_body, 
-                     c.email_logo, c.from_name, c.from_email, c.scheduled_time, 
-                     c.frequency, c.is_shared, c.is_template, c.tags, c.created_at, 
-                     c.updated_at, c.heading, c.button_link, c.button_text, 
-                     c.button_color, c.follow_up_emails, c.target_entity_type, c.recipients, 
-                     u.name as created_by_name 
-              FROM ${envId}.campaigns c
-              LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
-              INNER JOIN ${envId}.campaign_shares cs ON c.id = cs.campaign_id
-              WHERE c.is_template = false
-              AND cs.shared_with_type = 'partner' 
-              AND cs.shared_with_id = $1 
-              AND cs.is_active = true
-            `;
-            queryParams.push(parseInt(partner_id));
+            // Get the partner name first to search by name in recipients
+            const partnerResult = await pool.query(`SELECT name FROM ${envId}.partners WHERE id = $1`, [partner_id]);
+            if (partnerResult.rows.length > 0) {
+              const partnerName = partnerResult.rows[0].name;
+              
+              // Show campaigns that include this partner in their recipients (search by name)
+              query = `
+                SELECT c.id, c.name, c.description, c.type, c.category, c.status, 
+                       c.created_by_id, c.sponsor_id, c.list_id, c.subject, c.email_body, 
+                       c.email_logo, c.from_name, c.from_email, c.scheduled_time, 
+                       c.frequency, c.is_shared, c.is_template, c.tags, c.created_at, 
+                       c.updated_at, c.heading, c.button_link, c.button_text, 
+                       c.button_color, c.follow_up_emails, c.target_entity_type, c.recipients, 
+                       u.name as created_by_name 
+                FROM ${envId}.campaigns c
+                LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
+                WHERE c.is_template = false
+                AND (c.recipients::text LIKE '%"name": "' || $1 || '"%' 
+                     OR c.recipients::text LIKE '%"id": ' || $2 || '%' 
+                     OR c.recipients::text LIKE '%"id":' || $2 || '%')
+              `;
+              queryParams.push(partnerName, partner_id);
+            } else {
+              // Partner not found, return empty array
+              res.json([]);
+              return;
+            }
           }
           
           query += ` ORDER BY c.created_at DESC`;
@@ -5164,6 +5172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           res.json(campaigns);
           return;
         } catch (dbError) {
+          console.error('Database error in campaigns endpoint:', dbError);
           console.log('Campaigns table does not exist yet, returning empty array');
           res.json([]);
           return;
