@@ -137,6 +137,25 @@ export default function MappingStep({
 
   const canProceed = csvHeaders.length > 0 && !isProcessing && !error;
 
+  // For special formats with transformation scripts, don't show the manual interface
+  if (selectedTransformationScript && !error) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex flex-col items-center justify-center py-12">
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent mb-4" />
+              <h3 className="text-lg font-semibold mb-2">Processing File</h3>
+              <p className="text-sm text-muted-foreground text-center">
+                Applying transformation script and extracting headers...
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
 
