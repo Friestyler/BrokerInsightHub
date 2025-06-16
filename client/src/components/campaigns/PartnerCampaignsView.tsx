@@ -257,13 +257,7 @@ export default function PartnerCampaignsView({ partnerId, partnerName }: Partner
           </Button>
         </div>
         
-        <Button
-          onClick={() => window.location.href = '/campaigns/new'}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg flex items-center gap-2"
-        >
-          <Plus className="h-4 w-4" />
-          Create New Campaign
-        </Button>
+
       </div>
 
       {/* Bulk actions bar - show when campaigns are selected */}
@@ -323,18 +317,11 @@ export default function PartnerCampaignsView({ partnerId, partnerName }: Partner
             <Mail className="w-8 h-8 text-gray-400" />
           </div>
           <h3 className="text-lg font-medium text-gray-900 mb-2">No campaigns found</h3>
-          <p className="text-gray-500 mb-6">
+          <p className="text-gray-500">
             {selectedFilter === 'all' 
               ? `No campaigns have been shared with ${partnerName || 'this partner'} yet.` 
               : `No ${selectedFilter} campaigns have been shared with ${partnerName || 'this partner'}.`}
           </p>
-          <Button
-            onClick={() => window.location.href = '/campaigns/new'}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Create First Campaign
-          </Button>
         </div>
       ) : (
         <CampaignsTable 
