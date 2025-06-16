@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Save, Edit, ArrowLeft, ArrowRight, CheckCircle, X, Trash2, Minus, Sparkles, Loader2, AlertCircle } from 'lucide-react';
+import { Plus, Save, Edit, ArrowLeft, ArrowRight, CheckCircle, X, Trash2, Minus, Sparkles, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 
@@ -69,6 +69,8 @@ export default function AttributeMappingStep({
   const [codeExplanation, setCodeExplanation] = useState<{ [key: number]: string }>({});
   const [showAiInterface, setShowAiInterface] = useState<{ [key: number]: boolean }>({});
   const [templateLoaded, setTemplateLoaded] = useState(false);
+  const [originalMappings, setOriginalMappings] = useState<AttributeMapping[]>([]);
+  const [hasTemplateChanges, setHasTemplateChanges] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -103,6 +105,32 @@ export default function AttributeMappingStep({
   const { data: uploadSettings = [], isLoading: isLoadingUploadSettings } = useQuery({
     queryKey: [`/api/${environmentId}/upload-settings/${actualEntityType}`],
     enabled: !!actualEntityType && !!environmentId
+  });
+
+  // Update template mutation
+  const updateTemplateMutation = useMutation({
+    mutationFn: async (templateData: { id: number; name: string; column_mappings: AttributeMapping[] }) => {
+      const response = await fetch(`/api/${environmentId}/upload-templates/${templateData.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: templateData.name,
+          column_mappings: JSON.stringify(templateData.column_mappings),
+          entity_type: actualEntityType
+        })
+      });
+      if (!response.ok) throw new Error('Failed to update template');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/degoudse/upload-templates'] });
+      setHasTemplateChanges(false);
+      setOriginalMappings(JSON.parse(JSON.stringify(attributeMappings))); // Update original mappings
+      toast({ title: 'Template updated successfully' });
+    },
+    onError: () => {
+      toast({ title: 'Failed to update template', variant: 'destructive' });
+    }
   });
 
   // Initialize attribute mappings based on upload settings
@@ -141,7 +169,9 @@ export default function AttributeMappingStep({
               ? JSON.parse(templateToLoad.column_mappings) 
               : templateToLoad.column_mappings;
             setAttributeMappings(mappings);
+            setOriginalMappings(JSON.parse(JSON.stringify(mappings))); // Deep copy
             setTemplateLoaded(true);
+            setHasTemplateChanges(false);
           } catch (error) {
             console.error('Failed to load template:', error);
           }
@@ -158,6 +188,34 @@ export default function AttributeMappingStep({
   const saveLastUsedTemplate = (templateId: number, uploadType: string) => {
     localStorage.setItem(`lastUsedTemplate_${uploadType}`, templateId.toString());
   };
+
+  // Function to compare current mappings with original template mappings
+  const compareMappings = (current: AttributeMapping[], original: AttributeMapping[]): boolean => {
+    if (current.length !== original.length) return true;
+    
+    return current.some((currentMapping, index) => {
+      const originalMapping = original[index];
+      if (!originalMapping) return true;
+      
+      return (
+        currentMapping.attribute !== originalMapping.attribute ||
+        currentMapping.csvColumn !== originalMapping.csvColumn ||
+        currentMapping.isRequired !== originalMapping.isRequired ||
+        currentMapping.customCode !== originalMapping.customCode ||
+        currentMapping.isCodeBased !== originalMapping.isCodeBased
+      );
+    });
+  };
+
+  // Monitor changes to attribute mappings to detect template modifications
+  useEffect(() => {
+    if (selectedTemplateId !== 'none' && originalMappings.length > 0) {
+      const hasChanges = compareMappings(attributeMappings, originalMappings);
+      setHasTemplateChanges(hasChanges);
+    } else {
+      setHasTemplateChanges(false);
+    }
+  }, [attributeMappings, originalMappings, selectedTemplateId]);
 
   // Parse CSV data for preview
   useEffect(() => {
@@ -275,7 +333,9 @@ export default function AttributeMappingStep({
                           ? JSON.parse(template.column_mappings) 
                           : template.column_mappings;
                         setAttributeMappings(mappings);
+                        setOriginalMappings(JSON.parse(JSON.stringify(mappings))); // Deep copy
                         setTemplateLoaded(true);
+                        setHasTemplateChanges(false);
                         toast({ 
                           title: `Template "${template.name}" loaded`,
                           description: `Auto-loaded with ${mappings.length} column mappings`
@@ -311,15 +371,43 @@ export default function AttributeMappingStep({
               </Select>
             </div>
 
-            {/* Save Template Button */}
-            <Button 
-              variant="outline" 
-              onClick={() => setShowSaveTemplate(true)}
-              className="shrink-0"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              Save Template
-            </Button>
+            {/* Template Action Buttons */}
+            <div className="flex gap-2 shrink-0">
+              {/* Update Template Button - only show when template is selected and modified */}
+              {hasTemplateChanges && selectedTemplateId !== 'none' && (
+                <Button 
+                  variant="default" 
+                  onClick={() => {
+                    const selectedTemplate = templates.find((t: any) => t.id.toString() === selectedTemplateId);
+                    if (selectedTemplate) {
+                      updateTemplateMutation.mutate({
+                        id: selectedTemplate.id,
+                        name: selectedTemplate.name,
+                        column_mappings: attributeMappings
+                      });
+                    }
+                  }}
+                  disabled={updateTemplateMutation.isPending}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {updateTemplateMutation.isPending ? (
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Edit className="h-4 w-4 mr-2" />
+                  )}
+                  Update Template
+                </Button>
+              )}
+              
+              {/* Save Template Button */}
+              <Button 
+                variant="outline" 
+                onClick={() => setShowSaveTemplate(true)}
+              >
+                <Save className="h-4 w-4 mr-2" />
+                Save Template
+              </Button>
+            </div>
           </div>
 
           {/* Save Template Form */}
