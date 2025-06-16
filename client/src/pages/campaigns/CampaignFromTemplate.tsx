@@ -155,6 +155,44 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
         }];
       }
 
+      // Convert saved recipients to proper format for RecipientSelector
+      const convertedRecipients = (campaignDataFromAPI.recipients || []).map((recipient: any) => {
+        // If recipient already has type field, return as is
+        if (recipient.type) {
+          return recipient;
+        }
+        
+        // Determine type based on recipient structure
+        if (recipient.email && (recipient.first_name || recipient.last_name)) {
+          // This is a contact
+          return {
+            ...recipient,
+            type: 'contact',
+            recipientKey: `contact-${recipient.id}`
+          };
+        } else if (recipient.name || recipient.title) {
+          // This is an entity (opportunity, customer, partner)
+          return {
+            ...recipient,
+            type: 'entity',
+            recipientKey: `entity-${recipient.id}`
+          };
+        } else {
+          // Default to entity type
+          return {
+            ...recipient,
+            type: 'entity',
+            recipientKey: `entity-${recipient.id}`
+          };
+        }
+      });
+
+      console.log('Loading existing campaign recipients:', {
+        originalRecipients: campaignDataFromAPI.recipients,
+        convertedRecipients,
+        targetEntityType: campaignDataFromAPI.target_entity_type
+      });
+
       setCampaignData({
         name: campaignDataFromAPI.name || '',
         entity: campaignDataFromAPI.target_entity_type || '',
@@ -163,7 +201,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
         icon: campaignDataFromAPI.icon || 'target',
         attachments: campaignDataFromAPI.attachments || [],
         emails: emails,
-        recipients: campaignDataFromAPI.recipients || [],
+        recipients: convertedRecipients,
         settings: campaignDataFromAPI.settings || {
           sendTime: '',
           timezone: 'UTC',
