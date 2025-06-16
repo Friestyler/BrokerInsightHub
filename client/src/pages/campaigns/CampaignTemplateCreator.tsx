@@ -95,7 +95,7 @@ interface EmailBlock {
   };
 }
 
-export default function CampaignCreator() {
+export default function CampaignTemplateCreator() {
   const [location, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState(1);
   const [activeEmailIndex, setActiveEmailIndex] = useState(0);
