@@ -116,19 +116,17 @@ export default function MappingStep({
         finalHeaders = lines[0].split(',').map(header => header.trim().replace(/"/g, ''));
       }
       
-      if (finalHeaders.length === 0 || finalHeaders.every(h => !h)) {
-        throw new Error('No valid column headers found');
-      }
-
-      const validHeaders = finalHeaders.filter(h => h);
-      setCsvHeaders(validHeaders);
-      
-      // For special formats, automatically proceed to next step after successful transformation
+      // Only validate headers if transformation script was not used
+      // (transformation success callback handles auto-proceed)
       if (!selectedTransformationScript) {
-        // Only show manual interface for non-transformation scenarios
+        if (finalHeaders.length === 0 || finalHeaders.every(h => !h)) {
+          throw new Error('No valid column headers found');
+        }
+
+        const validHeaders = finalHeaders.filter(h => h);
+        setCsvHeaders(validHeaders);
         setIsProcessing(false);
       }
-      // Note: Auto-proceed is handled in the transformation success callback above
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to parse CSV file');
       setIsProcessing(false);
