@@ -5188,8 +5188,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const result = await pool.query(`
             INSERT INTO ${envId}.campaigns (
               name, type, description, status, created_by_id, subject, email_body, 
-              is_template, frequency
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+              objective, is_template, frequency
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             RETURNING *
           `, [
             campaignData.name,
@@ -5199,6 +5199,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             campaignData.created_by || 1,
             campaignData.emails?.[0]?.subject || 'Campaign Subject',
             campaignData.emails?.[0]?.content || 'Campaign Content',
+            campaignData.objective || null,
             false,
             'one_time'
           ]);
@@ -5229,6 +5230,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (envId === 'degoudse') {
         try {
+          console.log('Campaign update data:', {
+            name: campaignData.name,
+            objective: campaignData.objective,
+            fullData: campaignData
+          });
+          
           const result = await pool.query(`
             UPDATE ${envId}.campaigns SET
               name = $1,
@@ -5237,8 +5244,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               status = $4,
               subject = $5,
               email_body = $6,
+              objective = $7,
               updated_at = CURRENT_TIMESTAMP
-            WHERE id = $7
+            WHERE id = $8
             RETURNING *
           `, [
             campaignData.name,
@@ -5247,6 +5255,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             campaignData.status || 'draft',
             campaignData.emails?.[0]?.subject || null,
             campaignData.emails?.[0]?.content || null,
+            campaignData.objective || null,
             parseInt(id)
           ]);
           
