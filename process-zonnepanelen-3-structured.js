@@ -25,9 +25,9 @@ async function processStructuredZonnepanelenFile() {
       return;
     }
     
-    // Skip header row and process data rows
-    const dataRows = data.slice(1);
-    console.log(`Processing ${dataRows.length} data rows`);
+    // Skip header row and process data rows - limit to first 10 for testing
+    const dataRows = data.slice(1, 11);
+    console.log(`Processing ${dataRows.length} data rows (limited for testing)`);
     
     // Sample first few rows to understand structure
     console.log('First few rows structure:');
@@ -89,8 +89,8 @@ async function processStructuredZonnepanelenFile() {
           if (!customerId) {
             // Create new customer
             const customerResult = await pool.query(`
-              INSERT INTO degoudse.customers (name, description, status, industry, type, size)
-              VALUES ($1, $2, 'active', 'Insurance', 'business', 'medium')
+              INSERT INTO degoudse.customers (name, description)
+              VALUES ($1, $2)
               RETURNING id
             `, [clientName, `Insurance client for ${insuranceDescription || 'solar panel coverage'}`]);
             
