@@ -38,9 +38,9 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   // Map step names to step numbers
   const getStepNumber = (stepName: string | null) => {
     switch (stepName) {
-      case 'recipients': return 2;
+      case 'recipients': return 4;
       case 'emails': return 3;
-      case 'settings': return 4;
+      case 'settings': return 5;
       default: return 1;
     }
   };
