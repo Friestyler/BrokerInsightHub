@@ -319,9 +319,9 @@ function DeveloperPage() {
     select: (data: any) => data?.length || 0
   });
 
-  const { data: customersResponse } = useQuery({
+  const { data: customersCount } = useQuery({
     queryKey: ['/api/customers'],
-    select: (data: any) => data?.length || 0
+    select: (data: any) => data?.data?.length || 0
   });
 
   const { data: opportunitiesCount } = useQuery({

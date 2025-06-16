@@ -80,10 +80,11 @@ export default function PartnerPilot() {
     staleTime: 30000,
   });
 
-  const { data: customers } = useQuery({
+  const { data: customersResponse } = useQuery({
     queryKey: ['/api/customers'],
     staleTime: 30000,
   });
+  const customers = customersResponse?.data || [];
 
   const { data: unifiedActivities } = useQuery({
     queryKey: ['/api/unified-activities'],
