@@ -1755,6 +1755,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: getTypeFromDescription(partner.description || ''),
         size: getSizeFromDescription(partner.description || ''),
         status: partner.status,
+        customerCount: customerCountMap.get(partner.id) || 0,
+        opportunityCount: opportunityCountMap.get(partner.id) || 0,
         customers: customerCountMap.get(partner.id) || 0,
         opportunities: opportunityCountMap.get(partner.id) || 0,
         opportunity_value: 0,
