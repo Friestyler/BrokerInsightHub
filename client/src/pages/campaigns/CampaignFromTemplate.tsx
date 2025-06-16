@@ -49,14 +49,14 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   
   const [currentStep, setCurrentStep] = useState(getStepNumber(stepParam));
 
-  // Add effect to ensure URL parameters are respected after component mounts
+  // Add effect to ensure URL parameters are respected after component mounts, but only on initial load
   useEffect(() => {
     const targetStep = getStepNumber(stepParam);
-    if (targetStep !== currentStep) {
+    if (targetStep !== currentStep && stepParam) {
       console.log('Adjusting step based on URL parameter:', { stepParam, targetStep, currentStep });
       setCurrentStep(targetStep);
     }
-  }, [stepParam, currentStep]);
+  }, [stepParam]); // Remove currentStep dependency to prevent infinite loops
   const [activeEmailIndex, setActiveEmailIndex] = useState(0);
   const [sharePartnersDialogOpen, setSharePartnersDialogOpen] = useState(false);
   const [selectedPartnersForSharing, setSelectedPartnersForSharing] = useState<number[]>([]);
@@ -597,6 +597,21 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     return isStepCompleted(1) && isStepCompleted(2) && isStepCompleted(3) && isStepCompleted(4) && isStepCompleted(5);
   };
 
+  const updateUrlStep = (step: number) => {
+    const stepNames = ['', 'details', 'entity', 'emails', 'recipients', 'settings', 'share'];
+    const stepName = stepNames[step] || '';
+    
+    const url = new URL(window.location.href);
+    if (stepName && step > 1) {
+      url.searchParams.set('step', stepName);
+    } else {
+      url.searchParams.delete('step');
+    }
+    
+    // Update URL without reloading the page
+    window.history.replaceState({}, '', url.toString());
+  };
+
   const handleNext = () => {
     console.log('Next button clicked:', {
       currentStep,
@@ -614,7 +629,9 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     });
     
     if (currentStep < totalSteps && isStepAccessible(currentStep + 1)) {
-      setCurrentStep(currentStep + 1);
+      const nextStep = currentStep + 1;
+      setCurrentStep(nextStep);
+      updateUrlStep(nextStep);
     } else {
       console.log('Navigation blocked:', {
         canProgress: currentStep < totalSteps,
@@ -626,7 +643,9 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const handlePrevious = () => {
     console.log('Previous button clicked:', { currentStep });
     if (currentStep > 1) {
-      setCurrentStep(currentStep - 1);
+      const prevStep = currentStep - 1;
+      setCurrentStep(prevStep);
+      updateUrlStep(prevStep);
     }
   };
 
