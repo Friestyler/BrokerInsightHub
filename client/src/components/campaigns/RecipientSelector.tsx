@@ -109,7 +109,7 @@ export default function RecipientSelector({
     }
   };
   
-  const [selectedTab, setSelectedTab] = useState<'lists' | 'contacts' | 'selected' | 'missing'>(getInitialTab(initialTab));
+  const [selectedTab, setSelectedTab] = useState<'lists' | 'contacts' | 'selected' | 'missing'>(getInitialTab(initialTab ?? null));
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [showAddContact, setShowAddContact] = useState(false);
   const [showOnlyMissingContacts, setShowOnlyMissingContacts] = useState(false);

@@ -219,6 +219,14 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
       return;
     }
 
+    console.log('Campaign click debug:', {
+      campaignId: campaign.id,
+      campaignName: campaign.name,
+      campaignStatus: campaign.status,
+      isPartnerView: isPartnerView,
+      shouldUseDraftLogic: campaign.status === 'draft' && isPartnerView
+    });
+
     if (campaign.status === 'draft' && isPartnerView) {
       // For draft campaigns from partner view, open campaign builder with recipient step
       // Check if campaign has missing contacts for recipients
