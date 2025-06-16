@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Share } from "lucide-react";
 import { useLocation, useRoute, useParams } from 'wouter';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -38,6 +40,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   });
   const [currentStep, setCurrentStep] = useState(1);
   const [activeEmailIndex, setActiveEmailIndex] = useState(0);
+  const [sharePartnersDialogOpen, setSharePartnersDialogOpen] = useState(false);
+  const [selectedPartnersForSharing, setSelectedPartnersForSharing] = useState<number[]>([]);
   
   // Determine the mode: editing existing campaign, new campaign, or template-based campaign
   const isEditingCampaign = !!campaignId;
@@ -80,6 +84,12 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const { data: campaignDataFromAPI, isLoading: campaignLoading } = useQuery({
     queryKey: [`/api/campaigns/${campaignId}`],
     enabled: isEditingCampaign
+  });
+
+  // Fetch all partners to show in share dialog
+  const { data: allPartners = [] } = useQuery({
+    queryKey: ['/api/partners'],
+    enabled: sharePartnersDialogOpen
   });
 
   // Set default data for new campaigns
