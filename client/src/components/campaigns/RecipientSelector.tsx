@@ -529,8 +529,10 @@ export default function RecipientSelector({
           }`}
           onClick={() => {
             if (summaryStats.entitiesWithoutContacts > 0) {
-              setSelectedTab('selected');
+              setSelectedTab('contacts');
               setShowOnlyMissingContacts(true);
+              // Auto-expand the entity selection to show drill-down
+              setExpandedItems(new Set(['all-entities']));
             }
           }}
         >
