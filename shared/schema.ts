@@ -94,7 +94,7 @@ export const activityAttachments = pgTable("activity_attachments", {
 // AI Next Best Actions model
 export const nextBestActions = pgTable("next_best_actions", {
   id: serial("id").primaryKey(),
-  partnerId: integer("partner_id").notNull().references(() => customers.id),
+  partnerId: integer("partner_id").notNull(),
   actionType: text("action_type").notNull(), // follow_up, schedule_meeting, review_okr, etc.
   title: text("title").notNull(),
   description: text("description").notNull(),
@@ -155,6 +155,8 @@ export const opportunities = pgTable("opportunities", {
   description: text("description"),
   notes: text("notes"),
   expectedCloseDate: timestamp("expected_close_date"),
+  partnerId: integer("partner_id"),
+  ownerId: integer("owner_id"),
   createdAt: timestamp("created_at"),
   updatedAt: timestamp("updated_at"),
 });
@@ -204,7 +206,7 @@ export const customerTeamMembers = pgTable("customer_team_members", {
 export const customerPartners = pgTable("customer_partners", {
   id: serial("id").primaryKey(),
   customerId: integer("customer_id").notNull().references(() => customers.id),
-  partnerId: integer("partner_id").notNull().references(() => clients.id),
+  partnerId: integer("partner_id").notNull(),
 });
 
 // Products catalog for De Goudse environment
@@ -234,6 +236,7 @@ export const opportunitiesRelations = relations(opportunities, ({ one }) => ({
 // User relations
 export const usersRelations = relations(users, ({ many }) => ({
   ownedCustomers: many(customers, { relationName: "customerOwner" }),
+  ownedOpportunities: many(opportunities, { relationName: "opportunityOwner" }),
   createdCampaigns: many(campaigns),
   okrComments: many(okrComments),
   assignedTemplates: many(okrTemplateAssignments, { relationName: "assignedByUser" }),
@@ -254,7 +257,7 @@ export const customersRelations = relations(customers, ({ one, many }) => ({
   }),
   teamMembers: many(customerTeamMembers),
   partners: many(customerPartners),
-  opportunities: many(opportunities),
+  partnerOpportunities: many(opportunities, { relationName: "opportunityPartner" }),
 }));
 
 // Insert schemas
