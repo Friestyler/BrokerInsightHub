@@ -888,47 +888,6 @@ Examples:
         </CardContent>
       </Card>
 
-      {/* CSV Data Preview */}
-      {csvData.length > 0 && (
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-base">Data Preview</CardTitle>
-            <p className="text-sm text-gray-600">First 5 rows from your uploaded CSV file</p>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <table className="w-full border-collapse border border-gray-200 text-sm">
-                <thead>
-                  <tr className="bg-gray-50">
-                    {csvHeaders.map((header, index) => (
-                      <th key={index} className="border border-gray-200 px-3 py-2 text-left font-medium">
-                        {header}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {csvData.slice(0, 5).map((row, rowIndex) => (
-                    <tr key={rowIndex} className="hover:bg-gray-50">
-                      {csvHeaders.map((header, colIndex) => (
-                        <td key={colIndex} className="border border-gray-200 px-3 py-2">
-                          {row[header] || '-'}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            {csvData.length > 5 && (
-              <p className="text-sm text-gray-500 mt-2">
-                Showing 5 of {csvData.length} rows
-              </p>
-            )}
-          </CardContent>
-        </Card>
-      )}
-
       {/* Actions */}
       <div className="flex justify-between">
         <Button variant="outline" onClick={onBack}>
