@@ -91,8 +91,14 @@ async function processDataRows(data) {
     
     for (const [index, row] of data.entries()) {
       try {
-        // Map the row data - this will need to be adjusted based on actual column names
+        // Map the row data
         const mappedData = mapRowData(row);
+        
+        console.log(`Processing row ${index + 1}:`, {
+          customer: mappedData.customerName,
+          partner: mappedData.partnerName,
+          title: mappedData.opportunityTitle
+        });
         
         if (!mappedData.customerName || !mappedData.opportunityTitle) {
           console.log(`Skipping row ${index + 1}: Missing required data`);
@@ -103,15 +109,12 @@ async function processDataRows(data) {
         let customerId = existingCustomers.get(mappedData.customerName.toLowerCase().trim());
         if (!customerId) {
           const customerResult = await client.query(`
-            INSERT INTO degoudse.customers (name, industry, size_category, city, country)
-            VALUES ($1, $2, $3, $4, $5)
+            INSERT INTO degoudse.customers (name, description)
+            VALUES ($1, $2)
             RETURNING id
           `, [
             mappedData.customerName,
-            mappedData.industry || 'Insurance',
-            mappedData.sizeCategory || 'Medium',
-            mappedData.city || 'Unknown',
-            mappedData.country || 'Netherlands'
+            `${mappedData.industry || 'Construction'} company - ${mappedData.customerName}`
           ]);
           customerId = customerResult.rows[0].id;
           existingCustomers.set(mappedData.customerName.toLowerCase().trim(), customerId);
@@ -188,8 +191,9 @@ async function processDataRows(data) {
         }
         
       } catch (rowError) {
-        console.error(`Error processing row ${index + 1}:`, rowError);
-        continue;
+        console.error(`Error processing row ${index + 1}:`, rowError.message);
+        // Break out of the transaction on first error to prevent cascading failures
+        break;
       }
     }
     
