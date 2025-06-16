@@ -2369,6 +2369,94 @@ export default function PartnerDetail() {
             partnerName={partner?.name}
           />
         )}
+
+        {activeTab === "products" && (
+          <div className="space-y-6">
+            {productsLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+              </div>
+            ) : relatedProducts && Array.isArray(relatedProducts) && relatedProducts.length > 0 ? (
+              <div className="bg-white rounded-lg border border-gray-200">
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900">Products ({relatedProducts.length})</h3>
+                  <p className="text-sm text-gray-600 mt-1">Products associated with this partner</p>
+                </div>
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Product Name</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead className="text-right">Price</TableHead>
+                        <TableHead>Created</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {relatedProducts.map((product: any) => (
+                        <TableRow key={product.id} className="hover:bg-gray-50">
+                          <TableCell className="font-medium">
+                            <div>
+                              <div className="font-semibold text-gray-900">{product.name}</div>
+                              {product.description && (
+                                <div className="text-sm text-gray-500 mt-1">{product.description}</div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            {product.category && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                                {product.category}
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {product.type && (
+                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                                {product.type}
+                              </span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                              product.status === 'active' 
+                                ? 'bg-green-100 text-green-800'
+                                : product.status === 'inactive'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }`}>
+                              {product.status || 'Unknown'}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-right">
+                            {product.price ? `€${parseFloat(product.price).toLocaleString()}` : '-'}
+                          </TableCell>
+                          <TableCell className="text-gray-500">
+                            {product.created_at ? new Date(product.created_at).toLocaleDateString() : '-'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                    <line x1="3" y1="6" x2="21" y2="6"/>
+                    <path d="M16 10a4 4 0 0 1-8 0"/>
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+                <p className="text-gray-500">No products are currently associated with this partner.</p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
       {/* Comment Dialog */}
       <Dialog open={isCommentDialogOpen} onOpenChange={setIsCommentDialogOpen}>
