@@ -134,9 +134,15 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
       queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`] });
       queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners`] });
       
-      // Force refetch the data
-      queryClient.refetchQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/activities`] });
-      queryClient.refetchQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`] });
+      // Force immediate refetch with no cache
+      queryClient.refetchQueries({ 
+        queryKey: [`/api/${currentEnv}/partners/${partnerId}/activities`],
+        type: 'active'
+      });
+      queryClient.refetchQueries({ 
+        queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`],
+        type: 'active'
+      });
       
       resetForm();
       toast({ title: `${selectedActivityType.charAt(0).toUpperCase() + selectedActivityType.slice(1)} created successfully` });
