@@ -5230,12 +5230,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (envId === 'degoudse') {
         try {
-          console.log('Campaign update data:', {
-            name: campaignData.name,
-            objective: campaignData.objective,
-            fullData: campaignData
-          });
-          
           const result = await pool.query(`
             UPDATE ${envId}.campaigns SET
               name = $1,
