@@ -2467,7 +2467,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             LEFT JOIN degoudse.contacts contacts ON contacts.linked_entity_id = c.id AND contacts.linked_entity_type = 'customer'
             WHERE po.partner_id = $1
             GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
-                     o."expectedCloseDate", o."clientId", o."partnerId", o."productId", 
+                     o."expectedCloseDate", o.start_date, o."clientId", o."partnerId", o."productId", 
                      o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
             ORDER BY o.id
           `, [assignedPartnerId]);
@@ -2495,7 +2495,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           LEFT JOIN degoudse.products pr ON pr.id = op.product_id
           LEFT JOIN degoudse.contacts contacts ON contacts.linked_entity_id = c.id AND contacts.linked_entity_type = 'customer'
           GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
-                   o."expectedCloseDate", o."clientId", o."partnerId", o."productId", 
+                   o."expectedCloseDate", o.start_date, o."clientId", o."partnerId", o."productId", 
                    o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
           ORDER BY o.id
         `);

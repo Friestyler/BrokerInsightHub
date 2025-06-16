@@ -155,6 +155,7 @@ export const opportunities = pgTable("opportunities", {
   description: text("description"),
   notes: text("notes"),
   expectedCloseDate: timestamp("expected_close_date"),
+  startDate: timestamp("start_date"),
   partnerId: integer("partner_id"),
   ownerId: integer("owner_id"),
   createdAt: timestamp("created_at"),
@@ -327,6 +328,7 @@ export const insertOpportunitySchema = createInsertSchema(opportunities).pick({
   description: true,
   notes: true,
   expectedCloseDate: true,
+  startDate: true,
 });
 
 export const insertDocumentSchema = createInsertSchema(documents).pick({
