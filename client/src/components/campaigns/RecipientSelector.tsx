@@ -511,7 +511,7 @@ export default function RecipientSelector({
           }`}
           onClick={() => {
             if (summaryStats.entitiesWithoutContacts > 0) {
-              setSelectedTab('lists');
+              setSelectedTab('selected');
               setShowOnlyMissingContacts(true);
             }
           }}
@@ -1325,6 +1325,23 @@ export default function RecipientSelector({
                 <div className="p-4 space-y-4">
                   {selectedRecipients
                     .filter(r => r.type === 'entity' && entityType === 'opportunities')
+                    .filter(opportunity => {
+                      if (!showOnlyMissingContacts) return true;
+                      
+                      // Check if this opportunity's customer has contacts
+                      const customer = getCustomerForOpportunity(opportunity.id);
+                      if (!customer) return true; // Show if no customer found
+                      
+                      const customerContacts = entityContacts[customer.id] || [];
+                      const hasDirectContacts = customerContacts.length > 0;
+                      
+                      // Check if any individually selected contacts belong to this customer
+                      const hasSelectedContacts = selectedRecipients.some(r => 
+                        r.type === 'contact' && (r.linkedEntityId === customer.id || r.linked_entity_id === customer.id)
+                      );
+                      
+                      return !hasDirectContacts && !hasSelectedContacts;
+                    })
                     .map((opportunity) => {
                       const customer = getCustomerForOpportunity(opportunity.id);
                       const customerContacts = customer ? entityContacts[customer.id] || [] : [];
@@ -1432,6 +1449,157 @@ export default function RecipientSelector({
                                   ))}
                                 </div>
                               )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Selected Tab - For non-opportunity entity types */}
+        {selectedTab === 'selected' && selectedRecipients.length > 0 && entityType !== 'opportunities' && (
+          <div className="space-y-4">
+            {/* Summary Stats */}
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium text-gray-900">Selected Recipients</h3>
+              <div className="flex items-center gap-4 text-sm text-gray-600">
+                <span>{selectionCounts.contacts} contacts</span>
+                <span>{selectionCounts.entities} entities</span>
+                <span className="font-medium">{selectionCounts.total} total</span>
+              </div>
+            </div>
+
+            {/* Entities Section */}
+            <div className="border border-gray-200 rounded-lg">
+              <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                      <Building2 className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-blue-900">
+                        {entityType.charAt(0).toUpperCase() + entityType.slice(1)}
+                      </h4>
+                      <p className="text-sm text-blue-700">
+                        {selectedRecipients.filter(r => r.type === 'entity' || r.type === 'customer').length} {entityType} selected
+                      </p>
+                    </div>
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => toggleItemExpansion('selected-entities')}
+                    className="bg-blue-200 hover:bg-blue-300"
+                  >
+                    {expandedItems.has('selected-entities') ? (
+                      <ChevronDown className="h-4 w-4 text-blue-800" />
+                    ) : (
+                      <ChevronRight className="h-4 w-4 text-blue-800" />
+                    )}
+                  </Button>
+                </div>
+              </div>
+              
+              {expandedItems.has('selected-entities') && (
+                <div className="p-4 space-y-4">
+                  {selectedRecipients
+                    .filter(r => r.type === 'entity' || r.type === 'customer')
+                    .filter(entity => {
+                      if (!showOnlyMissingContacts) return true;
+                      
+                      // Check if this entity has contacts
+                      const entityContactsList = entityContacts[entity.id] || [];
+                      const hasDirectContacts = entityContactsList.length > 0;
+                      
+                      // Check if any individually selected contacts belong to this entity
+                      const hasSelectedContacts = selectedRecipients.some(r => 
+                        r.type === 'contact' && (r.linkedEntityId === entity.id || r.linked_entity_id === entity.id)
+                      );
+                      
+                      return !hasDirectContacts && !hasSelectedContacts;
+                    })
+                    .map((entity) => {
+                      const entityContactsList = entityContacts[entity.id] || [];
+                      
+                      return (
+                        <div key={`entity-${entity.id}`} className="space-y-3 border border-gray-200 rounded-lg p-4">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+                                <Building2 className="h-4 w-4 text-white" />
+                              </div>
+                              <div>
+                                <p className="font-semibold text-gray-900">{getEntityDisplayName(entity)}</p>
+                                <p className="text-sm text-gray-600">{entityType.slice(0, -1)}</p>
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const updatedRecipients = selectedRecipients.filter(r => 
+                                  !((r.type === 'entity' || r.type === 'customer') && r.id === entity.id)
+                                );
+                                onRecipientsChange(updatedRecipients);
+                              }}
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
+                          </div>
+
+                          {/* Entity contacts */}
+                          {entityContactsList.length > 0 && (
+                            <div className="ml-6 space-y-2 border-l-2 border-gray-200 pl-4">
+                              <div className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-2">
+                                Contact Persons
+                              </div>
+                              {entityContactsList.map((contact: Contact) => (
+                                <div key={`entity-${entity.id}-contact-${contact.id}`} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center">
+                                      <Mail className="h-3 w-3 text-white" />
+                                    </div>
+                                    <div>
+                                      <p className="font-medium text-gray-900">
+                                        {getContactDisplayName(contact)}
+                                      </p>
+                                      <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                                        {contact.email && (
+                                          <span className="flex items-center gap-1">
+                                            <Mail className="h-3 w-3" />
+                                            {contact.email}
+                                          </span>
+                                        )}
+                                        {getContactJobTitle(contact) && (
+                                          <span className="flex items-center gap-1">
+                                            <Briefcase className="h-3 w-3" />
+                                            {getContactJobTitle(contact)}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => {
+                                      const updatedRecipients = selectedRecipients.filter(r => 
+                                        !(r.type === 'contact' && r.id === contact.id)
+                                      );
+                                      onRecipientsChange(updatedRecipients);
+                                    }}
+                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  >
+                                    <X className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              ))}
                             </div>
                           )}
                         </div>
