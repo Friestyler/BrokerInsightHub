@@ -192,7 +192,7 @@ const getEntityColor = (entityType: string) => {
   }
 };
 
-export default function CampaignsTable({ campaigns, selectedCampaigns, onSelectionChange }: CampaignsTableProps) {
+export default function CampaignsTable({ campaigns, selectedCampaigns, onSelectionChange, isPartnerView }: CampaignsTableProps) {
   const [sortField, setSortField] = useState<string>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [, setLocation] = useLocation();
@@ -211,6 +211,61 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
     console.log('Updating campaign status:', { campaignId, newStatus });
     // This would trigger a mutation to update the status in the database
     // After successful update, the query cache would be invalidated to refetch data
+  };
+
+  const handleCampaignClick = async (campaign: any, e: React.MouseEvent) => {
+    // Don't trigger when clicking on checkbox or actions
+    if ((e.target as any).type === 'checkbox') {
+      return;
+    }
+
+    if (campaign.status === 'draft' && isPartnerView) {
+      // For draft campaigns from partner view, open campaign builder with recipient step
+      // Check if campaign has missing contacts for recipients
+      let hasMissingContacts = false;
+
+      if (campaign.recipients && campaign.recipients.length > 0 && campaign.target_entity_type === 'opportunities') {
+        try {
+          // Use environment-aware API calls
+          const opportunityIds = campaign.recipients.map((r: any) => r.id);
+          const opportunities = await fetch(`/api/opportunities`).then(res => res.json());
+          const customers = await fetch(`/api/customers`).then(res => res.json());
+          const contacts = await fetch(`/api/contacts`).then(res => res.json());
+          
+          for (const recipientId of opportunityIds) {
+            const opportunity = opportunities.find((o: any) => o.id === recipientId);
+            
+            // Check if opportunity has no customer relationship
+            if (!opportunity?.clientId) {
+              hasMissingContacts = true;
+              break;
+            }
+            
+            // Check if customer has no contacts
+            const customer = customers.find((c: any) => c.id === opportunity.clientId);
+            const customerContacts = contacts.filter((contact: any) => contact.customer_id === customer?.id);
+            
+            if (customerContacts.length === 0) {
+              hasMissingContacts = true;
+              break;
+            }
+          }
+        } catch (error) {
+          console.error('Error checking for missing contacts:', error);
+        }
+      }
+      
+      if (hasMissingContacts) {
+        // Open on Missing Contacts tab
+        setLocation(`/campaigns/edit/${campaign.id}?step=recipients&tab=missing-contacts`);
+      } else {
+        // Open on Selected tab
+        setLocation(`/campaigns/edit/${campaign.id}?step=recipients&tab=selected`);
+      }
+    } else {
+      // Normal behavior - navigate to campaign edit view
+      setLocation(`/campaigns/edit/${campaign.id}`);
+    }
   };
 
   const toggleSelectCampaign = (campaignId: number) => {
@@ -360,13 +415,7 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
                 className={`hover:bg-gray-50 cursor-pointer group ${
                   selectedCampaigns.includes(campaign.id) ? 'bg-blue-50' : ''
                 }`}
-                onClick={(e) => {
-                  // Don't trigger when clicking on checkbox or actions
-                  if (!(e.target as any).type || (e.target as any).type !== 'checkbox') {
-                    // Navigate to campaign edit view
-                    setLocation(`/campaigns/edit/${campaign.id}`);
-                  }
-                }}
+                onClick={(e) => handleCampaignClick(campaign, e)}
               >
                 <td className="relative px-3 py-4 w-10">
                   <input
