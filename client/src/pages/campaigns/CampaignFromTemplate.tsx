@@ -386,19 +386,36 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const getRelatedPartners = () => {
     if (!campaignData.recipients || !allPartners) return [];
     
+    const relatedPartnerNames = new Set<string>();
     const relatedPartnerIds = new Set<number>();
     
-    // Extract partner IDs from recipients based on entity relationships
+    // Extract partner information from recipients
     campaignData.recipients.forEach((recipient: any) => {
+      // Check for partner IDs (numeric)
       if (recipient.assigned_partner_id) {
         relatedPartnerIds.add(recipient.assigned_partner_id);
       }
       if (recipient.partner_id) {
         relatedPartnerIds.add(recipient.partner_id);
       }
+      if (recipient.partnerId) {
+        relatedPartnerIds.add(recipient.partnerId);
+      }
+      
+      // Check for partner names (string) - this is what we're actually getting
+      if (recipient.partnerNames) {
+        // partnerNames can be a comma-separated string
+        const names = recipient.partnerNames.split(',').map((name: string) => name.trim());
+        names.forEach((name: string) => relatedPartnerNames.add(name));
+      }
     });
     
-    return allPartners.filter((partner: any) => relatedPartnerIds.has(partner.id));
+    // Filter partners by both ID and name
+    const filteredPartners = allPartners.filter((partner: any) => {
+      return relatedPartnerIds.has(partner.id) || relatedPartnerNames.has(partner.name);
+    });
+    
+    return filteredPartners;
   };
 
   const togglePartnerSelection = (partnerId: number) => {
