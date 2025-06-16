@@ -69,7 +69,7 @@ export const activityComments = pgTable("activity_comments", {
   entityType: text("entity_type").notNull(), // partner, customer, opportunity, okr, task
   entityId: integer("entity_id").notNull(),
   assignedToId: integer("assigned_to_id").references(() => users.id), // optional assignment
-  parentCommentId: integer("parent_comment_id").references(() => activityComments.id), // for replies
+  parentCommentId: integer("parent_comment_id"), // for replies - removed self-reference
   isInternal: boolean("is_internal").notNull().default(false), // internal vs partner-visible
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -236,11 +236,6 @@ export const opportunitiesRelations = relations(opportunities, ({ one }) => ({
 // User relations
 export const usersRelations = relations(users, ({ many }) => ({
   ownedCustomers: many(customers, { relationName: "customerOwner" }),
-  ownedOpportunities: many(opportunities, { relationName: "opportunityOwner" }),
-  createdCampaigns: many(campaigns),
-  okrComments: many(okrComments),
-  assignedTemplates: many(okrTemplateAssignments, { relationName: "assignedByUser" }),
-  responsibleTemplates: many(okrTemplateAssignments, { relationName: "responsibleUser" }),
 }));
 
 // Contact relations
@@ -676,9 +671,6 @@ export const insertVendorSchema = createInsertSchema(vendors).pick({
   ownerId: true,
 });
 
-export type InsertVendor = z.infer<typeof insertVendorSchema>;
-export type Vendor = typeof vendors.$inferSelect;
-
 export const insertProductSchema = createInsertSchema(products).pick({
   name: true,
   description: true,
@@ -739,8 +731,7 @@ export { opportunities as projects };
 export type Project = Opportunity;
 export type InsertProject = InsertOpportunity;
 
-// Remove old contact alias - we now have a proper contacts table above
-export type InsertContact = InsertCustomerTeamMember;
+// Contact types already defined above
 
 // OKR tags schema
 export const okrTags = pgTable("okr_tags", {
@@ -754,7 +745,7 @@ export const okrTags = pgTable("okr_tags", {
 // OKR Template Assignments table - tracks which templates are assigned to which entities
 export const okrTemplateAssignments = pgTable("okr_template_assignments", {
   id: serial("id").primaryKey(),
-  template_id: integer("template_id").notNull().references(() => okrMetrics.id),
+  template_id: integer("template_id").notNull(),
   entity_type: text("entity_type").notNull(), // 'partner', 'customer', 'opportunity'
   entity_id: integer("entity_id").notNull(),
   assigned_at: timestamp("assigned_at").defaultNow(),
@@ -804,7 +795,7 @@ export const okrMetrics = pgTable("okr_metrics", {
   
   // Hierarchy
   hierarchy: text("hierarchy").notNull().default("activity"), // objective, activity, subactivity
-  parent_id: integer("parent_id").references(() => okrMetrics.id), // For hierarchical relationships
+  parent_id: integer("parent_id"), // For hierarchical relationships - removed self-reference
   
   // Tags and categorization
   tags: text("tags").array().default([]),
@@ -1021,9 +1012,6 @@ export type OkrMetric = typeof okrMetrics.$inferSelect;
 
 export type InsertOkrTemplateAssignment = z.infer<typeof insertOkrTemplateAssignmentSchema>;
 export type OkrTemplateAssignment = typeof okrTemplateAssignments.$inferSelect;
-
-export type InsertVendor = z.infer<typeof insertVendorSchema>;
-export type Vendor = typeof vendors.$inferSelect;
 
 // Campaign Recipients, Follow-ups, and Shares tables
 export const campaignRecipients = pgTable("campaign_recipients", {
