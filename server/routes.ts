@@ -1701,46 +1701,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // De Goudse environment API routes (using proper database isolation)
   app.get('/api/degoudse/partners', async (req, res) => {
-    const cacheKey = 'degoudse_partners';
-    // Force cache refresh for relationship count updates
-    clearCache(cacheKey);
-    
     try {
       const envPool = pool;
       
-      // Simple optimized query without expensive JOINs
+      // Direct query with relationship counts from opportunities table
       const result = await envPool.query(`
         SELECT p.id, p.name, p.description, p.status, p.location, p.contact_email, 
                p.primary_contact, p.partner_type, p.region, p.assigned_user_ids, 
-               p.linked_opportunity_ids, p.created_at, p.updated_at
+               p.linked_opportunity_ids, p.created_at, p.updated_at,
+               COALESCE(rel.opportunity_count, 0) as opportunity_count,
+               COALESCE(rel.customer_count, 0) as customer_count
         FROM degoudse.partners p
+        LEFT JOIN (
+          SELECT partner_id, 
+                 COUNT(*) as opportunity_count,
+                 COUNT(DISTINCT client_id) as customer_count
+          FROM degoudse.opportunities 
+          WHERE partner_id IS NOT NULL
+          GROUP BY partner_id
+        ) rel ON p.id = rel.partner_id
         ORDER BY p.id
       `);
-      
-      // Get relationship counts in separate optimized queries
-      const relationshipCounts = await Promise.all([
-        envPool.query(`
-          SELECT partner_id, COUNT(*) as customer_count 
-          FROM degoudse.partner_customers 
-          GROUP BY partner_id
-        `),
-        envPool.query(`
-          SELECT partner_id, COUNT(*) as opportunity_count 
-          FROM degoudse.partner_opportunities 
-          GROUP BY partner_id
-        `)
-      ]);
-      
-      const customerCountMap = new Map();
-      const opportunityCountMap = new Map();
-      
-      relationshipCounts[0].rows.forEach((row: any) => {
-        customerCountMap.set(row.partner_id, parseInt(row.customer_count) || 0);
-      });
-      
-      relationshipCounts[1].rows.forEach((row: any) => {
-        opportunityCountMap.set(row.partner_id, parseInt(row.opportunity_count) || 0);
-      });
       
       const partners = result.rows.map((partner: any) => ({
         id: partner.id,
@@ -1751,10 +1732,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: getTypeFromDescription(partner.description || ''),
         size: getSizeFromDescription(partner.description || ''),
         status: partner.status,
-        customerCount: customerCountMap.get(partner.id) || 0,
-        opportunityCount: opportunityCountMap.get(partner.id) || 0,
-        customers: customerCountMap.get(partner.id) || 0,
-        opportunities: opportunityCountMap.get(partner.id) || 0,
+        customerCount: parseInt(partner.customer_count) || 0,
+        opportunityCount: parseInt(partner.opportunity_count) || 0,
+        customers: parseInt(partner.customer_count) || 0,
+        opportunities: parseInt(partner.opportunity_count) || 0,
         opportunity_value: 0,
         weighted_opportunity_value: 0,
         location: partner.location,
@@ -1768,9 +1749,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedAt: partner.updated_at,
         customerNames: ''
       }));
-      
-      // Cache the result for fast subsequent requests
-      setCache(cacheKey, partners);
       
       console.log(`Returning ${partners.length} partners with relationship counts from degoudse schema`);
       res.json(partners);
