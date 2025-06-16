@@ -428,6 +428,24 @@ export default function RecipientSelector({
     
     // Find entities that have no contacts assigned
     const entitiesWithoutContacts = selectedEntities.filter(entity => {
+      // Special handling for opportunities - check their customer's contacts
+      if (entityType === 'opportunities' && entity.type === 'entity') {
+        const customer = getCustomerForOpportunity(entity.id);
+        if (!customer) return true; // No customer found, so no contacts
+        
+        const customerContacts = entityContacts[customer.id] || [];
+        const hasDirectContacts = customerContacts.length > 0;
+        
+        // Check if any individually selected contacts belong to this customer
+        const hasIndirectContacts = selectedContacts.some(contact => {
+          const contactEntityId = contact.linkedEntityId || contact.linked_entity_id;
+          return contactEntityId === customer.id;
+        });
+        
+        return !hasDirectContacts && !hasIndirectContacts;
+      }
+      
+      // For non-opportunity entities, check their direct contacts
       const entityContactsList = entityContacts[entity.id] || [];
       
       // Check if this entity has any contacts assigned to it
