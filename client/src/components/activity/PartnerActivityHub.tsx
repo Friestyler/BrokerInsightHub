@@ -106,15 +106,12 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
       const endpoint = selectedActivityType === 'task' ? 'tasks' : 
                      selectedActivityType === 'comment' ? 'comments' : 'attachments';
       
-      return fetch(`/api/${currentEnv}/activity/${endpoint}`, {
+      return fetch(`/api/${currentEnv}/partners/${partnerId}/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...activityData,
-          entityType: 'partner',
-          entityId: partnerId,
-          authorId: 1,
-          assignedById: 1
+          user_id: 1
         })
       }).then(res => {
         if (!res.ok) {
@@ -459,7 +456,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
               {/* Task List */}
               <div className="space-y-2">
                 {tasks
-                  .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+                  .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
                   .map((task: any) => (
                   <div key={task.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition-colors">
                     <button
@@ -638,7 +635,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                     const isAttachment = item.activity_type === 'attachment';
 
                     return (
-                      <div key={`timeline-${item.id}-${item.created_at}`} className="flex items-start gap-3 relative">
+                      <div key={`timeline-${item.activity_type}-${item.id}-${item.created_at}`} className="flex items-start gap-3 relative">
                         {/* Timeline line */}
                         {index < timelineData.length - 1 && (
                           <div className="absolute left-4 top-10 w-px h-8 bg-gray-200"></div>
