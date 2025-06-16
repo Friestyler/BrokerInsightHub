@@ -345,14 +345,19 @@ export default function AttributeMappingStep({
     return ['Select a CSV column to see preview'];
   };
 
-  // Update preview when mappings change
+  // Update preview when mappings or code editor content changes
   useEffect(() => {
     const newPreview: { [key: number]: string[] } = {};
     attributeMappings.forEach((mapping, index) => {
-      newPreview[index] = generatePreview(mapping, index);
+      // Use the latest code from editor if it exists
+      const latestMapping = {
+        ...mapping,
+        customCode: codeEditorContent[index] || mapping.customCode
+      };
+      newPreview[index] = generatePreview(latestMapping, index);
     });
     setCodePreview(newPreview);
-  }, [attributeMappings, csvData]);
+  }, [attributeMappings, csvData, codeEditorContent]);
 
   return (
     <div className="space-y-6">
