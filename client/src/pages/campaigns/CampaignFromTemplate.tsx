@@ -30,15 +30,33 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     ? currentPath.split('/campaigns/create-from-template/')[1].split('/')[0] // Handle any trailing slashes
     : params?.templateId;
   
+  // Parse URL query parameters for step and tab control
+  const urlParams = new URLSearchParams(window.location.search);
+  const stepParam = urlParams.get('step');
+  const tabParam = urlParams.get('tab');
+  
+  // Map step names to step numbers
+  const getStepNumber = (stepName: string | null) => {
+    switch (stepName) {
+      case 'recipients': return 2;
+      case 'emails': return 3;
+      case 'settings': return 4;
+      default: return 1;
+    }
+  };
+  
   // Debug logging
   console.log('CampaignFromTemplate Debug:', {
     windowPath: window.location.pathname,
     currentPath,
     campaignId,
     templateId,
-    params
+    params,
+    stepParam,
+    tabParam
   });
-  const [currentStep, setCurrentStep] = useState(1);
+  
+  const [currentStep, setCurrentStep] = useState(getStepNumber(stepParam));
   const [activeEmailIndex, setActiveEmailIndex] = useState(0);
   const [sharePartnersDialogOpen, setSharePartnersDialogOpen] = useState(false);
   const [selectedPartnersForSharing, setSelectedPartnersForSharing] = useState<number[]>([]);
@@ -814,6 +832,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 onRecipientsChange={(recipients) => 
                   setCampaignData({ ...campaignData, recipients })
                 }
+                initialTab={tabParam}
               />
             </div>
           </div>

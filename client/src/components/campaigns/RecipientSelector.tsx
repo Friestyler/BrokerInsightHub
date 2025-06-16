@@ -87,15 +87,29 @@ interface RecipientSelectorProps {
   entityType: string;
   selectedRecipients: any[];
   onRecipientsChange: (recipients: any[]) => void;
+  initialTab?: string | null;
 }
 
 export default function RecipientSelector({ 
   entityType, 
   selectedRecipients = [], 
-  onRecipientsChange 
+  onRecipientsChange,
+  initialTab 
 }: RecipientSelectorProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTab, setSelectedTab] = useState<'lists' | 'contacts' | 'selected' | 'missing'>('lists');
+  
+  // Map URL tab parameters to tab values and set initial tab
+  const getInitialTab = (tabParam: string | null) => {
+    switch (tabParam) {
+      case 'missing-contacts': return 'missing';
+      case 'selected': return 'selected';
+      case 'lists': return 'lists';
+      case 'contacts': return 'contacts';
+      default: return 'lists';
+    }
+  };
+  
+  const [selectedTab, setSelectedTab] = useState<'lists' | 'contacts' | 'selected' | 'missing'>(getInitialTab(initialTab));
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [showAddContact, setShowAddContact] = useState(false);
   const [showOnlyMissingContacts, setShowOnlyMissingContacts] = useState(false);
