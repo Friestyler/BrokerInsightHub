@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { SearchableSelect, SearchableSelectOption } from '@/components/ui/searchable-select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
@@ -540,8 +541,8 @@ export default function AttributeMappingStep({
                   }`}>
                     <div className="flex items-center gap-2">
                       <div className="flex-1">
-                        <Select 
-                          value={mapping.csvColumn} 
+                        <SearchableSelect
+                          value={mapping.csvColumn}
                           onValueChange={(value) => {
                             const newMappings = [...attributeMappings];
                             if (value === 'CODE') {
@@ -563,17 +564,17 @@ export default function AttributeMappingStep({
                             }
                             setAttributeMappings(newMappings);
                           }}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select CSV column" />
-                          </SelectTrigger>
-                          <SelectContent className="max-h-[270px] p-0">
-                            <div className="p-1">
-                              <SelectItem value="CODE" className="bg-purple-50 text-purple-700 font-medium">
+                          placeholder="Select CSV column"
+                          searchPlaceholder="Search columns..."
+                          options={[
+                            {
+                              value: 'CODE',
+                              label: 'Code (Custom Logic)',
+                              customContent: (
                                 <div className="flex items-center justify-between w-full">
                                   <div className="flex items-center gap-2">
                                     <span className="text-purple-500">&lt;/&gt;</span>
-                                    Code (Custom Logic)
+                                    <span className="text-purple-700 font-medium">Code (Custom Logic)</span>
                                   </div>
                                   {mapping.customCode && mapping.customCode.trim() && (
                                     <div className="flex items-center gap-1 text-green-600">
@@ -582,13 +583,17 @@ export default function AttributeMappingStep({
                                     </div>
                                   )}
                                 </div>
-                              </SelectItem>
-                              {csvHeaders.filter(header => header && header.trim().length > 0).map(header => (
-                                <SelectItem key={header} value={header}>{header}</SelectItem>
-                              ))}
-                            </div>
-                          </SelectContent>
-                        </Select>
+                              )
+                            },
+                            ...csvHeaders
+                              .filter(header => header && header.trim().length > 0)
+                              .map(header => ({
+                                value: header,
+                                label: header
+                              }))
+                          ]}
+                          className="bg-transparent border-0 shadow-none"
+                        />
                       </div>
                       
                       {/* Edit Code Button - shows when CODE is selected and has custom code */}
@@ -963,19 +968,92 @@ Examples:
                 </Button>
               ) : (
                 <div className="space-y-3">
-                  <Select 
-                    value={selectedNewAttribute} 
+                  <SearchableSelect
+                    value={selectedNewAttribute}
                     onValueChange={setSelectedNewAttribute}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select attribute to add" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="description">Description</SelectItem>
-                      <SelectItem value="value">Value</SelectItem>
-                      <SelectItem value="priority">Priority</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    placeholder="Select attribute to add"
+                    searchPlaceholder="Search attributes..."
+                    options={(() => {
+                      // Get current entity schema
+                      const currentSchema = entitySchemas.find((schema: any) => 
+                        schema.entityType === actualEntityType
+                      );
+                      
+                      // Get already mapped attributes to exclude them
+                      const mappedAttributes = attributeMappings.map(m => m.attribute);
+                      
+                      // Common attributes available for all entity types
+                      const commonAttributes = [
+                        { value: 'description', label: 'Description', description: 'Detailed description of the entity' },
+                        { value: 'notes', label: 'Notes', description: 'Additional notes and comments' },
+                        { value: 'tags', label: 'Tags', description: 'Category tags for organization' },
+                        { value: 'priority', label: 'Priority', description: 'Priority level (High, Medium, Low)' },
+                        { value: 'status', label: 'Status', description: 'Current status of the entity' },
+                        { value: 'value', label: 'Value', description: 'Monetary or numerical value' },
+                        { value: 'date_created', label: 'Date Created', description: 'Creation timestamp' },
+                        { value: 'date_modified', label: 'Date Modified', description: 'Last modification timestamp' },
+                        { value: 'external_id', label: 'External ID', description: 'Reference ID from external system' },
+                        { value: 'category', label: 'Category', description: 'Classification category' }
+                      ];
+                      
+                      // Entity-specific attributes
+                      const entitySpecificAttributes: Record<string, SearchableSelectOption[]> = {
+                        opportunities: [
+                          { value: 'probability', label: 'Probability', description: 'Success probability percentage' },
+                          { value: 'expected_close_date', label: 'Expected Close Date', description: 'Anticipated closing date' },
+                          { value: 'lead_source', label: 'Lead Source', description: 'Origin of the opportunity' },
+                          { value: 'stage', label: 'Stage', description: 'Current sales stage' },
+                          { value: 'commission', label: 'Commission', description: 'Commission amount or percentage' }
+                        ],
+                        partners: [
+                          { value: 'company_size', label: 'Company Size', description: 'Number of employees' },
+                          { value: 'industry', label: 'Industry', description: 'Business industry sector' },
+                          { value: 'territory', label: 'Territory', description: 'Geographic territory' },
+                          { value: 'tier', label: 'Tier', description: 'Partner tier level' },
+                          { value: 'commission_rate', label: 'Commission Rate', description: 'Default commission percentage' }
+                        ],
+                        customers: [
+                          { value: 'industry', label: 'Industry', description: 'Customer industry sector' },
+                          { value: 'company_size', label: 'Company Size', description: 'Number of employees' },
+                          { value: 'annual_revenue', label: 'Annual Revenue', description: 'Yearly revenue amount' },
+                          { value: 'credit_rating', label: 'Credit Rating', description: 'Financial credit score' },
+                          { value: 'preferred_contact_method', label: 'Preferred Contact Method', description: 'Email, phone, etc.' }
+                        ],
+                        products: [
+                          { value: 'sku', label: 'SKU', description: 'Stock keeping unit identifier' },
+                          { value: 'price', label: 'Price', description: 'Product price' },
+                          { value: 'cost', label: 'Cost', description: 'Product cost' },
+                          { value: 'inventory_level', label: 'Inventory Level', description: 'Stock quantity' },
+                          { value: 'supplier', label: 'Supplier', description: 'Product supplier name' }
+                        ],
+                        vendors: [
+                          { value: 'payment_terms', label: 'Payment Terms', description: 'Payment terms and conditions' },
+                          { value: 'rating', label: 'Rating', description: 'Vendor performance rating' },
+                          { value: 'contract_end_date', label: 'Contract End Date', description: 'Contract expiration date' },
+                          { value: 'primary_contact', label: 'Primary Contact', description: 'Main contact person' },
+                          { value: 'service_type', label: 'Service Type', description: 'Type of services provided' }
+                        ],
+                        contacts: [
+                          { value: 'job_title', label: 'Job Title', description: 'Professional position' },
+                          { value: 'department', label: 'Department', description: 'Organizational department' },
+                          { value: 'phone', label: 'Phone', description: 'Phone number' },
+                          { value: 'email', label: 'Email', description: 'Email address' },
+                          { value: 'linkedin_url', label: 'LinkedIn URL', description: 'LinkedIn profile link' }
+                        ]
+                      };
+                      
+                      // Combine common and entity-specific attributes
+                      const allAttributes = [
+                        ...commonAttributes,
+                        ...(entitySpecificAttributes[actualEntityType] || [])
+                      ];
+                      
+                      // Filter out already mapped attributes
+                      return allAttributes.filter(attr => 
+                        !mappedAttributes.includes(attr.value)
+                      );
+                    })()}
+                  />
                   <div className="flex gap-2">
                     <Button 
                       onClick={() => {
