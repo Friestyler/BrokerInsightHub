@@ -346,7 +346,13 @@ export default function UploadProcessPage() {
                   return (
                     <div
                       key={entity.value}
-                      onClick={() => setSelectedEntityType(entity.value)}
+                      onClick={() => {
+                        setSelectedEntityType(entity.value);
+                        // Auto-advance to next step after selection
+                        setTimeout(() => {
+                          goToNextStep();
+                        }, 500);
+                      }}
                       className={`group relative p-6 rounded-2xl cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
                         isSelected
                           ? `bg-gradient-to-br from-${entity.color}-50 to-${entity.color}-100 border-2 border-${entity.color}-200 shadow-md`
