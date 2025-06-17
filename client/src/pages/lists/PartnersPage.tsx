@@ -141,7 +141,7 @@ function formatCurrency(amount: number): string {
 }
 
 // Calculate partner statistics
-function calculatePartnerStats(partners: any[]) {
+function calculatePartnerStats(partners: any[], opportunities: any[] = []) {
   // Total Partners now shows count of partners currently displayed in the active list/view
   const totalPartners = partners.length;
   // Total Customers counts all customer records linked to the displayed partners
@@ -154,15 +154,26 @@ function calculatePartnerStats(partners: any[]) {
     const opportunityCount = parseInt(partner.opportunities) || 0;
     return sum + opportunityCount;
   }, 0);
-  // Total Value sums all opportunity amounts attached to the displayed partners
-  const totalValue = partners.reduce((sum, partner) => {
-    const value = parseFloat(partner.opportunity_value) || 0;
+  
+  // Get partner IDs from displayed partners
+  const partnerIds = partners.map(p => p.id);
+  
+  // Filter opportunities that belong to displayed partners
+  const relevantOpportunities = opportunities.filter(opp => 
+    opp.partnerId && partnerIds.includes(opp.partnerId)
+  );
+  
+  // Total Value sums unique opportunity amounts (no double counting)
+  const totalValue = relevantOpportunities.reduce((sum, opp) => {
+    const value = parseFloat(opp.estimated_value) || 0;
     return sum + value;
   }, 0);
+  
   // Weighted Value calculates probability-adjusted sum of opportunity values
-  const weightedValue = partners.reduce((sum, partner) => {
-    const value = parseFloat(partner.weighted_opportunity_value) || 0;
-    return sum + value;
+  const weightedValue = relevantOpportunities.reduce((sum, opp) => {
+    const value = parseFloat(opp.estimated_value) || 0;
+    const probability = parseFloat(opp.probability) || 0;
+    return sum + (value * probability / 100);
   }, 0);
   const activePartners = partners.filter(p => p.status === 'active').length;
   
