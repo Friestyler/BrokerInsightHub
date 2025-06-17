@@ -1333,11 +1333,10 @@ function PartnersTable() {
                   (filterText !== (activeView.filters.searchText || '') || 
                    selectedStatus !== (activeView.filters.status || '') || 
                    selectedIndustry !== (activeView.filters.industry || '') || 
-                   selectedActualIndustry !== (activeView.filters.actualIndustry || '') || 
-                   selectedType !== (activeView.filters.type || ''));
+                   selectedActualIndustry !== (activeView.filters.actualIndustry || ''));
                    
                 // Only render buttons if there are filters applied or filters have changed
-                return (filterText || selectedStatus || selectedIndustry || selectedActualIndustry || selectedType) && (
+                return (filterText || selectedStatus || selectedIndustry || selectedActualIndustry) && (
                   <div className="flex items-center gap-2">
                     {/* Show Revert and Save buttons only when a view is active AND filters have changed */}
                     {filtersChanged && (
@@ -1351,7 +1350,6 @@ function PartnersTable() {
                             setSelectedStatus(activeView.filters.status || '');
                             setSelectedIndustry(activeView.filters.industry || '');
                             setSelectedActualIndustry(activeView.filters.actualIndustry || '');
-                            setSelectedType(activeView.filters.type || '');
                           }}
                           style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
                         >
@@ -1453,7 +1451,7 @@ function PartnersTable() {
             </div>
             
             {/* Clear filters button - shown when any filters are applied */}
-            {(filterText || selectedStatus || selectedIndustry || selectedActualIndustry || selectedType) && (
+            {(filterText || selectedStatus || selectedIndustry || selectedActualIndustry) && (
               <div className="mt-2">
                 <button 
                   className="flex items-center text-sm text-gray-500 hover:text-gray-700"
@@ -1462,7 +1460,6 @@ function PartnersTable() {
                     setSelectedStatus('');
                     setSelectedIndustry('');
                     setSelectedActualIndustry('');
-                    setSelectedType('');
                   }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
@@ -1913,19 +1910,14 @@ function PartnersTable() {
                     <span className="text-[#282A3F]">{selectedIndustry}</span>
                   </div>
                 )}
-                {selectedType && (
-                  <div className="flex items-center text-sm">
-                    <span className="font-medium w-24 text-[#3E4DC4]">Type:</span>
-                    <span className="text-[#282A3F]">{selectedType}</span>
-                  </div>
-                )}
+
                 {filterText && (
                   <div className="flex items-center text-sm">
                     <span className="font-medium w-24 text-[#3E4DC4]">Search:</span>
                     <span className="text-[#282A3F]">{filterText}</span>
                   </div>
                 )}
-                {!selectedStatus && !selectedIndustry && !selectedType && !filterText && (
+                {!selectedStatus && !selectedIndustry && !filterText && (
                   <div className="text-sm text-[#5F6585] italic">No filters currently applied</div>
                 )}
               </div>
