@@ -1965,8 +1965,7 @@ function PartnersTable() {
                   filters: {
                     searchText: filterText || undefined,
                     status: selectedStatus || undefined,
-                    industry: selectedIndustry || undefined,
-                    type: selectedType || undefined
+                    industry: selectedIndustry || undefined
                   },
                   createdBy: 'John Smith',
                   createdAt: new Date()
@@ -1979,8 +1978,7 @@ function PartnersTable() {
                   filters: {
                     searchText: filterText || undefined,
                     status: selectedStatus || undefined,
-                    industry: selectedIndustry || undefined,
-                    type: selectedType || undefined
+                    industry: selectedIndustry || undefined
                   },
                   is_shared: false
                 }, {
@@ -2533,7 +2531,6 @@ function PartnersTable() {
                             setFilterText('');
                             setSelectedStatus('');
                             setSelectedIndustry('');
-                            setSelectedType('');
                           }}
                         >
                           Clear Filters
@@ -2653,7 +2650,6 @@ function PartnersTable() {
                       setFilterText('');
                       setSelectedStatus('');
                       setSelectedIndustry('');
-                      setSelectedType('');
                       setHasUnsavedChanges(false);
                     }
                     
@@ -2725,7 +2721,6 @@ function PartnersTable() {
                     setFilterText(list.filters.searchText || '');
                     setSelectedStatus(list.filters.status || '');
                     setSelectedIndustry(list.filters.industry || '');
-                    setSelectedType(list.filters.type || '');
                   }
                   
                   // Set the active list and store its original filters
