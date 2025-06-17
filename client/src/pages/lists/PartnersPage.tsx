@@ -629,6 +629,17 @@ function PartnersTable() {
       const matchesActualIndustry = !selectedActualIndustry || partner.industry === selectedActualIndustry;
       const matchesSize = !selectedSize || partner.size === selectedSize;
       
+      // Debug logging for size filter
+      if (selectedSize) {
+        console.log('Size filter debug:', {
+          partnerName: partner.name,
+          partnerSize: partner.size,
+          selectedSize: selectedSize,
+          matchesSize: matchesSize,
+          sizeComparison: `'${partner.size}' === '${selectedSize}'`
+        });
+      }
+      
       return matchesText && matchesStatus && matchesIndustry && matchesActualIndustry && matchesSize;
     })
     // Apply sorting
