@@ -2278,10 +2278,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY o.estimated_value DESC, o.created_at DESC
       `, [partnerId]);
       
-      // Structure the data for AI analysis
+      // Structure the data for AI analysis - optimized for reasoning
       const meetingData = {
         partner: {
-          id: partner.id,
           name: partner.name,
           description: partner.description,
           status: partner.status,
@@ -2289,47 +2288,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
           region: partner.region,
           primary_contact: partner.primary_contact
         },
-        okrs: okrResult.rows.map(okr => ({
-          id: okr.id,
-          name: okr.name,
-          description: okr.description,
-          realized_value: okr.realized_value,
-          target_value: okr.target_value,
-          measure_unit: okr.measure_unit,
-          currency_type: okr.currency_type,
-          frequency: okr.frequency,
-          hierarchy: okr.hierarchy,
-          tags: okr.tags,
-          timeframe_start: okr.timeframe_start,
-          timeframe_end: okr.timeframe_end,
-          assignment_status: okr.assignment_status,
-          due_date: okr.due_date,
-          notes: okr.notes,
-          progress_ratio: okr.target_value > 0 ? (okr.realized_value / okr.target_value) : 0
-        })),
+        okrs: okrResult.rows.map(okr => {
+          const realizedValue = parseFloat(okr.realized_value) || 0;
+          const targetValue = parseFloat(okr.target_value) || 0;
+          const progressRatio = targetValue > 0 ? (realizedValue / targetValue) : 0;
+          const progressPercent = Math.round(progressRatio * 100);
+          
+          return {
+            name: okr.name,
+            description: okr.description,
+            target_value: targetValue,
+            realized_value: realizedValue,
+            measure_unit: okr.measure_unit,
+            interpreted_progress: `${progressPercent}% of ${targetValue}${okr.measure_unit ? ' ' + okr.measure_unit : ''} target`,
+            assignment_status: okr.assignment_status,
+            tags: okr.tags,
+            due_date: okr.due_date,
+            notes: okr.notes
+          };
+        }),
         opportunities: opportunitiesResult.rows.map(opp => ({
-          id: opp.id,
           title: opp.title,
           description: opp.description,
           stage: opp.stage,
           estimated_value: opp.estimated_value,
           probability: opp.probability,
           weighted_value: (opp.estimated_value || 0) * (opp.probability || 0) / 100,
-          insurance_description: opp.insurance_description,
-          customer_name: opp.customer_name,
-          customer_description: opp.customer_description,
-          account_manager_name: opp.account_manager_name,
-          created_at: opp.created_at,
-          updated_at: opp.updated_at
-        })),
-        summary: {
-          total_okrs: okrResult.rows.length,
-          total_opportunities: opportunitiesResult.rows.length,
-          total_opportunity_value: opportunitiesResult.rows.reduce((sum, opp) => sum + (opp.estimated_value || 0), 0),
-          total_weighted_value: opportunitiesResult.rows.reduce((sum, opp) => sum + ((opp.estimated_value || 0) * (opp.probability || 0) / 100), 0),
-          opportunity_stages: Array.from(new Set(opportunitiesResult.rows.map(opp => opp.stage).filter(Boolean))),
-          customer_types: Array.from(new Set(opportunitiesResult.rows.map(opp => opp.customer_description).filter(Boolean)))
-        }
+          insurance_type: opp.insurance_description,
+          customer: opp.customer_name,
+          account_manager: opp.account_manager_name
+        }))
       };
       
       res.json(meetingData);
