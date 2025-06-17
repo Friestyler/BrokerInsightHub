@@ -2500,8 +2500,22 @@ function PartnersTable() {
                     {partner.status}
                   </Badge>
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.customers || 0}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.opportunities || 0}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  <Link 
+                    href={`/lists/partners/${partner.id}?tab=customers`} 
+                    className="text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer"
+                  >
+                    {partner.customers || 0}
+                  </Link>
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  <Link 
+                    href={`/lists/partners/${partner.id}?tab=opportunities`} 
+                    className="text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer"
+                  >
+                    {partner.opportunities || 0}
+                  </Link>
+                </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   <TemplateBadges partnerId={partner.id} templateAssignments={templateAssignments} okrTags={okrTags} />
                 </td>

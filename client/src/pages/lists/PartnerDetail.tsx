@@ -24,7 +24,11 @@ import PartnerCampaignsView from "@/components/campaigns/PartnerCampaignsView";
 export default function PartnerDetail() {
   const { id } = useParams();
   const { environment } = useEnvironment();
-  const [activeTab, setActiveTab] = useState("opportunities");
+  
+  // Check URL parameters for tab selection
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabParam = urlParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabParam || "opportunities");
   const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState("all");
