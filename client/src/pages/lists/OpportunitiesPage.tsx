@@ -178,8 +178,8 @@ interface Opportunity {
 // Calculate opportunity statistics
 function calculateOpportunityStats(opportunities: any[]) {
   const totalOpportunities = opportunities.length;
-  const totalValue = opportunities.reduce((sum, opportunity) => sum + (opportunity.estimatedValue || 0), 0);
-  const weightedValue = opportunities.reduce((sum, opportunity) => sum + ((opportunity.estimatedValue || 0) * (opportunity.probability || 0) / 100), 0);
+  const totalValue = opportunities.reduce((sum, opportunity) => sum + (opportunity.estimated_value || 0), 0);
+  const weightedValue = opportunities.reduce((sum, opportunity) => sum + ((opportunity.estimated_value || 0) * (opportunity.probability || 0) / 100), 0);
   const closedWon = opportunities.filter(o => o.status === 'Closed Won').length;
   
   return {
@@ -192,9 +192,9 @@ function calculateOpportunityStats(opportunities: any[]) {
 
 // Format currency
 function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-US', { 
+  return new Intl.NumberFormat('nl-NL', { 
     style: 'currency', 
-    currency: 'USD',
+    currency: 'EUR',
     maximumFractionDigits: 0
   }).format(value);
 }
@@ -2323,7 +2323,7 @@ function OpportunitiesTable() {
                   {opportunity.stage || '-'}
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
-                  {formatCurrency(opportunity.estimatedValue || 0)}
+                  {formatCurrency(opportunity.estimated_value || 0)}
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[90px]">
                   {opportunity.probability}%

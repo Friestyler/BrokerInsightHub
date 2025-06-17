@@ -2030,13 +2030,6 @@ export default function PartnerDetail() {
               
               <div className="bg-white p-4 rounded-md border border-gray-200">
                 <div className="text-xl font-semibold text-[#282A3F]">
-                  {filteredOpportunities.filter((opp: any) => opp.stage === 'Closed Won' || opp.status === 'active').length}
-                </div>
-                <div className="text-sm text-gray-500">Active</div>
-              </div>
-              
-              <div className="bg-white p-4 rounded-md border border-gray-200">
-                <div className="text-xl font-semibold text-[#282A3F]">
                   €{filteredOpportunities.reduce((sum: number, opp: any) => sum + (Number(opp.estimated_value) || 0), 0).toLocaleString()}
                 </div>
                 <div className="text-sm text-gray-500">Total Value Opportunities</div>
