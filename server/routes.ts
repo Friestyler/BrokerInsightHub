@@ -2911,6 +2911,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete('/api/degoudse/saved-lists/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        DELETE FROM degoudse.saved_lists WHERE id = $1
+      `, [id]);
+      
+      if (result.rowCount === 0) {
+        return res.status(404).json({ message: 'Saved list not found' });
+      }
+      
+      res.json({ message: 'Saved list deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting saved list in De Goudse:', error);
+      res.status(500).json({ message: 'Failed to delete saved list for De Goudse environment' });
+    }
+  });
+
   // Template assignments API endpoints for De Goudse
   app.get('/api/degoudse/template-assignments/:entityType', async (req, res) => {
     const { entityType } = req.params;
