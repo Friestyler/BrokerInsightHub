@@ -1286,6 +1286,15 @@ export default function PartnerDetail() {
                               } else if (metric.name === 'Premie Unieke Offertes – Schade Zakelijk') {
                                 trafficLight = 'red';
                                 progressRatio = 0.11; // Show as 11% progress
+                              } else if (metric.name === 'Aantal Unieke Offertes – Schade Zakelijk') {
+                                trafficLight = 'orange';
+                                progressRatio = 0.29; // Show as 29% progress
+                              } else if (metric.name === 'Conversieratio – Schade Zakelijk') {
+                                trafficLight = 'green';
+                                progressRatio = 4.09; // Show as 409% progress (capped at 100% in UI)
+                              } else if (metric.name === 'Verbeterpunten') {
+                                trafficLight = 'gray';
+                                progressRatio = 0; // No progress for traffic light only metrics
                               } else if (hasYtdValue && hasLastYearValue) {
                                 // For YTD vs Last Year comparison
                                 const ytdNumeric = parseFloat(metric.ytd_value?.replace(/[^\d.-]/g, '') || '0');
