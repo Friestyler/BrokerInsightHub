@@ -2072,8 +2072,8 @@ export default function PartnerDetail() {
               )}
             </div>
 
-            {/* Statistics overview cards - same as OpportunitiesPage */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Statistics overview cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-white p-4 rounded-md border border-gray-200">
                 <div className="text-xl font-semibold text-[#282A3F]">{filteredOpportunities.length}</div>
                 <div className="text-sm text-gray-500">Total Opportunities</div>
@@ -2099,16 +2099,6 @@ export default function PartnerDetail() {
                   }, 0)).toLocaleString()}
                 </div>
                 <div className="text-sm text-gray-500">Weighted Value Opportunities</div>
-              </div>
-
-              <div className="bg-white p-4 rounded-md border border-gray-200">
-                <div className="text-xl font-semibold text-[#282A3F]">
-                  €{filteredOpportunities
-                    .filter((opp: any) => opp.stage === 'Closed (Won)')
-                    .reduce((sum: number, opp: any) => sum + (Number(opp.estimated_value) || 0), 0)
-                    .toLocaleString()}
-                </div>
-                <div className="text-sm text-gray-500">Won Opportunities Value</div>
               </div>
             </div>
 
