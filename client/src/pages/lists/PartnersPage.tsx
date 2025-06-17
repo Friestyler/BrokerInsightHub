@@ -284,6 +284,12 @@ function PartnersTable() {
   // Fetch partners from database
   const { data: partners = [], isLoading, error } = usePartnersData();
   
+  // Fetch opportunities for accurate value calculations
+  const { data: opportunities = [] } = useQuery({
+    queryKey: ['/api/opportunities'],
+    enabled: true
+  });
+  
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('');
@@ -709,7 +715,7 @@ function PartnersTable() {
 
   // Calculate stats based on the same data shown in the table
   const tableData = isEditingList ? partners : displayedPartners;
-  const stats = calculatePartnerStats(Array.isArray(tableData) ? tableData : []);
+  const stats = calculatePartnerStats(Array.isArray(tableData) ? tableData : [], opportunities);
   
   // Function to toggle partner selection
   const toggleSelectPartner = (id: number) => {

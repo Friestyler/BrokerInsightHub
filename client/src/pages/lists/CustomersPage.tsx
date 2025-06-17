@@ -45,6 +45,41 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 
+// Calculate total value from unique opportunities linked to displayed customers
+function calculateCustomerTotalValue(customers: any[], opportunities: any[] = []): number {
+  // Get customer IDs from displayed customers
+  const customerIds = customers.map(c => c.id);
+  
+  // Filter opportunities that belong to displayed customers
+  const relevantOpportunities = opportunities.filter(opp => 
+    opp.clientId && customerIds.includes(opp.clientId)
+  );
+  
+  // Sum unique opportunity values (no double counting)
+  return relevantOpportunities.reduce((sum, opp) => {
+    const value = parseFloat(opp.estimated_value) || 0;
+    return sum + value;
+  }, 0);
+}
+
+// Calculate weighted value from unique opportunities linked to displayed customers
+function calculateCustomerWeightedValue(customers: any[], opportunities: any[] = []): number {
+  // Get customer IDs from displayed customers
+  const customerIds = customers.map(c => c.id);
+  
+  // Filter opportunities that belong to displayed customers
+  const relevantOpportunities = opportunities.filter(opp => 
+    opp.clientId && customerIds.includes(opp.clientId)
+  );
+  
+  // Calculate probability-adjusted sum of opportunity values
+  return relevantOpportunities.reduce((sum, opp) => {
+    const value = parseFloat(opp.estimated_value) || 0;
+    const probability = parseFloat(opp.probability) || 0;
+    return sum + (value * probability / 100);
+  }, 0);
+}
+
 // Fetch customers from database with pagination
 const useCustomersData = (page: number = 1, limit: number = 100) => {
   return useQuery({
@@ -153,6 +188,12 @@ export default function CustomersPageClean() {
   
   // Data fetching with pagination
   const { data: customersResponse, isLoading, error } = useCustomersData(currentPage, itemsPerPage);
+  
+  // Fetch opportunities for accurate value calculations
+  const { data: opportunities = [] } = useQuery({
+    queryKey: ['/api/opportunities'],
+    enabled: true
+  });
   const customers = useMemo(() => {
     if (!customersResponse?.data) return [];
     
@@ -764,14 +805,14 @@ export default function CustomersPageClean() {
           
           <div className="bg-white p-4 rounded-md border border-gray-200">
             <div className="text-xl font-semibold text-[#282A3F]">
-              €{customersResponse?.totalValue ? Number(customersResponse.totalValue).toLocaleString() : '0'}
+              €{calculateCustomerTotalValue(customers, opportunities).toLocaleString()}
             </div>
             <div className="text-sm text-gray-500">Total Value</div>
           </div>
           
           <div className="bg-white p-4 rounded-md border border-gray-200">
             <div className="text-xl font-semibold text-[#282A3F]">
-              €{customersResponse?.weightedValue ? Number(customersResponse.weightedValue).toLocaleString() : '0'}
+              €{calculateCustomerWeightedValue(customers, opportunities).toLocaleString()}
             </div>
             <div className="text-sm text-gray-500">Weighted Value</div>
           </div>
