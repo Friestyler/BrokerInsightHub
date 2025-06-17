@@ -1581,10 +1581,14 @@ export default function PartnerDetail() {
                                   setOriginalViewFilters({
                                     status: view.filters.stage || undefined,
                                     customer: view.filters.customer || undefined,
+                                    accountManager: view.filters.accountManager || undefined,
+                                    insuranceDescription: view.filters.insuranceDescription || undefined,
                                   });
                                   setFilterText(view.filters.searchText || '');
                                   setSelectedStatus(view.filters.stage || '');
                                   setSelectedCustomer(view.filters.customer || '');
+                                  setSelectedAccountManager(view.filters.accountManager || '');
+                                  setSelectedInsuranceDescription(view.filters.insuranceDescription || '');
                                   setShowViewsDropdown(false);
                                 }}
                               >
@@ -1612,6 +1616,8 @@ export default function PartnerDetail() {
                                   setFilterText('');
                                   setSelectedStatus('');
                                   setSelectedCustomer('');
+                                  setSelectedAccountManager('');
+                                  setSelectedInsuranceDescription('');
                                 }}
                               >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
@@ -3954,17 +3960,29 @@ export default function PartnerDetail() {
               <div className="space-y-2">
                 {selectedStatus && (
                   <div className="flex items-center text-sm">
-                    <span className="font-medium w-24 text-[#3E4DC4]">Stage:</span>
+                    <span className="font-medium w-32 text-[#3E4DC4]">Stage:</span>
                     <span className="text-[#282A3F]">{selectedStatus}</span>
                   </div>
                 )}
                 {selectedCustomer && (
                   <div className="flex items-center text-sm">
-                    <span className="font-medium w-24 text-[#3E4DC4]">Customer:</span>
+                    <span className="font-medium w-32 text-[#3E4DC4]">Customer:</span>
                     <span className="text-[#282A3F]">{selectedCustomer}</span>
                   </div>
                 )}
-                {!selectedStatus && !selectedCustomer && (
+                {selectedAccountManager && (
+                  <div className="flex items-center text-sm">
+                    <span className="font-medium w-32 text-[#3E4DC4]">Account Manager:</span>
+                    <span className="text-[#282A3F]">{selectedAccountManager}</span>
+                  </div>
+                )}
+                {selectedInsuranceDescription && (
+                  <div className="flex items-center text-sm">
+                    <span className="font-medium w-32 text-[#3E4DC4]">Insurance:</span>
+                    <span className="text-[#282A3F]">{selectedInsuranceDescription.length > 30 ? selectedInsuranceDescription.substring(0, 30) + '...' : selectedInsuranceDescription}</span>
+                  </div>
+                )}
+                {!selectedStatus && !selectedCustomer && !selectedAccountManager && !selectedInsuranceDescription && (
                   <div className="text-sm text-[#5F6585] italic">No filters currently applied</div>
                 )}
               </div>
@@ -4011,6 +4029,8 @@ export default function PartnerDetail() {
                   filters: {
                     stage: selectedStatus || undefined,
                     customer: selectedCustomer || undefined,
+                    accountManager: selectedAccountManager || undefined,
+                    insuranceDescription: selectedInsuranceDescription || undefined,
                   },
                   is_shared: false
                 }, {
