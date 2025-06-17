@@ -3128,6 +3128,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'Saved list not found' });
       }
       
+      // Clear cache after deleting a list
+      cache.clear();
+      console.log('Cache cleared after deleting list');
+      
       res.json({ message: 'Saved list deleted successfully' });
     } catch (error) {
       console.error('Error deleting saved list in De Goudse:', error);
@@ -4750,6 +4754,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Saved list not found' });
       }
+      
+      // Clear cache after deleting a list
+      cache.clear();
+      console.log('Cache cleared after deleting list');
       
       res.json({ message: 'Saved list deleted successfully' });
     } catch (error) {
