@@ -1857,17 +1857,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const partnerId = parseInt(req.params.id);
       const envPool = pool;
       const result = await envPool.query(`
-        SELECT o.*, c.name as client_name,
+        SELECT o.id, o.title, o.description, o.status, o.stage, o.estimated_value, o.probability,
+               o.expected_close_date, o.start_date, o.insurance_description, o.account_manager_id,
+               o.client_id, o.partner_id, o.product_id, o.owner_id, o.type, o.created_at, o.updated_at,
+               c.name as client_name,
                COUNT(DISTINCT contacts.id) as contact_count,
                am.name as account_manager_name
         FROM degoudse.opportunities o
         LEFT JOIN degoudse.customers c ON o.client_id = c.id
         LEFT JOIN degoudse.contacts contacts ON contacts.linked_entity_id = c.id AND contacts.linked_entity_type = 'customer'
         LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
-        WHERE o.partner_id = $1
-        GROUP BY o.id, o.title, o.description, o.status, o.stage, o.estimated_value, 
+        WHERE o.partner_id = $1 AND o.id > 16
+        GROUP BY o.id, o.title, o.description, o.status, o.stage, o.estimated_value, o.probability,
                  o.expected_close_date, o.start_date, o.insurance_description, o.account_manager_id, 
-                 o.client_id, o.partner_id, o.product_id, o.owner_id, o.probability, o.type, 
+                 o.client_id, o.partner_id, o.product_id, o.owner_id, o.type, 
                  o.created_at, o.updated_at, c.name, am.name
         ORDER BY o.id
       `, [partnerId]);
@@ -1878,9 +1881,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: opp.description,
         status: opp.status,
         stage: opp.stage,
-        estimated_value: opp.estimatedValue,
+        estimated_value: opp.estimated_value,
+        probability: opp.probability,
         clientName: opp.client_name,
-        expected_close_date: opp.expectedCloseDate,
+        expected_close_date: opp.expected_close_date,
         start_date: opp.start_date,
         insurance_description: opp.insurance_description,
         account_manager_name: opp.account_manager_name,
