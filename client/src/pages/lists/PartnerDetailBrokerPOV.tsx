@@ -2337,7 +2337,12 @@ export default function PartnerDetailBrokerPOV() {
                           <tr 
                             key={campaign.id} 
                             className="hover:bg-gray-50 cursor-pointer group"
-                            onClick={() => window.location.href = `/campaigns/${campaign.id}?from_broker_view=true`}
+                            onClick={() => {
+                              // Navigate to campaign builder with metadata prefilled and broker context
+                              const environment = 'degoudse'; // From the environment context
+                              const backUrl = `/broker-view/partner/${environment}?tab=campaigns`;
+                              window.location.href = `/campaigns/edit/${campaign.id}?from_broker_view=true&back_url=${encodeURIComponent(backUrl)}&env=${environment}`;
+                            }}
                           >
                             <td className="px-3 py-4 text-sm text-gray-900 w-[250px]">
                               <div className="max-w-[230px]">
@@ -2388,11 +2393,18 @@ export default function PartnerDetailBrokerPOV() {
                               {campaign.created_at ? new Date(campaign.created_at).toLocaleDateString() : '-'}
                             </td>
                             <td className="relative px-3 py-4 w-10">
-                              <Link href={`/campaigns/${campaign.id}?from_broker_view=true`}>
-                                <Button variant="outline" size="sm" onClick={(e) => e.stopPropagation()}>
-                                  View
-                                </Button>
-                              </Link>
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  const environment = 'degoudse';
+                                  const backUrl = `/broker-view/partner/${environment}?tab=campaigns`;
+                                  window.location.href = `/campaigns/edit/${campaign.id}?from_broker_view=true&back_url=${encodeURIComponent(backUrl)}&env=${environment}`;
+                                }}
+                              >
+                                View
+                              </Button>
                             </td>
                           </tr>
                         ))}

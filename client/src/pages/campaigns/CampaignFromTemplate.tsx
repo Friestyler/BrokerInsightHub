@@ -370,9 +370,13 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     const urlParams = new URLSearchParams(window.location.search);
     const fromPartner = urlParams.get('from_partner');
     const fromBrokerView = urlParams.get('from_broker_view');
+    const backUrl = urlParams.get('back_url');
     
-    if (fromBrokerView) {
-      // Redirect back to broker view campaigns
+    if (fromBrokerView && backUrl) {
+      // Use the specific back URL provided (e.g., broker view campaigns table)
+      window.location.href = decodeURIComponent(backUrl);
+    } else if (fromBrokerView) {
+      // Fallback to general broker view campaigns
       setLocation('/broker-view/campaigns');
     } else if (fromPartner) {
       // Redirect back to partner details page with campaigns tab active
