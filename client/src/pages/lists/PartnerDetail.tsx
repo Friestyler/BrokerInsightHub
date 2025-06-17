@@ -1199,8 +1199,6 @@ export default function PartnerDetail() {
                             </div>
                           </TableHead>
                           <TableHead className="text-left font-medium text-gray-900">Name</TableHead>
-                          <TableHead className="text-left font-medium text-gray-900">Timeframe</TableHead>
-                          <TableHead className="text-left font-medium text-gray-900">Milestone Frequency</TableHead>
                           {(() => {
                             // Check if any metric in this tag group has YTD or Last Year values
                             const hasYtdValues = tagMetrics.some((metric: any) => metric.ytd_value);
@@ -1248,12 +1246,6 @@ export default function PartnerDetail() {
                               <div>
                                 <div className="font-medium text-gray-900">{metric.name}</div>
                               </div>
-                            </TableCell>
-                            <TableCell>
-                              <span className="text-gray-700">{metric.timeframe || 'Not set'}</span>
-                            </TableCell>
-                            <TableCell>
-                              <span className="text-gray-700">{metric.milestone_frequency || 'Not set'}</span>
                             </TableCell>
                             {(() => {
                               // Check if this metric has YTD or Last Year values
