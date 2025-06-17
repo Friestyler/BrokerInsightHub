@@ -1892,6 +1892,9 @@ export default function PartnerDetail() {
                     <TableHead>Stage</TableHead>
                     <TableHead>Value</TableHead>
                     <TableHead>Close Date</TableHead>
+                    <TableHead>Start Date</TableHead>
+                    <TableHead>Insurance Description</TableHead>
+                    <TableHead>Account Manager</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -1975,6 +1978,19 @@ export default function PartnerDetail() {
                       </TableCell>
                       <TableCell>
                         {opportunity.expected_close_date ? new Date(opportunity.expected_close_date).toLocaleDateString() : 'Not set'}
+                      </TableCell>
+                      <TableCell>
+                        {opportunity.start_date ? new Date(opportunity.start_date).toLocaleDateString() : 'Not set'}
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-gray-900">
+                          {opportunity.insurance_description || 'No description'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-gray-900">
+                          {opportunity.account_manager_name || 'Not assigned'}
+                        </span>
                       </TableCell>
                     </TableRow>
                   ))}

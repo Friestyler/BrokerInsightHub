@@ -1816,15 +1816,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envPool = pool;
       const result = await envPool.query(`
         SELECT o.*, c.name as client_name,
-               COUNT(DISTINCT contacts.id) as contact_count
+               COUNT(DISTINCT contacts.id) as contact_count,
+               am.name as account_manager_name
         FROM degoudse.opportunities o
         INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
         LEFT JOIN degoudse.customers c ON o."clientId" = c.id
         LEFT JOIN degoudse.contacts contacts ON contacts.linked_entity_id = c.id AND contacts.linked_entity_type = 'customer'
+        LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
         WHERE po.partner_id = $1
         GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
-                 o."expectedCloseDate", o."clientId", o."partnerId", o."productId", 
-                 o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt", c.name
+                 o."expectedCloseDate", o.start_date, o.insurance_description, o.account_manager_id, 
+                 o."clientId", o."partnerId", o."productId", o."ownerId", o.probability, o.type, 
+                 o."createdAt", o."updatedAt", c.name, am.name
         ORDER BY o.id
       `, [partnerId]);
       
@@ -1837,6 +1840,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         estimated_value: opp.estimatedValue,
         clientName: opp.client_name,
         expected_close_date: opp.expectedCloseDate,
+        start_date: opp.start_date,
+        insurance_description: opp.insurance_description,
+        account_manager_name: opp.account_manager_name,
         contactCount: parseInt(opp.contact_count) || 0
       }));
       
