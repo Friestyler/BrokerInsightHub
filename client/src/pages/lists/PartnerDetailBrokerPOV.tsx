@@ -2179,22 +2179,33 @@ export default function PartnerDetailBrokerPOV() {
 
           {activeTab === "campaigns" && (
             <div className="space-y-6">
-              <div className="mb-8">
-                <h3 className="text-xl font-semibold text-gray-900 mb-2">Shared Campaigns</h3>
-                <p className="text-gray-600">Campaigns shared with you by {partner.name}</p>
+              {/* Header */}
+              <div className="flex justify-between items-center">
+                <div>
+                  <h3 className="text-xl font-semibold text-gray-900">Shared Campaigns</h3>
+                  <p className="text-gray-600 mt-1">Campaigns shared with you by {partner.name}</p>
+                </div>
               </div>
 
               {campaignsLoading ? (
-                <div className="animate-pulse space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <div key={i} className="bg-white border rounded-lg p-6">
-                      <div className="space-y-3">
-                        <div className="h-6 bg-gray-200 rounded w-1/3"></div>
-                        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
-                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                <div className="animate-pulse space-y-6">
+                  {/* Summary cards skeleton */}
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div key={i} className="bg-white p-6 rounded-lg border">
+                        <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
+                        <div className="h-8 bg-gray-200 rounded w-1/3"></div>
                       </div>
+                    ))}
+                  </div>
+                  {/* Table skeleton */}
+                  <div className="bg-white border rounded-lg p-6">
+                    <div className="space-y-3">
+                      <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+                      <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
                     </div>
-                  ))}
+                  </div>
                 </div>
               ) : brokerCampaigns.length === 0 ? (
                 <div className="text-center py-12">
@@ -2207,79 +2218,201 @@ export default function PartnerDetailBrokerPOV() {
                   <p className="text-gray-500">No campaigns have been shared with you yet.</p>
                 </div>
               ) : (
-                <div className="grid gap-6">
-                  {brokerCampaigns.map((campaign: any) => (
-                    <div key={campaign.id} className="bg-white border rounded-lg p-6 hover:shadow-md transition-shadow">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h4 className="text-lg font-semibold text-gray-900">{campaign.name}</h4>
-                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                              campaign.status === 'active' ? 'bg-green-100 text-green-800' :
-                              campaign.status === 'draft' ? 'bg-gray-100 text-gray-800' :
-                              campaign.status === 'template' ? 'bg-blue-100 text-blue-800' :
-                              'bg-gray-100 text-gray-800'
-                            }`}>
-                              {campaign.status}
-                            </span>
-                          </div>
-                          <p className="text-gray-600 mb-3">{campaign.description}</p>
-                          <div className="flex items-center gap-4 text-sm text-gray-500">
-                            <span>Shared by {campaign.sharedBy}</span>
-                            <span>•</span>
-                            <span>{campaign.sponsorName}</span>
-                            {campaign.sharedAt && (
-                              <>
-                                <span>•</span>
-                                <span>{new Date(campaign.sharedAt).toLocaleDateString()}</span>
-                              </>
-                            )}
-                          </div>
+                <>
+                  {/* Summary Cards */}
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                    <div className="bg-white p-6 rounded-lg border">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                          </svg>
                         </div>
-                        <Link href={`/campaigns/${campaign.id}?from_broker_view=true`}>
-                          <Button variant="outline" size="sm">
-                            View Campaign
-                          </Button>
-                        </Link>
+                        <div className="ml-4">
+                          <dt className="text-sm font-medium text-gray-500 truncate">Total Campaigns</dt>
+                          <dd className="text-2xl font-semibold text-gray-900">{brokerCampaigns.length}</dd>
+                        </div>
                       </div>
-                      
-                      {(campaign.emails_sent > 0 || campaign.emails_opened > 0) && (
-                        <div className="border-t pt-4">
-                          <div className="grid grid-cols-3 gap-4 text-sm">
-                            <div>
-                              <div className="text-gray-500">Emails Sent</div>
-                              <div className="font-semibold">{campaign.emails_sent || 0}</div>
-                            </div>
-                            <div>
-                              <div className="text-gray-500">Opened</div>
-                              <div className="font-semibold">{campaign.emails_opened || 0}</div>
-                            </div>
-                            <div>
-                              <div className="text-gray-500">Open Rate</div>
-                              <div className="font-semibold">{campaign.open_rate || '0.00'}%</div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </div>
-                  ))}
-                </div>
-              )}
 
-              {/* Quick Actions */}
-              <div className="mt-8 pt-8 border-t border-gray-200">
-                <div className="flex justify-center space-x-3">
-                  <Link href="/broker-view/campaigns">
-                    <Button variant="outline" className="text-indigo-600">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <path d="M22 2 11 13" />
-                        <path d="M22 2 15 22 11 13 2 9 22 2z" />
-                      </svg>
-                      View All Campaigns
-                    </Button>
-                  </Link>
-                </div>
-              </div>
+                    <div className="bg-white p-6 rounded-lg border">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                          </svg>
+                        </div>
+                        <div className="ml-4">
+                          <dt className="text-sm font-medium text-gray-500 truncate">Active</dt>
+                          <dd className="text-2xl font-semibold text-gray-900">
+                            {brokerCampaigns.filter((c: any) => c.status === 'active').length}
+                          </dd>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-lg border">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                          </svg>
+                        </div>
+                        <div className="ml-4">
+                          <dt className="text-sm font-medium text-gray-500 truncate">Recipients</dt>
+                          <dd className="text-2xl font-semibold text-gray-900">
+                            {brokerCampaigns.reduce((acc: number, campaign: any) => acc + (campaign.recipients || 0), 0)}
+                          </dd>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-lg border">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                          </svg>
+                        </div>
+                        <div className="ml-4">
+                          <dt className="text-sm font-medium text-gray-500 truncate">Emails Sent</dt>
+                          <dd className="text-2xl font-semibold text-gray-900">
+                            {brokerCampaigns.reduce((acc: number, campaign: any) => acc + (campaign.emails_sent || 0), 0)}
+                          </dd>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-lg border">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <div className="ml-4">
+                          <dt className="text-sm font-medium text-gray-500 truncate">Open Rate</dt>
+                          <dd className="text-2xl font-semibold text-gray-900">
+                            {(() => {
+                              const totalSent = brokerCampaigns.reduce((acc: number, campaign: any) => acc + (campaign.emails_sent || 0), 0);
+                              const totalOpened = brokerCampaigns.reduce((acc: number, campaign: any) => acc + (campaign.emails_opened || 0), 0);
+                              return totalSent > 0 ? Math.round((totalOpened / totalSent) * 100) : 0;
+                            })()}%
+                          </dd>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Campaigns Table */}
+                  <div className="bg-white rounded-lg border overflow-hidden">
+                    <div className="px-6 py-4 border-b border-gray-200">
+                      <h4 className="text-lg font-medium text-gray-900">Campaign Details</h4>
+                    </div>
+                    
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Campaign Name
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Status
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Recipients
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Sent
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Opened
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Open Rate
+                            </th>
+                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Shared At
+                            </th>
+                            <th scope="col" className="relative px-6 py-3">
+                              <span className="sr-only">Actions</span>
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {brokerCampaigns.map((campaign: any) => (
+                            <tr key={campaign.id} className="hover:bg-gray-50">
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 w-8 h-8">
+                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                                      </svg>
+                                    </div>
+                                  </div>
+                                  <div className="ml-4">
+                                    <div className="text-sm font-medium text-gray-900">{campaign.name}</div>
+                                    <div className="text-sm text-gray-500">{campaign.description}</div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                                  campaign.status === 'active' ? 'bg-green-100 text-green-800' :
+                                  campaign.status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                                  campaign.status === 'template' ? 'bg-blue-100 text-blue-800' :
+                                  'bg-gray-100 text-gray-800'
+                                }`}>
+                                  {campaign.status}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {campaign.recipients || 0}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {campaign.emails_sent || 0}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {campaign.emails_opened || 0}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                                {campaign.open_rate || '0.00'}%
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                {campaign.sharedAt ? new Date(campaign.sharedAt).toLocaleDateString() : '-'}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                <Link href={`/campaigns/${campaign.id}?from_broker_view=true`}>
+                                  <Button variant="outline" size="sm">
+                                    View
+                                  </Button>
+                                </Link>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="mt-8 pt-8 border-t border-gray-200">
+                    <div className="flex justify-center space-x-3">
+                      <Link href="/broker-view/campaigns">
+                        <Button variant="outline" className="text-indigo-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <path d="M22 2 11 13" />
+                            <path d="M22 2 15 22 11 13 2 9 22 2z" />
+                          </svg>
+                          View All Campaigns
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           )}
         </div>
