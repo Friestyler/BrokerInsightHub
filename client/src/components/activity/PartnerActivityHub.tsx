@@ -1089,16 +1089,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                       </div>
                     </div>
 
-                    {/* Data Used */}
-                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
-                      <div className="flex items-center justify-between text-sm text-gray-600">
-                        <span>Analysis based on:</span>
-                        <div className="flex gap-4">
-                          <span>{meetingBriefing.dataUsed.okrs} OKRs</span>
-                          <span>{meetingBriefing.dataUsed.opportunities} Opportunities</span>
-                        </div>
-                      </div>
-                    </div>
+
                   </div>
                 </div>
               )}
