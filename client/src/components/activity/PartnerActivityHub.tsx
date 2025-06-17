@@ -72,7 +72,7 @@ const getUserRoleName = (userId: number): string => {
 
 export default function PartnerActivityHub({ partnerId, partnerName }: PartnerActivityHubProps) {
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const [selectedActivityType, setSelectedActivityType] = useState<'task' | 'comment' | 'attachment' | 'timeline' | 'actions'>('timeline');
+  const [selectedActivityType, setSelectedActivityType] = useState<'task' | 'comment' | 'attachment' | 'timeline' | 'actions' | 'meeting'>('timeline');
   const [highlightActions, setHighlightActions] = useState(false);
   const [showActivityInput, setShowActivityInput] = useState(false);
   
@@ -378,7 +378,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                 <button
                   key={type.value}
                   onClick={() => {
-                    setSelectedActivityType(type.value as any);
+                    setSelectedActivityType(type.value as 'task' | 'comment' | 'attachment' | 'timeline' | 'actions' | 'meeting');
                     if (type.value === 'task' || type.value === 'comment') {
                       if (!showActivityInput) setShowActivityInput(true);
                     } else {
