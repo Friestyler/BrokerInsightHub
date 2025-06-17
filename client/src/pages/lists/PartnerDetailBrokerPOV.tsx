@@ -754,7 +754,7 @@ export default function PartnerDetailBrokerPOV() {
                           <span 
                             className="inline-block px-3 py-1 text-sm font-medium rounded-full text-white"
                             style={{ 
-                              backgroundColor: tags?.find((tag: any) => tag.name === tagName)?.color || '#6B7280'
+                              backgroundColor: getTagColor(tagName)
                             }}
                           >
                             {tagName}
