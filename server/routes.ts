@@ -2586,6 +2586,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         RETURNING *
       `, [name, description || '', type, entity_type, membersArray, JSON.stringify({}), isShared || false, created_by, partner_id || null]);
       
+      // Clear cache after creating a new list
+      cache.clear();
+      console.log('Cache cleared after creating new list');
+      
       console.log('Created saved list:', result.rows[0]);
       res.status(201).json(result.rows[0]);
     } catch (error) {

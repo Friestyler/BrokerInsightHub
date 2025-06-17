@@ -602,6 +602,8 @@ export default function PartnerDetail() {
     queryKey: ['/api/saved-lists', 'opportunities', 'partner', id],
     queryFn: () => apiRequest('GET', `/api/saved-lists?entity_type=opportunities&partner_id=${id}`),
     enabled: !!id,
+    staleTime: 0, // Always fetch fresh data
+    gcTime: 0, // Don't cache
   });
 
   // Fetch all opportunity lists for the modal
