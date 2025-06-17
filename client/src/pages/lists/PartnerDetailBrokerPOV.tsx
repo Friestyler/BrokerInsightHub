@@ -2392,20 +2392,7 @@ export default function PartnerDetailBrokerPOV() {
                             <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
                               {campaign.created_at ? new Date(campaign.created_at).toLocaleDateString() : '-'}
                             </td>
-                            <td className="relative px-3 py-4 w-10">
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  const environment = 'degoudse';
-                                  const backUrl = `/broker-view/partner/${environment}?tab=campaigns`;
-                                  window.location.href = `/broker-view/campaigns/edit/${campaign.id}?from_broker_view=true&back_url=${encodeURIComponent(backUrl)}&env=${environment}`;
-                                }}
-                              >
-                                View
-                              </Button>
-                            </td>
+
                           </tr>
                         ))}
                       </tbody>

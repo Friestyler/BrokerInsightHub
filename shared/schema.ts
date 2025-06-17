@@ -880,6 +880,8 @@ export const campaigns = pgTable("campaigns", {
   template_id: integer("template_id"), // reference to campaign template if created from one
   target_entity_type: text("target_entity_type").notNull(), // partners, customers, opportunities, internal
   target_entity_id: integer("target_entity_id"), // specific entity if targeting single entity
+  partner_id: integer("partner_id"), // ID of the partner this campaign is associated with
+  environment_id: text("environment_id"), // environment this campaign belongs to (e.g., "degoudse")
   status: text("status").notNull().default("draft"), // draft, scheduled, in_progress, sent, archived
   created_by: integer("created_by").notNull().references(() => users.id),
   created_at: timestamp("created_at").notNull().defaultNow(),
