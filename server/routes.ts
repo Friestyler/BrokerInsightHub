@@ -2269,7 +2269,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           o.created_at,
           o.updated_at,
           c.name as customer_name,
-          c.industry as customer_industry,
+          c.description as customer_description,
           u.name as account_manager_name
         FROM degoudse.opportunities o
         LEFT JOIN degoudse.customers c ON o.client_id = c.id
@@ -2317,7 +2317,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           weighted_value: (opp.estimated_value || 0) * (opp.probability || 0) / 100,
           insurance_description: opp.insurance_description,
           customer_name: opp.customer_name,
-          customer_industry: opp.customer_industry,
+          customer_description: opp.customer_description,
           account_manager_name: opp.account_manager_name,
           created_at: opp.created_at,
           updated_at: opp.updated_at
@@ -2328,7 +2328,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           total_opportunity_value: opportunitiesResult.rows.reduce((sum, opp) => sum + (opp.estimated_value || 0), 0),
           total_weighted_value: opportunitiesResult.rows.reduce((sum, opp) => sum + ((opp.estimated_value || 0) * (opp.probability || 0) / 100), 0),
           opportunity_stages: Array.from(new Set(opportunitiesResult.rows.map(opp => opp.stage).filter(Boolean))),
-          customer_industries: Array.from(new Set(opportunitiesResult.rows.map(opp => opp.customer_industry).filter(Boolean)))
+          customer_types: Array.from(new Set(opportunitiesResult.rows.map(opp => opp.customer_description).filter(Boolean)))
         }
       };
       
