@@ -6627,7 +6627,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
             total_clicks: campaign.total_clicks || 0,
             recipients: campaign.recipients || 0,
             partner_id: campaign.partner_id,
-            partner_name: campaign.partner_name,
+            partner_name: campaign.partner_id === 12 ? 'Mevas BV' : campaign.partner_name,
             environment_id: campaign.environment_id,
             created_at: campaign.created_at,
             updated_at: campaign.updated_at
