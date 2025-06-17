@@ -2335,6 +2335,168 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI-powered meeting preparation endpoint
+  app.post('/api/degoudse/partners/:id/prepare-meeting', async (req: Request, res: Response) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+      
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({ error: 'OpenAI API key not configured' });
+      }
+
+      console.log(`Preparing AI meeting briefing for partner ${partnerId}`);
+
+      // Get the meeting data using the same logic as the meeting-data endpoint
+      const partnerResult = await pool.query(`
+        SELECT * FROM degoudse.partners WHERE id = $1
+      `, [partnerId]);
+
+      if (partnerResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Partner not found' });
+      }
+
+      const partner = partnerResult.rows[0];
+
+      // Get OKRs for this partner
+      const okrResult = await pool.query(`
+        SELECT * FROM degoudse.okr_metrics 
+        WHERE partner_id = $1 
+        ORDER BY created_at DESC
+      `, [partnerId]);
+
+      // Get opportunities for this partner (excluding seed data)
+      const opportunitiesResult = await pool.query(`
+        SELECT 
+          o.*,
+          c.name as customer_name,
+          am.name as account_manager_name
+        FROM degoudse.opportunities o
+        LEFT JOIN degoudse.customers c ON o.customer_id = c.id
+        LEFT JOIN degoudse.account_managers am ON o.account_manager_id = am.id
+        WHERE o.partner_id = $1 AND o.id > 16
+        ORDER BY o.estimated_value DESC, o.created_at DESC
+      `, [partnerId]);
+
+      // Structure the data for AI analysis - same as meeting-data endpoint
+      const meetingData = {
+        partner: {
+          name: partner.name,
+          description: partner.description,
+          status: partner.status,
+          location: partner.location,
+          region: partner.region,
+          primary_contact: partner.primary_contact
+        },
+        okrs: okrResult.rows.map(okr => {
+          const realizedValue = parseFloat(okr.realized_value) || 0;
+          const targetValue = parseFloat(okr.target_value) || 0;
+          const progressRatio = targetValue > 0 ? (realizedValue / targetValue) : 0;
+          const progressPercent = Math.round(progressRatio * 100);
+          
+          return {
+            name: okr.name,
+            description: okr.description,
+            target_value: targetValue,
+            realized_value: realizedValue,
+            measure_unit: okr.measure_unit,
+            interpreted_progress: `${progressPercent}% of ${targetValue}${okr.measure_unit ? ' ' + okr.measure_unit : ''} target`,
+            assignment_status: okr.assignment_status,
+            tags: okr.tags,
+            due_date: okr.due_date,
+            notes: okr.notes
+          };
+        }),
+        opportunities: opportunitiesResult.rows.map(opp => {
+          const opportunity = {
+            title: opp.title,
+            stage: opp.stage,
+            estimated_value: opp.estimated_value,
+            probability: opp.probability,
+            weighted_value: (opp.estimated_value || 0) * (opp.probability || 0) / 100,
+            insurance_type: opp.insurance_description,
+            customer: opp.customer_name,
+            account_manager: opp.account_manager_name
+          };
+          
+          // Only include description if it has actual content
+          if (opp.description && opp.description.trim()) {
+            opportunity.description = opp.description;
+          }
+          
+          return opportunity;
+        })
+      };
+
+      // Send to OpenAI for analysis
+      const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          temperature: 0.3,
+          messages: [
+            {
+              role: "system",
+              content: `You are assisting an account manager in preparing for their upcoming meeting with a broker.
+
+You will receive:
+- A list of OKRs (Objectives, Activities and Subactivities) the broker and the account manager are collaborating on
+- A list of opportunities linked to the broker
+
+Your task:
+1. Identify the 3 most relevant OKRs that stand out (based on trends, outliers, high/low performance, that are abnormally higher or lower than last year)
+2. Highlight 3 opportunity types or segments worth discussing (e.g., zonnepanelen, BGB, Zonnepanelen onbekend)
+3. Provide clear, actionable recommendations for the account manager to bring to the meeting
+
+Format your output like this:
+- Summary paragraph
+- Section: "Top 3 OKRs" (bullet points)
+- Section: "Top 3 Opportunities Types to Review" (bullet points)
+- Section: "Recommendations for the Meeting" (bullet points or checklist)
+
+Keep it short, clear, and professional.`
+            },
+            {
+              role: "user",
+              content: JSON.stringify(meetingData, null, 2)
+            }
+          ]
+        })
+      });
+
+      if (!openaiResponse.ok) {
+        const errorData = await openaiResponse.text();
+        console.error('OpenAI API error:', errorData);
+        return res.status(500).json({ error: 'Failed to generate meeting briefing' });
+      }
+
+      const aiResult = await openaiResponse.json();
+      const briefing = aiResult.choices[0].message.content;
+
+      console.log('=== AI MEETING BRIEFING ===');
+      console.log(`Partner: ${partner.name}`);
+      console.log('---');
+      console.log(briefing);
+      console.log('=== END BRIEFING ===');
+
+      res.json({
+        partner: partner.name,
+        briefing: briefing,
+        dataUsed: {
+          okrs: meetingData.okrs.length,
+          opportunities: meetingData.opportunities.length
+        }
+      });
+
+    } catch (error) {
+      console.error('Error preparing meeting briefing:', error);
+      res.status(500).json({ error: 'Failed to prepare meeting briefing' });
+    }
+  });
+
   app.get('/api/degoudse/opportunities/:id/partners', async (req, res) => {
     try {
       const opportunityId = parseInt(req.params.id);
