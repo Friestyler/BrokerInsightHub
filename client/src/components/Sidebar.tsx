@@ -16,6 +16,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
   const [dataMenuOpen, setDataMenuOpen] = useState(false);
   const [templatesMenuOpen, setTemplatesMenuOpen] = useState(false);
   const [smartUpdatesMenuOpen, setSmartUpdatesMenuOpen] = useState(false);
+  const [moreMenuOpen, setMoreMenuOpen] = useState(false);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const dataMenuRef = useRef<HTMLDivElement>(null);
   const { environment } = useEnvironment();
@@ -168,7 +169,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
         </Link>
         <div ref={dataMenuRef} className="relative">
           <button 
-            className={`nav-container w-full text-left ${(collapsed && (location.startsWith('/partners') || location.startsWith('/lists/partners') || location.startsWith('/customers') || location.startsWith('/lists/customers') || location.startsWith('/opportunities') || location.startsWith('/lists/opportunities') || location.startsWith('/vendors') || location.startsWith('/products') || location.startsWith('/projects') || location.startsWith('/contacts'))) ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+            className={`nav-container w-full text-left ${(collapsed && (location.startsWith('/partners') || location.startsWith('/lists/partners') || location.startsWith('/customers') || location.startsWith('/lists/customers') || location.startsWith('/opportunities') || location.startsWith('/lists/opportunities') || location.startsWith('/products') || location.startsWith('/contacts'))) ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
             onClick={() => setDataMenuOpen(!dataMenuOpen)}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -202,7 +203,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
           </button>
           
           {/* Always show a tiny indicator on the sidebar if a list section is active */}
-          {collapsed && !dataMenuOpen && (location.startsWith('/partners') || location.startsWith('/lists/partners') || location.startsWith('/customers') || location.startsWith('/lists/customers') || location.startsWith('/opportunities') || location.startsWith('/lists/opportunities') || location.startsWith('/vendors') || location.startsWith('/products') || location.startsWith('/projects') || location.startsWith('/contacts')) && (
+          {collapsed && !dataMenuOpen && (location.startsWith('/partners') || location.startsWith('/lists/partners') || location.startsWith('/customers') || location.startsWith('/lists/customers') || location.startsWith('/opportunities') || location.startsWith('/lists/opportunities') || location.startsWith('/products') || location.startsWith('/contacts')) && (
             <div className="absolute top-[93px] right-0 w-1 h-7 bg-indigo-500 rounded-l-md"></div>
           )}
           
@@ -241,16 +242,6 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
                 Opportunities
               </button>
               <button
-                onClick={() => navigateTo('/projects')}
-                className={`submenu-nav-container ${location.startsWith("/projects") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-                </svg>
-                Projects
-              </button>
-              <button
                 onClick={() => navigateTo('/contacts')}
                 className={`submenu-nav-container ${location.startsWith("/contacts") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
               >
@@ -259,26 +250,6 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
                   <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
                 </svg>
                 Contacts
-              </button>
-              <button
-                onClick={() => navigateTo('/vendors')}
-                className={`submenu-nav-container ${location.startsWith("/vendors") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z"></path>
-                  <path d="m7 16.5-4.74-2.85"></path>
-                  <path d="m7 16.5 5-3"></path>
-                  <path d="M7 16.5v5.17"></path>
-                  <path d="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z"></path>
-                  <path d="m17 16.5-5-3"></path>
-                  <path d="m17 16.5 4.74-2.85"></path>
-                  <path d="M17 16.5v5.17"></path>
-                  <path d="M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z"></path>
-                  <path d="M12 8 7.26 5.15"></path>
-                  <path d="m12 8 4.74-2.85"></path>
-                  <path d="M12 13.5V8"></path>
-                </svg>
-                Vendors
               </button>
               <button
                 onClick={() => navigateTo('/products')}
@@ -370,30 +341,26 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
           )}
         </div>
         
-        {/* Smart Updates Section */}
+        {/* More Section */}
         <div className="relative">
           <button 
-            className={`nav-container w-full text-left ${location.startsWith("/smart-updates") ? "bg-indigo-50 font-medium nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+            className={`nav-container w-full text-left ${(collapsed && (location.startsWith('/projects') || location.startsWith('/vendors') || location.startsWith('/smart-updates') || location.startsWith('/notifications'))) ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
             onClick={() => {
-              const newValue = !smartUpdatesMenuOpen;
-              setSmartUpdatesMenuOpen(newValue);
+              const newValue = !moreMenuOpen;
+              setMoreMenuOpen(newValue);
               if (newValue) {
                 setDataMenuOpen(false);
                 setTemplatesMenuOpen(false);
+                setSmartUpdatesMenuOpen(false);
               }
             }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M12 1v6m0 0 4-4m-4 4L8 3"></path>
-              <path d="M12 23v-6m0 0 4 4m-4-4-4 4"></path>
-              <path d="M20 12h-2"></path>
-              <path d="M6 12H4"></path>
-              <path d="M17.657 6.343l-1.414 1.414"></path>
-              <path d="M7.757 16.243l-1.414 1.414"></path>
-              <path d="M17.657 17.657l-1.414-1.414"></path>
-              <path d="M7.757 7.757l-1.414-1.414"></path>
+              <circle cx="12" cy="12" r="1"></circle>
+              <circle cx="12" cy="5" r="1"></circle>
+              <circle cx="12" cy="19" r="1"></circle>
             </svg>
-            <span className={`ml-3 text-sm ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Smart Updates</span>
+            <span className={`ml-3 text-sm ${collapsed ? "hidden" : "hidden md:inline-block"}`}>More</span>
             {!collapsed && (
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
@@ -407,7 +374,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
                 strokeLinejoin="round"
                 className={`ml-auto transition-transform ${collapsed ? "hidden" : "hidden md:inline-block"}`}
               >
-                {smartUpdatesMenuOpen ? (
+                {moreMenuOpen ? (
                   <polyline points="6 9 12 15 18 9" />
                 ) : (
                   <polyline points="9 18 15 12 9 6" />
@@ -416,17 +383,47 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
             )}
           </button>
           
-          {/* Smart Updates indicator when collapsed */}
-          {collapsed && !smartUpdatesMenuOpen && location.startsWith('/smart-updates') && (
+          {/* More indicator when collapsed */}
+          {collapsed && !moreMenuOpen && (location.startsWith('/projects') || location.startsWith('/vendors') || location.startsWith('/smart-updates') || location.startsWith('/notifications')) && (
             <div className="absolute top-[93px] right-0 w-1 h-7 bg-indigo-500 rounded-l-md"></div>
           )}
           
-          {/* Smart Updates submenu */}
-          {smartUpdatesMenuOpen && (
+          {/* More submenu */}
+          {moreMenuOpen && (
             <div className={`${collapsed ? "absolute left-16 top-0 bg-white border border-gray-200 rounded-md shadow-md py-1 z-50 w-48" : "mt-0.5"}`}>
               <button
+                onClick={() => navigateTo('/projects')}
+                className={`submenu-nav-container ${location.startsWith("/projects") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                </svg>
+                Projects
+              </button>
+              <button
+                onClick={() => navigateTo('/vendors')}
+                className={`submenu-nav-container ${location.startsWith("/vendors") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2.97 12.92A2 2 0 0 0 2 14.63v3.24a2 2 0 0 0 .97 1.71l3 1.8a2 2 0 0 0 2.06 0L12 19v-5.5l-5-3-4.03 2.42Z"></path>
+                  <path d="m7 16.5-4.74-2.85"></path>
+                  <path d="m7 16.5 5-3"></path>
+                  <path d="M7 16.5v5.17"></path>
+                  <path d="M12 13.5V19l3.97 2.38a2 2 0 0 0 2.06 0l3-1.8a2 2 0 0 0 .97-1.71v-3.24a2 2 0 0 0-.97-1.71L17 10.5l-5 3Z"></path>
+                  <path d="m17 16.5-5-3"></path>
+                  <path d="m17 16.5 4.74-2.85"></path>
+                  <path d="M17 16.5v5.17"></path>
+                  <path d="M7.97 4.42A2 2 0 0 0 7 6.13v4.37l5 3 5-3V6.13a2 2 0 0 0-.97-1.71l-3-1.8a2 2 0 0 0-2.06 0l-3 1.8Z"></path>
+                  <path d="M12 8 7.26 5.15"></path>
+                  <path d="m12 8 4.74-2.85"></path>
+                  <path d="M12 13.5V8"></path>
+                </svg>
+                Vendors
+              </button>
+              <button
                 onClick={() => navigateTo('/smart-updates/notifications')}
-                className={`submenu-nav-container ${location.startsWith("/smart-updates/notifications") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+                className={`submenu-nav-container ${location.startsWith("/smart-updates/notifications") || location.startsWith("/notifications") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
@@ -439,11 +436,14 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
                 className={`submenu-nav-container ${location.startsWith("/smart-updates/automated") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M12 2v6l3-3 3 3"></path>
-                  <path d="M21 12h-6l3-3 3 3"></path>
-                  <path d="M12 22v-6l3 3 3-3"></path>
-                  <path d="M3 12h6l-3-3-3 3"></path>
-                  <circle cx="12" cy="12" r="3"></circle>
+                  <path d="M12 1v6m0 0 4-4m-4 4L8 3"></path>
+                  <path d="M12 23v-6m0 0 4 4m-4-4-4 4"></path>
+                  <path d="M20 12h-2"></path>
+                  <path d="M6 12H4"></path>
+                  <path d="M17.657 6.343l-1.414 1.414"></path>
+                  <path d="M7.757 16.243l-1.414 1.414"></path>
+                  <path d="M17.657 17.657l-1.414-1.414"></path>
+                  <path d="M7.757 7.757l-1.414-1.414"></path>
                 </svg>
                 Smart Updates
               </button>
