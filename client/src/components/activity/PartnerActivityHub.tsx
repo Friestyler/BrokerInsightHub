@@ -269,10 +269,12 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
   const actions = (nextActions as any) || [];
   const rawTimelineData = (timeline as any) || [];
   
-  // Merge tasks with timeline data
-  const timelineData = [
+  // Merge tasks with timeline data, avoiding duplicates
+  const allTimelineItems = [
     ...rawTimelineData,
-    ...tasks.map((task: any) => ({
+    ...tasks.filter((task: any) => !rawTimelineData.some((item: any) => 
+      item.activity_type === 'task' && item.id === task.id
+    )).map((task: any) => ({
       ...task,
       activity_type: 'task',
       title: task.title,
@@ -282,9 +284,11 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
       completed: task.completed,
       visible_to_partner: task.visible_to_partner,
       assigned_to_name: task.assignedTo ? teamMembers.find(m => m.id === task.assignedTo)?.name || task.assignedTo : null,
-      author_name: 'System' // or get from actual user data
+      author_name: 'System'
     })),
-    ...comments.map((comment: any) => ({
+    ...comments.filter((comment: any) => !rawTimelineData.some((item: any) => 
+      item.activity_type === 'comment' && item.id === comment.id
+    )).map((comment: any) => ({
       ...comment,
       activity_type: 'comment',
       title: 'Comment',
@@ -292,7 +296,9 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
       visible_to_partner: comment.visible_to_partner,
       author_name: comment.author_name || 'User'
     })),
-    ...attachments.map((attachment: any) => ({
+    ...attachments.filter((attachment: any) => !rawTimelineData.some((item: any) => 
+      item.activity_type === 'attachment' && item.id === attachment.id
+    )).map((attachment: any) => ({
       ...attachment,
       activity_type: 'attachment',
       title: 'Document',
@@ -301,6 +307,14 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
       author_name: attachment.author_name || 'User'
     }))
   ];
+
+  // Remove any remaining duplicates based on unique combination of activity_type, id, and created_at
+  const timelineData = allTimelineItems.filter((item: any, index: number, arr: any[]) => {
+    const uniqueKey = `${item.activity_type}-${item.id}-${item.created_at}`;
+    return arr.findIndex((other: any) => 
+      `${other.activity_type}-${other.id}-${other.created_at}` === uniqueKey
+    ) === index;
+  });
 
   const completedTasks = tasks.filter((t: any) => t.completed).length;
   const pendingTasks = tasks.filter((t: any) => !t.completed).length;
