@@ -251,6 +251,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
   });
 
   const handlePrepareMeeting = () => {
+    setMeetingBriefing(null); // Clear previous briefing to ensure fresh content
     setIsPreparingMeeting(true);
     prepareMeetingMutation.mutate();
   };
