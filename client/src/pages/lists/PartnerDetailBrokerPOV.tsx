@@ -770,7 +770,6 @@ export default function PartnerDetailBrokerPOV() {
                         <TableHeader>
                           <TableRow className="border-b border-gray-200">
                             <TableHead className="font-semibold text-gray-900">Metric Name</TableHead>
-                            <TableHead className="font-semibold text-gray-900">Description</TableHead>
                             {(() => {
                               // Check if any metric in this tag group has YTD or Last Year values
                               const hasYtdValues = tagMetrics.some((metric: any) => metric.ytd_value);
@@ -882,7 +881,6 @@ export default function PartnerDetailBrokerPOV() {
                             return (
                               <TableRow key={metric.id} className="border-b border-gray-100">
                                 <TableCell className="font-medium">{metric.name}</TableCell>
-                                <TableCell className="text-gray-600">{metric.description}</TableCell>
                                 {(() => {
                                   if (hasYtdValue || hasLastYearValue) {
                                     return (
