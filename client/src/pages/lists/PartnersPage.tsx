@@ -75,33 +75,9 @@ const useCreateSavedList = () => {
     mutationFn: async (data: any) => {
       return apiRequest('POST', '/api/saved-lists', data);
     },
-    onSuccess: (newList) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'partners'] });
-      
-      // Auto-select the newly created list
-      if (newList) {
-        const convertedList = {
-          id: newList.id.toString(),
-          name: newList.name,
-          description: newList.description,
-          type: newList.type as 'filter' | 'selection',
-          filters: newList.filters || {},
-          members: newList.members || [],
-          isShared: newList.is_shared,
-          createdBy: newList.created_by,
-          createdAt: new Date(newList.created_at),
-          isDefault: newList.is_default
-        };
-        
-        // Set the new list as active
-        setActiveList(convertedList);
-        setOriginalListFilters(convertedList.filters);
-        setHasUnsavedChanges(false);
-        
-        // Clear any active view when switching to new list
-        setActiveView(null);
-      }
     }
   });
 };
@@ -361,7 +337,6 @@ function PartnersTable() {
   
   // Fetch saved lists from database
   const { data: savedListsData = [], isLoading: savedListsLoading } = useSavedLists();
-  const createSavedListMutation = useCreateSavedList();
   const updateSavedListMutation = useUpdateSavedList();
   const deleteSavedListMutation = useDeleteSavedList();
   
@@ -409,6 +384,41 @@ function PartnersTable() {
   const [listToDelete, setListToDelete] = useState<SavedList | null>(null);
   const [newListName, setNewListName] = useState("");
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
+  
+  // Custom create list mutation that can access component state
+  const createSavedListMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest('POST', '/api/saved-lists', data);
+    },
+    onSuccess: (newList) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+      
+      // Auto-select the newly created list
+      if (newList) {
+        const convertedList = {
+          id: newList.id.toString(),
+          name: newList.name,
+          description: newList.description,
+          type: newList.type as 'filter' | 'selection',
+          filters: newList.filters || {},
+          members: newList.members || [],
+          isShared: newList.is_shared,
+          createdBy: newList.created_by,
+          createdAt: new Date(newList.created_at),
+          isDefault: newList.is_default
+        };
+        
+        // Set the new list as active
+        setActiveList(convertedList);
+        setOriginalListFilters(convertedList.filters);
+        setHasUnsavedChanges(false);
+        
+        // Clear any active view when switching to new list
+        setActiveView(null);
+      }
+    }
+  });
   
   // Fetch saved views from database
   const { data: savedViewsData = [], isLoading: savedViewsLoading } = useSavedViews();
