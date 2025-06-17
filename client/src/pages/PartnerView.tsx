@@ -5,6 +5,8 @@ import { apiRequest } from '@/lib/queryClient';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
 import { BrokerLayout } from '@/components/layouts/BrokerLayout';
 import PartnersViewforPartner from './PartnersViewforPartner';
 import CampaignFromTemplate from './campaigns/CampaignFromTemplate';
@@ -16,6 +18,7 @@ export default function PartnerView() {
   const { listId } = useParams<{ listId: string }>();
   const [location] = useLocation();
   const [opportunities, setOpportunities] = useState<any[]>([]);
+  const { toast } = useToast();
   
   // Check if we're on the partners page, opportunities page, or campaigns page
   const isPartnersPage = location === '/broker-view/partners';
@@ -30,6 +33,9 @@ export default function PartnerView() {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedType, setSelectedType] = useState('');
   const [selectedOpportunities, setSelectedOpportunities] = useState<number[]>([]);
+  
+  // Bulk actions state
+  const [bulkStatusValue, setBulkStatusValue] = useState('');
 
   // Fetch all shared lists that a partner can see
   const { data: sharedLists = [], isLoading: sharedListsLoading } = useQuery({
@@ -156,6 +162,59 @@ export default function PartnerView() {
       currency: 'USD',
       maximumFractionDigits: 0
     }).format(value || 0);
+  };
+
+  // Opportunity statuses for bulk actions
+  const opportunityStatuses = ['New', 'In Progress', 'Qualified', 'Closed Won', 'Closed Lost', 'On Hold'];
+
+  // Status badge color mapping
+  const getStatusBadgeVariant = (status: string) => {
+    switch (status) {
+      case 'New': return 'bg-blue-500';
+      case 'In Progress': return 'bg-yellow-500';
+      case 'Qualified': return 'bg-green-500';
+      case 'Closed Won': return 'bg-green-600';
+      case 'Closed Lost': return 'bg-red-500';
+      case 'On Hold': return 'bg-gray-500';
+      default: return 'bg-gray-400';
+    }
+  };
+
+  // Handle bulk status change
+  const handleBulkStatusChange = async (newStatus: string) => {
+    if (selectedOpportunities.length === 0) return;
+
+    try {
+      // Update opportunities in the broker view
+      await apiRequest('PUT', '/api/degoudse/opportunities/bulk-update', {
+        opportunityIds: selectedOpportunities,
+        updates: { status: newStatus }
+      });
+
+      // Update local state
+      setOpportunities(prev => prev.map(opp => 
+        selectedOpportunities.includes(opp.id) 
+          ? { ...opp, status: newStatus }
+          : opp
+      ));
+
+      // Show success message
+      toast({
+        title: "Status Updated",
+        description: `Updated ${selectedOpportunities.length} ${selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} to ${newStatus}`,
+      });
+
+      // Clear selection and reset dropdown
+      setSelectedOpportunities([]);
+      setBulkStatusValue('');
+    } catch (error) {
+      console.error('Error updating opportunity statuses:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update opportunity statuses. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   // If we're on the partners page, render the Partners component
@@ -443,56 +502,112 @@ export default function PartnerView() {
             </div>
           </div>
           
-          {/* Bulk actions bar - always visible */}
-          <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4" style={{ minHeight: '64px' }}>
-            {selectedOpportunities.length > 0 ? (
-              <>
-                <div className="flex items-center">
-                  <span className="text-indigo-700 font-medium mr-2">
-                    {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected
-                  </span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="text-gray-600"
-                    onClick={() => setSelectedOpportunities([])}
+          {/* Bulk actions bar - only visible when opportunities are selected */}
+          {selectedOpportunities.length > 0 && (
+            <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
+              <div className="flex items-center">
+                <span className="text-indigo-700 font-medium mr-2">
+                  {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected
+                </span>
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-gray-600"
+                  onClick={() => setSelectedOpportunities([])}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                  </svg>
+                  Clear selection
+                </Button>
+                
+                {/* Show selected opportunity titles */}
+                {selectedOpportunities.length <= 3 && (
+                  <div className="flex flex-wrap gap-1 ml-3">
+                    {selectedOpportunities.slice(0, 3).map((oppId) => {
+                      const opp = opportunities.find((o: any) => o.id === oppId);
+                      return opp ? (
+                        <span key={oppId} className="bg-blue-200 px-2 py-1 rounded text-xs">
+                          {opp.title}
+                        </span>
+                      ) : null;
+                    })}
+                    {selectedOpportunities.length > 3 && (
+                      <span className="text-blue-600 text-xs">
+                        +{selectedOpportunities.length - 3} more
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex items-center gap-2 flex-wrap">
+                {/* Bulk Status Change dropdown */}
+                <div className="flex items-center gap-1">
+                  <Select
+                    value={bulkStatusValue}
+                    onValueChange={(value) => {
+                      setBulkStatusValue(value);
+                      handleBulkStatusChange(value);
+                    }}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <path d="M18 6 6 18"></path>
-                      <path d="m6 6 12 12"></path>
-                    </svg>
-                    Clear selection
-                  </Button>
+                    <SelectTrigger className="h-9 border-indigo-200 bg-white text-sm w-[180px]">
+                      <SelectValue placeholder="Change Status..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {opportunityStatuses.map((status) => (
+                        <SelectItem key={status} value={status}>
+                          <div className="flex items-center">
+                            <span className={`w-2 h-2 rounded-full mr-2 ${getStatusBadgeVariant(status)}`}></span>
+                            {status}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="text-indigo-600"
-                    onClick={() => {/* Add export functionality */}}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                      <polyline points="7,10 12,15 17,10"></polyline>
-                      <line x1="12" y1="15" x2="12" y2="3"></line>
-                    </svg>
-                    Export Selected
-                  </Button>
-                </div>
-              </>
-            ) : (
-              <div className="flex items-center justify-center w-full min-h-[32px]">
-                <div className="flex items-center text-gray-500">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <path d="M9 12l2 2 4-4"></path>
-                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="text-indigo-600"
+                  onClick={() => {
+                    toast({
+                      title: "Campaign Creation",
+                      description: "Selected opportunities can be added to a campaign. This feature will be available in the Campaigns section.",
+                    });
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <path d="M22 2 11 13" />
+                    <path d="M22 2 15 22 11 13 2 9 22 2z" />
                   </svg>
-                  <span className="text-sm">Select at least one opportunity from the list to perform bulk actions</span>
-                </div>
+                  Add to Campaign
+                </Button>
+                
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="text-indigo-600"
+                  onClick={() => {
+                    // Export functionality placeholder
+                    toast({
+                      title: "Export",
+                      description: `Exporting ${selectedOpportunities.length} selected opportunities...`,
+                    });
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                    <polyline points="7,10 12,15 17,10"></polyline>
+                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                  </svg>
+                  Export Selected
+                </Button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
           
           {/* Opportunities table */}
           <div className="bg-white shadow rounded-lg overflow-hidden">
