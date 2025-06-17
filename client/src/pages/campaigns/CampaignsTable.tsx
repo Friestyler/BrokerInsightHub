@@ -431,15 +431,6 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
               </div>
             </th>
             <SortableTableHead 
-              sortKey="created_by_name" 
-              currentSortKey={sortField} 
-              currentDirection={sortDirection} 
-              onSort={handleSort} 
-              className="w-[120px]"
-            >
-              Created By
-            </SortableTableHead>
-            <SortableTableHead 
               sortKey="created_at" 
               currentSortKey={sortField} 
               currentDirection={sortDirection} 
@@ -448,11 +439,6 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
             >
               Created Date
             </SortableTableHead>
-            <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[200px] bg-white">
-              <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
-                Objective
-              </div>
-            </th>
             <th scope="col" className="relative px-3 py-3.5 w-10 bg-white">
               <span className="sr-only">Actions</span>
             </th>
@@ -566,16 +552,8 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
                 <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
                   {campaign.emails?.length || 0}
                 </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[120px] truncate">
-                  {campaign.created_by_name}
-                </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
                   {formatDate(campaign.created_at)}
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-500 w-[200px]">
-                  <div className="truncate" title={campaign.objective}>
-                    {campaign.objective || '-'}
-                  </div>
                 </td>
                 <td className="px-3 py-4 text-sm w-10">
                   <DropdownMenu>

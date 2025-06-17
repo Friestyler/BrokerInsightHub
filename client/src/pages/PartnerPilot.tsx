@@ -318,24 +318,12 @@ export default function PartnerPilot() {
           <MessageSquare className="h-4 w-4 mr-2" />
           Partner copilot
         </Button>
-        <Button variant="ghost">
-          <Search className="h-4 w-4 mr-2" />
-          Explore
-        </Button>
-        <Button variant="ghost">
-          <BarChart2 className="h-4 w-4 mr-2" />
-          Predict
-        </Button>
         <Button 
           variant="ghost"
           onClick={() => setLocation("/reports")}
         >
           <FileText className="h-4 w-4 mr-2" />
           Reports
-        </Button>
-        <Button variant="ghost">
-          <SlidersHorizontal className="h-4 w-4 mr-2" />
-          Presentations
         </Button>
         <Button 
           variant="ghost"
