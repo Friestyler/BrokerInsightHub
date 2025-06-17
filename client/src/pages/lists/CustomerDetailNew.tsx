@@ -48,6 +48,7 @@ export default function CustomerDetailNew() {
   useEffect(() => {
     const urlParams = new URLSearchParams(location.split('?')[1] || '');
     const tabParam = urlParams.get('tab');
+    console.log('CustomerDetail URL parsing:', { location, tabParam });
     if (tabParam) {
       setActiveTab(tabParam);
     }
