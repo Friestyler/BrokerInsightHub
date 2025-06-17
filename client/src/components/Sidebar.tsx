@@ -133,7 +133,6 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
 
   return (
     <div className={`${collapsed ? "w-16" : "w-16 md:w-64"} flex flex-col h-full overflow-hidden transition-all duration-300 relative`} style={{ backgroundColor: '#F5F6FA' }}>
-      
       {/* Logo at the top left */}
       <div className="pt-4 px-4 pb-1 flex justify-center md:justify-start flex-shrink-0">
         <div className={`${collapsed ? "w-10 h-10" : "w-12 h-12"} flex items-center justify-center`}>
@@ -144,12 +143,10 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
           />
         </div>
       </div>
-      
       {/* Environment Selector - moved down */}
       <div className="py-3 px-3 mt-1 mb-1 flex-shrink-0">
         <EnvironmentSelector collapsed={collapsed} />
       </div>
-      
       {/* Navigation Links - closer to environment selector */}
       <div className="flex flex-col flex-shrink-0 overflow-y-auto">
         <Link 
@@ -295,7 +292,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
             </svg>
-            <span className={`ml-3 text-sm ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Templates</span>
+            <span className={`ml-3 text-sm ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Goals</span>
             {!collapsed && (
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
