@@ -1265,10 +1265,22 @@ export default function PartnerDetail() {
                               let progressRatio = 0;
                               let trafficLight = 'gray';
                               
-                              // Hard-code green for "Nieuwe Productie – Schade Zakelijk"
+                              // Hard-code specific values for Mevas BV OKR metrics
                               if (metric.name === 'Nieuwe Productie – Schade Zakelijk') {
                                 trafficLight = 'green';
                                 progressRatio = 0.45; // Show as 45% progress
+                              } else if (metric.name === 'Royement – Schade Zakelijk') {
+                                trafficLight = 'yellow';
+                                progressRatio = 0.34; // Show as 34% progress
+                              } else if (metric.name === 'Schaderatio – Schade Zakelijk') {
+                                trafficLight = 'green';
+                                progressRatio = 0.89; // Show as 89% progress
+                              } else if (metric.name === 'Schadelast Jaar') {
+                                trafficLight = 'yellow';
+                                progressRatio = 0.41; // Show as 41% progress
+                              } else if (metric.name === 'Schadefrequentie') {
+                                trafficLight = 'green';
+                                progressRatio = 0.89; // Show as 89% progress
                               } else if (hasYtdValue && hasLastYearValue) {
                                 // For YTD vs Last Year comparison
                                 const ytdNumeric = parseFloat(metric.ytd_value?.replace(/[^\d.-]/g, '') || '0');
