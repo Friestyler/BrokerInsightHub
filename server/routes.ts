@@ -2672,7 +2672,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               LEFT JOIN degoudse.partners p ON o.partner_id = p.id
               LEFT JOIN degoudse.products pr ON o.product_id = pr.id
               LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
-              WHERE o.partner_id = $1${opportunityFilter}
+              WHERE o.partner_id = $1 AND o.id > 16${opportunityFilter}
               ORDER BY o.id
             `, queryParams);
           }
@@ -4936,6 +4936,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       // Then get the full list details with collaborator info, filtering by entity_type if needed
+      // Exclude lists that contain only seed opportunity records (IDs 1-16)
       const placeholders = listIds.map((_, index) => `$${index + 1}`).join(', ');
       let query = `
         SELECT sl.*,
@@ -4946,6 +4947,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM ${envId}.saved_lists sl
         LEFT JOIN ${envId}.list_collaborators lc ON sl.id = lc.list_id AND lc.is_active = true
         WHERE sl.id IN (${placeholders}) AND sl.is_shared = true
+          AND NOT (sl.members <@ ARRAY[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16])
       `;
       
       if (entityType) {
