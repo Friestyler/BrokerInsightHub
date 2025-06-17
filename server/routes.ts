@@ -2641,7 +2641,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           result = { rows: [] };
         }
       } else {
-        // Regular access - show all opportunities using direct foreign key relationships
+        // Regular access - show opportunities excluding original seed data (IDs 1-10) but preserve partner 4 opportunities for broker access
         result = await envPool.query(`
           SELECT o.*, 
                  c.name as customer_name,
@@ -2653,6 +2653,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           LEFT JOIN degoudse.partners p ON o.partner_id = p.id
           LEFT JOIN degoudse.products pr ON o.product_id = pr.id
           LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
+          WHERE o.id > 10 OR o.partner_id = 4
           ORDER BY o.id
         `);
       }
