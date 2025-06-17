@@ -6585,6 +6585,65 @@ Keep the tone clear and professional. Focus on what will help the account manage
     }
   });
 
+  // Get campaigns shared with broker users (environment-specific route)
+  app.get('/api/:envId/broker/shared-campaigns', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      
+      if (envId === 'degoudse') {
+        try {
+          // Query campaigns with system-level sharing (shared with broker view)
+          const result = await pool.query(`
+            SELECT c.*, u.name as created_by_name, cs.created_at as shared_at, cs.access_level
+            FROM ${envId}.campaigns c
+            INNER JOIN ${envId}.campaign_shares cs ON c.id = cs.campaign_id
+            LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
+            WHERE cs.shared_with_type = 'system' 
+              AND cs.is_active = true
+            ORDER BY cs.created_at DESC
+          `);
+          
+          const sharedCampaigns = result.rows.map(campaign => ({
+            id: campaign.id,
+            name: campaign.name || 'Untitled Campaign',
+            description: campaign.description || '',
+            type: campaign.type || 'cross_sell',
+            category: campaign.category || campaign.type || 'cross_sell',
+            status: campaign.status || 'draft',
+            sharedAt: campaign.shared_at,
+            sharedBy: campaign.created_by_name || 'De Goudse Team',
+            accessLevel: campaign.access_level || 'view',
+            isTemplate: campaign.is_template || false,
+            sponsorName: 'De Goudse Insurance',
+            tags: campaign.tags || [],
+            subject: campaign.subject,
+            email_body: campaign.email_body,
+            emails_sent: campaign.emails_sent || 0,
+            emails_opened: campaign.emails_opened || 0,
+            open_rate: campaign.open_rate || '0.00',
+            total_clicks: campaign.total_clicks || 0,
+            recipients: campaign.recipients || 0,
+            created_at: campaign.created_at,
+            updated_at: campaign.updated_at
+          }));
+          
+          console.log(`Returning ${sharedCampaigns.length} shared campaigns for broker view from ${envId}`);
+          res.json(sharedCampaigns);
+        } catch (dbError) {
+          console.error('Database error fetching shared campaigns:', dbError);
+          // Return empty array if campaigns table doesn't exist yet
+          res.json([]);
+        }
+      } else {
+        // For other environments, return empty array
+        res.json([]);
+      }
+    } catch (error) {
+      console.error('Error fetching shared campaigns:', error);
+      res.status(500).json({ error: 'Failed to fetch shared campaigns' });
+    }
+  });
+
   // Get campaigns shared with broker users (for Regional Insurance Partners environment)
   app.get('/api/broker/shared-campaigns', async (req, res) => {
     try {
