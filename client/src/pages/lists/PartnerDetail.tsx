@@ -2852,8 +2852,9 @@ export default function PartnerDetail() {
                               const matchesSearch = !customerSearchText || 
                                 customer.name?.toLowerCase().includes(customerSearchText.toLowerCase()) ||
                                 customer.description?.toLowerCase().includes(customerSearchText.toLowerCase());
-                              // Remove status and industry filters since these fields don't exist
-                              return matchesSearch;
+                              const matchesStatus = !selectedCustomerStatus || customer.status === selectedCustomerStatus;
+                              const matchesIndustry = !selectedIndustry || customer.industry === selectedIndustry;
+                              return matchesSearch && matchesStatus && matchesIndustry;
                             });
                             if (checked) {
                               setSelectedCustomers(filteredCustomers.map((c: any) => c.id));
