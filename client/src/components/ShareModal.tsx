@@ -20,6 +20,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { apiRequest } from "@/lib/queryClient";
+import { useQuery } from '@tanstack/react-query';
 
 interface Collaborator {
   id: string;
@@ -28,6 +29,14 @@ interface Collaborator {
   accessLevel: 'viewer' | 'commenter' | 'editor';
   avatar?: string;
   isOwner?: boolean;
+}
+
+interface Partner {
+  id: number;
+  name: string;
+  email?: string;
+  region?: string;
+  status?: string;
 }
 
 interface ShareModalProps {
@@ -43,6 +52,7 @@ interface ShareModalProps {
   onCreateShare: () => void;
   isCreating?: boolean;
   onRefreshList?: () => void;
+  listData?: any; // The list's opportunity data for partner filtering
 }
 
 export function ShareModal({

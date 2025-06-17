@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Share } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Share, DollarSign, Home, Car, Umbrella, Building, UserCheck, TrendingDown, Plane } from "lucide-react";
 import { useLocation, useRoute, useParams } from 'wouter';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -685,18 +685,18 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 <label className="block text-sm font-medium text-gray-700 mb-2">Choose an Icon</label>
                 <div className="grid grid-cols-6 gap-3">
                   {[
-                    { id: 'target', icon: <Target className="h-5 w-5" />, color: 'bg-blue-500' },
-                    { id: 'trending-up', icon: <TrendingUp className="h-5 w-5" />, color: 'bg-green-500' },
-                    { id: 'zap', icon: <Zap className="h-5 w-5" />, color: 'bg-yellow-500' },
-                    { id: 'star', icon: <Star className="h-5 w-5" />, color: 'bg-purple-500' },
+                    { id: 'shield', icon: <Shield className="h-5 w-5" />, color: 'bg-blue-500' },
+                    { id: 'home', icon: <Home className="h-5 w-5" />, color: 'bg-green-500' },
+                    { id: 'car', icon: <Car className="h-5 w-5" />, color: 'bg-red-500' },
+                    { id: 'umbrella', icon: <Umbrella className="h-5 w-5" />, color: 'bg-purple-500' },
+                    { id: 'building', icon: <Building className="h-5 w-5" />, color: 'bg-gray-600' },
+                    { id: 'dollar-sign', icon: <DollarSign className="h-5 w-5" />, color: 'bg-emerald-500' },
+                    { id: 'plane', icon: <Plane className="h-5 w-5" />, color: 'bg-teal-500' },
+                    { id: 'user-check', icon: <UserCheck className="h-5 w-5" />, color: 'bg-indigo-500' },
+                    { id: 'target', icon: <Target className="h-5 w-5" />, color: 'bg-orange-500' },
+                    { id: 'award', icon: <Award className="h-5 w-5" />, color: 'bg-yellow-500' },
                     { id: 'heart', icon: <Heart className="h-5 w-5" />, color: 'bg-pink-500' },
-                    { id: 'gift', icon: <Gift className="h-5 w-5" />, color: 'bg-red-500' },
-                    { id: 'mail', icon: <Mail className="h-5 w-5" />, color: 'bg-gray-500' },
-                    { id: 'sparkles', icon: <Sparkles className="h-5 w-5" />, color: 'bg-indigo-500' },
-                    { id: 'rocket', icon: <Rocket className="h-5 w-5" />, color: 'bg-orange-500' },
-                    { id: 'shield', icon: <Shield className="h-5 w-5" />, color: 'bg-teal-500' },
-                    { id: 'diamond', icon: <Diamond className="h-5 w-5" />, color: 'bg-cyan-500' },
-                    { id: 'award', icon: <Award className="h-5 w-5" />, color: 'bg-emerald-500' }
+                    { id: 'mail', icon: <Mail className="h-5 w-5" />, color: 'bg-cyan-500' }
                   ].map((iconOption) => (
                     <button
                       key={iconOption.id}
