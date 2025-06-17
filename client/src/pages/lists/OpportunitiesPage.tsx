@@ -2121,6 +2121,7 @@ function OpportunitiesTable() {
             queryKey: [`/api/${environment.id}/saved-lists`]
           });
         }}
+        listData={activeList ? opportunities.filter(opp => activeList.members.includes(opp.id)) : opportunities}
       />
       
       {/* Table section without a border */}
