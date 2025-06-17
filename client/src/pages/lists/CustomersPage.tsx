@@ -155,13 +155,28 @@ export default function CustomersPageClean() {
   const { data: customersResponse, isLoading, error } = useCustomersData(currentPage, itemsPerPage);
   const customers = useMemo(() => {
     if (!customersResponse?.data) return [];
+    
+    // Debug: Log the raw data structure
+    console.log('Raw customer data:', customersResponse.data[0]);
+    
     // Ensure data is properly structured and values are numbers
-    return customersResponse.data.map((customer: any) => ({
-      ...customer,
-      opportunityCount: Number(customer.opportunityCount) || 0,
-      totalOpportunityValue: Number(customer.totalOpportunityValue) || 0,
-      partnerCount: Number(customer.partnerCount) || 0
-    }));
+    const processedCustomers = customersResponse.data.map((customer: any) => {
+      console.log('Processing customer:', customer.name, {
+        opportunityCount: customer.opportunityCount,
+        totalOpportunityValue: customer.totalOpportunityValue,
+        partnerCount: customer.partnerCount
+      });
+      
+      return {
+        ...customer,
+        opportunityCount: Number(customer.opportunityCount) || 0,
+        totalOpportunityValue: Number(customer.totalOpportunityValue) || 0,
+        partnerCount: Number(customer.partnerCount) || 0
+      };
+    });
+    
+    console.log('Processed customers:', processedCustomers[0]);
+    return processedCustomers;
   }, [customersResponse?.data]);
   
   const pagination = customersResponse?.pagination || { page: 1, totalPages: 1, totalCount: 0, hasNextPage: false, hasPreviousPage: false };

@@ -2299,6 +2299,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LIMIT $1 OFFSET $2
       `, [limit, offset]);
       
+      console.log('Raw SQL result for customers:', result.rows.slice(0, 2));
+      
       // Get partner details for each customer separately
       const customerIds = result.rows.map(c => c.id);
       const partnerDetails = await envPool.query(`
