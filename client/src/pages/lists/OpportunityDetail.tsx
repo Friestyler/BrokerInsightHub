@@ -54,7 +54,7 @@ export default function OpportunityDetail() {
   const { environment } = useEnvironment();
   const [location] = useLocation();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("okr-plan");
+  const [activeTab, setActiveTab] = useState("partners");
   const [backUrl, setBackUrl] = useState("/opportunities");
   const [backLabel, setBackLabel] = useState("Back to Opportunities");
   
