@@ -2199,24 +2199,6 @@ function OpportunitiesTable() {
                 Insurance Description
               </SortableTableHead>
               <SortableTableHead 
-                sortKey="status" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[100px]"
-              >
-                Status
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="type" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[100px]"
-              >
-                Type
-              </SortableTableHead>
-              <SortableTableHead 
                 sortKey="stage" 
                 currentSortKey={tableSortConfig.key} 
                 currentDirection={tableSortConfig.direction} 
@@ -2242,6 +2224,24 @@ function OpportunitiesTable() {
                 className="w-[90px]"
               >
                 Probability
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="status" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[100px]"
+              >
+                Status
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="type" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[100px]"
+              >
+                Type
               </SortableTableHead>
               <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[100px] bg-white">
                 <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
@@ -2311,14 +2311,6 @@ function OpportunitiesTable() {
                 <td className="px-3 py-4 text-sm text-gray-900 w-[150px] truncate">
                   {opportunity.insuranceDescription || '-'}
                 </td>
-                <td className="px-3 py-4 text-sm w-[100px]">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeVariant(opportunity.status)}`}>
-                    {opportunity.status}
-                  </span>
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
-                  {opportunity.type || 'General'}
-                </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
                   {opportunity.stage || '-'}
                 </td>
@@ -2327,6 +2319,14 @@ function OpportunitiesTable() {
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[90px]">
                   {opportunity.probability}%
+                </td>
+                <td className="px-3 py-4 text-sm w-[100px]">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeVariant(opportunity.status)}`}>
+                    {opportunity.status}
+                  </span>
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
+                  {opportunity.type || 'General'}
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
                   <TemplateBadges opportunityId={opportunity.id} />
