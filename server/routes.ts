@@ -2627,12 +2627,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `, [1, 'degoudse']);
         
         if (brokerMappingResult.rows.length > 0) {
-          // This is a broker with restricted access - only show opportunities for their assigned partner
-          const assignedPartnerId = brokerMappingResult.rows[0].partner_id;
-          console.log(`Broker access detected - filtering opportunities for partner ID ${assignedPartnerId}`);
-          
-          let opportunityFilter = '';
-          let queryParams = [assignedPartnerId];
+          // This is a broker with restricted access - show opportunities from shared lists only
+          console.log('Broker access detected - showing opportunities from shared lists');
           
           // If a specific list is requested, filter by list members
           if (listId) {
@@ -2647,9 +2643,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (listResult.rows.length > 0 && listResult.rows[0].members) {
               const members = listResult.rows[0].members;
               if (members.length > 0) {
-                opportunityFilter = ` AND o.id = ANY($2)`;
-                queryParams.push(members);
                 console.log(`Filtering to ${members.length} specific opportunities from list ${listId}`);
+                result = await envPool.query(`
+                  SELECT o.*, 
+                         c.name as customer_name,
+                         p.name as partner_name,
+                         pr.name as product_name,
+                         am.name as account_manager_name
+                  FROM degoudse.opportunities o
+                  LEFT JOIN degoudse.customers c ON o.client_id = c.id
+                  LEFT JOIN degoudse.partners p ON o.partner_id = p.id
+                  LEFT JOIN degoudse.products pr ON o.product_id = pr.id
+                  LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
+                  WHERE o.id = ANY($1) AND o.id > 16
+                  ORDER BY o.id
+                `, [members]);
               } else {
                 // Empty list - return no opportunities
                 result = { rows: [] };
@@ -2658,23 +2666,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
               // List not found or no members - return no opportunities
               result = { rows: [] };
             }
-          }
-          
-          if (!result) {
-            result = await envPool.query(`
-              SELECT o.*, 
-                     c.name as customer_name,
-                     p.name as partner_name,
-                     pr.name as product_name,
-                     am.name as account_manager_name
-              FROM degoudse.opportunities o
-              LEFT JOIN degoudse.customers c ON o.client_id = c.id
-              LEFT JOIN degoudse.partners p ON o.partner_id = p.id
-              LEFT JOIN degoudse.products pr ON o.product_id = pr.id
-              LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
-              WHERE o.partner_id = $1 AND o.id > 16${opportunityFilter}
-              ORDER BY o.id
-            `, queryParams);
+          } else {
+            // When no specific list is requested, show no opportunities for broker
+            result = { rows: [] };
           }
         } else {
           // Broker request but no mapping found - show no opportunities
