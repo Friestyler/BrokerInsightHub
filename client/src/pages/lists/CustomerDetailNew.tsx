@@ -604,7 +604,7 @@ export default function CustomerDetailNew() {
                     </TableCell>
                     <TableCell>
                       <span className="text-gray-900">
-                        {opportunity.partner_name || 'No partner'}
+                        {opportunity.partnerNames || 'No partner'}
                       </span>
                     </TableCell>
                     <TableCell>
