@@ -550,7 +550,7 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
                   </span>
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
-                  {campaign.emails?.length || 0}
+                  {campaign.emails_sent || 0}
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
                   {formatDate(campaign.created_at)}
