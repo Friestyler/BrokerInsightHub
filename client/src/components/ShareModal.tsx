@@ -316,26 +316,56 @@ export function ShareModal({
     
     setIsCreatingPartnerLists(true);
     try {
+      // Get the current list data to extract member IDs
+      const currentListResponse = await apiRequest('GET', `/api/${envId}/saved-lists/${listId}`);
+      const currentListMembers = currentListResponse.members || [];
+      
+      // Fetch full opportunity data for the members in this list
+      const opportunitiesResponse = await apiRequest('GET', `/api/${envId}/opportunities`);
+      const allOpportunities = opportunitiesResponse || [];
+      
+      // Filter to only opportunities that are members of the current list
+      const listOpportunities = allOpportunities.filter((opp: any) => 
+        currentListMembers.includes(opp.id)
+      );
+
+      // Check for existing lists to prevent duplicates
+      const existingListsResponse = await apiRequest('GET', `/api/${envId}/saved-lists?entity_type=opportunities`);
+      const existingLists = existingListsResponse || [];
+
       for (const partnerId of selectedPartners) {
         const partner = partnersInList.find(p => p.id === partnerId);
         if (!partner) continue;
 
-        // Filter opportunities for this specific partner
-        const partnerOpportunities = listData.filter((item: any) => 
-          item.partnerId === partnerId
+        // Check if a list already exists for this partner with the same name
+        const existingList = existingLists.find((list: any) => 
+          list.name === itemName && 
+          list.description?.includes(partner.name)
         );
 
-        // Create a new list for this partner with the same name
-        const listPayload = {
-          name: itemName,
-          description: `Shared opportunities for ${partner.name}`,
-          entity_type: 'opportunities',
-          entity_ids: partnerOpportunities.map((opp: any) => opp.id),
-          filters: {},
-          is_shared: true
-        };
+        if (existingList) {
+          console.log(`List already exists for ${partner.name}, skipping creation`);
+          continue;
+        }
 
-        await apiRequest('POST', `/api/${envId}/saved-lists`, listPayload);
+        // Filter opportunities for this specific partner from the list members
+        const partnerOpportunities = listOpportunities.filter((opp: any) => 
+          opp.partnerId === partnerId
+        );
+
+        // Only create list if there are opportunities for this partner
+        if (partnerOpportunities.length > 0) {
+          const listPayload = {
+            name: itemName,
+            description: `Shared opportunities for ${partner.name}`,
+            entity_type: 'opportunities',
+            entity_ids: partnerOpportunities.map((opp: any) => opp.id),
+            filters: {},
+            is_shared: true
+          };
+
+          await apiRequest('POST', `/api/${envId}/saved-lists`, listPayload);
+        }
       }
 
       toast({
