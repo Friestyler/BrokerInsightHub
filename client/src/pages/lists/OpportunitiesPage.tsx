@@ -50,8 +50,8 @@ const useSavedLists = () => {
   return useQuery({
     queryKey: ['/api/saved-lists', 'opportunities'],
     queryFn: () => apiRequest('GET', '/api/saved-lists?entity_type=opportunities'),
-    staleTime: 0, // Always fetch fresh data for lists
-    cacheTime: 1000, // Keep cache for only 1 second
+    staleTime: 0,
+    gcTime: 0,
   });
 };
 
@@ -62,12 +62,8 @@ const useCreateSavedList = () => {
       return apiRequest('POST', '/api/saved-lists', newList);
     },
     onSuccess: () => {
-      // Invalidate all saved lists queries to refresh the dropdown
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities'] });
-      // Remove stale data from cache and force fresh fetch
-      queryClient.removeQueries({ queryKey: ['/api/saved-lists', 'opportunities'] });
-      queryClient.refetchQueries({ queryKey: ['/api/saved-lists', 'opportunities'] });
     }
   });
 };
@@ -123,7 +119,6 @@ const useDeleteSavedList = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities'] });
-      queryClient.refetchQueries({ queryKey: ['/api/saved-lists', 'opportunities'] });
     }
   });
 };
