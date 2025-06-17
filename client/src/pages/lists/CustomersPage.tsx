@@ -48,14 +48,13 @@ import { useToast } from "@/hooks/use-toast";
 // Fetch customers from database with pagination
 const useCustomersData = (page: number = 1, limit: number = 100) => {
   return useQuery({
-    queryKey: ['/api/customers', { page, limit }],
+    queryKey: ['/api/customers', page, limit],
     queryFn: async () => {
       const result = await apiRequest('GET', `/api/customers?page=${page}&limit=${limit}`);
-      console.log('API Response in hook:', result);
       return result;
     },
     staleTime: 0,
-    gcTime: 0, // TanStack Query v5 syntax
+    gcTime: 0,
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
@@ -154,7 +153,17 @@ export default function CustomersPageClean() {
   
   // Data fetching with pagination
   const { data: customersResponse, isLoading, error } = useCustomersData(currentPage, itemsPerPage);
-  const customers = customersResponse?.data || [];
+  const customers = useMemo(() => {
+    if (!customersResponse?.data) return [];
+    // Ensure data is properly structured and values are numbers
+    return customersResponse.data.map((customer: any) => ({
+      ...customer,
+      opportunityCount: Number(customer.opportunityCount) || 0,
+      totalOpportunityValue: Number(customer.totalOpportunityValue) || 0,
+      partnerCount: Number(customer.partnerCount) || 0
+    }));
+  }, [customersResponse?.data]);
+  
   const pagination = customersResponse?.pagination || { page: 1, totalPages: 1, totalCount: 0, hasNextPage: false, hasPreviousPage: false };
   
   const { data: savedListsData = [], isLoading: savedListsLoading } = useSavedLists();
@@ -836,7 +845,7 @@ export default function CustomersPageClean() {
             <tbody className="bg-white">
               {filteredCustomers.map((customer: any) => (
                 <tr 
-                  key={`${customer.id}-${customer.opportunityCount}-${customer.totalOpportunityValue}`} 
+                  key={customer.id}
                   className="hover:bg-gray-50 group border-b border-gray-200"
                 >
                   <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm w-10">
@@ -883,7 +892,7 @@ export default function CustomersPageClean() {
                       <div className="flex space-x-2 text-xs text-gray-500">
                         <span>Partners: {customer.partnerCount || 0}</span>
                         <span>•</span>
-                        <span>Opps: {console.log('Rendering customer:', customer.name, 'oppCount:', customer.opportunityCount) || customer.opportunityCount || 0}</span>
+                        <span>Opps: {customer.opportunityCount || 0}</span>
                       </div>
                     </div>
                   </td>
@@ -891,7 +900,7 @@ export default function CustomersPageClean() {
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">Customer</td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Active</td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                    €{console.log('Total value for', customer.name, ':', customer.totalOpportunityValue) || (customer.totalOpportunityValue ? Number(customer.totalOpportunityValue).toLocaleString() : '0')}
+                    €{customer.totalOpportunityValue ? Number(customer.totalOpportunityValue).toLocaleString() : '0'}
                   </td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                     <div className="flex space-x-1">
