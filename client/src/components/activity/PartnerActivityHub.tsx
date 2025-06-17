@@ -937,6 +937,14 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                     <h4 className="font-medium text-blue-900 mb-2">Executive Summary</h4>
                     <p className="text-sm text-blue-800 leading-relaxed">
                       {(() => {
+                        const actualOkrCount = meetingBriefing.dataUsed?.okrs || 0;
+                        const actualOpportunityCount = meetingBriefing.dataUsed?.opportunities || 0;
+                        
+                        // If no meaningful data, provide appropriate summary
+                        if (actualOkrCount === 0 && actualOpportunityCount === 0) {
+                          return `${meetingBriefing.partner} currently has limited data available. This would be a good opportunity to discuss setting up OKRs and exploring new business opportunities.`;
+                        }
+                        
                         const lines = meetingBriefing.briefing.split('\n');
                         // Look for summary paragraph (first substantial paragraph or line with "summary")
                         const summaryLine = lines.find((line: string) => 
@@ -944,7 +952,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                         ) || lines.find((line: string) => 
                           line.trim().length > 50 && !line.includes('**') && !line.startsWith('- ')
                         );
-                        return summaryLine?.replace(/^-?\s*(summary:?)?/i, '').trim() || 'Meeting analysis completed';
+                        return summaryLine?.replace(/^-?\s*(summary:?)?/i, '').trim() || `Meeting preparation complete for ${meetingBriefing.partner} with ${actualOkrCount} OKR${actualOkrCount !== 1 ? 's' : ''} and ${actualOpportunityCount} opportunit${actualOpportunityCount !== 1 ? 'ies' : 'y'} to review.`;
                       })()}
                     </p>
                   </div>

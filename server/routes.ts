@@ -2447,7 +2447,7 @@ You will receive:
 - A list of opportunities linked to the broker
 
 Your task:
-1. Identify the 3 most relevant OKRs to discuss — those that stand out — and for each, briefly explain **why it should be discussed now**. For example:
+1. If OKRs are available, identify the 3 most relevant OKRs to discuss — those that stand out — and for each, briefly explain **why it should be discussed now**. For example:
    - It's significantly behind or ahead of target
    - It's significantly higher or lower than last year
    - It hasn't progressed since last year
@@ -2455,7 +2455,7 @@ Your task:
    - It's been inactive for a while or needs strategic alignment
    - It's a top performer and could be a success story
 
-2. Identify the 3 most relevant opportunity types to discuss.  
+2. If opportunities are available, identify the 3 most relevant opportunity types to discuss.  
    These should highlight things like:
    - Stalled or slow-moving deals
    - High-probability or high-value opportunities
@@ -2468,14 +2468,17 @@ Your task:
    These should:
    - Help the account manager prepare or guide the conversation
    - Be strategic, practical, or coordination-focused
+   - Focus on relationship building and business development if data is limited
    - Avoid repeating the OKRs or opportunities text word-for-word
 
 ---
 Format your output like this:
 - Summary paragraph
-- Section: **"Top 3 OKRs to Discuss"** – 3 bullet points, each explaining why it's relevant now
-- Section: **"Top 3 Opportunities to Discuss"** – 3 bullet points, each with context
+- Section: **"Top 3 OKRs to Discuss"** – 3 bullet points (ONLY if OKRs exist, otherwise skip this section)
+- Section: **"Top 3 Opportunities to Discuss"** – 3 bullet points (ONLY if opportunities exist, otherwise skip this section)
 - Section: **"Meeting Recommendations"** – 3 bullet points
+
+If no OKRs or opportunities are available, focus the recommendations on relationship building, discovering business needs, and setting up future tracking systems.
 
 Keep the tone clear and professional.  
 Focus on what will help the account manager lead a productive and focused meeting.`
