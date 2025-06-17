@@ -2248,7 +2248,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           om.timeframe_end,
           ta.assigned_at,
           ta.status as assignment_status,
-          ta.progress_percentage
+          ta.due_date,
+          ta.notes
         FROM degoudse.okr_template_assignments ta
         LEFT JOIN degoudse.okr_metrics om ON ta.template_id = om.id
         WHERE ta.entity_type = 'partner' AND ta.entity_id = $1
@@ -2302,7 +2303,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           timeframe_start: okr.timeframe_start,
           timeframe_end: okr.timeframe_end,
           assignment_status: okr.assignment_status,
-          progress_percentage: okr.progress_percentage,
+          due_date: okr.due_date,
+          notes: okr.notes,
           progress_ratio: okr.target_value > 0 ? (okr.realized_value / okr.target_value) : 0
         })),
         opportunities: opportunitiesResult.rows.map(opp => ({
@@ -2325,8 +2327,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           total_opportunities: opportunitiesResult.rows.length,
           total_opportunity_value: opportunitiesResult.rows.reduce((sum, opp) => sum + (opp.estimated_value || 0), 0),
           total_weighted_value: opportunitiesResult.rows.reduce((sum, opp) => sum + ((opp.estimated_value || 0) * (opp.probability || 0) / 100), 0),
-          opportunity_stages: [...new Set(opportunitiesResult.rows.map(opp => opp.stage).filter(Boolean))],
-          customer_industries: [...new Set(opportunitiesResult.rows.map(opp => opp.customer_industry).filter(Boolean))]
+          opportunity_stages: Array.from(new Set(opportunitiesResult.rows.map(opp => opp.stage).filter(Boolean))),
+          customer_industries: Array.from(new Set(opportunitiesResult.rows.map(opp => opp.customer_industry).filter(Boolean)))
         }
       };
       
