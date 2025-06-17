@@ -45,15 +45,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 
-// Calculate total value from unique opportunities linked to displayed customers
+// Calculate total value from ALL opportunities linked to customers (not just displayed page)
 function calculateCustomerTotalValue(customers: any[], opportunities: any[] = []): number {
-  // Get customer IDs from displayed customers
-  const customerIds = customers.map(c => c.id);
-  
-  // Filter opportunities that belong to displayed customers
-  const relevantOpportunities = opportunities.filter(opp => 
-    opp.clientId && customerIds.includes(opp.clientId)
-  );
+  // Filter opportunities that have a clientId (linked to any customer)
+  const relevantOpportunities = opportunities.filter(opp => opp.clientId);
   
   // Sum unique opportunity values (no double counting)
   return relevantOpportunities.reduce((sum, opp) => {
@@ -62,15 +57,10 @@ function calculateCustomerTotalValue(customers: any[], opportunities: any[] = []
   }, 0);
 }
 
-// Calculate weighted value from unique opportunities linked to displayed customers
+// Calculate weighted value from ALL opportunities linked to customers (not just displayed page)
 function calculateCustomerWeightedValue(customers: any[], opportunities: any[] = []): number {
-  // Get customer IDs from displayed customers
-  const customerIds = customers.map(c => c.id);
-  
-  // Filter opportunities that belong to displayed customers
-  const relevantOpportunities = opportunities.filter(opp => 
-    opp.clientId && customerIds.includes(opp.clientId)
-  );
+  // Filter opportunities that have a clientId (linked to any customer)
+  const relevantOpportunities = opportunities.filter(opp => opp.clientId);
   
   // Calculate probability-adjusted sum of opportunity values
   return relevantOpportunities.reduce((sum, opp) => {
