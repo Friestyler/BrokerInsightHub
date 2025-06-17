@@ -2124,8 +2124,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await envPool.query(`
         SELECT pr.*
         FROM degoudse.products pr
-        INNER JOIN degoudse.opportunity_products op ON pr.id = op.product_id
-        WHERE op.opportunity_id = $1
+        INNER JOIN degoudse.opportunities o ON pr.id = o.product_id
+        WHERE o.id = $1
         ORDER BY pr.id
       `, [opportunityId]);
       
@@ -2151,8 +2151,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await envPool.query(`
         SELECT p.*
         FROM degoudse.partners p
-        INNER JOIN degoudse.partner_opportunities po ON p.id = po.partner_id
-        WHERE po.opportunity_id = $1
+        INNER JOIN degoudse.opportunities o ON p.id = o.partner_id
+        WHERE o.id = $1
         ORDER BY p.id
       `, [opportunityId]);
       
@@ -2181,8 +2181,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await envPool.query(`
         SELECT c.*
         FROM degoudse.customers c
-        INNER JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
-        WHERE co.opportunity_id = $1
+        INNER JOIN degoudse.opportunities o ON c.id = o.client_id
+        WHERE o.id = $1
         ORDER BY c.id
       `, [opportunityId]);
       
