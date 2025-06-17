@@ -154,6 +154,13 @@ export default function PartnerDetail() {
   const [editingListId, setEditingListId] = useState<number | null>(null);
   const [renderKey, setRenderKey] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const statusDropdownRef = useRef<HTMLDivElement>(null);
+  const customerDropdownRef = useRef<HTMLDivElement>(null);
+  const accountManagerDropdownRef = useRef<HTMLDivElement>(null);
+  const insuranceDescDropdownRef = useRef<HTMLDivElement>(null);
+  const listsDropdownRef = useRef<HTMLDivElement>(null);
+  const viewsDropdownRef = useRef<HTMLDivElement>(null);
+  const viewsButtonRef = useRef<HTMLButtonElement>(null);
   
   // Fetch all partners to find this specific partner
   const { data: partners, isLoading: partnersLoading } = useQuery({
@@ -227,14 +234,10 @@ export default function PartnerDetail() {
       };
     }
   }, [editingStageId, stageDropdownRef]);
-  const statusDropdownRef = useRef<HTMLDivElement>(null);
-  const customerDropdownRef = useRef<HTMLDivElement>(null);
   
   // Views functionality state
   const [activeView, setActiveView] = useState<any>(null);
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
-  const viewsButtonRef = useRef<HTMLButtonElement>(null);
-  const viewsDropdownRef = useRef<HTMLDivElement>(null);
   const [originalViewFilters, setOriginalViewFilters] = useState<any>(null);
   const [showSaveViewModal, setShowSaveViewModal] = useState(false);
   const [viewNameInput, setViewNameInput] = useState('');
@@ -1769,8 +1772,152 @@ export default function PartnerDetail() {
                         )}
                       </div>
                       
+                      {/* Account Manager Filter Dropdown */}
+                      <div className="relative" ref={accountManagerDropdownRef}>
+                        <button 
+                          className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                            selectedAccountManager 
+                              ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
+                              : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                          }`}
+                          onClick={() => setShowAccountManagerDropdown(!showAccountManagerDropdown)}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                          </svg>
+                          <span>{selectedAccountManager ? `Account Manager: ${selectedAccountManager}` : 'Account Manager'}</span>
+                          {selectedAccountManager && (
+                            <svg 
+                              xmlns="http://www.w3.org/2000/svg" 
+                              width="14" 
+                              height="14" 
+                              viewBox="0 0 24 24" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              strokeWidth="2" 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round" 
+                              className="ml-2 hover:bg-indigo-100 rounded-full p-0.5 cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedAccountManager("");
+                              }}
+                            >
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                          )}
+                        </button>
+                        
+                        {showAccountManagerDropdown && (
+                          <div className="absolute z-50 mt-1 w-48 rounded-md border border-gray-200 bg-white shadow-lg">
+                            <div className="p-1">
+                              {selectedAccountManager && (
+                                <button
+                                  className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-md"
+                                  onClick={() => {
+                                    setSelectedAccountManager("");
+                                    setShowAccountManagerDropdown(false);
+                                  }}
+                                >
+                                  Clear filter
+                                </button>
+                              )}
+                              {uniqueAccountManagers.map((manager: string) => (
+                                <button
+                                  key={manager}
+                                  className={`w-full text-left px-3 py-2 text-sm rounded-md ${
+                                    selectedAccountManager === manager 
+                                      ? 'bg-indigo-50 text-indigo-700' 
+                                      : 'text-gray-700 hover:bg-gray-50'
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedAccountManager(manager);
+                                    setShowAccountManagerDropdown(false);
+                                  }}
+                                >
+                                  {manager}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Insurance Description Filter Dropdown */}
+                      <div className="relative" ref={insuranceDescDropdownRef}>
+                        <button 
+                          className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                            selectedInsuranceDescription 
+                              ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
+                              : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                          }`}
+                          onClick={() => setShowInsuranceDescDropdown(!showInsuranceDescDropdown)}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                          </svg>
+                          <span>{selectedInsuranceDescription ? `Insurance: ${selectedInsuranceDescription.substring(0, 20)}...` : 'Insurance Description'}</span>
+                          {selectedInsuranceDescription && (
+                            <svg 
+                              xmlns="http://www.w3.org/2000/svg" 
+                              width="14" 
+                              height="14" 
+                              viewBox="0 0 24 24" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              strokeWidth="2" 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round" 
+                              className="ml-2 hover:bg-indigo-100 rounded-full p-0.5 cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedInsuranceDescription("");
+                              }}
+                            >
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                          )}
+                        </button>
+                        
+                        {showInsuranceDescDropdown && (
+                          <div className="absolute z-50 mt-1 w-64 rounded-md border border-gray-200 bg-white shadow-lg">
+                            <div className="p-1">
+                              {selectedInsuranceDescription && (
+                                <button
+                                  className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-md"
+                                  onClick={() => {
+                                    setSelectedInsuranceDescription("");
+                                    setShowInsuranceDescDropdown(false);
+                                  }}
+                                >
+                                  Clear filter
+                                </button>
+                              )}
+                              {uniqueInsuranceDescriptions.map((description: string) => (
+                                <button
+                                  key={description}
+                                  className={`w-full text-left px-3 py-2 text-sm rounded-md ${
+                                    selectedInsuranceDescription === description 
+                                      ? 'bg-indigo-50 text-indigo-700' 
+                                      : 'text-gray-700 hover:bg-gray-50'
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedInsuranceDescription(description);
+                                    setShowInsuranceDescDropdown(false);
+                                  }}
+                                >
+                                  {description}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
                       {/* Save as new view button - shows when filters are active and no view is active */}
-                      {!activeView && (selectedStatus || selectedCustomer) && (
+                      {!activeView && (selectedStatus || selectedCustomer || selectedAccountManager || selectedInsuranceDescription) && (
                         <button 
                           className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7] ml-3"
                           onClick={() => setShowSaveViewModal(true)}
