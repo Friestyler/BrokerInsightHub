@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { useParams } from "wouter";
+import { useParams, useLocation } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,7 @@ import PartnerCampaignsView from "@/components/campaigns/PartnerCampaignsView";
 export default function PartnerDetail() {
   const { id } = useParams();
   const { environment } = useEnvironment();
+  const [, setLocation] = useLocation();
   
   // Check URL parameters for tab selection
   const urlParams = new URLSearchParams(window.location.search);
@@ -2836,12 +2837,17 @@ export default function PartnerDetail() {
                             </span>
                           </TableCell>
                           <TableCell>
-                            <Link 
-                              href={`/lists/customers/${customer.id}?tab=opportunities`} 
-                              className="text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer"
+                            <button
+                              onClick={() => {
+                                // Store navigation context for customer detail back navigation
+                                sessionStorage.setItem('customerReferrer', `/lists/partners/${id}#customers`);
+                                // Navigate programmatically with query parameter
+                                setLocation(`/lists/customers/${customer.id}?tab=opportunities`);
+                              }}
+                              className="text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer bg-transparent border-none p-0 font-normal"
                             >
                               {customerOpportunities.length}
-                            </Link>
+                            </button>
                           </TableCell>
                           <TableCell>
                             €{totalValue ? Number(totalValue).toLocaleString() : '0'}
