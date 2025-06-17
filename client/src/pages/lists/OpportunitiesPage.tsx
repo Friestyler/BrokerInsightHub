@@ -419,6 +419,10 @@ function OpportunitiesTable() {
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedType, setSelectedType] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState('');
+  const [selectedPartner, setSelectedPartner] = useState('');
+  const [selectedStage, setSelectedStage] = useState('');
+  const [selectedProbability, setSelectedProbability] = useState('');
   const [selectedOpportunities, setSelectedOpportunities] = useState<number[]>([]);
   const [bulkStatusValue, setBulkStatusValue] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
@@ -427,10 +431,18 @@ function OpportunitiesTable() {
   // Dropdown state variables for new filter behavior
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const [showPartnerDropdown, setShowPartnerDropdown] = useState(false);
+  const [showStageDropdown, setShowStageDropdown] = useState(false);
+  const [showProbabilityDropdown, setShowProbabilityDropdown] = useState(false);
   
   // Database-driven filter options extracted from opportunities data
   const statusOptions = Array.from(new Set(opportunities.map((opp: any) => opp.status).filter(Boolean))).sort();
   const typeOptions = Array.from(new Set(opportunities.map((opp: any) => opp.type).filter(Boolean))).sort();
+  const customerOptions = Array.from(new Set(opportunities.map((opp: any) => opp.clientName || opp.customerName).filter(Boolean))).sort();
+  const partnerOptions = Array.from(new Set(opportunities.map((opp: any) => opp.partnerName).filter(Boolean))).sort();
+  const stageOptions = Array.from(new Set(opportunities.map((opp: any) => opp.stage).filter(Boolean))).sort();
+  const probabilityOptions = Array.from(new Set(opportunities.map((opp: any) => opp.probability).filter(val => val !== null && val !== undefined))).sort((a, b) => a - b);
   
   // Handle click outside to close dropdowns
   useEffect(() => {
@@ -439,6 +451,10 @@ function OpportunitiesTable() {
       if (!target.closest('.filter-dropdown')) {
         setShowStatusDropdown(false);
         setShowTypeDropdown(false);
+        setShowCustomerDropdown(false);
+        setShowPartnerDropdown(false);
+        setShowStageDropdown(false);
+        setShowProbabilityDropdown(false);
         setShowViewsDropdown(false);
         setShowListsDropdown(false);
       }
@@ -735,13 +751,13 @@ function OpportunitiesTable() {
     return opportunitiesData.filter((opportunity: any) => {
       // Text search - using actual API response fields
       const title = opportunity.title || '';
-      const customerName = opportunity.clientName || opportunity.customerName || '';
-      const partnerName = opportunity.partnerName || '';
+      const searchCustomerName = opportunity.clientName || opportunity.customerName || '';
+      const searchPartnerName = opportunity.partnerName || '';
       
       const matchesText = !filterText || 
         title.toLowerCase().includes(filterText.toLowerCase()) ||
-        customerName.toLowerCase().includes(filterText.toLowerCase()) ||
-        partnerName.toLowerCase().includes(filterText.toLowerCase());
+        searchCustomerName.toLowerCase().includes(filterText.toLowerCase()) ||
+        searchPartnerName.toLowerCase().includes(filterText.toLowerCase());
         
       // Status filter (from UI or active list/view)
       const activeStatus = selectedStatus || activeList?.filters.status || activeView?.filters.status;
@@ -750,6 +766,22 @@ function OpportunitiesTable() {
       // Type filter (from UI or active list/view)
       const activeType = selectedType || activeList?.filters.type || activeView?.filters.type;
       const matchesType = !activeType || opportunity.type === activeType;
+      
+      // Customer filter
+      const filterCustomerName = opportunity.clientName || opportunity.customerName || '';
+      const matchesCustomer = !selectedCustomer || filterCustomerName === selectedCustomer;
+      
+      // Partner filter
+      const filterPartnerName = opportunity.partnerName || '';
+      const matchesPartner = !selectedPartner || filterPartnerName === selectedPartner;
+      
+      // Stage filter
+      const stage = opportunity.stage || '';
+      const matchesStage = !selectedStage || stage === selectedStage;
+      
+      // Probability filter
+      const probability = opportunity.probability;
+      const matchesProbability = !selectedProbability || String(probability) === selectedProbability;
       
       // Customer/Partner filters from active list
       const customerId = opportunity.customerId || opportunity.clientId;
@@ -760,7 +792,7 @@ function OpportunitiesTable() {
       const matchesPartnerId = !activeList?.filters.partnerId || 
         String(partnerId) === activeList.filters.partnerId;
       
-      return matchesText && matchesStatus && matchesType && matchesCustomerId && matchesPartnerId;
+      return matchesText && matchesStatus && matchesType && matchesCustomer && matchesPartner && matchesStage && matchesProbability && matchesCustomerId && matchesPartnerId;
     });
   })();
 
@@ -1397,6 +1429,293 @@ function OpportunitiesTable() {
                           >
                             {type}
                             {selectedType === type && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto text-indigo-600">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Customer Filter Dropdown */}
+                <div className="relative filter-dropdown">
+                  <button 
+                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedCustomer ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}
+                    onClick={() => setShowCustomerDropdown(!showCustomerDropdown)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>{selectedCustomer ? `Customer: ${selectedCustomer}` : 'Customer'}</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className={`ml-2 transition-transform ${showCustomerDropdown ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  
+                  {showCustomerDropdown && (
+                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-lg">
+                      <div className="p-1">
+                        {selectedCustomer && (
+                          <button
+                            className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+                            onClick={() => {
+                              setSelectedCustomer('');
+                              setShowCustomerDropdown(false);
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                            Clear Customer Filter
+                          </button>
+                        )}
+                        {customerOptions.map((customer) => (
+                          <button
+                            key={customer}
+                            className={`flex w-full items-center px-3 py-2 text-sm rounded-md ${
+                              selectedCustomer === customer 
+                                ? 'bg-indigo-50 text-indigo-700' 
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                            onClick={() => {
+                              setSelectedCustomer(customer);
+                              setShowCustomerDropdown(false);
+                            }}
+                          >
+                            {customer}
+                            {selectedCustomer === customer && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto text-indigo-600">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Partner Filter Dropdown */}
+                <div className="relative filter-dropdown">
+                  <button 
+                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedPartner ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}
+                    onClick={() => setShowPartnerDropdown(!showPartnerDropdown)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="9" cy="7" r="4"></circle>
+                      <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <span>{selectedPartner ? `Partner: ${selectedPartner}` : 'Partner'}</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className={`ml-2 transition-transform ${showPartnerDropdown ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  
+                  {showPartnerDropdown && (
+                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-lg">
+                      <div className="p-1">
+                        {selectedPartner && (
+                          <button
+                            className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+                            onClick={() => {
+                              setSelectedPartner('');
+                              setShowPartnerDropdown(false);
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                            Clear Partner Filter
+                          </button>
+                        )}
+                        {partnerOptions.map((partner) => (
+                          <button
+                            key={partner}
+                            className={`flex w-full items-center px-3 py-2 text-sm rounded-md ${
+                              selectedPartner === partner 
+                                ? 'bg-indigo-50 text-indigo-700' 
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                            onClick={() => {
+                              setSelectedPartner(partner);
+                              setShowPartnerDropdown(false);
+                            }}
+                          >
+                            {partner}
+                            {selectedPartner === partner && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto text-indigo-600">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Stage Filter Dropdown */}
+                <div className="relative filter-dropdown">
+                  <button 
+                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedStage ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}
+                    onClick={() => setShowStageDropdown(!showStageDropdown)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <polyline points="9 11 12 14 22 4"></polyline>
+                      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                    </svg>
+                    <span>{selectedStage ? `Stage: ${selectedStage}` : 'Stage'}</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className={`ml-2 transition-transform ${showStageDropdown ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  
+                  {showStageDropdown && (
+                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-lg">
+                      <div className="p-1">
+                        {selectedStage && (
+                          <button
+                            className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+                            onClick={() => {
+                              setSelectedStage('');
+                              setShowStageDropdown(false);
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                            Clear Stage Filter
+                          </button>
+                        )}
+                        {stageOptions.map((stage) => (
+                          <button
+                            key={stage}
+                            className={`flex w-full items-center px-3 py-2 text-sm rounded-md ${
+                              selectedStage === stage 
+                                ? 'bg-indigo-50 text-indigo-700' 
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                            onClick={() => {
+                              setSelectedStage(stage);
+                              setShowStageDropdown(false);
+                            }}
+                          >
+                            {stage}
+                            {selectedStage === stage && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto text-indigo-600">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Probability Filter Dropdown */}
+                <div className="relative filter-dropdown">
+                  <button 
+                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedProbability ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}
+                    onClick={() => setShowProbabilityDropdown(!showProbabilityDropdown)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <line x1="18" y1="20" x2="18" y2="10"></line>
+                      <line x1="12" y1="20" x2="12" y2="4"></line>
+                      <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                    <span>{selectedProbability ? `Probability: ${selectedProbability}%` : 'Probability'}</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className={`ml-2 transition-transform ${showProbabilityDropdown ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  
+                  {showProbabilityDropdown && (
+                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-lg">
+                      <div className="p-1">
+                        {selectedProbability && (
+                          <button
+                            className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+                            onClick={() => {
+                              setSelectedProbability('');
+                              setShowProbabilityDropdown(false);
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                            Clear Probability Filter
+                          </button>
+                        )}
+                        {probabilityOptions.map((probability) => (
+                          <button
+                            key={probability}
+                            className={`flex w-full items-center px-3 py-2 text-sm rounded-md ${
+                              selectedProbability === String(probability) 
+                                ? 'bg-indigo-50 text-indigo-700' 
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                            onClick={() => {
+                              setSelectedProbability(String(probability));
+                              setShowProbabilityDropdown(false);
+                            }}
+                          >
+                            {probability}%
+                            {selectedProbability === String(probability) && (
                               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto text-indigo-600">
                                 <polyline points="20 6 9 17 4 12"></polyline>
                               </svg>
