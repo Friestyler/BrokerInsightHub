@@ -2025,7 +2025,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
         LEFT JOIN degoudse.partners p ON p.id = po.partner_id
         WHERE co.customer_id = $1
-        GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", o."expectedCloseDate", o."clientId", o."partnerId", o."productId", o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
+        GROUP BY o.id, o.title, o.description, o.status, o.stage, o.estimated_value, o.expected_close_date, o.client_id, o.partner_id, o.product_id, o.owner_id, o.probability, o.type, o.created_at, o.updated_at
         ORDER BY o.id
       `, [customerId]);
       
@@ -2035,9 +2035,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: opp.description,
         status: opp.status,
         stage: opp.stage,
-        estimated_value: opp.estimatedValue,
+        estimated_value: opp.estimated_value,
         partnerNames: opp.partner_names,
-        expected_close_date: opp.expectedCloseDate
+        expected_close_date: opp.expected_close_date
       }));
       
       res.json(opportunities);
