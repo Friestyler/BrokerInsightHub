@@ -2316,7 +2316,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const partnerNames = customerPartners.map((p: any) => p.partner_name).join(', ');
         const partnerIds = customerPartners.map((p: any) => p.partner_id).join(',');
         
-        return {
+        const processedCustomer = {
           id: customer.id,
           name: customer.name,
           description: customer.description,
@@ -2330,6 +2330,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           partnerNames: partnerNames,
           partnerIds: partnerIds
         };
+        
+        console.log(`Processing customer ${customer.name}: opps=${customer.opportunity_count} -> ${processedCustomer.opportunityCount}, value=${customer.total_opportunity_value} -> ${processedCustomer.totalOpportunityValue}`);
+        
+        return processedCustomer;
       });
       
       // Return paginated response with metadata and summary totals
