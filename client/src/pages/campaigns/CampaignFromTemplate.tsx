@@ -25,6 +25,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const currentPath = window.location.pathname;
   const campaignId = currentPath.includes('/campaigns/edit/') 
     ? currentPath.split('/campaigns/edit/')[1].split('/')[0] // Handle any trailing slashes
+    : currentPath.includes('/broker-view/campaigns/edit/')
+    ? currentPath.split('/broker-view/campaigns/edit/')[1].split('/')[0] // Handle broker-view routes
     : params?.campaignId;
   const templateId = currentPath.includes('/campaigns/create-from-template/') 
     ? currentPath.split('/campaigns/create-from-template/')[1].split('/')[0] // Handle any trailing slashes

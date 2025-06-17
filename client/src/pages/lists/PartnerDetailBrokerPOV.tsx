@@ -2338,10 +2338,10 @@ export default function PartnerDetailBrokerPOV() {
                             key={campaign.id} 
                             className="hover:bg-gray-50 cursor-pointer group"
                             onClick={() => {
-                              // Navigate to campaign builder with metadata prefilled and broker context
+                              // Navigate to broker-view campaign builder with metadata prefilled
                               const environment = 'degoudse'; // From the environment context
                               const backUrl = `/broker-view/partner/${environment}?tab=campaigns`;
-                              window.location.href = `/campaigns/edit/${campaign.id}?from_broker_view=true&back_url=${encodeURIComponent(backUrl)}&env=${environment}`;
+                              window.location.href = `/broker-view/campaigns/edit/${campaign.id}?from_broker_view=true&back_url=${encodeURIComponent(backUrl)}&env=${environment}`;
                             }}
                           >
                             <td className="px-3 py-4 text-sm text-gray-900 w-[250px]">
@@ -2400,7 +2400,7 @@ export default function PartnerDetailBrokerPOV() {
                                   e.stopPropagation();
                                   const environment = 'degoudse';
                                   const backUrl = `/broker-view/partner/${environment}?tab=campaigns`;
-                                  window.location.href = `/campaigns/edit/${campaign.id}?from_broker_view=true&back_url=${encodeURIComponent(backUrl)}&env=${environment}`;
+                                  window.location.href = `/broker-view/campaigns/edit/${campaign.id}?from_broker_view=true&back_url=${encodeURIComponent(backUrl)}&env=${environment}`;
                                 }}
                               >
                                 View
