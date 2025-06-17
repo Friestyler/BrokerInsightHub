@@ -614,9 +614,6 @@ export default function PartnerDetailBrokerPOV() {
                   <span className="text-sm text-gray-500">Owner: <span className="text-blue-600">De Goudse</span></span>
                 </div>
               </div>
-              <div className="mt-1">
-                <span className="text-gray-600">{partner.description}</span>
-              </div>
             </div>
           </div>
           

@@ -1006,9 +1006,6 @@ export default function PartnerDetail() {
                     <span className="text-sm text-gray-500">Owner: <span className="text-blue-600">{partner.owner_name || 'Not assigned'}</span></span>
                   </div>
                 </div>
-                <div className="mt-1">
-                  <span className="text-gray-600 text-[14px]">{partner.description || 'Partner created from zonnepanelen'}</span>
-                </div>
               </div>
             </div>
           </div>
