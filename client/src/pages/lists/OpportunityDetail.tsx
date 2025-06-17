@@ -444,7 +444,13 @@ export default function OpportunityDetail() {
                   <TableRow key={customer.id}>
                     <TableCell><Checkbox /></TableCell>
                     <TableCell>
-                      <Link href={`/customers/${customer.id}`}>
+                      <Link 
+                        href={`/lists/customers/${customer.id}`}
+                        onClick={() => {
+                          // Store navigation context for customer detail back navigation
+                          sessionStorage.setItem('customerReferrer', `opportunities/${id}#customers`);
+                        }}
+                      >
                         <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
                           {customer.name}
                         </span>
