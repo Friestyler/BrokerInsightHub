@@ -16,9 +16,10 @@ export default function PartnerView() {
   const [location] = useLocation();
   const [opportunities, setOpportunities] = useState<any[]>([]);
   
-  // Check if we're on the partners page or all opportunities page
+  // Check if we're on the partners page, opportunities page, or campaigns page
   const isPartnersPage = location === '/broker-view/partners';
   const isAllOpportunitiesPage = location === '/broker-view/opportunities';
+  const isCampaignsPage = location === '/broker-view/campaigns';
   
   // State for Lists dropdown and filters
   const [showListsDropdown, setShowListsDropdown] = useState(false);
@@ -43,6 +44,14 @@ export default function PartnerView() {
       return response.find((list: any) => list.id === parseInt(listId || '0'));
     },
     enabled: !!listId
+  });
+
+  // Fetch broker campaigns if on campaigns page
+  const { data: brokerCampaigns = [], isLoading: campaignsLoading } = useQuery({
+    queryKey: ['/api/broker/shared-campaigns'],
+    queryFn: () => apiRequest('GET', '/api/broker/shared-campaigns'),
+    enabled: isCampaignsPage,
+    staleTime: 2 * 60 * 1000,
   });
 
   // Fetch opportunities based on list members
@@ -152,6 +161,99 @@ export default function PartnerView() {
     return (
       <BrokerLayout>
         <PartnersViewforPartner />
+      </BrokerLayout>
+    );
+  }
+
+  // If we're on the campaigns page, render the campaigns view
+  if (isCampaignsPage) {
+    return (
+      <BrokerLayout>
+        <div className="p-6">
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold text-gray-900 mb-2">Shared Campaigns</h1>
+            <p className="text-gray-600">Campaigns shared with you by De Goudse</p>
+          </div>
+
+          {campaignsLoading ? (
+            <div className="animate-pulse">
+              <div className="h-8 bg-gray-200 rounded w-1/4 mb-4"></div>
+              <div className="space-y-3">
+                <div className="h-4 bg-gray-200 rounded"></div>
+                <div className="h-4 bg-gray-200 rounded"></div>
+                <div className="h-4 bg-gray-200 rounded"></div>
+              </div>
+            </div>
+          ) : brokerCampaigns.length === 0 ? (
+            <div className="text-center py-12">
+              <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No campaigns shared</h3>
+              <p className="text-gray-500">No campaigns have been shared with you yet.</p>
+            </div>
+          ) : (
+            <div className="grid gap-6">
+              {brokerCampaigns.map((campaign: any) => (
+                <div key={campaign.id} className="bg-white border rounded-lg p-6 hover:shadow-md transition-shadow">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-3 mb-2">
+                        <h3 className="text-lg font-semibold text-gray-900">{campaign.name}</h3>
+                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                          campaign.status === 'active' ? 'bg-green-100 text-green-800' :
+                          campaign.status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                          campaign.status === 'template' ? 'bg-blue-100 text-blue-800' :
+                          'bg-gray-100 text-gray-800'
+                        }`}>
+                          {campaign.status}
+                        </span>
+                      </div>
+                      <p className="text-gray-600 mb-3">{campaign.description}</p>
+                      <div className="flex items-center gap-4 text-sm text-gray-500">
+                        <span>Shared by {campaign.sharedBy}</span>
+                        <span>•</span>
+                        <span>{campaign.sponsorName}</span>
+                        {campaign.sharedAt && (
+                          <>
+                            <span>•</span>
+                            <span>{new Date(campaign.sharedAt).toLocaleDateString()}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    <Link href={`/campaigns/${campaign.id}?from_broker_view=true`}>
+                      <Button variant="outline" size="sm">
+                        View Campaign
+                      </Button>
+                    </Link>
+                  </div>
+                  
+                  {(campaign.emails_sent > 0 || campaign.emails_opened > 0) && (
+                    <div className="border-t pt-4">
+                      <div className="grid grid-cols-3 gap-4 text-sm">
+                        <div>
+                          <div className="text-gray-500">Emails Sent</div>
+                          <div className="font-semibold">{campaign.emails_sent || 0}</div>
+                        </div>
+                        <div>
+                          <div className="text-gray-500">Opened</div>
+                          <div className="font-semibold">{campaign.emails_opened || 0}</div>
+                        </div>
+                        <div>
+                          <div className="text-gray-500">Open Rate</div>
+                          <div className="font-semibold">{campaign.open_rate || '0.00'}%</div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </BrokerLayout>
     );
   }
