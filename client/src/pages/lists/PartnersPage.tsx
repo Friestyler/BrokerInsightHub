@@ -279,7 +279,7 @@ function PartnersTable() {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('');
   const [selectedActualIndustry, setSelectedActualIndustry] = useState('');
-  const [selectedType, setSelectedType] = useState('');
+
   const [selectedPartners, setSelectedPartners] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
@@ -288,13 +288,13 @@ function PartnersTable() {
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showIndustryDropdown, setShowIndustryDropdown] = useState(false);
   const [showActualIndustryDropdown, setShowActualIndustryDropdown] = useState(false);
-  const [showTypeDropdown, setShowTypeDropdown] = useState(false);
+
   
   // Refs for dropdown positioning
   const statusDropdownRef = useRef<HTMLDivElement>(null);
   const industryDropdownRef = useRef<HTMLDivElement>(null);
   const actualIndustryDropdownRef = useRef<HTMLDivElement>(null);
-  const typeDropdownRef = useRef<HTMLDivElement>(null);
+
   
   // Sorting state
   const [tableSortConfig, setTableSortConfig] = useState({
@@ -461,16 +461,13 @@ function PartnersTable() {
       if (actualIndustryDropdownRef.current && !actualIndustryDropdownRef.current.contains(event.target as Node)) {
         setShowActualIndustryDropdown(false);
       }
-      if (typeDropdownRef.current && !typeDropdownRef.current.contains(event.target as Node)) {
-        setShowTypeDropdown(false);
-      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showViewsDropdown, showStatusDropdown, showIndustryDropdown, showActualIndustryDropdown, showTypeDropdown]);
+  }, [showViewsDropdown, showStatusDropdown, showIndustryDropdown, showActualIndustryDropdown]);
   
   const [isCreatingNewList, setIsCreatingNewList] = useState(false); // Default to adding to existing list
   const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);

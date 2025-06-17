@@ -1705,17 +1705,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envPool = pool;
       
       // Get distinct values for all filter fields
-      const [statusResult, regionResult, typeResult, locationResult] = await Promise.all([
+      const [statusResult, regionResult, locationResult] = await Promise.all([
         envPool.query(`SELECT DISTINCT status FROM degoudse.partners WHERE status IS NOT NULL AND status != '' ORDER BY status`),
         envPool.query(`SELECT DISTINCT region FROM degoudse.partners WHERE region IS NOT NULL AND region != '' ORDER BY region`),
-        envPool.query(`SELECT DISTINCT partner_type FROM degoudse.partners WHERE partner_type IS NOT NULL AND partner_type != '' ORDER BY partner_type`),
         envPool.query(`SELECT DISTINCT location FROM degoudse.partners WHERE location IS NOT NULL AND location != '' ORDER BY location`)
       ]);
       
       const filterOptions = {
         statuses: statusResult.rows.map(row => row.status),
         regions: regionResult.rows.map(row => row.region),
-        partnerTypes: typeResult.rows.map(row => row.partner_type),
         locations: locationResult.rows.map(row => row.location)
       };
       
