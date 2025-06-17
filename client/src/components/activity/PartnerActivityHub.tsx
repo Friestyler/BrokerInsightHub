@@ -75,6 +75,17 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
   const [selectedActivityType, setSelectedActivityType] = useState<'task' | 'comment' | 'attachment' | 'timeline' | 'actions' | 'meeting'>('timeline');
   const [highlightActions, setHighlightActions] = useState(false);
   const [showActivityInput, setShowActivityInput] = useState(false);
+
+  // Function to render markdown bold text
+  const renderMarkdownText = (text: string) => {
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={index}>{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
   
   // Form states
   const [taskTitle, setTaskTitle] = useState('');
@@ -1003,7 +1014,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                             <div key={index} className="flex items-start gap-3 p-3 bg-green-50 rounded-md">
                               <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                               <div className="text-sm text-gray-700">
-                                {item.replace('- ', '')}
+                                {renderMarkdownText(item.replace('- ', ''))}
                               </div>
                             </div>
                           ));
@@ -1024,8 +1035,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                           <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-md">
                             <MessageSquare className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
                             <div className="text-sm text-gray-700">
-                              <span className="font-medium">{item.match(/\*\*(.*?)\*\*/)?.[1]}</span>
-                              <span className="text-gray-600">: {item.split('**: ')[1]}</span>
+                              {renderMarkdownText(item.replace('- ', ''))}
                             </div>
                           </div>
                         ))}
@@ -1059,7 +1069,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                             ).slice(0, 3).map((item: string, index: number) => (
                               <div key={index} className="flex items-start gap-3 p-2">
                                 <CheckSquare className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
-                                <span className="text-sm text-gray-700">{item.replace('- ', '')}</span>
+                                <span className="text-sm text-gray-700">{renderMarkdownText(item.replace('- ', ''))}</span>
                               </div>
                             ));
                           }
@@ -1072,7 +1082,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                           return recommendationItems.map((item: string, index: number) => (
                             <div key={index} className="flex items-start gap-3 p-2">
                               <CheckSquare className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
-                              <span className="text-sm text-gray-700">{item.replace('- ', '')}</span>
+                              <span className="text-sm text-gray-700">{renderMarkdownText(item.replace('- ', ''))}</span>
                             </div>
                           ));
                         })()}
