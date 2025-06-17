@@ -1896,7 +1896,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const partnerId = parseInt(req.params.id);
       const envPool = pool;
       const result = await envPool.query(`
-        SELECT c.id, c.name, c.description
+        SELECT c.id, c.name, c.description, c.industry, c.status
         FROM degoudse.customers c
         INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
         WHERE pc.partner_id = $1
@@ -1906,7 +1906,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const customers = result.rows.map((customer: any) => ({
         id: customer.id,
         name: customer.name,
-        description: customer.description
+        description: customer.description,
+        industry: customer.industry,
+        status: customer.status
       }));
       
       res.json(customers);
