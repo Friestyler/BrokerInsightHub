@@ -2678,7 +2678,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         insuranceDescription: opp.insurance_description,
         status: opp.status,
         stage: opp.stage,
-        estimatedValue: opp.estimated_value,
+        estimated_value: opp.estimated_value || opp.estimatedValue,
         expectedCloseDate: opp.expected_close_date,
         startDate: opp.start_date,
         clientId: opp.client_id,
