@@ -1345,7 +1345,7 @@ function PartnersTable() {
                             setFilterText(activeView.filters.searchText || '');
                             setSelectedStatus(activeView.filters.status || '');
                             setSelectedIndustry(activeView.filters.industry || '');
-                            setSelectedActualIndustry(activeView.filters.actualIndustry || '');
+                            setSelectedActualIndustry('');
                           }}
                           style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
                         >
