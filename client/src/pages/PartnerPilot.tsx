@@ -159,16 +159,16 @@ export default function PartnerPilot() {
     // High-value opportunities that need attention
     if (opportunities && Array.isArray(opportunities)) {
       const highValueOpps = opportunities.filter((opp: any) => 
-        opp.value > 50000 && opp.status === 'In Progress'
+        (opp.estimated_value || 0) > 50000 && opp.status === 'In Progress'
       );
       if (highValueOpps.length > 0) {
         actions.push({
           title: "Review High-Value Opportunities",
-          description: `${highValueOpps.length} opportunities worth €${highValueOpps.reduce((sum: number, opp: any) => sum + opp.value, 0).toLocaleString()}`,
+          description: `${highValueOpps.length} opportunities worth €${highValueOpps.reduce((sum: number, opp: any) => sum + (opp.estimated_value || 0), 0).toLocaleString()}`,
           action: () => setLocation('/opportunities'),
           icon: <DollarSign className="h-5 w-5 text-green-600" />,
           priority: 'high' as const,
-          data: `Total value: €${highValueOpps.reduce((sum: number, opp: any) => sum + opp.value, 0).toLocaleString()}`
+          data: `Total value: €${highValueOpps.reduce((sum: number, opp: any) => sum + (opp.estimated_value || 0), 0).toLocaleString()}`
         });
       }
     }

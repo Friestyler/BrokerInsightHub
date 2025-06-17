@@ -2676,7 +2676,7 @@ export default function PartnerDetail() {
                 const totalValue = filteredCustomers.reduce((total, customer) => {
                   const customerOpportunities = (relatedOpportunities as any[] || []).filter((o: any) => o.clientName === customer.name);
                   return total + customerOpportunities.reduce((oppTotal: number, opp: any) => {
-                    const value = parseFloat(opp.value?.replace(/[€,]/g, '') || '0') || 0;
+                    const value = Number(opp.estimated_value) || 0;
                     return oppTotal + value;
                   }, 0);
                 }, 0);
@@ -2684,7 +2684,7 @@ export default function PartnerDetail() {
                 const weightedValue = filteredCustomers.reduce((total, customer) => {
                   const customerOpportunities = (relatedOpportunities as any[] || []).filter((o: any) => o.clientName === customer.name);
                   return total + customerOpportunities.reduce((oppTotal: number, opp: any) => {
-                    const value = parseFloat(opp.value?.replace(/[€,]/g, '') || '0') || 0;
+                    const value = Number(opp.estimated_value) || 0;
                     const probability = parseFloat(opp.probability || '0') / 100;
                     return oppTotal + (value * probability);
                   }, 0);
