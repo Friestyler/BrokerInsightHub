@@ -1733,7 +1733,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Direct query with relationship counts from opportunities table
       const result = await envPool.query(`
         SELECT p.id, p.name, p.description, p.status, p.location, p.contact_email, 
-               p.primary_contact, p.partner_type, p.region, p.assigned_user_ids, 
+               p.primary_contact, p.region, p.assigned_user_ids, 
                p.linked_opportunity_ids, p.created_at, p.updated_at,
                COALESCE(rel.opportunity_count, 0) as opportunity_count,
                COALESCE(rel.customer_count, 0) as customer_count

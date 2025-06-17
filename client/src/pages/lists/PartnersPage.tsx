@@ -573,7 +573,6 @@ function PartnersTable() {
   // Extract filter values from database response
   const uniqueStatuses = filterOptions?.statuses || [];
   const uniqueRegions = filterOptions?.regions || [];
-  const uniquePartnerTypes = filterOptions?.partnerTypes || [];
   const uniqueLocations = filterOptions?.locations || [];
 
   // Filter partners based on search text, filter selections, and list membership
@@ -609,9 +608,8 @@ function PartnersTable() {
       const matchesStatus = !selectedStatus || partner.status === selectedStatus;
       const matchesIndustry = !selectedIndustry || partner.region === selectedIndustry;
       const matchesActualIndustry = !selectedActualIndustry || partner.industry === selectedActualIndustry;
-      const matchesType = !selectedType || partner.partner_type === selectedType;
       
-      return matchesText && matchesStatus && matchesIndustry && matchesActualIndustry && matchesType;
+      return matchesText && matchesStatus && matchesIndustry && matchesActualIndustry;
     })
     // Apply sorting
     .sort((a: any, b: any) => {
@@ -645,7 +643,6 @@ function PartnersTable() {
         searchText: filterText || undefined,
         status: selectedStatus || undefined,
         industry: selectedIndustry || undefined,
-        type: selectedType || undefined,
         size: originalListFilters.size // Preserve size filter if it exists
       };
       
@@ -653,14 +650,13 @@ function PartnersTable() {
       const hasChanges = 
         currentFilters.searchText !== originalListFilters.searchText ||
         currentFilters.status !== originalListFilters.status ||
-        currentFilters.industry !== originalListFilters.industry ||
-        currentFilters.type !== originalListFilters.type;
+        currentFilters.industry !== originalListFilters.industry;
       
       setHasUnsavedChanges(hasChanges);
     } else {
       setHasUnsavedChanges(false);
     }
-  }, [filterText, selectedStatus, selectedIndustry, selectedType, activeList, originalListFilters]);
+  }, [filterText, selectedStatus, selectedIndustry, activeList, originalListFilters]);
   
   // Function to revert changes to the original list filters
   const revertChanges = () => {
@@ -668,7 +664,6 @@ function PartnersTable() {
       setFilterText(originalListFilters.searchText || '');
       setSelectedStatus(originalListFilters.status || '');
       setSelectedIndustry(originalListFilters.industry || '');
-      setSelectedType(originalListFilters.type || '');
       setHasUnsavedChanges(false);
     }
   };
@@ -685,7 +680,6 @@ function PartnersTable() {
           searchText: filterText || undefined,
           status: selectedStatus || undefined,
           industry: selectedIndustry || undefined,
-          type: selectedType || undefined,
           size: originalListFilters?.size // Preserve size filter if it exists
         },
         createdAt: new Date() // Update the timestamp
