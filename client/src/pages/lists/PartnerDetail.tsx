@@ -258,12 +258,13 @@ export default function PartnerDetail() {
     // Method 1: Check document.referrer
     if (referrer && referrer.startsWith(currentOrigin)) {
       const referrerPath = new URL(referrer).pathname;
-      const customerDetailMatch = referrerPath.match(/\/customers\/(\d+)/);
+      const customerDetailMatch = referrerPath.match(/\/lists\/customers\/(\d+)/);
       const opportunityDetailMatch = referrerPath.match(/\/opportunities\/(\d+)/);
+      const opportunityListDetailMatch = referrerPath.match(/\/lists\/opportunities\/(\d+)/);
       
       if (customerDetailMatch) {
         const customerId = customerDetailMatch[1];
-        setBackUrl(`/customers/${customerId}`);
+        setBackUrl(`/lists/customers/${customerId}`);
         setBackLabel("Back to Customer");
         return;
       }
@@ -271,6 +272,13 @@ export default function PartnerDetail() {
       if (opportunityDetailMatch) {
         const opportunityId = opportunityDetailMatch[1];
         setBackUrl(`/opportunities/${opportunityId}`);
+        setBackLabel("Back to Opportunity");
+        return;
+      }
+      
+      if (opportunityListDetailMatch) {
+        const opportunityId = opportunityListDetailMatch[1];
+        setBackUrl(`/lists/opportunities/${opportunityId}`);
         setBackLabel("Back to Opportunity");
         return;
       }
@@ -283,7 +291,8 @@ export default function PartnerDetail() {
       const customerWithTabMatch = sessionReferrer.match(/customers\/(\d+)#(\w+)/);
       const opportunityWithTabMatch = sessionReferrer.match(/opportunities\/(\d+)#(\w+)/);
       const customerDetailMatch = sessionReferrer.match(/customers\/(\d+)$/);
-      const opportunityDetailMatch = sessionReferrer.match(/opportunities\/(\d+)$/);
+      const opportunityDetailMatch = sessionReferrer.match(/^opportunities\/(\d+)$/);
+      const opportunityListDetailMatch = sessionReferrer.match(/^lists\/opportunities\/(\d+)$/);
       
       if (customerWithTabMatch) {
         const customerId = customerWithTabMatch[1];
@@ -314,6 +323,14 @@ export default function PartnerDetail() {
       if (opportunityDetailMatch) {
         const opportunityId = opportunityDetailMatch[1];
         setBackUrl(`/opportunities/${opportunityId}`);
+        setBackLabel("Back to Opportunity");
+        sessionStorage.removeItem('partnerReferrer');
+        return;
+      }
+      
+      if (opportunityListDetailMatch) {
+        const opportunityId = opportunityListDetailMatch[1];
+        setBackUrl(`/lists/opportunities/${opportunityId}`);
         setBackLabel("Back to Opportunity");
         sessionStorage.removeItem('partnerReferrer');
         return;
