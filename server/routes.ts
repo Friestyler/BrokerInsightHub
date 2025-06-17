@@ -6840,7 +6840,6 @@ Keep the tone clear and professional. Focus on what will help the account manage
         ORDER BY c.created_at DESC
       `);
       
-      console.log('Template raw data:', result.rows.map(r => ({ id: r.id, name: r.name, icon: r.icon })));
       
       const templates = result.rows.map(template => ({
         id: template.id,
