@@ -506,53 +506,69 @@ export default function PartnerDetailBrokerPOV() {
   const uniqueStages = Array.from(new Set(allOpportunities.map((opp: any) => opp.stage).filter(Boolean))) as string[];
   const uniqueCustomers = Array.from(new Set(allOpportunities.map((opp: any) => opp.clientName).filter(Boolean))) as string[];
 
+  // Fetch template assignments for Mevas BV (partner_id 12)
+  const { data: templateAssignments } = useQuery({
+    queryKey: [`/api/degoudse/template-assignments/partner`],
+    queryFn: () => apiRequest('GET', '/api/degoudse/template-assignments/partner'),
+  });
+
+  // Fetch all OKR metrics to match with assignments
+  const { data: allMetrics } = useQuery({
+    queryKey: ['/api/degoudse/okr-metrics'],
+    queryFn: () => apiRequest('GET', '/api/degoudse/okr-metrics'),
+  });
+
   // Fetch OKR tags for filtering
   const { data: tags = [] } = useQuery({
     queryKey: ['/api/degoudse/okr-tags'],
     queryFn: () => apiRequest('GET', '/api/degoudse/okr-tags'),
   });
 
-  // Mock OKR metrics for De Goudse since this is broker view
-  const okrMetrics = [
-    {
-      id: 1,
-      name: 'Customer Satisfaction Score',
-      description: 'Track customer satisfaction ratings',
-      unit: 'percentage',
-      target_value: 85,
-      current_value: 78,
-      tag: 'Customer Satisfaction'
-    },
-    {
-      id: 2,
-      name: 'Premium Revenue Growth',
-      description: 'Quarterly premium revenue growth rate',
-      unit: 'percentage',
-      target_value: 15,
-      current_value: 12,
-      tag: 'Financial Performance'
-    }
-  ];
+  // Get metrics assigned to Mevas BV (partner_id 12)
+  const assignedMetrics = allMetrics?.filter((metric: any) => {
+    return templateAssignments?.some((assignment: any) => 
+      assignment.metric_id === metric.id && assignment.partner_id === 12
+    );
+  }) || [];
+
+  console.log('Broker view - Template assignments:', templateAssignments);
+  console.log('Broker view - All metrics:', allMetrics);
+  console.log('Broker view - Assigned metrics for Mevas BV:', assignedMetrics);
+  console.log('Broker view - Tags:', tags);
+
+  const okrMetrics = assignedMetrics;
 
   // Filter metrics based on search and filters
-  const filteredMetrics = okrMetrics.filter(metric => {
+  const filteredMetrics = okrMetrics.filter((metric: any) => {
     const matchesSearch = !searchTerm || 
-      metric.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      metric.description.toLowerCase().includes(searchTerm.toLowerCase());
+      metric.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      metric.description?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesTag = selectedTag === "all" || metric.tag === selectedTag;
-    const matchesUnit = selectedUnit === "all" || metric.unit === selectedUnit;
+    // For real metrics, we need to get tags from the tags array
+    const metricTags = tags?.filter((tag: any) => 
+      metric.tags?.includes(tag.id)
+    ).map((tag: any) => tag.name) || [];
+    
+    const matchesTag = selectedTag === "all" || metricTags.includes(selectedTag);
+    const matchesUnit = selectedUnit === "all" || metric.measure_unit === selectedUnit;
     
     return matchesSearch && matchesTag && matchesUnit;
   });
 
-  // Group metrics by tag
+  // Group metrics by their tags
   const groupedMetrics = filteredMetrics.reduce((acc: any, metric: any) => {
-    const tag = metric.tag || 'Untagged';
-    if (!acc[tag]) {
-      acc[tag] = [];
+    // Get tag names for this metric
+    const metricTags = tags?.filter((tag: any) => 
+      metric.tags?.includes(tag.id)
+    ).map((tag: any) => tag.name) || [];
+    
+    // If no tags, use 'Untagged'
+    const tagName = metricTags.length > 0 ? metricTags[0] : 'Untagged';
+    
+    if (!acc[tagName]) {
+      acc[tagName] = [];
     }
-    acc[tag].push(metric);
+    acc[tagName].push(metric);
     return acc;
   }, {});
 
