@@ -47,8 +47,12 @@ export default function PartnerView() {
 
   // Fetch opportunities based on list members
   const { data: allOpportunities = [], isLoading: opportunitiesLoading } = useQuery({
-    queryKey: ['/api/degoudse/opportunities'],
-    queryFn: () => apiRequest('GET', '/api/degoudse/opportunities'),
+    queryKey: ['/api/degoudse/opportunities', listId],
+    queryFn: () => {
+      // For broker view with specific list, pass listId parameter to filter opportunities
+      const url = listId ? `/api/degoudse/opportunities?listId=${listId}` : '/api/degoudse/opportunities';
+      return apiRequest('GET', url);
+    },
     staleTime: 2 * 60 * 1000,
   });
 

@@ -2574,6 +2574,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const referer = req.get('Referer') || '';
       const isBrokerRequest = referer.includes('/broker-view');
       
+      // Extract list ID from query parameters for broker requests
+      const listId = req.query.listId ? parseInt(req.query.listId as string) : null;
+      
       let result;
       
       if (isBrokerRequest) {
@@ -2588,31 +2591,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const assignedPartnerId = brokerMappingResult.rows[0].partner_id;
           console.log(`Broker access detected - filtering opportunities for partner ID ${assignedPartnerId}`);
           
-          result = await envPool.query(`
-            SELECT o.*, 
-                   STRING_AGG(DISTINCT c.name, ', ') as customer_names,
-                   STRING_AGG(DISTINCT p.name, ', ') as partner_names,
-                   STRING_AGG(DISTINCT pr.name, ', ') as product_names,
-                   am.name as account_manager_name,
-                   COUNT(DISTINCT co.customer_id) as customer_count,
-                   COUNT(DISTINCT po.partner_id) as partner_count,
-                   COUNT(DISTINCT op.product_id) as product_count,
-                   COUNT(DISTINCT contacts.id) as contact_count
-            FROM degoudse.opportunities o
-            INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-            LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
-            LEFT JOIN degoudse.customers c ON c.id = co.customer_id
-            LEFT JOIN degoudse.partners p ON p.id = po.partner_id
-            LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
-            LEFT JOIN degoudse.products pr ON pr.id = op.product_id
-            LEFT JOIN degoudse.contacts contacts ON contacts.linked_entity_id = c.id AND contacts.linked_entity_type = 'customer'
-            LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
-            WHERE po.partner_id = $1
-            GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
-                     o."expectedCloseDate", o.start_date, o.account_manager_id, o."clientId", o."partnerId", o."productId", 
-                     o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt", am.name
-            ORDER BY o.id
-          `, [assignedPartnerId]);
+          let opportunityFilter = '';
+          let queryParams = [assignedPartnerId];
+          
+          // If a specific list is requested, filter by list members
+          if (listId) {
+            console.log(`Broker requesting specific list ${listId} - applying list member filtering`);
+            
+            // Get list members
+            const listResult = await envPool.query(`
+              SELECT members FROM degoudse.saved_lists 
+              WHERE id = $1 AND entity_type = 'opportunities'
+            `, [listId]);
+            
+            if (listResult.rows.length > 0 && listResult.rows[0].members) {
+              const members = listResult.rows[0].members;
+              if (members.length > 0) {
+                opportunityFilter = ` AND o.id = ANY($2)`;
+                queryParams.push(members);
+                console.log(`Filtering to ${members.length} specific opportunities from list ${listId}`);
+              } else {
+                // Empty list - return no opportunities
+                result = { rows: [] };
+              }
+            } else {
+              // List not found or no members - return no opportunities
+              result = { rows: [] };
+            }
+          }
+          
+          if (!result) {
+            result = await envPool.query(`
+              SELECT o.*, 
+                     c.name as customer_name,
+                     p.name as partner_name,
+                     pr.name as product_name,
+                     am.name as account_manager_name
+              FROM degoudse.opportunities o
+              LEFT JOIN degoudse.customers c ON o.client_id = c.id
+              LEFT JOIN degoudse.partners p ON o.partner_id = p.id
+              LEFT JOIN degoudse.products pr ON o.product_id = pr.id
+              LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
+              WHERE o.partner_id = $1${opportunityFilter}
+              ORDER BY o.id
+            `, queryParams);
+          }
         } else {
           // Broker request but no mapping found - show no opportunities
           result = { rows: [] };
