@@ -5524,10 +5524,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
                    OR c.recipients::text LIKE '%"id": ' || $2 || '%' 
                    OR c.recipients::text LIKE '%"id":' || $2 || '%')
                   OR 
-                  (cs.shared_with_type = 'partner' AND cs.shared_with_id = $2 AND cs.is_active = true)
+                  (cs.shared_with_type = 'partner' AND cs.shared_with_id = $3::integer AND cs.is_active = true)
                 )
               `;
-              queryParams.push(partnerName, partner_id);
+              queryParams.push(partnerName, partner_id, partner_id);
             } else {
               // Partner not found, return empty array
               res.json([]);
