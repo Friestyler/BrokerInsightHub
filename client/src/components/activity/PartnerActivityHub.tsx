@@ -546,7 +546,12 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-xs text-gray-500">
-                          {new Date(comment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(comment.created_at).toLocaleString([], { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
                         </span>
                         {comment.assigned_to_name && (
                           <div className="flex items-center gap-1">
