@@ -2090,15 +2090,25 @@ export default function PartnerDetail() {
                 <div className="text-xl font-semibold text-[#282A3F]">
                   €{Math.round(filteredOpportunities.reduce((sum: number, opp: any) => {
                     const value = Number(opp.estimated_value) || 0;
-                    const probability = opp.stage === 'Closed Won' ? 1 : 
-                                      opp.stage === 'Negotiation' ? 0.7 :
-                                      opp.stage === 'Proposal Sent' ? 0.5 :
-                                      opp.stage === 'Qualification' ? 0.3 :
-                                      opp.stage === 'Initial Contact' ? 0.1 : 0.2;
+                    const probability = opp.stage === 'Closed (Won)' ? 1 : 
+                                      opp.stage === 'Validated' ? 0.8 :
+                                      opp.stage === 'Proposal Sent to Client' ? 0.6 :
+                                      opp.stage === 'Lost' ? 0 :
+                                      opp.stage === 'Rejected' ? 0 : 0.2;
                     return sum + (value * probability);
                   }, 0)).toLocaleString()}
                 </div>
                 <div className="text-sm text-gray-500">Weighted Value Opportunities</div>
+              </div>
+
+              <div className="bg-white p-4 rounded-md border border-gray-200">
+                <div className="text-xl font-semibold text-[#282A3F]">
+                  €{filteredOpportunities
+                    .filter((opp: any) => opp.stage === 'Closed (Won)')
+                    .reduce((sum: number, opp: any) => sum + (Number(opp.estimated_value) || 0), 0)
+                    .toLocaleString()}
+                </div>
+                <div className="text-sm text-gray-500">Won Opportunities Value</div>
               </div>
             </div>
 
