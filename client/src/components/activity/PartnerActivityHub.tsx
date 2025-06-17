@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import userAvatar from "@/assets/user-avatar.png";
 
 interface PartnerActivityHubProps {
   partnerId: number;
@@ -515,11 +516,19 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                     <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
                       comment.is_okr_comment ? 'bg-purple-100' : 'bg-blue-100'
                     }`}>
-                      <span className={`text-xs font-medium ${
-                        comment.is_okr_comment ? 'text-purple-600' : 'text-blue-600'
-                      }`}>
-                        {comment.author_name ? comment.author_name.charAt(0).toUpperCase() : 'U'}
-                      </span>
+                      {comment.user_id === 2 ? (
+                        <img 
+                          src={userAvatar} 
+                          alt="User Avatar" 
+                          className="w-full h-full object-cover rounded-full"
+                        />
+                      ) : (
+                        <span className={`text-xs font-medium ${
+                          comment.is_okr_comment ? 'text-purple-600' : 'text-blue-600'
+                        }`}>
+                          {comment.author_name ? comment.author_name.charAt(0).toUpperCase() : 'U'}
+                        </span>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className={`rounded-lg px-3 py-2 ${
