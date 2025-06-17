@@ -197,7 +197,16 @@ const OpportunityStatus: React.FC<OpportunityStatusProps> = ({ timeFrame, region
 
   // Calculate opportunity statistics
   const totalValue = opportunities.reduce((sum, opp) => sum + opp.value, 0);
-  const weightedValue = opportunities.reduce((sum, opp) => sum + (opp.value * opp.probability / 100), 0);
+  const weightedValue = opportunities.reduce((sum, opp) => {
+    const value = opp.value || 0;
+    const probability = opp.stage === 'Closed (Won)' ? 1.0 : 
+                      opp.stage === 'Proposal Sent to Client' ? 0.6 :
+                      opp.stage === 'Validated' ? 0.3 :
+                      opp.stage === 'Lost' ? 0 :
+                      opp.stage === 'Rejected' ? 0 :
+                      !opp.stage || opp.stage === '' ? 0 : 0;
+    return sum + (value * probability);
+  }, 0);
   const averageProbability = opportunities.length > 0 
     ? Math.round(opportunities.reduce((sum, opp) => sum + opp.probability, 0) / opportunities.length) 
     : 0;

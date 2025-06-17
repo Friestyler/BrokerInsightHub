@@ -2730,7 +2730,12 @@ export default function PartnerDetail() {
                   const customerOpportunities = (relatedOpportunities as any[] || []).filter((o: any) => o.clientName === customer.name);
                   return total + customerOpportunities.reduce((oppTotal: number, opp: any) => {
                     const value = Number(opp.estimated_value) || 0;
-                    const probability = parseFloat(opp.probability || '0') / 100;
+                    const probability = opp.stage === 'Closed (Won)' ? 1.0 : 
+                                      opp.stage === 'Proposal Sent to Client' ? 0.6 :
+                                      opp.stage === 'Validated' ? 0.3 :
+                                      opp.stage === 'Lost' ? 0 :
+                                      opp.stage === 'Rejected' ? 0 :
+                                      !opp.stage || opp.stage === '' ? 0 : 0;
                     return oppTotal + (value * probability);
                   }, 0);
                 }, 0);

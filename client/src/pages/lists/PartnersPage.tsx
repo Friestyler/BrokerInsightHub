@@ -175,8 +175,13 @@ function calculatePartnerStats(partners: any[], opportunities: any[] = []) {
   // Weighted Value calculates probability-adjusted sum of opportunity values
   const weightedValue = relevantOpportunities.reduce((sum, opp) => {
     const value = parseFloat(opp.estimated_value) || 0;
-    const probability = parseFloat(opp.probability) || 0;
-    return sum + (value * probability / 100);
+    const probability = opp.stage === 'Closed (Won)' ? 1.0 : 
+                      opp.stage === 'Proposal Sent to Client' ? 0.6 :
+                      opp.stage === 'Validated' ? 0.3 :
+                      opp.stage === 'Lost' ? 0 :
+                      opp.stage === 'Rejected' ? 0 :
+                      !opp.stage || opp.stage === '' ? 0 : 0;
+    return sum + (value * probability);
   }, 0);
   const activePartners = partners.filter(p => p.status === 'active').length;
   

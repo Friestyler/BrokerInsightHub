@@ -174,7 +174,16 @@ interface Opportunity {
 function calculateOpportunityStats(opportunities: any[]) {
   const totalOpportunities = opportunities.length;
   const totalValue = opportunities.reduce((sum, opportunity) => sum + (opportunity.estimated_value || 0), 0);
-  const weightedValue = opportunities.reduce((sum, opportunity) => sum + ((opportunity.estimated_value || 0) * (opportunity.probability || 0) / 100), 0);
+  const weightedValue = opportunities.reduce((sum, opportunity) => {
+    const value = opportunity.estimated_value || 0;
+    const probability = opportunity.stage === 'Closed (Won)' ? 1.0 : 
+                      opportunity.stage === 'Proposal Sent to Client' ? 0.6 :
+                      opportunity.stage === 'Validated' ? 0.3 :
+                      opportunity.stage === 'Lost' ? 0 :
+                      opportunity.stage === 'Rejected' ? 0 :
+                      !opportunity.stage || opportunity.stage === '' ? 0 : 0;
+    return sum + (value * probability);
+  }, 0);
   const closedWon = opportunities.filter(o => o.status === 'Closed Won').length;
   
   return {

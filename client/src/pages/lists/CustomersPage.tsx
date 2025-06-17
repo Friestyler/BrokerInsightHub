@@ -62,11 +62,16 @@ function calculateCustomerWeightedValue(customers: any[], opportunities: any[] =
   // Filter opportunities that have a clientId (linked to any customer)
   const relevantOpportunities = opportunities.filter(opp => opp.clientId);
   
-  // Calculate probability-adjusted sum of opportunity values
+  // Calculate probability-adjusted sum of opportunity values using stage-based probabilities
   return relevantOpportunities.reduce((sum, opp) => {
     const value = parseFloat(opp.estimated_value) || 0;
-    const probability = parseFloat(opp.probability) || 0;
-    return sum + (value * probability / 100);
+    const probability = opp.stage === 'Closed (Won)' ? 1.0 : 
+                      opp.stage === 'Proposal Sent to Client' ? 0.6 :
+                      opp.stage === 'Validated' ? 0.3 :
+                      opp.stage === 'Lost' ? 0 :
+                      opp.stage === 'Rejected' ? 0 :
+                      !opp.stage || opp.stage === '' ? 0 : 0;
+    return sum + (value * probability);
   }, 0);
 }
 
