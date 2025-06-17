@@ -316,26 +316,35 @@ export function ShareModal({
     
     setIsCreatingPartnerLists(true);
     try {
+      console.log('Starting partner list creation for partners:', selectedPartners);
+      
       // Get the current list data to extract member IDs
       const currentListResponse = await apiRequest('GET', `/api/${envId}/saved-lists/${listId}`);
       const currentListMembers = currentListResponse.members || [];
+      console.log('Current list members:', currentListMembers.length);
       
       // Fetch full opportunity data for the members in this list
       const opportunitiesResponse = await apiRequest('GET', `/api/${envId}/opportunities`);
       const allOpportunities = opportunitiesResponse || [];
+      console.log('Total opportunities available:', allOpportunities.length);
       
       // Filter to only opportunities that are members of the current list
       const listOpportunities = allOpportunities.filter((opp: any) => 
         currentListMembers.includes(opp.id)
       );
+      console.log('List-specific opportunities:', listOpportunities.length);
 
       // Check for existing lists to prevent duplicates
       const existingListsResponse = await apiRequest('GET', `/api/${envId}/saved-lists?entity_type=opportunities`);
       const existingLists = existingListsResponse || [];
 
+      let createdCount = 0;
       for (const partnerId of selectedPartners) {
         const partner = partnersInList.find(p => p.id === partnerId);
-        if (!partner) continue;
+        if (!partner) {
+          console.log(`Partner with ID ${partnerId} not found in partnersInList`);
+          continue;
+        }
 
         // Check if a list already exists for this partner with the same name
         const existingList = existingLists.find((list: any) => 
@@ -352,6 +361,7 @@ export function ShareModal({
         const partnerOpportunities = listOpportunities.filter((opp: any) => 
           opp.partnerId === partnerId
         );
+        console.log(`Partner ${partner.name} (ID: ${partnerId}) has ${partnerOpportunities.length} opportunities`);
 
         // Only create list if there are opportunities for this partner
         if (partnerOpportunities.length > 0) {
@@ -364,8 +374,23 @@ export function ShareModal({
             is_shared: true
           };
 
+          console.log('Creating list with payload:', listPayload);
           await apiRequest('POST', `/api/${envId}/saved-lists`, listPayload);
+          createdCount++;
+        } else {
+          console.log(`No opportunities found for partner ${partner.name}, skipping list creation`);
         }
+      }
+      
+      console.log(`Successfully created ${createdCount} partner lists`);
+      
+      if (createdCount === 0) {
+        toast({
+          title: "No lists created",
+          description: "Selected partners have no opportunities in this list",
+          variant: "destructive"
+        });
+        return;
       }
 
       toast({
@@ -382,9 +407,10 @@ export function ShareModal({
       }
     } catch (error) {
       console.error('Error creating partner lists:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to create partner lists';
       toast({
         title: "Error",
-        description: "Failed to create partner lists",
+        description: errorMessage,
         variant: "destructive"
       });
     } finally {
