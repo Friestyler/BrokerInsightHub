@@ -479,13 +479,16 @@ function PartnersTable() {
       if (actualIndustryDropdownRef.current && !actualIndustryDropdownRef.current.contains(event.target as Node)) {
         setShowActualIndustryDropdown(false);
       }
+      if (sizeDropdownRef.current && !sizeDropdownRef.current.contains(event.target as Node)) {
+        setShowSizeDropdown(false);
+      }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showViewsDropdown, showStatusDropdown, showIndustryDropdown, showActualIndustryDropdown]);
+  }, [showViewsDropdown, showStatusDropdown, showIndustryDropdown, showActualIndustryDropdown, showSizeDropdown]);
   
   const [isCreatingNewList, setIsCreatingNewList] = useState(false); // Default to adding to existing list
   const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
@@ -674,7 +677,7 @@ function PartnersTable() {
     } else {
       setHasUnsavedChanges(false);
     }
-  }, [filterText, selectedStatus, selectedIndustry, activeList, originalListFilters]);
+  }, [filterText, selectedStatus, selectedIndustry, selectedSize, activeList, originalListFilters]);
   
   // Function to revert changes to the original list filters
   const revertChanges = () => {
@@ -682,6 +685,7 @@ function PartnersTable() {
       setFilterText(originalListFilters.searchText || '');
       setSelectedStatus(originalListFilters.status || '');
       setSelectedIndustry(originalListFilters.industry || '');
+      setSelectedSize(originalListFilters.size || '');
       setHasUnsavedChanges(false);
     }
   };
@@ -1341,6 +1345,59 @@ function PartnersTable() {
                     </div>
                   )}
                 </div>
+                
+                {/* Size Filter */}
+                <div className="relative" ref={sizeDropdownRef}>
+                  <button 
+                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedSize ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                    onClick={() => setShowSizeDropdown(!showSizeDropdown)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    <span>{selectedSize ? `Size: ${selectedSize}` : 'Size'}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
+                  {showSizeDropdown && (
+                    <div className="absolute z-50 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg">
+                      <div className="py-1">
+                        <div 
+                          className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${!selectedSize ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                          onClick={() => {
+                            setSelectedSize('');
+                            setShowSizeDropdown(false);
+                          }}
+                        >
+                          <span>All Sizes</span>
+                          {!selectedSize && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
+                        </div>
+                        {['Small', 'Medium', 'Large'].map(size => (
+                          <div 
+                            key={size}
+                            className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${selectedSize === size ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                            onClick={() => {
+                              setSelectedSize(size);
+                              setShowSizeDropdown(false);
+                            }}
+                          >
+                            <span>{size}</span>
+                            {selectedSize === size && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
               
               {/* Action buttons - only shown when filters have changed from an existing view or no view is selected */}
@@ -1351,10 +1408,11 @@ function PartnersTable() {
                   (filterText !== (activeView.filters.searchText || '') || 
                    selectedStatus !== (activeView.filters.status || '') || 
                    selectedIndustry !== (activeView.filters.industry || '') || 
-                   selectedActualIndustry !== '');
+                   selectedActualIndustry !== '' ||
+                   selectedSize !== '');
                    
                 // Only render buttons if there are filters applied or filters have changed
-                return (filterText || selectedStatus || selectedIndustry || selectedActualIndustry) && (
+                return (filterText || selectedStatus || selectedIndustry || selectedActualIndustry || selectedSize) && (
                   <div className="flex items-center gap-2">
                     {/* Show Revert and Save buttons only when a view is active AND filters have changed */}
                     {filtersChanged && (
@@ -1368,6 +1426,7 @@ function PartnersTable() {
                             setSelectedStatus(activeView.filters.status || '');
                             setSelectedIndustry(activeView.filters.industry || '');
                             setSelectedActualIndustry('');
+                            setSelectedSize('');
                           }}
                           style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
                         >
