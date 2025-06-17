@@ -2488,7 +2488,7 @@ export default function PartnerDetail() {
                                   Clear filter
                                 </button>
                               )}
-                              {['Active', 'Inactive', 'Prospect'].map((status) => (
+                              {uniqueCustomerStatuses.map((status) => (
                                 <button
                                   key={status}
                                   className={`w-full text-left px-3 py-2 text-sm rounded-md ${
@@ -2560,7 +2560,7 @@ export default function PartnerDetail() {
                                   Clear filter
                                 </button>
                               )}
-                              {['Insurance', 'Finance', 'Real Estate', 'Healthcare'].map((industry) => (
+                              {uniqueIndustries.map((industry) => (
                                 <button
                                   key={industry}
                                   className={`w-full text-left px-3 py-2 text-sm rounded-md ${
