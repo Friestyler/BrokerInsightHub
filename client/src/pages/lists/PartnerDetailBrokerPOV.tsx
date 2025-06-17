@@ -2261,7 +2261,10 @@ export default function PartnerDetailBrokerPOV() {
                         <div className="ml-4">
                           <dt className="text-sm font-medium text-gray-500 truncate">Recipients</dt>
                           <dd className="text-2xl font-semibold text-gray-900">
-                            {brokerCampaigns.reduce((acc: number, campaign: any) => acc + (campaign.recipients || 0), 0)}
+                            {brokerCampaigns.reduce((acc: number, campaign: any) => {
+                              const recipientCount = Array.isArray(campaign.recipients) ? campaign.recipients.length : (campaign.recipients || 0);
+                              return acc + recipientCount;
+                            }, 0)}
                           </dd>
                         </div>
                       </div>
@@ -2369,7 +2372,7 @@ export default function PartnerDetailBrokerPOV() {
                                 </span>
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {campaign.recipients || 0}
+                                {Array.isArray(campaign.recipients) ? campaign.recipients.length : (campaign.recipients || 0)}
                               </td>
                               <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                                 {campaign.emails_sent || 0}
