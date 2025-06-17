@@ -6591,96 +6591,48 @@ Keep the tone clear and professional. Focus on what will help the account manage
       const envId = req.headers['x-environment-id'] || 'degoudse';
       
       if (envId === 'degoudse') {
-        // Return campaigns shared with Regional Insurance Partners from De Goudse
-        const sharedCampaigns = [
-          {
-            id: 1,
-            name: "Property Insurance Cross-Sell",
-            description: "Targeted campaign for existing automotive customers to add property coverage",
-            type: "cross_sell",
-            category: "cross_sell",
-            status: "active",
-            sharedAt: "2024-06-10T09:00:00Z",
-            sharedBy: "De Goudse Marketing",
-            accessLevel: "view",
-            isTemplate: false,
-            sponsorName: "De Goudse Insurance",
-            tags: ["property", "cross-sell", "automotive"]
-          },
-          {
-            id: 2,
-            name: "Customer Retention Template",
-            description: "Template for retaining customers approaching policy renewal",
-            type: "retention",
-            category: "retention", 
-            status: "template",
-            sharedAt: "2024-06-08T14:30:00Z",
-            sharedBy: "De Goudse Strategy Team",
-            accessLevel: "view",
-            isTemplate: true,
-            sponsorName: "De Goudse Insurance", 
-            tags: ["retention", "renewal", "loyalty"]
-          },
-          {
-            id: 3,
-            name: "Customer Retention Campaign",
-            description: "Active campaign to retain customers approaching renewal",
-            type: "retention",
-            category: "retention",
-            status: "active",
-            sharedAt: "2024-06-08T14:30:00Z",
-            sharedBy: "De Goudse Retention Team",
-            accessLevel: "view",
-            isTemplate: false,
-            sponsorName: "De Goudse Insurance",
-            tags: ["retention", "renewal", "loyalty"]
-          },
-          {
-            id: 3,
-            name: "New Product Launch Template",
-            description: "Template for introducing new insurance products to broker networks",
-            type: "product_launch",
-            category: "cross_sell",
-            status: "template",
-            sharedAt: "2024-06-05T11:15:00Z",
-            sharedBy: "De Goudse Product Team",
-            accessLevel: "view",
-            isTemplate: true,
-            sponsorName: "De Goudse Insurance",
-            tags: ["product-launch", "brokers", "new-products"]
-          },
-          {
-            id: 4,
-            name: "Q3 Growth Initiative",
-            description: "Active campaign focused on expanding market share in Q3",
-            type: "growth",
-            category: "cross_sell",
-            status: "active",
-            sharedAt: "2024-06-12T16:45:00Z",
-            sharedBy: "De Goudse Growth Team",
-            accessLevel: "view",
-            isTemplate: false,
-            sponsorName: "De Goudse Insurance",
-            tags: ["growth", "Q3", "market-expansion"]
-          },
-          {
-            id: 5,
-            name: "Digital Transformation Campaign",
-            description: "Template for promoting digital insurance solutions",
-            type: "digital",
-            category: "retention",
-            status: "template",
-            sharedAt: "2024-06-07T13:20:00Z",
-            sharedBy: "De Goudse Digital Team",
-            accessLevel: "view",
-            isTemplate: true,
-            sponsorName: "De Goudse Insurance",
-            tags: ["digital", "transformation", "technology"]
-          }
-        ];
-        
-        console.log(`Returning ${sharedCampaigns.length} shared campaigns for broker view`);
-        res.json(sharedCampaigns);
+        try {
+          // Query campaigns with system-level sharing (shared with broker view)
+          const result = await pool.query(`
+            SELECT c.*, u.name as created_by_name, cs.created_at as shared_at, cs.access_level
+            FROM ${envId}.campaigns c
+            INNER JOIN ${envId}.campaign_shares cs ON c.id = cs.campaign_id
+            LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
+            WHERE cs.shared_with_type = 'system' 
+              AND cs.is_active = true
+            ORDER BY cs.created_at DESC
+          `);
+          
+          const sharedCampaigns = result.rows.map(campaign => ({
+            id: campaign.id,
+            name: campaign.name || 'Untitled Campaign',
+            description: campaign.description || '',
+            type: campaign.type || 'cross_sell',
+            category: campaign.category || campaign.type || 'cross_sell',
+            status: campaign.status || 'draft',
+            sharedAt: campaign.shared_at,
+            sharedBy: campaign.created_by_name || 'De Goudse Team',
+            accessLevel: campaign.access_level || 'view',
+            isTemplate: campaign.is_template || false,
+            sponsorName: 'De Goudse Insurance',
+            tags: campaign.tags || [],
+            subject: campaign.subject,
+            email_body: campaign.email_body,
+            emails_sent: campaign.emails_sent || 0,
+            emails_opened: campaign.emails_opened || 0,
+            open_rate: campaign.open_rate || '0.00',
+            total_clicks: campaign.total_clicks || 0,
+            created_at: campaign.created_at,
+            updated_at: campaign.updated_at
+          }));
+          
+          console.log(`Returning ${sharedCampaigns.length} shared campaigns for broker view`);
+          res.json(sharedCampaigns);
+        } catch (dbError) {
+          console.error('Database error fetching shared campaigns:', dbError);
+          // Return empty array if campaigns table doesn't exist yet
+          res.json([]);
+        }
       } else {
         // For other environments, return empty array
         res.json([]);

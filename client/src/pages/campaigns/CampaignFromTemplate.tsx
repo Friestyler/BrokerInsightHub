@@ -366,11 +366,15 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   });
 
   const handleBack = () => {
-    // Check if campaign was opened from partner details page
+    // Check if campaign was opened from partner details page or broker view
     const urlParams = new URLSearchParams(window.location.search);
     const fromPartner = urlParams.get('from_partner');
+    const fromBrokerView = urlParams.get('from_broker_view');
     
-    if (fromPartner) {
+    if (fromBrokerView) {
+      // Redirect back to broker view campaigns
+      setLocation('/broker-view/campaigns');
+    } else if (fromPartner) {
       // Redirect back to partner details page with campaigns tab active
       setLocation(`/lists/partners/${fromPartner}?tab=campaigns`);
     } else if (isEditingCampaign || isNewCampaign) {
