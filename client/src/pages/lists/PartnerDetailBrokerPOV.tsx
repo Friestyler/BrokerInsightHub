@@ -525,9 +525,10 @@ export default function PartnerDetailBrokerPOV() {
   });
 
   // Get metrics assigned to Mevas BV (partner_id 12)
+  // Template assignments use template_id to reference metrics, and entity_id for the partner
   const assignedMetrics = allMetrics?.filter((metric: any) => {
     return templateAssignments?.some((assignment: any) => 
-      assignment.metric_id === metric.id && assignment.partner_id === 12
+      assignment.template_id === metric.id && assignment.entity_id === 12
     );
   }) || [];
 
