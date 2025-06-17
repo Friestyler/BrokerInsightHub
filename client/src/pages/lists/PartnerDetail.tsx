@@ -2073,7 +2073,7 @@ export default function PartnerDetail() {
                     <TableHead>Opportunity</TableHead>
                     <TableHead>Customer</TableHead>
                     <TableHead>Related contacts</TableHead>
-                    <TableHead>Account Manager</TableHead>
+
                     <TableHead>Start Date</TableHead>
                     <TableHead>Insurance Description</TableHead>
                     <TableHead>Stage</TableHead>
@@ -2117,11 +2117,7 @@ export default function PartnerDetail() {
                           {opportunity.contactCount || 0}
                         </span>
                       </TableCell>
-                      <TableCell>
-                        <span className="text-gray-900">
-                          {opportunity.account_manager_name || 'Not assigned'}
-                        </span>
-                      </TableCell>
+
                       <TableCell>
                         {opportunity.start_date ? new Date(opportunity.start_date).toLocaleDateString() : 'Not set'}
                       </TableCell>
