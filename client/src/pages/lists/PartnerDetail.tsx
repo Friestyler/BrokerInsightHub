@@ -1215,6 +1215,8 @@ export default function PartnerDetail() {
                                   {hasLastYearValues && (
                                     <TableHead className="text-left font-medium text-gray-900">Last Year</TableHead>
                                   )}
+                                  <TableHead className="text-left font-medium text-gray-900">Progress</TableHead>
+                                  <TableHead className="text-left font-medium text-gray-900">Status</TableHead>
                                 </>
                               );
                             } else {
@@ -1222,6 +1224,8 @@ export default function PartnerDetail() {
                                 <>
                                   <TableHead className="text-left font-medium text-gray-900">Realized</TableHead>
                                   <TableHead className="text-left font-medium text-gray-900">Target</TableHead>
+                                  <TableHead className="text-left font-medium text-gray-900">Progress</TableHead>
+                                  <TableHead className="text-left font-medium text-gray-900">Status</TableHead>
                                 </>
                               );
                             }
@@ -1257,6 +1261,30 @@ export default function PartnerDetail() {
                               const hasYtdValue = metric.ytd_value;
                               const hasLastYearValue = metric.last_year_value;
                               
+                              // Calculate progress ratio and traffic light color
+                              let progressRatio = 0;
+                              let trafficLight = 'gray';
+                              
+                              if (hasYtdValue && hasLastYearValue) {
+                                // For YTD vs Last Year comparison
+                                const ytdNumeric = parseFloat(metric.ytd_value?.replace(/[^\d.-]/g, '') || '0');
+                                const lastYearNumeric = parseFloat(metric.last_year_value?.replace(/[^\d.-]/g, '') || '0');
+                                if (lastYearNumeric > 0) {
+                                  progressRatio = ytdNumeric / lastYearNumeric;
+                                  trafficLight = progressRatio >= 1.05 ? 'green' : progressRatio >= 0.95 ? 'yellow' : 'red';
+                                }
+                              } else if (metric.realized_value && metric.target_value) {
+                                // For traditional Realized vs Target
+                                const realized = parseFloat(metric.realized_value) || 0;
+                                const target = parseFloat(metric.target_value) || 0;
+                                if (target > 0) {
+                                  progressRatio = realized / target;
+                                  trafficLight = progressRatio >= 1 ? 'green' : progressRatio >= 0.8 ? 'yellow' : 'red';
+                                }
+                              }
+                              
+                              const progressPercent = Math.min(100, Math.max(0, progressRatio * 100));
+                              
                               if (hasYtdValue || hasLastYearValue) {
                                 return (
                                   <>
@@ -1278,6 +1306,30 @@ export default function PartnerDetail() {
                                         </div>
                                       </TableCell>
                                     )}
+                                    <TableCell>
+                                      <div className="flex items-center space-x-2">
+                                        <div className="w-24 bg-gray-200 rounded-full h-2">
+                                          <div 
+                                            className={`h-2 rounded-full transition-all duration-300 ${
+                                              trafficLight === 'green' ? 'bg-green-500' :
+                                              trafficLight === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'
+                                            }`}
+                                            style={{ width: `${progressPercent}%` }}
+                                          />
+                                        </div>
+                                        <span className="text-xs text-gray-600 min-w-[3rem]">
+                                          {Math.round(progressPercent)}%
+                                        </span>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex items-center justify-center">
+                                        <div className={`w-3 h-3 rounded-full ${
+                                          trafficLight === 'green' ? 'bg-green-500' :
+                                          trafficLight === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'
+                                        }`} />
+                                      </div>
+                                    </TableCell>
                                   </>
                                 );
                               } else {
@@ -1301,6 +1353,30 @@ export default function PartnerDetail() {
                                         <span className="text-xs text-gray-500">
                                           {metric.measure_unit || ''}
                                         </span>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex items-center space-x-2">
+                                        <div className="w-24 bg-gray-200 rounded-full h-2">
+                                          <div 
+                                            className={`h-2 rounded-full transition-all duration-300 ${
+                                              trafficLight === 'green' ? 'bg-green-500' :
+                                              trafficLight === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'
+                                            }`}
+                                            style={{ width: `${progressPercent}%` }}
+                                          />
+                                        </div>
+                                        <span className="text-xs text-gray-600 min-w-[3rem]">
+                                          {Math.round(progressPercent)}%
+                                        </span>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex items-center justify-center">
+                                        <div className={`w-3 h-3 rounded-full ${
+                                          trafficLight === 'green' ? 'bg-green-500' :
+                                          trafficLight === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'
+                                        }`} />
                                       </div>
                                     </TableCell>
                                   </>
