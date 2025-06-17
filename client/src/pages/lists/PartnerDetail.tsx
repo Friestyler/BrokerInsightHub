@@ -2836,9 +2836,12 @@ export default function PartnerDetail() {
                             </span>
                           </TableCell>
                           <TableCell>
-                            <span className="text-gray-600">
+                            <Link 
+                              href={`/lists/customers/${customer.id}?tab=opportunities`} 
+                              className="text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer"
+                            >
                               {customerOpportunities.length}
-                            </span>
+                            </Link>
                           </TableCell>
                           <TableCell>
                             €{totalValue ? Number(totalValue).toLocaleString() : '0'}
