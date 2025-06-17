@@ -362,6 +362,14 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
               <Sparkles className="h-3 w-3 mr-1" />
               {generateActionsMutation.isPending ? 'Generating...' : 'Generate Next Best Action'}
             </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className="text-xs text-gray-600 hover:text-blue-600"
+            >
+              <Calendar className="h-3 w-3 mr-1" />
+              Prepare a Meeting
+            </Button>
           </div>
         </div>
       </div>
