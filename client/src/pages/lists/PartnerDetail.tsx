@@ -411,7 +411,7 @@ export default function PartnerDetail() {
     }
   });
 
-  // Mutation for creating new lists
+  // Enhanced mutation for creating new lists with immediate dropdown updates
   const createListMutation = useMutation({
     mutationFn: async (listData: any) => {
       try {
@@ -424,12 +424,28 @@ export default function PartnerDetail() {
         throw error;
       }
     },
-    onSuccess: (data) => {
-      console.log('Mutation onSuccess called with:', data);
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+    onSuccess: async (data) => {
+      console.log('List creation successful, implementing immediate UI updates:', data);
+      
+      // Comprehensive cache invalidation for immediate updates
+      await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities', 'partner', id] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities'] });
+      
+      // Environment-specific cache clearing
+      const currentEnv = window.__APP_ENV__ || localStorage.getItem('selectedEnvironment') || 'myqollabi';
+      if (currentEnv !== 'myqollabi') {
+        await queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/saved-lists`] });
+        await queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/saved-lists`, 'opportunities', 'partner', id] });
+      }
+      
+      // Force immediate data refetch for the dropdown
+      await queryClient.refetchQueries({ queryKey: ['/api/saved-lists', 'opportunities', 'partner', id] });
+      
+      console.log('Cache invalidation and refetch completed, list should appear immediately');
     },
     onError: (error) => {
-      console.error('Mutation onError called with:', error);
+      console.error('List creation failed:', error);
     }
   });
 
@@ -3806,15 +3822,46 @@ export default function PartnerDetail() {
                   };
 
                   createListMutation.mutate(listData, {
-                    onSuccess: (data) => {
-                      console.log('List creation successful:', data);
+                    onSuccess: async (data) => {
+                      console.log('List creation successful, setting up immediate UI updates:', data);
+                      
+                      // Comprehensive cache invalidation and refetch for immediate dropdown updates
+                      await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+                      await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities', 'partner', id] });
+                      
+                      // Environment-specific cache updates
+                      const currentEnv = window.__APP_ENV__ || localStorage.getItem('selectedEnvironment') || 'myqollabi';
+                      if (currentEnv !== 'myqollabi') {
+                        await queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/saved-lists`] });
+                        await queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/saved-lists`, 'opportunities', 'partner', id] });
+                      }
+                      
+                      // Force immediate refetch to ensure dropdown updates
+                      await queryClient.refetchQueries({ queryKey: ['/api/saved-lists', 'opportunities', 'partner', id] });
+                      
+                      // Set the newly created list as active to show immediate selection
+                      if (data && data.id) {
+                        const newList = {
+                          id: data.id,
+                          name: data.name,
+                          description: data.description,
+                          members: data.members,
+                          is_shared: data.is_shared || false
+                        };
+                        setActiveList(newList);
+                        console.log('New list set as active:', newList);
+                      }
+                      
                       toast({
                         title: "List created successfully",
-                        description: `"${listData.name}" has been saved with ${selectedOpportunities.length} opportunities.`,
+                        description: `"${listData.name}" has been saved with ${selectedOpportunities.length} opportunities and is now available in your dropdown.`,
                       });
+                      
                       setShowSaveListModal(false);
                       setSelectedOpportunities([]);
                       setSaveListMode('new');
+                      
+                      console.log('List creation and UI update complete');
                     },
                     onError: (error) => {
                       console.error('List creation error:', error);
