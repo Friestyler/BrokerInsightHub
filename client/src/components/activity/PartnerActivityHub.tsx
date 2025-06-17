@@ -728,10 +728,10 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                             )}
                             
                             <div className="flex items-center gap-2 text-xs text-gray-500">
-                              {item.user_id && (
+                              {(item.user_id || item.assigned_to) && (
                                 <div className="flex items-center gap-1">
                                   <User className="h-3 w-3" />
-                                  <span>{getUserRoleName(item.user_id)}</span>
+                                  <span>{getUserRoleName(item.user_id || item.assigned_to)}</span>
                                 </div>
                               )}
                               {item.priority && (
