@@ -2239,6 +2239,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           om.description,
           om.realized_value,
           om.target_value,
+          om.ytd_value,
+          om.last_year_value,
           om.measure_unit,
           om.currency_type,
           om.frequency,
