@@ -2210,6 +2210,133 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Extract meeting preparation data for AI analysis
+  app.get('/api/degoudse/partners/:id/meeting-data', async (req, res) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      console.log(`Extracting meeting data for partner ${partnerId}`);
+      
+      // Get partner basic info
+      const partnerResult = await envPool.query(`
+        SELECT id, name, description, status, location, region, primary_contact
+        FROM degoudse.partners 
+        WHERE id = $1
+      `, [partnerId]);
+      
+      if (partnerResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Partner not found' });
+      }
+      
+      const partner = partnerResult.rows[0];
+      
+      // Get all OKRs assigned to this partner
+      const okrResult = await envPool.query(`
+        SELECT 
+          om.id,
+          om.name,
+          om.description,
+          om.realized_value,
+          om.target_value,
+          om.measure_unit,
+          om.currency_type,
+          om.frequency,
+          om.hierarchy,
+          om.tags,
+          om.timeframe_start,
+          om.timeframe_end,
+          ta.assigned_at,
+          ta.status as assignment_status,
+          ta.progress_percentage
+        FROM degoudse.okr_template_assignments ta
+        LEFT JOIN degoudse.okr_metrics om ON ta.template_id = om.id
+        WHERE ta.entity_type = 'partner' AND ta.entity_id = $1
+        ORDER BY ta.assigned_at DESC
+      `, [partnerId]);
+      
+      // Get all opportunities for this partner
+      const opportunitiesResult = await envPool.query(`
+        SELECT 
+          o.id,
+          o.title,
+          o.description,
+          o.stage,
+          o.estimated_value,
+          o.probability,
+          o.insurance_description,
+          o.created_at,
+          o.updated_at,
+          c.name as customer_name,
+          c.industry as customer_industry,
+          u.name as account_manager_name
+        FROM degoudse.opportunities o
+        LEFT JOIN degoudse.customers c ON o.client_id = c.id
+        LEFT JOIN degoudse.users u ON o.account_manager_id = u.id
+        WHERE o.partner_id = $1 AND o.id > 16
+        ORDER BY o.estimated_value DESC, o.created_at DESC
+      `, [partnerId]);
+      
+      // Structure the data for AI analysis
+      const meetingData = {
+        partner: {
+          id: partner.id,
+          name: partner.name,
+          description: partner.description,
+          status: partner.status,
+          location: partner.location,
+          region: partner.region,
+          primary_contact: partner.primary_contact
+        },
+        okrs: okrResult.rows.map(okr => ({
+          id: okr.id,
+          name: okr.name,
+          description: okr.description,
+          realized_value: okr.realized_value,
+          target_value: okr.target_value,
+          measure_unit: okr.measure_unit,
+          currency_type: okr.currency_type,
+          frequency: okr.frequency,
+          hierarchy: okr.hierarchy,
+          tags: okr.tags,
+          timeframe_start: okr.timeframe_start,
+          timeframe_end: okr.timeframe_end,
+          assignment_status: okr.assignment_status,
+          progress_percentage: okr.progress_percentage,
+          progress_ratio: okr.target_value > 0 ? (okr.realized_value / okr.target_value) : 0
+        })),
+        opportunities: opportunitiesResult.rows.map(opp => ({
+          id: opp.id,
+          title: opp.title,
+          description: opp.description,
+          stage: opp.stage,
+          estimated_value: opp.estimated_value,
+          probability: opp.probability,
+          weighted_value: (opp.estimated_value || 0) * (opp.probability || 0) / 100,
+          insurance_description: opp.insurance_description,
+          customer_name: opp.customer_name,
+          customer_industry: opp.customer_industry,
+          account_manager_name: opp.account_manager_name,
+          created_at: opp.created_at,
+          updated_at: opp.updated_at
+        })),
+        summary: {
+          total_okrs: okrResult.rows.length,
+          total_opportunities: opportunitiesResult.rows.length,
+          total_opportunity_value: opportunitiesResult.rows.reduce((sum, opp) => sum + (opp.estimated_value || 0), 0),
+          total_weighted_value: opportunitiesResult.rows.reduce((sum, opp) => sum + ((opp.estimated_value || 0) * (opp.probability || 0) / 100), 0),
+          opportunity_stages: [...new Set(opportunitiesResult.rows.map(opp => opp.stage).filter(Boolean))],
+          customer_industries: [...new Set(opportunitiesResult.rows.map(opp => opp.customer_industry).filter(Boolean))]
+        }
+      };
+      
+      res.json(meetingData);
+    } catch (error) {
+      console.error('Error extracting meeting data:', error);
+      res.status(500).json({ error: 'Failed to extract meeting data' });
+    }
+  });
+
   app.get('/api/degoudse/opportunities/:id/partners', async (req, res) => {
     try {
       const opportunityId = parseInt(req.params.id);
