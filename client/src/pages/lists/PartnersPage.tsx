@@ -2436,15 +2436,7 @@ function PartnersTable() {
               >
                 Industry
               </SortableTableHead>
-              <SortableTableHead 
-                sortKey="type" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[120px]"
-              >
-                Type
-              </SortableTableHead>
+
               <SortableTableHead 
                 sortKey="size" 
                 currentSortKey={tableSortConfig.key} 
@@ -2550,7 +2542,6 @@ function PartnersTable() {
                   </div>
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.industry}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.type}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">{partner.size}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">{partner.region}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
