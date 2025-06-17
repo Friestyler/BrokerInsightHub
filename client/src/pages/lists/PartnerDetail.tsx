@@ -85,16 +85,18 @@ export default function PartnerDetail() {
   const [editingStageId, setEditingStageId] = useState<number | null>(null);
   const [stageDropdownRef, setStageDropdownRef] = useState<HTMLDivElement | null>(null);
   
-  // Available opportunity stages
+  // Available opportunity stages (from database)
   const OPPORTUNITY_STAGES = [
-    'Initial Contact',
-    'Qualification',
-    'Proposal Sent',
-    'Negotiation',
-    'Contract Review',
-    'Closed Won',
-    'Closed Lost',
-    'On Hold'
+    'discovery',
+    'proposal',
+    'negotiation',
+    'contract',
+    'Validated',
+    'Proposal Sent to Client',
+    'Closed (Won)',
+    'Lost',
+    'Rejected',
+    'closed_won'
   ];
   const [selectedExistingList, setSelectedExistingList] = useState<number | null>(null);
   const [showShareListModal, setShowShareListModal] = useState(false);
@@ -2090,9 +2092,14 @@ export default function PartnerDetail() {
                 <div className="text-xl font-semibold text-[#282A3F]">
                   €{Math.round(filteredOpportunities.reduce((sum: number, opp: any) => {
                     const value = Number(opp.estimated_value) || 0;
-                    const probability = opp.stage === 'Closed (Won)' ? 1 : 
+                    const probability = opp.stage === 'Closed (Won)' ? 1.0 : 
+                                      opp.stage === 'closed_won' ? 1.0 :
+                                      opp.stage === 'contract' ? 0.9 :
                                       opp.stage === 'Validated' ? 0.8 :
+                                      opp.stage === 'negotiation' ? 0.7 :
                                       opp.stage === 'Proposal Sent to Client' ? 0.6 :
+                                      opp.stage === 'proposal' ? 0.5 :
+                                      opp.stage === 'discovery' ? 0.3 :
                                       opp.stage === 'Lost' ? 0 :
                                       opp.stage === 'Rejected' ? 0 : 0.2;
                     return sum + (value * probability);
