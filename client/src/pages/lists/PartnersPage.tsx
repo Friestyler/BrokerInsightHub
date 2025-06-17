@@ -92,6 +92,17 @@ const useUpdateSavedList = () => {
   });
 };
 
+const useDeleteSavedList = () => {
+  return useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest('DELETE', `/api/saved-lists/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+    }
+  });
+};
+
 const useCreateSavedView = () => {
   return useMutation({
     mutationFn: async (data: any) => {
@@ -325,6 +336,7 @@ function PartnersTable() {
   const { data: savedListsData = [], isLoading: savedListsLoading } = useSavedLists();
   const createSavedListMutation = useCreateSavedList();
   const updateSavedListMutation = useUpdateSavedList();
+  const deleteSavedListMutation = useDeleteSavedList();
   
   // Filter saved lists to only show partner-related lists (client-side filtering)
   const partnerSavedListsData = savedListsData.filter((list: any) => 
@@ -2664,7 +2676,7 @@ function PartnersTable() {
             </Button>
             <Button 
               className="text-[#FFFFFF] bg-[#D3321D] pl-[14px] pr-[14px] ml-[12px] mr-[12px] hover:bg-destructive/90"
-              onClick={() => {
+              onClick={async () => {
                 if (listToDelete) {
                   // Prevent deletion of system lists
                   if (listToDelete.isDefault) {
@@ -2678,40 +2690,52 @@ function PartnersTable() {
                     return;
                   }
                 
-                  // Cache invalidation is handled by the mutation hook automatically
-                  
-                  // If this was the active list, go back to "All Partners"
-                  if (activeList && activeList.id === listToDelete.id) {
-                    // Find the "All Partners" list
-                    const allPartnersList = savedLists.find(list => list.id === 'all-partners');
-                    if (allPartnersList) {
-                      setActiveList(allPartnersList);
-                      setOriginalListFilters(allPartnersList.filters);
-                    } else {
-                      setActiveList(null);
-                      setOriginalListFilters(null);
+                  try {
+                    // Actually delete the list from the database
+                    await deleteSavedListMutation.mutateAsync(parseInt(listToDelete.id));
+                    
+                    // If this was the active list, go back to "All Partners"
+                    if (activeList && activeList.id === listToDelete.id) {
+                      // Find the "All Partners" list
+                      const allPartnersList = savedLists.find(list => list.id === 'all-partners');
+                      if (allPartnersList) {
+                        setActiveList(allPartnersList);
+                        setOriginalListFilters(allPartnersList.filters);
+                      } else {
+                        setActiveList(null);
+                        setOriginalListFilters(null);
+                      }
+                      
+                      // Reset filters
+                      setFilterText('');
+                      setSelectedStatus('');
+                      setSelectedIndustry('');
+                      setSelectedType('');
+                      setHasUnsavedChanges(false);
                     }
                     
-                    // Reset filters
-                    setFilterText('');
-                    setSelectedStatus('');
-                    setSelectedIndustry('');
-                    setSelectedType('');
-                    setHasUnsavedChanges(false);
+                    // Show success message
+                    toast({
+                      title: "List deleted",
+                      description: `The list "${listToDelete.name}" has been deleted. Your partner records remain intact.`,
+                    });
+                    
+                    // Close the dialog and dropdown
+                    setShowDeleteListModal(false);
+                    setShowListsDropdown(false);
+                  } catch (error) {
+                    toast({
+                      title: "Error",
+                      description: "Failed to delete the list. Please try again.",
+                      variant: "destructive"
+                    });
                   }
-                  
-                  // Show success message
-                  toast({
-                    title: "List deleted",
-                    description: `The list "${listToDelete.name}" has been deleted. Your partner records remain intact.`,
-                  });
-                  
-                  // Close the dialog and dropdown
-                  setShowDeleteListModal(false);
-                  setShowListsDropdown(false);
                 }
               }}
-            >Delete list</Button>
+              disabled={deleteSavedListMutation.isPending}
+            >
+              {deleteSavedListMutation.isPending ? 'Deleting...' : 'Delete list'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
