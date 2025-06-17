@@ -92,7 +92,9 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
 
   // Fetch timeline
   const { data: timeline } = useQuery({
-    queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`]
+    queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`],
+    staleTime: 0,
+    gcTime: 0
   });
 
   // Fetch next best actions

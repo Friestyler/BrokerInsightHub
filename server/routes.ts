@@ -1099,56 +1099,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envId = req.params.envId;
       const partnerId = parseInt(req.params.id);
       
-      // Fetch all timeline activities from database
+      // Fetch all timeline activities from database with user information
       const timelineQuery = sql`
         SELECT 
-          id, 
+          t.id, 
           'task' as activity_type, 
-          title, 
-          title as content, 
-          description,
-          priority,
-          completed,
-          visible_to_partner,
-          assigned_to,
-          created_at,
-          updated_at
-        FROM ${sql.identifier(envId)}.activity_tasks 
-        WHERE partner_id = ${partnerId}
+          t.title, 
+          t.title as content, 
+          t.description,
+          t.priority,
+          t.completed,
+          t.visible_to_partner,
+          t.assigned_to,
+          t.created_at,
+          t.updated_at,
+          u.name as author_name
+        FROM ${sql.identifier(envId)}.activity_tasks t
+        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id
+        WHERE t.partner_id = ${partnerId}
         
         UNION ALL
         
         SELECT 
-          id, 
+          c.id, 
           'comment' as activity_type, 
           'Comment' as title, 
-          content, 
+          c.content, 
           null as description,
           null as priority,
           null as completed,
-          visible_to_partner,
-          user_id as assigned_to,
-          created_at,
-          updated_at
-        FROM ${sql.identifier(envId)}.activity_comments 
-        WHERE partner_id = ${partnerId}
+          c.visible_to_partner,
+          c.user_id as assigned_to,
+          c.created_at,
+          c.updated_at,
+          u.name as author_name
+        FROM ${sql.identifier(envId)}.activity_comments c
+        LEFT JOIN ${sql.identifier(envId)}.users u ON c.user_id = u.id
+        WHERE c.partner_id = ${partnerId}
         
         UNION ALL
         
         SELECT 
-          id, 
+          a.id, 
           'attachment' as activity_type, 
           'Document' as title, 
-          filename as content, 
+          a.filename as content, 
           null as description,
           null as priority,
           null as completed,
-          visible_to_partner,
-          uploaded_by_id as assigned_to,
-          created_at,
-          null as updated_at
-        FROM ${sql.identifier(envId)}.activity_attachments 
-        WHERE partner_id = ${partnerId}
+          a.visible_to_partner,
+          a.uploaded_by_id as assigned_to,
+          a.created_at,
+          null as updated_at,
+          u.name as author_name
+        FROM ${sql.identifier(envId)}.activity_attachments a
+        LEFT JOIN ${sql.identifier(envId)}.users u ON a.uploaded_by_id = u.id
+        WHERE a.partner_id = ${partnerId}
         
         ORDER BY created_at DESC
       `;
@@ -1168,7 +1174,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         assigned_to: item.assigned_to,
         created_at: item.created_at,
         updated_at: item.updated_at,
-        author_name: 'User' // Will be populated with actual user names when user system is connected
+        author_name: item.author_name || 'Unknown User'
       }));
       
       res.json(timeline);
