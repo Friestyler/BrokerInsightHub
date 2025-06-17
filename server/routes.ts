@@ -1952,7 +1952,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const partnerId = parseInt(req.params.id);
       const envPool = pool;
       const result = await envPool.query(`
-        SELECT DISTINCT p.id, p.name, p.description, p.category, p.sku, p.price, p.vendor_id,
+        SELECT DISTINCT p.id, p.name, p.description, p.category,
                p.created_at, p.updated_at
         FROM degoudse.products p
         INNER JOIN degoudse.opportunities o ON p.id = o.product_id
@@ -1965,9 +1965,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: product.name,
         description: product.description,
         category: product.category,
-        sku: product.sku,
-        price: product.price,
-        vendor_id: product.vendor_id,
         created_at: product.created_at,
         updated_at: product.updated_at
       }));
