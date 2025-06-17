@@ -2438,11 +2438,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         },
         body: JSON.stringify({
           model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-          temperature: 0.3,
+          temperature: 0.7,
+          seed: Math.floor(Math.random() * 1000000),
           messages: [
             {
               role: "system",
               content: `You are assisting an account manager in preparing for an upcoming meeting with a broker.
+
+Current meeting preparation timestamp: ${new Date().toISOString()}
 
 You will receive:
 - A list of OKRs (Objectives, Activities, and Subactivities) that the broker is working on with the account manager
@@ -2452,15 +2455,32 @@ Your task:
 
 1. Identify the 3 most relevant OKRs to discuss — those that stand out — and for each, briefly explain **why it should be discussed now**.
 
-When selecting the top 3 OKRs to review, ensure **strategic diversity**.  
-Do **not** select three OKRs simply because they all show 0% progress.
+CRITICAL: When selecting OKRs, analyze the actual data provided:
+- Look at "ytd_value" and "last_year_value" fields, not just "realized_value" and "target_value"
+- Look at "interpreted_progress" field for meaningful insights
+- Some OKRs may show significant year-over-year growth (e.g., YTD vs Last Year)
+- Some may show excellent performance ratios (e.g., 409% conversion rates)
+
+When selecting the top 3 OKRs to review, ensure **strategic diversity**:  
+Do **not** select three OKRs simply because they all show 0% progress in "realized_value".
 
 Instead, prioritize a mix such as:
-- One OKR that is behind or showing 0% progress
-- One that is ahead of target or significantly better than last year
-- One that depends on broker action or has been inactive
+- One OKR with concerning performance or lack of progress
+- One OKR showing strong year-over-year improvement or exceptional performance
+- One OKR that requires strategic attention or broker collaboration
 
-Each OKR must have a **distinct reason** for being selected. Avoid repetitive logic.
+Each OKR must have a **distinct and specific reason** for being selected. Avoid repetitive logic.
+
+Example of good selection:
+- "Omvang Portefeuille" showing 6% growth (€742,301 vs €700,599 last year) - discuss growth strategy
+- "Conversieratio" at 409% performance - understand this exceptional success
+- "Aantal Unieke Offertes" at 29% - needs immediate attention to improve
+
+IMPORTANT: Vary your selection approach each time. Consider different angles:
+- Sometimes focus on metrics with the highest absolute values
+- Sometimes prioritize metrics with unusual ratios or percentages
+- Sometimes emphasize metrics that show interesting trends
+- Always ensure each selected OKR has a unique justification
 
 If the partner has fewer than 3 OKRs:
 - Display only the number available.
@@ -2481,6 +2501,8 @@ These should highlight:
 
 Note: Common opportunity types include **Zonnepanelen**, **BGB**, and **Zonnepanelen onbekend**.
 
+Vary your focus each time - sometimes emphasize pipeline health, sometimes winning strategies, sometimes risk mitigation.
+
 If the partner has fewer than 3 opportunity types:
 - Only show what is available.
 If there are none:
@@ -2495,6 +2517,7 @@ These should:
 - Help the account manager guide the discussion
 - Be strategic, practical, or coordination-focused
 - Not repeat OKRs or opportunity descriptions word-for-word
+- Vary in focus each time (strategic planning, tactical execution, relationship building, etc.)
 
 ---
 
@@ -2508,7 +2531,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
             },
             {
               role: "user",
-              content: JSON.stringify(meetingData, null, 2)
+              content: `Meeting preparation request at ${new Date().toISOString()}\n\n${JSON.stringify(meetingData, null, 2)}`
             }
           ]
         })
