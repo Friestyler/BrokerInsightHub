@@ -51,6 +51,8 @@ const useCustomersData = (page: number = 1, limit: number = 100) => {
     queryKey: ['/api/customers', { page, limit }],
     queryFn: () => apiRequest('GET', `/api/customers?page=${page}&limit=${limit}`),
     staleTime: 0, // Force fresh data to show updated relationship counts
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 };
 
