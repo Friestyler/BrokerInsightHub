@@ -75,8 +75,33 @@ const useCreateSavedList = () => {
     mutationFn: async (data: any) => {
       return apiRequest('POST', '/api/saved-lists', data);
     },
-    onSuccess: () => {
+    onSuccess: (newList) => {
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+      
+      // Auto-select the newly created list
+      if (newList) {
+        const convertedList = {
+          id: newList.id.toString(),
+          name: newList.name,
+          description: newList.description,
+          type: newList.type as 'filter' | 'selection',
+          filters: newList.filters || {},
+          members: newList.members || [],
+          isShared: newList.is_shared,
+          createdBy: newList.created_by,
+          createdAt: new Date(newList.created_at),
+          isDefault: newList.is_default
+        };
+        
+        // Set the new list as active
+        setActiveList(convertedList);
+        setOriginalListFilters(convertedList.filters);
+        setHasUnsavedChanges(false);
+        
+        // Clear any active view when switching to new list
+        setActiveView(null);
+      }
     }
   });
 };
