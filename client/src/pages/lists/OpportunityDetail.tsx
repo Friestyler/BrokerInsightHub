@@ -108,15 +108,35 @@ export default function OpportunityDetail() {
       }
     }
     
-    // Method 2: Check for partner context in URL or session storage
+    // Method 2: Check for context in session storage
     const sessionReferrer = sessionStorage.getItem('opportunityReferrer');
     if (sessionReferrer) {
+      // Check for customer with specific tab (e.g., "customers/123#opportunities")
+      const customerWithTabMatch = sessionReferrer.match(/customers\/(\d+)#(\w+)/);
       const partnerDetailMatch = sessionReferrer.match(/\/lists\/partners\/(\d+)/);
+      const customerDetailMatch = sessionReferrer.match(/customers\/(\d+)$/);
+      
+      if (customerWithTabMatch) {
+        const customerId = customerWithTabMatch[1];
+        const tabName = customerWithTabMatch[2];
+        setBackUrl(`/lists/customers/${customerId}?tab=${tabName}`);
+        setBackLabel(`Back to Customer (${tabName})`);
+        sessionStorage.removeItem('opportunityReferrer');
+        return;
+      }
+      
       if (partnerDetailMatch) {
         const partnerId = partnerDetailMatch[1];
         setBackUrl(`/lists/partners/${partnerId}`);
         setBackLabel("Back to Partner");
-        // Clear the session storage after use
+        sessionStorage.removeItem('opportunityReferrer');
+        return;
+      }
+      
+      if (customerDetailMatch) {
+        const customerId = customerDetailMatch[1];
+        setBackUrl(`/lists/customers/${customerId}`);
+        setBackLabel("Back to Customer");
         sessionStorage.removeItem('opportunityReferrer');
         return;
       }
