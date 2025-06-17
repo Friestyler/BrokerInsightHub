@@ -1704,20 +1704,6 @@ function OpportunitiesTable() {
               >
                 Customer
               </SortableTableHead>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px] bg-white">
-                <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
-                  Related Contacts
-                </div>
-              </th>
-              <SortableTableHead 
-                sortKey="accountManagerName" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[130px]"
-              >
-                Account Manager
-              </SortableTableHead>
               <SortableTableHead 
                 sortKey="partnerName" 
                 currentSortKey={tableSortConfig.key} 
@@ -1727,6 +1713,20 @@ function OpportunitiesTable() {
               >
                 Partner
               </SortableTableHead>
+              <SortableTableHead 
+                sortKey="accountManagerName" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[130px]"
+              >
+                Account Manager
+              </SortableTableHead>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px] bg-white">
+                <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
+                  Related Contacts
+                </div>
+              </th>
               <SortableTableHead 
                 sortKey="startDate" 
                 currentSortKey={tableSortConfig.key} 
@@ -1843,14 +1843,14 @@ function OpportunitiesTable() {
                 <td className="px-3 py-4 text-sm text-gray-900 w-[120px] truncate">
                   {opportunity.clientName || opportunity.customerName}
                 </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
-                  <span className="text-gray-500 text-xs">-</span>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[120px] truncate">
+                  {opportunity.partnerName}
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[130px] truncate">
                   {opportunity.accountManagerName || '-'}
                 </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[120px] truncate">
-                  {opportunity.partnerName}
+                <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
+                  <span className="text-gray-500 text-xs">-</span>
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[110px]">
                   {opportunity.startDate ? new Date(opportunity.startDate).toLocaleDateString() : '-'}
