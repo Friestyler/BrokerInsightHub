@@ -90,7 +90,8 @@ const useSavedLists = () => {
   return useQuery({
     queryKey: ['/api/saved-lists', 'customers'],
     queryFn: () => apiRequest('GET', '/api/saved-lists?entity_type=customers'),
-    staleTime: 2 * 60 * 1000,
+    staleTime: 0,
+    gcTime: 0,
   });
 };
 
@@ -102,6 +103,7 @@ const useCreateSavedList = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'customers'] });
     }
   });
 };

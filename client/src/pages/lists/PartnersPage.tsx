@@ -59,7 +59,7 @@ const useSavedLists = () => {
     queryKey: ['/api/saved-lists', 'partners'],
     queryFn: () => apiRequest('GET', '/api/saved-lists?entity_type=partners'),
     staleTime: 0, // Always fetch fresh data for lists to see immediate updates
-    gcTime: 1000, // Keep cache for only 1 second (v5 uses gcTime instead of cacheTime)
+    gcTime: 0, // No cache to ensure immediate updates
   });
 };
 
@@ -76,13 +76,10 @@ const useCreateSavedList = () => {
     mutationFn: async (data: any) => {
       return apiRequest('POST', '/api/saved-lists', data);
     },
-    onSuccess: async () => {
-      // Force immediate cache refresh with proper await
-      await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
-      await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'partners'] });
-      // Clear the cache completely and force a fresh fetch
-      queryClient.removeQueries({ queryKey: ['/api/saved-lists', 'partners'] });
-      await queryClient.refetchQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+    onSuccess: () => {
+      // Clear cache for immediate updates
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'partners'] });
     }
   });
 };
@@ -103,16 +100,10 @@ const useDeleteSavedList = () => {
     mutationFn: async (id: number) => {
       return apiRequest('DELETE', `/api/saved-lists/${id}`);
     },
-    onSuccess: async () => {
-      // Comprehensive cache invalidation for immediate UI updates
-      await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
-      await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'partners'] });
-      
-      // Clear cache completely to force fresh fetch
-      queryClient.removeQueries({ queryKey: ['/api/saved-lists', 'partners'] });
-      
-      // Force immediate refetch
-      await queryClient.refetchQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+    onSuccess: () => {
+      // Clear cache for immediate updates
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'partners'] });
     }
   });
 };
@@ -417,13 +408,12 @@ function PartnersTable() {
   // Custom create list mutation that can access component state
   const createSavedListMutation = useMutation({
     mutationFn: async (data: any) => {
-      // Use environment-specific endpoint for degoudse
       return apiRequest('POST', '/api/saved-lists', data);
     },
     onSuccess: (newList) => {
-      // Use resetQueries instead of invalidateQueries for immediate refresh
-      queryClient.resetQueries({ queryKey: ['/api/saved-lists'] });
-      queryClient.resetQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+      // Clear cache for immediate updates
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'partners'] });
       
       // Auto-select the newly created list
       if (newList) {
