@@ -5508,7 +5508,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
               
               // Show campaigns that include this partner in their recipients OR are shared with this partner
               query = `
-                SELECT DISTINCT c.id, c.name, c.description, c.type, c.category, c.status, 
+                WITH campaign_matches AS (
+                  SELECT DISTINCT c.id
+                  FROM ${envId}.campaigns c
+                  LEFT JOIN ${envId}.campaign_shares cs ON c.id = cs.campaign_id
+                  WHERE c.is_template = false
+                  AND (
+                    (c.recipients::text LIKE '%"name": "' || $1 || '"%' 
+                     OR c.recipients::text LIKE '%"id": ' || $2 || '%' 
+                     OR c.recipients::text LIKE '%"id":' || $2 || '%')
+                    OR 
+                    (cs.shared_with_type = 'partner' AND cs.shared_with_id = $3::integer AND cs.is_active = true)
+                  )
+                )
+                SELECT c.id, c.name, c.description, c.type, c.category, c.status, 
                        c.created_by_id, c.sponsor_id, c.list_id, c.subject, c.email_body, 
                        c.email_logo, c.from_name, c.from_email, c.scheduled_time, 
                        c.frequency, c.is_shared, c.is_template, c.tags, c.created_at, 
@@ -5517,15 +5530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                        u.name as created_by_name 
                 FROM ${envId}.campaigns c
                 LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
-                LEFT JOIN ${envId}.campaign_shares cs ON c.id = cs.campaign_id
-                WHERE c.is_template = false
-                AND (
-                  (c.recipients::text LIKE '%"name": "' || $1 || '"%' 
-                   OR c.recipients::text LIKE '%"id": ' || $2 || '%' 
-                   OR c.recipients::text LIKE '%"id":' || $2 || '%')
-                  OR 
-                  (cs.shared_with_type = 'partner' AND cs.shared_with_id = $3::integer AND cs.is_active = true)
-                )
+                INNER JOIN campaign_matches cm ON c.id = cm.id
               `;
               queryParams.push(partnerName, partner_id, partner_id);
             } else {
