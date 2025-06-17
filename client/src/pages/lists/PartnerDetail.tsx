@@ -653,12 +653,17 @@ export default function PartnerDetail() {
   // Fetch campaigns linked to this partner
 
 
-  // Filter saved lists to show partner-relevant lists
-  const partnerRelevantLists = (savedListsData as any[] || []).filter((list: any) => {
-    // Show lists that belong to this partner (partner_id matches) or are general lists (partner_id is null)
-    // The backend already handles this filtering, so we can show all returned lists
-    return true;
-  });
+  // Filter saved lists to show partner-relevant lists, sorted alphabetically
+  const partnerRelevantLists = (savedListsData as any[] || [])
+    .filter((list: any) => {
+      // Show lists that belong to this partner (partner_id matches) or are general lists (partner_id is null)
+      // The backend already handles this filtering, so we can show all returned lists
+      return true;
+    })
+    .sort((a: any, b: any) => {
+      // Sort alphabetically by name
+      return a.name.localeCompare(b.name);
+    });
 
   // Function to get fresh list data directly from React Query
   const getActiveListForFiltering = () => {
