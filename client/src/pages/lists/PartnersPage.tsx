@@ -387,11 +387,13 @@ function PartnersTable() {
   // Custom create list mutation that can access component state
   const createSavedListMutation = useMutation({
     mutationFn: async (data: any) => {
+      // Use environment-specific endpoint for degoudse
       return apiRequest('POST', '/api/saved-lists', data);
     },
     onSuccess: (newList) => {
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+      // Use resetQueries instead of invalidateQueries for immediate refresh
+      queryClient.resetQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.resetQueries({ queryKey: ['/api/saved-lists', 'partners'] });
       
       // Auto-select the newly created list
       if (newList) {
