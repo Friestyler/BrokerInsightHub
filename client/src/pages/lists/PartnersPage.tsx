@@ -99,6 +99,8 @@ const useDeleteSavedList = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+      queryClient.refetchQueries({ queryKey: ['/api/saved-lists', 'partners'] });
     }
   });
 };
