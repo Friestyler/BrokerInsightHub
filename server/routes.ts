@@ -6274,8 +6274,9 @@ Keep the tone clear and professional. Focus on what will help the account manage
           const result = await pool.query(`
             INSERT INTO ${envId}.campaigns (
               name, type, description, status, created_by_id, subject, email_body, 
-              objective, is_template, frequency, target_entity_type, recipients
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+              objective, is_template, frequency, target_entity_type, recipients,
+              partner_id, environment_id
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
             RETURNING *
           `, [
             campaignData.name,
@@ -6289,7 +6290,9 @@ Keep the tone clear and professional. Focus on what will help the account manage
             false,
             'one_time',
             campaignData.target_entity_type || null,
-            JSON.stringify(campaignData.recipients || [])
+            JSON.stringify(campaignData.recipients || []),
+            campaignData.partner_id || null,
+            envId
           ]);
           
           const campaign = result.rows[0];
@@ -6623,6 +6626,9 @@ Keep the tone clear and professional. Focus on what will help the account manage
             open_rate: campaign.open_rate || '0.00',
             total_clicks: campaign.total_clicks || 0,
             recipients: campaign.recipients || 0,
+            partner_id: campaign.partner_id,
+            partner_name: campaign.partner_name,
+            environment_id: campaign.environment_id,
             created_at: campaign.created_at,
             updated_at: campaign.updated_at
           }));
