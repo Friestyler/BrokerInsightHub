@@ -372,7 +372,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     
     if (fromPartner) {
       // Redirect back to partner details page with campaigns tab active
-      setLocation(`/partners/${fromPartner}?tab=campaigns`);
+      setLocation(`/lists/partners/${fromPartner}?tab=campaigns`);
     } else if (isEditingCampaign || isNewCampaign) {
       setLocation('/campaigns');
     } else if (isFromTemplate) {
