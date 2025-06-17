@@ -2289,11 +2289,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     // Create cache key based on entity type
     const cacheKey = `degoudse_saved_views_${entityType || 'all'}`;
-    const cached = getCached(cacheKey);
     
-    if (cached) {
-      return res.json(cached);
-    }
+    // Clear cache first to ensure fresh data after deletions
+    cache.delete(cacheKey);
     
     try {
       const envPool = pool;
