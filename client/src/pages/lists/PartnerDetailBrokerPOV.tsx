@@ -744,26 +744,85 @@ export default function PartnerDetailBrokerPOV() {
                           <TableRow className="border-b border-gray-200">
                             <TableHead className="font-semibold text-gray-900">Metric Name</TableHead>
                             <TableHead className="font-semibold text-gray-900">Description</TableHead>
-                            <TableHead className="font-semibold text-gray-900">Current</TableHead>
-                            <TableHead className="font-semibold text-gray-900">Target</TableHead>
+                            {(() => {
+                              // Check if any metric in this tag group has YTD or Last Year values
+                              const hasYtdValues = tagMetrics.some((metric: any) => metric.ytd_value);
+                              const hasLastYearValues = tagMetrics.some((metric: any) => metric.last_year_value);
+                              
+                              if (hasYtdValues || hasLastYearValues) {
+                                return (
+                                  <>
+                                    {hasYtdValues && (
+                                      <TableHead className="font-semibold text-gray-900">YTD</TableHead>
+                                    )}
+                                    {hasLastYearValues && (
+                                      <TableHead className="font-semibold text-gray-900">Last Year</TableHead>
+                                    )}
+                                  </>
+                                );
+                              } else {
+                                return (
+                                  <>
+                                    <TableHead className="font-semibold text-gray-900">Current</TableHead>
+                                    <TableHead className="font-semibold text-gray-900">Target</TableHead>
+                                  </>
+                                );
+                              }
+                            })()}
                             <TableHead className="font-semibold text-gray-900">Progress</TableHead>
                           </TableRow>
                         </TableHeader>
                         <TableBody>
                           {tagMetrics.map((metric: any) => {
-                            const progress = Math.round((metric.current_value / metric.target_value) * 100);
+                            // Use YTD/Last Year values for progress calculation if available, otherwise use current/target
+                            const hasYtdValue = metric.ytd_value;
+                            const hasLastYearValue = metric.last_year_value;
+                            
+                            // Calculate progress based on available data
+                            let progress = 0;
+                            if (hasYtdValue && metric.target_value) {
+                              const ytdNumeric = parseFloat(metric.ytd_value.replace(/[^\d.-]/g, '')) || 0;
+                              const targetNumeric = parseFloat(metric.target_value) || 1;
+                              progress = Math.round((ytdNumeric / targetNumeric) * 100);
+                            } else if (metric.current_value && metric.target_value) {
+                              progress = Math.round((metric.current_value / metric.target_value) * 100);
+                            }
+                            
                             return (
                               <TableRow key={metric.id} className="border-b border-gray-100">
                                 <TableCell className="font-medium">{metric.name}</TableCell>
                                 <TableCell className="text-gray-600">{metric.description}</TableCell>
-                                <TableCell>
-                                  {metric.current_value}
-                                  {metric.unit === 'percentage' && '%'}
-                                </TableCell>
-                                <TableCell>
-                                  {metric.target_value}
-                                  {metric.unit === 'percentage' && '%'}
-                                </TableCell>
+                                {(() => {
+                                  if (hasYtdValue || hasLastYearValue) {
+                                    return (
+                                      <>
+                                        {hasYtdValue && (
+                                          <TableCell>
+                                            {metric.ytd_value}
+                                          </TableCell>
+                                        )}
+                                        {hasLastYearValue && (
+                                          <TableCell>
+                                            {metric.last_year_value}
+                                          </TableCell>
+                                        )}
+                                      </>
+                                    );
+                                  } else {
+                                    return (
+                                      <>
+                                        <TableCell>
+                                          {metric.current_value}
+                                          {metric.unit === 'percentage' && '%'}
+                                        </TableCell>
+                                        <TableCell>
+                                          {metric.target_value}
+                                          {metric.unit === 'percentage' && '%'}
+                                        </TableCell>
+                                      </>
+                                    );
+                                  }
+                                })()}
                                 <TableCell>
                                   <div className="flex items-center space-x-2">
                                     <div className="w-20 bg-gray-200 rounded-full h-2">

@@ -1201,7 +1201,31 @@ export default function PartnerDetail() {
                           <TableHead className="text-left font-medium text-gray-900">Name</TableHead>
                           <TableHead className="text-left font-medium text-gray-900">Timeframe</TableHead>
                           <TableHead className="text-left font-medium text-gray-900">Milestone Frequency</TableHead>
-                          <TableHead className="text-left font-medium text-gray-900">Target</TableHead>
+                          {(() => {
+                            // Check if any metric in this tag group has YTD or Last Year values
+                            const hasYtdValues = tagMetrics.some((metric: any) => metric.ytd_value);
+                            const hasLastYearValues = tagMetrics.some((metric: any) => metric.last_year_value);
+                            
+                            if (hasYtdValues || hasLastYearValues) {
+                              return (
+                                <>
+                                  {hasYtdValues && (
+                                    <TableHead className="text-left font-medium text-gray-900">YTD</TableHead>
+                                  )}
+                                  {hasLastYearValues && (
+                                    <TableHead className="text-left font-medium text-gray-900">Last Year</TableHead>
+                                  )}
+                                </>
+                              );
+                            } else {
+                              return (
+                                <>
+                                  <TableHead className="text-left font-medium text-gray-900">Realized</TableHead>
+                                  <TableHead className="text-left font-medium text-gray-900">Target</TableHead>
+                                </>
+                              );
+                            }
+                          })()}
                           <TableHead className="w-12"></TableHead>
                         </TableRow>
                       </TableHeader>
@@ -1228,16 +1252,61 @@ export default function PartnerDetail() {
                             <TableCell>
                               <span className="text-gray-700">{metric.milestone_frequency || 'Not set'}</span>
                             </TableCell>
-                            <TableCell>
-                              <div className="flex items-center space-x-2">
-                                <span className="text-gray-900">
-                                  {metric.target_value || '0'}
-                                </span>
-                                <span className="text-xs text-gray-500">
-                                  {metric.measure_unit || ''}
-                                </span>
-                              </div>
-                            </TableCell>
+                            {(() => {
+                              // Check if this metric has YTD or Last Year values
+                              const hasYtdValue = metric.ytd_value;
+                              const hasLastYearValue = metric.last_year_value;
+                              
+                              if (hasYtdValue || hasLastYearValue) {
+                                return (
+                                  <>
+                                    {hasYtdValue && (
+                                      <TableCell>
+                                        <div className="flex items-center space-x-2">
+                                          <span className="text-gray-900">
+                                            {metric.ytd_value}
+                                          </span>
+                                        </div>
+                                      </TableCell>
+                                    )}
+                                    {hasLastYearValue && (
+                                      <TableCell>
+                                        <div className="flex items-center space-x-2">
+                                          <span className="text-gray-900">
+                                            {metric.last_year_value}
+                                          </span>
+                                        </div>
+                                      </TableCell>
+                                    )}
+                                  </>
+                                );
+                              } else {
+                                return (
+                                  <>
+                                    <TableCell>
+                                      <div className="flex items-center space-x-2">
+                                        <span className="text-gray-900">
+                                          {metric.realized_value || '0'}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                          {metric.measure_unit || ''}
+                                        </span>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell>
+                                      <div className="flex items-center space-x-2">
+                                        <span className="text-gray-900">
+                                          {metric.target_value || '0'}
+                                        </span>
+                                        <span className="text-xs text-gray-500">
+                                          {metric.measure_unit || ''}
+                                        </span>
+                                      </div>
+                                    </TableCell>
+                                  </>
+                                );
+                              }
+                            })()}
                             <TableCell>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
