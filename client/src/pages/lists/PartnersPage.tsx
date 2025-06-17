@@ -1832,7 +1832,7 @@ function PartnersTable() {
                     createdAt: new Date()
                   };
                   
-                  // Create the new list in database
+                  // Create the new list in database using the custom mutation with auto-selection
                   createSavedListMutation.mutate({
                     name: listName,
                     description: listDescription || undefined,
@@ -1841,23 +1841,6 @@ function PartnersTable() {
                     members: selectedPartners,
                     filters: {},
                     is_shared: false
-                  }, {
-                    onSuccess: (createdList) => {
-                      // Convert to local format and set as active
-                      const newList: SavedList = {
-                        id: createdList.id.toString(),
-                        name: createdList.name,
-                        description: createdList.description,
-                        type: 'selection',
-                        filters: {},
-                        members: createdList.members || [],
-                        isShared: false,
-                        createdBy: 'John Smith',
-                        createdAt: new Date(createdList.created_at)
-                      };
-                      setActiveList(newList);
-                      setOriginalListFilters(newList.filters);
-                    }
                   });
                   
                   // Clear selections and close modal
