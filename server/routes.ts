@@ -1217,6 +1217,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         RETURNING *
       `);
       
+      // Sync to linked partner if this is Mevas BV or De Goudse
+      if (partnerId === 12 || partnerId === 4) {
+        const syncPartnerId = partnerId === 12 ? 4 : 12;
+        try {
+          await db.execute(sql`
+            INSERT INTO ${sql.identifier(envId)}.activity_tasks 
+            (partner_id, title, description, priority, visible_to_partner, assigned_to, completed, synced_from_partner_id, is_synced)
+            VALUES (${syncPartnerId}, ${title}, ${description || null}, ${priority || 'medium'}, ${visible_to_partner || false}, ${assigned_to || null}, false, ${partnerId}, true)
+          `);
+          console.log(`Synced task from partner ${partnerId} to partner ${syncPartnerId}`);
+        } catch (syncError) {
+          console.error('Error syncing task:', syncError);
+        }
+      }
+      
       res.status(201).json(result.rows[0]);
     } catch (error) {
       console.error('Error creating task:', error);
@@ -1238,6 +1253,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         RETURNING *
       `);
       
+      // Sync to linked partner if this is Mevas BV or De Goudse
+      if (partnerId === 12 || partnerId === 4) {
+        const syncPartnerId = partnerId === 12 ? 4 : 12;
+        try {
+          await db.execute(sql`
+            INSERT INTO ${sql.identifier(envId)}.activity_comments 
+            (partner_id, content, visible_to_partner, user_id, synced_from_partner_id, is_synced)
+            VALUES (${syncPartnerId}, ${content}, ${visible_to_partner || false}, ${user_id || 1}, ${partnerId}, true)
+          `);
+          console.log(`Synced comment from partner ${partnerId} to partner ${syncPartnerId}`);
+        } catch (syncError) {
+          console.error('Error syncing comment:', syncError);
+        }
+      }
+      
       res.status(201).json(result.rows[0]);
     } catch (error) {
       console.error('Error creating comment:', error);
@@ -1252,6 +1282,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const taskId = parseInt(req.params.id);
       const { completed } = req.body;
       
+      // Get the task to check if it needs syncing
+      const taskResult = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(envId)}.activity_tasks WHERE id = ${taskId}
+      `);
+      
+      if (taskResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Task not found' });
+      }
+      
+      const task = taskResult.rows[0];
+      
       const result = await db.execute(sql`
         UPDATE ${sql.identifier(envId)}.activity_tasks 
         SET completed = ${completed}, completed_at = ${completed ? new Date().toISOString() : null}
@@ -1259,8 +1300,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         RETURNING *
       `);
       
-      if (result.rows.length === 0) {
-        return res.status(404).json({ error: 'Task not found' });
+      // Sync completion status to linked partner if this is Mevas BV or De Goudse
+      if ((task.partner_id === 12 || task.partner_id === 4) && !task.is_synced) {
+        const syncPartnerId = task.partner_id === 12 ? 4 : 12;
+        try {
+          await db.execute(sql`
+            UPDATE ${sql.identifier(envId)}.activity_tasks 
+            SET completed = ${completed}, completed_at = ${completed ? new Date().toISOString() : null}
+            WHERE partner_id = ${syncPartnerId} 
+            AND title = ${task.title} 
+            AND synced_from_partner_id = ${task.partner_id}
+            AND is_synced = true
+          `);
+          console.log(`Synced task completion from partner ${task.partner_id} to partner ${syncPartnerId}`);
+        } catch (syncError) {
+          console.error('Error syncing task completion:', syncError);
+        }
       }
       
       res.json(result.rows[0]);
