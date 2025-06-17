@@ -2179,13 +2179,7 @@ export default function PartnerDetailBrokerPOV() {
 
           {activeTab === "campaigns" && (
             <div className="space-y-6">
-              {/* Header */}
-              <div className="flex justify-between items-center">
-                <div>
-                  <h3 className="text-xl font-semibold text-gray-900">Shared Campaigns</h3>
-                  <p className="text-gray-600 mt-1">Campaigns shared with you by {partner.name}</p>
-                </div>
-              </div>
+              
 
               {campaignsLoading ? (
                 <div className="animate-pulse space-y-6">
@@ -2308,112 +2302,105 @@ export default function PartnerDetailBrokerPOV() {
                   </div>
 
                   {/* Campaigns Table */}
-                  <div className="bg-white rounded-lg border overflow-hidden">
-                    <div className="px-6 py-4 border-b border-gray-200">
-                      <h4 className="text-lg font-medium text-gray-900">Campaign Details</h4>
-                    </div>
-                    
-                    <div className="overflow-x-auto">
-                      <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                          <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Campaign Name
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Status
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Recipients
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Sent
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Opened
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Open Rate
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                              Shared At
-                            </th>
-                            <th scope="col" className="relative px-6 py-3">
-                              <span className="sr-only">Actions</span>
-                            </th>
-                          </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                          {brokerCampaigns.map((campaign: any) => (
-                            <tr key={campaign.id} className="hover:bg-gray-50">
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <div className="flex items-center">
-                                  <div className="flex-shrink-0 w-8 h-8">
-                                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                      <svg className="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                                      </svg>
-                                    </div>
-                                  </div>
-                                  <div className="ml-4">
-                                    <div className="text-sm font-medium text-gray-900">{campaign.name}</div>
-                                    <div className="text-sm text-gray-500">{campaign.description}</div>
-                                  </div>
+                  <div className="bg-white overflow-x-auto rounded-lg">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-white">
+                        <tr>
+                          <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[250px]">
+                            Campaign Name
+                          </th>
+                          <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[160px] min-w-[160px]">
+                            Status
+                          </th>
+                          <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[100px]">
+                            Recipients
+                          </th>
+                          <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[100px]">
+                            Open Rate
+                          </th>
+                          <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[100px]">
+                            Clicks
+                          </th>
+                          <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[100px]">
+                            Sent
+                          </th>
+                          <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[120px]">
+                            Created
+                          </th>
+                          <th scope="col" className="relative px-3 py-3.5 w-10 bg-white">
+                            <span className="sr-only">Actions</span>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {brokerCampaigns.map((campaign: any) => (
+                          <tr 
+                            key={campaign.id} 
+                            className="hover:bg-gray-50 cursor-pointer group"
+                            onClick={() => window.location.href = `/campaigns/${campaign.id}?from_broker_view=true`}
+                          >
+                            <td className="px-3 py-4 text-sm text-gray-900 w-[250px]">
+                              <div className="max-w-[230px]">
+                                <div className="font-medium text-gray-900 truncate">
+                                  {campaign.name}
                                 </div>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                                  campaign.status === 'active' ? 'bg-green-100 text-green-800' :
-                                  campaign.status === 'draft' ? 'bg-gray-100 text-gray-800' :
-                                  campaign.status === 'template' ? 'bg-blue-100 text-blue-800' :
-                                  'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {campaign.status}
+                                {campaign.description && (
+                                  <div className="text-sm text-gray-500 truncate mt-1">
+                                    {campaign.description}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-3 py-4 text-sm text-gray-900 w-[160px] min-w-[160px]">
+                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                                campaign.status === 'active' ? 'bg-green-100 text-green-800' :
+                                campaign.status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                                campaign.status === 'template' ? 'bg-blue-100 text-blue-800' :
+                                'bg-gray-100 text-gray-800'
+                              }`}>
+                                {campaign.status}
+                              </span>
+                            </td>
+                            <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
+                              {Array.isArray(campaign.recipients) ? campaign.recipients.length : (campaign.recipients || 0)}
+                            </td>
+                            <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium">
+                                  {campaign.open_rate ? parseFloat(campaign.open_rate).toFixed(1) : '0.0'}%
                                 </span>
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {Array.isArray(campaign.recipients) ? campaign.recipients.length : (campaign.recipients || 0)}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {campaign.emails_sent || 0}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {campaign.emails_opened || 0}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                                {campaign.open_rate || '0.00'}%
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                {campaign.sharedAt ? new Date(campaign.sharedAt).toLocaleDateString() : '-'}
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <Link href={`/campaigns/${campaign.id}?from_broker_view=true`}>
-                                  <Button variant="outline" size="sm">
-                                    View
-                                  </Button>
-                                </Link>
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
+                                {campaign.emails_sent > 0 && (
+                                  <span className="text-xs text-gray-500">
+                                    ({campaign.emails_opened || 0}/{campaign.emails_sent || 0})
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
+                              <span className="font-medium">
+                                {campaign.total_clicks || 0}
+                              </span>
+                            </td>
+                            <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
+                              {campaign.emails_sent || 0}
+                            </td>
+                            <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
+                              {campaign.created_at ? new Date(campaign.created_at).toLocaleDateString() : '-'}
+                            </td>
+                            <td className="relative px-3 py-4 w-10">
+                              <Link href={`/campaigns/${campaign.id}?from_broker_view=true`}>
+                                <Button variant="outline" size="sm" onClick={(e) => e.stopPropagation()}>
+                                  View
+                                </Button>
+                              </Link>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
                   </div>
 
-                  {/* Quick Actions */}
-                  <div className="mt-8 pt-8 border-t border-gray-200">
-                    <div className="flex justify-center space-x-3">
-                      <Link href="/broker-view/campaigns">
-                        <Button variant="outline" className="text-indigo-600">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                            <path d="M22 2 11 13" />
-                            <path d="M22 2 15 22 11 13 2 9 22 2z" />
-                          </svg>
-                          View All Campaigns
-                        </Button>
-                      </Link>
-                    </div>
-                  </div>
+                  
                 </>
               )}
             </div>
