@@ -103,9 +103,16 @@ const useDeleteSavedList = () => {
     mutationFn: async (id: number) => {
       return apiRequest('DELETE', `/api/saved-lists/${id}`);
     },
-    onSuccess: () => {
-      // Force immediate cache refresh
-      queryClient.resetQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+    onSuccess: async () => {
+      // Comprehensive cache invalidation for immediate UI updates
+      await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+      
+      // Clear cache completely to force fresh fetch
+      queryClient.removeQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+      
+      // Force immediate refetch
+      await queryClient.refetchQueries({ queryKey: ['/api/saved-lists', 'partners'] });
     }
   });
 };
@@ -2749,6 +2756,11 @@ function PartnersTable() {
                       setHasUnsavedChanges(false);
                     }
                     
+                    // Additional immediate cache refresh to ensure UI updates
+                    await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+                    await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+                    queryClient.removeQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+                    
                     // Show success message
                     toast({
                       title: "List deleted",
@@ -2758,6 +2770,9 @@ function PartnersTable() {
                     // Close the dialog and dropdown
                     setShowDeleteListModal(false);
                     setShowListsDropdown(false);
+                    
+                    // Reset list references to ensure clean state
+                    setListToDelete(null);
                   } catch (error) {
                     toast({
                       title: "Error",
