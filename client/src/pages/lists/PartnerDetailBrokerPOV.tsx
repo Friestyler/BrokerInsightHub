@@ -100,10 +100,13 @@ export default function PartnerDetailBrokerPOV() {
     phone: '+31 20 123 4567'
   };
 
-  // For Regional Insurance Partners in broker view, show opportunities associated with this partner
+  // For broker view, fetch opportunities with proper list filtering
   const { data: allOpportunities = [], isLoading: opportunitiesLoading } = useQuery({
-    queryKey: ['/api/degoudse/partners/4/opportunities'],
-    queryFn: () => apiRequest('GET', '/api/degoudse/partners/4/opportunities'),
+    queryKey: ['/api/degoudse/opportunities', activeOpportunitiesList?.id],
+    queryFn: () => {
+      const listParam = activeOpportunitiesList?.id ? `?listId=${activeOpportunitiesList.id}` : '';
+      return apiRequest('GET', `/api/degoudse/opportunities${listParam}`);
+    },
     staleTime: 2 * 60 * 1000,
   });
 
