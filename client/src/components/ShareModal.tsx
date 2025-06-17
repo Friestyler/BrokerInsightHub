@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useQuery } from "@tanstack/react-query";
-import { useEnvironment } from "@/context/EnvironmentContext";
+import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { apiRequest } from "@/lib/queryClient";
 
 interface Collaborator {
