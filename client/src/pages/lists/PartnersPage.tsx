@@ -577,7 +577,7 @@ function PartnersTable() {
   const uniqueStatuses = filterOptions?.statuses || [];
   const uniqueRegions = filterOptions?.regions || [];
   const uniquePartnerTypes = filterOptions?.partnerTypes || [];
-  const uniqueIndustries = filterOptions?.industries || [];
+  const uniqueLocations = filterOptions?.locations || [];
 
   // Filter partners based on search text, filter selections, and list membership
   const displayedPartners = (partners as any[])
@@ -1343,7 +1343,7 @@ function PartnersTable() {
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                       <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                     </svg>
-                    <span>{selectedActualIndustry ? `Industry: ${selectedActualIndustry}` : 'Industry'}</span>
+                    <span>{selectedActualIndustry ? `Location: ${selectedActualIndustry}` : 'Location'}</span>
                     <svg 
                       xmlns="http://www.w3.org/2000/svg" 
                       width="14" 
@@ -1370,24 +1370,24 @@ function PartnersTable() {
                             setShowActualIndustryDropdown(false);
                           }}
                         >
-                          <span>All Industries</span>
+                          <span>All Locations</span>
                           {!selectedActualIndustry && (
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
                               <polyline points="20 6 9 17 4 12"></polyline>
                             </svg>
                           )}
                         </div>
-                        {uniqueIndustries.map(industry => (
+                        {uniqueLocations.map(location => (
                           <div 
-                            key={industry}
-                            className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${selectedActualIndustry === industry ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                            key={location}
+                            className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${selectedActualIndustry === location ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
                             onClick={() => {
-                              setSelectedActualIndustry(industry);
+                              setSelectedActualIndustry(location);
                               setShowActualIndustryDropdown(false);
                             }}
                           >
-                            <span>{industry}</span>
-                            {selectedActualIndustry === industry && (
+                            <span>{location}</span>
+                            {selectedActualIndustry === location && (
                               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
                                 <polyline points="20 6 9 17 4 12"></polyline>
                               </svg>
