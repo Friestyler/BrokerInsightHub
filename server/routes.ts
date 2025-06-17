@@ -1853,6 +1853,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get filter options for partner opportunities
+  app.get('/api/degoudse/partners/:id/opportunities/filters', async (req, res) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      console.log(`Fetching filter options for partner ${partnerId} opportunities from De Goudse database`);
+      
+      // Get unique stages
+      const stagesResult = await envPool.query(`
+        SELECT DISTINCT o.stage
+        FROM degoudse.opportunities o
+        INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
+        WHERE po.partner_id = $1 AND o.stage IS NOT NULL
+        ORDER BY o.stage
+      `, [partnerId]);
+      
+      // Get unique customers
+      const customersResult = await envPool.query(`
+        SELECT DISTINCT c.name as customer_name
+        FROM degoudse.opportunities o
+        INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
+        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
+        WHERE po.partner_id = $1 AND c.name IS NOT NULL
+        ORDER BY c.name
+      `, [partnerId]);
+      
+      // Get unique account managers
+      const accountManagersResult = await envPool.query(`
+        SELECT DISTINCT u.name as account_manager_name
+        FROM degoudse.opportunities o
+        INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
+        LEFT JOIN degoudse.users u ON o.account_manager_id = u.id
+        WHERE po.partner_id = $1 AND u.name IS NOT NULL
+        ORDER BY u.name
+      `, [partnerId]);
+      
+      // Get unique insurance descriptions
+      const insuranceDescriptionsResult = await envPool.query(`
+        SELECT DISTINCT o.insurance_description
+        FROM degoudse.opportunities o
+        INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
+        WHERE po.partner_id = $1 AND o.insurance_description IS NOT NULL
+        ORDER BY o.insurance_description
+      `, [partnerId]);
+      
+      const filterOptions = {
+        stages: stagesResult.rows.map(row => row.stage),
+        customers: customersResult.rows.map(row => row.customer_name),
+        accountManagers: accountManagersResult.rows.map(row => row.account_manager_name),
+        insuranceDescriptions: insuranceDescriptionsResult.rows.map(row => row.insurance_description)
+      };
+      
+      console.log(`Filter options for partner ${partnerId}:`, filterOptions);
+      res.json(filterOptions);
+    } catch (error) {
+      console.error('Error fetching filter options:', error);
+      res.status(500).json({ error: 'Failed to fetch filter options' });
+    }
+  });
+
   app.get('/api/degoudse/partners/:id/products', async (req, res) => {
     try {
       const partnerId = parseInt(req.params.id);

@@ -40,8 +40,12 @@ export default function PartnerDetail() {
   const [filterText, setFilterText] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState("");
+  const [selectedAccountManager, setSelectedAccountManager] = useState("");
+  const [selectedInsuranceDescription, setSelectedInsuranceDescription] = useState("");
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const [showAccountManagerDropdown, setShowAccountManagerDropdown] = useState(false);
+  const [showInsuranceDescDropdown, setShowInsuranceDescDropdown] = useState(false);
   const [activeList, setActiveList] = useState<any>(null);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
   const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
@@ -165,6 +169,12 @@ export default function PartnerDetail() {
   // Fetch related opportunities for this partner
   const { data: relatedOpportunities, isLoading: opportunitiesLoading } = useQuery({
     queryKey: [`/api/partners/${id}/opportunities`],
+    enabled: !!id,
+  });
+
+  // Fetch filter options for opportunities
+  const { data: filterOptions, isLoading: filterOptionsLoading } = useQuery({
+    queryKey: [`/api/partners/${id}/opportunities/filters`],
     enabled: !!id,
   });
 
@@ -616,6 +626,12 @@ export default function PartnerDetail() {
       if (customerDropdownRef.current && !customerDropdownRef.current.contains(event.target as Node)) {
         setShowCustomerDropdown(false);
       }
+      if (accountManagerDropdownRef.current && !accountManagerDropdownRef.current.contains(event.target as Node)) {
+        setShowAccountManagerDropdown(false);
+      }
+      if (insuranceDescDropdownRef.current && !insuranceDescDropdownRef.current.contains(event.target as Node)) {
+        setShowInsuranceDescDropdown(false);
+      }
     }
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -624,9 +640,11 @@ export default function PartnerDetail() {
     };
   }, []);
 
-  // Extract unique filter values from opportunities data
-  const uniqueStatuses = Array.from(new Set((relatedOpportunities as any[] || []).map((opp: any) => opp.stage).filter(Boolean)));
-  const uniqueCustomers = Array.from(new Set((relatedOpportunities as any[] || []).map((opp: any) => opp.clientName).filter(Boolean)));
+  // Extract filter values from database API
+  const uniqueStatuses = (filterOptions as any)?.stages || [];
+  const uniqueCustomers = (filterOptions as any)?.customers || [];
+  const uniqueAccountManagers = (filterOptions as any)?.accountManagers || [];
+  const uniqueInsuranceDescriptions = (filterOptions as any)?.insuranceDescriptions || [];
 
 
 
@@ -638,7 +656,9 @@ export default function PartnerDetail() {
       const matchesSearch = 
         opportunity.title?.toLowerCase().includes(searchLower) ||
         opportunity.clientName?.toLowerCase().includes(searchLower) ||
-        opportunity.stage?.toLowerCase().includes(searchLower);
+        opportunity.stage?.toLowerCase().includes(searchLower) ||
+        opportunity.account_manager_name?.toLowerCase().includes(searchLower) ||
+        opportunity.insurance_description?.toLowerCase().includes(searchLower);
       if (!matchesSearch) return false;
     }
     
@@ -647,10 +667,18 @@ export default function PartnerDetail() {
       return false;
     }
     
-
-    
     // Filter by Customer
     if (selectedCustomer && opportunity.clientName !== selectedCustomer) {
+      return false;
+    }
+    
+    // Filter by Account Manager
+    if (selectedAccountManager && opportunity.account_manager_name !== selectedAccountManager) {
+      return false;
+    }
+    
+    // Filter by Insurance Description
+    if (selectedInsuranceDescription && opportunity.insurance_description !== selectedInsuranceDescription) {
       return false;
     }
     
