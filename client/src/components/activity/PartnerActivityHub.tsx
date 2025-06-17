@@ -49,7 +49,8 @@ const activityTypes = [
   { value: 'task', label: 'Tasks', icon: CheckSquare, color: 'text-green-600' },
   { value: 'comment', label: 'Comments', icon: MessageSquare, color: 'text-blue-600' },
   { value: 'attachment', label: 'Documents', icon: Paperclip, color: 'text-purple-600' },
-  { value: 'actions', label: 'Next Best Actions', icon: Sparkles, color: 'text-purple-600' }
+  { value: 'actions', label: 'Next Best Actions', icon: Sparkles, color: 'text-purple-600' },
+  { value: 'meeting', label: 'Prepare a Meeting', icon: Calendar, color: 'text-orange-600' }
 ];
 
 const priorityColors = {
@@ -361,14 +362,6 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
             >
               <Sparkles className="h-3 w-3 mr-1" />
               {generateActionsMutation.isPending ? 'Generating...' : 'Generate Next Best Action'}
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              className="text-xs text-gray-600 hover:text-blue-600"
-            >
-              <Calendar className="h-3 w-3 mr-1" />
-              Prepare a Meeting
             </Button>
           </div>
         </div>
@@ -857,6 +850,17 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {/* Prepare a Meeting */}
+          {selectedActivityType === 'meeting' && (
+            <div className="space-y-3">
+              <div className="text-center py-8 text-gray-500">
+                <Calendar className="h-8 w-8 mx-auto mb-2 text-orange-400" />
+                <p className="text-sm">Meeting preparation feature</p>
+                <p className="text-xs text-gray-400 mt-1">AI-powered briefing coming soon</p>
+              </div>
             </div>
           )}
         </div>
