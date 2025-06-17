@@ -6840,6 +6840,8 @@ Keep the tone clear and professional. Focus on what will help the account manage
         ORDER BY c.created_at DESC
       `);
       
+      console.log('Template raw data:', result.rows.map(r => ({ id: r.id, name: r.name, icon: r.icon })));
+      
       const templates = result.rows.map(template => ({
         id: template.id,
         name: template.name,
@@ -6865,6 +6867,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
         button_text: template.button_text,
         button_color: template.button_color,
         follow_up_emails: template.follow_up_emails || [],
+        icon: template.icon,
         createdById: template.created_by_id,
         isShared: template.is_shared,
         isTemplate: template.is_template,
