@@ -88,8 +88,8 @@ export default function PartnerView() {
     if (allOpportunities.length > 0) {
       let filtered = allOpportunities;
       
-      // Skip list-based filtering if we're on the "All Opportunities" page
-      if (!isAllOpportunitiesPage) {
+      // Skip list-based filtering if we're on the "All Opportunities" page OR if we have a listId but no listData (list not found)
+      if (!isAllOpportunitiesPage && !(listId && !listData)) {
         // First, filter by list members if we have a specific list
         if (listData && listData.members && listData.members.length > 0) {
           filtered = filtered.filter((opp: any) => 
@@ -277,19 +277,8 @@ export default function PartnerView() {
     );
   }
 
-  // Only show "List not found" if we're expecting a specific list but can't find it
-  if (listId && !listData) {
-    return (
-      <BrokerLayout>
-        <div className="p-6">
-          <div className="text-center py-12">
-            <h2 className="text-xl font-semibold text-gray-900 mb-2">List not found</h2>
-            <p className="text-gray-600">The shared list you're looking for doesn't exist or has been removed.</p>
-          </div>
-        </div>
-      </BrokerLayout>
-    );
-  }
+  // If a specific list was requested but not found, fall back to showing all opportunities
+  // instead of showing an error. This provides a better user experience.
 
   // If we're on a campaign edit page, render the campaign builder
   if (isCampaignEditPage) {
