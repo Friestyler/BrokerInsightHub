@@ -67,14 +67,15 @@ export function ShareModal({
   onCopyLink,
   onCreateShare,
   isCreating = false,
-  onRefreshList
+  onRefreshList,
+  listData
 }: ShareModalProps) {
   const { toast } = useToast();
   const { environment } = useEnvironment();
   const [linkAccess, setLinkAccess] = useState(existingSharedLinks.length > 0 ? "anyone" : "restricted");
   
   // Modal state management
-  const [currentView, setCurrentView] = useState<'main' | 'compose'>('main');
+  const [currentView, setCurrentView] = useState<'main' | 'compose' | 'partners'>('main');
   const [selectedEmail, setSelectedEmail] = useState('');
   const [selectedAccessLevel, setSelectedAccessLevel] = useState('viewer');
   const [emailMessage, setEmailMessage] = useState('');
@@ -85,6 +86,40 @@ export function ShareModal({
   
   // Local collaborators state with real API data
   const [localCollaborators, setLocalCollaborators] = useState<Collaborator[]>([]);
+  
+  // Partner selection state
+  const [selectedPartners, setSelectedPartners] = useState<number[]>([]);
+  const [partnerInput, setPartnerInput] = useState('');
+  const [showPartnerSuggestions, setShowPartnerSuggestions] = useState(false);
+  const [isCreatingPartnerLists, setIsCreatingPartnerLists] = useState(false);
+
+  // Fetch partners from the list data
+  const { data: partnersData } = useQuery({
+    queryKey: [`/api/${envId}/partners`],
+    enabled: isOpen && currentView === 'partners'
+  });
+
+  // Get unique partners from the current list's opportunities
+  const partnersInList = listData && Array.isArray(listData) 
+    ? listData.reduce((acc: Partner[], item: any) => {
+        if (item.partnerId && item.partnerName) {
+          const existingPartner = acc.find(p => p.id === item.partnerId);
+          if (!existingPartner) {
+            acc.push({
+              id: item.partnerId,
+              name: item.partnerName,
+              email: `${item.partnerName.toLowerCase().replace(/\s+/g, '.')}@company.com`
+            });
+          }
+        }
+        return acc;
+      }, [])
+    : [];
+
+  // Filter partners based on search input
+  const filteredPartners = partnersInList.filter((partner: Partner) =>
+    partner.name.toLowerCase().includes(partnerInput.toLowerCase())
+  );
 
   // Fetch collaborators from API when modal opens
   useEffect(() => {
@@ -274,6 +309,73 @@ export function ShareModal({
     setEmailInput('');
     setEmailMessage('');
   };
+
+  const handlePartnerSelect = (partnerId: number) => {
+    setSelectedPartners(prev => 
+      prev.includes(partnerId) 
+        ? prev.filter(id => id !== partnerId)
+        : [...prev, partnerId]
+    );
+  };
+
+  const handleSelectAllPartners = () => {
+    if (selectedPartners.length === partnersInList.length) {
+      setSelectedPartners([]);
+    } else {
+      setSelectedPartners(partnersInList.map(p => p.id));
+    }
+  };
+
+  const handleCreatePartnerLists = async () => {
+    if (selectedPartners.length === 0) return;
+    
+    setIsCreatingPartnerLists(true);
+    try {
+      for (const partnerId of selectedPartners) {
+        const partner = partnersInList.find(p => p.id === partnerId);
+        if (!partner) continue;
+
+        // Filter opportunities for this specific partner
+        const partnerOpportunities = listData.filter((item: any) => 
+          item.partnerId === partnerId
+        );
+
+        // Create a new list for this partner with the same name
+        const listPayload = {
+          name: itemName,
+          description: `Shared opportunities for ${partner.name}`,
+          entity_type: 'opportunities',
+          entity_ids: partnerOpportunities.map((opp: any) => opp.id),
+          filters: {},
+          is_shared: true
+        };
+
+        await apiRequest('POST', `/api/${envId}/saved-lists`, listPayload);
+      }
+
+      toast({
+        title: "Success",
+        description: `Created opportunity lists for ${selectedPartners.length} partner(s)`
+      });
+
+      setCurrentView('main');
+      setSelectedPartners([]);
+      setPartnerInput('');
+      
+      if (onRefreshList) {
+        onRefreshList();
+      }
+    } catch (error) {
+      console.error('Error creating partner lists:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create partner lists",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreatingPartnerLists(false);
+    }
+  };
   
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -284,7 +386,7 @@ export function ShareModal({
         
         <DialogHeader className="pb-4">
           <div className="flex items-center space-x-2">
-            {currentView === 'compose' && (
+            {(currentView === 'compose' || currentView === 'partners') && (
               <Button 
                 variant="ghost" 
                 size="sm" 
@@ -297,7 +399,7 @@ export function ShareModal({
               </Button>
             )}
             <DialogTitle className="text-lg font-medium">
-              Share "{itemName}"
+              {currentView === 'partners' ? `Share with Partners - "${itemName}"` : `Share "${itemName}"`}
             </DialogTitle>
           </div>
         </DialogHeader>
@@ -505,14 +607,137 @@ export function ShareModal({
               </div>
             </div>
             
-            <div className="flex justify-end pt-4">
+            <div className="flex justify-between pt-4">
+              {partnersInList.length > 0 && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => setCurrentView('partners')}
+                >
+                  Share with Partners
+                </Button>
+              )}
               <DialogClose asChild>
                 <Button variant="outline">Done</Button>
               </DialogClose>
             </div>
           </div>
+        ) : currentView === 'partners' ? (
+          // Partner selection view
+          <div className="space-y-4">
+            {/* Partner search and info */}
+            <div className="space-y-3">
+              <div className="text-sm text-gray-600">
+                Select partners to create opportunity lists for. Each partner will get a list with their related opportunities.
+              </div>
+              
+              <div className="relative">
+                <Input 
+                  value={partnerInput}
+                  onChange={(e) => {
+                    setPartnerInput(e.target.value);
+                    setShowPartnerSuggestions(e.target.value.length > 0);
+                  }}
+                  onFocus={() => setShowPartnerSuggestions(partnerInput.length > 0)}
+                  placeholder="Search partners..."
+                  className="flex-1"
+                />
+                {showPartnerSuggestions && filteredPartners.length > 0 && (
+                  <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
+                    {filteredPartners.map((partner) => (
+                      <div
+                        key={partner.id}
+                        className="flex items-center space-x-3 p-3 hover:bg-gray-50 cursor-pointer"
+                        onClick={() => handlePartnerSelect(partner.id)}
+                      >
+                        <Checkbox 
+                          checked={selectedPartners.includes(partner.id)}
+                          onChange={() => handlePartnerSelect(partner.id)}
+                        />
+                        <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                          {partner.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1">
+                          <div className="text-sm font-medium">{partner.name}</div>
+                          <div className="text-xs text-gray-500">
+                            {listData?.filter((item: any) => item.partnerId === partner.id).length || 0} opportunities
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              
+              {/* Select all option */}
+              {partnersInList.length > 0 && (
+                <div className="flex items-center space-x-2">
+                  <Checkbox 
+                    checked={selectedPartners.length === partnersInList.length}
+                    onChange={handleSelectAllPartners}
+                  />
+                  <span className="text-sm text-gray-700">
+                    Select all partners ({partnersInList.length})
+                  </span>
+                </div>
+              )}
+            </div>
+            
+            {/* Selected partners list */}
+            {selectedPartners.length > 0 && (
+              <div className="space-y-2">
+                <div className="text-sm font-medium text-gray-700">
+                  Selected Partners ({selectedPartners.length})
+                </div>
+                <div className="space-y-2 max-h-32 overflow-y-auto">
+                  {selectedPartners.map((partnerId) => {
+                    const partner = partnersInList.find(p => p.id === partnerId);
+                    if (!partner) return null;
+                    const opportunityCount = listData?.filter((item: any) => item.partnerId === partnerId).length || 0;
+                    
+                    return (
+                      <div key={partnerId} className="flex items-center justify-between p-2 bg-blue-50 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-medium">
+                            {partner.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div>
+                            <div className="text-sm font-medium">{partner.name}</div>
+                            <div className="text-xs text-gray-500">{opportunityCount} opportunities</div>
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handlePartnerSelect(partnerId)}
+                          className="w-6 h-6 p-0"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </Button>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            
+            {/* Action buttons */}
+            <div className="flex justify-between pt-4">
+              <Button variant="outline" onClick={handleBackToMain}>
+                Back
+              </Button>
+              <Button 
+                onClick={handleCreatePartnerLists}
+                disabled={selectedPartners.length === 0 || isCreatingPartnerLists}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {isCreatingPartnerLists ? "Creating..." : `Create Lists (${selectedPartners.length})`}
+              </Button>
+            </div>
+          </div>
         ) : (
-          // Compose email view
+          // Compose email view (existing code)
           <div className="space-y-4">
             {/* Selected person */}
             <div className="border border-blue-200 rounded-lg p-3 bg-blue-50">
