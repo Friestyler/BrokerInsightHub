@@ -2440,24 +2440,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
           messages: [
             {
               role: "system",
-              content: `You are assisting an account manager in preparing for their upcoming meeting with a broker.
+              content: `You are assisting an account manager in preparing for an upcoming meeting with a broker.
 
 You will receive:
-- A list of OKRs (Objectives, Activities and Subactivities) the broker and the account manager are collaborating on
+- A list of OKRs (Objectives, Activities, and Subactivities) that the broker is working on with the account manager
 - A list of opportunities linked to the broker
 
 Your task:
-1. Identify the 3 most relevant OKRs that stand out (based on trends, outliers, high/low performance, that are abnormally higher or lower than last year)
-2. Highlight 3 opportunity types or segments worth discussing (e.g., zonnepanelen, BGB, Zonnepanelen onbekend)
-3. Provide clear, actionable recommendations for the account manager to bring to the meeting
+1. Identify the 3 most relevant OKRs to discuss — those that stand out — and for each, briefly explain **why it should be discussed now**. For example:
+   - It's significantly behind or ahead of target
+   - It's significantly higher or lower than last year
+   - It hasn't progressed since last year
+   - It depends on broker action to move forward
+   - It's been inactive for a while or needs strategic alignment
+   - It's a top performer and could be a success story
 
+2. Identify the 3 most relevant opportunity types to discuss.  
+   These should highlight things like:
+   - Stalled or slow-moving deals
+   - High-probability or high-value opportunities
+   - Win/loss patterns, cross-sell potential, or upcoming renewals
+   - Trends or gaps in the market
+
+   > Note: The opportunity types are **Zonnepanelen**, **BGB**, and **Zonnepanelen onbekend**
+
+3. Provide **exactly 3 actionable recommendations** for the meeting.  
+   These should:
+   - Help the account manager prepare or guide the conversation
+   - Be strategic, practical, or coordination-focused
+   - Avoid repeating the OKRs or opportunities text word-for-word
+
+---
 Format your output like this:
 - Summary paragraph
-- Section: "Top 3 OKRs" (bullet points)
-- Section: "Top 3 Opportunities Types to Review" (bullet points)
-- Section: "Recommendations for the Meeting" (bullet points or checklist)
+- Section: **"Top 3 OKRs to Discuss"** – 3 bullet points, each explaining why it's relevant now
+- Section: **"Top 3 Opportunities to Discuss"** – 3 bullet points, each with context
+- Section: **"Meeting Recommendations"** – 3 bullet points
 
-Keep it short, clear, and professional.`
+Keep the tone clear and professional.  
+Focus on what will help the account manager lead a productive and focused meeting.`
             },
             {
               role: "user",
