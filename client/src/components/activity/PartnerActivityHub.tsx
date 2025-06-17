@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Plus, MessageSquare, CheckSquare, Paperclip, ChevronDown, ChevronRight, 
@@ -261,11 +261,51 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
     }
   });
 
+  // Save meeting briefing
+  const saveMeetingBriefingMutation = useMutation({
+    mutationFn: () => 
+      fetch(`/api/${currentEnv}/partners/${partnerId}/save-meeting-briefing`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(meetingBriefing)
+      }).then(res => res.json()),
+    onSuccess: (data) => {
+      toast({ title: 'Meeting briefing saved successfully' });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: 'Failed to save meeting briefing', 
+        description: 'Please try again',
+        variant: 'destructive' 
+      });
+    }
+  });
+
+  // Load latest saved meeting briefing
+  const { data: savedMeetingBriefing } = useQuery({
+    queryKey: [`/api/${currentEnv}/partners/${partnerId}/latest-meeting-briefing`],
+    enabled: selectedActivityType === 'meeting' && !meetingBriefing,
+    retry: false
+  });
+
   const handlePrepareMeeting = () => {
     setMeetingBriefing(null); // Clear previous briefing to ensure fresh content
     setIsPreparingMeeting(true);
     prepareMeetingMutation.mutate();
   };
+
+  const handleSaveMeetingBriefing = () => {
+    if (meetingBriefing) {
+      saveMeetingBriefingMutation.mutate();
+    }
+  };
+
+  // Load saved briefing when switching to meeting tab
+  useEffect(() => {
+    if (savedMeetingBriefing && !meetingBriefing && selectedActivityType === 'meeting') {
+      setMeetingBriefing(savedMeetingBriefing);
+    }
+  }, [savedMeetingBriefing, meetingBriefing, selectedActivityType]);
 
   const resetForm = () => {
     setTaskTitle('');
@@ -933,15 +973,32 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                       <Brain className="h-5 w-5 text-orange-500" />
                       <h3 className="text-lg font-semibold text-gray-900">Meeting Briefing: {meetingBriefing.partner}</h3>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={handlePrepareMeeting}
-                      disabled={prepareMeetingMutation.isPending}
-                    >
-                      <Brain className="h-4 w-4 mr-2" />
-                      Refresh
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={handleSaveMeetingBriefing}
+                        disabled={saveMeetingBriefingMutation.isPending}
+                      >
+                        {saveMeetingBriefingMutation.isPending ? (
+                          <>
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-600 mr-2"></div>
+                            Saving...
+                          </>
+                        ) : (
+                          'Save'
+                        )}
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={handlePrepareMeeting}
+                        disabled={prepareMeetingMutation.isPending}
+                      >
+                        <Brain className="h-4 w-4 mr-2" />
+                        Create New Briefing
+                      </Button>
+                    </div>
                   </div>
 
                   {/* Summary */}

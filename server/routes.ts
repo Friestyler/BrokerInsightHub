@@ -2608,6 +2608,59 @@ Keep the tone clear and professional. Focus on what will help the account manage
     }
   });
 
+  // Save meeting briefing endpoint
+  app.post('/api/degoudse/partners/:id/save-meeting-briefing', async (req: Request, res: Response) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+      const { partner, briefing, dataUsed } = req.body;
+
+      const result = await pool.query(`
+        INSERT INTO degoudse.meeting_briefings (partner_id, partner_name, briefing_content, data_used, created_by)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING id, created_at
+      `, [partnerId, partner, briefing, JSON.stringify(dataUsed), 1]);
+
+      res.json({ 
+        success: true, 
+        id: result.rows[0].id,
+        saved_at: result.rows[0].created_at
+      });
+    } catch (error) {
+      console.error('Error saving meeting briefing:', error);
+      res.status(500).json({ error: 'Failed to save meeting briefing' });
+    }
+  });
+
+  // Get latest saved meeting briefing endpoint
+  app.get('/api/degoudse/partners/:id/latest-meeting-briefing', async (req: Request, res: Response) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+
+      const result = await pool.query(`
+        SELECT partner_name as partner, briefing_content as briefing, data_used, created_at
+        FROM degoudse.meeting_briefings 
+        WHERE partner_id = $1 
+        ORDER BY created_at DESC 
+        LIMIT 1
+      `, [partnerId]);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'No saved meeting briefing found' });
+      }
+
+      const briefing = result.rows[0];
+      res.json({
+        partner: briefing.partner,
+        briefing: briefing.briefing,
+        dataUsed: briefing.data_used,
+        savedAt: briefing.created_at
+      });
+    } catch (error) {
+      console.error('Error retrieving meeting briefing:', error);
+      res.status(500).json({ error: 'Failed to retrieve meeting briefing' });
+    }
+  });
+
   app.get('/api/degoudse/opportunities/:id/partners', async (req, res) => {
     try {
       const opportunityId = parseInt(req.params.id);
