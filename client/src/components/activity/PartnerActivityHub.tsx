@@ -82,6 +82,10 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
   const [taskPriority, setTaskPriority] = useState('medium');
   const [visibleToPartner, setVisibleToPartner] = useState(false);
   const [assignedTo, setAssignedTo] = useState('');
+  
+  // Meeting preparation states
+  const [meetingBriefing, setMeetingBriefing] = useState<any>(null);
+  const [isPreparingMeeting, setIsPreparingMeeting] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -224,6 +228,32 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
       toast({ title: 'AI recommendation converted to task successfully' });
     }
   });
+
+  // Prepare meeting with AI
+  const prepareMeetingMutation = useMutation({
+    mutationFn: () => 
+      fetch(`/api/${currentEnv}/partners/${partnerId}/prepare-meeting`, {
+        method: 'POST'
+      }).then(res => res.json()),
+    onSuccess: (data) => {
+      setMeetingBriefing(data);
+      setIsPreparingMeeting(false);
+      toast({ title: 'Meeting briefing prepared successfully' });
+    },
+    onError: (error: any) => {
+      setIsPreparingMeeting(false);
+      toast({ 
+        title: 'Failed to prepare meeting briefing', 
+        description: 'Please check your OpenAI API configuration',
+        variant: 'destructive' 
+      });
+    }
+  });
+
+  const handlePrepareMeeting = () => {
+    setIsPreparingMeeting(true);
+    prepareMeetingMutation.mutate();
+  };
 
   const resetForm = () => {
     setTaskTitle('');
@@ -855,12 +885,137 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
 
           {/* Prepare a Meeting */}
           {selectedActivityType === 'meeting' && (
-            <div className="space-y-3">
-              <div className="text-center py-8 text-gray-500">
-                <Calendar className="h-8 w-8 mx-auto mb-2 text-orange-400" />
-                <p className="text-sm">Meeting preparation feature</p>
-                <p className="text-xs text-gray-400 mt-1">AI-powered briefing coming soon</p>
-              </div>
+            <div className="space-y-4">
+              {!meetingBriefing ? (
+                <div className="text-center py-8">
+                  <div className="flex flex-col items-center gap-4">
+                    <Brain className="h-12 w-12 text-orange-400" />
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">AI Meeting Preparation</h3>
+                      <p className="text-sm text-gray-600 mb-4">Generate intelligent briefing with OKR analysis and opportunity insights</p>
+                      <Button 
+                        onClick={handlePrepareMeeting}
+                        disabled={prepareMeetingMutation.isPending}
+                        className="bg-orange-600 hover:bg-orange-700"
+                      >
+                        {prepareMeetingMutation.isPending ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Analyzing...
+                          </>
+                        ) : (
+                          <>
+                            <Brain className="h-4 w-4 mr-2" />
+                            Prepare Meeting Briefing
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Header */}
+                  <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+                    <div className="flex items-center gap-3">
+                      <Brain className="h-5 w-5 text-orange-500" />
+                      <h3 className="text-lg font-semibold text-gray-900">Meeting Briefing: {meetingBriefing.partner}</h3>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={handlePrepareMeeting}
+                      disabled={prepareMeetingMutation.isPending}
+                    >
+                      <Brain className="h-4 w-4 mr-2" />
+                      Refresh
+                    </Button>
+                  </div>
+
+                  {/* Summary */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-900 mb-2">Executive Summary</h4>
+                    <p className="text-sm text-blue-800 leading-relaxed">
+                      {meetingBriefing.briefing.split('\n').find((line: string) => line.includes('Summary:'))?.replace('- Summary:', '').trim()}
+                    </p>
+                  </div>
+
+                  {/* Content Sections */}
+                  <div className="grid gap-6">
+                    {/* Top 3 OKRs */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-5">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Target className="h-5 w-5 text-green-500" />
+                        <h4 className="font-semibold text-gray-900">Top 3 OKRs to Review</h4>
+                      </div>
+                      <div className="space-y-3">
+                        {meetingBriefing.briefing.split('\n').filter((line: string) => 
+                          line.trim().startsWith('- **') && 
+                          (line.includes('Premium Revenue') || line.includes('Customer Acquisition') || line.includes('Retention'))
+                        ).map((item: string, index: number) => (
+                          <div key={index} className="flex items-start gap-3 p-3 bg-green-50 rounded-md">
+                            <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                            <div className="text-sm text-gray-700">
+                              <span className="font-medium">{item.match(/\*\*(.*?)\*\*/)?.[1]}</span>
+                              <span className="text-gray-600">: {item.split('**: ')[1]}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Top 3 Opportunity Types */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-5">
+                      <div className="flex items-center gap-2 mb-4">
+                        <MessageSquare className="h-5 w-5 text-blue-500" />
+                        <h4 className="font-semibold text-gray-900">Top 3 Opportunity Types to Discuss</h4>
+                      </div>
+                      <div className="space-y-3">
+                        {meetingBriefing.briefing.split('\n').filter((line: string) => 
+                          line.trim().startsWith('- **') && line.includes('Zonnepanelen')
+                        ).map((item: string, index: number) => (
+                          <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-md">
+                            <MessageSquare className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                            <div className="text-sm text-gray-700">
+                              <span className="font-medium">{item.match(/\*\*(.*?)\*\*/)?.[1]}</span>
+                              <span className="text-gray-600">: {item.split('**: ')[1]}</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Recommendations */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-5">
+                      <div className="flex items-center gap-2 mb-4">
+                        <CheckSquare className="h-5 w-5 text-purple-500" />
+                        <h4 className="font-semibold text-gray-900">Meeting Recommendations</h4>
+                      </div>
+                      <div className="space-y-2">
+                        {meetingBriefing.briefing.split('\n').filter((line: string) => 
+                          line.trim().startsWith('- ') && !line.includes('**') && line.length > 10
+                        ).map((item: string, index: number) => (
+                          <div key={index} className="flex items-start gap-3 p-2">
+                            <CheckSquare className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                            <span className="text-sm text-gray-700">{item.replace('- ', '')}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Data Used */}
+                    <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between text-sm text-gray-600">
+                        <span>Analysis based on:</span>
+                        <div className="flex gap-4">
+                          <span>{meetingBriefing.dataUsed.okrs} OKRs</span>
+                          <span>{meetingBriefing.dataUsed.opportunities} Opportunities</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
