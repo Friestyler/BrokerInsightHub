@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { BrokerLayout } from '@/components/layouts/BrokerLayout';
 import PartnersViewforPartner from './PartnersViewforPartner';
+import CampaignFromTemplate from './campaigns/CampaignFromTemplate';
 
 
 
@@ -20,6 +21,7 @@ export default function PartnerView() {
   const isPartnersPage = location === '/broker-view/partners';
   const isAllOpportunitiesPage = location === '/broker-view/opportunities';
   const isCampaignsPage = location === '/broker-view/campaigns';
+  const isCampaignEditPage = location.includes('/broker-view/campaigns/edit/');
   
   // State for Lists dropdown and filters
   const [showListsDropdown, setShowListsDropdown] = useState(false);
@@ -285,6 +287,15 @@ export default function PartnerView() {
             <p className="text-gray-600">The shared list you're looking for doesn't exist or has been removed.</p>
           </div>
         </div>
+      </BrokerLayout>
+    );
+  }
+
+  // If we're on a campaign edit page, render the campaign builder
+  if (isCampaignEditPage) {
+    return (
+      <BrokerLayout>
+        <CampaignFromTemplate />
       </BrokerLayout>
     );
   }
