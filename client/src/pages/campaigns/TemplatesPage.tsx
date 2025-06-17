@@ -253,43 +253,7 @@ export default function TemplatesPage() {
             );
           })}
         </div>
-        
-        {/* Entity Filter */}
-        <div className="flex flex-wrap gap-1">
-          {entityTypes.map((entityType) => {
-            const isActive = selectedEntityFilter === entityType;
-            const entityConfig = getEntityConfig(entityType);
-            
-            return (
-              <Button
-                key={entityType}
-                variant="ghost"
-                size="sm"
-                className={`flex items-center gap-2 ${
-                  isActive 
-                    ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100' 
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                }`}
-                onClick={() => setSelectedEntityFilter(entityType)}
-              >
-                {entityType === 'all' ? (
-                  <>
-                    <Globe className="h-3 w-3" />
-                    All Templates
-                  </>
-                ) : (
-                  <>
-                    {entityType === 'opportunities' && <Target className="h-3 w-3" />}
-                    {entityType === 'customers' && <Users className="h-3 w-3" />}
-                    {entityType === 'partners' && <Briefcase className="h-3 w-3" />}
-                    {entityType === 'internal' && <Building2 className="h-3 w-3" />}
-                    {entityConfig.label}
-                  </>
-                )}
-              </Button>
-            );
-          })}
-        </div>
+
       </div>
       {/* Templates Grid */}
       {templateList.length === 0 ? (
