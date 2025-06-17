@@ -18,9 +18,9 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { useEnvironment } from "@/contexts/EnvironmentContext";
+import { useQuery } from "@tanstack/react-query";
+import { useEnvironment } from "@/context/EnvironmentContext";
 import { apiRequest } from "@/lib/queryClient";
-import { useQuery } from '@tanstack/react-query';
 
 interface Collaborator {
   id: string;
@@ -123,27 +123,14 @@ export function ShareModal({
 
   // Fetch collaborators from API when modal opens
   useEffect(() => {
-    console.log('ShareModal useEffect:', { isOpen, listId, envId });
     if (isOpen && listId && envId) {
-      console.log('Conditions met, calling fetchCollaborators');
       fetchCollaborators();
-    } else {
-      console.log('Conditions not met for fetchCollaborators:', { 
-        isOpen, 
-        listId, 
-        envId,
-        listIdValid: !!listId,
-        listIdType: typeof listId,
-        listIdValue: listId
-      });
     }
   }, [isOpen, listId, envId]);
 
   const fetchCollaborators = async () => {
     try {
-      console.log(`Fetching collaborators for envId: ${envId}, listId: ${listId}`);
       const response = await apiRequest('GET', `/api/${envId}/saved-lists/${listId}/collaborators`);
-      console.log('Collaborators response:', response);
       
       if (Array.isArray(response)) {
         const apiCollaborators = response.map((collab: any) => ({
@@ -154,10 +141,8 @@ export function ShareModal({
           avatar: (collab.name || collab.user_name || collab.email).charAt(0).toUpperCase(),
           isOwner: false
         }));
-        console.log('Processed collaborators:', apiCollaborators);
         setLocalCollaborators(apiCollaborators);
       } else {
-        console.log('Response is not an array:', response);
         setLocalCollaborators([]);
       }
     } catch (error) {
@@ -418,7 +403,7 @@ export function ShareModal({
                       setShowSuggestions(e.target.value.length > 0);
                     }}
                     onFocus={() => setShowSuggestions(emailInput.length > 0)}
-                    placeholder="Add people and groups"
+                    placeholder="Add people, groups, or partners"
                     className="flex-1"
                   />
                   {showSuggestions && filteredSuggestions.length > 0 && (
@@ -465,78 +450,123 @@ export function ShareModal({
                 </Button>
               </div>
               
-              {/* Current collaborators section */}
-              <div className="text-sm text-gray-500">
-                People with access
-              </div>
-              
-              {/* Owner */}
-              <div className="flex items-center space-x-3 py-2">
-                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                  {environment?.name?.charAt(0) || 'U'}
-                </div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium">{environment?.name || 'You'}</div>
-                  <div className="text-xs text-gray-500">{environment?.name?.toLowerCase() || 'you'}@company.com</div>
-                </div>
-                <div className="text-sm text-gray-500">Owner</div>
-              </div>
-              
-              {/* Dynamic collaborators list */}
-              {localCollaborators.map((collaborator) => (
-                <div key={collaborator.id} className="flex items-center space-x-3 py-2 group">
-                  <div className={`w-8 h-8 ${collaborator.isOwner ? 'bg-blue-600' : 'bg-green-600'} rounded-full flex items-center justify-center text-white text-sm font-medium`}>
-                    {collaborator.avatar || collaborator.name.charAt(0).toUpperCase()}
-                  </div>
-                  <div className="flex-1">
-                    <div className="text-sm font-medium">{collaborator.name}</div>
-                    <div className="text-xs text-gray-500">{collaborator.email}</div>
+              {/* Partner sharing section */}
+              {partnersInList.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-sm font-medium text-gray-700">Share with Partners</div>
+                  <div className="space-y-2">
+                    {partnersInList.map((partner) => {
+                      const opportunityCount = listData?.filter((item: any) => item.partnerId === partner.id).length || 0;
+                      return (
+                        <div key={partner.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                          <div className="flex items-center space-x-3">
+                            <Checkbox 
+                              checked={selectedPartners.includes(partner.id)}
+                              onCheckedChange={() => handlePartnerSelect(partner.id)}
+                            />
+                            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                              {partner.name.charAt(0).toUpperCase()}
+                            </div>
+                            <div className="flex-1">
+                              <div className="text-sm font-medium">{partner.name}</div>
+                              <div className="text-xs text-gray-500">{opportunityCount} opportunities</div>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                   
-                  {collaborator.isOwner ? (
-                    <div className="text-sm text-gray-500">Owner</div>
-                  ) : (
-                    <div className="flex items-center space-x-2">
-                      <Select 
-                        value={collaborator.accessLevel} 
-                        onValueChange={(value) => handleUpdateAccessLevel(collaborator.id, value)}
-                        disabled={updatingAccessId === collaborator.id}
-                      >
-                        <SelectTrigger className="w-24 h-8">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="viewer">Viewer</SelectItem>
-                          <SelectItem value="commenter">Commenter</SelectItem>
-                          <SelectItem value="editor">Editor</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      
-                      {/* Remove button - only visible on hover */}
-                      <Button
-                        variant="ghost"
+                  {selectedPartners.length > 0 && (
+                    <div className="flex justify-between items-center pt-2">
+                      <div className="text-sm text-gray-600">
+                        {selectedPartners.length} partner{selectedPartners.length > 1 ? 's' : ''} selected
+                      </div>
+                      <Button 
                         size="sm"
-                        className="w-8 h-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                        onClick={() => handleRemoveCollaborator(collaborator.id)}
-                        disabled={removingCollaboratorId === collaborator.id}
-                        title="Remove access"
+                        onClick={handleCreatePartnerLists}
+                        disabled={isCreatingPartnerLists}
+                        className="bg-blue-600 hover:bg-blue-700"
                       >
-                        {removingCollaboratorId === collaborator.id ? (
-                          <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                          </svg>
-                        ) : (
-                          <svg className="w-4 h-4 text-gray-400 hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                          </svg>
-                        )}
+                        {isCreatingPartnerLists ? "Creating..." : `Create Lists`}
                       </Button>
                     </div>
                   )}
                 </div>
-              ))}
+              )}
             </div>
+            
+            {/* Current collaborators section */}
+            <div className="text-sm text-gray-500">
+              People with access
+            </div>
+              
+            {/* Owner */}
+            <div className="flex items-center space-x-3 py-2">
+              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                {environment?.name?.charAt(0) || 'U'}
+              </div>
+              <div className="flex-1">
+                <div className="text-sm font-medium">{environment?.name || 'You'}</div>
+                <div className="text-xs text-gray-500">{environment?.name?.toLowerCase() || 'you'}@company.com</div>
+              </div>
+              <div className="text-sm text-gray-500">Owner</div>
+            </div>
+            
+            {/* Dynamic collaborators list */}
+            {localCollaborators.map((collaborator) => (
+              <div key={collaborator.id} className="flex items-center space-x-3 py-2 group">
+                <div className={`w-8 h-8 ${collaborator.isOwner ? 'bg-blue-600' : 'bg-green-600'} rounded-full flex items-center justify-center text-white text-sm font-medium`}>
+                  {collaborator.avatar || collaborator.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1">
+                  <div className="text-sm font-medium">{collaborator.name}</div>
+                  <div className="text-xs text-gray-500">{collaborator.email}</div>
+                </div>
+                
+                {collaborator.isOwner ? (
+                  <div className="text-sm text-gray-500">Owner</div>
+                ) : (
+                  <div className="flex items-center space-x-2">
+                    <Select 
+                      value={collaborator.accessLevel} 
+                      onValueChange={(value) => handleUpdateAccessLevel(collaborator.id, value)}
+                      disabled={updatingAccessId === collaborator.id}
+                    >
+                      <SelectTrigger className="w-24 h-8">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="viewer">Viewer</SelectItem>
+                        <SelectItem value="commenter">Commenter</SelectItem>
+                        <SelectItem value="editor">Editor</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    {/* Remove button - only visible on hover */}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="w-8 h-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                      onClick={() => handleRemoveCollaborator(collaborator.id)}
+                      disabled={removingCollaboratorId === collaborator.id}
+                      title="Remove access"
+                    >
+                      {removingCollaboratorId === collaborator.id ? (
+                        <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4 text-gray-400 hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg>
+                      )}
+                    </Button>
+                  </div>
+                )}
+              </div>
+            ))}
             
             <div className="border-t pt-4">
               {/* Get link section */}
@@ -607,15 +637,7 @@ export function ShareModal({
               </div>
             </div>
             
-            <div className="flex justify-between pt-4">
-              {partnersInList.length > 0 && (
-                <Button 
-                  variant="outline" 
-                  onClick={() => setCurrentView('partners')}
-                >
-                  Share with Partners
-                </Button>
-              )}
+            <div className="flex justify-end pt-4">
               <DialogClose asChild>
                 <Button variant="outline">Done</Button>
               </DialogClose>
