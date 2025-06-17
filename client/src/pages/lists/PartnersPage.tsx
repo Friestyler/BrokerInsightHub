@@ -58,7 +58,8 @@ const useSavedLists = () => {
   return useQuery({
     queryKey: ['/api/saved-lists', 'partners'],
     queryFn: () => apiRequest('GET', '/api/saved-lists?entity_type=partners'),
-    staleTime: 2 * 60 * 1000,
+    staleTime: 0, // Always fetch fresh data for lists to see immediate updates
+    cacheTime: 1000, // Keep cache for only 1 second
   });
 };
 
@@ -75,12 +76,13 @@ const useCreateSavedList = () => {
     mutationFn: async (data: any) => {
       return apiRequest('POST', '/api/saved-lists', data);
     },
-    onSuccess: () => {
-      // Force immediate cache refresh by removing and refetching
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+    onSuccess: async () => {
+      // Force immediate cache refresh with proper await
+      await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+      // Clear the cache completely and force a fresh fetch
       queryClient.removeQueries({ queryKey: ['/api/saved-lists', 'partners'] });
-      queryClient.refetchQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+      await queryClient.refetchQueries({ queryKey: ['/api/saved-lists', 'partners'] });
     }
   });
 };
