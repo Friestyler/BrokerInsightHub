@@ -377,7 +377,7 @@ export default function OpportunityDetail() {
                     <TableCell><Checkbox /></TableCell>
                     <TableCell>
                       <Link 
-                        href={`/partners/${partner.id}`}
+                        href={`/lists/partners/${partner.id}`}
                         onClick={() => {
                           // Store navigation context for partner detail back navigation
                           sessionStorage.setItem('partnerReferrer', `opportunities/${id}#partners`);
