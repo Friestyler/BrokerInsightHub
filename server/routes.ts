@@ -2406,8 +2406,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           [entityType, parseInt(partnerId)]
         );
       } else if (entityType) {
-        // Filter by entity type only, exclude partner-specific lists (partner_id IS NULL for general lists)
-        result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 AND partner_id IS NULL ORDER BY created_at DESC', [entityType]);
+        // Filter by entity type only, include general lists (partner_id IS NULL) but exclude partner-specific lists
+        result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC', [entityType]);
       } else {
         // Return all lists
         result = await envPool.query('SELECT * FROM degoudse.saved_lists ORDER BY created_at DESC');
