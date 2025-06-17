@@ -2182,7 +2182,7 @@ export default function PartnerDetail() {
 
                     <TableHead>Start Date</TableHead>
                     <TableHead>Insurance Description</TableHead>
-                    <TableHead>Stage</TableHead>
+                    <TableHead className="w-[140px]">Stage</TableHead>
                     <TableHead>Value</TableHead>
                     <TableHead>Close Date</TableHead>
                   </TableRow>
