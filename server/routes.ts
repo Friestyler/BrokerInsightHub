@@ -1901,8 +1901,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const stagesResult = await envPool.query(`
         SELECT DISTINCT o.stage
         FROM degoudse.opportunities o
-        INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        WHERE po.partner_id = $1 AND o.stage IS NOT NULL
+        WHERE o.partner_id = $1 AND o.stage IS NOT NULL
         ORDER BY o.stage
       `, [partnerId]);
       
@@ -1910,9 +1909,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const customersResult = await envPool.query(`
         SELECT DISTINCT c.name as customer_name
         FROM degoudse.opportunities o
-        INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
-        WHERE po.partner_id = $1 AND c.name IS NOT NULL
+        LEFT JOIN degoudse.customers c ON o.client_id = c.id
+        WHERE o.partner_id = $1 AND c.name IS NOT NULL
         ORDER BY c.name
       `, [partnerId]);
       
@@ -1920,9 +1918,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const accountManagersResult = await envPool.query(`
         SELECT DISTINCT u.name as account_manager_name
         FROM degoudse.opportunities o
-        INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
         LEFT JOIN degoudse.users u ON o.account_manager_id = u.id
-        WHERE po.partner_id = $1 AND u.name IS NOT NULL
+        WHERE o.partner_id = $1 AND u.name IS NOT NULL
         ORDER BY u.name
       `, [partnerId]);
       
@@ -1955,11 +1952,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const partnerId = parseInt(req.params.id);
       const envPool = pool;
       const result = await envPool.query(`
-        SELECT p.id, p.name, p.description, p.category, p.sku, p.price, p.vendor_id,
+        SELECT DISTINCT p.id, p.name, p.description, p.category, p.sku, p.price, p.vendor_id,
                p.created_at, p.updated_at
         FROM degoudse.products p
-        INNER JOIN degoudse.partner_products pp ON p.id = pp.product_id
-        WHERE pp.partner_id = $1
+        INNER JOIN degoudse.opportunities o ON p.id = o.product_id
+        WHERE o.partner_id = $1
         ORDER BY p.name
       `, [partnerId]);
       
