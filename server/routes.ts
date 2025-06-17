@@ -1767,7 +1767,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const envPool = pool;
       
-      // Direct query with relationship counts from opportunities table
+      // Direct query with relationship counts from opportunities table, excluding original seed partners except partner 4 (De Goudse)
       const result = await envPool.query(`
         SELECT p.id, p.name, p.description, p.status, p.location, p.contact_email, 
                p.primary_contact, p.region, p.assigned_user_ids, 
@@ -1783,6 +1783,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           WHERE partner_id IS NOT NULL
           GROUP BY partner_id
         ) rel ON p.id = rel.partner_id
+        WHERE p.id > 5 OR p.id = 4
         ORDER BY p.id
       `);
       
@@ -2247,10 +2248,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const envPool = pool;
       
-      // Get total count and summary statistics
+      // Get total count and summary statistics, excluding original seed customers (IDs 1-10)
       const [countResult, summaryResult] = await Promise.all([
         envPool.query(`
-          SELECT COUNT(*) as total_count FROM degoudse.customers
+          SELECT COUNT(*) as total_count FROM degoudse.customers WHERE id > 10
         `),
         envPool.query(`
           SELECT 
@@ -2261,6 +2262,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           FROM degoudse.customers c
           LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
           LEFT JOIN degoudse.opportunities o ON co.opportunity_id = o.id
+          WHERE c.id > 10
         `)
       ]);
       
@@ -2268,7 +2270,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const totalPages = Math.ceil(totalCount / limit);
       const summary = summaryResult.rows[0];
       
-      // Query with pagination
+      // Query with pagination, excluding original seed customers (IDs 1-10)
       const result = await envPool.query(`
         SELECT c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt",
                COUNT(DISTINCT pc.partner_id) as partner_count,
@@ -2276,6 +2278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM degoudse.customers c
         LEFT JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
         LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
+        WHERE c.id > 10
         GROUP BY c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt"
         ORDER BY c.id
         LIMIT $1 OFFSET $2
