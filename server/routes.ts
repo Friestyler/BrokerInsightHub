@@ -2673,8 +2673,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             // Get all shared lists for John Smith
             const sharedListsResult = await envPool.query(`
               SELECT DISTINCT sl.id, sl.members 
-              FROM ${envId}.saved_lists sl
-              JOIN ${envId}.list_collaborators lc ON sl.id = lc.list_id
+              FROM degoudse.saved_lists sl
+              JOIN degoudse.list_collaborators lc ON sl.id = lc.list_id
               WHERE lc.email = 'john.smith@partner.com' 
                 AND lc.is_active = true 
                 AND sl.entity_type = 'opportunities'
