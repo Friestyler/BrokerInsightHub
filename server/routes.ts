@@ -6188,7 +6188,8 @@ Keep the tone clear and professional. Focus on what will help the account manage
                        c.email_logo, c.from_name, c.from_email, c.scheduled_time, 
                        c.frequency, c.is_shared, c.is_template, c.tags, c.created_at, 
                        c.updated_at, c.heading, c.button_link, c.button_text, 
-                       c.button_color, c.follow_up_emails, c.target_entity_type, c.recipients, 
+                       c.button_color, c.follow_up_emails, c.target_entity_type, c.recipients,
+                       c.emails_sent, c.emails_opened, c.open_rate, c.total_clicks,
                        u.name as created_by_name 
                 FROM ${envId}.campaigns c
                 LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
@@ -6234,7 +6235,11 @@ Keep the tone clear and professional. Focus on what will help the account manage
             follow_up_emails: campaign.follow_up_emails || [],
             scheduled_time: campaign.scheduled_time,
             target_entity_type: campaign.target_entity_type,
-            recipients: campaign.recipients || []
+            recipients: campaign.recipients || [],
+            emails_sent: campaign.emails_sent || 0,
+            emails_opened: campaign.emails_opened || 0,
+            open_rate: campaign.open_rate || '0.00',
+            total_clicks: campaign.total_clicks || 0
           }));
           
           console.log(`Returning ${campaigns.length} campaigns from ${envId} environment:`, campaigns);
