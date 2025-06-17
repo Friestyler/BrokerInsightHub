@@ -2307,17 +2307,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
             notes: okr.notes
           };
         }),
-        opportunities: opportunitiesResult.rows.map(opp => ({
-          title: opp.title,
-          description: opp.description,
-          stage: opp.stage,
-          estimated_value: opp.estimated_value,
-          probability: opp.probability,
-          weighted_value: (opp.estimated_value || 0) * (opp.probability || 0) / 100,
-          insurance_type: opp.insurance_description,
-          customer: opp.customer_name,
-          account_manager: opp.account_manager_name
-        }))
+        opportunities: opportunitiesResult.rows.map(opp => {
+          const opportunity = {
+            title: opp.title,
+            stage: opp.stage,
+            estimated_value: opp.estimated_value,
+            probability: opp.probability,
+            weighted_value: (opp.estimated_value || 0) * (opp.probability || 0) / 100,
+            insurance_type: opp.insurance_description,
+            customer: opp.customer_name,
+            account_manager: opp.account_manager_name
+          };
+          
+          // Only include description if it has actual content
+          if (opp.description && opp.description.trim()) {
+            opportunity.description = opp.description;
+          }
+          
+          return opportunity;
+        })
       };
       
       res.json(meetingData);
