@@ -2575,10 +2575,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Check if this is a broker request by looking at the referer header
       const referer = req.get('Referer') || '';
-      const isBrokerRequest = referer.includes('/broker-view');
+      const isBrokerRequest = referer.includes('/broker-view') || req.query.brokerView === 'true';
       
       // Extract list ID from query parameters for broker requests
       const listId = req.query.listId ? parseInt(req.query.listId as string) : null;
+      
+      console.log(`Opportunities request - Referer: ${referer}, isBrokerRequest: ${isBrokerRequest}, listId: ${listId}`);
       
       let result;
       
@@ -2656,7 +2658,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           LEFT JOIN degoudse.partners p ON o.partner_id = p.id
           LEFT JOIN degoudse.products pr ON o.product_id = pr.id
           LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
-          WHERE o.id > 16 OR o.partner_id = 4
+          WHERE o.id > 16
           ORDER BY o.id
         `);
       }
@@ -2718,7 +2720,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
         LEFT JOIN degoudse.products pr ON pr.id = op.product_id
         LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
-        WHERE o.id = $1 AND (o.id > 16 OR o.partner_id = 4)
+        WHERE o.id = $1 AND o.id > 16
         GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
                  o."expectedCloseDate", o.start_date, o.account_manager_id, o."clientId", o."partnerId", o."productId", 
                  o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt", am.name
