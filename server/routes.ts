@@ -1792,27 +1792,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const partnerId = parseInt(req.params.id);
       const envPool = pool;
       
-      // Get distinct values for status and industry from customers related to this partner
-      const [statusResult, industryResult] = await Promise.all([
+      // Get available filter options from customers related to this partner
+      // Note: customers table only has basic fields (id, name, description)
+      const [customerNamesResult] = await Promise.all([
         envPool.query(`
-          SELECT DISTINCT c.status
+          SELECT DISTINCT c.name
           FROM degoudse.customers c
           INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
-          WHERE pc.partner_id = $1 AND c.status IS NOT NULL AND c.status != ''
-          ORDER BY c.status
-        `, [partnerId]),
-        envPool.query(`
-          SELECT DISTINCT c.industry
-          FROM degoudse.customers c
-          INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
-          WHERE pc.partner_id = $1 AND c.industry IS NOT NULL AND c.industry != ''
-          ORDER BY c.industry
+          WHERE pc.partner_id = $1 AND c.name IS NOT NULL AND c.name != ''
+          ORDER BY c.name
         `, [partnerId])
       ]);
       
       const filterOptions = {
-        statuses: statusResult.rows.map(row => row.status),
-        industries: industryResult.rows.map(row => row.industry)
+        statuses: [], // No status column in customers table
+        industries: [], // No industry column in customers table
+        customerNames: customerNamesResult.rows.map(row => row.name)
       };
       
       console.log(`Customer filter options for partner ${partnerId}:`, filterOptions);
