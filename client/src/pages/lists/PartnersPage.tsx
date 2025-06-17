@@ -98,9 +98,9 @@ const useDeleteSavedList = () => {
     mutationFn: async (id: number) => {
       return apiRequest('DELETE', `/api/saved-lists/${id}`);
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'partners'] });
-      await queryClient.refetchQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+    onSuccess: () => {
+      // Force immediate cache refresh
+      queryClient.resetQueries({ queryKey: ['/api/saved-lists', 'partners'] });
     }
   });
 };

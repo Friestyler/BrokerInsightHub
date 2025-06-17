@@ -2916,9 +2916,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const id = parseInt(req.params.id);
       const envPool = pool;
       
+      console.log(`Attempting to delete saved list with ID: ${id} from degoudse schema`);
+      
       const result = await envPool.query(`
         DELETE FROM degoudse.saved_lists WHERE id = $1
       `, [id]);
+      
+      console.log(`Delete result: rowCount = ${result.rowCount}`);
       
       if (result.rowCount === 0) {
         return res.status(404).json({ message: 'Saved list not found' });
