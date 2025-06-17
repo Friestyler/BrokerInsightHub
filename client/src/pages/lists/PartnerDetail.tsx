@@ -24,7 +24,10 @@ import PartnerCampaignsView from "@/components/campaigns/PartnerCampaignsView";
 export default function PartnerDetail() {
   const { id } = useParams();
   const { environment } = useEnvironment();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
+  
+  // Detect if we're in broker view
+  const isBrokerView = location.startsWith('/broker-view');
   
   // Check URL parameters for tab selection
   const urlParams = new URLSearchParams(window.location.search);
