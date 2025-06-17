@@ -801,6 +801,12 @@ export default function PartnerDetailBrokerPOV() {
                             } else if (metric.name === 'Schadefrequentie') {
                               trafficLight = 'green';
                               progressRatio = 0.89; // Show as 89% progress
+                            } else if (metric.name === 'Aantal Unieke Proefberekeningen – Schade Zakelijk') {
+                              trafficLight = 'yellow';
+                              progressRatio = 0.38; // Show as 38% progress
+                            } else if (metric.name === 'Premie Unieke Offertes – Schade Zakelijk') {
+                              trafficLight = 'red';
+                              progressRatio = 0.11; // Show as 11% progress
                             } else if (hasYtdValue && hasLastYearValue) {
                               // For YTD vs Last Year comparison
                               const ytdNumeric = parseFloat(metric.ytd_value?.replace(/[^\d.-]/g, '') || '0');
