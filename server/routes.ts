@@ -2259,7 +2259,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get total count and summary statistics, excluding original seed customers (IDs 1-10)
       const [countResult, summaryResult] = await Promise.all([
         envPool.query(`
-          SELECT COUNT(*) as total_count FROM degoudse.customers WHERE id > 10
+          SELECT COUNT(*) as total_count FROM degoudse.customers
         `),
         envPool.query(`
           SELECT 
@@ -2270,7 +2270,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
           FROM degoudse.customers c
           LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
           LEFT JOIN degoudse.opportunities o ON co.opportunity_id = o.id
-          WHERE c.id > 10
         `)
       ]);
       
