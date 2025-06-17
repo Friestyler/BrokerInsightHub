@@ -411,41 +411,13 @@ export default function PartnerDetail() {
     }
   });
 
-  // Enhanced mutation for creating new lists with immediate dropdown updates
+  // Simple mutation for creating new lists
   const createListMutation = useMutation({
     mutationFn: async (listData: any) => {
-      try {
-        console.log('Creating list with data:', listData);
-        const result = await apiRequest('POST', '/api/saved-lists', listData);
-        console.log('List creation API result:', result);
-        return result;
-      } catch (error) {
-        console.error('API request failed:', error);
-        throw error;
-      }
-    },
-    onSuccess: async (data) => {
-      console.log('List creation successful, implementing immediate UI updates:', data);
-      
-      // Comprehensive cache invalidation for immediate updates
-      await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
-      await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities', 'partner', id] });
-      await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities'] });
-      
-      // Environment-specific cache clearing
-      const currentEnv = window.__APP_ENV__ || localStorage.getItem('selectedEnvironment') || 'myqollabi';
-      if (currentEnv !== 'myqollabi') {
-        await queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/saved-lists`] });
-        await queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/saved-lists`, 'opportunities', 'partner', id] });
-      }
-      
-      // Force immediate data refetch for the dropdown
-      await queryClient.refetchQueries({ queryKey: ['/api/saved-lists', 'opportunities', 'partner', id] });
-      
-      console.log('Cache invalidation and refetch completed, list should appear immediately');
-    },
-    onError: (error) => {
-      console.error('List creation failed:', error);
+      console.log('Creating list with data:', listData);
+      const result = await apiRequest('POST', '/api/saved-lists', listData);
+      console.log('List creation API result:', result);
+      return result;
     }
   });
 
@@ -635,7 +607,7 @@ export default function PartnerDetail() {
   // Fetch all opportunity lists for the modal
   const { data: opportunityLists } = useQuery({
     queryKey: ['/api/saved-lists', 'opportunities', 'all'],
-    queryFn: () => fetch(`/api/saved-lists?entity_type=opportunities`).then(res => res.json()),
+    queryFn: () => apiRequest('GET', '/api/saved-lists?entity_type=opportunities'),
   });
 
   // Fetch customer saved lists
@@ -3843,20 +3815,12 @@ export default function PartnerDetail() {
                         console.log('New list set as active:', newList);
                       }
                       
-                      // Manually update cache data for immediate dropdown appearance
-                      const queryKey = ['/api/saved-lists', 'opportunities', 'partner', id];
-                      queryClient.setQueryData(queryKey, (oldData: any) => {
-                        console.log('Updating cache data manually with new list:', oldData);
-                        const currentLists = oldData || [];
-                        return [...currentLists, data];
+                      // Force refetch of the partner-specific lists query to update dropdown
+                      await queryClient.refetchQueries({ 
+                        queryKey: ['/api/saved-lists', 'opportunities', 'partner', id] 
                       });
                       
-                      // Also invalidate related caches after manual update
-                      setTimeout(() => {
-                        queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
-                        queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities'] });
-                        queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities', 'all'] });
-                      }, 500);
+                      console.log('List data refetched, dropdown should update immediately');
                       
                       toast({
                         title: "List created successfully",
