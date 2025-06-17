@@ -884,7 +884,9 @@ export default function CustomersPageClean() {
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Insurance</td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">Customer</td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Active</td>
-                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">€10,000</td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                    €{customer.totalOpportunityValue ? Number(customer.totalOpportunityValue).toLocaleString() : '0'}
+                  </td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                     <div className="flex space-x-1">
                       <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">

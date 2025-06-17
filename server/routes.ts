@@ -2282,10 +2282,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await envPool.query(`
         SELECT c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt",
                COUNT(DISTINCT pc.partner_id) as partner_count,
-               COUNT(DISTINCT co.opportunity_id) as opportunity_count
+               COUNT(DISTINCT co.opportunity_id) as opportunity_count,
+               COALESCE(SUM(DISTINCT o.estimated_value), 0) as total_opportunity_value
         FROM degoudse.customers c
         LEFT JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
         LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
+        LEFT JOIN degoudse.opportunities o ON o.id = co.opportunity_id
         WHERE c.id > 10
         GROUP BY c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt"
         ORDER BY c.id
@@ -2317,6 +2319,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updatedAt: customer.updatedAt,
           partnerCount: parseInt(customer.partner_count) || 0,
           opportunityCount: parseInt(customer.opportunity_count) || 0,
+          totalOpportunityValue: parseFloat(customer.total_opportunity_value) || 0,
           partnerNames: partnerNames,
           partnerIds: partnerIds
         };
