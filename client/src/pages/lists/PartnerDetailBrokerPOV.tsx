@@ -809,10 +809,10 @@ export default function PartnerDetailBrokerPOV() {
                               progressRatio = 0.11; // Show as 11% progress
                             } else if (metric.name === 'Aantal Unieke Offertes – Schade Zakelijk') {
                               trafficLight = 'orange';
-                              progressRatio = 0.29; // Show as 29% progress
+                              progressRatio = 0.29; // Show as 29% progress (32/109)
                             } else if (metric.name === 'Conversieratio – Schade Zakelijk') {
                               trafficLight = 'green';
-                              progressRatio = 4.09; // Show as 409% progress (capped at 100% in UI)
+                              progressRatio = 4.09; // Show as 409% progress (47.65%/11.64% ratio)
                             } else if (metric.name === 'Verbeterpunten') {
                               trafficLight = 'gray';
                               progressRatio = 0; // No progress for traffic light only metrics
@@ -843,6 +843,14 @@ export default function PartnerDetailBrokerPOV() {
                             }
                             
                             const progressPercent = Math.min(100, Math.max(0, progressRatio * 100));
+                            
+                            // Display exact percentage from JSON data for specific metrics
+                            let displayPercent = Math.round(progressPercent);
+                            if (metric.name === 'Aantal Unieke Offertes – Schade Zakelijk') {
+                              displayPercent = 29; // Exact from JSON: 0.29 progress_ratio
+                            } else if (metric.name === 'Conversieratio – Schade Zakelijk') {
+                              displayPercent = 409; // Exact from JSON: 4.09 progress_ratio
+                            }
                             
                             return (
                               <TableRow key={metric.id} className="border-b border-gray-100">
@@ -882,7 +890,7 @@ export default function PartnerDetailBrokerPOV() {
                                               />
                                             </div>
                                             <span className="text-xs text-gray-600 min-w-[3rem]">
-                                              {Math.round(progressPercent)}%
+                                              {metric.name === 'Verbeterpunten' ? '-' : `${displayPercent}%`}
                                             </span>
                                           </div>
                                         </TableCell>
@@ -931,7 +939,7 @@ export default function PartnerDetailBrokerPOV() {
                                               />
                                             </div>
                                             <span className="text-xs text-gray-600 min-w-[3rem]">
-                                              {Math.round(progressPercent)}%
+                                              {metric.name === 'Verbeterpunten' ? '-' : `${displayPercent}%`}
                                             </span>
                                           </div>
                                         </TableCell>
