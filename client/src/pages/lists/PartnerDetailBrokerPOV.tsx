@@ -100,6 +100,14 @@ export default function PartnerDetailBrokerPOV() {
     phone: '+31 20 123 4567'
   };
 
+  // Fetch broker campaigns
+  const { data: brokerCampaigns = [], isLoading: campaignsLoading } = useQuery({
+    queryKey: ['/api/broker/shared-campaigns'],
+    queryFn: () => apiRequest('GET', '/api/broker/shared-campaigns'),
+    enabled: activeTab === 'campaigns',
+    staleTime: 2 * 60 * 1000,
+  });
+
   // For broker view, fetch opportunities with proper list filtering
   const { data: allOpportunities = [], isLoading: opportunitiesLoading } = useQuery({
     queryKey: ['/api/degoudse/opportunities', activeOpportunitiesList?.id],
@@ -2171,38 +2179,105 @@ export default function PartnerDetailBrokerPOV() {
 
           {activeTab === "campaigns" && (
             <div className="space-y-6">
-              <div className="text-center py-12">
-                <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                    <path d="M22 2 11 13" />
-                    <path d="M22 2 15 22 11 13 2 9 22 2z" />
-                  </svg>
+              <div className="mb-8">
+                <h3 className="text-xl font-semibold text-gray-900 mb-2">Shared Campaigns</h3>
+                <p className="text-gray-600">Campaigns shared with you by {partner.name}</p>
+              </div>
+
+              {campaignsLoading ? (
+                <div className="animate-pulse space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="bg-white border rounded-lg p-6">
+                      <div className="space-y-3">
+                        <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+                        <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                        <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                      </div>
+                    </div>
+                  ))}
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Campaigns</h3>
-                <p className="text-gray-500 mb-6">Campaign management functionality will be available here soon.</p>
+              ) : brokerCampaigns.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No campaigns shared</h3>
+                  <p className="text-gray-500">No campaigns have been shared with you yet.</p>
+                </div>
+              ) : (
+                <div className="grid gap-6">
+                  {brokerCampaigns.map((campaign: any) => (
+                    <div key={campaign.id} className="bg-white border rounded-lg p-6 hover:shadow-md transition-shadow">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h4 className="text-lg font-semibold text-gray-900">{campaign.name}</h4>
+                            <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                              campaign.status === 'active' ? 'bg-green-100 text-green-800' :
+                              campaign.status === 'draft' ? 'bg-gray-100 text-gray-800' :
+                              campaign.status === 'template' ? 'bg-blue-100 text-blue-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {campaign.status}
+                            </span>
+                          </div>
+                          <p className="text-gray-600 mb-3">{campaign.description}</p>
+                          <div className="flex items-center gap-4 text-sm text-gray-500">
+                            <span>Shared by {campaign.sharedBy}</span>
+                            <span>•</span>
+                            <span>{campaign.sponsorName}</span>
+                            {campaign.sharedAt && (
+                              <>
+                                <span>•</span>
+                                <span>{new Date(campaign.sharedAt).toLocaleDateString()}</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <Link href={`/campaigns/${campaign.id}?from_broker_view=true`}>
+                          <Button variant="outline" size="sm">
+                            View Campaign
+                          </Button>
+                        </Link>
+                      </div>
+                      
+                      {(campaign.emails_sent > 0 || campaign.emails_opened > 0) && (
+                        <div className="border-t pt-4">
+                          <div className="grid grid-cols-3 gap-4 text-sm">
+                            <div>
+                              <div className="text-gray-500">Emails Sent</div>
+                              <div className="font-semibold">{campaign.emails_sent || 0}</div>
+                            </div>
+                            <div>
+                              <div className="text-gray-500">Opened</div>
+                              <div className="font-semibold">{campaign.emails_opened || 0}</div>
+                            </div>
+                            <div>
+                              <div className="text-gray-500">Open Rate</div>
+                              <div className="font-semibold">{campaign.open_rate || '0.00'}%</div>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Quick Actions */}
+              <div className="mt-8 pt-8 border-t border-gray-200">
                 <div className="flex justify-center space-x-3">
-                  <Button 
-                    variant="outline" 
-                    onClick={() => window.open('/campaigns', '_blank')}
-                    className="text-indigo-600"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <path d="M22 2 11 13" />
-                      <path d="M22 2 15 22 11 13 2 9 22 2z" />
-                    </svg>
-                    Go to Campaigns
-                  </Button>
-                  <Button 
-                    variant="outline"
-                    onClick={() => window.open('/campaigns/new', '_blank')}
-                    className="text-indigo-600"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <path d="M12 5v14" />
-                      <path d="M5 12h14" />
-                    </svg>
-                    Create Campaign
-                  </Button>
+                  <Link href="/broker-view/campaigns">
+                    <Button variant="outline" className="text-indigo-600">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <path d="M22 2 11 13" />
+                        <path d="M22 2 15 22 11 13 2 9 22 2z" />
+                      </svg>
+                      View All Campaigns
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </div>
