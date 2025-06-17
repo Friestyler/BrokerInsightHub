@@ -279,8 +279,29 @@ export default function PartnerDetail() {
     // Method 2: Check for context in session storage
     const sessionReferrer = sessionStorage.getItem('partnerReferrer');
     if (sessionReferrer) {
-      const customerDetailMatch = sessionReferrer.match(/\/customers\/(\d+)/);
-      const opportunityDetailMatch = sessionReferrer.match(/\/opportunities\/(\d+)/);
+      // Check for customer with specific tab (e.g., "customers/123#partners")
+      const customerWithTabMatch = sessionReferrer.match(/customers\/(\d+)#(\w+)/);
+      const opportunityWithTabMatch = sessionReferrer.match(/opportunities\/(\d+)#(\w+)/);
+      const customerDetailMatch = sessionReferrer.match(/customers\/(\d+)$/);
+      const opportunityDetailMatch = sessionReferrer.match(/opportunities\/(\d+)$/);
+      
+      if (customerWithTabMatch) {
+        const customerId = customerWithTabMatch[1];
+        const tabName = customerWithTabMatch[2];
+        setBackUrl(`/customers/${customerId}?tab=${tabName}`);
+        setBackLabel(`Back to Customer (${tabName})`);
+        sessionStorage.removeItem('partnerReferrer');
+        return;
+      }
+      
+      if (opportunityWithTabMatch) {
+        const opportunityId = opportunityWithTabMatch[1];
+        const tabName = opportunityWithTabMatch[2];
+        setBackUrl(`/opportunities/${opportunityId}?tab=${tabName}`);
+        setBackLabel(`Back to Opportunity (${tabName})`);
+        sessionStorage.removeItem('partnerReferrer');
+        return;
+      }
       
       if (customerDetailMatch) {
         const customerId = customerDetailMatch[1];

@@ -44,6 +44,15 @@ export default function CustomerDetailNew() {
   const [selectedOpportunityIds, setSelectedOpportunityIds] = useState<number[]>([]);
   const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
 
+  // Handle tab parameter from URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.split('?')[1] || '');
+    const tabParam = urlParams.get('tab');
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [location]);
+
   // Detect navigation context and set appropriate back URL
   useEffect(() => {
     // Try multiple methods to detect the source page
@@ -528,7 +537,13 @@ export default function CustomerDetailNew() {
                   <TableRow key={partner.id}>
                     <TableCell><Checkbox /></TableCell>
                     <TableCell>
-                      <Link href={`/lists/partners/${partner.id}`}>
+                      <Link 
+                        href={`/lists/partners/${partner.id}`}
+                        onClick={() => {
+                          // Store navigation context for partner detail back navigation
+                          sessionStorage.setItem('partnerReferrer', `customers/${id}#partners`);
+                        }}
+                      >
                         <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
                           {partner.name}
                         </span>

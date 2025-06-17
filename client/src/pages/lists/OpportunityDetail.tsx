@@ -80,6 +80,15 @@ export default function OpportunityDetail() {
   const [selectedCustomerIds, setSelectedCustomerIds] = useState<number[]>([]);
   const [selectedPartnerIds, setSelectedPartnerIds] = useState<number[]>([]);
 
+  // Handle tab parameter from URL
+  useEffect(() => {
+    const urlParams = new URLSearchParams(location.split('?')[1] || '');
+    const tabParam = urlParams.get('tab');
+    if (tabParam) {
+      setActiveTab(tabParam);
+    }
+  }, [location]);
+
   // Detect navigation context and set appropriate back URL
   useEffect(() => {
     // Try multiple methods to detect the source page
@@ -367,7 +376,13 @@ export default function OpportunityDetail() {
                   <TableRow key={partner.id}>
                     <TableCell><Checkbox /></TableCell>
                     <TableCell>
-                      <Link href={`/partners/${partner.id}`}>
+                      <Link 
+                        href={`/partners/${partner.id}`}
+                        onClick={() => {
+                          // Store navigation context for partner detail back navigation
+                          sessionStorage.setItem('partnerReferrer', `opportunities/${id}#partners`);
+                        }}
+                      >
                         <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
                           {partner.name}
                         </span>
