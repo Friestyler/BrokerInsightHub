@@ -5506,9 +5506,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
             if (partnerResult.rows.length > 0) {
               const partnerName = partnerResult.rows[0].name;
               
-              // Show campaigns that include this partner in their recipients (search by name)
+              // Show campaigns that include this partner in their recipients OR are shared with this partner
               query = `
-                SELECT c.id, c.name, c.description, c.type, c.category, c.status, 
+                SELECT DISTINCT c.id, c.name, c.description, c.type, c.category, c.status, 
                        c.created_by_id, c.sponsor_id, c.list_id, c.subject, c.email_body, 
                        c.email_logo, c.from_name, c.from_email, c.scheduled_time, 
                        c.frequency, c.is_shared, c.is_template, c.tags, c.created_at, 
@@ -5517,10 +5517,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
                        u.name as created_by_name 
                 FROM ${envId}.campaigns c
                 LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
+                LEFT JOIN ${envId}.campaign_shares cs ON c.id = cs.campaign_id
                 WHERE c.is_template = false
-                AND (c.recipients::text LIKE '%"name": "' || $1 || '"%' 
-                     OR c.recipients::text LIKE '%"id": ' || $2 || '%' 
-                     OR c.recipients::text LIKE '%"id":' || $2 || '%')
+                AND (
+                  (c.recipients::text LIKE '%"name": "' || $1 || '"%' 
+                   OR c.recipients::text LIKE '%"id": ' || $2 || '%' 
+                   OR c.recipients::text LIKE '%"id":' || $2 || '%')
+                  OR 
+                  (cs.shared_with_type = 'partner' AND cs.shared_with_id = $2 AND cs.is_active = true)
+                )
               `;
               queryParams.push(partnerName, partner_id);
             } else {
