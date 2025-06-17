@@ -318,7 +318,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
 
   const completedTasks = tasks.filter((t: any) => t.completed).length;
   const pendingTasks = tasks.filter((t: any) => !t.completed).length;
-  const totalActivities = tasks.length + comments.length + attachments.length;
+  const totalTasks = tasks.length;
 
   const SelectedIcon = activityTypes.find(type => type.value === selectedActivityType)?.icon || CheckSquare;
 
@@ -336,7 +336,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
             <span className="text-sm font-medium text-gray-700">Activity</span>
             <div className="flex items-center gap-3 text-xs text-gray-500">
               <span>{pendingTasks} pending</span>
-              <span>{totalActivities} total</span>
+              <span>{totalTasks} total</span>
               {actions.length > 0 && <span>{actions.length} AI suggestions</span>}
             </div>
           </button>
