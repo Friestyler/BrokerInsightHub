@@ -696,7 +696,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                             </div>
                             
                             <p className="text-sm text-gray-700 mb-2">
-                              {item.title || item.content || item.description || 'No description available'}
+                              {item.activity_type === 'comment' ? item.content : (item.title || item.content || item.description || 'No description available')}
                             </p>
                             
                             {item.details && (
