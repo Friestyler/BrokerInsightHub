@@ -288,7 +288,7 @@ export default function PartnerDetail() {
       if (customerWithTabMatch) {
         const customerId = customerWithTabMatch[1];
         const tabName = customerWithTabMatch[2];
-        setBackUrl(`/customers/${customerId}?tab=${tabName}`);
+        setBackUrl(`/lists/customers/${customerId}?tab=${tabName}`);
         setBackLabel(`Back to Customer (${tabName})`);
         sessionStorage.removeItem('partnerReferrer');
         return;
@@ -305,7 +305,7 @@ export default function PartnerDetail() {
       
       if (customerDetailMatch) {
         const customerId = customerDetailMatch[1];
-        setBackUrl(`/customers/${customerId}`);
+        setBackUrl(`/lists/customers/${customerId}`);
         setBackLabel("Back to Customer");
         sessionStorage.removeItem('partnerReferrer');
         return;
