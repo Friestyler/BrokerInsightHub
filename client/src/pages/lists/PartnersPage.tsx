@@ -627,18 +627,7 @@ function PartnersTable() {
       const matchesStatus = !selectedStatus || partner.status === selectedStatus;
       const matchesIndustry = !selectedIndustry || partner.region === selectedIndustry;
       const matchesActualIndustry = !selectedActualIndustry || partner.industry === selectedActualIndustry;
-      const matchesSize = !selectedSize || partner.size === selectedSize;
-      
-      // Debug logging for size filter
-      if (selectedSize) {
-        console.log('Size filter debug:', {
-          partnerName: partner.name,
-          partnerSize: partner.size,
-          selectedSize: selectedSize,
-          matchesSize: matchesSize,
-          sizeComparison: `'${partner.size}' === '${selectedSize}'`
-        });
-      }
+      const matchesSize = !selectedSize || partner.size?.toLowerCase() === selectedSize.toLowerCase();
       
       return matchesText && matchesStatus && matchesIndustry && matchesActualIndustry && matchesSize;
     })
