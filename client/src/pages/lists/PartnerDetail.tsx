@@ -1418,6 +1418,20 @@ export default function PartnerDetail() {
                                               </svg>
                                               Open list as partner
                                             </button>
+                                            
+                                            {/* Delete list option */}
+                                            <button
+                                              className="flex w-full items-center px-2 py-1.5 text-sm rounded-sm hover:bg-red-50 text-red-600 text-left"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setListToDelete(list);
+                                                setShowDeleteListModal(true);
+                                                setActiveDropdownId(null);
+                                              }}
+                                            >
+                                              <Trash2 className="w-4 h-4 mr-2" />
+                                              Delete list
+                                            </button>
                                           </div>
                                         </div>
                                       )}
@@ -4318,6 +4332,73 @@ export default function PartnerDetail() {
               }}
             >
               Save changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete List Confirmation Dialog */}
+      <Dialog open={showDeleteListModal} onOpenChange={setShowDeleteListModal}>
+        <DialogContent className="sm:max-w-md" style={{ background: '#ffffff', color: '#282A3F', padding: '32px' }}>
+          <DialogHeader>
+            <DialogTitle>Delete List</DialogTitle>
+            <DialogDescription className="text-sm text-[#282A3F]">
+              Are you sure you want to delete this list? This action cannot be undone.
+              Deleting a list does not delete the opportunity records themselves.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {listToDelete && (
+              <p className="font-medium text-lg text-center">{listToDelete.name}</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteListModal(false)}>
+              Cancel
+            </Button>
+            <Button
+              variant="destructive"
+              className="text-[#FFFFFF] bg-[#D3321D] pl-[14px] pr-[14px] ml-[12px] mr-[12px] hover:bg-destructive/90"
+              onClick={async () => {
+                if (listToDelete) {
+                  try {
+                    // Actually delete the list from the database
+                    await deleteSavedListMutation.mutateAsync(parseInt(listToDelete.id));
+                    
+                    // If this was the active list, go back to "All opportunities"
+                    if (activeList && activeList.id === listToDelete.id) {
+                      setActiveList(null);
+                    }
+                    
+                    // Additional immediate cache refresh to ensure UI updates
+                    await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+                    await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities', 'partner', id] });
+                    queryClient.removeQueries({ queryKey: ['/api/saved-lists', 'opportunities', 'partner', id] });
+                    
+                    // Show success message
+                    toast({
+                      title: "List deleted",
+                      description: `The list "${listToDelete.name}" has been deleted. Your opportunity records remain intact.`,
+                    });
+                    
+                    // Close the dialog and dropdown
+                    setShowDeleteListModal(false);
+                    setShowListsDropdown(false);
+                    
+                    // Reset list references to ensure clean state
+                    setListToDelete(null);
+                  } catch (error) {
+                    toast({
+                      title: "Error",
+                      description: "Failed to delete the list. Please try again.",
+                      variant: "destructive"
+                    });
+                  }
+                }
+              }}
+              disabled={deleteSavedListMutation.isPending}
+            >
+              {deleteSavedListMutation.isPending ? 'Deleting...' : 'Delete list'}
             </Button>
           </DialogFooter>
         </DialogContent>
