@@ -45,11 +45,9 @@ export default function PartnerDetail() {
   const [filterText, setFilterText] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedCustomer, setSelectedCustomer] = useState("");
-  const [selectedAccountManager, setSelectedAccountManager] = useState("");
   const [selectedInsuranceDescription, setSelectedInsuranceDescription] = useState("");
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
-  const [showAccountManagerDropdown, setShowAccountManagerDropdown] = useState(false);
   const [showInsuranceDescDropdown, setShowInsuranceDescDropdown] = useState(false);
   const [activeList, setActiveList] = useState<any>(null);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
@@ -163,7 +161,6 @@ export default function PartnerDetail() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const statusDropdownRef = useRef<HTMLDivElement>(null);
   const customerDropdownRef = useRef<HTMLDivElement>(null);
-  const accountManagerDropdownRef = useRef<HTMLDivElement>(null);
   const insuranceDescDropdownRef = useRef<HTMLDivElement>(null);
   const listsDropdownRef = useRef<HTMLDivElement>(null);
   const viewsDropdownRef = useRef<HTMLDivElement>(null);
@@ -669,9 +666,7 @@ export default function PartnerDetail() {
       if (customerDropdownRef.current && !customerDropdownRef.current.contains(event.target as Node)) {
         setShowCustomerDropdown(false);
       }
-      if (accountManagerDropdownRef.current && !accountManagerDropdownRef.current.contains(event.target as Node)) {
-        setShowAccountManagerDropdown(false);
-      }
+
       if (insuranceDescDropdownRef.current && !insuranceDescDropdownRef.current.contains(event.target as Node)) {
         setShowInsuranceDescDropdown(false);
       }
@@ -686,7 +681,6 @@ export default function PartnerDetail() {
   // Extract filter values from database API
   const uniqueStatuses = (filterOptions as any)?.stages || [];
   const uniqueCustomers = (filterOptions as any)?.customers || [];
-  const uniqueAccountManagers = (filterOptions as any)?.accountManagers || [];
   const uniqueInsuranceDescriptions = (filterOptions as any)?.insuranceDescriptions || [];
 
   // Extract customer filter values from database API
@@ -716,11 +710,6 @@ export default function PartnerDetail() {
     
     // Filter by Customer
     if (selectedCustomer && opportunity.clientName !== selectedCustomer) {
-      return false;
-    }
-    
-    // Filter by Account Manager
-    if (selectedAccountManager && opportunity.account_manager_name !== selectedAccountManager) {
       return false;
     }
     
@@ -1639,13 +1628,11 @@ export default function PartnerDetail() {
                                   setOriginalViewFilters({
                                     status: view.filters.stage || undefined,
                                     customer: view.filters.customer || undefined,
-                                    accountManager: view.filters.accountManager || undefined,
                                     insuranceDescription: view.filters.insuranceDescription || undefined,
                                   });
                                   setFilterText(view.filters.searchText || '');
                                   setSelectedStatus(view.filters.stage || '');
                                   setSelectedCustomer(view.filters.customer || '');
-                                  setSelectedAccountManager(view.filters.accountManager || '');
                                   setSelectedInsuranceDescription(view.filters.insuranceDescription || '');
                                   setShowViewsDropdown(false);
                                 }}
@@ -1836,78 +1823,7 @@ export default function PartnerDetail() {
                         )}
                       </div>
                       
-                      {/* Account Manager Filter Dropdown */}
-                      <div className="relative" ref={accountManagerDropdownRef}>
-                        <button 
-                          className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
-                            selectedAccountManager 
-                              ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
-                              : 'border-gray-300 text-gray-700 hover:border-gray-400'
-                          }`}
-                          onClick={() => setShowAccountManagerDropdown(!showAccountManagerDropdown)}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                          </svg>
-                          <span>{selectedAccountManager ? `Account Manager: ${selectedAccountManager}` : 'Account Manager'}</span>
-                          {selectedAccountManager && (
-                            <svg 
-                              xmlns="http://www.w3.org/2000/svg" 
-                              width="14" 
-                              height="14" 
-                              viewBox="0 0 24 24" 
-                              fill="none" 
-                              stroke="currentColor" 
-                              strokeWidth="2" 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round" 
-                              className="ml-2 hover:bg-indigo-100 rounded-full p-0.5 cursor-pointer"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedAccountManager("");
-                              }}
-                            >
-                              <path d="M18 6L6 18"></path>
-                              <path d="M6 6l12 12"></path>
-                            </svg>
-                          )}
-                        </button>
-                        
-                        {showAccountManagerDropdown && (
-                          <div className="absolute z-50 mt-1 w-48 rounded-md border border-gray-200 bg-white shadow-lg">
-                            <div className="p-1">
-                              {selectedAccountManager && (
-                                <button
-                                  className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-md"
-                                  onClick={() => {
-                                    setSelectedAccountManager("");
-                                    setShowAccountManagerDropdown(false);
-                                  }}
-                                >
-                                  Clear filter
-                                </button>
-                              )}
-                              {uniqueAccountManagers.map((manager: string) => (
-                                <button
-                                  key={manager}
-                                  className={`w-full text-left px-3 py-2 text-sm rounded-md ${
-                                    selectedAccountManager === manager 
-                                      ? 'bg-indigo-50 text-indigo-700' 
-                                      : 'text-gray-700 hover:bg-gray-50'
-                                  }`}
-                                  onClick={() => {
-                                    setSelectedAccountManager(manager);
-                                    setShowAccountManagerDropdown(false);
-                                  }}
-                                >
-                                  {manager}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      
+
                       {/* Insurance Description Filter Dropdown */}
                       <div className="relative" ref={insuranceDescDropdownRef}>
                         <button 
