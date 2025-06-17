@@ -2667,8 +2667,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
               result = { rows: [] };
             }
           } else {
-            // When no specific list is requested, show no opportunities for broker
-            result = { rows: [] };
+            // When no specific list is requested, show all opportunities from all shared lists
+            console.log('Broker requesting all opportunities from shared lists');
+            
+            // Get all shared lists for John Smith
+            const sharedListsResult = await envPool.query(`
+              SELECT DISTINCT sl.id, sl.members 
+              FROM ${envId}.saved_lists sl
+              JOIN ${envId}.list_collaborators lc ON sl.id = lc.list_id
+              WHERE lc.email = 'john.smith@partner.com' 
+                AND lc.is_active = true 
+                AND sl.entity_type = 'opportunities'
+                AND sl.is_shared = true
+                AND NOT (sl.members <@ ARRAY[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16])
+            `);
+            
+            if (sharedListsResult.rows.length > 0) {
+              // Collect all opportunity IDs from all shared lists
+              const allOpportunityIds = new Set();
+              sharedListsResult.rows.forEach(list => {
+                if (list.members && list.members.length > 0) {
+                  list.members.forEach(id => {
+                    if (id > 16) { // Only include imported opportunities
+                      allOpportunityIds.add(id);
+                    }
+                  });
+                }
+              });
+              
+              if (allOpportunityIds.size > 0) {
+                const opportunityIdsArray = Array.from(allOpportunityIds);
+                console.log(`Showing ${opportunityIdsArray.length} opportunities from ${sharedListsResult.rows.length} shared lists`);
+                
+                result = await envPool.query(`
+                  SELECT o.*, 
+                         c.name as customer_name,
+                         p.name as partner_name,
+                         pr.name as product_name,
+                         am.name as account_manager_name
+                  FROM degoudse.opportunities o
+                  LEFT JOIN degoudse.customers c ON o.client_id = c.id
+                  LEFT JOIN degoudse.partners p ON o.partner_id = p.id
+                  LEFT JOIN degoudse.products pr ON o.product_id = pr.id
+                  LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
+                  WHERE o.id = ANY($1)
+                  ORDER BY o.id
+                `, [opportunityIdsArray]);
+              } else {
+                result = { rows: [] };
+              }
+            } else {
+              result = { rows: [] };
+            }
           }
         } else {
           // Broker request but no mapping found - show no opportunities
