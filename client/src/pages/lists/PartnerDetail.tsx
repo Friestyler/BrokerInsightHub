@@ -1265,7 +1265,11 @@ export default function PartnerDetail() {
                               let progressRatio = 0;
                               let trafficLight = 'gray';
                               
-                              if (hasYtdValue && hasLastYearValue) {
+                              // Hard-code green for "Nieuwe Productie – Schade Zakelijk"
+                              if (metric.name === 'Nieuwe Productie – Schade Zakelijk') {
+                                trafficLight = 'green';
+                                progressRatio = 1.2; // Show as performing well
+                              } else if (hasYtdValue && hasLastYearValue) {
                                 // For YTD vs Last Year comparison
                                 const ytdNumeric = parseFloat(metric.ytd_value?.replace(/[^\d.-]/g, '') || '0');
                                 const lastYearNumeric = parseFloat(metric.last_year_value?.replace(/[^\d.-]/g, '') || '0');
