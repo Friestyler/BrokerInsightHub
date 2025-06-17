@@ -4915,28 +4915,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.set('Pragma', 'no-cache');
       res.set('Expires', '0');
       
-      // Query to get all lists shared with John Smith or any partner
-      let query = `
-        SELECT DISTINCT sl.*, 
-               COUNT(lc.id) as collaborator_count,
-               CASE WHEN COUNT(lc.id) > 0 THEN true ELSE false END as has_collaborators,
-               ARRAY_AGG(DISTINCT lc.email) FILTER (WHERE lc.email IS NOT NULL) as collaborator_emails,
-               ARRAY_AGG(DISTINCT lc.name) FILTER (WHERE lc.name IS NOT NULL) as collaborator_names
-        FROM ${envId}.saved_lists sl
-        INNER JOIN ${envId}.list_collaborators lc ON sl.id = lc.list_id AND lc.is_active = true
-        WHERE sl.is_shared = true
+      // Get list collaborators first to find relevant list IDs
+      let baseQuery = `
+        SELECT lc.list_id
+        FROM ${envId}.list_collaborators lc
+        WHERE lc.is_active = true
           AND (lc.email LIKE '%john.smith%' OR lc.email LIKE '%partner%' OR lc.name LIKE '%John Smith%')
       `;
       
       const params = [];
+      
+      // First get the list IDs from collaborators table
+      const listIdsResult = await envPool.query(baseQuery, params);
+      const listIds = listIdsResult.rows.map(row => row.list_id);
+      
+      if (listIds.length === 0) {
+        console.log('No lists found shared with John Smith or partners');
+        res.json([]);
+        return;
+      }
+      
+      // Then get the full list details with collaborator info, filtering by entity_type if needed
+      const placeholders = listIds.map((_, index) => `$${index + 1}`).join(', ');
+      let query = `
+        SELECT sl.*,
+               COUNT(lc.id) as collaborator_count,
+               CASE WHEN COUNT(lc.id) > 0 THEN true ELSE false END as has_collaborators,
+               STRING_AGG(DISTINCT lc.email, ', ') as collaborator_emails,
+               STRING_AGG(DISTINCT lc.name, ', ') as collaborator_names
+        FROM ${envId}.saved_lists sl
+        LEFT JOIN ${envId}.list_collaborators lc ON sl.id = lc.list_id AND lc.is_active = true
+        WHERE sl.id IN (${placeholders}) AND sl.is_shared = true
+      `;
+      
       if (entityType) {
-        query += ` AND sl.entity_type = $${params.length + 1}`;
-        params.push(entityType);
+        query += ` AND sl.entity_type = $${listIds.length + 1}`;
+        listIds.push(entityType);
       }
       
       query += ` GROUP BY sl.id ORDER BY sl.created_at DESC`;
       
-      const result = await envPool.query(query, params);
+      const result = await envPool.query(query, listIds);
       
       console.log(`Found ${result.rows.length} lists shared with John Smith or partners`);
       res.json(result.rows);
