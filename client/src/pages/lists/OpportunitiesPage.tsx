@@ -112,6 +112,20 @@ const useCreateSharedList = () => {
   });
 };
 
+const useDeleteSavedList = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (listId: number) => {
+      return apiRequest('DELETE', `/api/saved-lists/${listId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities'] });
+      queryClient.refetchQueries({ queryKey: ['/api/saved-lists', 'opportunities'] });
+    }
+  });
+};
+
 // Hook to fetch customers for opportunity creation
 const useCustomers = () => {
   return useQuery({
@@ -385,6 +399,7 @@ function OpportunitiesTable() {
   const { data: savedViewsData = [], isLoading: savedViewsLoading } = useSavedViews();
   const createSavedViewMutation = useCreateSavedView();
   const createSharedListMutation = useCreateSharedList();
+  const deleteSavedListMutation = useDeleteSavedList();
   const queryClient = useQueryClient();
   
   // Fetch customers and products for opportunity creation
@@ -625,6 +640,32 @@ function OpportunitiesTable() {
       setCurrentSharedLink('');
     }
   }, [showShareListModal, activeList?.id, selectedOpportunities.length]);
+  
+  // Handle list deletion
+  const handleDeleteList = async (listId: number) => {
+    try {
+      await deleteSavedListMutation.mutateAsync(listId);
+      
+      // If this was the active list, clear it
+      if (activeList && activeList.id === listId) {
+        setActiveList(null);
+        setFilterText('');
+        setSelectedStatus('');
+        setSelectedType('');
+      }
+      
+      toast({
+        title: "List deleted",
+        description: "The list has been deleted successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete the list. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
   
   // Show loading state
   if (isLoading) {
@@ -974,6 +1015,26 @@ function OpportunitiesTable() {
                                           <line x1="15" y1="12" x2="3" y2="12"></line>
                                         </svg>
                                         Open list as partner
+                                      </button>
+                                      <button
+                                        className="flex w-full items-center px-2 py-1.5 text-sm rounded-sm hover:bg-red-50 text-red-600 text-left"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          // Show confirmation dialog
+                                          if (confirm(`Are you sure you want to delete the list "${list.name}"? This action cannot be undone.`)) {
+                                            handleDeleteList(list.id);
+                                          }
+                                          setActiveDropdownId(null);
+                                          setShowListsDropdown(false);
+                                        }}
+                                      >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                          <polyline points="3 6 5 6 21 6"></polyline>
+                                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                          <line x1="10" y1="11" x2="10" y2="17"></line>
+                                          <line x1="14" y1="11" x2="14" y2="17"></line>
+                                        </svg>
+                                        Delete list
                                       </button>
                                     </div>
                                   </div>
