@@ -1773,14 +1773,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
                p.primary_contact, p.region, p.assigned_user_ids, 
                p.linked_opportunity_ids, p.created_at, p.updated_at,
                COALESCE(rel.opportunity_count, 0) as opportunity_count,
-               COALESCE(rel.customer_count, 0) as customer_count
+               COALESCE(rel.customer_count, 0) as customer_count,
+               COALESCE(rel.total_opportunity_value, 0) as total_opportunity_value,
+               COALESCE(rel.total_weighted_value, 0) as total_weighted_value
         FROM degoudse.partners p
         LEFT JOIN (
           SELECT partner_id, 
                  COUNT(*) as opportunity_count,
-                 COUNT(DISTINCT client_id) as customer_count
+                 COUNT(DISTINCT client_id) as customer_count,
+                 SUM(COALESCE(estimated_value, 0)) as total_opportunity_value,
+                 SUM(COALESCE(estimated_value, 0) * COALESCE(probability, 0) / 100.0) as total_weighted_value
           FROM degoudse.opportunities 
-          WHERE partner_id IS NOT NULL
+          WHERE partner_id IS NOT NULL AND id > 16
           GROUP BY partner_id
         ) rel ON p.id = rel.partner_id
         WHERE p.id > 5 OR p.id = 4
@@ -1800,8 +1804,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         opportunityCount: parseInt(partner.opportunity_count) || 0,
         customers: parseInt(partner.customer_count) || 0,
         opportunities: parseInt(partner.opportunity_count) || 0,
-        opportunity_value: 0,
-        weighted_opportunity_value: 0,
+        opportunity_value: parseFloat(partner.total_opportunity_value) || 0,
+        weighted_opportunity_value: parseFloat(partner.total_weighted_value) || 0,
         location: partner.location,
         contactEmail: partner.contact_email,
         primaryContact: partner.primary_contact,
