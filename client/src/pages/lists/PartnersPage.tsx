@@ -76,8 +76,11 @@ const useCreateSavedList = () => {
       return apiRequest('POST', '/api/saved-lists', data);
     },
     onSuccess: () => {
+      // Force immediate cache refresh by removing and refetching
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+      queryClient.removeQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+      queryClient.refetchQueries({ queryKey: ['/api/saved-lists', 'partners'] });
     }
   });
 };
