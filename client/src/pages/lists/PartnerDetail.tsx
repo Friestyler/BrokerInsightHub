@@ -53,7 +53,6 @@ export default function PartnerDetail() {
   const [showInsuranceDescDropdown, setShowInsuranceDescDropdown] = useState(false);
   const [activeList, setActiveList] = useState<any>(null);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
-  const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
   const [selectedOpportunities, setSelectedOpportunities] = useState<number[]>([]);
   const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
   const [showSaveListModal, setShowSaveListModal] = useState(false);
@@ -101,6 +100,12 @@ export default function PartnerDetail() {
   const [showShareListModal, setShowShareListModal] = useState(false);
   const [currentSharedLink, setCurrentSharedLink] = useState<string | null>(null);
   const [existingSharedLinks, setExistingSharedLinks] = useState<any[]>([]);
+  
+  // Delete list functionality
+  const [showDeleteListModal, setShowDeleteListModal] = useState(false);
+  const [listToDelete, setListToDelete] = useState<any>(null);
+  const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
+  
   // State to track collaborators for each list
   const [listCollaborators, setListCollaborators] = useState<Record<number, any[]>>({});
 
@@ -561,6 +566,34 @@ export default function PartnerDetail() {
         variant: "destructive"
       });
       setIsSavingList(false);
+    }
+  });
+
+  // Enhanced delete list mutation with comprehensive cache invalidation
+  const deleteSavedListMutation = useMutation({
+    mutationFn: async (listId: number) => {
+      return await apiRequest('DELETE', `/api/saved-lists/${listId}`);
+    },
+    onSuccess: () => {
+      // Comprehensive cache invalidation
+      queryClient.resetQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.resetQueries({ queryKey: ['/api/saved-lists', 'opportunities'] });
+      queryClient.resetQueries({ queryKey: ['/api/saved-lists', 'opportunities', 'partner', id] });
+      
+      // Additional environment-specific cache clearing
+      const currentEnv = window.__APP_ENV__ || localStorage.getItem('selectedEnvironment') || 'myqollabi';
+      if (currentEnv !== 'myqollabi') {
+        queryClient.resetQueries({ queryKey: [`/api/${currentEnv}/saved-lists`] });
+        queryClient.resetQueries({ queryKey: [`/api/${currentEnv}/saved-lists`, 'opportunities'] });
+      }
+    },
+    onError: (error) => {
+      console.error('Error deleting saved list:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete the list. Please try again.",
+        variant: "destructive"
+      });
     }
   });
 
