@@ -2500,7 +2500,13 @@ Focus on what will help the account manager lead a productive and focused meetin
       console.log('=== AI MEETING BRIEFING ===');
       console.log(`Partner: ${partner.name}`);
       console.log('---');
+      console.log('RAW BRIEFING:');
       console.log(briefing);
+      console.log('---');
+      console.log('BRIEFING LINES:');
+      briefing.split('\n').forEach((line, index) => {
+        console.log(`${index}: "${line}"`);
+      });
       console.log('=== END BRIEFING ===');
 
       res.json({

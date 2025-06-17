@@ -936,7 +936,16 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <h4 className="font-medium text-blue-900 mb-2">Executive Summary</h4>
                     <p className="text-sm text-blue-800 leading-relaxed">
-                      {meetingBriefing.briefing.split('\n').find((line: string) => line.includes('Summary:'))?.replace('- Summary:', '').trim()}
+                      {(() => {
+                        const lines = meetingBriefing.briefing.split('\n');
+                        // Look for summary paragraph (first substantial paragraph or line with "summary")
+                        const summaryLine = lines.find((line: string) => 
+                          (line.includes('summary') || line.includes('Summary')) && line.length > 20
+                        ) || lines.find((line: string) => 
+                          line.trim().length > 50 && !line.includes('**') && !line.startsWith('- ')
+                        );
+                        return summaryLine?.replace(/^-?\s*(summary:?)?/i, '').trim() || 'Meeting analysis completed';
+                      })()}
                     </p>
                   </div>
 
@@ -1010,14 +1019,43 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                         <h4 className="font-semibold text-gray-900">Meeting Recommendations</h4>
                       </div>
                       <div className="space-y-2">
-                        {meetingBriefing.briefing.split('\n').filter((line: string) => 
-                          line.trim().startsWith('- ') && !line.includes('**') && line.length > 10
-                        ).map((item: string, index: number) => (
-                          <div key={index} className="flex items-start gap-3 p-2">
-                            <CheckSquare className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
-                            <span className="text-sm text-gray-700">{item.replace('- ', '')}</span>
-                          </div>
-                        ))}
+                        {(() => {
+                          const lines = meetingBriefing.briefing.split('\n');
+                          
+                          // Find recommendations section and extract bullet points
+                          const recommendationsStart = lines.findIndex(line => 
+                            line.toLowerCase().includes('recommendation') || 
+                            line.toLowerCase().includes('meeting recommendation')
+                          );
+                          
+                          if (recommendationsStart === -1) {
+                            // Fallback: look for bullet points that don't contain ** (not OKRs/opportunities)
+                            return lines.filter((line: string) => 
+                              line.trim().startsWith('- ') && 
+                              !line.includes('**') && 
+                              line.length > 15 &&
+                              !line.toLowerCase().includes('okr') &&
+                              !line.toLowerCase().includes('opportunity')
+                            ).slice(0, 3).map((item: string, index: number) => (
+                              <div key={index} className="flex items-start gap-3 p-2">
+                                <CheckSquare className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                                <span className="text-sm text-gray-700">{item.replace('- ', '')}</span>
+                              </div>
+                            ));
+                          }
+                          
+                          // Extract bullet points after recommendations header
+                          const recommendationItems = lines.slice(recommendationsStart + 1)
+                            .filter((line: string) => line.trim().startsWith('- '))
+                            .slice(0, 3);
+                            
+                          return recommendationItems.map((item: string, index: number) => (
+                            <div key={index} className="flex items-start gap-3 p-2">
+                              <CheckSquare className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                              <span className="text-sm text-gray-700">{item.replace('- ', '')}</span>
+                            </div>
+                          ));
+                        })()}
                       </div>
                     </div>
 
