@@ -2390,11 +2390,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
           primary_contact: partner.primary_contact
         },
         okrs: okrResult.rows.map(okr => {
-          // Use ytd_value and last_year_value for meaningful comparison when available
-          const ytdValue = parseFloat(okr.ytd_value) || 0;
-          const lastYearValue = parseFloat(okr.last_year_value) || 0;
-          const realizedValue = parseFloat(okr.realized_value) || 0;
-          const targetValue = parseFloat(okr.target_value) || 0;
+          // Parse European formatted numbers (replace commas with periods, remove currency/percent symbols)
+          const parseEuropeanNumber = (value: string) => {
+            if (!value) return 0;
+            const cleanValue = value.toString()
+              .replace(/[€%\s]/g, '') // Remove currency and percent symbols
+              .replace(/\./g, '') // Remove thousand separators (periods)
+              .replace(/,/g, '.'); // Replace decimal comma with period
+            return parseFloat(cleanValue) || 0;
+          };
+
+          const ytdValue = parseEuropeanNumber(okr.ytd_value);
+          const lastYearValue = parseEuropeanNumber(okr.last_year_value);
+          const realizedValue = parseEuropeanNumber(okr.realized_value);
+          const targetValue = parseEuropeanNumber(okr.target_value);
           
           let progressPercent = 0;
           let interpretedProgress = '';
