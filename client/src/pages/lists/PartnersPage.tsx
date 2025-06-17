@@ -567,11 +567,17 @@ function PartnersTable() {
     }
   });
     
-  // Extract unique filter values from partners data
-  const uniqueStatuses = Array.from(new Set((partners as any[] || []).map((p: any) => p.status).filter(Boolean)));
-  const uniqueRegions = Array.from(new Set((partners as any[] || []).map((p: any) => p.region).filter(Boolean)));
-  const uniquePartnerTypes = Array.from(new Set((partners as any[] || []).map((p: any) => p.partner_type).filter(Boolean)));
-  const uniqueIndustries = Array.from(new Set((partners as any[] || []).map((p: any) => p.industry).filter(Boolean)));
+  // Fetch unique filter values from database
+  const { data: filterOptions, isLoading: filterOptionsLoading } = useQuery({
+    queryKey: ['/api/partners/filter-options'],
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+
+  // Extract filter values from database response
+  const uniqueStatuses = filterOptions?.statuses || [];
+  const uniqueRegions = filterOptions?.regions || [];
+  const uniquePartnerTypes = filterOptions?.partnerTypes || [];
+  const uniqueIndustries = filterOptions?.industries || [];
 
   // Filter partners based on search text, filter selections, and list membership
   const displayedPartners = (partners as any[])
