@@ -2279,6 +2279,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const summary = summaryResult.rows[0];
       
       console.log(`Customer pagination debug: totalCount=${totalCount}, limit=${limit}, totalPages=${totalPages}, currentPage=${page}`);
+      console.log(`Count query result:`, countResult.rows[0]);
       
       // Query with pagination, excluding original seed customers (IDs 1-10)
       const result = await envPool.query(`
