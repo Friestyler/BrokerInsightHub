@@ -13,16 +13,22 @@ export function Toaster() {
 
   return (
     <ToastProvider>
-      {toasts.map(function ({ id, title, description, action, variant, className, open, onOpenChange }) {
+      {toasts.map(function (toast) {
         return (
-          <Toast key={id} variant={variant} className={className} open={open} onOpenChange={onOpenChange}>
+          <Toast 
+            key={toast.id} 
+            variant={toast.variant} 
+            className={toast.className} 
+            open={toast.open} 
+            onOpenChange={toast.onOpenChange}
+          >
             <div className="grid gap-1">
-              {title && <ToastTitle>{title}</ToastTitle>}
-              {description && (
-                <ToastDescription>{description}</ToastDescription>
+              {toast.title && <ToastTitle>{toast.title}</ToastTitle>}
+              {toast.description && (
+                <ToastDescription>{toast.description}</ToastDescription>
               )}
             </div>
-            {action}
+            {toast.action}
             <ToastClose />
           </Toast>
         )
