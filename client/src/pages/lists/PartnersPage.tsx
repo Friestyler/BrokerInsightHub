@@ -238,7 +238,6 @@ interface SavedList {
     searchText?: string;
     status?: string;
     industry?: string;
-    type?: string;
     size?: string;
   };
   members?: number[]; // Array of partner IDs for Custom Lists
@@ -258,7 +257,6 @@ interface SavedView {
     searchText?: string;
     status?: string;
     industry?: string;
-    type?: string;
     size?: string;
   };
   createdBy: string;
@@ -594,9 +592,7 @@ function PartnersTable() {
         if (activeList.filters.industry && partner.industry !== activeList.filters.industry) {
           return false;
         }
-        if (activeList.filters.type && partner.type !== activeList.filters.type) {
-          return false;
-        }
+
       }
       
       const matchesText = !filterText || 
@@ -1086,7 +1082,7 @@ function PartnersTable() {
                             setFilterText(view.filters.searchText || '');
                             setSelectedStatus(view.filters.status || '');
                             setSelectedIndustry(view.filters.industry || '');
-                            setSelectedActualIndustry(view.filters.actualIndustry || '');
+                            setSelectedActualIndustry('');
                             setShowViewsDropdown(false);
                           }}
                         >
@@ -1333,7 +1329,7 @@ function PartnersTable() {
                   (filterText !== (activeView.filters.searchText || '') || 
                    selectedStatus !== (activeView.filters.status || '') || 
                    selectedIndustry !== (activeView.filters.industry || '') || 
-                   selectedActualIndustry !== (activeView.filters.actualIndustry || ''));
+                   selectedActualIndustry !== '');
                    
                 // Only render buttons if there are filters applied or filters have changed
                 return (filterText || selectedStatus || selectedIndustry || selectedActualIndustry) && (
@@ -2768,7 +2764,6 @@ function PartnersTable() {
                       setFilterText(list.filters.searchText || '');
                       setSelectedStatus(list.filters.status || '');
                       setSelectedIndustry(list.filters.industry || '');
-                      setSelectedType(list.filters.type || '');
                     }
                     
                     // Set the active list and store its original filters
