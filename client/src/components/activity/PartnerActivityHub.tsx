@@ -959,11 +959,6 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                       </div>
                       <div className="space-y-3">
                         {(() => {
-                          const okrItems = meetingBriefing.briefing.split('\n').filter((line: string) => 
-                            line.trim().startsWith('- **') && 
-                            (line.includes('Premium Revenue') || line.includes('Customer Acquisition') || line.includes('Retention'))
-                          );
-                          
                           const actualOkrCount = meetingBriefing.dataUsed?.okrs || 0;
                           
                           if (actualOkrCount === 0) {
@@ -975,15 +970,31 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                             );
                           }
                           
-                          // Display only the number of OKRs available (1, 2, or 3+)
-                          const limitedOkrs = okrItems.slice(0, Math.min(actualOkrCount, 3));
+                          // Look for OKR section in the AI response
+                          const lines = meetingBriefing.briefing.split('\n');
+                          const okrSectionStart = lines.findIndex(line => 
+                            line.toLowerCase().includes('okr') && line.includes('**')
+                          );
                           
-                          return limitedOkrs.map((item: string, index: number) => (
+                          if (okrSectionStart === -1) {
+                            return (
+                              <div className="text-center py-6 text-gray-500">
+                                <Target className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                                <p className="text-sm">No OKR insights generated.</p>
+                              </div>
+                            );
+                          }
+                          
+                          // Extract bullet points from OKR section
+                          const okrItems = lines.slice(okrSectionStart + 1)
+                            .filter((line: string) => line.trim().startsWith('- '))
+                            .slice(0, Math.min(actualOkrCount, 3));
+                          
+                          return okrItems.map((item: string, index: number) => (
                             <div key={index} className="flex items-start gap-3 p-3 bg-green-50 rounded-md">
                               <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                               <div className="text-sm text-gray-700">
-                                <span className="font-medium">{item.match(/\*\*(.*?)\*\*/)?.[1]}</span>
-                                <span className="text-gray-600">: {item.split('**: ')[1]}</span>
+                                {item.replace('- ', '')}
                               </div>
                             </div>
                           ));
