@@ -772,6 +772,10 @@ export const okrMetrics = pgTable("okr_metrics", {
   realized_value: text("realized_value").default("0"),
   target_value: text("target_value"),
   
+  // Year-to-date and historical comparison fields
+  ytd_value: text("ytd_value"), // Current Year-To-Date value (e.g., "742.301,32 €")
+  last_year_value: text("last_year_value"), // Equivalent value for same period last year (e.g., "700.599 €")
+  
   // Measure unit types
   measure_unit: text("measure_unit").notNull().default("number"), // currency, number, percent, checkbox, picklist_single, picklist_multiple, traffic_light, progress_bar, trend_chart
   currency_type: text("currency_type").default("USD"), // USD, EUR, etc.
