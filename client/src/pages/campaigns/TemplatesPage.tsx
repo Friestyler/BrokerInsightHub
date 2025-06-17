@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, FileText, Mail, Settings, Eye, Target, Users, Send, Briefcase, Check, Heart, Star, Zap, Globe, Shield, Trophy, Clock, Calendar, Building2, Phone, MessageSquare, Gift, TrendingUp, Lightbulb, Settings as SettingsIcon, Rocket } from "lucide-react";
+import { Plus, FileText, Mail, Settings, Eye, Target, Users, Send, Briefcase, Check, Heart, Star, Zap, Globe, Shield, Trophy, Clock, Calendar, Building2, Phone, MessageSquare, Gift, TrendingUp, Lightbulb, Settings as SettingsIcon, Rocket, Car, Sun, Building } from "lucide-react";
 import { useLocation } from 'wouter';
 
 interface EmailTemplate {
@@ -80,9 +80,12 @@ export default function TemplatesPage() {
       case 'clock': return <Clock {...iconProps} />;
       case 'calendar': return <Calendar {...iconProps} />;
       case 'building2': return <Building2 {...iconProps} />;
+      case 'building': return <Building {...iconProps} />;
       case 'phone': return <Phone {...iconProps} />;
       case 'message-square': return <MessageSquare {...iconProps} />;
       case 'lightbulb': return <Lightbulb {...iconProps} />;
+      case 'car': return <Car {...iconProps} />;
+      case 'sun': return <Sun {...iconProps} />;
       default: return <FileText {...iconProps} />;
     }
   };
@@ -98,6 +101,11 @@ export default function TemplatesPage() {
       case 'gift': return 'bg-red-500';
       case 'mail': return 'bg-gray-500';
       case 'rocket': return 'bg-indigo-500';
+      case 'car': return 'bg-blue-600';
+      case 'briefcase': return 'bg-purple-600';
+      case 'sun': return 'bg-orange-500';
+      case 'calendar': return 'bg-green-600';
+      case 'building': return 'bg-indigo-600';
       default: return 'bg-gray-500';
     }
   };
