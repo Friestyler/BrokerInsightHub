@@ -954,7 +954,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                           (line.includes('Premium Revenue') || line.includes('Customer Acquisition') || line.includes('Retention'))
                         ).map((item: string, index: number) => (
                           <div key={index} className="flex items-start gap-3 p-3 bg-green-50 rounded-md">
-                            <CheckCircle className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                            <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
                             <div className="text-sm text-gray-700">
                               <span className="font-medium">{item.match(/\*\*(.*?)\*\*/)?.[1]}</span>
                               <span className="text-gray-600">: {item.split('**: ')[1]}</span>
