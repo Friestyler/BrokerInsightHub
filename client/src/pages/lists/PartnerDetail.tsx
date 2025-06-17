@@ -3823,23 +3823,9 @@ export default function PartnerDetail() {
 
                   createListMutation.mutate(listData, {
                     onSuccess: async (data) => {
-                      console.log('List creation successful, setting up immediate UI updates:', data);
+                      console.log('List creation successful with data:', data);
                       
-                      // Comprehensive cache invalidation and refetch for immediate dropdown updates
-                      await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
-                      await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities', 'partner', id] });
-                      
-                      // Environment-specific cache updates
-                      const currentEnv = window.__APP_ENV__ || localStorage.getItem('selectedEnvironment') || 'myqollabi';
-                      if (currentEnv !== 'myqollabi') {
-                        await queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/saved-lists`] });
-                        await queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/saved-lists`, 'opportunities', 'partner', id] });
-                      }
-                      
-                      // Force immediate refetch to ensure dropdown updates
-                      await queryClient.refetchQueries({ queryKey: ['/api/saved-lists', 'opportunities', 'partner', id] });
-                      
-                      // Set the newly created list as active to show immediate selection
+                      // Set the newly created list as active immediately for visual feedback
                       if (data && data.id) {
                         const newList = {
                           id: data.id,
@@ -3851,6 +3837,21 @@ export default function PartnerDetail() {
                         setActiveList(newList);
                         console.log('New list set as active:', newList);
                       }
+                      
+                      // Manually update cache data for immediate dropdown appearance
+                      const queryKey = ['/api/saved-lists', 'opportunities', 'partner', id];
+                      queryClient.setQueryData(queryKey, (oldData: any) => {
+                        console.log('Updating cache data manually with new list:', oldData);
+                        const currentLists = oldData || [];
+                        return [...currentLists, data];
+                      });
+                      
+                      // Also invalidate related caches after manual update
+                      setTimeout(() => {
+                        queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+                        queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities'] });
+                        queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities', 'all'] });
+                      }, 500);
                       
                       toast({
                         title: "List created successfully",
