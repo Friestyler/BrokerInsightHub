@@ -879,7 +879,7 @@ function OpportunitiesTable() {
                 <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
               </div>
               {/* Saved Lists dropdown - redesigned to match provided image */}
-              <div className="relative">
+              <div className="relative filter-dropdown">
                 <button 
                   className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
                   onClick={() => setShowListsDropdown(!showListsDropdown)}
@@ -1183,7 +1183,7 @@ function OpportunitiesTable() {
               </div>
               
               {/* Views dropdown - next to search field */}
-              <div className="relative">
+              <div className="relative filter-dropdown">
                 <button 
                   className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium ${activeView ? 'bg-indigo-50 border-indigo-400 text-indigo-700' : 'border-gray-300 hover:border-gray-400'}`}
                   onClick={() => setShowViewsDropdown(!showViewsDropdown)}
@@ -1268,7 +1268,7 @@ function OpportunitiesTable() {
               {/* Database-driven filter dropdowns */}
               <div className="flex items-center gap-2 ml-3">
                 {/* Status Filter Dropdown */}
-                <div className="relative">
+                <div className="relative filter-dropdown">
                   <button 
                     className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}
                     onClick={() => setShowStatusDropdown(!showStatusDropdown)}
@@ -1339,7 +1339,7 @@ function OpportunitiesTable() {
                 </div>
                 
                 {/* Type Filter Dropdown */}
-                <div className="relative">
+                <div className="relative filter-dropdown">
                   <button 
                     className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedType ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}
                     onClick={() => setShowTypeDropdown(!showTypeDropdown)}
