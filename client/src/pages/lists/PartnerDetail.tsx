@@ -2681,77 +2681,63 @@ export default function PartnerDetail() {
               </div>
             </div>
 
-            {/* Bulk actions bar for customers - always visible */}
-            <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
-              {/* Show content based on selection state */}
-              {selectedCustomers.length > 0 ? (
-                <>
-                  <div className="flex items-center">
-                    <span className="text-indigo-700 font-medium mr-2">
-                      {selectedCustomers.length} {selectedCustomers.length === 1 ? 'customer' : 'customers'} selected
-                    </span>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="text-gray-600"
-                      onClick={() => setSelectedCustomers([])}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                        <path d="M18 6 6 18"></path>
-                        <path d="m6 6 12 12"></path>
-                      </svg>
-                      Clear selection
-                    </Button>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="text-indigo-600"
-                      onClick={() => {
-                        // Handle add to customer list functionality
-                        console.log('Add selected customers to list:', selectedCustomers);
-                      }}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                        <polyline points="7 3 7 8 15 8"></polyline>
-                      </svg>
-                      Add to list
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="text-indigo-600"
-                      onClick={() => {
-                        // Handle export selected customers functionality
-                        console.log('Export selected customers:', selectedCustomers);
-                      }}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                      </svg>
-                      Export selected
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                /* Empty state when no customers are selected */
-                <div className="flex items-center justify-center w-full min-h-[32px]">
-                  <div className="flex items-center text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <path d="M9 12l2 2 4-4"></path>
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            {/* Bulk actions bar for customers - only visible when customers are selected */}
+            {selectedCustomers.length > 0 && (
+              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
+                <div className="flex items-center">
+                  <span className="text-indigo-700 font-medium mr-2">
+                    {selectedCustomers.length} {selectedCustomers.length === 1 ? 'customer' : 'customers'} selected
+                  </span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="text-gray-600"
+                    onClick={() => setSelectedCustomers([])}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M18 6 6 18"></path>
+                      <path d="m6 6 12 12"></path>
                     </svg>
-                    <span className="text-sm">Select at least one customer from the list to perform bulk actions</span>
-                  </div>
+                    Clear selection
+                  </Button>
                 </div>
-              )}
-            </div>
+                
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="text-indigo-600"
+                    onClick={() => {
+                      // Handle add to customer list functionality
+                      console.log('Add selected customers to list:', selectedCustomers);
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                      <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                      <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    Add to list
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="text-indigo-600"
+                    onClick={() => {
+                      // Handle export selected customers functionality
+                      console.log('Export selected customers:', selectedCustomers);
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Export selected
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Statistics Overview - matching Customers page design */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
