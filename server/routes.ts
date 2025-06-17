@@ -2357,22 +2357,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const partner = partnerResult.rows[0];
 
-      // Get OKRs for this partner
+      // Get OKRs (they are global, not partner-specific)
       const okrResult = await pool.query(`
         SELECT * FROM degoudse.okr_metrics 
-        WHERE partner_id = $1 
         ORDER BY created_at DESC
-      `, [partnerId]);
+        LIMIT 10
+      `);
 
       // Get opportunities for this partner (excluding seed data)
       const opportunitiesResult = await pool.query(`
         SELECT 
           o.*,
           c.name as customer_name,
-          am.name as account_manager_name
+          u.name as account_manager_name
         FROM degoudse.opportunities o
-        LEFT JOIN degoudse.customers c ON o.customer_id = c.id
-        LEFT JOIN degoudse.account_managers am ON o.account_manager_id = am.id
+        LEFT JOIN degoudse.customers c ON o.client_id = c.id
+        LEFT JOIN degoudse.users u ON o.account_manager_id = u.id
         WHERE o.partner_id = $1 AND o.id > 16
         ORDER BY o.estimated_value DESC, o.created_at DESC
       `, [partnerId]);
