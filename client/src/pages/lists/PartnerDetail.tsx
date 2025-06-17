@@ -1661,7 +1661,6 @@ export default function PartnerDetail() {
                                   setFilterText('');
                                   setSelectedStatus('');
                                   setSelectedCustomer('');
-                                  setSelectedAccountManager('');
                                   setSelectedInsuranceDescription('');
                                 }}
                               >
@@ -1897,7 +1896,7 @@ export default function PartnerDetail() {
                       </div>
                       
                       {/* Save as new view button - shows when filters are active and no view is active */}
-                      {!activeView && (selectedStatus || selectedCustomer || selectedAccountManager || selectedInsuranceDescription) && (
+                      {!activeView && (selectedStatus || selectedCustomer || selectedInsuranceDescription) && (
                         <button 
                           className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7] ml-3"
                           onClick={() => setShowSaveViewModal(true)}
@@ -3973,19 +3972,14 @@ export default function PartnerDetail() {
                     <span className="text-[#282A3F]">{selectedCustomer}</span>
                   </div>
                 )}
-                {selectedAccountManager && (
-                  <div className="flex items-center text-sm">
-                    <span className="font-medium w-32 text-[#3E4DC4]">Account Manager:</span>
-                    <span className="text-[#282A3F]">{selectedAccountManager}</span>
-                  </div>
-                )}
+
                 {selectedInsuranceDescription && (
                   <div className="flex items-center text-sm">
                     <span className="font-medium w-32 text-[#3E4DC4]">Insurance:</span>
                     <span className="text-[#282A3F]">{selectedInsuranceDescription.length > 30 ? selectedInsuranceDescription.substring(0, 30) + '...' : selectedInsuranceDescription}</span>
                   </div>
                 )}
-                {!selectedStatus && !selectedCustomer && !selectedAccountManager && !selectedInsuranceDescription && (
+                {!selectedStatus && !selectedCustomer && !selectedInsuranceDescription && (
                   <div className="text-sm text-[#5F6585] italic">No filters currently applied</div>
                 )}
               </div>
@@ -4032,7 +4026,6 @@ export default function PartnerDetail() {
                   filters: {
                     stage: selectedStatus || undefined,
                     customer: selectedCustomer || undefined,
-                    accountManager: selectedAccountManager || undefined,
                     insuranceDescription: selectedInsuranceDescription || undefined,
                   },
                   is_shared: false
