@@ -2678,9 +2678,7 @@ function PartnersTable() {
                     return;
                   }
                 
-                  // Remove the list from savedLists
-                  const updatedLists = savedLists.filter(l => l.id !== listToDelete.id);
-                  setSavedLists(updatedLists);
+                  // Cache invalidation is handled by the mutation hook automatically
                   
                   // If this was the active list, go back to "All Partners"
                   if (activeList && activeList.id === listToDelete.id) {
@@ -2793,10 +2791,7 @@ function PartnersTable() {
                     members: editedListMembers
                   };
                   
-                  // Update in saved lists
-                  setSavedLists(savedLists.map(list => 
-                    list.id === activeList.id ? updatedList : list
-                  ));
+                  // Cache invalidation is handled by the mutation hook automatically
                   
                   // Exit editing mode
                   setIsEditingList(false);
