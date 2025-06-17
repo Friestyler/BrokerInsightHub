@@ -81,6 +81,18 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
   // Detect if we're in broker view
   const isBrokerView = location.startsWith('/broker-view');
 
+  // Filter activity types based on broker view
+  const filteredActivityTypes = isBrokerView 
+    ? activityTypes.filter(type => type.value !== 'actions' && type.value !== 'meeting')
+    : activityTypes;
+
+  // Reset selected activity type if it's not available in broker view
+  useEffect(() => {
+    if (isBrokerView && (selectedActivityType === 'actions' || selectedActivityType === 'meeting')) {
+      setSelectedActivityType('timeline');
+    }
+  }, [isBrokerView, selectedActivityType]);
+
   // Function to render markdown bold text
   const renderMarkdownText = (text: string) => {
     const parts = text.split(/(\*\*.*?\*\*)/g);
@@ -461,7 +473,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
         <div className="p-4 space-y-4">
           {/* Activity Type Selector - Apple Style */}
           <div className="flex items-center gap-2 p-1 bg-gray-100 rounded-lg">
-            {activityTypes.map((type) => {
+            {filteredActivityTypes.map((type) => {
               const IconComponent = type.icon;
               return (
                 <button
