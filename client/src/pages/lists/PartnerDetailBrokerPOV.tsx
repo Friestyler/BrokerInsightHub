@@ -545,10 +545,8 @@ export default function PartnerDetailBrokerPOV() {
       metric.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       metric.description?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // For real metrics, we need to get tags from the tags array
-    const metricTags = tags?.filter((tag: any) => 
-      metric.tags?.includes(tag.id)
-    ).map((tag: any) => tag.name) || [];
+    // Tags are stored as string arrays in the metric data
+    const metricTags = metric.tags || [];
     
     const matchesTag = selectedTag === "all" || metricTags.includes(selectedTag);
     const matchesUnit = selectedUnit === "all" || metric.measure_unit === selectedUnit;
@@ -558,10 +556,8 @@ export default function PartnerDetailBrokerPOV() {
 
   // Group metrics by their tags
   const groupedMetrics = filteredMetrics.reduce((acc: any, metric: any) => {
-    // Get tag names for this metric
-    const metricTags = tags?.filter((tag: any) => 
-      metric.tags?.includes(tag.id)
-    ).map((tag: any) => tag.name) || [];
+    // Tags are stored as string arrays in the metric data
+    const metricTags = metric.tags || [];
     
     // If no tags, use 'Untagged'
     const tagName = metricTags.length > 0 ? metricTags[0] : 'Untagged';
@@ -572,6 +568,19 @@ export default function PartnerDetailBrokerPOV() {
     acc[tagName].push(metric);
     return acc;
   }, {});
+
+  // Get color for tag name
+  const getTagColor = (tagName: string) => {
+    // Map Mevas BV specific tags to colors
+    if (tagName.includes('Productie Dashboard')) {
+      return '#10B981'; // Green for production dashboard
+    } else if (tagName.includes('Werk in Uitvoering')) {
+      return '#F59E0B'; // Orange for work in progress
+    } else if (tagName.includes('Schade Zakelijk')) {
+      return '#3B82F6'; // Blue for commercial damage
+    }
+    return '#6B7280'; // Default gray
+  };
 
   // Get saved list ID from session storage for back navigation
   const getBackUrl = () => {
@@ -707,9 +716,10 @@ export default function PartnerDetailBrokerPOV() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All Tags</SelectItem>
-                    {tags?.map((tag: any) => (
-                      <SelectItem key={tag.id} value={tag.name}>
-                        {tag.name}
+                    {/* Show actual tags from assigned metrics */}
+                    {Array.from(new Set(assignedMetrics.flatMap((metric: any) => metric.tags || []))).map((tagName: string) => (
+                      <SelectItem key={tagName} value={tagName}>
+                        {tagName}
                       </SelectItem>
                     ))}
                   </SelectContent>
