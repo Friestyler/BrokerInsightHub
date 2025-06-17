@@ -2390,18 +2390,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
           primary_contact: partner.primary_contact
         },
         okrs: okrResult.rows.map(okr => {
+          // Use ytd_value and last_year_value for meaningful comparison when available
+          const ytdValue = parseFloat(okr.ytd_value) || 0;
+          const lastYearValue = parseFloat(okr.last_year_value) || 0;
           const realizedValue = parseFloat(okr.realized_value) || 0;
           const targetValue = parseFloat(okr.target_value) || 0;
-          const progressRatio = targetValue > 0 ? (realizedValue / targetValue) : 0;
-          const progressPercent = Math.round(progressRatio * 100);
+          
+          let progressPercent = 0;
+          let interpretedProgress = '';
+          
+          // For OKRs with YTD data, calculate year-over-year progress
+          if (ytdValue > 0 || lastYearValue > 0) {
+            if (lastYearValue > 0) {
+              const yoyRatio = ytdValue / lastYearValue;
+              progressPercent = Math.round(yoyRatio * 100);
+              const growthText = ytdValue > lastYearValue ? 'growth' : 'decline';
+              interpretedProgress = `${progressPercent}% vs last year (${ytdValue} vs ${lastYearValue}) - ${growthText}`;
+            } else {
+              interpretedProgress = `${ytdValue}${okr.measure_unit ? ' ' + okr.measure_unit : ''} YTD`;
+            }
+          } else if (targetValue > 0) {
+            // Fallback to traditional progress calculation
+            const progressRatio = realizedValue / targetValue;
+            progressPercent = Math.round(progressRatio * 100);
+            interpretedProgress = `${progressPercent}% of ${targetValue}${okr.measure_unit ? ' ' + okr.measure_unit : ''} target`;
+          } else {
+            interpretedProgress = `${realizedValue}${okr.measure_unit ? ' ' + okr.measure_unit : ''} current value`;
+          }
           
           return {
             name: okr.name,
             description: okr.description,
             target_value: targetValue,
             realized_value: realizedValue,
+            ytd_value: ytdValue,
+            last_year_value: lastYearValue,
             measure_unit: okr.measure_unit,
-            interpreted_progress: `${progressPercent}% of ${targetValue}${okr.measure_unit ? ' ' + okr.measure_unit : ''} target`,
+            interpreted_progress: interpretedProgress,
+            progress_percent: progressPercent,
             assignment_status: okr.assignment_status,
             tags: okr.tags,
             due_date: okr.due_date,
