@@ -4,6 +4,8 @@ import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { EnvironmentProvider } from "./contexts/EnvironmentContext";
+import { useAuth } from "@/hooks/useAuth";
+import LoginPage from "@/components/LoginPage";
 
 import Layout from "@/components/Layout";
 import PartnerPilot from "@/pages/PartnerPilot";
@@ -151,6 +153,20 @@ function Router() {
 }
 
 function App() {
+  const { isAuthenticated, isLoading, login } = useAuth();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <LoginPage onLogin={login} />;
+  }
+
   return (
     <QueryClientProvider client={queryClient}>
       <EnvironmentProvider>
