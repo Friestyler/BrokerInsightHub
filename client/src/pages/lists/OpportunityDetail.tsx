@@ -377,7 +377,7 @@ export default function OpportunityDetail() {
       </div>
 
       {/* Tab Content */}
-      <div className="p-6">
+      <div className="px-6 py-6 bg-white">
         {activeTab === "partners" && (
           <div>
             <Table>
