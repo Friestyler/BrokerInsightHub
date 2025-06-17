@@ -59,6 +59,16 @@ const priorityColors = {
   urgent: 'bg-red-100 text-red-800'
 };
 
+// User role mapping function
+const getUserRoleName = (userId: number): string => {
+  const roleMap: { [key: number]: string } = {
+    1: 'Broker',
+    2: 'Account Manager', 
+    3: 'Relationship Manager'
+  };
+  return roleMap[userId] || 'Unknown User';
+};
+
 export default function PartnerActivityHub({ partnerId, partnerName }: PartnerActivityHubProps) {
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [selectedActivityType, setSelectedActivityType] = useState<'task' | 'comment' | 'attachment' | 'timeline' | 'actions'>('timeline');
@@ -718,10 +728,10 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                             )}
                             
                             <div className="flex items-center gap-2 text-xs text-gray-500">
-                              {item.author_name && (
+                              {item.user_id && (
                                 <div className="flex items-center gap-1">
                                   <User className="h-3 w-3" />
-                                  <span>{item.author_name}</span>
+                                  <span>{getUserRoleName(item.user_id)}</span>
                                 </div>
                               )}
                               {item.priority && (
