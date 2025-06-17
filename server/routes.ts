@@ -2283,13 +2283,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt",
                COUNT(DISTINCT pc.partner_id) as partner_count,
                COUNT(DISTINCT co.opportunity_id) as opportunity_count,
-               COALESCE(SUM(DISTINCT o.estimated_value), 0) as total_opportunity_value
+               COALESCE(opp_values.total_opportunity_value, 0) as total_opportunity_value
         FROM degoudse.customers c
         LEFT JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
         LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
-        LEFT JOIN degoudse.opportunities o ON o.id = co.opportunity_id
+        LEFT JOIN (
+          SELECT co2.customer_id, SUM(o2.estimated_value) as total_opportunity_value
+          FROM degoudse.customer_opportunities co2
+          JOIN degoudse.opportunities o2 ON o2.id = co2.opportunity_id
+          GROUP BY co2.customer_id
+        ) opp_values ON opp_values.customer_id = c.id
         WHERE c.id > 10
-        GROUP BY c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt"
+        GROUP BY c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt", opp_values.total_opportunity_value
         ORDER BY c.id
         LIMIT $1 OFFSET $2
       `, [limit, offset]);
