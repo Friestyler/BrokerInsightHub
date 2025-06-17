@@ -2865,7 +2865,8 @@ export default function PartnerDetail() {
                       </div>
                     </TableHead>
                     <TableHead>Customer</TableHead>
-                    <TableHead>Description</TableHead>
+                    <TableHead>Industry</TableHead>
+                    <TableHead>Status</TableHead>
                     <TableHead>Opportunities</TableHead>
                     <TableHead>Total Value</TableHead>
                   </TableRow>
@@ -2876,8 +2877,9 @@ export default function PartnerDetail() {
                       const matchesSearch = !customerSearchText || 
                         customer.name?.toLowerCase().includes(customerSearchText.toLowerCase()) ||
                         customer.description?.toLowerCase().includes(customerSearchText.toLowerCase());
-                      // Remove status and industry filters since these fields don't exist
-                      return matchesSearch;
+                      const matchesStatus = !selectedCustomerStatus || customer.status === selectedCustomerStatus;
+                      const matchesIndustry = !selectedIndustry || customer.industry === selectedIndustry;
+                      return matchesSearch && matchesStatus && matchesIndustry;
                     })
                     .map((customer: any) => {
                       const customerOpportunities = (relatedOpportunities as any[] || []).filter((o: any) => o.clientName === customer.name);
@@ -2914,8 +2916,18 @@ export default function PartnerDetail() {
                             </Link>
                           </TableCell>
                           <TableCell>
-                            <span className="text-gray-600 text-sm">
-                              {customer.description || 'No description'}
+                            <span className="text-gray-900">
+                              {customer.industry || 'Not specified'}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className={`px-2 py-1 rounded-full text-xs ${
+                              customer.status === 'Active' ? 'bg-green-100 text-green-800' :
+                              customer.status === 'Inactive' ? 'bg-red-100 text-red-800' :
+                              customer.status === 'Prospect' ? 'bg-yellow-100 text-yellow-800' :
+                              'bg-gray-100 text-gray-800'
+                            }`}>
+                              {customer.status || 'Unknown'}
                             </span>
                           </TableCell>
                           <TableCell>
