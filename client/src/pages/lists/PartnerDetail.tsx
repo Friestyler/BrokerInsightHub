@@ -2072,73 +2072,59 @@ export default function PartnerDetail() {
               </div>
             </div>
 
-            {/* Bulk actions bar - always visible */}
-            <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
-              {/* Show content based on selection state */}
-              {(selectedOpportunities.length > 0 || (isEditingList && editedListMembers.length > 0)) ? (
-                <>
-                  <div className="flex items-center">
-                    {isEditingList ? (
-                      <span className="text-indigo-700 font-medium mr-2">
-                        {editedListMembers.length} {editedListMembers.length === 1 ? 'opportunity' : 'opportunities'} in list
-                      </span>
-                    ) : (
-                      <span className="text-indigo-700 font-medium mr-2">
-                        {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected
-                      </span>
-                    )}
+            {/* Bulk actions bar - only visible when opportunities are selected or editing list */}
+            {(selectedOpportunities.length > 0 || (isEditingList && editedListMembers.length > 0)) && (
+              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
+                <div className="flex items-center">
+                  {isEditingList ? (
+                    <span className="text-indigo-700 font-medium mr-2">
+                      {editedListMembers.length} {editedListMembers.length === 1 ? 'opportunity' : 'opportunities'} in list
+                    </span>
+                  ) : (
+                    <span className="text-indigo-700 font-medium mr-2">
+                      {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected
+                    </span>
+                  )}
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="text-gray-600"
+                    onClick={() => {
+                      if (isEditingList) {
+                        setEditedListMembers([]);
+                      } else {
+                        setSelectedOpportunities([]);
+                      }
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M18 6 6 18"></path>
+                      <path d="m6 6 12 12"></path>
+                    </svg>
+                    {isEditingList ? 'Clear list' : 'Clear selection'}
+                  </Button>
+                </div>
+                
+                {/* Show regular actions only when not in edit mode */}
+                {!isEditingList && (
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Button 
-                      variant="ghost" 
+                      variant="outline" 
                       size="sm"
-                      className="text-gray-600"
-                      onClick={() => {
-                        if (isEditingList) {
-                          setEditedListMembers([]);
-                        } else {
-                          setSelectedOpportunities([]);
-                        }
-                      }}
+                      className="text-indigo-600"
+                      onClick={() => setShowSaveListModal(true)}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                        <path d="M18 6 6 18"></path>
-                        <path d="m6 6 12 12"></path>
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
                       </svg>
-                      {isEditingList ? 'Clear list' : 'Clear selection'}
+                      Add to list
                     </Button>
                   </div>
-                  
-                  {/* Show regular actions only when not in edit mode */}
-                  {!isEditingList && (
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="text-indigo-600"
-                        onClick={() => setShowSaveListModal(true)}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                          <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                          <polyline points="7 3 7 8 15 8"></polyline>
-                        </svg>
-                        Add to list
-                      </Button>
-                    </div>
-                  )}
-                </>
-              ) : (
-                /* Empty state when no opportunities are selected */
-                (<div className="flex items-center justify-center w-full min-h-[32px]">
-                  <div className="flex items-center text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <path d="M9 12l2 2 4-4"></path>
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                    </svg>
-                    <span className="text-sm">Select at least one opportunity from the list to perform bulk actions</span>
-                  </div>
-                </div>)
-              )}
-            </div>
+                )}
+              </div>
+            )}
 
             {/* Statistics overview cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -3284,77 +3270,63 @@ export default function PartnerDetail() {
               </div>
             </div>
 
-            {/* Bulk actions bar for products - always visible */}
-            <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
-              {/* Show content based on selection state */}
-              {selectedProducts.length > 0 ? (
-                <>
-                  <div className="flex items-center">
-                    <span className="text-indigo-700 font-medium mr-2">
-                      {selectedProducts.length} {selectedProducts.length === 1 ? 'product' : 'products'} selected
-                    </span>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="text-gray-600"
-                      onClick={() => setSelectedProducts([])}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                        <path d="M18 6 6 18"></path>
-                        <path d="m6 6 12 12"></path>
-                      </svg>
-                      Clear selection
-                    </Button>
-                  </div>
-                  
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="text-indigo-600"
-                      onClick={() => {
-                        // Handle add to product list functionality
-                        console.log('Add selected products to list:', selectedProducts);
-                      }}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                        <polyline points="7 3 7 8 15 8"></polyline>
-                      </svg>
-                      Add to list
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="text-indigo-600"
-                      onClick={() => {
-                        // Handle export selected products functionality
-                        console.log('Export selected products:', selectedProducts);
-                      }}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7 10 12 15 17 10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                      </svg>
-                      Export selected
-                    </Button>
-                  </div>
-                </>
-              ) : (
-                /* Empty state when no products are selected */
-                <div className="flex items-center justify-center w-full min-h-[32px]">
-                  <div className="flex items-center text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <path d="M9 12l2 2 4-4"></path>
-                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+            {/* Bulk actions bar for products - only visible when products are selected */}
+            {selectedProducts.length > 0 && (
+              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
+                <div className="flex items-center">
+                  <span className="text-indigo-700 font-medium mr-2">
+                    {selectedProducts.length} {selectedProducts.length === 1 ? 'product' : 'products'} selected
+                  </span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="text-gray-600"
+                    onClick={() => setSelectedProducts([])}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M18 6 6 18"></path>
+                      <path d="m6 6 12 12"></path>
                     </svg>
-                    <span className="text-sm">Select at least one product from the list to perform bulk actions</span>
-                  </div>
+                    Clear selection
+                  </Button>
                 </div>
-              )}
-            </div>
+                
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="text-indigo-600"
+                    onClick={() => {
+                      // Handle add to product list functionality
+                      console.log('Add selected products to list:', selectedProducts);
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                      <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                      <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    Add to list
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="text-indigo-600"
+                    onClick={() => {
+                      // Handle export selected products functionality
+                      console.log('Export selected products:', selectedProducts);
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="7 10 12 15 17 10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Export selected
+                  </Button>
+                </div>
+              </div>
+            )}
 
             {/* Product Statistics Cards by Category */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
