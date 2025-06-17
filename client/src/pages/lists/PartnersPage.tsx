@@ -638,12 +638,7 @@ function PartnersTable() {
         createdAt: new Date() // Update the timestamp
       };
       
-      // Update the list in the savedLists array
-      const updatedLists = savedLists.map(list => 
-        list.id === activeList.id ? updatedList : list
-      );
-      
-      setSavedLists(updatedLists);
+      // Cache invalidation is handled by the mutation hook automatically
       setActiveList(updatedList);
       setOriginalListFilters(updatedList.filters);
       setHasUnsavedChanges(false);
@@ -939,12 +934,7 @@ function PartnersTable() {
                       
                       // Update the list with the edited members
                       if (activeList) {
-                        const updatedLists = savedLists.map(list => 
-                          list.id === activeList.id 
-                            ? {...list, members: editedListMembers}
-                            : list
-                        );
-                        setSavedLists(updatedLists);
+                        // Cache invalidation is handled by the mutation hook automatically
                         setActiveList({...activeList, members: editedListMembers});
                         
                         // Show success toast
@@ -2629,11 +2619,7 @@ function PartnersTable() {
             <Button 
               onClick={() => {
                 if (listToRename && newListName.trim() !== '' && newListName !== listToRename.name) {
-                  // Update the list name in the savedLists array
-                  const updatedLists = savedLists.map(l => 
-                    l.id === listToRename.id ? {...l, name: newListName.trim()} : l
-                  );
-                  setSavedLists(updatedLists);
+                  // Cache invalidation is handled by the mutation hook automatically
                   
                   // If this is the active list, update that too
                   if (activeList && activeList.id === listToRename.id) {
