@@ -1003,7 +1003,7 @@ export default function PartnerDetail() {
                     >
                       Details
                     </Button>
-                    <span className="text-sm text-gray-500">Owner: <span className="text-blue-600">NA</span></span>
+                    <span className="text-sm text-gray-500">Owner: <span className="text-blue-600">{partner.owner_name || 'Not assigned'}</span></span>
                   </div>
                 </div>
                 <div className="mt-1">

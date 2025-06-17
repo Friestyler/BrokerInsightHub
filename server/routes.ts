@@ -1776,13 +1776,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Direct query with relationship counts from opportunities table, excluding original seed partners except partner 4 (De Goudse)
       const result = await envPool.query(`
         SELECT p.id, p.name, p.description, p.status, p.location, p.contact_email, 
-               p.primary_contact, p.region, p.assigned_user_ids, 
+               p.primary_contact, p.region, p.assigned_user_ids, p.owner_id,
                p.linked_opportunity_ids, p.created_at, p.updated_at,
+               u.name as owner_name,
                COALESCE(rel.opportunity_count, 0) as opportunity_count,
                COALESCE(rel.customer_count, 0) as customer_count,
                COALESCE(rel.total_opportunity_value, 0) as total_opportunity_value,
                COALESCE(rel.total_weighted_value, 0) as total_weighted_value
         FROM degoudse.partners p
+        LEFT JOIN degoudse.users u ON p.owner_id = u.id
         LEFT JOIN (
           SELECT partner_id, 
                  COUNT(*) as opportunity_count,
@@ -1821,7 +1823,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         linked_opportunity_ids: partner.linked_opportunity_ids,
         createdAt: partner.created_at,
         updatedAt: partner.updated_at,
-        customerNames: ''
+        customerNames: '',
+        owner_name: partner.owner_name
       }));
       
       console.log(`Returning ${partners.length} partners with relationship counts from degoudse schema`);
