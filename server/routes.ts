@@ -1725,6 +1725,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get distinct filter values for customers related to a specific partner
+  app.get('/api/degoudse/partners/:id/customers/filter-options', async (req, res) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      // Get distinct values for status and industry from customers related to this partner
+      const [statusResult, industryResult] = await Promise.all([
+        envPool.query(`
+          SELECT DISTINCT c.status
+          FROM degoudse.customers c
+          INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
+          WHERE pc.partner_id = $1 AND c.status IS NOT NULL AND c.status != ''
+          ORDER BY c.status
+        `, [partnerId]),
+        envPool.query(`
+          SELECT DISTINCT c.industry
+          FROM degoudse.customers c
+          INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
+          WHERE pc.partner_id = $1 AND c.industry IS NOT NULL AND c.industry != ''
+          ORDER BY c.industry
+        `, [partnerId])
+      ]);
+      
+      const filterOptions = {
+        statuses: statusResult.rows.map(row => row.status),
+        industries: industryResult.rows.map(row => row.industry)
+      };
+      
+      console.log(`Customer filter options for partner ${partnerId}:`, filterOptions);
+      res.json(filterOptions);
+    } catch (error) {
+      console.error('Error fetching customer filter options:', error);
+      res.status(500).json({ error: 'Failed to fetch customer filter options' });
+    }
+  });
+
   // De Goudse environment API routes (using proper database isolation)
   app.get('/api/degoudse/partners', async (req, res) => {
     try {

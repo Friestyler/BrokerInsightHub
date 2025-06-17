@@ -185,6 +185,12 @@ export default function PartnerDetail() {
     enabled: !!id,
   });
 
+  // Fetch filter options for customers
+  const { data: customerFilterOptions, isLoading: customerFilterOptionsLoading } = useQuery({
+    queryKey: [`/api/partners/${id}/customers/filter-options`],
+    enabled: !!id,
+  });
+
   // Fetch related products for this partner
   const { data: relatedProducts, isLoading: productsLoading } = useQuery({
     queryKey: [`/api/partners/${id}/products`],
@@ -648,6 +654,10 @@ export default function PartnerDetail() {
   const uniqueCustomers = (filterOptions as any)?.customers || [];
   const uniqueAccountManagers = (filterOptions as any)?.accountManagers || [];
   const uniqueInsuranceDescriptions = (filterOptions as any)?.insuranceDescriptions || [];
+
+  // Extract customer filter values from database API
+  const uniqueCustomerStatuses = (customerFilterOptions as any)?.statuses || [];
+  const uniqueIndustries = (customerFilterOptions as any)?.industries || [];
 
 
 
