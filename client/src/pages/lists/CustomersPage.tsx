@@ -49,8 +49,13 @@ import { useToast } from "@/hooks/use-toast";
 const useCustomersData = (page: number = 1, limit: number = 100) => {
   return useQuery({
     queryKey: ['/api/customers', { page, limit }],
-    queryFn: () => apiRequest('GET', `/api/customers?page=${page}&limit=${limit}`),
-    staleTime: 0, // Force fresh data to show updated relationship counts
+    queryFn: async () => {
+      const result = await apiRequest('GET', `/api/customers?page=${page}&limit=${limit}`);
+      console.log('API Response in hook:', result);
+      return result;
+    },
+    staleTime: 0,
+    gcTime: 0, // TanStack Query v5 syntax
     refetchOnMount: true,
     refetchOnWindowFocus: true,
   });
@@ -878,7 +883,7 @@ export default function CustomersPageClean() {
                       <div className="flex space-x-2 text-xs text-gray-500">
                         <span>Partners: {customer.partnerCount || 0}</span>
                         <span>•</span>
-                        <span>Opps: {customer.opportunityCount || 0}</span>
+                        <span>Opps: {console.log('Rendering customer:', customer.name, 'oppCount:', customer.opportunityCount) || customer.opportunityCount || 0}</span>
                       </div>
                     </div>
                   </td>
@@ -886,7 +891,7 @@ export default function CustomersPageClean() {
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">Customer</td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Active</td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                    €{customer.totalOpportunityValue ? Number(customer.totalOpportunityValue).toLocaleString() : '0'}
+                    €{console.log('Total value for', customer.name, ':', customer.totalOpportunityValue) || (customer.totalOpportunityValue ? Number(customer.totalOpportunityValue).toLocaleString() : '0')}
                   </td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                     <div className="flex space-x-1">
