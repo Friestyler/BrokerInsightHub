@@ -788,7 +788,7 @@ export default function PartnerDetailBrokerPOV() {
                             // Hard-code green for "Nieuwe Productie – Schade Zakelijk"
                             if (metric.name === 'Nieuwe Productie – Schade Zakelijk') {
                               trafficLight = 'green';
-                              progressRatio = 1.2; // Show as performing well
+                              progressRatio = 0.45; // Show as 45% progress
                             } else if (hasYtdValue && hasLastYearValue) {
                               // For YTD vs Last Year comparison
                               const ytdNumeric = parseFloat(metric.ytd_value?.replace(/[^\d.-]/g, '') || '0');
