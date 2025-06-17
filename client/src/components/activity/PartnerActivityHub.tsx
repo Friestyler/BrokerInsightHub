@@ -336,6 +336,17 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
     <div className="mb-4 border border-gray-200 rounded-xl bg-white shadow-sm overflow-hidden">
       {/* Header - Always visible */}
       <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
+        {/* Sync Status Indicator for Mevas BV and De Goudse */}
+        {(partnerId === 12 || partnerId === 4) && (
+          <div className="flex items-center gap-2 mb-2 p-2 bg-blue-100 rounded-md border border-blue-200">
+            <Bot className="h-4 w-4 text-blue-600" />
+            <span className="text-sm font-medium text-blue-800">
+              ActivityHub Sync Active with {partnerId === 12 ? 'De Goudse' : 'Mevas BV'}
+            </span>
+            <div className="ml-auto w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+          </div>
+        )}
+        
         <div className="flex items-center justify-between">
           <button
             onClick={() => setIsCollapsed(!isCollapsed)}
