@@ -1691,16 +1691,66 @@ function OpportunitiesTable() {
                 currentSortKey={tableSortConfig.key} 
                 currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
-                className="w-[250px]"
+                className="w-[200px]"
               >
-                Title
+                Opportunity
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="clientName" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[120px]"
+              >
+                Customer
+              </SortableTableHead>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px] bg-white">
+                <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
+                  Related Contacts
+                </div>
+              </th>
+              <SortableTableHead 
+                sortKey="accountManagerName" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[130px]"
+              >
+                Account Manager
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="partnerName" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[120px]"
+              >
+                Partner
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="startDate" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[110px]"
+              >
+                Start Date
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="insuranceDescription" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[150px]"
+              >
+                Insurance Description
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="status" 
                 currentSortKey={tableSortConfig.key} 
                 currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
-                className="w-[120px]"
+                className="w-[100px]"
               >
                 Status
               </SortableTableHead>
@@ -1709,39 +1759,25 @@ function OpportunitiesTable() {
                 currentSortKey={tableSortConfig.key} 
                 currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
-                className="w-[120px]"
+                className="w-[100px]"
               >
                 Type
               </SortableTableHead>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px] bg-white">
-                <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
-                  Template
-                </div>
-              </th>
               <SortableTableHead 
-                sortKey="clientName" 
+                sortKey="stage" 
                 currentSortKey={tableSortConfig.key} 
                 currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
-                className="w-[140px]"
+                className="w-[100px]"
               >
-                Customer
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="partnerName" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[140px]"
-              >
-                Partner
+                Stage
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="estimatedValue" 
                 currentSortKey={tableSortConfig.key} 
                 currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
-                className="w-[120px]"
+                className="w-[100px]"
               >
                 Value
               </SortableTableHead>
@@ -1750,16 +1786,21 @@ function OpportunitiesTable() {
                 currentSortKey={tableSortConfig.key} 
                 currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
-                className="w-[100px]"
+                className="w-[90px]"
               >
                 Probability
               </SortableTableHead>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[100px] bg-white">
+                <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
+                  Template
+                </div>
+              </th>
               <SortableTableHead 
                 sortKey="expectedCloseDate" 
                 currentSortKey={tableSortConfig.key} 
                 currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
-                className="w-[120px]"
+                className="w-[110px]"
               >
                 Close Date
               </SortableTableHead>
@@ -1789,8 +1830,8 @@ function OpportunitiesTable() {
                     onChange={() => toggleSelectOpportunity(opportunity.id)}
                   />
                 </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[250px]">
-                  <div className="max-w-[230px]">
+                <td className="px-3 py-4 text-sm text-gray-900 w-[200px]">
+                  <div className="max-w-[180px]">
                     <div className="font-medium text-gray-900 truncate">
                       {opportunity.title}
                     </div>
@@ -1799,31 +1840,46 @@ function OpportunitiesTable() {
                     </div>
                   </div>
                 </td>
-                <td className="px-3 py-4 text-sm w-[120px]">
+                <td className="px-3 py-4 text-sm text-gray-900 w-[120px] truncate">
+                  {opportunity.clientName || opportunity.customerName}
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
+                  <span className="text-gray-500 text-xs">-</span>
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[130px] truncate">
+                  {opportunity.accountManagerName || '-'}
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[120px] truncate">
+                  {opportunity.partnerName}
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[110px]">
+                  {opportunity.startDate ? new Date(opportunity.startDate).toLocaleDateString() : '-'}
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[150px] truncate">
+                  {opportunity.insuranceDescription || '-'}
+                </td>
+                <td className="px-3 py-4 text-sm w-[100px]">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeVariant(opportunity.status)}`}>
                     {opportunity.status}
                   </span>
                 </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
+                <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
                   {opportunity.type || 'General'}
                 </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
-                  <TemplateBadges opportunityId={opportunity.id} />
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[140px] truncate">
-                  {opportunity.clientName || opportunity.customerName}
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[140px] truncate">
-                  {opportunity.partnerName}
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
-                  {formatCurrency(opportunity.estimatedValue || 0)}
+                <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
+                  {opportunity.stage || '-'}
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
+                  {formatCurrency(opportunity.estimatedValue || 0)}
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[90px]">
                   {opportunity.probability}%
                 </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
-                  {opportunity.closeDate}
+                <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
+                  <TemplateBadges opportunityId={opportunity.id} />
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[110px]">
+                  {opportunity.expectedCloseDate ? new Date(opportunity.expectedCloseDate).toLocaleDateString() : opportunity.closeDate || '-'}
                 </td>
               </tr>
             ))}
