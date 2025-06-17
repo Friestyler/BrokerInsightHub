@@ -4903,6 +4903,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Broker-specific endpoint for lists shared with John Smith or partners
+  app.get('/api/:envId/broker/shared-lists', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const entityType = req.query.entity_type as string;
+      const envPool = pool;
+      
+      // Disable caching for this response
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      
+      // Query to get all lists shared with John Smith or any partner
+      let query = `
+        SELECT DISTINCT sl.*, 
+               COUNT(lc.id) as collaborator_count,
+               CASE WHEN COUNT(lc.id) > 0 THEN true ELSE false END as has_collaborators,
+               ARRAY_AGG(DISTINCT lc.email) FILTER (WHERE lc.email IS NOT NULL) as collaborator_emails,
+               ARRAY_AGG(DISTINCT lc.name) FILTER (WHERE lc.name IS NOT NULL) as collaborator_names
+        FROM ${envId}.saved_lists sl
+        INNER JOIN ${envId}.list_collaborators lc ON sl.id = lc.list_id AND lc.is_active = true
+        WHERE sl.is_shared = true
+          AND (lc.email LIKE '%john.smith%' OR lc.email LIKE '%partner%' OR lc.name LIKE '%John Smith%')
+      `;
+      
+      const params = [];
+      if (entityType) {
+        query += ` AND sl.entity_type = $${params.length + 1}`;
+        params.push(entityType);
+      }
+      
+      query += ` GROUP BY sl.id ORDER BY sl.created_at DESC`;
+      
+      const result = await envPool.query(query, params);
+      
+      console.log(`Found ${result.rows.length} lists shared with John Smith or partners`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error(`Error fetching broker shared lists from ${req.params.envId}:`, error);
+      res.status(500).json({ error: 'Failed to fetch broker shared lists' });
+    }
+  });
+
   // Enhanced saved lists endpoint that includes collaborator data and syncs is_shared flag
   app.get('/api/:envId/saved-lists', async (req, res) => {
     try {

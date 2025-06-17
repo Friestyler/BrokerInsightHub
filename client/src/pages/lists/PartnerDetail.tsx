@@ -1071,16 +1071,6 @@ export default function PartnerDetail() {
               >
                 Products ({(relatedProducts as any[] || []).length})
               </button>
-              <button 
-                onClick={() => setActiveTab("lists")}
-                className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
-                  activeTab === "lists" 
-                    ? "bg-[#E1E4FB] text-[#3E4DC4]" 
-                    : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
-                }`}
-              >
-                Lists
-              </button>
             </nav>
           </div>
         </div>

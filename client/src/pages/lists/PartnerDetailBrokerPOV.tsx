@@ -172,27 +172,19 @@ export default function PartnerDetailBrokerPOV() {
 
 
 
-  // Fetch saved lists for opportunities including partner-specific ones
+  // Fetch all lists shared with John Smith or partners using the new broker-specific endpoint
   const { data: savedListsData } = useQuery({
-    queryKey: ['/api/degoudse/saved-lists', 'opportunities', 'partner', '4'],
-    queryFn: () => apiRequest('GET', '/api/degoudse/saved-lists?entity_type=opportunities&partner_id=4'),
+    queryKey: ['/api/degoudse/broker/shared-lists', 'opportunities'],
+    queryFn: () => apiRequest('GET', '/api/degoudse/broker/shared-lists?entity_type=opportunities'),
     staleTime: 0, // Always refresh to get latest data
     refetchOnWindowFocus: true,
   });
 
-  // Filter lists to only show those shared with this broker (John Smith - john.smith@partner.com)
-  // For broker view, only show lists that are explicitly shared with this broker
-  const partnerRelevantLists = (savedListsData || []).filter((list: any) => {
-    // Check if list is marked as shared - this represents proper access control
-    // In production, this would also check the list_collaborators table for john.smith@partner.com
-    if (list.is_shared === true) {
-      console.log(`Broker has access to shared list: ${list.name} (ID: ${list.id})`);
-      return true;
-    } else {
-      console.log(`Broker denied access to private list: ${list.name} (ID: ${list.id})`);
-      return false;
-    }
-  });
+  // All returned lists are already filtered to show only those shared with John Smith or partners
+  const partnerRelevantLists = savedListsData || [];
+  
+  console.log(`Showing ${partnerRelevantLists.length} lists shared with John Smith or partners:`, 
+    partnerRelevantLists.map((list: any) => ({ name: list.name, id: list.id, collaborators: list.collaborator_emails })));
 
   // Set active list based on URL parameter (only if explicitly provided)
   useEffect(() => {
