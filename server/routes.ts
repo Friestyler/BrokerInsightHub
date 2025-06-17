@@ -1856,15 +1856,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
                COUNT(DISTINCT contacts.id) as contact_count,
                am.name as account_manager_name
         FROM degoudse.opportunities o
-        INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
+        LEFT JOIN degoudse.customers c ON o.client_id = c.id
         LEFT JOIN degoudse.contacts contacts ON contacts.linked_entity_id = c.id AND contacts.linked_entity_type = 'customer'
         LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
-        WHERE po.partner_id = $1
-        GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
-                 o."expectedCloseDate", o.start_date, o.insurance_description, o.account_manager_id, 
-                 o."clientId", o."partnerId", o."productId", o."ownerId", o.probability, o.type, 
-                 o."createdAt", o."updatedAt", c.name, am.name
+        WHERE o.partner_id = $1
+        GROUP BY o.id, o.title, o.description, o.status, o.stage, o.estimated_value, 
+                 o.expected_close_date, o.start_date, o.insurance_description, o.account_manager_id, 
+                 o.client_id, o.partner_id, o.product_id, o.owner_id, o.probability, o.type, 
+                 o.created_at, o.updated_at, c.name, am.name
         ORDER BY o.id
       `, [partnerId]);
       
