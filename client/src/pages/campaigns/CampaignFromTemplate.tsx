@@ -577,7 +577,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const progress = (currentStep / totalSteps) * 100;
 
   const isStepCompleted = (stepNum: number): boolean => {
-    if (stepNum === 1) return Boolean(campaignData.name && campaignData.description && campaignData.objective && campaignData.icon);
+    if (stepNum === 1) return Boolean(campaignData.name && campaignData.icon);
     if (stepNum === 2) return Boolean(campaignData.entity);
     if (stepNum === 3) {
       const firstEmail = campaignData.emails[0];
