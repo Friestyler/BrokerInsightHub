@@ -737,7 +737,7 @@ export function ShareModal({
             </div>
           </div>
         ) : (
-          // Compose email view (existing code)
+          // Compose email view
           <div className="space-y-4">
             {/* Selected person */}
             <div className="border border-blue-200 rounded-lg p-3 bg-blue-50">
