@@ -717,8 +717,8 @@ export default function CustomersPageClean() {
           )}
         </div>
 
-        {/* Statistics overview - exact match to Opportunities */}
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+        {/* Statistics overview */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white p-4 rounded-md border border-gray-200">
             <div className="text-xl font-semibold text-[#282A3F]">{pagination.totalCount}</div>
             <div className="text-sm text-gray-500">Total Customers</div>
@@ -732,17 +732,16 @@ export default function CustomersPageClean() {
           </div>
           
           <div className="bg-white p-4 rounded-md border border-gray-200">
-            <div className="text-xl font-semibold text-[#282A3F]">{pagination.totalCount}</div>
-            <div className="text-sm text-gray-500">Active</div>
-          </div>
-          
-          <div className="bg-white p-4 rounded-md border border-gray-200">
-            <div className="text-xl font-semibold text-[#282A3F]">€{customersResponse?.totalValue || '0'}</div>
+            <div className="text-xl font-semibold text-[#282A3F]">
+              €{customersResponse?.totalValue ? Number(customersResponse.totalValue).toLocaleString() : '0'}
+            </div>
             <div className="text-sm text-gray-500">Total Value</div>
           </div>
           
           <div className="bg-white p-4 rounded-md border border-gray-200">
-            <div className="text-xl font-semibold text-[#282A3F]">€{customersResponse?.weightedValue || '0'}</div>
+            <div className="text-xl font-semibold text-[#282A3F]">
+              €{customersResponse?.weightedValue ? Number(customersResponse.weightedValue).toLocaleString() : '0'}
+            </div>
             <div className="text-sm text-gray-500">Weighted Value</div>
           </div>
         </div>
