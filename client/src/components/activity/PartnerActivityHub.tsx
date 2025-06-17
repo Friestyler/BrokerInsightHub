@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { 
   Plus, MessageSquare, CheckSquare, Paperclip, ChevronDown, ChevronRight, 
   Sparkles, Clock, User, Send, Eye, EyeOff, Check, X, Calendar, Filter, Brain, UserPlus, Bot, Target
@@ -71,10 +72,14 @@ const getUserRoleName = (userId: number): string => {
 };
 
 export default function PartnerActivityHub({ partnerId, partnerName }: PartnerActivityHubProps) {
+  const [location] = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [selectedActivityType, setSelectedActivityType] = useState<'task' | 'comment' | 'attachment' | 'timeline' | 'actions' | 'meeting'>('timeline');
   const [highlightActions, setHighlightActions] = useState(false);
   const [showActivityInput, setShowActivityInput] = useState(false);
+
+  // Detect if we're in broker view
+  const isBrokerView = location.startsWith('/broker-view');
 
   // Function to render markdown bold text
   const renderMarkdownText = (text: string) => {
@@ -434,18 +439,20 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
             </div>
           </button>
           
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => generateActionsMutation.mutate()}
-              disabled={generateActionsMutation.isPending}
-              className="text-xs text-gray-600 hover:text-purple-600"
-            >
-              <Sparkles className="h-3 w-3 mr-1" />
-              {generateActionsMutation.isPending ? 'Generating...' : 'Generate Next Best Action'}
-            </Button>
-          </div>
+          {!isBrokerView && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => generateActionsMutation.mutate()}
+                disabled={generateActionsMutation.isPending}
+                className="text-xs text-gray-600 hover:text-purple-600"
+              >
+                <Sparkles className="h-3 w-3 mr-1" />
+                {generateActionsMutation.isPending ? 'Generating...' : 'Generate Next Best Action'}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
