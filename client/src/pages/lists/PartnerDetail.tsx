@@ -85,18 +85,13 @@ export default function PartnerDetail() {
   const [editingStageId, setEditingStageId] = useState<number | null>(null);
   const [stageDropdownRef, setStageDropdownRef] = useState<HTMLDivElement | null>(null);
   
-  // Available opportunity stages (from database)
+  // Available opportunity stages (correct database stages)
   const OPPORTUNITY_STAGES = [
-    'discovery',
-    'proposal',
-    'negotiation',
-    'contract',
     'Validated',
     'Proposal Sent to Client',
     'Closed (Won)',
     'Lost',
-    'Rejected',
-    'closed_won'
+    'Rejected'
   ];
   const [selectedExistingList, setSelectedExistingList] = useState<number | null>(null);
   const [showShareListModal, setShowShareListModal] = useState(false);
@@ -2093,15 +2088,11 @@ export default function PartnerDetail() {
                   €{Math.round(filteredOpportunities.reduce((sum: number, opp: any) => {
                     const value = Number(opp.estimated_value) || 0;
                     const probability = opp.stage === 'Closed (Won)' ? 1.0 : 
-                                      opp.stage === 'closed_won' ? 1.0 :
-                                      opp.stage === 'contract' ? 0.9 :
-                                      opp.stage === 'Validated' ? 0.8 :
-                                      opp.stage === 'negotiation' ? 0.7 :
-                                      opp.stage === 'Proposal Sent to Client' ? 0.6 :
-                                      opp.stage === 'proposal' ? 0.5 :
-                                      opp.stage === 'discovery' ? 0.3 :
+                                      opp.stage === 'Proposal Sent to Client' ? 0.7 :
+                                      opp.stage === 'Validated' ? 0.5 :
                                       opp.stage === 'Lost' ? 0 :
-                                      opp.stage === 'Rejected' ? 0 : 0.2;
+                                      opp.stage === 'Rejected' ? 0 :
+                                      !opp.stage || opp.stage === '' ? 0 : 0;
                     return sum + (value * probability);
                   }, 0)).toLocaleString()}
                 </div>
