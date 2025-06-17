@@ -3039,6 +3039,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get individual saved list by ID for De Goudse
+  app.get('/api/degoudse/saved-lists/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        SELECT * FROM degoudse.saved_lists WHERE id = $1
+      `, [id]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Saved list not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error fetching saved list in De Goudse:', error);
+      res.status(500).json({ message: 'Failed to fetch saved list for De Goudse environment' });
+    }
+  });
+
   app.delete('/api/degoudse/saved-lists/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
