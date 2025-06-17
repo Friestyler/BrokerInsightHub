@@ -491,7 +491,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                 {tasks
                   .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
                   .map((task: any) => (
-                  <div key={task.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition-colors">
+                  <div key={task.id} className={`flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition-colors ${task.is_synced ? 'border-l-2 border-l-blue-400 bg-blue-50/30' : ''}`}>
                     <button
                       onClick={() => toggleTaskMutation.mutate({ taskId: task.id, completed: !task.completed })}
                       className={`w-4 h-4 border rounded-sm flex items-center justify-center transition-colors ${
@@ -507,6 +507,11 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                         {task.title}
                       </span>
                       <div className="flex items-center gap-2 mt-1">
+                        {task.is_synced && (
+                          <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                            Synced from {task.synced_from_partner_id === 12 ? 'Mevas BV' : 'De Goudse'}
+                          </Badge>
+                        )}
                         {task.priority && (
                           <Badge className={priorityColors[task.priority as keyof typeof priorityColors]}>
                             {task.priority}
@@ -538,7 +543,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                 {comments
                   .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
                   .map((comment: any, index: number) => (
-                  <div key={comment.id} className="flex items-start gap-3">
+                  <div key={comment.id} className={`flex items-start gap-3 ${comment.is_synced ? 'pl-3 border-l-2 border-l-blue-400 bg-blue-50/20' : ''}`}>
                     <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
                       comment.is_okr_comment ? 'bg-purple-100' : 'bg-blue-100'
                     }`}>
@@ -560,6 +565,14 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                       <div className={`rounded-lg px-3 py-2 ${
                         comment.is_okr_comment ? 'bg-purple-50 border border-purple-200' : 'bg-gray-50'
                       }`}>
+                        {comment.is_synced && (
+                          <div className="flex items-center gap-1 mb-1">
+                            <Bot className="h-3 w-3 text-blue-600" />
+                            <span className="text-xs font-medium text-blue-700">
+                              Synced from {comment.synced_from_partner_id === 12 ? 'Mevas BV' : 'De Goudse'}
+                            </span>
+                          </div>
+                        )}
                         {comment.is_okr_comment && comment.okr_metric_name && (
                           <div className="flex items-center gap-1 mb-1">
                             <Target className="h-3 w-3 text-purple-600" />
