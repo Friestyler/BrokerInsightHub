@@ -10,24 +10,20 @@ export default function CampaignsSummaryCards() {
   // Calculate summary statistics
   const totalCampaigns = campaigns.length;
   const activeCampaigns = campaigns.filter((c: any) => 
-    c.status === 'in_progress' || c.status === 'scheduled' || c.status === 'sent'
+    c.status === 'active' || c.status === 'in_progress' || c.status === 'scheduled' || c.status === 'sent'
   ).length;
   
   const totalRecipients = campaigns.reduce((acc: number, campaign: any) => 
     acc + (campaign.recipients?.length || 0), 0
   );
   
-  const totalSent = campaigns.reduce((acc: number, campaign: any) => {
-    const email1 = campaign.engagement_summary?.email1 || {};
-    const email2 = campaign.engagement_summary?.email2 || {};
-    return acc + (email1.sent || 0) + (email2.sent || 0);
-  }, 0);
+  const totalSent = campaigns.reduce((acc: number, campaign: any) => 
+    acc + (campaign.emails_sent || 0), 0
+  );
   
-  const totalOpened = campaigns.reduce((acc: number, campaign: any) => {
-    const email1 = campaign.engagement_summary?.email1 || {};
-    const email2 = campaign.engagement_summary?.email2 || {};
-    return acc + (email1.opened || 0) + (email2.opened || 0);
-  }, 0);
+  const totalOpened = campaigns.reduce((acc: number, campaign: any) => 
+    acc + (campaign.emails_opened || 0), 0
+  );
 
   const overallEngagementRate = totalSent > 0 ? Math.round((totalOpened / totalSent) * 100) : 0;
 
