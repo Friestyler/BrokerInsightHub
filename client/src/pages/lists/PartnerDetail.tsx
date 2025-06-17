@@ -614,14 +614,18 @@ export default function PartnerDetail() {
 
   // Fetch customer saved lists
   const { data: customerSavedLists } = useQuery({
-    queryKey: ['/api/saved-lists', { entity_type: 'customers' }],
+    queryKey: ['/api/saved-lists', 'customers'],
     queryFn: () => apiRequest('GET', '/api/saved-lists?entity_type=customers'),
+    staleTime: 0,
+    gcTime: 0,
   });
 
   // Fetch customer saved views
   const { data: customerSavedViews } = useQuery({
-    queryKey: ['/api/saved-views', { entity_type: 'customers' }],
+    queryKey: ['/api/saved-views', 'customers'],
     queryFn: () => apiRequest('GET', '/api/saved-views?entity_type=customers'),
+    staleTime: 0,
+    gcTime: 0,
   });
 
   // Fetch campaigns linked to this partner
