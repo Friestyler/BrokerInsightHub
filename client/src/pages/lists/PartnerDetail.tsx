@@ -2841,8 +2841,10 @@ export default function PartnerDetail() {
                               onClick={() => {
                                 // Store navigation context for customer detail back navigation
                                 sessionStorage.setItem('customerReferrer', `/lists/partners/${id}#customers`);
-                                // Navigate programmatically with query parameter
-                                setLocation(`/lists/customers/${customer.id}?tab=opportunities`);
+                                // Store the target tab in sessionStorage as well
+                                sessionStorage.setItem('customerDetailTab', 'opportunities');
+                                // Navigate programmatically 
+                                setLocation(`/lists/customers/${customer.id}`);
                               }}
                               className="text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer bg-transparent border-none p-0 font-normal"
                             >

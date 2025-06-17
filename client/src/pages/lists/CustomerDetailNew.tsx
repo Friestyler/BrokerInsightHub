@@ -44,13 +44,20 @@ export default function CustomerDetailNew() {
   const [selectedOpportunityIds, setSelectedOpportunityIds] = useState<number[]>([]);
   const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
 
-  // Handle tab parameter from URL
+  // Handle tab parameter from URL or sessionStorage
   useEffect(() => {
     const urlParams = new URLSearchParams(location.split('?')[1] || '');
     const tabParam = urlParams.get('tab');
-    console.log('CustomerDetail URL parsing:', { location, tabParam });
+    const storedTab = sessionStorage.getItem('customerDetailTab');
+    
+    console.log('CustomerDetail URL parsing:', { location, tabParam, storedTab });
+    
     if (tabParam) {
       setActiveTab(tabParam);
+    } else if (storedTab) {
+      setActiveTab(storedTab);
+      // Clear the stored tab after using it
+      sessionStorage.removeItem('customerDetailTab');
     }
   }, [location]);
 

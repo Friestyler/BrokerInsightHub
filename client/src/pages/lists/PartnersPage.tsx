@@ -294,6 +294,7 @@ function PartnersTable() {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('');
   const [selectedActualIndustry, setSelectedActualIndustry] = useState('');
+  const [selectedSize, setSelectedSize] = useState('');
 
   const [selectedPartners, setSelectedPartners] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -303,12 +304,14 @@ function PartnersTable() {
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showIndustryDropdown, setShowIndustryDropdown] = useState(false);
   const [showActualIndustryDropdown, setShowActualIndustryDropdown] = useState(false);
+  const [showSizeDropdown, setShowSizeDropdown] = useState(false);
 
   
   // Refs for dropdown positioning
   const statusDropdownRef = useRef<HTMLDivElement>(null);
   const industryDropdownRef = useRef<HTMLDivElement>(null);
   const actualIndustryDropdownRef = useRef<HTMLDivElement>(null);
+  const sizeDropdownRef = useRef<HTMLDivElement>(null);
 
   
   // Sorting state
@@ -621,8 +624,9 @@ function PartnersTable() {
       const matchesStatus = !selectedStatus || partner.status === selectedStatus;
       const matchesIndustry = !selectedIndustry || partner.region === selectedIndustry;
       const matchesActualIndustry = !selectedActualIndustry || partner.industry === selectedActualIndustry;
+      const matchesSize = !selectedSize || partner.size === selectedSize;
       
-      return matchesText && matchesStatus && matchesIndustry && matchesActualIndustry;
+      return matchesText && matchesStatus && matchesIndustry && matchesActualIndustry && matchesSize;
     })
     // Apply sorting
     .sort((a: any, b: any) => {
@@ -656,14 +660,15 @@ function PartnersTable() {
         searchText: filterText || undefined,
         status: selectedStatus || undefined,
         industry: selectedIndustry || undefined,
-        size: originalListFilters.size // Preserve size filter if it exists
+        size: selectedSize || undefined
       };
       
       // Compare current filters with original list filters
       const hasChanges = 
         currentFilters.searchText !== originalListFilters.searchText ||
         currentFilters.status !== originalListFilters.status ||
-        currentFilters.industry !== originalListFilters.industry;
+        currentFilters.industry !== originalListFilters.industry ||
+        currentFilters.size !== originalListFilters.size;
       
       setHasUnsavedChanges(hasChanges);
     } else {
