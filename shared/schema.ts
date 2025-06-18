@@ -613,8 +613,8 @@ export type CustomerTeamMember = typeof customerTeamMembers.$inferSelect;
 export type InsertCustomerPartner = z.infer<typeof insertCustomerPartnerSchema>;
 export type CustomerPartner = typeof customerPartners.$inferSelect;
 
-export type InsertProduct = z.infer<typeof insertProductSchema>;
-export type Product = typeof products.$inferSelect;
+export type InsertProductCatalog = z.infer<typeof insertProductCatalogSchema>;
+export type ProductCatalog = typeof productCatalog.$inferSelect;
 
 export type InsertSavedList = z.infer<typeof insertSavedListSchema>;
 export type SavedList = typeof savedLists.$inferSelect;

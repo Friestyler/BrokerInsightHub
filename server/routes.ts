@@ -22,7 +22,15 @@ import {
   insertCampaignSchema,
   insertCampaignRecipientSchema,
   insertCampaignFollowUpSchema,
-  insertCampaignShareSchema
+  insertCampaignShareSchema,
+  productCategories,
+  products,
+  vendors,
+  insertProductCategorySchema,
+  insertProductSchema,
+  type ProductCategory,
+  type Product,
+  type Vendor
 } from '@shared/schema';
 import { eq, sql } from 'drizzle-orm';
 import { db, pool } from './db';
@@ -5067,6 +5075,236 @@ Keep the tone clear and professional. Focus on what will help the account manage
     } catch (error) {
       console.error('Error creating OKR comment:', error);
       res.status(500).json({ error: 'Failed to create OKR comment' });
+    }
+  });
+
+  // Product Category API endpoints for nested hierarchy management
+  
+  // Get all product categories in hierarchical structure
+  app.get('/api/:envId/product-categories', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const cacheKey = `${envId}_product_categories`;
+      const cached = getCached(cacheKey);
+      
+      if (cached) {
+        return res.json(cached);
+      }
+      
+      const envPool = pool;
+      
+      // Get all categories with parent information
+      const result = await envPool.query(`
+        SELECT 
+          c.*,
+          p.name as parent_name,
+          (SELECT COUNT(*) FROM ${envId}.products WHERE category_id = c.id) as product_count,
+          (SELECT COUNT(*) FROM ${envId}.product_categories WHERE parent_id = c.id) as child_count
+        FROM ${envId}.product_categories c
+        LEFT JOIN ${envId}.product_categories p ON c.parent_id = p.id
+        ORDER BY c.parent_id NULLS FIRST, c.name
+      `);
+      
+      // Build hierarchical structure
+      const categories = result.rows;
+      const categoryMap = new Map();
+      const rootCategories = [];
+      
+      // First pass: create category objects
+      categories.forEach(cat => {
+        categoryMap.set(cat.id, { ...cat, children: [] });
+      });
+      
+      // Second pass: build hierarchy
+      categories.forEach(cat => {
+        const category = categoryMap.get(cat.id);
+        if (cat.parent_id) {
+          const parent = categoryMap.get(cat.parent_id);
+          if (parent) {
+            parent.children.push(category);
+          }
+        } else {
+          rootCategories.push(category);
+        }
+      });
+      
+      setCache(cacheKey, rootCategories);
+      res.json(rootCategories);
+    } catch (error) {
+      console.error('Error fetching product categories:', error);
+      res.status(500).json({ error: 'Failed to fetch product categories' });
+    }
+  });
+  
+  // Create new product category
+  app.post('/api/:envId/product-categories', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const validatedData = insertProductCategorySchema.parse(req.body);
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        INSERT INTO ${envId}.product_categories (name, description, parent_id, status)
+        VALUES ($1, $2, $3, $4)
+        RETURNING *
+      `, [validatedData.name, validatedData.description, validatedData.parentId, validatedData.status || 'active']);
+      
+      // Clear cache
+      cache.delete(`${envId}_product_categories`);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating product category:', error);
+      res.status(500).json({ error: 'Failed to create product category' });
+    }
+  });
+  
+  // Update product category
+  app.put('/api/:envId/product-categories/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const categoryId = parseInt(req.params.id);
+      const validatedData = insertProductCategorySchema.parse(req.body);
+      const envPool = pool;
+      
+      // Check for circular reference
+      if (validatedData.parentId) {
+        const checkResult = await envPool.query(`
+          WITH RECURSIVE category_path AS (
+            SELECT id, parent_id FROM ${envId}.product_categories WHERE id = $1
+            UNION ALL
+            SELECT c.id, c.parent_id 
+            FROM ${envId}.product_categories c
+            JOIN category_path cp ON c.id = cp.parent_id
+          )
+          SELECT id FROM category_path WHERE id = $2
+        `, [validatedData.parentId, categoryId]);
+        
+        if (checkResult.rows.length > 0) {
+          return res.status(400).json({ error: 'Cannot set parent - would create circular reference' });
+        }
+      }
+      
+      const result = await envPool.query(`
+        UPDATE ${envId}.product_categories 
+        SET name = $1, description = $2, parent_id = $3, status = $4, updated_at = NOW()
+        WHERE id = $5
+        RETURNING *
+      `, [validatedData.name, validatedData.description, validatedData.parentId, validatedData.status, categoryId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Product category not found' });
+      }
+      
+      // Clear cache
+      cache.delete(`${envId}_product_categories`);
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating product category:', error);
+      res.status(500).json({ error: 'Failed to update product category' });
+    }
+  });
+  
+  // Delete product category
+  app.delete('/api/:envId/product-categories/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const categoryId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      // Check if category has products or children
+      const checkResult = await envPool.query(`
+        SELECT 
+          (SELECT COUNT(*) FROM ${envId}.products WHERE category_id = $1) as product_count,
+          (SELECT COUNT(*) FROM ${envId}.product_categories WHERE parent_id = $1) as child_count
+      `, [categoryId]);
+      
+      const { product_count, child_count } = checkResult.rows[0];
+      
+      if (product_count > 0) {
+        return res.status(400).json({ 
+          error: `Cannot delete category - it contains ${product_count} products. Please move or delete the products first.` 
+        });
+      }
+      
+      if (child_count > 0) {
+        return res.status(400).json({ 
+          error: `Cannot delete category - it has ${child_count} subcategories. Please move or delete the subcategories first.` 
+        });
+      }
+      
+      const result = await envPool.query(`
+        DELETE FROM ${envId}.product_categories WHERE id = $1 RETURNING *
+      `, [categoryId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Product category not found' });
+      }
+      
+      // Clear cache
+      cache.delete(`${envId}_product_categories`);
+      
+      res.json({ message: 'Product category deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting product category:', error);
+      res.status(500).json({ error: 'Failed to delete product category' });
+    }
+  });
+  
+  // Get products by category (including subcategories)
+  app.get('/api/:envId/product-categories/:id/products', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const categoryId = parseInt(req.params.id);
+      const includeSubcategories = req.query.include_subcategories === 'true';
+      const envPool = pool;
+      
+      let query;
+      let params;
+      
+      if (includeSubcategories) {
+        // Get products from this category and all its subcategories
+        query = `
+          WITH RECURSIVE category_tree AS (
+            SELECT id FROM ${envId}.product_categories WHERE id = $1
+            UNION ALL
+            SELECT c.id 
+            FROM ${envId}.product_categories c
+            JOIN category_tree ct ON c.parent_id = ct.id
+          )
+          SELECT 
+            p.*,
+            c.name as category_name,
+            v.name as vendor_name
+          FROM ${envId}.products p
+          LEFT JOIN ${envId}.product_categories c ON p.category_id = c.id
+          LEFT JOIN ${envId}.vendors v ON p.vendor_id = v.id
+          WHERE p.category_id IN (SELECT id FROM category_tree)
+          ORDER BY p.name
+        `;
+        params = [categoryId];
+      } else {
+        // Get products only from this specific category
+        query = `
+          SELECT 
+            p.*,
+            c.name as category_name,
+            v.name as vendor_name
+          FROM ${envId}.products p
+          LEFT JOIN ${envId}.product_categories c ON p.category_id = c.id
+          LEFT JOIN ${envId}.vendors v ON p.vendor_id = v.id
+          WHERE p.category_id = $1
+          ORDER BY p.name
+        `;
+        params = [categoryId];
+      }
+      
+      const result = await envPool.query(query, params);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching products by category:', error);
+      res.status(500).json({ error: 'Failed to fetch products by category' });
     }
   });
 

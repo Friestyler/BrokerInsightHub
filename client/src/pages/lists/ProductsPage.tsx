@@ -38,9 +38,11 @@ import {
   useQueryClient
 } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Package2, Plus, SquarePen, Building } from "lucide-react";
+import { Package2, Plus, SquarePen, Building, FolderTree } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useToast } from "@/hooks/use-toast";
+import { ProductCategoryManager } from "@/components/products/ProductCategoryManager";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Product = {
   id: number;
