@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Sun, Car, Calendar, Building2 } from "lucide-react";
 import { useLocation } from 'wouter';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -693,12 +693,13 @@ export default function CampaignTemplateCreator() {
                 <label className="block text-sm font-medium text-gray-700 mb-3">Choose Icon</label>
                 <div className="grid grid-cols-8 gap-3">
                   {[
-                    { id: 'target', icon: Target, color: 'bg-blue-500' },
-                    { id: 'trending-up', icon: TrendingUp, color: 'bg-green-500' },
-                    { id: 'zap', icon: Zap, color: 'bg-yellow-500' },
-                    { id: 'star', icon: Star, color: 'bg-purple-500' },
                     { id: 'heart', icon: Heart, color: 'bg-pink-500' },
-                    { id: 'gift', icon: Gift, color: 'bg-red-500' },
+                    { id: 'building2', icon: Building2, color: 'bg-purple-500' },
+                    { id: 'sun', icon: Sun, color: 'bg-orange-500' },
+                    { id: 'car', icon: Car, color: 'bg-blue-500' },
+                    { id: 'calendar', icon: Calendar, color: 'bg-green-500' },
+                    { id: 'shield', icon: Shield, color: 'bg-indigo-500' },
+                    { id: 'star', icon: Star, color: 'bg-purple-500' },
                     { id: 'mail', icon: Mail, color: 'bg-gray-500' },
                     { id: 'rocket', icon: Rocket, color: 'bg-indigo-500' }
                   ].map((iconOption) => {
