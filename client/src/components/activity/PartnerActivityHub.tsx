@@ -140,22 +140,50 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
   };
 
   if (!isExpanded) {
-    const Icon = getIcon();
-    const iconColorClass = getIconColor();
-    const bgColorClass = activeMode === 'task' ? 'bg-green-100' : 'bg-blue-100';
-    const placeholder = activeMode === 'task' ? 'Add a task...' : 'Add a comment...';
-
     return (
       <div className="border-t border-gray-100 pt-3 mt-3">
-        <button
-          onClick={() => setIsExpanded(true)}
-          className="flex items-center gap-3 w-full text-left p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
-        >
-          <div className={`flex-shrink-0 w-8 h-8 ${bgColorClass} rounded-full flex items-center justify-center`}>
-            <Icon className={`h-4 w-4 ${iconColorClass}`} />
+        <div className="space-y-3">
+          {/* Inline Toolbar */}
+          <div className="flex items-center justify-center gap-1 p-1 bg-gray-100 rounded-full w-fit mx-auto">
+            <button
+              onClick={() => setActiveMode('comment')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                activeMode === 'comment'
+                  ? 'bg-white text-blue-700 shadow-sm'
+                  : 'text-gray-600 hover:text-blue-600'
+              }`}
+            >
+              <MessageSquare className="h-3 w-3" />
+              Comment
+            </button>
+            <button
+              onClick={() => setActiveMode('task')}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+                activeMode === 'task'
+                  ? 'bg-white text-green-700 shadow-sm'
+                  : 'text-gray-600 hover:text-green-600'
+              }`}
+            >
+              <CheckSquare className="h-3 w-3" />
+              Task
+            </button>
           </div>
-          <span className="text-sm text-gray-600">{placeholder}</span>
-        </button>
+
+          {/* Input Button */}
+          <button
+            onClick={() => setIsExpanded(true)}
+            className="flex items-center gap-3 w-full text-left p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+          >
+            <div className={`flex-shrink-0 w-8 h-8 ${activeMode === 'task' ? 'bg-green-100' : 'bg-blue-100'} rounded-full flex items-center justify-center`}>
+              {activeMode === 'task' ? (
+                <CheckSquare className="h-4 w-4 text-green-600" />
+              ) : (
+                <MessageSquare className="h-4 w-4 text-blue-600" />
+              )}
+            </div>
+            <span className="text-sm text-gray-600">{getPlaceholder()}</span>
+          </button>
+        </div>
       </div>
     );
   }
@@ -163,32 +191,6 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
   return (
     <div className="border-t border-gray-100 pt-3 mt-3">
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-        {/* Action Buttons */}
-        <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
-          <button
-            onClick={() => setActiveMode('comment')}
-            className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${
-              activeMode === 'comment'
-                ? 'bg-blue-100 text-blue-700 shadow-sm'
-                : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
-            }`}
-          >
-            <MessageSquare className="h-4 w-4" />
-            Comment
-          </button>
-          <button
-            onClick={() => setActiveMode('task')}
-            className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${
-              activeMode === 'task'
-                ? 'bg-green-100 text-green-700 shadow-sm'
-                : 'text-gray-600 hover:text-green-600 hover:bg-green-50'
-            }`}
-          >
-            <CheckSquare className="h-4 w-4" />
-            Task
-          </button>
-        </div>
-
         {/* Content */}
         <div className="p-4 space-y-3">
           {/* Input Field */}
