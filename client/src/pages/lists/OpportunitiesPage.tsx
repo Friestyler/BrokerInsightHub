@@ -1766,7 +1766,6 @@ function OpportunitiesTable() {
           </div>
         </div>
       </div>
-      
       {/* Bulk actions bar - only visible when opportunities are selected */}
       {selectedOpportunities.length > 0 && (
         <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
@@ -1873,7 +1872,6 @@ function OpportunitiesTable() {
           </div>
         </div>
       )}
-
       {/* Statistics overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-md border border-gray-200">
@@ -1896,7 +1894,6 @@ function OpportunitiesTable() {
           <div className="text-sm text-gray-500">Weighted Value Opportunities</div>
         </div>
       </div>
-      
       {/* Save List Modal */}
       <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
         <DialogContent className="sm:max-w-md">
@@ -1997,7 +1994,6 @@ function OpportunitiesTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
       {/* Google-Style Share Modal */}
       <ShareModal
         isOpen={showShareListModal}
@@ -2114,7 +2110,6 @@ function OpportunitiesTable() {
         }}
         listData={activeList ? opportunities.filter(opp => activeList.members.includes(opp.id)) : opportunities}
       />
-      
       {/* Table section without a border */}
       <div className="bg-white overflow-x-auto rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
@@ -2159,9 +2154,7 @@ function OpportunitiesTable() {
               </SortableTableHead>
 
               <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px] bg-white">
-                <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
-                  Related Contacts
-                </div>
+                <div className="flex items-center text-[#696C8C] text-[14px] font-medium">Contacts</div>
               </th>
               <SortableTableHead 
                 sortKey="startDate" 
@@ -2312,7 +2305,7 @@ function OpportunitiesTable() {
                 </td>
 
                 <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
-                  <span className="text-gray-500 text-xs">-</span>
+                  <span className="text-gray-500 text-xs">0</span>
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[110px]">
                   {opportunity.startDate ? new Date(opportunity.startDate).toLocaleDateString() : '-'}
@@ -2366,7 +2359,6 @@ function OpportunitiesTable() {
           </div>
         )}
       </div>
-      
       {/* Create Opportunity Modal */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
         <DialogContent className="sm:max-w-[600px]">
@@ -2505,7 +2497,6 @@ function OpportunitiesTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Assign Template Modal */}
       <Dialog open={showAssignTemplateModal} onOpenChange={setShowAssignTemplateModal}>
         <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
@@ -2752,7 +2743,6 @@ function OpportunitiesTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
     </div>
   );
 }
