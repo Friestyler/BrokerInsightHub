@@ -164,13 +164,7 @@ export default function ProductsPage() {
       </div>
 
       <Card>
-        <CardHeader>
-          <CardTitle>Products</CardTitle>
-          <CardDescription>
-            Your organization's product catalog.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+        <CardContent className="pt-6">
           {isLoading ? (
             <div className="text-center py-4">Loading products...</div>
           ) : products && products.length > 0 ? (
