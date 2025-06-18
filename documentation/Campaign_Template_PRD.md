@@ -75,20 +75,174 @@ Insurance professionals currently face challenges in:
 - As a user, I want to define the template's objective for clarity
 
 #### Step 3: Email Flow Builder
-**Requirements:**
-- Drag-and-drop email sequence builder
-- Support for multiple email follow-ups
-- Conditional logic between emails (not clicked, not opened, always, custom)
-- AI-powered content generation
-- Dynamic data fetching capabilities
-- Logo upload functionality (left and right placement)
-- Real-time preview capabilities
+**Overview:**
+The Email Flow Builder is the core content creation engine that enables users to design sophisticated, multi-email sequences with AI-powered content generation and conditional logic. This step transforms template configurations into actionable email campaigns.
 
-**User Stories:**
-- As a user, I want to build email sequences with conditional follow-ups
-- As a user, I want AI assistance for content creation
-- As a user, I want to include dynamic data relevant to my audience
-- As a user, I want to customize email layouts with logos
+**Architecture Components:**
+
+##### 3.1 Flow Management System
+**Collapsed Flow View:**
+- Visual email sequence overview showing all emails in template
+- Email cards display: sequence number, subject line, block count, timing
+- Click-to-expand functionality for individual email editing
+- Drag-and-drop reordering of email sequence
+- Add/remove email capabilities with confirmation dialogs
+
+**Expanded Email Editor:**
+- Full-screen email editing interface
+- Real-time content preview with mobile/desktop views
+- Collapsible editor with navigation breadcrumbs
+- Auto-save functionality with change tracking
+- Email header showing position in sequence and timing
+
+##### 3.2 Email Configuration Panel
+**Core Email Settings:**
+- **Subject Line Input**: Dynamic placeholder suggestions based on audience type
+- **Follow-up Timing**: Configurable delay in days for sequence emails
+- **Email Metadata**: Internal naming and categorization
+- **Preview Controls**: Toggle between edit and preview modes
+
+**Logo Management:**
+- **Dual Logo Upload**: Left and right header positioning
+- **File Validation**: Image format, size, and resolution checking
+- **Drag-and-drop Interface**: Visual upload with progress indicators
+- **Logo Preview**: Real-time positioning and scaling preview
+
+##### 3.3 Content Block System
+**Block Architecture:**
+The flow builder uses a modular block system where each email consists of ordered, editable content blocks. Each block type serves specific content purposes and maintains its own properties and behavior.
+
+**Available Block Types:**
+
+1. **Text Block**
+   - **Purpose**: Primary content paragraphs with personalization
+   - **Features**: Rich text editing, dynamic field insertion ({{name}}, {{company}})
+   - **Validation**: Character limits, spam filter compliance
+   - **Properties**: Font styling, alignment, spacing controls
+
+2. **Heading Block**
+   - **Purpose**: Section titles and email headers
+   - **Features**: Hierarchical heading levels (H1-H6), personalization support
+   - **Styling**: Font weight, size, color customization
+   - **SEO**: Semantic markup for email accessibility
+
+3. **Quote Block**
+   - **Purpose**: Testimonials, highlighted content, social proof
+   - **Features**: Visual quotation styling, attribution fields
+   - **Design**: Left border accent, italic formatting
+   - **Sources**: Customer testimonials, case studies, endorsements
+
+4. **Button Block**
+   - **Purpose**: Call-to-action elements with tracking
+   - **Features**: Custom text, URL linking, color theming
+   - **Analytics**: Click tracking, conversion measurement
+   - **Styling**: Responsive design, hover states, accessibility compliance
+
+5. **Image Block**
+   - **Purpose**: Visual content integration
+   - **Features**: URL-based image insertion, alt text for accessibility
+   - **Optimization**: Automatic resizing, format optimization
+   - **Responsive**: Mobile-first scaling and positioning
+
+6. **Divider Block**
+   - **Purpose**: Visual section separation
+   - **Features**: Horizontal rule with styling options
+   - **Design**: Thickness, color, spacing customization
+   - **Usage**: Content organization, visual hierarchy
+
+7. **Spacer Block**
+   - **Purpose**: Vertical spacing control
+   - **Features**: Configurable pixel height (10-100px)
+   - **Responsive**: Proportional scaling across devices
+   - **Design**: Visual representation in editor mode
+
+##### 3.4 AI Content Generation System
+**AI Paragraph Generator:**
+- **Input Method**: Natural language prompts describing desired content
+- **Context Awareness**: Automatically incorporates audience type and template objective
+- **Content Types**: Introductory paragraphs, product descriptions, value propositions
+- **Refinement**: Iterative improvement based on user feedback
+- **Brand Consistency**: Maintains company tone and messaging guidelines
+
+**AI Data Fetching:**
+- **Dynamic Queries**: Natural language requests for CRM data integration
+- **Data Sources**: Customer records, opportunity status, partner information, product catalogs
+- **Real-time Processing**: Live data retrieval and formatting
+- **Personalization**: Individual recipient data integration
+- **Error Handling**: Fallback content for missing or invalid data
+
+**Advanced AI Features:**
+- **Content Optimization**: A/B testing suggestions for improved performance
+- **Sentiment Analysis**: Tone adjustment based on audience and context
+- **Compliance Checking**: Regulatory requirement validation
+- **Performance Prediction**: Open rate and engagement forecasting
+
+##### 3.5 Conditional Logic Engine
+**Logic Types:**
+
+1. **Behavioral Triggers:**
+   - **Not Clicked**: Send if recipient didn't interact with previous email links
+   - **Not Opened**: Send if recipient didn't open previous email
+   - **Time-based**: Always send after specified delay period
+   - **Engagement Score**: Send based on cumulative interaction metrics
+
+2. **Custom Logic System:**
+   - **Natural Language Input**: Plain English condition descriptions
+   - **AI Logic Translation**: Converts descriptions to executable rules
+   - **Complex Conditions**: Multi-variable logic with AND/OR operators
+   - **Preview Mode**: Logic simulation with test data
+
+**Logic Configuration Interface:**
+- **Visual Logic Builder**: Drag-and-drop condition creation
+- **Logic Preview**: Real-time condition testing with sample data
+- **Logic Validation**: Error checking and conflict resolution
+- **Logic Templates**: Pre-built conditions for common scenarios
+
+##### 3.6 Content Block Management
+**Block Operations:**
+- **Add Blocks**: Sidebar selection with instant insertion
+- **Reorder Blocks**: Drag-and-drop with visual feedback
+- **Duplicate Blocks**: One-click copying with content preservation
+- **Delete Blocks**: Confirmation dialogs with undo capability
+- **Block Validation**: Real-time error checking and suggestions
+
+**Block Properties Panel:**
+- **Content Editing**: In-line text editing with rich formatting
+- **Style Customization**: Typography, colors, spacing, alignment
+- **Responsive Settings**: Mobile optimization controls
+- **Advanced Properties**: Block-specific configuration options
+
+##### 3.7 Template Integration
+**Email Sequence Coordination:**
+- **Template Inheritance**: Email settings inherit from template configuration
+- **Audience Targeting**: Content adaptation based on selected entity type
+- **Brand Consistency**: Automatic application of company styling
+- **Variable Management**: Template-wide dynamic field definitions
+
+**Validation System:**
+- **Content Validation**: Spam filter compliance, character limits
+- **Logic Validation**: Conditional logic error checking
+- **Template Completeness**: Required field verification
+- **Preview Generation**: Full template rendering with test data
+
+##### 3.8 User Experience Features
+**Real-time Collaboration:**
+- **Auto-save**: Continuous background saving with conflict resolution
+- **Version History**: Change tracking with rollback capabilities
+- **Comments System**: Collaborative review and approval workflow
+- **Template Sharing**: Team access controls and permissions
+
+**Performance Optimization:**
+- **Lazy Loading**: Content blocks load as needed for large templates
+- **Caching Strategy**: Frequent content and AI responses cached locally
+- **Responsive Design**: Optimized for all device types and screen sizes
+- **Accessibility**: Full keyboard navigation and screen reader support
+
+**User Assistance:**
+- **Contextual Help**: Tooltips and guidance for each feature
+- **Template Suggestions**: AI-powered recommendations based on usage patterns
+- **Error Prevention**: Real-time validation with helpful error messages
+- **Progress Indicators**: Clear feedback during save and generation operations
 
 ### 2. Email Flow Builder Components
 
