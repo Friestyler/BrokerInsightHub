@@ -730,7 +730,7 @@ export default function CampaignTemplateCreator() {
         return (
           <div className="space-y-8">
             <div className="text-center mt-8">
-              <p className="text-gray-600 text-left text-[14px]">Design your email sequence</p>
+              <p className="text-gray-600 text-left text-[14px]">Design your flow sequence step by step</p>
             </div>
             <ImprovedFlowBuilder
               emails={campaignData.emails}
