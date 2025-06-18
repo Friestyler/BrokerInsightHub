@@ -141,49 +141,64 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
 
   if (!isExpanded) {
     return (
-      <div className="border-t border-[#E6E7F1] pt-4 mt-4">
-        <div className="space-y-4">
-          {/* Inline Toolbar - Google/Apple style */}
-          <div className="flex items-center justify-center">
-            <div className="inline-flex items-center gap-0.5 p-0.5 bg-gray-100/80 backdrop-blur-sm rounded-full shadow-sm border border-gray-200/50">
+      <div className="border-t border-[#E6E7F1] pt-3 mt-3">
+        {/* Futuristic Floating Composer */}
+        <div className="relative group">
+          {/* Compact Toggle Pills */}
+          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+            <div className="flex items-center bg-black/90 backdrop-blur-xl rounded-full p-0.5 border border-white/10 shadow-xl">
               <button
                 onClick={() => setActiveMode('comment')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                className={`relative px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 ${
                   activeMode === 'comment'
-                    ? 'bg-white text-blue-600 shadow-sm ring-1 ring-blue-100'
-                    : 'text-gray-500 hover:text-blue-600 hover:bg-white/50'
+                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/25'
+                    : 'text-gray-300 hover:text-white hover:bg-white/10'
                 }`}
               >
-                <MessageSquare className="h-4 w-4" />
-                Comment
+                💬
               </button>
               <button
                 onClick={() => setActiveMode('task')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                className={`relative px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 ${
                   activeMode === 'task'
-                    ? 'bg-white text-green-600 shadow-sm ring-1 ring-green-100'
-                    : 'text-gray-500 hover:text-green-600 hover:bg-white/50'
+                    ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25'
+                    : 'text-gray-300 hover:text-white hover:bg-white/10'
                 }`}
               >
-                <CheckSquare className="h-4 w-4" />
-                Task
+                ✓
               </button>
             </div>
           </div>
 
-          {/* Input Button - Apple style */}
+          {/* Neural Network Input */}
           <button
             onClick={() => setIsExpanded(true)}
-            className="flex items-center gap-3 w-full text-left p-4 rounded-xl bg-white border border-gray-200/60 hover:border-gray-300 hover:bg-gray-50/50 transition-all duration-200 shadow-sm hover:shadow-md"
+            className="relative w-full p-3 bg-gradient-to-r from-gray-900 to-gray-800 border border-gray-700/50 rounded-2xl hover:border-gray-600 transition-all duration-300 overflow-hidden group-hover:shadow-2xl group-hover:shadow-blue-500/10"
           >
-            <div className={`flex-shrink-0 w-9 h-9 ${activeMode === 'task' ? 'bg-green-50 ring-1 ring-green-200' : 'bg-blue-50 ring-1 ring-blue-200'} rounded-full flex items-center justify-center`}>
-              {activeMode === 'task' ? (
-                <CheckSquare className="h-4 w-4 text-green-600" />
-              ) : (
-                <MessageSquare className="h-4 w-4 text-blue-600" />
-              )}
+            {/* Animated Background Grid */}
+            <div className="absolute inset-0 opacity-20">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent animate-pulse"></div>
             </div>
-            <span className="text-sm text-gray-600 font-medium">{getPlaceholder()}</span>
+            
+            <div className="relative flex items-center gap-3">
+              <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 ${
+                activeMode === 'task' 
+                  ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30' 
+                  : 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-500/30'
+              }`}>
+                {activeMode === 'task' ? (
+                  <CheckSquare className="h-3 w-3 text-green-400" />
+                ) : (
+                  <MessageSquare className="h-3 w-3 text-blue-400" />
+                )}
+              </div>
+              <span className="text-sm text-gray-300 font-medium">{getPlaceholder()}</span>
+              <div className="ml-auto flex items-center space-x-1">
+                <div className="w-1 h-1 bg-blue-400 rounded-full animate-pulse"></div>
+                <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse delay-100"></div>
+                <div className="w-1 h-1 bg-purple-400 rounded-full animate-pulse delay-200"></div>
+              </div>
+            </div>
           </button>
         </div>
       </div>
@@ -191,12 +206,19 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
   }
 
   return (
-    <div className="border-t border-[#E6E7F1] pt-4 mt-4">
-      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50">
-        {/* Content */}
-        <div className="p-5 space-y-4">
+    <div className="border-t border-[#E6E7F1] pt-3 mt-3">
+      {/* Futuristic Expanded Composer */}
+      <div className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-3xl border border-gray-700/50 shadow-2xl shadow-black/20 overflow-hidden">
+        {/* Neural Network Background */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-green-500/10 animate-pulse"></div>
+          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-blue-400/30 to-transparent"></div>
+          <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-green-400/30 to-transparent"></div>
+        </div>
+
+        <div className="relative p-4 space-y-3">
           {/* Input Field */}
-          <div>
+          <div className="relative">
             <Textarea
               placeholder={getPlaceholder()}
               value={content}
@@ -210,45 +232,51 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
                   handleCancel();
                 }
               }}
-              className="min-h-[80px] resize-none border-0 bg-gray-50/50 focus:bg-white/80 rounded-xl p-4 text-sm transition-all duration-200 focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
+              className="w-full min-h-[60px] resize-none border-0 bg-black/40 backdrop-blur-sm text-gray-200 rounded-2xl p-4 text-sm transition-all duration-300 focus:bg-black/60 focus:ring-2 focus:ring-blue-400/50 placeholder:text-gray-500"
               autoFocus
             />
+            {/* Typing Indicator */}
+            <div className="absolute bottom-2 right-2 flex space-x-1">
+              <div className={`w-1 h-1 rounded-full transition-all duration-300 ${content ? 'bg-green-400 animate-pulse' : 'bg-gray-600'}`}></div>
+              <div className={`w-1 h-1 rounded-full transition-all duration-300 delay-100 ${content ? 'bg-blue-400 animate-pulse' : 'bg-gray-600'}`}></div>
+              <div className={`w-1 h-1 rounded-full transition-all duration-300 delay-200 ${content ? 'bg-purple-400 animate-pulse' : 'bg-gray-600'}`}></div>
+            </div>
           </div>
 
           {/* Task-specific Controls */}
           {activeMode === 'task' && (
-            <div className="flex items-center gap-3 p-3 bg-gray-50/50 rounded-xl border border-gray-100/80">
+            <div className="flex items-center gap-2">
               {/* Priority Selector */}
               <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger className="w-36 h-9 text-sm bg-white border-gray-200/60 rounded-lg shadow-sm hover:shadow-md transition-all duration-200">
+                <SelectTrigger className="w-28 h-8 text-xs bg-black/40 border border-gray-600/50 rounded-xl text-gray-300 hover:bg-black/60 transition-all duration-300">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-gray-200/60 shadow-lg">
-                  <SelectItem value="low">🟢 Low</SelectItem>
-                  <SelectItem value="medium">🟡 Medium</SelectItem>
-                  <SelectItem value="high">🟠 High</SelectItem>
-                  <SelectItem value="urgent">🔴 Urgent</SelectItem>
+                <SelectContent className="bg-gray-900 border-gray-700 rounded-xl">
+                  <SelectItem value="low" className="text-green-400">🟢 Low</SelectItem>
+                  <SelectItem value="medium" className="text-yellow-400">🟡 Med</SelectItem>
+                  <SelectItem value="high" className="text-orange-400">🟠 High</SelectItem>
+                  <SelectItem value="urgent" className="text-red-400">🔴 Urgent</SelectItem>
                 </SelectContent>
               </Select>
 
               {/* Assignee Selector */}
               <Select value={assignedTo} onValueChange={setAssignedTo}>
-                <SelectTrigger className="w-44 h-9 text-sm bg-white border-gray-200/60 rounded-lg shadow-sm hover:shadow-md transition-all duration-200">
-                  <SelectValue placeholder="Assign to..." />
+                <SelectTrigger className="w-32 h-8 text-xs bg-black/40 border border-gray-600/50 rounded-xl text-gray-300 hover:bg-black/60 transition-all duration-300">
+                  <SelectValue placeholder="Assign..." />
                 </SelectTrigger>
-                <SelectContent className="rounded-xl border-gray-200/60 shadow-lg">
+                <SelectContent className="bg-gray-900 border-gray-700 rounded-xl">
                   {teamMembers.map((member) => (
-                    <SelectItem key={member.id} value={member.id}>
+                    <SelectItem key={member.id} value={member.id} className="text-gray-300">
                       <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">{member.name}</span>
+                        <User className="h-3 w-3" />
+                        <span className="text-xs">{member.name.split(' ')[0]}</span>
                       </div>
                     </SelectItem>
                   ))}
-                  <SelectItem value="ai-agent" disabled>
-                    <div className="flex items-center gap-2 text-gray-400">
-                      <Bot className="h-4 w-4" />
-                      <span>AI Agent (coming later)</span>
+                  <SelectItem value="ai-agent" disabled className="text-gray-500">
+                    <div className="flex items-center gap-2">
+                      <Bot className="h-3 w-3" />
+                      <span className="text-xs">AI Agent</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -257,46 +285,45 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
           )}
 
           {/* Footer */}
-          <div className="flex items-center justify-between pt-3 border-t border-gray-100/60">
+          <div className="flex items-center justify-between pt-2 border-t border-gray-700/30">
             {/* Visibility Toggle */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <Switch
                 checked={visibleToPartner}
                 onCheckedChange={setVisibleToPartner}
-                className="data-[state=checked]:bg-blue-500"
+                className="data-[state=checked]:bg-blue-500 scale-75"
               />
-              <span className="text-sm text-gray-600 flex items-center gap-2 font-medium">
-                {visibleToPartner ? <Eye className="h-4 w-4 text-blue-500" /> : <EyeOff className="h-4 w-4 text-gray-400" />}
-                Visible to partner
+              <span className="text-xs text-gray-400 flex items-center gap-1">
+                {visibleToPartner ? <Eye className="h-3 w-3 text-blue-400" /> : <EyeOff className="h-3 w-3" />}
+                Partner View
               </span>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={handleCancel} 
-                className="h-9 px-4 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100/80 rounded-lg transition-all duration-200"
+                className="h-7 px-3 text-xs text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded-lg transition-all duration-300"
               >
-                Cancel
+                ✕
               </Button>
               <Button
                 size="sm"
                 onClick={handleSubmit}
                 disabled={isLoading || !content.trim()}
-                className={`h-9 px-5 text-sm font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md ${
+                className={`h-7 px-4 text-xs font-medium rounded-lg transition-all duration-300 ${
                   activeMode === 'task' 
-                    ? 'bg-green-600 hover:bg-green-700 text-white' 
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg shadow-green-500/25' 
+                    : 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/25'
+                } disabled:opacity-30 disabled:cursor-not-allowed disabled:shadow-none`}
               >
                 {isLoading ? (
-                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                  <div className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />
                 ) : (
                   <>
-                    <Send className="h-4 w-4 mr-2" />
-                    Add {activeMode === 'task' ? 'Task' : 'Comment'}
+                    {activeMode === 'task' ? '⚡' : '💫'} Send
                   </>
                 )}
               </Button>
