@@ -660,7 +660,7 @@ export default function CampaignTemplateCreator() {
 
             <div className="max-w-2xl mx-auto space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Template Name</label>
+                <Label className="block mb-2">Template Name</Label>
                 <Input
                   placeholder={`${entityOptions.find(opt => opt.id === campaignData.entity)?.title} Template`}
                   value={campaignData.name}
@@ -670,7 +670,7 @@ export default function CampaignTemplateCreator() {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <Label className="block mb-2">Description</Label>
                 <Textarea
                   placeholder="Brief description of this template's purpose..."
                   value={campaignData.description}
@@ -680,7 +680,7 @@ export default function CampaignTemplateCreator() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Template Objective</label>
+                <Label className="block mb-2">Template Objective</Label>
                 <Textarea
                   placeholder="What outcome should this template achieve?"
                   value={campaignData.objective}
@@ -690,7 +690,7 @@ export default function CampaignTemplateCreator() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-3">Choose Icon</label>
+                <Label className="block mb-3">Choose Icon</Label>
                 <div className="grid grid-cols-8 gap-3">
                   {[
                     { id: 'heart', icon: Heart, color: 'bg-pink-500' },
