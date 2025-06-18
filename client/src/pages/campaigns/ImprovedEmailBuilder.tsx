@@ -879,24 +879,7 @@ Status: Ready for deployment`;
               
               {/* Email Header */}
               <div className="mb-6 pb-4 border-b border-gray-200">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                      DG
-                    </div>
-                    <div>
-                      <div className="font-medium text-gray-900">De Goudse</div>
-                      <div className="text-sm text-gray-600">noreply@degoudse.nl</div>
-                    </div>
-                  </div>
-                  <div className="text-right text-sm text-gray-500">
-                    <div>Today, 10:30 AM</div>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs">To: you</span>
-                    </div>
-                  </div>
-                </div>
-                <div className="text-xl font-semibold text-gray-900 leading-tight">
+                <div className="text-xl font-normal text-gray-900 leading-tight tracking-normal">
                   {editingEmail.subject || 'Subject Line'}
                 </div>
               </div>
