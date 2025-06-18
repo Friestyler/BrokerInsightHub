@@ -636,12 +636,24 @@ export const vendors = pgTable("vendors", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Product model
+// Product Categories model - supports nested hierarchy
+export const productCategories = pgTable("product_categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  parentId: integer("parent_id").references(() => productCategories.id),
+  status: text("status").notNull().default("active"), // active, inactive
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Product model - updated to use category reference
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description").notNull(),
-  category: text("category").notNull(),
+  categoryId: integer("category_id").references(() => productCategories.id),
+  category: text("category"), // Legacy field - will be phased out
   sku: text("sku"),
   price: integer("price"),
   vendorId: integer("vendor_id").references(() => vendors.id),
@@ -659,10 +671,27 @@ export const vendorsRelations = relations(vendors, ({ one, many }) => ({
   products: many(products),
 }));
 
+// Product Categories relationships - self-referencing for hierarchy
+export const productCategoriesRelations = relations(productCategories, ({ one, many }) => ({
+  parent: one(productCategories, {
+    fields: [productCategories.parentId],
+    references: [productCategories.id],
+    relationName: "categoryParent",
+  }),
+  children: many(productCategories, {
+    relationName: "categoryParent",
+  }),
+  products: many(products),
+}));
+
 export const productsRelations = relations(products, ({ one }) => ({
   vendor: one(vendors, {
     fields: [products.vendorId],
     references: [vendors.id],
+  }),
+  category: one(productCategories, {
+    fields: [products.categoryId],
+    references: [productCategories.id],
   }),
 }));
 
@@ -677,9 +706,17 @@ export const insertVendorSchema = createInsertSchema(vendors).pick({
   ownerId: true,
 });
 
+export const insertProductCategorySchema = createInsertSchema(productCategories).pick({
+  name: true,
+  description: true,
+  parentId: true,
+  status: true,
+});
+
 export const insertProductSchema = createInsertSchema(products).pick({
   name: true,
   description: true,
+  categoryId: true,
   category: true,
   sku: true,
   price: true,
@@ -1160,6 +1197,16 @@ export type InsertActivityAttachment = z.infer<typeof insertActivityAttachmentSc
 
 export type NextBestAction = typeof nextBestActions.$inferSelect;
 export type InsertNextBestAction = z.infer<typeof insertNextBestActionSchema>;
+
+// Product and Category types
+export type Vendor = typeof vendors.$inferSelect;
+export type InsertVendor = z.infer<typeof insertVendorSchema>;
+
+export type ProductCategory = typeof productCategories.$inferSelect;
+export type InsertProductCategory = z.infer<typeof insertProductCategorySchema>;
+
+export type Product = typeof products.$inferSelect;
+export type InsertProduct = z.infer<typeof insertProductSchema>;
 
 export const insertBrokerPartnerMappingSchema = createInsertSchema(brokerPartnerMappings).pick({
   brokerUserId: true,
