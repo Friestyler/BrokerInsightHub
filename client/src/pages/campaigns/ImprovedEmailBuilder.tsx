@@ -504,14 +504,14 @@ Status: Ready for deployment`;
             {/* Main Content Area - 3 columns */}
             <div className="col-span-3 space-y-6">
               {/* Email Settings */}
-              <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Subject Line</label>
                   <Input
                     placeholder="Enter email subject..."
                     value={editingEmail.subject}
                     onChange={(e) => updateEmailField('subject', e.target.value)}
-                    className="h-11"
+                    className="h-11 w-full"
                   />
                 </div>
                 {expandedEmailIndex > 0 && (
