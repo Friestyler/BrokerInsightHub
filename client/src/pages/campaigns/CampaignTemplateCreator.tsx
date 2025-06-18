@@ -772,7 +772,7 @@ export default function CampaignTemplateCreator() {
               </Button>
               <div>
                 <h1 className="text-lg font-medium text-gray-900">
-                  {isEditMode ? `Edit Template: ${campaignData.name || 'Untitled'}` : `Step ${currentStep} of ${totalSteps}`}
+                  Create Campaign Template
                 </h1>
                 <p className="text-sm text-gray-600">
                   {isEditMode ? 'Make changes and save when ready' : `${Math.round(progress)}% Complete`}
