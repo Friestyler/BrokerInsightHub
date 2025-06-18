@@ -700,8 +700,7 @@ export default function CampaignTemplateCreator() {
                     { id: 'calendar', icon: Calendar, color: 'bg-green-500' },
                     { id: 'shield', icon: Shield, color: 'bg-indigo-500' },
                     { id: 'star', icon: Star, color: 'bg-purple-500' },
-                    { id: 'mail', icon: Mail, color: 'bg-gray-500' },
-                    { id: 'rocket', icon: Rocket, color: 'bg-indigo-500' }
+                    { id: 'mail', icon: Mail, color: 'bg-gray-500' }
                   ].map((iconOption) => {
                     const IconComponent = iconOption.icon;
                     return (
