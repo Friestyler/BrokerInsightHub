@@ -38,7 +38,7 @@ import {
   useQueryClient
 } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Package2, Plus, SquarePen, Building, FolderTree } from "lucide-react";
+import { Package2, Plus, SquarePen, Building, FolderTree, Search, Filter, Settings, Tag } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useToast } from "@/hooks/use-toast";
 import { ProductCategoryManager } from "@/components/products/ProductCategoryManager";
@@ -61,11 +61,43 @@ type Vendor = {
   name: string;
 };
 
+type Catalogue = {
+  id: number;
+  name: string;
+  description: string;
+  status: 'active' | 'inactive';
+  createdAt: string;
+  updatedAt: string;
+};
+
+type CatalogueProduct = {
+  id: number;
+  product_id: number;
+  catalogue_id: number;
+  category_id: number | null;
+  visible: boolean;
+  name_override: string | null;
+  price_override: number | null;
+  display_name: string;
+  display_price: number | null;
+  product_name: string;
+  base_price: number | null;
+  category_name: string | null;
+};
+
+type ProductWithCatalogues = Product & {
+  catalogues: string[];
+  catalogue_count: number;
+};
+
 export default function ProductsPage() {
   const { environment } = useEnvironment();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCatalogueFilter, setSelectedCatalogueFilter] = useState<string>('all');
+  const [selectedCatalogueId, setSelectedCatalogueId] = useState<number | null>(null);
   const [newProduct, setNewProduct] = useState({
     name: "",
     description: "",
@@ -171,9 +203,9 @@ export default function ProductsPage() {
             <Package2 className="h-4 w-4" />
             <span>Products</span>
           </TabsTrigger>
-          <TabsTrigger value="categories" className="flex items-center space-x-2">
+          <TabsTrigger value="catalogues" className="flex items-center space-x-2">
             <FolderTree className="h-4 w-4" />
-            <span>Categories</span>
+            <span>Catalogues</span>
           </TabsTrigger>
         </TabsList>
 
