@@ -763,70 +763,74 @@ export default function CampaignTemplateCreator() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" onClick={handleBack} className="gap-2">
-              <ArrowLeft className="h-4 w-4" />
-              Back
-            </Button>
-            <div>
-              <h1 className="text-lg font-medium text-gray-900">
-                {isEditMode ? `Edit Template: ${campaignData.name || 'Untitled'}` : `Step ${currentStep} of ${totalSteps}`}
-              </h1>
-              <p className="text-sm text-gray-600">
-                {isEditMode ? 'Make changes and save when ready' : `${Math.round(progress)}% Complete`}
-              </p>
-            </div>
-            
-            {/* Steps Progress */}
-            <div className="flex-1 ml-4">
-              <div className="flex justify-between items-center relative">
-                {/* Connecting Line Background */}
-                <div className="absolute top-4 left-4 right-4 h-0.5 bg-gray-200 z-0" />
-                
-                {steps.map((step, index) => (
-                  <div key={step.number} className="flex flex-col items-center relative z-10">
-                    {/* Step Circle */}
-                    <div 
-                      className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-all cursor-pointer relative ${
-                        isStepCompleted(step.number) 
-                          ? 'bg-[#5567E5] text-white hover:bg-[#4956D4]' 
-                          : currentStep === step.number 
-                            ? 'bg-[#F5F6FE] text-[#5567E5] ring-4 ring-[#E8EAFD]' 
-                            : isStepAccessible(step.number)
-                              ? 'bg-gray-200 text-gray-500 hover:bg-gray-300'
-                              : 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-60'
-                      }`}
-                      onClick={() => isStepAccessible(step.number) ? setCurrentStep(step.number) : undefined}
-                    >
-                      {isStepCompleted(step.number) ? <Check className="h-4 w-4" /> : step.number}
-                    </div>
-                    
-                    {/* Step Text */}
-                    <div className="mt-2 text-center">
-                      <p className={`text-xs font-medium ${
-                        currentStep === step.number ? 'text-[#5567E5]' : 'text-gray-900'
-                      }`}>{step.title}</p>
-                    </div>
-                  </div>
-                ))}
-                
-                {/* Progress Line */}
-                <div 
-                  className="absolute top-4 left-4 h-0.5 bg-[#5567E5] z-5 transition-all duration-300"
-                  style={{ 
-                    width: `calc(${((currentStep - 1) / (steps.length - 1)) * 100}% - 16px + ${((currentStep - 1) / (steps.length - 1)) * 16}px)`
-                  }}
-                />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" size="sm" onClick={handleBack} className="gap-2">
+                <ArrowLeft className="h-4 w-4" />
+                Back
+              </Button>
+              <div>
+                <h1 className="text-lg font-medium text-gray-900">
+                  {isEditMode ? `Edit Template: ${campaignData.name || 'Untitled'}` : `Step ${currentStep} of ${totalSteps}`}
+                </h1>
+                <p className="text-sm text-gray-600">
+                  {isEditMode ? 'Make changes and save when ready' : `${Math.round(progress)}% Complete`}
+                </p>
               </div>
             </div>
           </div>
         </div>
       </div>
-
+      {/* Steps Progress */}
+      <div className="bg-white border-b">
+        <div className="max-w-6xl mx-auto px-6 py-6" style={{ backgroundColor: '#F5F7FA' }}>
+          <div className="flex justify-between items-start relative">
+            {/* Connecting Line Background */}
+            <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 z-0" style={{ marginLeft: '4rem', marginRight: '4rem' }} />
+            
+            {steps.map((step, index) => (
+              <div key={step.number} className="flex flex-col items-center flex-1 relative z-10">
+                {/* Step Circle */}
+                <div 
+                  className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-all cursor-pointer relative ${
+                    isStepCompleted(step.number) 
+                      ? 'bg-[#5567E5] text-white hover:bg-[#4956D4]' 
+                      : currentStep === step.number 
+                        ? 'bg-[#F5F6FE] text-[#5567E5] ring-4 ring-[#E8EAFD]' 
+                        : isStepAccessible(step.number)
+                          ? 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                          : 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-60'
+                  }`}
+                  onClick={() => isStepAccessible(step.number) ? setCurrentStep(step.number) : undefined}
+                >
+                  {isStepCompleted(step.number) ? <Check className="h-4 w-4" /> : step.number}
+                </div>
+                
+                {/* Step Text */}
+                <div className="mt-3 text-center">
+                  <p className={`text-sm font-medium ${
+                    currentStep === step.number ? 'text-[#5567E5]' : 'text-gray-900'
+                  }`}>{step.title}</p>
+                  <p className="text-xs text-gray-500 mt-1">{step.description}</p>
+                </div>
+              </div>
+            ))}
+            
+            {/* Progress Line */}
+            <div 
+              className="absolute top-4 left-0 h-0.5 bg-[#5567E5] z-5 transition-all duration-300"
+              style={{ 
+                marginLeft: '4rem',
+                width: `calc(${((currentStep - 1) / (steps.length - 1)) * 100}% - 8rem + ${((currentStep - 1) / (steps.length - 1)) * 8}rem)`
+              }}
+            />
+          </div>
+        </div>
+      </div>
       {/* Content */}
       <div className="max-w-6xl mx-auto px-6 py-4">
         {renderStepContent()}
