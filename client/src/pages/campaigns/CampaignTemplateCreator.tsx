@@ -527,7 +527,7 @@ export default function CampaignTemplateCreator() {
         return (
           <div className="space-y-8">
             <div className="text-center mt-8">
-              <p className="text-gray-600 text-[16px]">Select the type of audience you want to create a template for</p>
+              <p className="text-gray-600 text-[16px] text-left">Select the type of audience you want to create a template for</p>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
               {entityOptions.map((option) => {
