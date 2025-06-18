@@ -141,82 +141,63 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
 
   if (!isExpanded) {
     return (
-      <div className="border-t border-[#E6E7F1] pt-3 mt-3">
-        {/* Futuristic Floating Composer */}
-        <div className="relative group">
-          {/* Compact Toggle Pills */}
-          <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
-            <div className="flex items-center bg-black/90 backdrop-blur-xl rounded-full p-0.5 border border-white/10 shadow-xl">
+      <div className="border-t border-[#E6E7F1] pt-4 mt-4">
+        {/* Modern Floating Input Bar */}
+        <div className="relative">
+          <div className="bg-white rounded-full border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-200 p-1">
+            <div className="flex items-center gap-2">
+              {/* Mode Toggle */}
               <button
-                onClick={() => setActiveMode('comment')}
-                className={`relative px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 ${
-                  activeMode === 'comment'
-                    ? 'bg-gradient-to-r from-blue-500 to-cyan-500 text-white shadow-lg shadow-blue-500/25'
-                    : 'text-gray-300 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                💬
-              </button>
-              <button
-                onClick={() => setActiveMode('task')}
-                className={`relative px-3 py-1 rounded-full text-xs font-medium transition-all duration-300 ${
+                onClick={() => setActiveMode(activeMode === 'comment' ? 'task' : 'comment')}
+                className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 ${
                   activeMode === 'task'
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-500 text-white shadow-lg shadow-green-500/25'
-                    : 'text-gray-300 hover:text-white hover:bg-white/10'
+                    ? 'bg-green-100 text-green-600 hover:bg-green-200'
+                    : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
                 }`}
               >
-                ✓
+                {activeMode === 'task' ? (
+                  <CheckSquare className="h-4 w-4" />
+                ) : (
+                  <MessageSquare className="h-4 w-4" />
+                )}
               </button>
+
+              {/* Input Area */}
+              <button
+                onClick={() => setIsExpanded(true)}
+                className="flex-1 text-left px-3 py-2 text-gray-500 hover:text-gray-700 transition-colors duration-200"
+              >
+                Add a note or task...
+              </button>
+
+              {/* Right Actions */}
+              <div className="flex items-center gap-1 pr-1">
+                <button className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all duration-200">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                  </svg>
+                </button>
+                <button 
+                  disabled
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-gray-300 cursor-not-allowed"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                </button>
+              </div>
             </div>
           </div>
-
-          {/* Neural Network Input */}
-          <button
-            onClick={() => setIsExpanded(true)}
-            className="relative w-full p-3 bg-gradient-to-r from-gray-900 to-gray-800 border border-gray-700/50 rounded-2xl hover:border-gray-600 transition-all duration-300 overflow-hidden group-hover:shadow-2xl group-hover:shadow-blue-500/10"
-          >
-            {/* Animated Background Grid */}
-            <div className="absolute inset-0 opacity-20">
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent animate-pulse"></div>
-            </div>
-            
-            <div className="relative flex items-center gap-3">
-              <div className={`w-7 h-7 rounded-full flex items-center justify-center transition-all duration-300 ${
-                activeMode === 'task' 
-                  ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 border border-green-500/30' 
-                  : 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border border-blue-500/30'
-              }`}>
-                {activeMode === 'task' ? (
-                  <CheckSquare className="h-3 w-3 text-green-400" />
-                ) : (
-                  <MessageSquare className="h-3 w-3 text-blue-400" />
-                )}
-              </div>
-              <span className="text-sm text-gray-300 font-medium">{getPlaceholder()}</span>
-              <div className="ml-auto flex items-center space-x-1">
-                <div className="w-1 h-1 bg-blue-400 rounded-full animate-pulse"></div>
-                <div className="w-1 h-1 bg-green-400 rounded-full animate-pulse delay-100"></div>
-                <div className="w-1 h-1 bg-purple-400 rounded-full animate-pulse delay-200"></div>
-              </div>
-            </div>
-          </button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="border-t border-[#E6E7F1] pt-3 mt-3">
-      {/* Futuristic Expanded Composer */}
-      <div className="relative bg-gradient-to-br from-gray-900 via-gray-800 to-black rounded-3xl border border-gray-700/50 shadow-2xl shadow-black/20 overflow-hidden">
-        {/* Neural Network Background */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-green-500/10 animate-pulse"></div>
-          <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-blue-400/30 to-transparent"></div>
-          <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-green-400/30 to-transparent"></div>
-        </div>
-
-        <div className="relative p-4 space-y-3">
+    <div className="border-t border-[#E6E7F1] pt-4 mt-4">
+      {/* Modern Expanded Composer */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-xl shadow-gray-100/50 overflow-hidden">
+        <div className="p-4 space-y-4">
           {/* Input Field */}
           <div className="relative">
             <Textarea
@@ -232,51 +213,45 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
                   handleCancel();
                 }
               }}
-              className="w-full min-h-[60px] resize-none border-0 bg-black/40 backdrop-blur-sm text-gray-200 rounded-2xl p-4 text-sm transition-all duration-300 focus:bg-black/60 focus:ring-2 focus:ring-blue-400/50 placeholder:text-gray-500"
+              className="w-full min-h-[80px] resize-none border border-gray-200 bg-gray-50 text-gray-900 rounded-xl p-4 text-sm transition-all duration-200 focus:bg-white focus:border-blue-300 focus:ring-2 focus:ring-blue-100 placeholder:text-gray-500"
               autoFocus
             />
-            {/* Typing Indicator */}
-            <div className="absolute bottom-2 right-2 flex space-x-1">
-              <div className={`w-1 h-1 rounded-full transition-all duration-300 ${content ? 'bg-green-400 animate-pulse' : 'bg-gray-600'}`}></div>
-              <div className={`w-1 h-1 rounded-full transition-all duration-300 delay-100 ${content ? 'bg-blue-400 animate-pulse' : 'bg-gray-600'}`}></div>
-              <div className={`w-1 h-1 rounded-full transition-all duration-300 delay-200 ${content ? 'bg-purple-400 animate-pulse' : 'bg-gray-600'}`}></div>
-            </div>
           </div>
 
           {/* Task-specific Controls */}
           {activeMode === 'task' && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
               {/* Priority Selector */}
               <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger className="w-28 h-8 text-xs bg-black/40 border border-gray-600/50 rounded-xl text-gray-300 hover:bg-black/60 transition-all duration-300">
+                <SelectTrigger className="w-32 h-9 text-sm bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-900 border-gray-700 rounded-xl">
-                  <SelectItem value="low" className="text-green-400">🟢 Low</SelectItem>
-                  <SelectItem value="medium" className="text-yellow-400">🟡 Med</SelectItem>
-                  <SelectItem value="high" className="text-orange-400">🟠 High</SelectItem>
-                  <SelectItem value="urgent" className="text-red-400">🔴 Urgent</SelectItem>
+                <SelectContent className="bg-white border border-gray-200 rounded-xl shadow-lg">
+                  <SelectItem value="low">🟢 Low</SelectItem>
+                  <SelectItem value="medium">🟡 Medium</SelectItem>
+                  <SelectItem value="high">🟠 High</SelectItem>
+                  <SelectItem value="urgent">🔴 Urgent</SelectItem>
                 </SelectContent>
               </Select>
 
               {/* Assignee Selector */}
               <Select value={assignedTo} onValueChange={setAssignedTo}>
-                <SelectTrigger className="w-32 h-8 text-xs bg-black/40 border border-gray-600/50 rounded-xl text-gray-300 hover:bg-black/60 transition-all duration-300">
-                  <SelectValue placeholder="Assign..." />
+                <SelectTrigger className="w-40 h-9 text-sm bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+                  <SelectValue placeholder="Assign to..." />
                 </SelectTrigger>
-                <SelectContent className="bg-gray-900 border-gray-700 rounded-xl">
+                <SelectContent className="bg-white border border-gray-200 rounded-xl shadow-lg">
                   {teamMembers.map((member) => (
-                    <SelectItem key={member.id} value={member.id} className="text-gray-300">
+                    <SelectItem key={member.id} value={member.id}>
                       <div className="flex items-center gap-2">
-                        <User className="h-3 w-3" />
-                        <span className="text-xs">{member.name.split(' ')[0]}</span>
+                        <User className="h-4 w-4 text-gray-500" />
+                        <span className="font-medium">{member.name}</span>
                       </div>
                     </SelectItem>
                   ))}
-                  <SelectItem value="ai-agent" disabled className="text-gray-500">
-                    <div className="flex items-center gap-2">
-                      <Bot className="h-3 w-3" />
-                      <span className="text-xs">AI Agent</span>
+                  <SelectItem value="ai-agent" disabled>
+                    <div className="flex items-center gap-2 text-gray-400">
+                      <Bot className="h-4 w-4" />
+                      <span>AI Agent (coming later)</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -285,46 +260,52 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
           )}
 
           {/* Footer */}
-          <div className="flex items-center justify-between pt-2 border-t border-gray-700/30">
+          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
             {/* Visibility Toggle */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Switch
                 checked={visibleToPartner}
                 onCheckedChange={setVisibleToPartner}
-                className="data-[state=checked]:bg-blue-500 scale-75"
+                className="data-[state=checked]:bg-blue-500"
               />
-              <span className="text-xs text-gray-400 flex items-center gap-1">
-                {visibleToPartner ? <Eye className="h-3 w-3 text-blue-400" /> : <EyeOff className="h-3 w-3" />}
-                Partner View
+              <span className="text-sm text-gray-600 flex items-center gap-2">
+                {visibleToPartner ? <Eye className="h-4 w-4 text-blue-500" /> : <EyeOff className="h-4 w-4 text-gray-400" />}
+                Visible to partner
               </span>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Button 
                 variant="ghost" 
                 size="sm" 
                 onClick={handleCancel} 
-                className="h-7 px-3 text-xs text-gray-400 hover:text-gray-200 hover:bg-white/5 rounded-lg transition-all duration-300"
+                className="h-9 px-4 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
-                ✕
+                Cancel
               </Button>
               <Button
                 size="sm"
                 onClick={handleSubmit}
                 disabled={isLoading || !content.trim()}
-                className={`h-7 px-4 text-xs font-medium rounded-lg transition-all duration-300 ${
+                className={`h-9 px-6 text-sm font-medium rounded-lg transition-all duration-200 ${
                   activeMode === 'task' 
-                    ? 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white shadow-lg shadow-green-500/25' 
-                    : 'bg-gradient-to-r from-blue-500 to-cyan-500 hover:from-blue-600 hover:to-cyan-600 text-white shadow-lg shadow-blue-500/25'
-                } disabled:opacity-30 disabled:cursor-not-allowed disabled:shadow-none`}
+                    ? 'bg-green-600 hover:bg-green-700 text-white' 
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                } disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md`}
               >
                 {isLoading ? (
-                  <div className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Sending...</span>
+                  </div>
                 ) : (
-                  <>
-                    {activeMode === 'task' ? '⚡' : '💫'} Send
-                  </>
+                  <div className="flex items-center gap-2">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                    {activeMode === 'task' ? 'Add Task' : 'Add Comment'}
+                  </div>
                 )}
               </Button>
             </div>
