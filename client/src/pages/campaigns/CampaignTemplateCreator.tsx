@@ -864,7 +864,7 @@ export default function CampaignTemplateCreator() {
               <Button
                 onClick={handleNext}
                 disabled={!canProceed()}
-                className="gap-2 bg-blue-600 hover:bg-blue-700"
+                className="gap-2 bg-[#5567E5] hover:bg-[#4956D4]"
               >
                 Continue to {steps.find(s => s.number === currentStep + 1)?.title}
                 <ArrowRight className="h-4 w-4" />
@@ -875,7 +875,7 @@ export default function CampaignTemplateCreator() {
               <Button
                 onClick={handleSaveTemplate}
                 disabled={!canProceed() || saveTemplateMutation.isPending}
-                className="gap-2 bg-blue-600 hover:bg-blue-700"
+                className="gap-2 bg-[#5567E5] hover:bg-[#4956D4]"
               >
                 {saveTemplateMutation.isPending ? 'Saving...' : 'Save Template'}
                 <ArrowRight className="h-4 w-4" />

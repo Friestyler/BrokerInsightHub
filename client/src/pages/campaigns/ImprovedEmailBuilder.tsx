@@ -614,7 +614,7 @@ Status: Ready for deployment`;
                         />
                       )}
                       {block.type === 'quote' && (
-                        <div className="border-l-4 border-blue-500 pl-4">
+                        <div className="border-l-4 border-[#5567E5] pl-4">
                           <Textarea
                             value={block.content}
                             onChange={(e) => updateBlockContent(blockIndex, e.target.value)}
@@ -636,7 +636,7 @@ Status: Ready for deployment`;
                             value={block.properties?.url || ''}
                             onChange={(e) => updateBlockProperties(blockIndex, { url: e.target.value })}
                             placeholder="Button URL..."
-                            className="text-sm text-blue-600 bg-transparent"
+                            className="text-sm text-[#5567E5] bg-transparent"
                           />
                         </div>
                       )}
@@ -670,10 +670,10 @@ Status: Ready for deployment`;
                       )}
                       {block.type === 'ai' && block.properties?.aiType === 'ai-paragraph' && (
                         <div className="space-y-4">
-                          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                          <div className="bg-[#F5F6FE] border border-[#D1D5F0] rounded-lg p-4">
                             <div className="flex items-center gap-2 mb-3">
-                              <Sparkles className="h-4 w-4 text-purple-600" />
-                              <span className="text-sm font-medium text-purple-700">AI Paragraph Generator</span>
+                              <Sparkles className="h-4 w-4 text-[#5567E5]" />
+                              <span className="text-sm font-medium text-[#4956D4]">AI Paragraph Generator</span>
                             </div>
                             <Textarea
                               value={block.properties?.aiPrompt || ''}
@@ -684,7 +684,7 @@ Status: Ready for deployment`;
                             />
                             <Button 
                               size="sm" 
-                              className="bg-purple-600 hover:bg-purple-700"
+                              className="bg-[#5567E5] hover:bg-[#4956D4]"
                               onClick={() => {
                                 const prompt = block.properties?.aiPrompt || '';
                                 if (prompt.trim()) {
@@ -720,7 +720,7 @@ Status: Ready for deployment`;
                             />
                             <Button 
                               size="sm" 
-                              className="bg-blue-600 hover:bg-blue-700"
+                              className="bg-[#5567E5] hover:bg-[#4956D4]"
                               onClick={() => {
                                 const query = block.properties?.dataQuery || '';
                                 if (query.trim()) {
