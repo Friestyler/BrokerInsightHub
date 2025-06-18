@@ -154,7 +154,7 @@ export default function ProductsPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Products</h1>
-          <p className="text-gray-500">Manage your product catalog</p>
+          <p className="text-gray-500">Manage your product catalog and categories</p>
         </div>
         <Button 
           className="bg-indigo-600 hover:bg-indigo-700"
@@ -165,8 +165,21 @@ export default function ProductsPage() {
         </Button>
       </div>
 
-      <Card>
-        <CardContent className="pt-6">
+      <Tabs defaultValue="products" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="products" className="flex items-center space-x-2">
+            <Package2 className="h-4 w-4" />
+            <span>Products</span>
+          </TabsTrigger>
+          <TabsTrigger value="categories" className="flex items-center space-x-2">
+            <FolderTree className="h-4 w-4" />
+            <span>Categories</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="products" className="space-y-4">
+          <Card>
+            <CardContent className="pt-6">
           {isLoading ? (
             <div className="text-center py-4">Loading products...</div>
           ) : products && products.length > 0 ? (
@@ -236,8 +249,14 @@ export default function ProductsPage() {
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="categories" className="space-y-4">
+          <ProductCategoryManager envId={currentEnvironment.id} />
+        </TabsContent>
+      </Tabs>
 
       {/* Create Product Modal */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
