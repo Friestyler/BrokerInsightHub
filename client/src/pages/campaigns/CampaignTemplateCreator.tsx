@@ -527,7 +527,7 @@ export default function CampaignTemplateCreator() {
         return (
           <div className="space-y-8">
             <div className="text-center mt-8">
-              <p className="text-gray-600 text-left text-[14px] font-normal">Select the type of audience you want to create a template for</p>
+              <p className="text-gray-600 text-center text-[14px] font-normal">Select the type of audience you want to create a template for</p>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
               {entityOptions.map((option) => {
@@ -651,7 +651,7 @@ export default function CampaignTemplateCreator() {
         return (
           <div className="space-y-8">
             <div className="text-center mt-8">
-              <p className="text-gray-600 text-left text-[14px]">Configure your template settings</p>
+              <p className="text-gray-600 text-center text-[14px]">Configure your template settings</p>
             </div>
             <div className="max-w-2xl mx-auto space-y-6">
               <div>
@@ -730,7 +730,7 @@ export default function CampaignTemplateCreator() {
         return (
           <div className="space-y-8">
             <div className="text-center mt-8">
-              <p className="text-gray-600 text-left text-[14px]">Design your flow sequence step by step</p>
+              <p className="text-gray-600 text-center text-[14px]">Design your flow sequence step by step</p>
             </div>
             <ImprovedFlowBuilder
               emails={campaignData.emails}
