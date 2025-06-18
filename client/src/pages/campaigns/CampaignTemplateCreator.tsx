@@ -825,6 +825,7 @@ export default function CampaignTemplateCreator() {
                 />
               </div>
             </div>
+          </div>
         </div>
       </div>
 
