@@ -71,6 +71,172 @@ const getUserRoleName = (userId: number): string => {
   return roleMap[userId] || 'Unknown User';
 };
 
+interface TimelineComposerProps {
+  onCreateTask: (taskData: {
+    title: string;
+    priority: string;
+    assignedTo: string;
+    visibleToPartner: boolean;
+  }) => void;
+  teamMembers: Array<{ id: string; name: string }>;
+  isLoading: boolean;
+}
+
+const TimelineComposer = ({ onCreateTask, teamMembers, isLoading }: TimelineComposerProps) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [title, setTitle] = useState('');
+  const [priority, setPriority] = useState('medium');
+  const [assignedTo, setAssignedTo] = useState('');
+  const [visibleToPartner, setVisibleToPartner] = useState(true);
+
+  const handleSubmit = () => {
+    if (!title.trim()) return;
+    
+    onCreateTask({
+      title: title.trim(),
+      priority,
+      assignedTo,
+      visibleToPartner
+    });
+
+    // Reset form
+    setTitle('');
+    setPriority('medium');
+    setAssignedTo('');
+    setVisibleToPartner(true);
+    setIsExpanded(false);
+  };
+
+  const handleCancel = () => {
+    setTitle('');
+    setPriority('medium');
+    setAssignedTo('');
+    setVisibleToPartner(true);
+    setIsExpanded(false);
+  };
+
+  if (!isExpanded) {
+    return (
+      <div className="border-t border-gray-100 pt-3 mt-3">
+        <button
+          onClick={() => setIsExpanded(true)}
+          className="flex items-center gap-3 w-full text-left p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+        >
+          <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+            <CheckSquare className="h-4 w-4 text-green-600" />
+          </div>
+          <span className="text-sm text-gray-600">Add a task...</span>
+        </button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border-t border-gray-100 pt-3 mt-3">
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+        {/* Header */}
+        <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
+          <CheckSquare className="h-4 w-4 text-green-600" />
+          <span className="text-sm font-medium text-gray-700">Add Task</span>
+        </div>
+
+        {/* Content */}
+        <div className="p-4 space-y-3">
+          {/* Task Title */}
+          <div>
+            <Textarea
+              placeholder="Add a task..."
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit();
+                }
+                if (e.key === 'Escape') {
+                  handleCancel();
+                }
+              }}
+              className="min-h-[60px] resize-none border-0 bg-gray-50 focus:bg-white transition-colors placeholder:text-gray-500"
+              autoFocus
+            />
+          </div>
+
+          {/* Controls Row */}
+          <div className="flex items-center gap-3">
+            {/* Priority Selector */}
+            <Select value={priority} onValueChange={setPriority}>
+              <SelectTrigger className="w-32 h-8 text-xs">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="high">High</SelectItem>
+                <SelectItem value="urgent">Urgent</SelectItem>
+              </SelectContent>
+            </Select>
+
+            {/* Assignee Selector */}
+            <Select value={assignedTo} onValueChange={setAssignedTo}>
+              <SelectTrigger className="w-40 h-8 text-xs">
+                <SelectValue placeholder="Assign to..." />
+              </SelectTrigger>
+              <SelectContent>
+                {teamMembers.map((member) => (
+                  <SelectItem key={member.id} value={member.id}>
+                    <div className="flex items-center gap-2">
+                      <User className="h-3 w-3" />
+                      {member.name}
+                    </div>
+                  </SelectItem>
+                ))}
+                <SelectItem value="ai-agent" disabled>
+                  <div className="flex items-center gap-2 text-gray-400">
+                    <Bot className="h-3 w-3" />
+                    AI Agent (coming later)
+                  </div>
+                </SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-2">
+            {/* Visibility Toggle */}
+            <div className="flex items-center gap-2">
+              <Switch
+                checked={visibleToPartner}
+                onCheckedChange={setVisibleToPartner}
+                className="scale-75"
+              />
+              <span className="text-xs text-gray-600 flex items-center gap-1">
+                {visibleToPartner ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                Visible to partner
+              </span>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-2">
+              <Button variant="ghost" size="sm" onClick={handleCancel} className="h-7 px-3 text-xs">
+                <X className="h-3 w-3 mr-1" />Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSubmit}
+                disabled={isLoading || !title.trim()}
+                className="h-7 px-3 text-xs"
+              >
+                <Send className="h-3 w-3 mr-1" />Add
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function PartnerActivityHub({ partnerId, partnerName }: PartnerActivityHubProps) {
   const [location] = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(true);
@@ -773,93 +939,134 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
 
           {/* Timeline View */}
           {selectedActivityType === 'timeline' && (
-            <div className="space-y-4 max-h-64 overflow-y-auto">
-              {timelineData && timelineData.length > 0 ? (
-                timelineData
-                  .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                  .map((item: any, index: number) => {
-                    const isTask = item.activity_type === 'task';
-                    const isComment = item.activity_type === 'comment';
-                    const isAttachment = item.activity_type === 'attachment';
+            <div className="flex flex-col h-full">
+              {/* Timeline Content */}
+              <div className="flex-1 space-y-4 max-h-64 overflow-y-auto mb-4">
+                {timelineData && timelineData.length > 0 ? (
+                  timelineData
+                    .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                    .map((item: any, index: number) => {
+                      const isTask = item.activity_type === 'task';
+                      const isComment = item.activity_type === 'comment';
+                      const isAttachment = item.activity_type === 'attachment';
 
-                    return (
-                      <div key={`timeline-${item.activity_type}-${item.id}-${index}-${item.created_at.replace(/[^\w]/g, '')}`} className="flex items-start gap-3 relative">
-                        {/* Timeline line */}
-                        {index < timelineData.length - 1 && (
-                          <div className="absolute left-4 top-10 w-px h-8 bg-gray-200"></div>
-                        )}
-                        
-                        {/* Avatar/Icon */}
-                        <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center relative z-10 bg-white border-2 border-gray-200">
-                          {isTask && (
-                            <CheckSquare className="h-4 w-4 text-green-600" />
+                      return (
+                        <div key={`timeline-${item.activity_type}-${item.id}-${index}-${item.created_at.replace(/[^\w]/g, '')}`} className="flex items-start gap-3 relative">
+                          {/* Timeline line */}
+                          {index < timelineData.length - 1 && (
+                            <div className="absolute left-4 top-10 w-px h-8 bg-gray-200"></div>
                           )}
-                          {isComment && (
-                            <MessageSquare className="h-4 w-4 text-blue-600" />
-                          )}
-                          {isAttachment && (
-                            <Paperclip className="h-4 w-4 text-purple-600" />
-                          )}
-                          {!isTask && !isComment && !isAttachment && (
-                            <Clock className="h-4 w-4 text-gray-600" />
-                          )}
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="bg-white rounded-lg p-3 border border-gray-200">
-                            <div className="flex items-center justify-between mb-1">
-                              <span className="text-sm font-medium text-gray-900 capitalize">
-                                {item.activity_type || 'Activity'}
-                              </span>
-                              <span className="text-xs text-gray-500">
-                                {new Date(item.created_at).toLocaleString([], { 
-                                  month: 'short', 
-                                  day: 'numeric', 
-                                  hour: '2-digit', 
-                                  minute: '2-digit' 
-                                })}
-                              </span>
-                            </div>
-                            
-                            <p className="text-sm text-gray-700 mb-2">
-                              {item.activity_type === 'comment' ? item.content : (item.title || item.content || item.description || 'No description available')}
-                            </p>
-                            
-                            {item.details && (
-                              <p className="text-xs text-gray-500 mb-2">{item.details}</p>
+                          
+                          {/* Avatar/Icon */}
+                          <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center relative z-10 bg-white border-2 border-gray-200">
+                            {isTask && (
+                              <CheckSquare className="h-4 w-4 text-green-600" />
                             )}
-                            
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
-                              {(item.user_id || item.assigned_to) && (
-                                <div className="flex items-center gap-1">
-                                  <User className="h-3 w-3" />
-                                  <span>{getUserRoleName(item.user_id || item.assigned_to)}</span>
-                                </div>
+                            {isComment && (
+                              <MessageSquare className="h-4 w-4 text-blue-600" />
+                            )}
+                            {isAttachment && (
+                              <Paperclip className="h-4 w-4 text-purple-600" />
+                            )}
+                            {!isTask && !isComment && !isAttachment && (
+                              <Clock className="h-4 w-4 text-gray-600" />
+                            )}
+                          </div>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="bg-white rounded-lg p-3 border border-gray-200">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-sm font-medium text-gray-900 capitalize">
+                                  {item.activity_type || 'Activity'}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(item.created_at).toLocaleString([], { 
+                                    month: 'short', 
+                                    day: 'numeric', 
+                                    hour: '2-digit', 
+                                    minute: '2-digit' 
+                                  })}
+                                </span>
+                              </div>
+                              
+                              <p className="text-sm text-gray-700 mb-2">
+                                {item.activity_type === 'comment' ? item.content : (item.title || item.content || item.description || 'No description available')}
+                              </p>
+                              
+                              {item.details && (
+                                <p className="text-xs text-gray-500 mb-2">{item.details}</p>
                               )}
-                              {item.priority && (
-                                <Badge className={`${priorityColors[item.priority as keyof typeof priorityColors]} text-xs`}>
-                                  {item.priority}
-                                </Badge>
-                              )}
-                              {item.visible_to_partner && (
-                                <div className="flex items-center gap-1">
-                                  <Eye className="h-3 w-3 text-blue-500" />
-                                  <span className="text-blue-600">visible</span>
-                                </div>
-                              )}
+                              
+                              <div className="flex items-center gap-2 text-xs text-gray-500">
+                                {(item.user_id || item.assigned_to) && (
+                                  <div className="flex items-center gap-1">
+                                    <User className="h-3 w-3" />
+                                    <span>{getUserRoleName(item.user_id || item.assigned_to)}</span>
+                                  </div>
+                                )}
+                                {item.priority && (
+                                  <Badge className={`${priorityColors[item.priority as keyof typeof priorityColors]} text-xs`}>
+                                    {item.priority}
+                                  </Badge>
+                                )}
+                                {item.visible_to_partner && (
+                                  <div className="flex items-center gap-1">
+                                    <Eye className="h-3 w-3 text-blue-500" />
+                                    <span className="text-blue-600">visible</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <Calendar className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm">No timeline activity yet</p>
-                  <p className="text-xs text-gray-400 mt-1">Start by adding a task or comment to see the timeline</p>
-                </div>
-              )}
+                      );
+                    })
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Calendar className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                    <p className="text-sm">No timeline activity yet</p>
+                    <p className="text-xs text-gray-400 mt-1">Start by adding a task or comment to see the timeline</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Timeline Composer */}
+              <TimelineComposer
+                onCreateTask={(taskData: {
+                  title: string;
+                  priority: string;
+                  assignedTo: string;
+                  visibleToPartner: boolean;
+                }) => {
+                  // Use existing task creation logic
+                  const originalType = selectedActivityType;
+                  const originalTitle = taskTitle;
+                  const originalPriority = taskPriority;
+                  const originalAssignedTo = assignedTo;
+                  const originalVisibility = visibleToPartner;
+
+                  // Set temporary values for task creation
+                  setSelectedActivityType('task');
+                  setTaskTitle(taskData.title);
+                  setTaskPriority(taskData.priority);
+                  setAssignedTo(taskData.assignedTo);
+                  setVisibleToPartner(taskData.visibleToPartner);
+
+                  // Create the task
+                  handleCreateActivity();
+                  
+                  // Reset to original values after a brief delay
+                  setTimeout(() => {
+                    setSelectedActivityType(originalType);
+                    setTaskTitle(originalTitle);
+                    setTaskPriority(originalPriority);
+                    setAssignedTo(originalAssignedTo);
+                    setVisibleToPartner(originalVisibility);
+                  }, 100);
+                }}
+                teamMembers={teamMembers}
+                isLoading={createActivityMutation.isPending}
+              />
             </div>
           )}
 
