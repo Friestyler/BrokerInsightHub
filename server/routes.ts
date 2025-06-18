@@ -1837,7 +1837,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                COALESCE(rel.opportunity_count, 0) as opportunity_count,
                COALESCE(rel.customer_count, 0) as customer_count,
                COALESCE(rel.total_opportunity_value, 0) as total_opportunity_value,
-               COALESCE(rel.total_weighted_value, 0) as total_weighted_value
+               COALESCE(rel.total_weighted_value, 0) as total_weighted_value,
+               COALESCE(contact_rel.contact_count, 0) as contact_count
         FROM degoudse.partners p
         LEFT JOIN degoudse.users u ON p.owner_id = u.id
         LEFT JOIN (
@@ -1850,6 +1851,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
           WHERE partner_id IS NOT NULL AND id > 16
           GROUP BY partner_id
         ) rel ON p.id = rel.partner_id
+        LEFT JOIN (
+          SELECT COUNT(*) as contact_count, 'placeholder' as partner_reference
+          FROM degoudse.contacts 
+          WHERE is_active = true
+        ) contact_rel ON 1=1
         WHERE p.id > 5 OR p.id = 4
         ORDER BY p.id
       `);
@@ -1867,6 +1873,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         opportunityCount: parseInt(partner.opportunity_count) || 0,
         customers: parseInt(partner.customer_count) || 0,
         opportunities: parseInt(partner.opportunity_count) || 0,
+        contacts: parseInt(partner.contact_count) || 0,
         opportunity_value: parseFloat(partner.total_opportunity_value) || 0,
         weighted_opportunity_value: parseFloat(partner.total_weighted_value) || 0,
         location: partner.location,
