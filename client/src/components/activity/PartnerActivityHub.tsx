@@ -78,29 +78,41 @@ interface TimelineComposerProps {
     assignedTo: string;
     visibleToPartner: boolean;
   }) => void;
+  onCreateComment: (commentData: {
+    content: string;
+    visibleToPartner: boolean;
+  }) => void;
   teamMembers: Array<{ id: string; name: string }>;
   isLoading: boolean;
 }
 
-const TimelineComposer = ({ onCreateTask, teamMembers, isLoading }: TimelineComposerProps) => {
+const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoading }: TimelineComposerProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [title, setTitle] = useState('');
+  const [activeMode, setActiveMode] = useState<'task' | 'comment'>('task');
+  const [content, setContent] = useState('');
   const [priority, setPriority] = useState('medium');
   const [assignedTo, setAssignedTo] = useState('');
   const [visibleToPartner, setVisibleToPartner] = useState(true);
 
   const handleSubmit = () => {
-    if (!title.trim()) return;
+    if (!content.trim()) return;
     
-    onCreateTask({
-      title: title.trim(),
-      priority,
-      assignedTo,
-      visibleToPartner
-    });
+    if (activeMode === 'task') {
+      onCreateTask({
+        title: content.trim(),
+        priority,
+        assignedTo,
+        visibleToPartner
+      });
+    } else {
+      onCreateComment({
+        content: content.trim(),
+        visibleToPartner
+      });
+    }
 
     // Reset form
-    setTitle('');
+    setContent('');
     setPriority('medium');
     setAssignedTo('');
     setVisibleToPartner(true);
@@ -108,24 +120,41 @@ const TimelineComposer = ({ onCreateTask, teamMembers, isLoading }: TimelineComp
   };
 
   const handleCancel = () => {
-    setTitle('');
+    setContent('');
     setPriority('medium');
     setAssignedTo('');
     setVisibleToPartner(true);
     setIsExpanded(false);
   };
 
+  const getPlaceholder = () => {
+    return activeMode === 'task' ? 'What needs to be done?' : 'Write a comment...';
+  };
+
+  const getIcon = () => {
+    return activeMode === 'task' ? CheckSquare : MessageSquare;
+  };
+
+  const getIconColor = () => {
+    return activeMode === 'task' ? 'text-green-600' : 'text-blue-600';
+  };
+
   if (!isExpanded) {
+    const Icon = getIcon();
+    const iconColorClass = getIconColor();
+    const bgColorClass = activeMode === 'task' ? 'bg-green-100' : 'bg-blue-100';
+    const placeholder = activeMode === 'task' ? 'Add a task...' : 'Add a comment...';
+
     return (
       <div className="border-t border-gray-100 pt-3 mt-3">
         <button
           onClick={() => setIsExpanded(true)}
           className="flex items-center gap-3 w-full text-left p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
         >
-          <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-            <CheckSquare className="h-4 w-4 text-green-600" />
+          <div className={`flex-shrink-0 w-8 h-8 ${bgColorClass} rounded-full flex items-center justify-center`}>
+            <Icon className={`h-4 w-4 ${iconColorClass}`} />
           </div>
-          <span className="text-sm text-gray-600">Add a task...</span>
+          <span className="text-sm text-gray-600">{placeholder}</span>
         </button>
       </div>
     );
@@ -134,20 +163,40 @@ const TimelineComposer = ({ onCreateTask, teamMembers, isLoading }: TimelineComp
   return (
     <div className="border-t border-gray-100 pt-3 mt-3">
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
-        {/* Header */}
+        {/* Action Buttons */}
         <div className="flex items-center gap-2 px-4 py-3 border-b border-gray-100">
-          <CheckSquare className="h-4 w-4 text-green-600" />
-          <span className="text-sm font-medium text-gray-700">Add Task</span>
+          <button
+            onClick={() => setActiveMode('comment')}
+            className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${
+              activeMode === 'comment'
+                ? 'bg-blue-100 text-blue-700 shadow-sm'
+                : 'text-gray-600 hover:text-blue-600 hover:bg-blue-50'
+            }`}
+          >
+            <MessageSquare className="h-4 w-4" />
+            Comment
+          </button>
+          <button
+            onClick={() => setActiveMode('task')}
+            className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${
+              activeMode === 'task'
+                ? 'bg-green-100 text-green-700 shadow-sm'
+                : 'text-gray-600 hover:text-green-600 hover:bg-green-50'
+            }`}
+          >
+            <CheckSquare className="h-4 w-4" />
+            Task
+          </button>
         </div>
 
         {/* Content */}
         <div className="p-4 space-y-3">
-          {/* Task Title */}
+          {/* Input Field */}
           <div>
             <Textarea
-              placeholder="Add a task..."
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              placeholder={getPlaceholder()}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
@@ -162,44 +211,46 @@ const TimelineComposer = ({ onCreateTask, teamMembers, isLoading }: TimelineComp
             />
           </div>
 
-          {/* Controls Row */}
-          <div className="flex items-center gap-3">
-            {/* Priority Selector */}
-            <Select value={priority} onValueChange={setPriority}>
-              <SelectTrigger className="w-32 h-8 text-xs">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="low">Low</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="urgent">Urgent</SelectItem>
-              </SelectContent>
-            </Select>
+          {/* Task-specific Controls */}
+          {activeMode === 'task' && (
+            <div className="flex items-center gap-3">
+              {/* Priority Selector */}
+              <Select value={priority} onValueChange={setPriority}>
+                <SelectTrigger className="w-32 h-8 text-xs">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
+                </SelectContent>
+              </Select>
 
-            {/* Assignee Selector */}
-            <Select value={assignedTo} onValueChange={setAssignedTo}>
-              <SelectTrigger className="w-40 h-8 text-xs">
-                <SelectValue placeholder="Assign to..." />
-              </SelectTrigger>
-              <SelectContent>
-                {teamMembers.map((member) => (
-                  <SelectItem key={member.id} value={member.id}>
-                    <div className="flex items-center gap-2">
-                      <User className="h-3 w-3" />
-                      {member.name}
+              {/* Assignee Selector */}
+              <Select value={assignedTo} onValueChange={setAssignedTo}>
+                <SelectTrigger className="w-40 h-8 text-xs">
+                  <SelectValue placeholder="Assign to..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {teamMembers.map((member) => (
+                    <SelectItem key={member.id} value={member.id}>
+                      <div className="flex items-center gap-2">
+                        <User className="h-3 w-3" />
+                        {member.name}
+                      </div>
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="ai-agent" disabled>
+                    <div className="flex items-center gap-2 text-gray-400">
+                      <Bot className="h-3 w-3" />
+                      AI Agent (coming later)
                     </div>
                   </SelectItem>
-                ))}
-                <SelectItem value="ai-agent" disabled>
-                  <div className="flex items-center gap-2 text-gray-400">
-                    <Bot className="h-3 w-3" />
-                    AI Agent (coming later)
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
           {/* Footer */}
           <div className="flex items-center justify-between pt-2">
@@ -224,7 +275,7 @@ const TimelineComposer = ({ onCreateTask, teamMembers, isLoading }: TimelineComp
               <Button
                 size="sm"
                 onClick={handleSubmit}
-                disabled={isLoading || !title.trim()}
+                disabled={isLoading || !content.trim()}
                 className="h-7 px-3 text-xs"
               >
                 <Send className="h-3 w-3 mr-1" />Add
@@ -1061,6 +1112,30 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                     setTaskTitle(originalTitle);
                     setTaskPriority(originalPriority);
                     setAssignedTo(originalAssignedTo);
+                    setVisibleToPartner(originalVisibility);
+                  }, 100);
+                }}
+                onCreateComment={(commentData: {
+                  content: string;
+                  visibleToPartner: boolean;
+                }) => {
+                  // Use existing comment creation logic
+                  const originalType = selectedActivityType;
+                  const originalContent = commentContent;
+                  const originalVisibility = visibleToPartner;
+
+                  // Set temporary values for comment creation
+                  setSelectedActivityType('comment');
+                  setCommentContent(commentData.content);
+                  setVisibleToPartner(commentData.visibleToPartner);
+
+                  // Create the comment
+                  handleCreateActivity();
+                  
+                  // Reset to original values after a brief delay
+                  setTimeout(() => {
+                    setSelectedActivityType(originalType);
+                    setCommentContent(originalContent);
                     setVisibleToPartner(originalVisibility);
                   }, 100);
                 }}
