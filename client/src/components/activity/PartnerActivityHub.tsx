@@ -88,7 +88,7 @@ interface TimelineComposerProps {
 
 const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoading }: TimelineComposerProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [activeMode, setActiveMode] = useState<'task' | 'comment'>('task');
+  const [activeMode, setActiveMode] = useState<'task' | 'comment'>('comment');
   const [content, setContent] = useState('');
   const [priority, setPriority] = useState('medium');
   const [assignedTo, setAssignedTo] = useState('');
@@ -146,21 +146,10 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
         <div className="relative">
           <div className="bg-white rounded-full border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-200 p-1">
             <div className="flex items-center gap-2">
-              {/* Mode Toggle */}
-              <button
-                onClick={() => setActiveMode(activeMode === 'comment' ? 'task' : 'comment')}
-                className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center transition-all duration-200 ${
-                  activeMode === 'task'
-                    ? 'bg-green-100 text-green-600 hover:bg-green-200'
-                    : 'bg-blue-100 text-blue-600 hover:bg-blue-200'
-                }`}
-              >
-                {activeMode === 'task' ? (
-                  <CheckSquare className="h-4 w-4" />
-                ) : (
-                  <MessageSquare className="h-4 w-4" />
-                )}
-              </button>
+              {/* Comment Icon (Always visible) */}
+              <div className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-blue-100 text-blue-600">
+                <MessageSquare className="h-4 w-4" />
+              </div>
 
               {/* Input Area */}
               <button
@@ -176,6 +165,15 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
                   <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                   </svg>
+                </button>
+                <button 
+                  onClick={() => {
+                    setActiveMode('task');
+                    setIsExpanded(true);
+                  }}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-green-600 hover:bg-green-100 transition-all duration-200"
+                >
+                  <CheckSquare className="h-4 w-4" />
                 </button>
                 <button 
                   disabled
