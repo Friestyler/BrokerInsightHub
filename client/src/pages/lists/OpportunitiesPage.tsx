@@ -2276,11 +2276,31 @@ function OpportunitiesTable() {
                     </div>
                   </div>
                 </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[120px] truncate">
-                  {opportunity.clientName || opportunity.customerName}
+                <td className="px-3 py-4 text-sm w-[120px] truncate">
+                  {(opportunity.clientName || opportunity.customerName) ? (
+                    <Link 
+                      href={`/lists/customers/${opportunity.clientId || opportunity.customerId}`}
+                      className="text-indigo-600 hover:text-indigo-500 truncate block"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {opportunity.clientName || opportunity.customerName}
+                    </Link>
+                  ) : (
+                    <span className="text-gray-400">-</span>
+                  )}
                 </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[120px] truncate">
-                  {opportunity.partnerName}
+                <td className="px-3 py-4 text-sm w-[120px] truncate">
+                  {opportunity.partnerName ? (
+                    <Link 
+                      href={`/lists/partners/${opportunity.partnerId}`}
+                      className="text-indigo-600 hover:text-indigo-500 truncate block"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {opportunity.partnerName}
+                    </Link>
+                  ) : (
+                    <span className="text-gray-400">-</span>
+                  )}
                 </td>
 
                 <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
