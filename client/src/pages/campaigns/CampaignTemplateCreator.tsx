@@ -651,7 +651,6 @@ export default function CampaignTemplateCreator() {
         return (
           <div className="space-y-8">
             <div className="text-center">
-              <h2 className="text-xl font-medium text-gray-900 mb-2">Template Details</h2>
               <p className="text-gray-600 text-left text-[14px]">Configure your template settings</p>
             </div>
             <div className="max-w-2xl mx-auto space-y-6">
