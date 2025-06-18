@@ -122,6 +122,11 @@ export default function ProductsPage() {
     enabled: true
   });
 
+  const { data: catalogueProducts } = useQuery({
+    queryKey: [`/api/${environment.id}/catalogue-products`],
+    enabled: true
+  });
+
   const createProductMutation = useMutation({
     mutationFn: (data: any) => {
       return apiRequest('POST', `/api/${environment.id}/products`, data);
@@ -183,6 +188,11 @@ export default function ProductsPage() {
       currency: 'EUR',
       minimumFractionDigits: 0
     }).format(price);
+  };
+
+  const getProductCountForCatalogue = (catalogueId: number): number => {
+    if (!catalogueProducts || !Array.isArray(catalogueProducts)) return 0;
+    return catalogueProducts.filter((cp: any) => cp.catalogue_id === catalogueId).length;
   };
 
   return (
@@ -339,6 +349,9 @@ export default function ProductsPage() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider w-[120px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
                       Status
                     </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider w-[100px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                      Products
+                    </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider w-[120px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
                       Created
                     </th>
@@ -385,6 +398,12 @@ export default function ProductsPage() {
                             {catalogue.status}
                           </span>
                         </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <div className="flex items-center">
+                            <Package2 className="h-4 w-4 mr-2 text-gray-400" />
+                            {getProductCountForCatalogue(catalogue.id)}
+                          </div>
+                        </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                           {new Date(catalogue.createdAt).toLocaleDateString('en-US', {
                             month: 'short',
@@ -409,7 +428,7 @@ export default function ProductsPage() {
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center">
+                      <td colSpan={7} className="px-6 py-12 text-center">
                         <FolderTree className="mx-auto h-12 w-12 text-gray-400" />
                         <h3 className="mt-2 text-sm font-medium text-gray-900">No catalogues found</h3>
                         <p className="mt-1 text-sm text-gray-500">
