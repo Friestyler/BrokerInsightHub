@@ -527,7 +527,7 @@ export default function CampaignTemplateCreator() {
         return (
           <div className="space-y-12">
             <div className="text-center">
-              <h2 className="font-medium text-gray-900 mb-3 text-[20px]">Choose Target Group</h2>
+              <h2 className="font-medium text-gray-900 mb-3 text-[20px] text-left">Choose Target Group</h2>
               <p className="text-gray-600 text-[16px] text-left">Select the type of audience you want to create a template for</p>
             </div>
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
