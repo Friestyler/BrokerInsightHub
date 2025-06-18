@@ -706,10 +706,10 @@ Status: Ready for deployment`;
                       )}
                       {block.type === 'ai' && block.properties?.aiType === 'ai-data-fetch' && (
                         <div className="space-y-4">
-                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                          <div className="bg-[#F5F6FE] border border-[#D1D5F0] rounded-lg p-4">
                             <div className="flex items-center gap-2 mb-3">
-                              <Database className="h-4 w-4 text-blue-600" />
-                              <span className="text-sm font-medium text-blue-700">AI Data Fetching</span>
+                              <Database className="h-4 w-4 text-[#5567E5]" />
+                              <span className="text-sm font-medium text-[#4956D4]">AI Data Fetching</span>
                             </div>
                             <Textarea
                               value={block.properties?.dataQuery || ''}
@@ -743,10 +743,10 @@ Status: Ready for deployment`;
                       )}
                       {block.type === 'ai' && block.properties?.aiType && !['ai-paragraph', 'ai-data-fetch'].includes(block.properties.aiType) && (
                         <div className="space-y-3">
-                          <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                          <div className="bg-[#F5F6FE] border border-[#D1D5F0] rounded-lg p-3">
                             <div className="flex items-center gap-2 mb-2">
-                              <Sparkles className="h-4 w-4 text-purple-600" />
-                              <span className="text-sm font-medium text-purple-700">
+                              <Sparkles className="h-4 w-4 text-[#5567E5]" />
+                              <span className="text-sm font-medium text-[#4956D4]">
                                 {block.properties.aiType}
                               </span>
                             </div>
