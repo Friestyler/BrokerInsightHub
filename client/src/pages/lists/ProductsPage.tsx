@@ -117,6 +117,11 @@ export default function ProductsPage() {
     enabled: true
   });
 
+  const { data: catalogues } = useQuery<Catalogue[]>({
+    queryKey: [`/api/${environment.id}/product-catalogues`],
+    enabled: true
+  });
+
   const createProductMutation = useMutation({
     mutationFn: (data: any) => {
       return apiRequest('POST', `/api/${environment.id}/products`, data);
@@ -137,21 +142,20 @@ export default function ProductsPage() {
         description: "Product created successfully",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to create product. Please try again.",
+        description: error.message || "Failed to create product",
         variant: "destructive"
       });
-      console.error("Error creating product:", error);
     }
   });
 
   const handleCreateProduct = () => {
     if (!newProduct.name || !newProduct.description || !newProduct.category || !newProduct.vendorId) {
       toast({
-        title: "Validation Error",
-        description: "Name, description, category, and vendor are required",
+        title: "Error",
+        description: "Please fill in all required fields",
         variant: "destructive"
       });
       return;
@@ -159,16 +163,16 @@ export default function ProductsPage() {
 
     const productData = {
       ...newProduct,
-      price: newProduct.price ? parseInt(newProduct.price) : null,
+      price: newProduct.price ? parseFloat(newProduct.price) : null,
       vendorId: parseInt(newProduct.vendorId)
     };
 
     createProductMutation.mutate(productData);
   };
 
-  const getVendorName = (vendorId: number | null) => {
+  const getVendorName = (vendorId: number | null): string => {
     if (!vendorId || !vendors) return "Unknown";
-    const vendor = vendors.find(v => v.id === vendorId);
+    const vendor = vendors.find((v) => v.id === vendorId);
     return vendor ? vendor.name : "Unknown";
   };
 
@@ -210,6 +214,36 @@ export default function ProductsPage() {
         </TabsList>
 
         <TabsContent value="products" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Search products..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 w-64"
+                />
+              </div>
+            </div>
+            <div className="flex items-center space-x-4">
+              <Select value={selectedCatalogueFilter} onValueChange={setSelectedCatalogueFilter}>
+                <SelectTrigger className="w-48">
+                  <Filter className="h-4 w-4 mr-2" />
+                  <SelectValue placeholder="Filter by catalogue" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Catalogues</SelectItem>
+                  {catalogues?.map((catalogue) => (
+                    <SelectItem key={catalogue.id} value={catalogue.id.toString()}>
+                      {catalogue.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
           <Card>
             <CardContent className="pt-6">
           {isLoading ? (
@@ -218,12 +252,13 @@ export default function ProductsPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Category</TableHead>
+                  <TableHead>Product Name</TableHead>
+                  <TableHead>Description</TableHead>
                   <TableHead>SKU</TableHead>
                   <TableHead>Price</TableHead>
+                  <TableHead>Catalogues</TableHead>
                   <TableHead>Vendor</TableHead>
-                  <TableHead></TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -235,13 +270,16 @@ export default function ProductsPage() {
                         {product.name}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-1 text-xs text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
-                        {product.category}
-                      </span>
-                    </TableCell>
+                    <TableCell className="text-gray-600 max-w-xs truncate">{product.description}</TableCell>
                     <TableCell>{product.sku || "N/A"}</TableCell>
                     <TableCell>{formatPrice(product.price)}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          Multiple Catalogues
+                        </span>
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <Link 
                         href={`/lists/vendors/${product.vendorId}`}
@@ -251,15 +289,11 @@ export default function ProductsPage() {
                         {getVendorName(product.vendorId)}
                       </Link>
                     </TableCell>
-                    <TableCell>
-                      <div className="flex justify-end">
-                        <Link href={`/lists/products/${product.id}`}>
-                          <Button variant="ghost" size="sm">
-                            <SquarePen className="h-4 w-4" />
-                            <span className="sr-only">Edit</span>
-                          </Button>
-                        </Link>
-                      </div>
+                    <TableCell className="text-right">
+                      <Button variant="ghost" size="sm">
+                        <Settings className="h-4 w-4 mr-1" />
+                        Edit Assignment
+                      </Button>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -268,8 +302,8 @@ export default function ProductsPage() {
           ) : (
             <div className="text-center py-8">
               <Package2 className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-semibold text-gray-900">No products</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by adding a new product.</p>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No products</h3>
+              <p className="mt-1 text-sm text-gray-500">Get started by creating a new product.</p>
               <div className="mt-6">
                 <Button 
                   className="bg-indigo-600 hover:bg-indigo-700"
@@ -285,8 +319,94 @@ export default function ProductsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="categories" className="space-y-4">
-          <ProductCategoryManager envId={environment?.id || 'degoudse'} />
+        <TabsContent value="catalogues" className="space-y-4">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="lg:col-span-1">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center">
+                    <FolderTree className="h-5 w-5 mr-2" />
+                    Catalogues
+                  </CardTitle>
+                  <CardDescription>
+                    Select a catalogue to manage its categories
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    {catalogues?.map((catalogue) => (
+                      <div
+                        key={catalogue.id}
+                        className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                          selectedCatalogueId === catalogue.id
+                            ? 'bg-indigo-50 border-indigo-200'
+                            : 'hover:bg-gray-50'
+                        }`}
+                        onClick={() => setSelectedCatalogueId(catalogue.id)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="font-medium">{catalogue.name}</h3>
+                            <p className="text-sm text-gray-500">{catalogue.description}</p>
+                          </div>
+                          <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                            catalogue.status === 'active' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {catalogue.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                    {(!catalogues || catalogues.length === 0) && (
+                      <div className="text-center py-4 text-gray-500">
+                        No catalogues found
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="lg:col-span-2">
+              {selectedCatalogueId ? (
+                <Card>
+                  <CardHeader>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <CardTitle>Category Management</CardTitle>
+                        <CardDescription>
+                          Manage categories for {catalogues?.find(c => c.id === selectedCatalogueId)?.name}
+                        </CardDescription>
+                      </div>
+                      <Button variant="outline" size="sm">
+                        <Settings className="h-4 w-4 mr-2" />
+                        Edit Catalogue
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <ProductCategoryManager 
+                      envId={environment?.id || 'degoudse'} 
+                    />
+                  </CardContent>
+                </Card>
+              ) : (
+                <Card>
+                  <CardContent className="pt-6">
+                    <div className="text-center py-12">
+                      <FolderTree className="mx-auto h-12 w-12 text-gray-400" />
+                      <h3 className="mt-2 text-sm font-medium text-gray-900">Select a catalogue</h3>
+                      <p className="mt-1 text-sm text-gray-500">
+                        Choose a catalogue from the list to manage its categories and products.
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
 
@@ -383,7 +503,6 @@ export default function ProductsPage() {
               Cancel
             </Button>
             <Button 
-              className="bg-indigo-600 hover:bg-indigo-700"
               onClick={handleCreateProduct}
               disabled={createProductMutation.isPending}
             >
