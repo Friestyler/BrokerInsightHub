@@ -710,7 +710,7 @@ export default function CampaignTemplateCreator() {
                         onClick={() => setCampaignData({ ...campaignData, icon: iconOption.id })}
                         className={`relative p-3 rounded-lg transition-all duration-200 ${
                           campaignData.icon === iconOption.id 
-                            ? 'ring-2 ring-blue-500' 
+                            ? 'ring-2 ring-[#5567E5]' 
                             : 'hover:bg-gray-50'
                         }`}
                       >
@@ -718,7 +718,7 @@ export default function CampaignTemplateCreator() {
                           <IconComponent className="h-4 w-4 text-white" />
                         </div>
                         {campaignData.icon === iconOption.id && (
-                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#5567E5] rounded-full flex items-center justify-center">
                             <Check className="h-2 w-2 text-white" />
                           </div>
                         )}
@@ -798,9 +798,9 @@ export default function CampaignTemplateCreator() {
                 <div 
                   className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-all cursor-pointer relative ${
                     isStepCompleted(step.number) 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      ? 'bg-[#5567E5] text-white hover:bg-[#4956D4]' 
                       : currentStep === step.number 
-                        ? 'bg-blue-100 text-blue-600 ring-4 ring-blue-50' 
+                        ? 'bg-[#F5F6FE] text-[#5567E5] ring-4 ring-[#E8EAFD]' 
                         : isStepAccessible(step.number)
                           ? 'bg-gray-200 text-gray-500 hover:bg-gray-300'
                           : 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-60'
@@ -813,7 +813,7 @@ export default function CampaignTemplateCreator() {
                 {/* Step Text */}
                 <div className="mt-3 text-center">
                   <p className={`text-sm font-medium ${
-                    currentStep === step.number ? 'text-blue-600' : 'text-gray-900'
+                    currentStep === step.number ? 'text-[#5567E5]' : 'text-gray-900'
                   }`}>{step.title}</p>
                   <p className="text-xs text-gray-500 mt-1">{step.description}</p>
                 </div>
@@ -822,7 +822,7 @@ export default function CampaignTemplateCreator() {
             
             {/* Progress Line */}
             <div 
-              className="absolute top-4 left-0 h-0.5 bg-blue-600 z-5 transition-all duration-300"
+              className="absolute top-4 left-0 h-0.5 bg-[#5567E5] z-5 transition-all duration-300"
               style={{ 
                 marginLeft: '4rem',
                 width: `calc(${((currentStep - 1) / (steps.length - 1)) * 100}% - 8rem + ${((currentStep - 1) / (steps.length - 1)) * 8}rem)`
@@ -854,7 +854,7 @@ export default function CampaignTemplateCreator() {
                 onClick={handleSaveTemplate}
                 disabled={saveTemplateMutation.isPending}
                 variant="outline"
-                className="gap-2 border-blue-600 text-blue-600 hover:bg-blue-50"
+                className="gap-2 border-[#5567E5] text-[#5567E5] hover:bg-[#F5F6FE]"
               >
                 {saveTemplateMutation.isPending ? 'Saving...' : 'Save Changes'}
               </Button>
