@@ -782,7 +782,7 @@ export default function CampaignTemplateCreator() {
             </div>
             
             {/* Steps Progress */}
-            <div className="flex-1 max-w-md ml-4">
+            <div className="flex-1 ml-4">
               <div className="flex justify-between items-center relative">
                 {/* Connecting Line Background */}
                 <div className="absolute top-4 left-4 right-4 h-0.5 bg-gray-200 z-0" />
