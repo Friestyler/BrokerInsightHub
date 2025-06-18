@@ -728,13 +728,18 @@ export default function CampaignTemplateCreator() {
       
       case 3:
         return (
-          <ImprovedFlowBuilder
-            emails={campaignData.emails}
-            activeEmailIndex={activeEmailIndex}
-            entityType={campaignData.entity}
-            onEmailsChange={(newEmails: any[]) => setCampaignData({ ...campaignData, emails: newEmails })}
-            onActiveEmailChange={setActiveEmailIndex}
-          />
+          <div className="space-y-8">
+            <div className="text-center mt-8">
+              <p className="text-gray-600 text-left text-[14px]">Design your email sequence</p>
+            </div>
+            <ImprovedFlowBuilder
+              emails={campaignData.emails}
+              activeEmailIndex={activeEmailIndex}
+              entityType={campaignData.entity}
+              onEmailsChange={(newEmails: any[]) => setCampaignData({ ...campaignData, emails: newEmails })}
+              onActiveEmailChange={setActiveEmailIndex}
+            />
+          </div>
         );
       
       default:
