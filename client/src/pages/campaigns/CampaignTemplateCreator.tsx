@@ -122,7 +122,7 @@ export default function CampaignTemplateCreator() {
     name: '',
     description: '',
     objective: '',
-    icon: '',
+    icon: 'mail',
     attachments: [] as Array<{id: string, name: string, type: string, size: number}>,
     emails: [{ 
       id: '1',
