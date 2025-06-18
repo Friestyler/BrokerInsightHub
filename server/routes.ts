@@ -5251,6 +5251,219 @@ Keep the tone clear and professional. Focus on what will help the account manage
       res.status(500).json({ error: 'Failed to delete product category' });
     }
   });
+
+  // ===== PRODUCT CATALOGUES API =====
+
+  // Get all product catalogues
+  app.get('/api/:envId/product-catalogues', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        SELECT 
+          pc.*,
+          (SELECT COUNT(*) FROM ${envId}.catalogue_products cp WHERE cp.catalogue_id = pc.id) as product_count
+        FROM ${envId}.product_catalogues pc
+        ORDER BY pc.name ASC
+      `);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching product catalogues:', error);
+      res.status(500).json({ error: 'Failed to fetch product catalogues' });
+    }
+  });
+
+  // Create product catalogue
+  app.post('/api/:envId/product-catalogues', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const { name, description, status, effectiveFrom, effectiveTo } = req.body;
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        INSERT INTO ${envId}.product_catalogues (name, description, status, effective_from, effective_to)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING *
+      `, [name, description, status, effectiveFrom, effectiveTo]);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating product catalogue:', error);
+      res.status(500).json({ error: 'Failed to create product catalogue' });
+    }
+  });
+
+  // Update product catalogue
+  app.put('/api/:envId/product-catalogues/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const catalogueId = parseInt(req.params.id);
+      const { name, description, status, effectiveFrom, effectiveTo } = req.body;
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        UPDATE ${envId}.product_catalogues 
+        SET name = $1, description = $2, status = $3, effective_from = $4, effective_to = $5, updated_at = NOW()
+        WHERE id = $6
+        RETURNING *
+      `, [name, description, status, effectiveFrom, effectiveTo, catalogueId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Product catalogue not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating product catalogue:', error);
+      res.status(500).json({ error: 'Failed to update product catalogue' });
+    }
+  });
+
+  // Delete product catalogue
+  app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const catalogueId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      // Check if catalogue has products
+      const checkResult = await envPool.query(`
+        SELECT COUNT(*) as product_count FROM ${envId}.catalogue_products WHERE catalogue_id = $1
+      `, [catalogueId]);
+      
+      const { product_count } = checkResult.rows[0];
+      
+      if (product_count > 0) {
+        return res.status(400).json({ 
+          error: `Cannot delete catalogue - it contains ${product_count} products. Please remove the products first.` 
+        });
+      }
+      
+      const result = await envPool.query(`
+        DELETE FROM ${envId}.product_catalogues WHERE id = $1 RETURNING *
+      `, [catalogueId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Product catalogue not found' });
+      }
+      
+      res.json({ message: 'Product catalogue deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting product catalogue:', error);
+      res.status(500).json({ error: 'Failed to delete product catalogue' });
+    }
+  });
+
+  // ===== CATALOGUE PRODUCTS API =====
+
+  // Get products in a specific catalogue with overrides
+  app.get('/api/:envId/catalogues/:catalogueId/products', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const catalogueId = parseInt(req.params.catalogueId);
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        SELECT 
+          cp.*,
+          p.name as product_name,
+          p.description as product_description,
+          p.sku,
+          p.price as base_price,
+          p.vendor_id,
+          v.name as vendor_name,
+          pc.name as category_name,
+          COALESCE(cp.name_override, p.name) as display_name,
+          COALESCE(cp.price_override, p.price) as display_price
+        FROM ${envId}.catalogue_products cp
+        JOIN ${envId}.products p ON cp.product_id = p.id
+        LEFT JOIN ${envId}.vendors v ON p.vendor_id = v.id
+        LEFT JOIN ${envId}.product_categories pc ON cp.category_id = pc.id
+        WHERE cp.catalogue_id = $1 AND cp.visible = true
+        ORDER BY COALESCE(cp.name_override, p.name) ASC
+      `, [catalogueId]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching catalogue products:', error);
+      res.status(500).json({ error: 'Failed to fetch catalogue products' });
+    }
+  });
+
+  // Add product to catalogue with optional overrides
+  app.post('/api/:envId/catalogues/:catalogueId/products', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const catalogueId = parseInt(req.params.catalogueId);
+      const { productId, categoryId, visible, nameOverride, priceOverride } = req.body;
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        INSERT INTO ${envId}.catalogue_products (product_id, catalogue_id, category_id, visible, name_override, price_override)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *
+      `, [productId, catalogueId, categoryId, visible, nameOverride, priceOverride]);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error adding product to catalogue:', error);
+      if (error.code === '23505') { // Unique constraint violation
+        res.status(400).json({ error: 'Product is already in this catalogue' });
+      } else {
+        res.status(500).json({ error: 'Failed to add product to catalogue' });
+      }
+    }
+  });
+
+  // Update catalogue product overrides
+  app.put('/api/:envId/catalogue-products/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const catalogueProductId = parseInt(req.params.id);
+      const { categoryId, visible, nameOverride, priceOverride } = req.body;
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        UPDATE ${envId}.catalogue_products 
+        SET category_id = $1, visible = $2, name_override = $3, price_override = $4, updated_at = NOW()
+        WHERE id = $5
+        RETURNING *
+      `, [categoryId, visible, nameOverride, priceOverride, catalogueProductId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Catalogue product not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating catalogue product:', error);
+      res.status(500).json({ error: 'Failed to update catalogue product' });
+    }
+  });
+
+  // Remove product from catalogue
+  app.delete('/api/:envId/catalogue-products/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const catalogueProductId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        DELETE FROM ${envId}.catalogue_products WHERE id = $1 RETURNING *
+      `, [catalogueProductId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Catalogue product not found' });
+      }
+      
+      res.json({ message: 'Product removed from catalogue successfully' });
+    } catch (error) {
+      console.error('Error removing product from catalogue:', error);
+      res.status(500).json({ error: 'Failed to remove product from catalogue' });
+    }
+  });
   
   // Get products by category (including subcategories)
   app.get('/api/:envId/product-categories/:id/products', async (req, res) => {

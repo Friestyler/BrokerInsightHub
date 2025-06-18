@@ -684,7 +684,7 @@ export const productCategoriesRelations = relations(productCategories, ({ one, m
   products: many(products),
 }));
 
-export const productsRelations = relations(products, ({ one }) => ({
+export const productsRelations = relations(products, ({ one, many }) => ({
   vendor: one(vendors, {
     fields: [products.vendorId],
     references: [vendors.id],
@@ -693,7 +693,10 @@ export const productsRelations = relations(products, ({ one }) => ({
     fields: [products.categoryId],
     references: [productCategories.id],
   }),
+  catalogueProducts: many(catalogueProducts),
 }));
+
+
 
 // Insert schemas
 export const insertVendorSchema = createInsertSchema(vendors).pick({
@@ -721,6 +724,31 @@ export const insertProductSchema = createInsertSchema(products).pick({
   sku: true,
   price: true,
   vendorId: true,
+});
+
+// Product Catalogues - master catalogues that can contain products
+export const productCatalogues = pgTable("product_catalogues", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  status: text("status").default("active"),
+  effectiveFrom: date("effective_from"),
+  effectiveTo: date("effective_to"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Catalogue Products - join table connecting products to catalogues with optional overrides
+export const catalogueProducts = pgTable("catalogue_products", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").references(() => products.id).notNull(),
+  catalogueId: integer("catalogue_id").references(() => productCatalogues.id).notNull(),
+  categoryId: integer("category_id").references(() => productCategories.id),
+  visible: boolean("visible").default(true),
+  nameOverride: text("name_override"),
+  priceOverride: integer("price_override"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Broker-Partner mapping table - links broker users to specific partners in environments
@@ -1207,6 +1235,51 @@ export type InsertProductCategory = z.infer<typeof insertProductCategorySchema>;
 
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
+
+// Product Catalogue insert schemas and types
+export const insertProductCatalogueSchema = createInsertSchema(productCatalogues).pick({
+  name: true,
+  description: true,
+  status: true,
+  effectiveFrom: true,
+  effectiveTo: true,
+});
+
+export const insertCatalogueProductSchema = createInsertSchema(catalogueProducts).pick({
+  productId: true,
+  catalogueId: true,
+  categoryId: true,
+  visible: true,
+  nameOverride: true,
+  priceOverride: true,
+});
+
+export type ProductCatalogue = typeof productCatalogues.$inferSelect;
+export type InsertProductCatalogue = z.infer<typeof insertProductCatalogueSchema>;
+
+export type CatalogueProduct = typeof catalogueProducts.$inferSelect;
+export type InsertCatalogueProduct = z.infer<typeof insertCatalogueProductSchema>;
+
+// Product Catalogues relationships
+export const productCataloguesRelations = relations(productCatalogues, ({ many }) => ({
+  catalogueProducts: many(catalogueProducts),
+}));
+
+// Catalogue Products relationships
+export const catalogueProductsRelations = relations(catalogueProducts, ({ one }) => ({
+  product: one(products, {
+    fields: [catalogueProducts.productId],
+    references: [products.id],
+  }),
+  catalogue: one(productCatalogues, {
+    fields: [catalogueProducts.catalogueId],
+    references: [productCatalogues.id],
+  }),
+  category: one(productCategories, {
+    fields: [catalogueProducts.categoryId],
+    references: [productCategories.id],
+  }),
+}));
 
 export const insertBrokerPartnerMappingSchema = createInsertSchema(brokerPartnerMappings).pick({
   brokerUserId: true,
