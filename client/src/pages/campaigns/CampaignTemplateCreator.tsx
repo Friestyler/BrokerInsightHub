@@ -787,7 +787,7 @@ export default function CampaignTemplateCreator() {
       </div>
       {/* Steps Progress */}
       <div className="bg-white border-b">
-        <div className="max-w-6xl mx-auto px-6 py-6 bg-[F5F7FA]">
+        <div className="max-w-6xl mx-auto px-6 py-6" style={{ backgroundColor: '#F5F7FA' }}>
           <div className="flex justify-between items-start relative">
             {/* Connecting Line Background */}
             <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 z-0" style={{ marginLeft: '4rem', marginRight: '4rem' }} />
