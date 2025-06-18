@@ -320,35 +320,63 @@ export default function ProductsPage() {
         </TabsContent>
 
         <TabsContent value="catalogues" className="space-y-4">
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="lg:col-span-1">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center">
-                    <FolderTree className="h-5 w-5 mr-2" />
-                    Catalogues
-                  </CardTitle>
-                  <CardDescription>
-                    Select a catalogue to manage its categories
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    {catalogues?.map((catalogue) => (
-                      <div
-                        key={catalogue.id}
-                        className={`p-3 rounded-lg border cursor-pointer transition-colors ${
-                          selectedCatalogueId === catalogue.id
-                            ? 'bg-indigo-50 border-indigo-200'
-                            : 'hover:bg-gray-50'
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-white">
+                  <tr>
+                    <th className="w-12 px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                      <div className="opacity-0">
+                        <input type="checkbox" className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" />
+                      </div>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider min-w-[250px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                      Catalogue Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider w-[200px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                      Description
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider w-[120px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider w-[120px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                      Created
+                    </th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-[#696C8C] uppercase tracking-wider w-[120px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 bg-white">
+                  {catalogues && catalogues.length > 0 ? (
+                    catalogues.map((catalogue) => (
+                      <tr 
+                        key={catalogue.id} 
+                        className={`hover:bg-gray-50 group ${
+                          selectedCatalogueId === catalogue.id ? 'bg-indigo-50' : ''
                         }`}
                         onClick={() => setSelectedCatalogueId(catalogue.id)}
                       >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h3 className="font-medium">{catalogue.name}</h3>
-                            <p className="text-sm text-gray-500">{catalogue.description}</p>
+                        <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm w-10">
+                          <input
+                            type="checkbox"
+                            className="absolute left-4 top-1/2 -mt-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600 invisible group-hover:visible"
+                            checked={selectedCatalogueId === catalogue.id}
+                            onChange={() => setSelectedCatalogueId(catalogue.id)}
+                          />
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            <FolderTree className="h-5 w-5 mr-3 text-indigo-600" />
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">{catalogue.name}</div>
+                            </div>
                           </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="text-sm text-gray-600 max-w-xs truncate">{catalogue.description}</div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                             catalogue.status === 'active' 
                               ? 'bg-green-100 text-green-800' 
@@ -356,57 +384,69 @@ export default function ProductsPage() {
                           }`}>
                             {catalogue.status}
                           </span>
-                        </div>
-                      </div>
-                    ))}
-                    {(!catalogues || catalogues.length === 0) && (
-                      <div className="text-center py-4 text-gray-500">
-                        No catalogues found
-                      </div>
-                    )}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="lg:col-span-2">
-              {selectedCatalogueId ? (
-                <Card>
-                  <CardHeader>
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <CardTitle>Category Management</CardTitle>
-                        <CardDescription>
-                          Manage categories for {catalogues?.find(c => c.id === selectedCatalogueId)?.name}
-                        </CardDescription>
-                      </div>
-                      <Button variant="outline" size="sm">
-                        <Settings className="h-4 w-4 mr-2" />
-                        Edit Catalogue
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <ProductCategoryManager 
-                      envId={environment?.id || 'degoudse'} 
-                    />
-                  </CardContent>
-                </Card>
-              ) : (
-                <Card>
-                  <CardContent className="pt-6">
-                    <div className="text-center py-12">
-                      <FolderTree className="mx-auto h-12 w-12 text-gray-400" />
-                      <h3 className="mt-2 text-sm font-medium text-gray-900">Select a catalogue</h3>
-                      <p className="mt-1 text-sm text-gray-500">
-                        Choose a catalogue from the list to manage its categories and products.
-                      </p>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {new Date(catalogue.createdAt).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setSelectedCatalogueId(catalogue.id);
+                            }}
+                          >
+                            <Settings className="h-4 w-4 mr-1" />
+                            Manage
+                          </Button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-12 text-center">
+                        <FolderTree className="mx-auto h-12 w-12 text-gray-400" />
+                        <h3 className="mt-2 text-sm font-medium text-gray-900">No catalogues found</h3>
+                        <p className="mt-1 text-sm text-gray-500">
+                          Get started by creating your first product catalogue.
+                        </p>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
+
+          {/* Category Management Panel */}
+          {selectedCatalogueId && (
+            <Card className="mt-6">
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle>Category Management</CardTitle>
+                    <CardDescription>
+                      Manage categories for {catalogues?.find(c => c.id === selectedCatalogueId)?.name}
+                    </CardDescription>
+                  </div>
+                  <Button variant="outline" size="sm">
+                    <Settings className="h-4 w-4 mr-2" />
+                    Edit Catalogue
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <ProductCategoryManager 
+                  envId={environment?.id || 'degoudse'} 
+                />
+              </CardContent>
+            </Card>
+          )}
         </TabsContent>
       </Tabs>
 
