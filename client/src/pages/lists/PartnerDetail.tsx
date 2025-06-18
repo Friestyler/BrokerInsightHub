@@ -44,6 +44,29 @@ export default function PartnerDetail() {
   const [visibleToPartner, setVisibleToPartner] = useState(false);
   const [assignedTo, setAssignedTo] = useState("");
 
+  // Back navigation state
+  const [backUrl, setBackUrl] = useState("/partners");
+  const [backLabel, setBackLabel] = useState("Back to Partners");
+  
+  // Handle back navigation from stored location
+  useEffect(() => {
+    const previousLocation = sessionStorage.getItem('previousLocation');
+    if (previousLocation) {
+      setBackUrl(previousLocation);
+      // Clear the stored location after using it
+      sessionStorage.removeItem('previousLocation');
+      
+      // Set appropriate back label based on the previous location
+      if (previousLocation.includes('/opportunities')) {
+        setBackLabel("Back to Opportunities");
+      } else if (previousLocation.includes('/customers')) {
+        setBackLabel("Back to Customers");
+      } else {
+        setBackLabel("Back to Partners");
+      }
+    }
+  }, []);
+
   // Opportunities-specific state
   const [filterText, setFilterText] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
@@ -110,10 +133,6 @@ export default function PartnerDetail() {
   // Logo upload state
   const [showLogoUploadModal, setShowLogoUploadModal] = useState(false);
 
-  // Navigation state
-  const [backUrl, setBackUrl] = useState("/partners");
-  const [backLabel, setBackLabel] = useState("Back to Partners");
-  
   // Details dialog state
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [editedPartner, setEditedPartner] = useState<any>({});

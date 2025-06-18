@@ -25,6 +25,25 @@ export default function CustomerDetailNew() {
   const [backUrl, setBackUrl] = useState("/customers");
   const [backLabel, setBackLabel] = useState("Back to Customers");
   
+  // Handle back navigation from stored location
+  useEffect(() => {
+    const previousLocation = sessionStorage.getItem('previousLocation');
+    if (previousLocation) {
+      setBackUrl(previousLocation);
+      // Clear the stored location after using it
+      sessionStorage.removeItem('previousLocation');
+      
+      // Set appropriate back label based on the previous location
+      if (previousLocation.includes('/opportunities')) {
+        setBackLabel("Back to Opportunities");
+      } else if (previousLocation.includes('/partners')) {
+        setBackLabel("Back to Partners");
+      } else {
+        setBackLabel("Back to Customers");
+      }
+    }
+  }, []);
+  
   // OKR metrics state management
   const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState("");

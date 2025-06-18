@@ -2278,26 +2278,34 @@ function OpportunitiesTable() {
                 </td>
                 <td className="px-3 py-4 text-sm w-[120px] truncate">
                   {(opportunity.clientName || opportunity.customerName) ? (
-                    <Link 
+                    <a 
                       href={`/lists/customers/${opportunity.clientId || opportunity.customerId}`}
                       className="text-indigo-600 hover:text-indigo-500 truncate block"
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Store current location in session storage for back navigation
+                        sessionStorage.setItem('previousLocation', window.location.pathname + window.location.search);
+                      }}
                     >
                       {opportunity.clientName || opportunity.customerName}
-                    </Link>
+                    </a>
                   ) : (
                     <span className="text-gray-400">-</span>
                   )}
                 </td>
                 <td className="px-3 py-4 text-sm w-[120px] truncate">
                   {opportunity.partnerName ? (
-                    <Link 
+                    <a 
                       href={`/lists/partners/${opportunity.partnerId}`}
                       className="text-indigo-600 hover:text-indigo-500 truncate block"
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Store current location in session storage for back navigation
+                        sessionStorage.setItem('previousLocation', window.location.pathname + window.location.search);
+                      }}
                     >
                       {opportunity.partnerName}
-                    </Link>
+                    </a>
                   ) : (
                     <span className="text-gray-400">-</span>
                   )}
