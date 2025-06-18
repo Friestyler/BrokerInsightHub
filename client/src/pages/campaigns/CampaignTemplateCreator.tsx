@@ -767,20 +767,18 @@ export default function CampaignTemplateCreator() {
       {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" onClick={handleBack} className="gap-2">
-                <ArrowLeft className="h-4 w-4" />
-                Back
-              </Button>
-              <div>
-                <h1 className="text-lg font-medium text-gray-900">
-                  {isEditMode ? `Edit Template: ${campaignData.name || 'Untitled'}` : `Step ${currentStep} of ${totalSteps}`}
-                </h1>
-                <p className="text-sm text-gray-600">
-                  {isEditMode ? 'Make changes and save when ready' : `${Math.round(progress)}% Complete`}
-                </p>
-              </div>
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="sm" onClick={handleBack} className="gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Back
+            </Button>
+            <div>
+              <h1 className="text-lg font-medium text-gray-900">
+                {isEditMode ? `Edit Template: ${campaignData.name || 'Untitled'}` : `Step ${currentStep} of ${totalSteps}`}
+              </h1>
+              <p className="text-sm text-gray-600">
+                {isEditMode ? 'Make changes and save when ready' : `${Math.round(progress)}% Complete`}
+              </p>
             </div>
             
             {/* Steps Progress */}
