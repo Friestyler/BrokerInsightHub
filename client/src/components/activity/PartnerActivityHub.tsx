@@ -141,47 +141,49 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
 
   if (!isExpanded) {
     return (
-      <div className="border-t border-gray-100 pt-3 mt-3">
-        <div className="space-y-3">
-          {/* Inline Toolbar */}
-          <div className="flex items-center justify-center gap-1 p-1 bg-gray-100 rounded-full w-fit mx-auto">
-            <button
-              onClick={() => setActiveMode('comment')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                activeMode === 'comment'
-                  ? 'bg-white text-blue-700 shadow-sm'
-                  : 'text-gray-600 hover:text-blue-600'
-              }`}
-            >
-              <MessageSquare className="h-3 w-3" />
-              Comment
-            </button>
-            <button
-              onClick={() => setActiveMode('task')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
-                activeMode === 'task'
-                  ? 'bg-white text-green-700 shadow-sm'
-                  : 'text-gray-600 hover:text-green-600'
-              }`}
-            >
-              <CheckSquare className="h-3 w-3" />
-              Task
-            </button>
+      <div className="border-t border-[#E6E7F1] pt-4 mt-4">
+        <div className="space-y-4">
+          {/* Inline Toolbar - Google/Apple style */}
+          <div className="flex items-center justify-center">
+            <div className="inline-flex items-center gap-0.5 p-0.5 bg-gray-100/80 backdrop-blur-sm rounded-full shadow-sm border border-gray-200/50">
+              <button
+                onClick={() => setActiveMode('comment')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                  activeMode === 'comment'
+                    ? 'bg-white text-blue-600 shadow-sm ring-1 ring-blue-100'
+                    : 'text-gray-500 hover:text-blue-600 hover:bg-white/50'
+                }`}
+              >
+                <MessageSquare className="h-4 w-4" />
+                Comment
+              </button>
+              <button
+                onClick={() => setActiveMode('task')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 ${
+                  activeMode === 'task'
+                    ? 'bg-white text-green-600 shadow-sm ring-1 ring-green-100'
+                    : 'text-gray-500 hover:text-green-600 hover:bg-white/50'
+                }`}
+              >
+                <CheckSquare className="h-4 w-4" />
+                Task
+              </button>
+            </div>
           </div>
 
-          {/* Input Button */}
+          {/* Input Button - Apple style */}
           <button
             onClick={() => setIsExpanded(true)}
-            className="flex items-center gap-3 w-full text-left p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+            className="flex items-center gap-3 w-full text-left p-4 rounded-xl bg-white border border-gray-200/60 hover:border-gray-300 hover:bg-gray-50/50 transition-all duration-200 shadow-sm hover:shadow-md"
           >
-            <div className={`flex-shrink-0 w-8 h-8 ${activeMode === 'task' ? 'bg-green-100' : 'bg-blue-100'} rounded-full flex items-center justify-center`}>
+            <div className={`flex-shrink-0 w-9 h-9 ${activeMode === 'task' ? 'bg-green-50 ring-1 ring-green-200' : 'bg-blue-50 ring-1 ring-blue-200'} rounded-full flex items-center justify-center`}>
               {activeMode === 'task' ? (
                 <CheckSquare className="h-4 w-4 text-green-600" />
               ) : (
                 <MessageSquare className="h-4 w-4 text-blue-600" />
               )}
             </div>
-            <span className="text-sm text-gray-600">{getPlaceholder()}</span>
+            <span className="text-sm text-gray-600 font-medium">{getPlaceholder()}</span>
           </button>
         </div>
       </div>
@@ -189,10 +191,10 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
   }
 
   return (
-    <div className="border-t border-gray-100 pt-3 mt-3">
-      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+    <div className="border-t border-[#E6E7F1] pt-4 mt-4">
+      <div className="bg-white rounded-2xl border border-gray-200/60 shadow-lg shadow-gray-100/50">
         {/* Content */}
-        <div className="p-4 space-y-3">
+        <div className="p-5 space-y-4">
           {/* Input Field */}
           <div>
             <Textarea
@@ -208,45 +210,45 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
                   handleCancel();
                 }
               }}
-              className="min-h-[60px] resize-none border-0 bg-gray-50 focus:bg-white transition-colors placeholder:text-gray-500"
+              className="min-h-[80px] resize-none border-0 bg-gray-50/50 focus:bg-white/80 rounded-xl p-4 text-sm transition-all duration-200 focus:ring-2 focus:ring-blue-100 placeholder:text-gray-400"
               autoFocus
             />
           </div>
 
           {/* Task-specific Controls */}
           {activeMode === 'task' && (
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 p-3 bg-gray-50/50 rounded-xl border border-gray-100/80">
               {/* Priority Selector */}
               <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger className="w-32 h-8 text-xs">
+                <SelectTrigger className="w-36 h-9 text-sm bg-white border-gray-200/60 rounded-lg shadow-sm hover:shadow-md transition-all duration-200">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
+                <SelectContent className="rounded-xl border-gray-200/60 shadow-lg">
+                  <SelectItem value="low">🟢 Low</SelectItem>
+                  <SelectItem value="medium">🟡 Medium</SelectItem>
+                  <SelectItem value="high">🟠 High</SelectItem>
+                  <SelectItem value="urgent">🔴 Urgent</SelectItem>
                 </SelectContent>
               </Select>
 
               {/* Assignee Selector */}
               <Select value={assignedTo} onValueChange={setAssignedTo}>
-                <SelectTrigger className="w-40 h-8 text-xs">
+                <SelectTrigger className="w-44 h-9 text-sm bg-white border-gray-200/60 rounded-lg shadow-sm hover:shadow-md transition-all duration-200">
                   <SelectValue placeholder="Assign to..." />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="rounded-xl border-gray-200/60 shadow-lg">
                   {teamMembers.map((member) => (
                     <SelectItem key={member.id} value={member.id}>
                       <div className="flex items-center gap-2">
-                        <User className="h-3 w-3" />
-                        {member.name}
+                        <User className="h-4 w-4 text-gray-500" />
+                        <span className="font-medium">{member.name}</span>
                       </div>
                     </SelectItem>
                   ))}
                   <SelectItem value="ai-agent" disabled>
                     <div className="flex items-center gap-2 text-gray-400">
-                      <Bot className="h-3 w-3" />
-                      AI Agent (coming later)
+                      <Bot className="h-4 w-4" />
+                      <span>AI Agent (coming later)</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -255,32 +257,48 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
           )}
 
           {/* Footer */}
-          <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center justify-between pt-3 border-t border-gray-100/60">
             {/* Visibility Toggle */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-3">
               <Switch
                 checked={visibleToPartner}
                 onCheckedChange={setVisibleToPartner}
-                className="scale-75"
+                className="data-[state=checked]:bg-blue-500"
               />
-              <span className="text-xs text-gray-600 flex items-center gap-1">
-                {visibleToPartner ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+              <span className="text-sm text-gray-600 flex items-center gap-2 font-medium">
+                {visibleToPartner ? <Eye className="h-4 w-4 text-blue-500" /> : <EyeOff className="h-4 w-4 text-gray-400" />}
                 Visible to partner
               </span>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex items-center gap-2">
-              <Button variant="ghost" size="sm" onClick={handleCancel} className="h-7 px-3 text-xs">
-                <X className="h-3 w-3 mr-1" />Cancel
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleCancel} 
+                className="h-9 px-4 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100/80 rounded-lg transition-all duration-200"
+              >
+                Cancel
               </Button>
               <Button
                 size="sm"
                 onClick={handleSubmit}
                 disabled={isLoading || !content.trim()}
-                className="h-7 px-3 text-xs"
+                className={`h-9 px-5 text-sm font-medium rounded-lg transition-all duration-200 shadow-sm hover:shadow-md ${
+                  activeMode === 'task' 
+                    ? 'bg-green-600 hover:bg-green-700 text-white' 
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                } disabled:opacity-50 disabled:cursor-not-allowed`}
               >
-                <Send className="h-3 w-3 mr-1" />Add
+                {isLoading ? (
+                  <div className="w-4 h-4 border-2 border-white/20 border-t-white rounded-full animate-spin" />
+                ) : (
+                  <>
+                    <Send className="h-4 w-4 mr-2" />
+                    Add {activeMode === 'task' ? 'Task' : 'Comment'}
+                  </>
+                )}
               </Button>
             </div>
           </div>
