@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { 
   Table, 
   TableBody, 
@@ -94,6 +94,7 @@ export default function ProductsPage() {
   const { environment } = useEnvironment();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [, setLocation] = useLocation();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCatalogueFilter, setSelectedCatalogueFilter] = useState<string>('all');
@@ -193,6 +194,10 @@ export default function ProductsPage() {
   const getProductCountForCatalogue = (catalogueId: number): number => {
     if (!catalogueProducts || !Array.isArray(catalogueProducts)) return 0;
     return catalogueProducts.filter((cp: any) => cp.catalogue_id === catalogueId).length;
+  };
+
+  const handleCatalogueRowClick = (catalogueId: number) => {
+    setLocation(`/products/catalogue/${catalogueId}`);
   };
 
   return (
@@ -368,7 +373,7 @@ export default function ProductsPage() {
                         className={`hover:bg-gray-50 group ${
                           selectedCatalogueId === catalogue.id ? 'bg-indigo-50' : ''
                         }`}
-                        onClick={() => setSelectedCatalogueId(catalogue.id)}
+                        onClick={() => handleCatalogueRowClick(catalogue.id)}
                       >
                         <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm w-10">
                           <input
