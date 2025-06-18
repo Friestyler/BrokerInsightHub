@@ -525,7 +525,7 @@ export default function CampaignTemplateCreator() {
     switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-16">
+          <div className="space-y-8">
             <div className="text-center mt-8">
               <p className="text-gray-600 text-[16px]">Select the type of audience you want to create a template for</p>
             </div>
