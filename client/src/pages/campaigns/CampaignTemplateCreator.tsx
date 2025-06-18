@@ -646,16 +646,7 @@ export default function CampaignTemplateCreator() {
               })}
             </div>
 
-            {campaignData.entity && (
-              <div className="flex items-center justify-center">
-                <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
-                  <Check className="h-4 w-4 text-green-600" />
-                  <span className="text-sm font-medium text-green-700">
-                    {entityOptions.find(opt => opt.id === campaignData.entity)?.title} selected
-                  </span>
-                </div>
-              </div>
-            )}
+
           </div>
         );
       
