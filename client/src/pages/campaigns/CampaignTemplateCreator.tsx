@@ -767,7 +767,7 @@ export default function CampaignTemplateCreator() {
       {/* Header */}
       <div className="bg-white border-b">
         <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="sm" onClick={handleBack} className="gap-2">
                 <ArrowLeft className="h-4 w-4" />
@@ -785,7 +785,7 @@ export default function CampaignTemplateCreator() {
           </div>
           
           {/* Steps Progress */}
-          <div className="mt-6">
+          <div>
             <div className="flex justify-between items-start relative">
               {/* Connecting Line Background */}
               <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 z-0" style={{ marginLeft: '4rem', marginRight: '4rem' }} />
