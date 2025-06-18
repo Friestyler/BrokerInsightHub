@@ -431,7 +431,19 @@ export default function CampaignTemplateCreator() {
   ];
 
   const totalSteps = steps.length;
-  const progress = (currentStep / totalSteps) * 100;
+  
+  // Calculate progress based on step completion and target group selection
+  const calculateProgress = () => {
+    if (currentStep === 1) {
+      // Step 1: Show 0% if no target group selected, 33% if selected
+      return campaignData.entity ? 33 : 0;
+    } else {
+      // For other steps, use normal step-based calculation
+      return (currentStep / totalSteps) * 100;
+    }
+  };
+  
+  const progress = calculateProgress();
 
   const handleNext = () => {
     if (currentStep < totalSteps && isStepAccessible(currentStep + 1)) {
