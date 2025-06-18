@@ -761,7 +761,7 @@ export default function CampaignTemplateCreator() {
   return (
     <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-white" style={{ borderBottom: '1px solid #E6E7F1' }}>
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -782,11 +782,11 @@ export default function CampaignTemplateCreator() {
         </div>
       </div>
       {/* Steps Progress */}
-      <div className="bg-white border-b">
+      <div className="bg-white" style={{ borderBottom: '1px solid #E6E7F1' }}>
         <div className="max-w-6xl mx-auto px-6 py-6" style={{ backgroundColor: '#FFFFFF' }}>
           <div className="flex justify-between items-start relative">
             {/* Connecting Line Background */}
-            <div className="absolute top-4 left-0 right-0 h-0.5 z-0" style={{ marginLeft: '4rem', marginRight: '4rem', backgroundColor: '#E6E7F1' }} />
+            <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 z-0" style={{ marginLeft: '4rem', marginRight: '4rem' }} />
             
             {steps.map((step, index) => (
               <div key={step.number} className="flex flex-col items-center flex-1 relative z-10">
