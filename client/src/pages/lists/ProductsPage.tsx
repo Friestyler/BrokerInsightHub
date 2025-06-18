@@ -370,7 +370,7 @@ export default function ProductsPage() {
                     catalogues.map((catalogue) => (
                       <tr 
                         key={catalogue.id} 
-                        className={`hover:bg-gray-50 group ${
+                        className={`hover:bg-gray-50 group cursor-pointer ${
                           selectedCatalogueId === catalogue.id ? 'bg-indigo-50' : ''
                         }`}
                         onClick={() => handleCatalogueRowClick(catalogue.id)}

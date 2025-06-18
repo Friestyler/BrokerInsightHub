@@ -89,6 +89,9 @@ function Router() {
               <Route path="/lists/opportunities/:id" component={OpportunityDetail} />
               <Route path="/vendors" component={VendorsPage} />
               <Route path="/products" component={ProductsPage} />
+              <Route path="/products/catalogue/:catalogueId">
+                {(params) => <CatalogueDetailsPage catalogueId={params.catalogueId} />}
+              </Route>
               <Route path="/lists/products/:id" component={ProductDetail} />
               <Route path="/projects" component={ProjectsPage} />
               <Route path="/contacts" component={ContactsPage} />
