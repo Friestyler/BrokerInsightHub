@@ -879,7 +879,7 @@ Status: Ready for deployment`;
               
               {/* Email Header */}
               <div className="mb-6 pb-4 border-b border-gray-200">
-                <div className="text-xl font-normal text-gray-900 leading-tight tracking-normal">
+                <div className="text-lg font-normal text-gray-900 leading-tight tracking-normal">
                   {editingEmail.subject || 'Subject Line'}
                 </div>
               </div>
