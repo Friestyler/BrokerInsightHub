@@ -45,7 +45,9 @@ export function useEntityLogo(entityType: 'partner' | 'customer', entityId: numb
         // Add timeout to prevent hanging requests
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
-          controller.abort();
+          if (!controller.signal.aborted) {
+            controller.abort();
+          }
         }, 5000); // Increased timeout to 5 seconds
         
         try {
@@ -70,8 +72,8 @@ export function useEntityLogo(entityType: 'partner' | 'customer', entityId: numb
         } catch (fetchError: any) {
           clearTimeout(timeoutId);
           
-          if (fetchError.name === 'AbortError') {
-            // Request was aborted (timeout) - cache null result
+          if (fetchError.name === 'AbortError' || controller.signal.aborted) {
+            // Request was aborted (timeout) - cache null result and exit silently
             logoCache.set(cacheKey, { url: null, timestamp: Date.now() });
             setLogoUrl(null);
             return; // Exit early for abort errors
