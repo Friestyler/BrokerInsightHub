@@ -2483,6 +2483,15 @@ function PartnersTable() {
                 Opportunities
               </SortableTableHead>
               <SortableTableHead 
+                sortKey="contacts" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[120px]"
+              >
+                Contacts
+              </SortableTableHead>
+              <SortableTableHead 
                 sortKey="template" 
                 currentSortKey={tableSortConfig.key} 
                 currentDirection={tableSortConfig.direction} 
@@ -2566,6 +2575,9 @@ function PartnersTable() {
                   </Link>
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  {partner.contacts || 0}
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   <TemplateBadges partnerId={partner.id} templateAssignments={templateAssignments} okrTags={okrTags} />
                 </td>
               </tr>
@@ -2573,7 +2585,7 @@ function PartnersTable() {
             
             {displayedPartners.length === 0 && !isEditingList && (
               <tr>
-                <td colSpan={9} className="py-10 text-center">
+                <td colSpan={10} className="py-10 text-center">
                   <div className="flex flex-col items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
                       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
