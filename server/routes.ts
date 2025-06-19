@@ -5275,6 +5275,36 @@ Keep the tone clear and professional. Focus on what will help the account manage
     }
   });
 
+  // Get single product catalogue by ID
+  app.get('/api/:envId/product-catalogues/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const catalogueId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      if (isNaN(catalogueId)) {
+        return res.status(400).json({ error: 'Invalid catalogue ID' });
+      }
+      
+      const result = await envPool.query(`
+        SELECT 
+          pc.*,
+          (SELECT COUNT(*) FROM ${envId}.catalogue_products cp WHERE cp.catalogue_id = pc.id) as product_count
+        FROM ${envId}.product_catalogues pc
+        WHERE pc.id = $1
+      `, [catalogueId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Product catalogue not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error fetching product catalogue:', error);
+      res.status(500).json({ error: 'Failed to fetch product catalogue' });
+    }
+  });
+
   // Create product catalogue
   app.post('/api/:envId/product-catalogues', async (req, res) => {
     try {
