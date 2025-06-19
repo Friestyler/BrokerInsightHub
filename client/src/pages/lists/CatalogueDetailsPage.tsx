@@ -604,7 +604,6 @@ export default function CatalogueDetailsPage({ catalogueId }: CatalogueDetailsPa
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      </div>
     </div>
   );
 }
