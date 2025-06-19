@@ -431,6 +431,7 @@ export default function CatalogueDetailsPage({ catalogueId }: CatalogueDetailsPa
             </div>
           )}
         </div>
+      </div>
 
       {/* Create Category Modal */}
       <Dialog open={isCreateCategoryModalOpen} onOpenChange={setIsCreateCategoryModalOpen}>
