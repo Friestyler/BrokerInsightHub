@@ -245,45 +245,43 @@ export default function CatalogueDetailsPage({ catalogueId }: CatalogueDetailsPa
   }
 
   return (
-    <div className="container mx-auto px-4 py-6">
-      {/* Back Button */}
-      <Button 
-        variant="ghost" 
-        onClick={() => setLocation('/products')}
-        className="mb-6"
-      >
-        <ArrowLeft className="h-4 w-4 mr-2" />
-        Back to Catalogues
-      </Button>
+    <div className="min-h-screen bg-white">
+      <div className="px-4 py-6">
+        {/* Back Button */}
+        <Button 
+          variant="ghost" 
+          onClick={() => setLocation('/products')}
+          className="mb-6"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Catalogues
+        </Button>
 
-      {/* Catalogue Header */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center">
-            <FolderTree className="h-8 w-8 mr-3 text-indigo-600" />
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight text-gray-900">{catalogue.name}</h1>
-              <p className="text-gray-500 mt-1">{catalogue.description}</p>
+        {/* Catalogue Header */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center">
+              <FolderTree className="h-8 w-8 mr-3 text-indigo-600" />
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight text-[#282A3F]">{catalogue.name}</h1>
+                <p className="text-gray-500 mt-1">{catalogue.description}</p>
+              </div>
             </div>
+            <Button variant="outline" size="sm">
+              <Settings className="h-4 w-4 mr-2" />
+              Edit Catalogue
+            </Button>
           </div>
-          <Button variant="outline" size="sm">
-            <Settings className="h-4 w-4 mr-2" />
-            Edit Catalogue
-          </Button>
         </div>
-      </div>
 
-      {/* Catalogue Metadata */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-gray-900">{getProductCountForCatalogue()}</div>
-            <p className="text-sm text-gray-500">Products</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-gray-900">
+        {/* Statistics overview */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white p-4 rounded-md border border-gray-200">
+            <div className="text-xl font-semibold text-[#282A3F]">{getProductCountForCatalogue()}</div>
+            <div className="text-sm text-gray-500">Products</div>
+          </div>
+          <div className="bg-white p-4 rounded-md border border-gray-200">
+            <div className="text-xl font-semibold text-[#282A3F]">
               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                 catalogue.status === 'active' 
                   ? 'bg-green-100 text-green-800' 
@@ -292,86 +290,88 @@ export default function CatalogueDetailsPage({ catalogueId }: CatalogueDetailsPa
                 {catalogue.status}
               </span>
             </div>
-            <p className="text-sm text-gray-500">Status</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-sm text-gray-500">Status</div>
+          </div>
+          <div className="bg-white p-4 rounded-md border border-gray-200">
+            <div className="text-xl font-semibold text-[#282A3F]">
               {new Date(catalogue.createdAt).toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric'
               })}
             </div>
-            <p className="text-sm text-gray-500">Created</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="pt-6">
-            <div className="text-2xl font-bold text-gray-900">
+            <div className="text-sm text-gray-500">Created</div>
+          </div>
+          <div className="bg-white p-4 rounded-md border border-gray-200">
+            <div className="text-xl font-semibold text-[#282A3F]">
               {new Date(catalogue.updatedAt).toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
                 year: 'numeric'
               })}
             </div>
-            <p className="text-sm text-gray-500">Last Updated</p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Categories Section */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle>Categories</CardTitle>
-              <CardDescription>
-                Manage product categories for this catalogue
-              </CardDescription>
-            </div>
-            <Button 
-              className="bg-indigo-600 hover:bg-indigo-700"
-              onClick={() => setIsCreateCategoryModalOpen(true)}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Add Category
-            </Button>
+            <div className="text-sm text-gray-500">Last Updated</div>
           </div>
-        </CardHeader>
-        <CardContent>
+        </div>
+
+        {/* Categories Section */}
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+          <div className="px-6 py-4 border-b border-gray-200">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-semibold text-[#282A3F]">Categories</h2>
+                <p className="text-sm text-gray-500 mt-1">
+                  Manage product categories for this catalogue
+                </p>
+              </div>
+              <Button 
+                className="bg-indigo-600 hover:bg-indigo-700"
+                onClick={() => setIsCreateCategoryModalOpen(true)}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add Category
+              </Button>
+            </div>
+          </div>
+          
           {categoriesLoading ? (
-            <div className="text-center py-4">Loading categories...</div>
+            <div className="text-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+              <p className="mt-2 text-sm text-gray-500">Loading categories...</p>
+            </div>
           ) : categories && categories.length > 0 ? (
-            <div className="bg-white rounded-lg border overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Category Name</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Parent Category</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="border-b border-gray-100">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category Name</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Parent Category</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created</th>
+                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100 bg-white">
                   {categories.map((category) => (
-                    <TableRow key={category.id} className="hover:bg-gray-50">
-                      <TableCell className="font-medium">
+                    <tr key={category.id} className="hover:bg-gray-50 group">
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <div className="flex items-center">
                           <FolderTree className="h-4 w-4 mr-2 text-indigo-600" />
-                          {category.name}
+                          <span className="text-sm font-medium text-[#282A3F]">{category.name}</span>
                         </div>
-                      </TableCell>
-                      <TableCell className="text-gray-600 max-w-xs truncate">
-                        {category.description}
-                      </TableCell>
-                      <TableCell className="text-gray-600">
-                        {getParentCategoryName(category.parentId)}
-                      </TableCell>
-                      <TableCell>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-600 max-w-xs truncate">
+                          {category.description}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-[#282A3F]">
+                          {getParentCategoryName(category.parentId)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
                           category.status === 'active' 
                             ? 'bg-green-100 text-green-800' 
@@ -379,20 +379,23 @@ export default function CatalogueDetailsPage({ catalogueId }: CatalogueDetailsPa
                         }`}>
                           {category.status}
                         </span>
-                      </TableCell>
-                      <TableCell className="text-gray-500">
-                        {new Date(category.createdAt).toLocaleDateString('en-US', {
-                          month: 'short',
-                          day: 'numeric',
-                          year: 'numeric'
-                        })}
-                      </TableCell>
-                      <TableCell className="text-right">
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-500">
+                          {new Date(category.createdAt).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right">
                         <div className="flex items-center justify-end space-x-2">
                           <Button 
                             variant="ghost" 
                             size="sm"
                             onClick={() => handleEditCategory(category)}
+                            className="text-gray-600 hover:text-indigo-600"
                           >
                             <Edit2 className="h-4 w-4" />
                           </Button>
@@ -400,22 +403,22 @@ export default function CatalogueDetailsPage({ catalogueId }: CatalogueDetailsPa
                             variant="ghost" 
                             size="sm"
                             onClick={() => handleDeleteCategory(category.id)}
-                            className="text-red-600 hover:text-red-800"
+                            className="text-gray-600 hover:text-red-600"
                           >
                             <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
-                      </TableCell>
-                    </TableRow>
+                      </td>
+                    </tr>
                   ))}
-                </TableBody>
-              </Table>
+                </tbody>
+              </table>
             </div>
           ) : (
-            <div className="text-center py-8">
+            <div className="text-center py-12">
               <FolderTree className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No categories</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by creating your first category.</p>
+              <h3 className="mt-4 text-sm font-medium text-[#282A3F]">No categories</h3>
+              <p className="mt-2 text-sm text-gray-500">Get started by creating your first category.</p>
               <div className="mt-6">
                 <Button 
                   className="bg-indigo-600 hover:bg-indigo-700"
@@ -427,8 +430,7 @@ export default function CatalogueDetailsPage({ catalogueId }: CatalogueDetailsPa
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
 
       {/* Create Category Modal */}
       <Dialog open={isCreateCategoryModalOpen} onOpenChange={setIsCreateCategoryModalOpen}>
@@ -601,6 +603,7 @@ export default function CatalogueDetailsPage({ catalogueId }: CatalogueDetailsPa
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      </div>
     </div>
   );
 }
