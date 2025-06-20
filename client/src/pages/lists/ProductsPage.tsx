@@ -289,7 +289,7 @@ export default function ProductsPage() {
         </TabsContent>
 
         <TabsContent value="categories" className="space-y-4">
-          <ProductCategoryManager />
+          <ProductCategoryManager envId={environment.id} />
         </TabsContent>
       </Tabs>
 

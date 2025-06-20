@@ -26,7 +26,7 @@ import PartnersViewforPartner from "@/pages/PartnersViewforPartner";
 import VendorsPage from "@/pages/lists/VendorsPage";
 import ProductsPage from "@/pages/lists/ProductsPage";
 import ProductDetail from "@/pages/lists/ProductDetail";
-import CatalogueDetailsPage from "@/pages/lists/CatalogueDetailsPage";
+
 import OKRTemplatesPage from "@/pages/templates/OKRMetricsPage";
 import GroupDetail from "@/pages/templates/GroupDetail";
 import UserManagement from "@/pages/Settings/UserManagement";
@@ -89,9 +89,6 @@ function Router() {
               <Route path="/lists/opportunities/:id" component={OpportunityDetail} />
               <Route path="/vendors" component={VendorsPage} />
               <Route path="/products" component={ProductsPage} />
-              <Route path="/products/catalogue/:catalogueId">
-                {(params) => <CatalogueDetailsPage catalogueId={params.catalogueId} />}
-              </Route>
               <Route path="/lists/products/:id" component={ProductDetail} />
               <Route path="/projects" component={ProjectsPage} />
               <Route path="/contacts" component={ContactsPage} />

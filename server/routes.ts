@@ -7689,6 +7689,68 @@ Keep the tone clear and professional. Focus on what will help the account manage
     }
   });
 
+  // Helper function to ensure there's always a default catalogue
+  async function ensureDefaultCatalogue(envId: string) {
+    try {
+      const envPool = pool;
+      
+      // Check if default catalogue exists
+      const existing = await envPool.query(`
+        SELECT id FROM ${envId}.product_catalogues 
+        WHERE name = 'Products Catalogue' AND status = 'active'
+        LIMIT 1
+      `);
+      
+      if (existing.rows.length === 0) {
+        // Create default catalogue
+        const result = await envPool.query(`
+          INSERT INTO ${envId}.product_catalogues (name, description, status)
+          VALUES ('Products Catalogue', 'Main product catalogue', 'active')
+          RETURNING id
+        `);
+        return result.rows[0].id;
+      }
+      
+      return existing.rows[0].id;
+    } catch (error) {
+      console.error('Error ensuring default catalogue:', error);
+      return 1; // Fallback to ID 1
+    }
+  }
+
+  // Update product creation to automatically assign to default catalogue
+  app.post('/api/:envId/products', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const { name, description, category, sku, price, vendorId } = req.body;
+      const envPool = pool;
+      
+      // Create the product
+      const productResult = await envPool.query(`
+        INSERT INTO ${envId}.products (name, description, category, sku, price, vendor_id)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *
+      `, [name, description, category, sku, price, vendorId]);
+      
+      const product = productResult.rows[0];
+      
+      // Ensure default catalogue exists and assign product to it
+      const catalogueId = await ensureDefaultCatalogue(envId);
+      
+      // Add product to default catalogue
+      await envPool.query(`
+        INSERT INTO ${envId}.catalogue_products (product_id, catalogue_id, visible)
+        VALUES ($1, $2, true)
+        ON CONFLICT (product_id, catalogue_id) DO NOTHING
+      `, [product.id, catalogueId]);
+      
+      res.status(201).json(product);
+    } catch (error) {
+      console.error('Error creating product:', error);
+      res.status(500).json({ error: 'Failed to create product' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
