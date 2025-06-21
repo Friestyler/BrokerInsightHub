@@ -161,7 +161,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
             <path d="M17 19h4" />
           </svg>
           <span className={`ml-3 text-sm ${collapsed ? "hidden" : "hidden md:inline-block"}`}>
-            {environment.id === 'myqollabi' ? 'Partner Pilot' : 'Partner Pilot'}
+            {environment.id === 'myqollabi' ? 'Partner Hub' : 'Partner Hub'}
           </span>
         </Link>
         <div ref={dataMenuRef} className="relative">
@@ -341,7 +341,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
         {/* More Section */}
         <div className="relative">
           <button 
-            className={`nav-container w-full text-left ${(collapsed && (location.startsWith('/projects') || location.startsWith('/vendors') || location.startsWith('/smart-updates') || location.startsWith('/notifications'))) ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+            className={`nav-container w-full text-left ${(collapsed && (location.startsWith('/projects') || location.startsWith('/vendors') || location.startsWith('/smart-updates') || location.startsWith('/notifications') || (location.startsWith('/partner-pilot') && location.includes('reports')))) ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
             onClick={() => {
               const newValue = !moreMenuOpen;
               setMoreMenuOpen(newValue);
@@ -381,13 +381,26 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
           </button>
           
           {/* More indicator when collapsed */}
-          {collapsed && !moreMenuOpen && (location.startsWith('/projects') || location.startsWith('/vendors') || location.startsWith('/smart-updates') || location.startsWith('/notifications')) && (
+          {collapsed && !moreMenuOpen && (location.startsWith('/projects') || location.startsWith('/vendors') || location.startsWith('/smart-updates') || location.startsWith('/notifications') || (location.startsWith('/partner-pilot') && location.includes('reports'))) && (
             <div className="absolute top-[93px] right-0 w-1 h-7 bg-indigo-500 rounded-l-md"></div>
           )}
           
           {/* More submenu */}
           {moreMenuOpen && (
             <div className={`${collapsed ? "absolute left-16 top-0 bg-white border border-gray-200 rounded-md shadow-md py-1 z-50 w-48" : "mt-0.5"}`}>
+              <button
+                onClick={() => navigateTo('/partner-pilot/reports')}
+                className={`submenu-nav-container ${location.startsWith("/partner-pilot") && location.includes("reports") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                  <polyline points="14,2 14,8 20,8"></polyline>
+                  <line x1="16" y1="13" x2="8" y2="13"></line>
+                  <line x1="16" y1="17" x2="8" y2="17"></line>
+                  <polyline points="10,9 9,9 8,9"></polyline>
+                </svg>
+                Reports
+              </button>
               <button
                 onClick={() => navigateTo('/projects')}
                 className={`submenu-nav-container ${location.startsWith("/projects") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}

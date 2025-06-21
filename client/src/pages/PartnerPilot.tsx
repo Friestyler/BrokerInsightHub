@@ -356,14 +356,7 @@ export default function PartnerPilot() {
           <MessageSquare className="h-4 w-4 mr-2" />
           Inbox
         </Button>
-        <Button 
-          variant="ghost"
-          className={activeSection === 'reports' ? "bg-indigo-50 text-indigo-700 hover:bg-indigo-100" : ""}
-          onClick={() => setActiveSection('reports')}
-        >
-          <FileText className="h-4 w-4 mr-2" />
-          Reports
-        </Button>
+
 
         <Button 
           variant="ghost"

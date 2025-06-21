@@ -81,6 +81,8 @@ function Router() {
       <Layout>
         <Switch>
           <Route path="/" component={PartnerPilot} />
+          <Route path="/partner-pilot" component={PartnerPilot} />
+          <Route path="/partner-pilot/reports" component={PartnerPilot} />
 
           {/* Primary entity routes */}
           <Route path="/partners" component={PartnersPage} />
