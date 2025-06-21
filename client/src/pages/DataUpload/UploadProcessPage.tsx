@@ -55,15 +55,16 @@ const capitalizeUploadType = (type: string) => {
 };
 
 const getSteps = (uploadType: string) => {
-  // For entity-upload flow, add product mapping before mapping step
+  // For entity-upload flow, add product category creation at start and product mapping after upload
   if (uploadType === 'entity-upload') {
     return [
-      { id: 1, name: 'Entity Selection', description: 'Choose the type of data you want to upload' },
-      { id: 2, name: 'Upload', description: 'Upload your CSV file' },
-      { id: 3, name: 'Product Mapping', description: 'Set up product categories and subcategories' },
-      { id: 4, name: 'Mapping', description: 'Map CSV columns to entity attributes' },
-      { id: 5, name: 'Processing', description: 'Review and validate your data before processing' },
-      { id: 6, name: 'Complete', description: 'Review results' }
+      { id: 1, name: 'Product Categories', description: 'Create main categories and subcategories for your products' },
+      { id: 2, name: 'Entity Selection', description: 'Choose the type of data you want to upload' },
+      { id: 3, name: 'Upload', description: 'Upload your CSV file' },
+      { id: 4, name: 'Product Mapping', description: 'Map products to categories' },
+      { id: 5, name: 'Mapping', description: 'Map CSV columns to entity attributes' },
+      { id: 6, name: 'Processing', description: 'Review and validate your data before processing' },
+      { id: 7, name: 'Complete', description: 'Review results' }
     ];
   }
   
