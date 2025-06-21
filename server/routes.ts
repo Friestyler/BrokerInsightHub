@@ -418,7 +418,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         INSERT INTO myqollabi.partners (
           name, description, status, location, contact_email, 
           primary_contact, partner_type, region, assigned_user_ids, 
-          linked_opportunity_ids, created_at, updated_at
+          linked_opportunity_ids, createdAt, updatedAt
         ) VALUES (
           ${name}, ${description}, ${status}, ${location || ''}, ${contactEmail || ''}, 
           ${primaryContact || ''}, ${partnerType || 'partner'}, ${region || ''}, 
@@ -459,7 +459,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await db.execute(sql`
         INSERT INTO myqollabi.customers (
           name, description, contact_name, contact_email, contact_phone, 
-          owner_id, assigned_partner_id, created_at, updated_at
+          ownerId, assignedPartnerId, createdAt, updatedAt
         ) VALUES (
           ${name}, ${description}, ${contactName || null}, ${contactEmail || null}, 
           ${contactPhone || null}, ${ownerId || null}, ${assignedPartnerId || null}, 
@@ -2869,12 +2869,12 @@ Keep the tone clear and professional. Focus on what will help the account manage
         envPool.query(`
           SELECT 
             COUNT(DISTINCT c.id) as total_customers,
-            COUNT(DISTINCT co.opportunity_id) as total_opportunities,
-            COALESCE(SUM(CASE WHEN o.estimatedValue IS NOT NULL THEN o.estimatedValue ELSE 0 END), 0) as total_value,
-            COALESCE(SUM(CASE WHEN o.estimatedValue IS NOT NULL THEN o.estimatedValue * o.probability / 100.0 ELSE 0 END), 0) as weighted_value
+            COUNT(DISTINCT co."opportunityId") as total_opportunities,
+            COALESCE(SUM(CASE WHEN o."estimatedValue" IS NOT NULL THEN o."estimatedValue" ELSE 0 END), 0) as total_value,
+            COALESCE(SUM(CASE WHEN o."estimatedValue" IS NOT NULL THEN o."estimatedValue" * o.probability / 100.0 ELSE 0 END), 0) as weighted_value
           FROM degoudse.customers c
-          LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
-          LEFT JOIN degoudse.opportunities o ON co.opportunity_id = o.id
+          LEFT JOIN degoudse.customer_opportunities co ON c.id = co."customerId"
+          LEFT JOIN degoudse.opportunities o ON co."opportunityId" = o.id
           WHERE c.id > 10
         `)
       ]);
