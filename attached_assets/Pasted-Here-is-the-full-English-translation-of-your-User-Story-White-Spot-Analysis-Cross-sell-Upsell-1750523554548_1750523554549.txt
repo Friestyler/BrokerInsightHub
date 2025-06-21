@@ -1,0 +1,220 @@
+Here is the full English translation of your **User Story: White Spot Analysis – Cross-sell & Upsell Matrix**, including acceptance criteria, definition of done, technical notes, and user acceptance criteria:
+
+---
+
+## User Story: White Spot Analysis – Cross-sell & Upsell Matrix
+
+**As** an insurance analyst
+**I want** to use an interactive matrix to identify and analyze cross-sell and upsell opportunities
+**So that** I can develop targeted campaigns and maximize potential revenue
+
+---
+
+### Acceptance Criteria:
+
+#### Segment Selection and Filtering
+
+* **Given** that I am on the White Spot Analysis tab
+* **When** I select a customer segment from the dropdown
+* **Then** the matrix is updated with segment-specific data
+* **And** I see the number of customers for the selected segment
+* **And** all calculations are adjusted for the segment
+* **Given** that I adjust the conversion rate slider
+* **When** I change the value (5–50%)
+* **Then** all “expected revenue” calculations update in real-time
+* **And** I immediately see the new values in the interface
+
+#### Product Selection and Configuration
+
+* **Given** that I want to select products for the matrix
+* **When** I click on the “Products” settings
+* **Then** a configuration panel opens
+* **And** I can toggle products on/off for the horizontal axis (has product)
+* **And** I can toggle products on/off for the vertical axis (wants product)
+* **And** I see how many products are selected per axis
+
+#### Benchmark Configuration
+
+* **Given** that I want to configure benchmarks
+* **When** I click on “Benchmarks”
+* **Then** a configuration panel opens with all product combinations
+* **And** I can set a benchmark percentage for each combination
+* **And** I can set a default benchmark for unknown combinations
+* **And** benchmarks are instantly applied to the matrix
+
+#### Matrix Display and Interaction
+
+* **Given** that I’m viewing the matrix
+
+* **When** I examine a cell
+
+* **Then** I see for each product combination:
+
+  * Cross-sell rate percentage with benchmark icon
+  * Benchmark comparison (vs. X% benchmark)
+  * Difference from benchmark (+/–X%)
+  * Number of customers with both products
+  * Number of customers eligible for cross-sell
+  * Maximum potential value (€XK)
+  * Expected revenue at current conversion rate
+
+* **Given** that I click on a matrix cell
+
+* **When** the cell is selected
+
+* **Then** it is visually highlighted with a blue ring
+
+* **And** a detailed overview appears above the matrix
+
+* **And** I can take actions for that specific combination
+
+#### Detailed Cell Overview
+
+* **Given** that I have selected a specific product combination
+* **When** the detail panel appears
+* **Then** I see:
+
+  * Product combination name (e.g., “Auto → Home”)
+  * Cross-sell rate with benchmark comparison
+  * Number of potential customers
+  * Maximum potential value
+  * Expected revenue at current conversion rate
+  * Action buttons: “Start Campaign,” “Create Opportunity,” “Create Customer List”
+
+#### Totals Overview Functionality
+
+* **Given** that I want to see the overall totals
+
+* **When** I click “Totals” or have no specific cell selected
+
+* **Then** I see:
+
+  * Segment information (name and customer count)
+  * Total potential customers (sum of all combinations)
+  * Total maximum potential (€XK)
+  * Expected revenue at current conversion rate
+
+* **And** I can close the overview with the ✕ button
+
+#### Visual Indicators and Color Coding
+
+* **Given** that I’m viewing the matrix
+
+* **When** I look at the cells
+
+* **Then** cells are color-coded based on cross-sell rate:
+
+  * Green (70%+): High cross-sell rate
+  * Light green (50–70%): Good cross-sell rate
+  * Yellow (30–50%): Average cross-sell rate
+  * Orange (15–30%): Low cross-sell rate
+  * Red (<15%): Very low cross-sell rate
+
+* **Given** that there are special opportunities
+
+* **When** I view the matrix
+
+* **Then** I see indicators for:
+
+  * Yellow dot: Cross-category opportunities (life ↔ non-life)
+  * Orange target icon: High potential value (>€500K)
+  * Benchmark status icons: 🎯 ✅ ⚠️ 🔴
+
+#### Top Opportunities Tab
+
+* **Given** that I want to view the best opportunities
+* **When** I go to the “Top Opportunities” tab
+* **Then** I see a ranked list of product combinations
+* **And** they are sorted by total potential value
+* **And** I see for each opportunity:
+
+  * Ranking position (1–10)
+  * Product combination name
+  * Cross-category badge (if applicable)
+  * Cross-sell rate, potential customers, average value
+  * Expected conversions at current rate
+  * Total potential and expected revenue
+
+#### Segment Insights Tab
+
+* **Given** that I want segment-specific insights
+* **When** I go to the “Segment Insights” tab
+* **Then** I see:
+
+  * Segment size and share of total
+  * Best cross-sell opportunity for this segment
+  * Segment characteristics and recommendations
+  * Conversion impact calculations for different rates (10%, 20%, 30%)
+
+#### Expanded Legend and Explanation
+
+* **Given** that I want to understand the matrix
+* **When** I look at the legend
+* **Then** I see:
+
+  * Example cell with all elements explained
+  * Explanation of percentages and figures
+  * Potential value calculation
+  * Benchmark comparison explanation
+  * Tips for interpreting high/low rates
+
+#### Responsive Behavior
+
+* **Given** that I’m using the interface
+* **When** I change a setting
+* **Then** all related numbers are updated in real-time
+* **And** the selected cell remains active
+* **And** colors and indicators update immediately
+
+#### Error Handling and Edge Cases
+
+* **Given** that no data is available for a combination
+* **When** I view that cell
+* **Then** I see a “—” symbol
+* **And** the cell is colored grey
+* **And** it cannot be selected
+* **Given** that I deselect all products
+* **When** no products are selected
+* **Then** an empty matrix is shown
+* **And** I get a prompt to select products
+
+---
+
+### Definition of Done:
+
+* Matrix displays all product combinations with complete data
+* Segment filtering works across all available segments
+* Conversion rate slider updates all calculations in real-time
+* Product selection interface functions for both axes
+* Benchmark configuration is fully functional
+* Cell selection displays detailed information
+* All tabs (Matrix, Top Opportunities, Segment Insights) are functional
+* Visual indicators and color coding work correctly
+* Legend explains all interface elements clearly
+* Interface is responsive and user-friendly
+* Action buttons are present but don’t need to be functional yet
+
+---
+
+### Technical Notes:
+
+* Matrix data is sourced from the `crossSellMatrix` object per segment
+* Color calculation uses `getCellColor()` and `getCellIntensity()`
+* Benchmark comparison uses `getBenchmarkStatus()`
+* Real-time updates handled via React state management
+* Responsive grid layout adapts to the number of selected products
+* Performance optimized for large matrices (>10x10)
+
+---
+
+### User Acceptance Criteria:
+
+* Analyst can identify the best cross-sell opportunity within 2 minutes
+* All numbers are understandable and accurately calculated
+* Interface responds within 1 second to changes
+* Benchmark comparisons provide clear visual feedback
+* Export functionality is prepared (buttons present)
+
+---
+
+Let me know if you'd like this formatted for development (e.g. Replit tickets) or turned into a visual spec.
