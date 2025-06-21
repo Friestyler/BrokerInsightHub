@@ -2011,21 +2011,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const partnerId = parseInt(req.params.id);
       const envPool = pool;
       const result = await envPool.query(`
-        SELECT o.id, o.title, o.description, o.status, o.stage, o.estimatedValue, o.probability,
-               o.expectedCloseDate, o.start_date, o.insurance_description, o.ownerId,
-               o.clientId, o.partnerId, o.productId, o.ownerId, o.type, o.createdAt, o.updatedAt,
+        SELECT o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", o.probability,
+               o."expectedCloseDate", o.start_date, o.insurance_description, o."ownerId",
+               o."clientId", o."partnerId", o."productId", o."ownerId", o.type, o."createdAt", o."updatedAt",
                c.name as client_name,
                COUNT(DISTINCT contacts.id) as contact_count,
                am.name as account_manager_name
         FROM degoudse.opportunities o
-        LEFT JOIN degoudse.customers c ON o.clientId = c.id
+        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
         LEFT JOIN degoudse.contacts contacts ON contacts.linked_entity_id = c.id AND contacts.linked_entity_type = 'customer'
-        LEFT JOIN degoudse.users am ON o.ownerId = am.id
-        WHERE o.partnerId = $1 AND o.id > 16
-        GROUP BY o.id, o.title, o.description, o.status, o.stage, o.estimatedValue, o.probability,
-                 o.expectedCloseDate, o.start_date, o.insurance_description, o.ownerId, 
-                 o.clientId, o.partnerId, o.productId, o.ownerId, o.type, 
-                 o.createdAt, o.updatedAt, c.name, am.name
+        LEFT JOIN degoudse.users am ON o."ownerId" = am.id
+        WHERE o."partnerId" = $1 AND o.id > 16
+        GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", o.probability,
+                 o."expectedCloseDate", o.start_date, o.insurance_description, o."ownerId", 
+                 o."clientId", o."partnerId", o."productId", o."ownerId", o.type, 
+                 o."createdAt", o."updatedAt", c.name, am.name
         ORDER BY o.id
       `, [partnerId]);
       
@@ -2072,8 +2072,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const customersResult = await envPool.query(`
         SELECT DISTINCT c.name as customer_name
         FROM degoudse.opportunities o
-        LEFT JOIN degoudse.customers c ON o.clientId = c.id
-        WHERE o.partnerId = $1 AND c.name IS NOT NULL
+        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
+        WHERE o."partnerId" = $1 AND c.name IS NOT NULL
         ORDER BY c.name
       `, [partnerId]);
       
@@ -2081,8 +2081,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const accountManagersResult = await envPool.query(`
         SELECT DISTINCT u.name as account_manager_name
         FROM degoudse.opportunities o
-        LEFT JOIN degoudse.users u ON o.ownerId = u.id
-        WHERE o.partnerId = $1 AND u.name IS NOT NULL
+        LEFT JOIN degoudse.users u ON o."ownerId" = u.id
+        WHERE o."partnerId" = $1 AND u.name IS NOT NULL
         ORDER BY u.name
       `, [partnerId]);
       
@@ -2091,7 +2091,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT DISTINCT o.insurance_description
         FROM degoudse.opportunities o
         INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        WHERE po.partnerId = $1 AND o.insurance_description IS NOT NULL
+        WHERE po."partnerId" = $1 AND o.insurance_description IS NOT NULL
         ORDER BY o.insurance_description
       `, [partnerId]);
       
@@ -2118,8 +2118,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT DISTINCT p.id, p.name, p.description, p.category,
                p.created_at, p.updated_at
         FROM degoudse.products p
-        INNER JOIN degoudse.opportunities o ON p.id = o.productId
-        WHERE o.partnerId = $1
+        INNER JOIN degoudse.opportunities o ON p.id = o."productId"
+        WHERE o."partnerId" = $1
         ORDER BY p.name
       `, [partnerId]);
       
