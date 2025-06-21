@@ -384,7 +384,7 @@ export default function PartnerPilot() {
           <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center">
             <div className="text-white font-bold text-sm">B</div>
           </div>
-          <h1 className="text-3xl font-bold text-gray-900">Baloise Insurance Copilot</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Broker Copilot</h1>
         </div>
         <p className="text-lg text-gray-600 max-w-2xl mx-auto">
           Your AI-powered assistant for maximizing insurance cross-sell and upsell opportunities across your broker network
