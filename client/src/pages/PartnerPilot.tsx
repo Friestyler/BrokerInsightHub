@@ -406,6 +406,120 @@ export default function PartnerPilot() {
         <p className="text-gray-600 text-sm">AI-powered recommendations to maximize cross-sell and upsell potential across your insurance portfolio</p>
       </div>
 
+      {/* Quick Overview Stats */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+        <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-blue-600 text-sm font-medium">Total Opportunities</p>
+                <p className="text-2xl font-bold text-blue-900">{opportunities?.length || 0}</p>
+              </div>
+              <div className="p-2 bg-blue-200 rounded-lg">
+                <Target className="h-5 w-5 text-blue-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-green-600 text-sm font-medium">Active Partners</p>
+                <p className="text-2xl font-bold text-green-900">{partners?.length || 0}</p>
+              </div>
+              <div className="p-2 bg-green-200 rounded-lg">
+                <Building className="h-5 w-5 text-green-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-purple-600 text-sm font-medium">Customers</p>
+                <p className="text-2xl font-bold text-purple-900">{customers?.length || 0}</p>
+              </div>
+              <div className="p-2 bg-purple-200 rounded-lg">
+                <Users className="h-5 w-5 text-purple-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        
+        <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-orange-600 text-sm font-medium">Pipeline Value</p>
+                <p className="text-2xl font-bold text-orange-900">
+                  €{opportunities?.reduce((sum: number, opp: any) => sum + (opp.estimated_value || 0), 0).toLocaleString() || '0'}
+                </p>
+              </div>
+              <div className="p-2 bg-orange-200 rounded-lg">
+                <DollarSign className="h-5 w-5 text-orange-700" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Recent Activities */}
+      <div className="mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Recent Activities</h3>
+          <Button variant="outline" size="sm">
+            <Bell className="h-4 w-4 mr-2" />
+            View All
+          </Button>
+        </div>
+        
+        <div className="space-y-3">
+          {sampleActivities.slice(0, 5).map((activity) => (
+            <Card key={activity.id} className="hover:shadow-md transition-shadow duration-200">
+              <CardContent className="p-4">
+                <div className="flex items-start space-x-3">
+                  <div className="flex-shrink-0">
+                    {activity.icon}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between">
+                      <p className="text-sm font-medium text-gray-900 truncate">
+                        {activity.title}
+                      </p>
+                      <div className="flex items-center space-x-2">
+                        {activity.priority && (
+                          <Badge variant={
+                            activity.priority === 'high' ? 'destructive' :
+                            activity.priority === 'medium' ? 'default' : 'secondary'
+                          }>
+                            {activity.priority === 'high' ? 'Urgent' : 
+                             activity.priority === 'medium' ? 'Important' : 'Later'}
+                          </Badge>
+                        )}
+                        <span className="text-xs text-gray-500">{activity.date}</span>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
+                    {activity.user && (
+                      <div className="flex items-center mt-2">
+                        <Avatar className="h-6 w-6">
+                          <AvatarFallback className="text-xs">{activity.user.initials}</AvatarFallback>
+                        </Avatar>
+                        <span className="text-xs text-gray-500 ml-2">{activity.user.name}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+
       {/* Smart Actions Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         {allActions.map((action, index) => (
