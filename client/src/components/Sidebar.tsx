@@ -164,6 +164,24 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
             {environment.id === 'myqollabi' ? 'Partner Hub' : 'Partner Hub'}
           </span>
         </Link>
+        
+        {/* Portfolio Insights Section */}
+        <button 
+          className={`nav-container w-full text-left hover:bg-indigo-50 nav-item-inactive`}
+          onClick={() => {
+            // Add navigation logic here when needed
+          }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+            <path d="M5 3v4" />
+            <path d="M19 17v4" />
+            <path d="M3 5h4" />
+            <path d="M17 19h4" />
+          </svg>
+          <span className={`ml-3 text-sm ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Portfolio Insights</span>
+        </button>
+        
         <div ref={dataMenuRef} className="relative">
           <button 
             className={`nav-container w-full text-left ${(collapsed && (location.startsWith('/partners') || location.startsWith('/lists/partners') || location.startsWith('/customers') || location.startsWith('/lists/customers') || location.startsWith('/opportunities') || location.startsWith('/lists/opportunities') || location.startsWith('/products') || location.startsWith('/contacts'))) ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
