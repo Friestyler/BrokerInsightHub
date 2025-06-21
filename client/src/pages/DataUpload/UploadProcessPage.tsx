@@ -183,16 +183,11 @@ export default function UploadProcessPage() {
   };
 
   const goBack = () => {
-    // Detect which upload section we came from based on current path
-    const currentPath = window.location.pathname;
-    const isFromDataUpload3 = currentPath.includes('/data-upload-3/');
-    
-    // Navigate back to the main page and trigger the appropriate section
+    // Navigate back to the main page and trigger the Data Upload 3 section
     setLocation('/');
     // Use a small delay to ensure page loads before triggering section change
     setTimeout(() => {
-      const targetSection = isFromDataUpload3 ? 'data-upload-3' : 'data-upload-2';
-      window.dispatchEvent(new CustomEvent('navigate-to-section', { detail: targetSection }));
+      window.dispatchEvent(new CustomEvent('navigate-to-section', { detail: 'data-upload-3' }));
     }, 100);
   };
 
