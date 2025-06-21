@@ -638,8 +638,8 @@ export default function UploadProcessPage() {
               </div>
             </div>
           )}
-          </CardContent>
-        </Card>
+        </CardContent>
+      </Card>
       )}
     </div>
   );
