@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import acmeLogo from "../assets/acme-logo.svg";
 import qollabiLogo from "../assets/qollabi-placeholder.svg";
-import baloiseLogo from "../assets/baloise-logo.png";
+import baloiseLogoPng from "../assets/baloise-logo.png";
 
 export interface Environment {
   id: string;
@@ -14,7 +14,7 @@ export interface Environment {
 // Helper function to get logo for environment
 const getEnvironmentLogo = (envId: string): string | undefined => {
   if (envId === 'myqollabi' || envId === 'degoudse') return qollabiLogo;
-  if (envId === 'baloise') return baloiseLogo;
+  if (envId === 'baloise') return baloiseLogoPng;
   return undefined;
 };
 
@@ -30,7 +30,7 @@ const FALLBACK_ENVIRONMENTS: Environment[] = [
   { 
     id: "baloise", 
     name: "Baloise", 
-    logo: baloiseLogo,
+    logo: baloiseLogoPng,
     apiBaseUrl: "/api/degoudse", // Same backend data as De Goudse
     databaseId: "degoudse"
   }
