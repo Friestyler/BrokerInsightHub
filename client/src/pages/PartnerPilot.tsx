@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
-import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -369,6 +369,15 @@ export default function PartnerPilot() {
           Inbox
         </Button>
 
+
+        <Button 
+          variant="ghost"
+          className={activeSection === 'portfolio-insights' ? "bg-indigo-50 text-indigo-700 hover:bg-indigo-100" : ""}
+          onClick={() => setActiveSection('portfolio-insights')}
+        >
+          <BarChart2 className="h-4 w-4 mr-2" />
+          Portfolio Insights
+        </Button>
 
         <Button 
           variant="ghost"
