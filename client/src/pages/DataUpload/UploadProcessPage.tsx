@@ -332,7 +332,11 @@ export default function UploadProcessPage() {
 
       {/* Step Content */}
       <Card className="shadow-sm border-0 bg-white/90 backdrop-blur-sm">
-        <CardContent className="pt-6">
+        <CardHeader className="pb-6">
+          <CardTitle className="text-xl font-semibold text-gray-900">Step {displayStepNumber}: {currentStepData?.name}</CardTitle>
+          <CardDescription className="text-gray-600 text-base">{currentStepData?.description}</CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0">
 
           {/* Product Categories Step (Entity Upload Only) - Step 1 */}
           {currentStep === 1 && isEntityUpload && (
