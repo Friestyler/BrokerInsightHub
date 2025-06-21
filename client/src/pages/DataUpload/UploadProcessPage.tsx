@@ -231,7 +231,7 @@ export default function UploadProcessPage() {
         <CardContent className="p-8">
           <div className="mb-6">
             <div className="flex justify-between text-sm font-medium text-gray-700 mb-3">
-              <span>Step {currentStep} of {isSpecialFormat ? 5 : 4}</span>
+              <span>Step {currentStep} of {isEntityUpload ? 6 : isSpecialFormat ? 5 : 4}</span>
               <span className="text-blue-600 font-semibold">{Math.round(progressPercentage)}% Complete</span>
             </div>
             <Progress value={progressPercentage} className="h-3 bg-gray-100" />
@@ -316,23 +316,22 @@ export default function UploadProcessPage() {
       </Card>
 
       {/* Step Content */}
-      <Card className="shadow-sm border-0 bg-white/90 backdrop-blur-sm">
-        <CardHeader className="pb-6">
-          <CardTitle className="text-xl font-semibold text-gray-900">Step {displayStepNumber}: {currentStepData?.name}</CardTitle>
-          <CardDescription className="text-gray-600 text-base">{currentStepData?.description}</CardDescription>
-        </CardHeader>
-        <CardContent className="pt-0">
-          {/* Product Mapping Step (Entity Upload Only) */}
-          {currentStep === 1 && isEntityUpload && (
-            <ProductMappingStep
-              onNext={(categories) => {
-                setProductCategories(categories);
-                goToNextStep();
-              }}
-              onBack={() => setLocation('/data-upload-3')}
-              initialCategories={productCategories}
-            />
-          )}
+      {currentStep === 1 && isEntityUpload ? (
+        <ProductMappingStep
+          onNext={(categories) => {
+            setProductCategories(categories);
+            goToNextStep();
+          }}
+          onBack={() => setLocation('/data-upload-3')}
+          initialCategories={productCategories}
+        />
+      ) : (
+        <Card className="shadow-sm border-0 bg-white/90 backdrop-blur-sm">
+          <CardHeader className="pb-6">
+            <CardTitle className="text-xl font-semibold text-gray-900">Step {displayStepNumber}: {currentStepData?.name}</CardTitle>
+            <CardDescription className="text-gray-600 text-base">{currentStepData?.description}</CardDescription>
+          </CardHeader>
+          <CardContent className="pt-0">
 
           {/* Entity Selection Step (Entity Upload Only) */}
           {currentStep === 2 && isEntityUpload && (
@@ -567,7 +566,7 @@ export default function UploadProcessPage() {
           )}
 
           {/* Processing Step */}
-          {((currentStep === 5 && isSpecialFormat) || (currentStep === 4 && isEntityUpload) || (currentStep === 3 && !isSpecialFormat && !isEntityUpload)) && (
+          {((currentStep === 5 && isSpecialFormat) || (currentStep === 5 && isEntityUpload) || (currentStep === 3 && !isSpecialFormat && !isEntityUpload)) && (
             <ProcessingStep 
               uploadedFile={isSpecialFormat && transformedFile ? transformedFile : uploadedFile}
               attributeMappings={attributeMappings}
@@ -588,7 +587,7 @@ export default function UploadProcessPage() {
           )}
 
           {/* Results Step */}
-          {((currentStep === 6 && isSpecialFormat) || (currentStep === 5 && isEntityUpload) || (currentStep === 4 && !isSpecialFormat && !isEntityUpload)) && (
+          {((currentStep === 5 && isSpecialFormat) || (currentStep === 6 && isEntityUpload) || (currentStep === 4 && !isSpecialFormat && !isEntityUpload)) && (
             <div className="text-center py-16">
               <div className="mx-auto w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-lg mb-6">
                 <CheckCircle className="h-10 w-10 text-white" strokeWidth={2} />
@@ -639,8 +638,9 @@ export default function UploadProcessPage() {
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
