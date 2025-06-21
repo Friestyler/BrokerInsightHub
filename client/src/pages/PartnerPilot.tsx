@@ -143,7 +143,9 @@ export default function PartnerPilot() {
       title: 'John mentioned you in a partner discussion',
       description: 'Updated the Q2 sales targets for Acme Corp partnership',
       date: '2 hours ago',
-      icon: <MessageSquare className="h-4 w-4 text-indigo-500" />,
+      icon: <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-500" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M2 12h4l3-8 4 16 3-8h4"></path>
+      </svg>,
       priority: 'medium',
       user: {
         name: 'John Smith',

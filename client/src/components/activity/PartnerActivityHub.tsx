@@ -685,7 +685,9 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
             className="flex items-center gap-3 hover:bg-gray-100 rounded-lg px-2 py-1 transition-colors"
           >
             {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            <MessageSquare className="h-4 w-4 text-gray-600" />
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-600" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M2 12h4l3-8 4 16 3-8h4"></path>
+            </svg>
             <span className="text-sm font-medium text-gray-700">Activity</span>
             <div className="flex items-center gap-3 text-xs text-gray-500">
               <span>{pendingTasks} pending</span>
@@ -951,7 +953,9 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                 ))}
                 {comments.length === 0 && (
                   <div className="text-center py-8 text-gray-500">
-                    <MessageSquare className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mx-auto mb-2 text-gray-400" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M2 12h4l3-8 4 16 3-8h4"></path>
+                    </svg>
                     <p className="text-sm">No comments yet</p>
                     <p className="text-xs text-gray-400 mt-1">Start a conversation</p>
                   </div>
@@ -1040,7 +1044,9 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                               <CheckSquare className="h-4 w-4 text-green-600" />
                             )}
                             {isComment && (
-                              <MessageSquare className="h-4 w-4 text-blue-600" />
+                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-600" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M2 12h4l3-8 4 16 3-8h4"></path>
+                              </svg>
                             )}
                             {isAttachment && (
                               <Paperclip className="h-4 w-4 text-purple-600" />
