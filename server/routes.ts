@@ -1912,8 +1912,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Direct query with relationship counts from opportunities table, excluding original seed partners except partner 4 (De Goudse)
       const result = await envPool.query(`
         SELECT p.id, p.name, p.description, p.status, p.location, p.contact_email, 
-               p.primary_contact, p.region, p.assigned_user_ids, p.owner_id,
-               p.linked_opportunity_ids, p.created_at, p.updated_at,
+               p.primary_contact, p.region, p.assigned_user_ids, p."ownerId",
+               p.linked_opportunity_ids, p."createdAt", p."updatedAt",
                u.name as owner_name,
                COALESCE(rel.opportunity_count, 0) as opportunity_count,
                COALESCE(rel.customer_count, 0) as customer_count,
@@ -1921,17 +1921,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
                COALESCE(rel.total_weighted_value, 0) as total_weighted_value,
                COALESCE(contact_rel.contact_count, 0) as contact_count
         FROM degoudse.partners p
-        LEFT JOIN degoudse.users u ON p.owner_id = u.id
+        LEFT JOIN degoudse.users u ON p."ownerId" = u.id
         LEFT JOIN (
-          SELECT partnerId, 
+          SELECT "partnerId", 
                  COUNT(*) as opportunity_count,
-                 COUNT(DISTINCT clientId) as customer_count,
-                 SUM(COALESCE(estimatedValue, 0)) as total_opportunity_value,
-                 SUM(COALESCE(estimatedValue, 0) * COALESCE(probability, 0) / 100.0) as total_weighted_value
+                 COUNT(DISTINCT "clientId") as customer_count,
+                 SUM(COALESCE("estimatedValue", 0)) as total_opportunity_value,
+                 SUM(COALESCE("estimatedValue", 0) * COALESCE(probability, 0) / 100.0) as total_weighted_value
           FROM degoudse.opportunities 
-          WHERE partnerId IS NOT NULL AND id > 16
-          GROUP BY partnerId
-        ) rel ON p.id = rel.partnerId
+          WHERE "partnerId" IS NOT NULL AND id > 16
+          GROUP BY "partnerId"
+        ) rel ON p.id = rel."partnerId"
         LEFT JOIN (
           SELECT COUNT(*) as contact_count, 'placeholder' as partner_reference
           FROM degoudse.contacts 
@@ -3326,16 +3326,16 @@ Keep the tone clear and professional. Focus on what will help the account manage
       } else {
         // Regular access - show opportunities excluding original seed data (IDs 1-16, missing ID 6) but preserve partner 4 opportunities for broker access
         result = await envPool.query(`
-          SELECT o.id, o.title, o.clientId, o.productId, o.probability, o.estimatedValue, o.type, o.status, o.stage, o.ownerId, o.description, o.partnerId, o.createdAt, o.updatedAt, o.expectedCloseDate, 
+          SELECT o.id, o.title, o."clientId", o."productId", o.probability, o."estimatedValue", o.type, o.status, o.stage, o."ownerId", o.description, o."partnerId", o."createdAt", o."updatedAt", o."expectedCloseDate", 
                  c.name as customer_name,
                  p.name as partner_name,
                  pr.name as product_name,
                  am.name as account_manager_name
           FROM degoudse.opportunities o
-          LEFT JOIN degoudse.customers c ON o.clientId = c.id
-          LEFT JOIN degoudse.partners p ON o.partnerId = p.id
-          LEFT JOIN degoudse.products pr ON o.productId = pr.id
-          LEFT JOIN degoudse.users am ON o.ownerId = am.id
+          LEFT JOIN degoudse.customers c ON o."clientId" = c.id
+          LEFT JOIN degoudse.partners p ON o."partnerId" = p.id
+          LEFT JOIN degoudse.products pr ON o."productId" = pr.id
+          LEFT JOIN degoudse.users am ON o."ownerId" = am.id
           WHERE o.id > 16
           ORDER BY o.id
         `);
