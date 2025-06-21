@@ -440,137 +440,150 @@ export default function PartnerPilot() {
         </Card>
       </div>
 
-      {/* Recent Activities */}
-      <div className="mb-8">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Recent Activities</h3>
-          <Button variant="outline" size="sm">
-            <Bell className="h-4 w-4 mr-2" />
-            View All
-          </Button>
-        </div>
+      {/* Main Content Layout - Two Columns */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
-        <div className="space-y-3">
-          {sampleActivities.slice(0, 5).map((activity) => (
-            <Card key={activity.id} className="hover:shadow-md transition-shadow duration-200">
-              <CardContent className="p-4">
-                <div className="flex items-start space-x-3">
-                  <div className="flex-shrink-0">
-                    {activity.icon}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-gray-900 truncate">
+        {/* Activities Column */}
+        <div className="lg:col-span-2">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">Activity</h2>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" className="text-gray-600">
+                <ListFilter className="h-4 w-4 mr-2" />
+                Filter
+              </Button>
+              <Button variant="outline" size="sm" className="text-gray-600">
+                <Archive className="h-4 w-4 mr-2" />
+                Archive
+              </Button>
+            </div>
+          </div>
+
+          {/* Activity Filter Tabs */}
+          <div className="mb-6">
+            <Tabs defaultValue="all" className="w-full">
+              <TabsList className="grid w-full grid-cols-6">
+                <TabsTrigger value="all">All</TabsTrigger>
+                <TabsTrigger value="mentions">Mentions</TabsTrigger>
+                <TabsTrigger value="tasks">Tasks</TabsTrigger>
+                <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
+                <TabsTrigger value="okrs">OKRs</TabsTrigger>
+                <TabsTrigger value="collaborations">Collaborations</TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
+
+          {/* Activity Feed */}
+          <div className="space-y-4">
+            {sampleActivities.map((activity) => (
+              <div key={activity.id} className="flex items-start space-x-3 p-4 bg-white border border-gray-100 rounded-lg hover:border-gray-200 transition-colors">
+                <div className="flex-shrink-0 mt-1">
+                  {activity.icon}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between">
+                    <div className="flex-1">
+                      <p className="text-sm font-medium text-gray-900 mb-1">
                         {activity.title}
                       </p>
-                      <div className="flex items-center space-x-2">
-                        {activity.priority && (
-                          <Badge variant={
-                            activity.priority === 'high' ? 'destructive' :
-                            activity.priority === 'medium' ? 'default' : 'secondary'
-                          }>
-                            {activity.priority === 'high' ? 'Urgent' : 
-                             activity.priority === 'medium' ? 'Important' : 'Later'}
-                          </Badge>
-                        )}
-                        <span className="text-xs text-gray-500">{activity.date}</span>
-                      </div>
+                      <p className="text-sm text-gray-600 mb-2">
+                        {activity.description}
+                      </p>
                     </div>
-                    <p className="text-sm text-gray-600 mt-1">{activity.description}</p>
-                    {activity.user && (
-                      <div className="flex items-center mt-2">
+                    <div className="flex items-center space-x-2 ml-4">
+                      {activity.priority && (
+                        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                          activity.priority === 'high' ? 'bg-red-100 text-red-700' :
+                          activity.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-green-100 text-green-700'
+                        }`}>
+                          {activity.priority}
+                        </span>
+                      )}
+                      {activity.user && (
                         <Avatar className="h-6 w-6">
-                          <AvatarFallback className="text-xs">{activity.user.initials}</AvatarFallback>
+                          <AvatarFallback className="text-xs bg-blue-100 text-blue-700">
+                            {activity.user.initials}
+                          </AvatarFallback>
                         </Avatar>
-                        <span className="text-xs text-gray-500 ml-2">{activity.user.name}</span>
-                      </div>
-                    )}
+                      )}
+                      <span className="text-xs text-gray-500 whitespace-nowrap">{activity.date}</span>
+                    </div>
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          ))}
+              </div>
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Smart Actions Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        {allActions.map((action, index) => (
-          <Card 
-            key={index} 
-            className="group hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer border-0 bg-white hover:bg-gradient-to-br hover:from-white hover:to-blue-50/30 relative overflow-hidden"
-            onClick={action.action}
-          >
-            <div className="absolute inset-0 bg-gradient-to-br from-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            <CardContent className="p-6 relative">
-              <div className="flex items-start justify-between mb-3">
-                <div className="p-2 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 group-hover:from-blue-50 group-hover:to-indigo-100 transition-colors duration-300">
-                  {(action as any).icon || <ArrowUpRight className="h-5 w-5 text-gray-600 group-hover:text-blue-600" />}
+        {/* Quick Stats Sidebar */}
+        <div className="lg:col-span-1">
+          <div className="bg-gray-50 rounded-lg p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-6">Quick Stats</h3>
+            
+            <div className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <Send className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Active Campaigns</p>
+                    <p className="text-xs text-gray-500">2 performing above average</p>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  {(action as any).priority && (
-                    <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      (action as any).priority === 'high' ? 'bg-red-100 text-red-700' :
-                      (action as any).priority === 'medium' ? 'bg-amber-100 text-amber-700' :
-                      'bg-green-100 text-green-700'
-                    }`}>
-                      {(action as any).priority === 'high' ? 'Urgent' : (action as any).priority === 'medium' ? 'Important' : 'Later'}
-                    </div>
-                  )}
-                  {(action as any).isCustom && (
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteCustomAction((action as any).id);
-                      }}
-                      className="opacity-0 group-hover:opacity-100 p-1 rounded-full hover:bg-red-100 text-gray-400 hover:text-red-600 transition-all duration-200"
-                      title="Delete custom action"
-                    >
-                      <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
-                        <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                      </svg>
-                    </button>
-                  )}
+                <div className="text-right">
+                  <p className="text-lg font-bold text-gray-900">{opportunities?.length || 0}</p>
                 </div>
               </div>
-              <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-900 transition-colors">
-                {action.title}
-              </h3>
-              <p className="text-sm text-gray-600 mb-3 leading-relaxed">{action.description}</p>
-              {(action as any).data && (
-                <div className="flex items-center text-xs text-gray-500">
-                  <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mr-2"></div>
-                  {(action as any).data}
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
 
-      {/* Quick Access Bar */}
-      <div className="flex flex-wrap gap-2 justify-center">
-        <button 
-          onClick={() => window.location.href = '/opportunities'}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
-        >
-          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-          Insurance Opportunities
-        </button>
-        <button 
-          onClick={() => window.location.href = '/partners'}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
-        >
-          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-          Broker Network
-        </button>
-        <button 
-          onClick={() => window.location.href = '/campaigns'}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
-        >
-          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-          Cross-Sell Campaigns
-        </button>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                    <CheckSquare className="h-4 w-4 text-green-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Pending Tasks</p>
+                    <p className="text-xs text-gray-500">2 high priority tasks due soon</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-bold text-gray-900">{partners?.length || 0}</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-purple-100 rounded-lg flex items-center justify-center">
+                    <Users className="h-4 w-4 text-purple-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">Partner Activity</p>
+                    <p className="text-xs text-gray-500">Increased engagement this month</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-bold text-gray-900">+12%</p>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <BarChart2 className="h-4 w-4 text-orange-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">OKR Progress</p>
+                    <p className="text-xs text-gray-500">Q2 targets in progress</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-bold text-gray-900">68%</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </>
