@@ -1873,27 +1873,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const partnerId = parseInt(req.params.id);
       const envPool = pool;
       
-      // Get distinct values for status and industry from customers related to this partner
-      const [statusResult, industryResult] = await Promise.all([
-        envPool.query(`
-          SELECT DISTINCT c.status
-          FROM degoudse.customers c
-          INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
-          WHERE pc.partner_id = $1 AND c.status IS NOT NULL AND c.status != ''
-          ORDER BY c.status
-        `, [partnerId]),
-        envPool.query(`
-          SELECT DISTINCT c.industry
-          FROM degoudse.customers c
-          INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
-          WHERE pc.partner_id = $1 AND c.industry IS NOT NULL AND c.industry != ''
-          ORDER BY c.industry
-        `, [partnerId])
-      ]);
+      // Get distinct values for status from customers related to this partner
+      const statusResult = await envPool.query(`
+        SELECT DISTINCT c.status
+        FROM degoudse.customers c
+        INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
+        WHERE pc.partner_id = $1 AND c.status IS NOT NULL AND c.status != ''
+        ORDER BY c.status
+      `, [partnerId]);
       
       const filterOptions = {
-        statuses: statusResult.rows.map(row => row.status),
-        industries: industryResult.rows.map(row => row.industry)
+        statuses: statusResult.rows.map(row => row.status)
       };
       
       console.log(`Customer filter options for partner ${partnerId}:`, filterOptions);
@@ -1984,7 +1974,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const partnerId = parseInt(req.params.id);
       const envPool = pool;
       const result = await envPool.query(`
-        SELECT c.id, c.name, c.description, c.industry, c.status
+        SELECT c.id, c.name, c.description
         FROM degoudse.customers c
         INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
         WHERE pc.partner_id = $1
@@ -1994,9 +1984,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const customers = result.rows.map((customer: any) => ({
         id: customer.id,
         name: customer.name,
-        description: customer.description,
-        industry: customer.industry,
-        status: customer.status
+        description: customer.description
       }));
       
       res.json(customers);
