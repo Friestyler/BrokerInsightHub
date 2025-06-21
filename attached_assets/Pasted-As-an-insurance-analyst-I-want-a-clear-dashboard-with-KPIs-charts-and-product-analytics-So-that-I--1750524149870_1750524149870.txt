@@ -1,0 +1,323 @@
+As an insurance analyst
+I want a clear dashboard with KPIs, charts, and product analytics
+So that I can quickly assess my product portfolio performance and make strategic decisions
+
+Acceptance Criteria:
+Header and Navigation
+Given that I open the dashboard
+
+When I look at the top of the page
+
+Then I see a clear title "Product Analysis Dashboard"
+
+And a subtitle "Cross- and upsell opportunities in your customer portfolio"
+
+And action buttons for "Export" and "Settings"
+
+And I can use these buttons to take further actions
+
+Filter and Search Functionality
+Given that I want to view specific products
+
+When I use the search bar
+
+Then I can search by product categories
+
+And results are filtered in real time
+
+Given that I want to select a specific product
+
+When I use the product dropdown
+
+Then I can choose from “All Products,” “Car Insurance,” “Home Insurance,” “Travel Insurance”
+
+And all charts and data are filtered based on my selection
+
+Given that I need more filtering options
+
+When I click “More filters”
+
+Then I get access to advanced filter options
+
+KPI Cards Display
+Given that I want to see key metrics
+
+When I look at the KPI section
+
+Then I see four main cards with:
+
+Total Customers Card:
+
+Current value: 4,127 customers
+
+Trend indicator: +12% compared to last month
+
+Icon: Users icon
+
+Cross-sell Potential Card:
+
+Current value: 13,494 estimated opportunities
+
+Description: "Estimated opportunities"
+
+Icon: Target icon
+
+Potential Value Card:
+
+Current value: €13.2M
+
+Description: "Annual premium potential"
+
+Icon: DollarSign icon
+
+Average Penetration Card:
+
+Current value: 45.1%
+
+Description: "Across all products"
+
+Icon: TrendingUp icon
+
+Charts Section
+Given that I want visual data analysis
+
+When I look at the charts section
+
+Then I see two main charts side by side:
+
+Product Penetration Chart:
+
+Title: "Product Penetration"
+
+Subtitle: "Current customers vs. potential per product"
+
+Type: Stacked bar chart
+
+Data: Shows current customers (blue) and potential (purple) per product
+
+X-axis: Product names (rotated 45° for readability)
+
+Y-axis: Number of customers
+
+Interactive: Tooltip shows exact values on hover
+
+Responsive: Adjusts to screen size
+
+Portfolio Distribution Pie Chart:
+
+Title: "Portfolio Distribution"
+
+Subtitle: "Current vs. potential customers"
+
+Type: Pie chart with labels
+
+Segments: Existing customers (11,106), Cross-sell potential (13,494), Upsell potential (8,234)
+
+Colors: Blue (#6366f1), purple (#a855f7), cyan (#06b6d4)
+
+Labels: Automatically show name and percentage
+
+Interactive: Tooltip shows exact values
+
+Product Details Section
+Given that I want detailed product information
+
+When I look at the "Product Categories Detail" section
+
+Then I see a card for each product showing:
+
+Product name as main title (e.g., “Car Insurance”)
+
+Penetration percentage badge:
+
+Green badge for >50% penetration
+
+Grey badge for ≤50% penetration
+
+Three data points in a row:
+
+Current customers (e.g., “2,847 customers”)
+
+Potential customers (e.g., “1,253 potential”)
+
+Total value in green (e.g., “€2.1M value”)
+
+Progress bar visualizing the penetration percentage
+
+"Details" button for further actions
+
+Responsive Layout and Grid System
+Given that I view the dashboard on different screen sizes
+
+When I resize the screen
+
+Then the KPI cards adjust:
+
+1 column on mobile
+
+2 columns on tablet
+
+4 columns on desktop
+
+And charts remain responsive (side-by-side on desktop, stacked on mobile)
+
+And all information stays accessible and readable
+
+And product detail cards adapt to available space
+
+Data Filtering and Real-Time Updates
+Given that I apply a filter
+
+When I select a product from the dropdown
+
+Then all KPI values recalculate and update
+
+And both charts are filtered for the selected product
+
+And the product detail list only shows relevant products
+
+And this happens within 1 second without a page refresh
+
+Given that I type in the search bar
+
+When I enter a search term
+
+Then product details are filtered in real time
+
+And KPIs and charts stay consistent with the filtered data
+
+Interactive Elements
+Given that I want to interact with the charts
+
+When I hover over chart elements
+
+Then I see tooltips with exact values
+
+And relevant data points are highlighted
+
+Given that I click the "Details" button for a product
+
+When the button is activated
+
+Then I access detailed product information
+
+And I can take further actions for that specific product
+
+Performance and Loading States
+Given that I load the dashboard
+
+When the page opens
+
+Then all KPI cards load within 1 second
+
+And charts load within 2 seconds
+
+And the product details section is fully loaded within 3 seconds
+
+And components display loading states while loading
+
+Error Handling and Fallbacks
+Given that no data is available for a specific filter
+
+When the dashboard tries to load data
+
+Then I see clear "No data available" messages
+
+And other components remain functional
+
+And suggestions are provided for alternative filters
+
+Given that a network error occurs
+
+When data cannot be loaded
+
+Then a friendly error message is shown
+
+And a "Retry" option is provided
+
+And the interface remains stable and usable
+
+Export and Settings Functionality
+Given that I want to export data
+
+When I click the “Export” button
+
+Then I get options to download dashboard data
+
+And I can choose from formats (PDF, Excel, CSV)
+
+And the export reflects current filter settings
+
+Given that I want to adjust dashboard settings
+
+When I click on “Settings”
+
+Then I get access to configuration options like:
+
+Default filter settings
+
+Display preferences
+
+Refresh interval settings
+
+Color scheme options
+
+Definition of Done:
+All KPI cards show correct, up-to-date data with proper formatting
+
+Both charts are fully functional, interactive, and responsive
+
+Filter system works seamlessly across all dashboard components
+
+Product details section shows complete, well-structured information
+
+Responsive design functions optimally across all devices
+
+Export and settings features are fully implemented
+
+Performance meets all specified requirements
+
+Error handling ensures a stable user experience
+
+Loading states provide clear feedback to users
+
+Technical Notes:
+Uses Recharts library for all charts and visualizations
+
+React state management for filters, search, and data updates
+
+Responsive grid system implemented with Tailwind CSS
+
+Data transformation functions for various chart types and KPI calculations
+
+Optimized re-rendering upon filter changes
+
+Lazy loading for large datasets and product lists
+
+Debounced search for better performance
+
+User Acceptance Criteria:
+Analyst can identify and understand all key KPIs within 30 seconds
+
+All charts are intuitive, informative, and professionally styled
+
+Filtering is smooth, logical, and provides immediate feedback
+
+Dashboard loads quickly and stays responsive across devices
+
+Export feature works reliably and generates useful reports
+
+Interface is user-friendly and requires minimal training
+
+Business Value:
+Rapid identification of cross-sell and upsell opportunities
+
+Clear monitoring of portfolio performance
+
+Solid foundation for strategic decision-making
+
+Efficient workflow for daily analysis
+
+Data-driven insights for management reporting
+
+Increased analyst productivity
