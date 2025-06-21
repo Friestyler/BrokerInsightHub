@@ -157,28 +157,32 @@ export default function CustomerDetailNew() {
     queryKey: ['/api/customers'],
   });
 
+  // Parse and validate customer ID
+  const customerId = id ? parseInt(id as string) : null;
+  const isValidId = customerId && !isNaN(customerId);
+
   // Fetch related partners for this customer
   const { data: relatedPartners, isLoading: partnersLoading } = useQuery({
-    queryKey: [`/api/customers/${id}/partners`],
-    enabled: !!id,
+    queryKey: [`/api/customers/${customerId}/partners`],
+    enabled: isValidId,
   });
 
   // Fetch related opportunities for this customer
   const { data: relatedOpportunities, isLoading: opportunitiesLoading } = useQuery({
-    queryKey: [`/api/customers/${id}/opportunities`],
-    enabled: !!id,
+    queryKey: [`/api/customers/${customerId}/opportunities`],
+    enabled: isValidId,
   });
 
   // Fetch related products for this customer
   const { data: relatedProducts, isLoading: productsLoading } = useQuery({
-    queryKey: [`/api/customers/${id}/products`],
-    enabled: !!id,
+    queryKey: [`/api/customers/${customerId}/products`],
+    enabled: isValidId,
   });
 
   // Fetch related contacts for this customer
   const { data: relatedContacts, isLoading: contactsLoading } = useQuery({
-    queryKey: [`/api/customers/${id}/contacts`],
-    enabled: !!id,
+    queryKey: [`/api/customers/${customerId}/contacts`],
+    enabled: isValidId,
   });
 
   // Fetch template assignments for this customer

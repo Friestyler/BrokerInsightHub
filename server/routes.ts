@@ -2142,6 +2142,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/customers/:id/partners', async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
+      if (isNaN(customerId)) {
+        return res.status(400).json({ error: 'Invalid customer ID' });
+      }
       const envPool = pool;
       const result = await envPool.query(`
         SELECT p.*
@@ -2170,14 +2173,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/customers/:id/opportunities', async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
+      if (isNaN(customerId)) {
+        return res.status(400).json({ error: 'Invalid customer ID' });
+      }
       const envPool = pool;
       const result = await envPool.query(`
-        SELECT o.id, o.title, o.clientId, o.productId, o.probability, o.estimatedValue, o.type, o.status, o.stage, o.ownerId, o.description, o.partnerId, o.createdAt, o.updatedAt, o.expectedCloseDate, 
+        SELECT o.id, o.title, o."clientId", o."productId", o.probability, o."estimatedValue", o.type, o.status, o.stage, o."ownerId", o.description, o."partnerId", o."createdAt", o."updatedAt", o."expectedCloseDate", 
                STRING_AGG(DISTINCT p.name, ', ') as partner_names
         FROM degoudse.opportunities o
         INNER JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
         LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN degoudse.partners p ON p.id = po.partnerId
+        LEFT JOIN degoudse.partners p ON p.id = po.partner_id
         WHERE co.customer_id = $1
         GROUP BY o.id, o.title, o.description, o.status, o.stage, o.estimatedValue, o.expectedCloseDate, o.clientId, o.partnerId, o.productId, o.ownerId, o.probability, o.type, o.createdAt, o.updatedAt
         ORDER BY o.id
@@ -2205,11 +2211,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/customers/:id/products', async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
+      if (isNaN(customerId)) {
+        return res.status(400).json({ error: 'Invalid customer ID' });
+      }
       const envPool = pool;
       const result = await envPool.query(`
         SELECT DISTINCT p.*, v.name as vendor_name
         FROM degoudse.products p
-        LEFT JOIN degoudse.vendors v ON p.vendor_id = v.id
+        LEFT JOIN degoudse.vendors v ON p."vendorId" = v.id
         INNER JOIN degoudse.opportunity_products op ON p.id = op.product_id
         INNER JOIN degoudse.customer_opportunities co ON op.opportunity_id = co.opportunity_id
         WHERE co.customer_id = $1
@@ -2240,6 +2249,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/customers/:id/contacts', async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
+      if (isNaN(customerId)) {
+        return res.status(400).json({ error: 'Invalid customer ID' });
+      }
       const envPool = pool;
       const result = await envPool.query(`
         SELECT *
