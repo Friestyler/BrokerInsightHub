@@ -15,6 +15,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useEnvironment } from '@/contexts/EnvironmentContext';
 import DataUploadOptions from '@/pages/DataUpload/DataUploadOptions';
 import DeGoudseUploadWizard from '@/pages/DataUpload/DeGoudseUploadWizard';
+import ReportsPage from '@/pages/Reports/ReportsPage';
 
 import { 
   MessageSquare, 
@@ -477,6 +478,10 @@ export default function PartnerPilot() {
 
 
 
+
+      {activeSection === 'reports' && (
+        <ReportsPage />
+      )}
 
       {activeSection === 'data-upload-3' && (
         <div className="w-full">
