@@ -131,6 +131,10 @@ export default function CustomerDetailNew() {
     }
   }, []);
 
+  // Parse and validate customer ID first
+  const customerId = id ? parseInt(id as string) : null;
+  const isValidId = Boolean(customerId && !isNaN(customerId));
+
   // Load existing logo on component mount
   useEffect(() => {
     const loadExistingLogo = async () => {
@@ -156,10 +160,6 @@ export default function CustomerDetailNew() {
   const { data: customersResponse, isLoading: customersLoading } = useQuery({
     queryKey: ['/api/customers'],
   });
-
-  // Parse and validate customer ID
-  const customerId = id ? parseInt(id as string) : null;
-  const isValidId = Boolean(customerId && !isNaN(customerId));
 
   // Fetch related partners for this customer
   const { data: relatedPartners, isLoading: partnersLoading } = useQuery({

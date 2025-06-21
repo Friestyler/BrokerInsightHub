@@ -1140,7 +1140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tasksResult = await db.execute(sql`
         SELECT t.*, u.name as assigned_to_name
         FROM ${sql.identifier(envId)}.activity_tasks t
-        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id
+        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to_id = u.id
         WHERE t.partner_id = ${partnerId}
         ORDER BY t.created_at DESC
       `);
@@ -1191,12 +1191,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           t.priority,
           t.completed,
           t.visible_to_partner,
-          t.assigned_to,
+          t.assigned_to_id as assigned_to,
           t.created_at,
           t.updated_at,
           u.name as author_name
         FROM ${sql.identifier(envId)}.activity_tasks t
-        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id
+        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to_id = u.id
         WHERE t.partner_id = ${partnerId}
         
         UNION ALL
@@ -2096,7 +2096,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envPool = pool;
       const result = await envPool.query(`
         SELECT DISTINCT p.id, p.name, p.description, p.category,
-               p.created_at, p.updated_at
+               p."createdAt", p."updatedAt"
         FROM degoudse.products p
         INNER JOIN degoudse.opportunities o ON p.id = o."productId"
         WHERE o."partnerId" = $1
