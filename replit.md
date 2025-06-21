@@ -177,6 +177,8 @@ Each environment maintains its own data isolation while sharing the same applica
 - June 15, 2025: Added recipient system, tile redesigns, vertical step progress, better navigation
 - June 15, 2025: Natural language transformation logic, AI explanations, template auto-loading, routing fixes
 - June 21, 2025: Major database connectivity and relationship fixes - resolved PostgreSQL case sensitivity issues between camelCase schema and snake_case queries, fixed all entity relationship endpoints, application now fully functional with authentic data
+- June 21, 2025: Completed 7-step entity upload flow with Product Categories (step 1) and Product Assignment (step 4) functionality - includes hierarchical category creation, product detection, and assignment tracking with validation
+- June 21, 2025: Moved Products page to "More" section in sidebar navigation for better organization
 
 ## User Preferences
 

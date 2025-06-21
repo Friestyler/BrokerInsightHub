@@ -217,7 +217,7 @@ export default function ProductAssignmentStep({
           disabled={!canProceed}
           className="flex items-center gap-2"
         >
-          Next: Variables & Aggregation
+          Finish Mapping
           <ArrowRight className="h-4 w-4" />
         </Button>
       </div>
