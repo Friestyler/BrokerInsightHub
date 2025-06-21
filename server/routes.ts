@@ -265,7 +265,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
-        SELECT o.*, 
+        SELECT o.id, o.title, o.clientId, o.productId, o.probability, o.estimatedValue, o.type, o.status, o.stage, o.ownerId, o.description, o.partnerId, o.createdAt, o.updatedAt, o.expectedCloseDate, 
                STRING_AGG(DISTINCT c.name, ', ') as customer_names,
                STRING_AGG(DISTINCT p.name, ', ') as partner_names,
                STRING_AGG(DISTINCT pr.name, ', ') as product_names,
@@ -1102,7 +1102,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const partnerId = parseInt(req.params.id);
       const result = await db.execute(sql`
-        SELECT o.*, c.name as client_name
+        SELECT o.id, o.title, o.clientId, o.productId, o.probability, o.estimatedValue, o.type, o.status, o.stage, o.ownerId, o.description, o.partnerId, o.createdAt, o.updatedAt, o.expectedCloseDate, c.name as client_name
         FROM degoudse.opportunities o
         INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
         LEFT JOIN degoudse.customers c ON o."clientId" = c.id
@@ -2172,7 +2172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const customerId = parseInt(req.params.id);
       const envPool = pool;
       const result = await envPool.query(`
-        SELECT o.*, 
+        SELECT o.id, o.title, o.clientId, o.productId, o.probability, o.estimatedValue, o.type, o.status, o.stage, o.ownerId, o.description, o.partnerId, o.createdAt, o.updatedAt, o.expectedCloseDate, 
                STRING_AGG(DISTINCT p.name, ', ') as partner_names
         FROM degoudse.opportunities o
         INNER JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
@@ -3244,7 +3244,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
               if (members.length > 0) {
                 console.log(`Filtering to ${members.length} specific opportunities from list ${listId}`);
                 result = await envPool.query(`
-                  SELECT o.*, 
+                  SELECT o.id, o.title, o.clientId, o.productId, o.probability, o.estimatedValue, o.type, o.status, o.stage, o.ownerId, o.description, o.partnerId, o.createdAt, o.updatedAt, o.expectedCloseDate, 
                          c.name as customer_name,
                          p.name as partner_name,
                          pr.name as product_name,
@@ -3299,7 +3299,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
                 console.log(`Showing ${opportunityIdsArray.length} opportunities from ${sharedListsResult.rows.length} shared lists`);
                 
                 result = await envPool.query(`
-                  SELECT o.*, 
+                  SELECT o.id, o.title, o.clientId, o.productId, o.probability, o.estimatedValue, o.type, o.status, o.stage, o.ownerId, o.description, o.partnerId, o.createdAt, o.updatedAt, o.expectedCloseDate, 
                          c.name as customer_name,
                          p.name as partner_name,
                          pr.name as product_name,
@@ -3326,7 +3326,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
       } else {
         // Regular access - show opportunities excluding original seed data (IDs 1-16, missing ID 6) but preserve partner 4 opportunities for broker access
         result = await envPool.query(`
-          SELECT o.*, 
+          SELECT o.id, o.title, o.clientId, o.productId, o.probability, o.estimatedValue, o.type, o.status, o.stage, o.ownerId, o.description, o.partnerId, o.createdAt, o.updatedAt, o.expectedCloseDate, 
                  c.name as customer_name,
                  p.name as partner_name,
                  pr.name as product_name,
@@ -3382,7 +3382,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
       const envPool = pool;
       
       const result = await envPool.query(`
-        SELECT o.*, 
+        SELECT o.id, o.title, o.clientId, o.productId, o.probability, o.estimatedValue, o.type, o.status, o.stage, o.ownerId, o.description, o.partnerId, o.createdAt, o.updatedAt, o.expectedCloseDate, 
                STRING_AGG(DISTINCT c.name, ', ') as customer_names,
                STRING_AGG(DISTINCT p.name, ', ') as partner_names,
                STRING_AGG(DISTINCT pr.name, ', ') as product_names,
