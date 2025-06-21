@@ -245,10 +245,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         contact_name: customer.contact_name,
         contact_email: customer.contact_email,
         contact_phone: customer.contact_phone,
-        owner_id: customer.owner_id,
-        assigned_partner_id: customer.assigned_partner_id,
-        created_at: customer.created_at,
-        updated_at: customer.updated_at,
+        ownerId: customer.ownerId,
+        assignedPartnerId: customer.assignedPartnerId,
+        createdAt: customer.createdAt,
+        updatedAt: customer.updatedAt,
         partnerCount: parseInt(customer.partner_count) || 0,
         opportunityCount: parseInt(customer.opportunity_count) || 0
       }));
@@ -1116,10 +1116,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: opp.description,
         status: opp.status,
         stage: opp.stage,
-        estimatedValue: opp.estimated_value,
+        estimatedValue: opp.estimatedValue,
         clientName: opp.client_name,
-        createdAt: opp.created_at,
-        updatedAt: opp.updated_at,
+        createdAt: opp.createdAt,
+        updatedAt: opp.updatedAt,
         expectedCloseDate: opp.expected_close_date
       }));
       
