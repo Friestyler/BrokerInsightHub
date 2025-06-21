@@ -75,7 +75,7 @@ export default function PartnerPilot() {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
-<  const [customActions, setCustomActions] = useState<any[]>([]);
+  const [customActions, setCustomActions] = useState<any[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [newActionForm, setNewActionForm] = useState({
     title: '',

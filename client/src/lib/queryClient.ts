@@ -120,10 +120,6 @@ const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeou
 
     throw error;
   }
-
-    }
-    throw error;
-  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";

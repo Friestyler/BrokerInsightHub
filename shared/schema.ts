@@ -1124,7 +1124,7 @@ export const campaignShares = pgTable("campaign_shares", {
 // Define relationships
 export const campaignsRelations = relations(campaigns, ({ one, many }) => ({
   createdBy: one(users, {
-    fields: [campaigns.createdById],
+    fields: [campaigns.created_by],
     references: [users.id],
   }),
   recipients: many(campaignRecipients),
