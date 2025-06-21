@@ -629,7 +629,7 @@ export default function PartnerPilot() {
                 <div>
                   <p className="text-blue-600 text-sm font-medium">Total Portfolio Value</p>
                   <p className="text-2xl font-bold text-blue-900">
-                    €{opportunities?.reduce((sum: number, opp: any) => sum + (opp.estimated_value || 0), 0).toLocaleString() || '0'}
+                    €{Array.isArray(opportunities) ? opportunities.reduce((sum: number, opp: any) => sum + (opp.estimated_value || 0), 0).toLocaleString() : '0'}
                   </p>
                 </div>
                 <div className="p-2 bg-blue-200 rounded-lg">
@@ -644,7 +644,7 @@ export default function PartnerPilot() {
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-green-600 text-sm font-medium">Active Partners</p>
-                  <p className="text-2xl font-bold text-green-900">{partners?.length || 0}</p>
+                  <p className="text-2xl font-bold text-green-900">{Array.isArray(partners) ? partners.length : 0}</p>
                 </div>
                 <div className="p-2 bg-green-200 rounded-lg">
                   <Building className="h-5 w-5 text-green-700" />
