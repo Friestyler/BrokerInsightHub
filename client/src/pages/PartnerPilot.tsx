@@ -377,34 +377,7 @@ export default function PartnerPilot() {
 
 {activeSection === 'copilot' && (
   <>
-    {/* Baloise Branding Header */}
-    <div className="mb-8 mx-auto max-w-6xl">
-      <div className="text-center">
-        <div className="inline-flex items-center justify-center gap-3 mb-4">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center">
-            <div className="text-white font-bold text-sm">B</div>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900">Broker Copilot</h1>
-        </div>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Your AI-powered assistant for maximizing insurance cross-sell and upsell opportunities across your broker network
-        </p>
-      </div>
-    </div>
-
-    {/* Next Best Actions Section */}
     <div className="mb-10 mx-auto max-w-6xl">
-      <div className="text-center mb-8">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-100 mb-4">
-          <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
-            <div className="w-2 h-2 bg-white rounded-full"></div>
-          </div>
-        </div>
-        <div className="flex items-center justify-center gap-4 mb-4">
-          <h2 className="text-2xl font-semibold text-gray-900">Insurance Portfolio Growth Opportunities</h2>
-        </div>
-        <p className="text-gray-600 text-sm">AI-powered recommendations to maximize cross-sell and upsell potential across your insurance portfolio</p>
-      </div>
 
       {/* Quick Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
