@@ -2896,7 +2896,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
         LEFT JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
         LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
         LEFT JOIN (
-          SELECT co2.customer_id, SUM(o2.estimated_value) as total_opportunity_value
+          SELECT co2.customer_id, SUM(o2."estimatedValue") as total_opportunity_value
           FROM degoudse.customer_opportunities co2
           JOIN degoudse.opportunities o2 ON o2.id = co2.opportunity_id
           GROUP BY co2.customer_id
