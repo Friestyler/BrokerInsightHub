@@ -12,6 +12,7 @@ import AttributeMappingStep from './AttributeMappingStep';
 import ProcessingStep from './ProcessingStep';
 import TransformationStep from './TransformationStep';
 import ProductMappingStep from './ProductMappingStep';
+import ProductAssignmentStep from './ProductAssignmentStep';
 
 interface UploadProcessProps {
   entityType?: string;
@@ -127,6 +128,10 @@ export default function UploadProcessPage() {
       categoryId: string;
     }>;
   }>>([]);
+  const [productMappings, setProductMappings] = useState<Record<string, {
+    targetId: string;
+    targetType: 'category' | 'subcategory';
+  }>>({});
 
   // For entity-upload, show all steps. For special formats, show all steps. For regular entities, skip transformation.
   const visibleSteps = isEntityUpload || isSpecialFormat ? steps : steps.slice(1);
@@ -542,33 +547,15 @@ export default function UploadProcessPage() {
 
           {/* Product Mapping Step (Entity Upload Only) - Step 4 */}
           {currentStep === 4 && isEntityUpload && (
-            <div className="space-y-6">
-              <div className="text-center py-16">
-                <h3 className="text-xl font-semibold text-gray-900 mb-4">Product Mapping</h3>
-                <p className="text-gray-600 mb-8">Map products to categories</p>
-                <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-8">
-                  <p className="text-gray-500">Product mapping functionality coming soon...</p>
-                </div>
-              </div>
-              
-              <div className="flex justify-between pt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={goToPreviousStep} 
-                  className="rounded-xl px-6 py-3 border-gray-300 hover:bg-gray-50"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
-                </Button>
-                <Button 
-                  onClick={goToNextStep}
-                  className="rounded-xl px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium"
-                >
-                  Continue to Mapping
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </div>
-            </div>
+            <ProductAssignmentStep
+              onNext={(mappings) => {
+                setProductMappings(mappings);
+                goToNextStep();
+              }}
+              onBack={goToPreviousStep}
+              categories={productCategories}
+              uploadedFile={uploadedFile}
+            />
           )}
 
           {/* Mapping Step (Special Formats Only) - Apply transformation and extract headers */}
