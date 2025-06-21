@@ -1873,17 +1873,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const partnerId = parseInt(req.params.id);
       const envPool = pool;
       
-      // Get distinct values for status from customers related to this partner
-      const statusResult = await envPool.query(`
-        SELECT DISTINCT c.status
-        FROM degoudse.customers c
-        INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
-        WHERE pc.partner_id = $1 AND c.status IS NOT NULL AND c.status != ''
-        ORDER BY c.status
-      `, [partnerId]);
-      
+      // Return empty filter options since customers table doesn't have status/industry columns
       const filterOptions = {
-        statuses: statusResult.rows.map(row => row.status)
+        statuses: []
       };
       
       console.log(`Customer filter options for partner ${partnerId}:`, filterOptions);
