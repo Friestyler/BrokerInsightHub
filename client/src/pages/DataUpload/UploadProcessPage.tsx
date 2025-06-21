@@ -587,7 +587,7 @@ export default function UploadProcessPage() {
           )}
 
           {/* Processing Step */}
-          {((currentStep === 5 && isSpecialFormat) || (currentStep === 5 && isEntityUpload) || (currentStep === 3 && !isSpecialFormat && !isEntityUpload)) && (
+          {((currentStep === 4 && isSpecialFormat) || (currentStep === 5 && isEntityUpload) || (currentStep === 3 && !isSpecialFormat && !isEntityUpload)) && (
             <ProcessingStep 
               uploadedFile={isSpecialFormat && transformedFile ? transformedFile : uploadedFile}
               attributeMappings={attributeMappings}
