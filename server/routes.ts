@@ -1919,7 +1919,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           FROM degoudse.contacts 
           WHERE is_active = true
         ) contact_rel ON 1=1
-        WHERE p.id > 5 OR p.id = 4
+        WHERE p.status = 'active' OR p.status IS NULL
         ORDER BY p.id
       `);
       
@@ -2165,7 +2165,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
         LEFT JOIN degoudse.partners p ON p.id = po.partner_id
         WHERE co.customer_id = $1
-        GROUP BY o.id, o.title, o.description, o.status, o.stage, o.estimatedValue, o.expectedCloseDate, o.clientId, o.partnerId, o.productId, o.ownerId, o.probability, o.type, o.createdAt, o.updatedAt
+        GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", o."expectedCloseDate", o."clientId", o."partnerId", o."productId", o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
         ORDER BY o.id
       `, [customerId]);
       
