@@ -157,9 +157,8 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
             <circle cx="12" cy="12" r="10"></circle>
             <circle cx="12" cy="12" r="6"></circle>
             <circle cx="12" cy="12" r="2"></circle>
-            <path d="M12 12l8-8"></path>
             <path d="M12 12l6-6"></path>
-            <path d="M12 12l4-4"></path>
+            <path d="M15 9a3 3 0 0 0-3-3"></path>
           </svg>
           <span className={`ml-3 text-sm ${collapsed ? "hidden" : "hidden md:inline-block"}`}>
             {environment.id === 'myqollabi' ? 'Partner Hub' : 'Partner Hub'}
