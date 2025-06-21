@@ -11,6 +11,7 @@ import MappingStep from './MappingStep';
 import AttributeMappingStep from './AttributeMappingStep';
 import ProcessingStep from './ProcessingStep';
 import TransformationStep from './TransformationStep';
+import ProductMappingStep from './ProductMappingStep';
 
 interface UploadProcessProps {
   entityType?: string;
@@ -54,14 +55,15 @@ const capitalizeUploadType = (type: string) => {
 };
 
 const getSteps = (uploadType: string) => {
-  // For entity-upload flow, skip transformation and go directly from entity selection to upload
+  // For entity-upload flow, add product mapping as first step
   if (uploadType === 'entity-upload') {
     return [
-      { id: 1, name: 'Entity Selection', description: 'Choose the type of data you want to upload' },
-      { id: 2, name: 'Upload', description: 'Upload your CSV file' },
-      { id: 3, name: 'Mapping', description: 'Map CSV columns to entity attributes' },
-      { id: 4, name: 'Processing', description: 'Review and validate your data before processing' },
-      { id: 5, name: 'Complete', description: 'Review results' }
+      { id: 1, name: 'Product Mapping', description: 'Set up product categories and subcategories' },
+      { id: 2, name: 'Entity Selection', description: 'Choose the type of data you want to upload' },
+      { id: 3, name: 'Upload', description: 'Upload your CSV file' },
+      { id: 4, name: 'Mapping', description: 'Map CSV columns to entity attributes' },
+      { id: 5, name: 'Processing', description: 'Review and validate your data before processing' },
+      { id: 6, name: 'Complete', description: 'Review results' }
     ];
   }
   
@@ -114,6 +116,7 @@ export default function UploadProcessPage() {
     recordsProcessed: number;
     errors: any[];
   } | null>(null);
+  const [productCategories, setProductCategories] = useState<any[]>([]);
 
   // For entity-upload, show all steps. For special formats, show all steps. For regular entities, skip transformation.
   const visibleSteps = isEntityUpload || isSpecialFormat ? steps : steps.slice(1);
@@ -319,8 +322,20 @@ export default function UploadProcessPage() {
           <CardDescription className="text-gray-600 text-base">{currentStepData?.description}</CardDescription>
         </CardHeader>
         <CardContent className="pt-0">
-          {/* Entity Selection Step (Entity Upload Only) */}
+          {/* Product Mapping Step (Entity Upload Only) */}
           {currentStep === 1 && isEntityUpload && (
+            <ProductMappingStep
+              onNext={(categories) => {
+                setProductCategories(categories);
+                goToNextStep();
+              }}
+              onBack={() => setLocation('/data-upload-3')}
+              initialCategories={productCategories}
+            />
+          )}
+
+          {/* Entity Selection Step (Entity Upload Only) */}
+          {currentStep === 2 && isEntityUpload && (
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <h3 className="text-lg font-medium mb-2">Choose Entity Type</h3>
@@ -424,7 +439,7 @@ export default function UploadProcessPage() {
           )}
 
           {/* Upload Step */}
-          {((currentStep === 2 && (isSpecialFormat || isEntityUpload)) || (currentStep === 1 && !isSpecialFormat && !isEntityUpload)) && (
+          {((currentStep === 2 && isSpecialFormat) || (currentStep === 3 && isEntityUpload) || (currentStep === 1 && !isSpecialFormat && !isEntityUpload)) && (
             <div className="space-y-8">
               <div 
                 className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 ${
@@ -534,7 +549,7 @@ export default function UploadProcessPage() {
           )}
 
           {/* Attribute Mapping Step */}
-          {((currentStep === 4 && isSpecialFormat) || (currentStep === 3 && isEntityUpload) || (currentStep === 2 && !isSpecialFormat && !isEntityUpload)) && (
+          {((currentStep === 4 && isSpecialFormat) || (currentStep === 4 && isEntityUpload) || (currentStep === 2 && !isSpecialFormat && !isEntityUpload)) && (
             <AttributeMappingStep 
               uploadedFile={isSpecialFormat && transformedFile ? transformedFile : uploadedFile}
               csvHeaders={csvHeaders}

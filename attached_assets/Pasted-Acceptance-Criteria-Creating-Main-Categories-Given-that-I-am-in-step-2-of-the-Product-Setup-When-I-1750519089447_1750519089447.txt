@@ -1,0 +1,85 @@
+Acceptance Criteria:
+Creating Main Categories
+Given that I am in step 2 of the Product Setup
+
+When I enter a name for a new main category (e.g., "Life Insurance")
+
+And I click the "+" button
+
+Then a new main category is created with a unique color
+
+And it appears in the category overview
+
+Adding Subcategories
+Given that I have selected a main category
+
+When I enter a name for a subcategory (e.g., "Term Life")
+
+And I click the "+" button next to subcategories
+
+Then the subcategory is added under the selected main category
+
+And the number of subcategories is updated in the overview
+
+Category Selection and Feedback
+Given that I have created categories
+
+When I click on a category
+
+Then it is visually marked as selected
+
+And I can add subcategories to this category
+
+And I see the number of existing subcategories
+
+Validation and Usability
+Given that I try to add an empty category name
+
+When I click "+" without entering text
+
+Then nothing happens (no empty category is created)
+
+Given that I press Enter in the input field
+
+When there is text in the field
+
+Then the category is automatically added
+
+Progress to Next Step
+Given that I have not created any categories
+
+When I try to proceed to step 3
+
+Then the "Next" button is disabled
+
+And I cannot continue
+
+Given that I have created at least one category
+
+When I click "Next: Product Mapping"
+
+Then I proceed to step 3 with my created categories
+
+Definition of Done:
+User can create main categories with automatic color coding
+
+User can add subcategories to selected main categories
+
+Visual feedback indicates which category is selected
+
+Overview shows the number of subcategories per main category
+
+Validation prevents empty categories from being created
+
+Progress control ensures the user cannot proceed without categories
+
+Interface is intuitive and responsive
+
+Technical Notes:
+Categories are automatically assigned a unique ID and color
+
+State management tracks the selected category
+
+Keyboard shortcuts (Enter) improve UX
+
+Visual indicators show selection and hierarchy
