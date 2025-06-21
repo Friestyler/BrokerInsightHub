@@ -40,7 +40,7 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
               <img 
                 src={getEnvironmentLogo(environment.id)!} 
                 alt={environment.name} 
-                className={environment.id === 'degoudse' ? "w-6 h-4 object-contain" : "w-10 h-8 object-contain"}
+                className={environment.id === 'degoudse' ? "w-6 h-4 object-contain" : "w-6 h-5 object-contain"}
               />
             </div>
           ) : (
@@ -67,7 +67,7 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
                     <img 
                       src={getEnvironmentLogo(env.id)!} 
                       alt={env.name} 
-                      className={env.id === 'degoudse' ? "w-6 h-4 object-contain" : "w-6 h-6 object-contain"}
+                      className={env.id === 'degoudse' ? "w-6 h-4 object-contain" : "w-5 h-4 object-contain"}
                     />
                   ) : (
                     <div className="w-6 h-6 rounded-sm flex items-center justify-center text-gray-700 uppercase">
@@ -96,7 +96,7 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
                   <img 
                     src={getEnvironmentLogo(environment.id)!} 
                     alt={environment.name} 
-                    className={environment.id === 'degoudse' ? "w-6 h-4 object-contain" : "w-10 h-8 object-contain"}
+                    className={environment.id === 'degoudse' ? "w-6 h-4 object-contain" : "w-6 h-5 object-contain"}
                   />
                 ) : (
                   <div className="w-6 h-6 rounded-sm flex items-center justify-center text-gray-700 uppercase">
@@ -116,7 +116,7 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
                       <img 
                         src={getEnvironmentLogo(env.id)!} 
                         alt={env.name} 
-                        className={env.id === 'degoudse' ? "w-6 h-4 object-contain" : "w-10 h-8 object-contain"}
+                        className={env.id === 'degoudse' ? "w-6 h-4 object-contain" : "w-5 h-4 object-contain"}
                       />
                     ) : (
                       <div className="w-6 h-6 rounded-sm flex items-center justify-center text-gray-700 uppercase">
