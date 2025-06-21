@@ -154,15 +154,9 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
           className={`nav-container ${isActive("/") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="3"></circle>
-            <path d="M12 1v6m0 0 4-4m-4 4L8 3"></path>
-            <path d="M12 23v-6m0 0 4 4m-4-4-4 4"></path>
-            <path d="M20 12h-2"></path>
-            <path d="M6 12H4"></path>
-            <path d="M17.657 6.343l-1.414 1.414"></path>
-            <path d="M7.757 16.243l-1.414 1.414"></path>
-            <path d="M17.657 17.657l-1.414-1.414"></path>
-            <path d="M7.757 7.757l-1.414-1.414"></path>
+            <path d="m13.4 2.6-.8-.8a2 2 0 0 0-1.2 0l-.8.8A2 2 0 0 0 10 4.1V6a8 8 0 0 0 8 8h1.9c.4 0 .8-.2 1.1-.5l.8-.8c.2-.2.2-.6 0-.8l-.8-.8c-.2-.2-.6-.2-.8 0L18 12.9h-.9A6 6 0 0 1 11 6.9V5.1c0-.3-.1-.6-.4-.9Z"></path>
+            <path d="M2 12A10 10 0 1 1 12 2"></path>
+            <path d="m2 12 8.5-8.5"></path>
           </svg>
           <span className={`ml-3 text-sm ${collapsed ? "hidden" : "hidden md:inline-block"}`}>
             {environment.id === 'myqollabi' ? 'Partner Hub' : 'Partner Hub'}
