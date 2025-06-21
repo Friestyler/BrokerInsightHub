@@ -9,6 +9,7 @@ import {
 } from "@/components/ui/select";
 import { useEnvironment } from "../contexts/EnvironmentContext";
 import deGoudseLogo from "../assets/de-goudse-logo.png";
+import baloiseLogo from "../assets/baloise-logo.svg";
 
 interface EnvironmentSelectorProps {
   collapsed?: boolean;
@@ -17,6 +18,13 @@ interface EnvironmentSelectorProps {
 export default function EnvironmentSelector({ collapsed = false }: EnvironmentSelectorProps) {
   const { environment, setEnvironment, environments } = useEnvironment();
   const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
+  
+  // Helper function to get the correct logo for each environment
+  const getEnvironmentLogo = (envId: string) => {
+    if (envId === 'degoudse') return deGoudseLogo;
+    if (envId === 'baloise') return baloiseLogo;
+    return null;
+  };
   
   // If sidebar is collapsed, create a dropdown menu that can be clicked
   if (collapsed) {

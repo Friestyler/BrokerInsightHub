@@ -1,0 +1,11 @@
+<svg width="200" height="60" viewBox="0 0 200 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Baloise logo recreation based on the provided image -->
+  <g>
+    <!-- Diamond shape -->
+    <path d="M4 20L20 4L36 20L20 36L4 20Z" fill="#1E2B87"/>
+    <path d="M12 20L20 12L28 20L20 28L12 20Z" fill="#FFFFFF"/>
+    
+    <!-- Text "baloise" -->
+    <text x="44" y="42" font-family="Arial, sans-serif" font-size="28" font-weight="bold" fill="#1E2B87">baloise</text>
+  </g>
+</svg>

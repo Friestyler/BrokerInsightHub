@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import acmeLogo from "../assets/acme-logo.svg";
 import qollabiLogo from "../assets/qollabi-placeholder.svg";
+import baloiseLogo from "../assets/baloise-logo.svg";
 
 export interface Environment {
   id: string;
@@ -13,16 +14,24 @@ export interface Environment {
 // Helper function to get logo for environment
 const getEnvironmentLogo = (envId: string): string | undefined => {
   if (envId === 'myqollabi' || envId === 'degoudse') return qollabiLogo;
+  if (envId === 'baloise') return baloiseLogo;
   return undefined;
 };
 
-// Only De Goudse environment
+// Demo environments - both use same backend data
 const FALLBACK_ENVIRONMENTS: Environment[] = [
   { 
     id: "degoudse", 
     name: "De Goudse", 
     logo: qollabiLogo,
     apiBaseUrl: "/api/degoudse",
+    databaseId: "degoudse_db"
+  },
+  { 
+    id: "baloise", 
+    name: "Baloise", 
+    logo: baloiseLogo,
+    apiBaseUrl: "/api/degoudse", // Same backend data as De Goudse
     databaseId: "degoudse_db"
   }
 ];
@@ -42,11 +51,13 @@ export const EnvironmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [environments, setEnvironments] = useState<Environment[]>(FALLBACK_ENVIRONMENTS);
   const [environment, setEnvironmentState] = useState<Environment>(() => {
     const savedEnvId = localStorage.getItem('selectedEnvironment');
-    // If we have an old environment saved that's not degoudse, clear it and default to degoudse
-    if (savedEnvId && savedEnvId !== 'degoudse') {
-      localStorage.setItem('selectedEnvironment', 'degoudse');
+    // Allow both degoudse and baloise environments
+    if (savedEnvId && (savedEnvId === 'degoudse' || savedEnvId === 'baloise')) {
+      return FALLBACK_ENVIRONMENTS.find(env => env.id === savedEnvId) || FALLBACK_ENVIRONMENTS[0];
     }
-    return FALLBACK_ENVIRONMENTS.find(env => env.id === (savedEnvId === 'degoudse' ? savedEnvId : 'degoudse')) || FALLBACK_ENVIRONMENTS[0];
+    // Default to degoudse if no valid environment is saved
+    localStorage.setItem('selectedEnvironment', 'degoudse');
+    return FALLBACK_ENVIRONMENTS[0];
   });
 
   // Load environments from API
@@ -88,8 +99,7 @@ export const EnvironmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
     // Set the global environment variable immediately
     window.__APP_ENV__ = newEnv.id;
     
-    // Reload the application to apply the new environment
-    window.location.reload();
+    // No reload needed - this is purely cosmetic for demo purposes
   };
 
   const refreshEnvironments = () => {
