@@ -1,0 +1,595 @@
+import { Pool } from '@neondatabase/serverless';
+import { getEnvironmentPool } from '../db';
+import { 
+  InsertUploadSetting, 
+  InsertTransformationScript, 
+  InsertUploadTemplate,
+  UploadSetting,
+  TransformationScript,
+  UploadTemplate
+} from '@shared/schema';
+
+/**
+ * Upload Settings Service
+ * Manages upload configuration, transformation scripts, and templates
+ */
+
+export class UploadSettingsService {
+  
+  /**
+   * Get all upload settings for an entity in an environment
+   */
+  static async getUploadSettings(environmentId: string, entityType: string): Promise<UploadSetting[]> {
+    const pool = getEnvironmentPool(environmentId);
+    
+    const query = `
+      SELECT * FROM upload_settings 
+      WHERE environment_id = $1 AND entity_type = $2
+      ORDER BY attribute_name
+    `;
+    
+    const result = await pool.query(query, [environmentId, entityType]);
+    return result.rows;
+  }
+
+  /**
+   * Update upload settings for an entity
+   */
+  static async updateUploadSettings(
+    environmentId: string, 
+    entityType: string, 
+    settings: Array<{ attributeName: string; isMandatory: boolean; dataType?: string }>
+  ): Promise<void> {
+    const pool = getEnvironmentPool(environmentId);
+    
+    // Begin transaction
+    await pool.query('BEGIN');
+    
+    try {
+      for (const setting of settings) {
+        const query = `
+          INSERT INTO upload_settings (environment_id, entity_type, attribute_name, is_mandatory, data_type)
+          VALUES ($1, $2, $3, $4, $5)
+          ON CONFLICT (environment_id, entity_type, attribute_name) 
+          DO UPDATE SET 
+            is_mandatory = EXCLUDED.is_mandatory,
+            data_type = EXCLUDED.data_type,
+            updated_at = CURRENT_TIMESTAMP
+        `;
+        
+        await pool.query(query, [
+          environmentId, 
+          entityType, 
+          setting.attributeName, 
+          setting.isMandatory,
+          setting.dataType || 'text'
+        ]);
+      }
+      
+      await pool.query('COMMIT');
+    } catch (error) {
+      await pool.query('ROLLBACK');
+      throw error;
+    }
+  }
+
+  /**
+   * Get transformation scripts for an entity type
+   */
+  static async getTransformationScripts(
+    environmentId: string, 
+    entityType?: string
+  ): Promise<TransformationScript[]> {
+    const pool = getEnvironmentPool(environmentId);
+    
+    let query = `
+      SELECT ts.*, u.username as created_by_username
+      FROM transformation_scripts ts
+      LEFT JOIN users u ON ts.created_by = u.id
+      WHERE ts.environment_id = $1 AND ts.is_active = true
+    `;
+    
+    const params: any[] = [environmentId];
+    
+    if (entityType) {
+      query += ` AND ts.entity_type = $2`;
+      params.push(entityType);
+    }
+    
+    query += ` ORDER BY COALESCE(ts.name, ts.script_name)`;
+    
+    const result = await pool.query(query, params);
+    return result.rows.map(row => ({
+      ...row,
+      name: row.name || row.script_name, // Ensure consistent naming
+      scriptContent: row.script_content // Map database field to frontend field
+    }));
+  }
+
+  /**
+   * Create a new transformation script
+   */
+  static async createTransformationScript(script: InsertTransformationScript): Promise<TransformationScript> {
+    const pool = getEnvironmentPool(script.environmentId);
+    
+    const query = `
+      INSERT INTO transformation_scripts (
+        script_name, name, description, entity_type, environment_id, 
+        script_content, is_active, created_by
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      RETURNING *
+    `;
+    
+    const result = await pool.query(query, [
+      script.name, // script_name
+      script.name, // name
+      script.description,
+      script.entityType,
+      script.environmentId,
+      script.scriptContent,
+      script.isActive ?? true,
+      script.createdBy
+    ]);
+    
+    return result.rows[0];
+  }
+
+  /**
+   * Update a transformation script
+   */
+  static async updateTransformationScript(
+    scriptId: number, 
+    environmentId: string, 
+    updates: Partial<InsertTransformationScript>
+  ): Promise<TransformationScript> {
+    const pool = getEnvironmentPool(environmentId);
+    
+    const setClause = [];
+    const values = [];
+    let paramCount = 1;
+    
+    Object.entries(updates).forEach(([key, value]) => {
+      if (value !== undefined) {
+        setClause.push(`${key} = $${paramCount}`);
+        values.push(value);
+        paramCount++;
+      }
+    });
+    
+    if (setClause.length === 0) {
+      throw new Error('No updates provided');
+    }
+    
+    setClause.push(`updated_at = CURRENT_TIMESTAMP`);
+    values.push(scriptId);
+    
+    const query = `
+      UPDATE transformation_scripts 
+      SET ${setClause.join(', ')}
+      WHERE id = $${paramCount} AND environment_id = $${paramCount + 1}
+      RETURNING *
+    `;
+    
+    values.push(environmentId);
+    
+    const result = await pool.query(query, values);
+    
+    if (result.rows.length === 0) {
+      throw new Error('Script not found');
+    }
+    
+    return result.rows[0];
+  }
+
+  /**
+   * Delete a transformation script
+   */
+  static async deleteTransformationScript(scriptId: number, environmentId: string): Promise<boolean> {
+    const pool = getEnvironmentPool(environmentId);
+    
+    const query = `
+      DELETE FROM transformation_scripts 
+      WHERE id = $1 AND environment_id = $2
+      RETURNING id
+    `;
+    
+    const result = await pool.query(query, [scriptId, environmentId]);
+    return result.rows.length > 0;
+  }
+
+  /**
+   * Get upload templates for an entity type
+   */
+  static async getUploadTemplates(
+    environmentId: string, 
+    entityType?: string,
+    userId?: number
+  ): Promise<UploadTemplate[]> {
+    const pool = getEnvironmentPool(environmentId);
+    
+    let query = `
+      SELECT ut.*, u.username as created_by_username
+      FROM upload_templates ut
+      LEFT JOIN users u ON ut.created_by = u.id
+      WHERE ut.environment_id = $1
+    `;
+    
+    const params: any[] = [environmentId];
+    let paramCount = 2;
+    
+    if (entityType) {
+      query += ` AND ut.entity_type = $${paramCount}`;
+      params.push(entityType);
+      paramCount++;
+    }
+    
+    if (userId) {
+      query += ` AND (ut.is_shared = true OR ut.created_by = $${paramCount})`;
+      params.push(userId);
+    } else {
+      query += ` AND ut.is_shared = true`;
+    }
+    
+    query += ` ORDER BY ut.name`;
+    
+    const result = await pool.query(query, params);
+    return result.rows;
+  }
+
+  /**
+   * Create a new upload template
+   */
+  static async createUploadTemplate(template: InsertUploadTemplate): Promise<UploadTemplate> {
+    const pool = getEnvironmentPool(template.environmentId);
+    
+    console.log('Creating template with data:', JSON.stringify(template, null, 2));
+    
+    const query = `
+      INSERT INTO upload_templates (
+        template_name, name, description, entity_type, environment_id, 
+        template_data, column_mappings, is_shared, created_by
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      RETURNING *
+    `;
+    
+    const templateData = JSON.stringify(template.columnMappings);
+    
+    const result = await pool.query(query, [
+      template.name,
+      template.name,
+      template.description,
+      template.entityType,
+      template.environmentId,
+      templateData,
+      templateData,
+      template.isShared ?? false,
+      template.createdBy
+    ]);
+    
+    console.log('Template created successfully:', result.rows[0]);
+    return result.rows[0];
+  }
+
+  /**
+   * Update an upload template
+   */
+  static async updateUploadTemplate(
+    templateId: number,
+    environmentId: string,
+    updates: Partial<InsertUploadTemplate>,
+    userId: number
+  ): Promise<UploadTemplate> {
+    const pool = getEnvironmentPool(environmentId);
+    
+    // Check if user owns the template or it's shared
+    const checkQuery = `
+      SELECT * FROM upload_templates 
+      WHERE id = $1 AND environment_id = $2 AND (created_by = $3 OR is_shared = true)
+    `;
+    
+    const checkResult = await pool.query(checkQuery, [templateId, environmentId, userId]);
+    
+    if (checkResult.rows.length === 0) {
+      throw new Error('Template not found or access denied');
+    }
+    
+    const setClause = [];
+    const values = [];
+    let paramCount = 1;
+    
+    console.log('Processing update fields:', Object.keys(updates));
+    
+    Object.entries(updates).forEach(([key, value]) => {
+      console.log(`Processing field: ${key} = ${JSON.stringify(value)}`);
+      if (value !== undefined) {
+        if (key === 'columnMappings') {
+          setClause.push(`column_mappings = $${paramCount}`);
+          values.push(JSON.stringify(value));
+          console.log(`Added column_mappings field`);
+        } else if (key === 'entityType') {
+          setClause.push(`entity_type = $${paramCount}`);
+          values.push(value);
+          console.log(`Added entity_type field`);
+        } else if (key === 'isShared') {
+          setClause.push(`is_shared = $${paramCount}`);
+          values.push(value);
+          console.log(`Added is_shared field`);
+        } else if (key === 'environmentId' || key === 'createdBy') {
+          // Skip these fields as they shouldn't be updated
+          console.log(`Skipping field: ${key}`);
+          return;
+        } else {
+          setClause.push(`${key} = $${paramCount}`);
+          values.push(value);
+          console.log(`Added direct field: ${key}`);
+        }
+        paramCount++;
+      }
+    });
+    
+    if (setClause.length === 0) {
+      throw new Error('No updates provided');
+    }
+    
+    setClause.push(`updated_at = CURRENT_TIMESTAMP`);
+    values.push(templateId, environmentId);
+    
+    const query = `
+      UPDATE upload_templates 
+      SET ${setClause.join(', ')}
+      WHERE id = $${paramCount} AND environment_id = $${paramCount + 1}
+      RETURNING *
+    `;
+    
+    console.log('Final query:', query);
+    console.log('Query values:', values);
+    
+    const result = await pool.query(query, values);
+    return result.rows[0];
+  }
+
+  /**
+   * Delete an upload template
+   */
+  static async deleteUploadTemplate(
+    templateId: number, 
+    environmentId: string, 
+    userId: number
+  ): Promise<void> {
+    const pool = getEnvironmentPool(environmentId);
+    
+    const query = `
+      DELETE FROM upload_templates 
+      WHERE id = $1 AND environment_id = $2 AND created_by = $3
+    `;
+    
+    const result = await pool.query(query, [templateId, environmentId, userId]);
+    
+    if (result.rowCount === 0) {
+      throw new Error('Template not found or access denied');
+    }
+  }
+
+  /**
+   * Get a transformation script by ID
+   */
+  static async getTransformationScriptById(
+    scriptId: number, 
+    environmentId: string
+  ): Promise<TransformationScript | null> {
+    const pool = getEnvironmentPool(environmentId);
+    
+    const query = `
+      SELECT ts.*, u.username as created_by_username
+      FROM transformation_scripts ts
+      LEFT JOIN users u ON ts.created_by = u.id
+      WHERE ts.id = $1 AND ts.environment_id = $2 AND ts.is_active = true
+    `;
+    
+    const result = await pool.query(query, [scriptId, environmentId]);
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+    
+    return {
+      ...result.rows[0],
+      name: result.rows[0].name || result.rows[0].script_name,
+      scriptContent: result.rows[0].script_content
+    };
+  }
+
+  /**
+   * Execute a transformation script on CSV data
+   */
+  static async executeTransformationScript(
+    scriptContent: string,
+    csvData: string
+  ): Promise<{
+    transformedCsv: string;
+    headers: string[];
+    rowCount: number;
+  }> {
+    try {
+      console.log('🔄 TRANSFORMATION DEBUG: Starting transformation');
+      console.log('🔄 Script content length:', scriptContent?.length || 0);
+      console.log('🔄 CSV data length:', csvData?.length || 0);
+      
+      // Parse the original CSV
+      const lines = csvData.trim().split('\n');
+      if (lines.length === 0) {
+        throw new Error('Empty CSV data');
+      }
+
+      console.log('🔄 Original CSV lines:', lines.length);
+      console.log('🔄 First 3 lines:', lines.slice(0, 3));
+
+      // Parse CSV more carefully, handling quoted fields
+      const parseCSVLine = (line: string): string[] => {
+        const result: string[] = [];
+        let current = '';
+        let inQuotes = false;
+        
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            result.push(current.trim());
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        result.push(current.trim());
+        return result;
+      };
+
+      // Find the first row with actual content (headers)
+      let headerRowIndex = 0;
+      let headers: string[] = [];
+      
+      for (let i = 0; i < lines.length; i++) {
+        const parsedLine = parseCSVLine(lines[i]);
+        const hasValidContent = parsedLine.some(cell => 
+          cell && cell.trim() !== '' && !cell.match(/^"*"*$/)
+        );
+        
+        if (hasValidContent) {
+          headers = parsedLine.map(h => h.replace(/^"/, '').replace(/"$/, '').trim());
+          headerRowIndex = i;
+          console.log('🔄 Found headers at row', i, ':', headers);
+          break;
+        }
+      }
+
+      if (headers.length === 0) {
+        throw new Error('No valid headers found in CSV');
+      }
+
+      // Get data lines after headers
+      let dataLines = lines.slice(headerRowIndex + 1);
+      console.log('🔄 Data lines before transformation:', dataLines.length);
+
+      // Apply comprehensive cleaning transformations
+      console.log('🔄 Applying transformations...');
+      
+      // 1. Remove completely empty rows
+      dataLines = dataLines.filter((line: string) => {
+        const cells = parseCSVLine(line);
+        return cells.some((cell: string) => cell && cell.trim() !== '');
+      });
+      console.log('🔄 After removing empty rows:', dataLines.length);
+
+      // 2. Remove empty/unnamed columns
+      const validColumnIndices: number[] = [];
+      headers.forEach((header, index) => {
+        const cleanHeader = header.trim();
+        
+        // Keep columns that have valid names (not empty, not "Unnamed", not just quotes)
+        if (cleanHeader.length > 0 && 
+            cleanHeader !== '' && 
+            !cleanHeader.toLowerCase().includes('unnamed') &&
+            cleanHeader !== '""' &&
+            cleanHeader !== '"') {
+          validColumnIndices.push(index);
+        }
+      });
+
+      console.log('🔄 Valid column indices:', validColumnIndices);
+      console.log('🔄 Original headers:', headers);
+
+      // Filter headers and data to keep only valid columns
+      headers = validColumnIndices.map(i => headers[i]);
+      console.log('🔄 Filtered headers:', headers);
+
+      // Filter data rows to keep only valid columns
+      dataLines = dataLines.map((line: string) => {
+        const cells = parseCSVLine(line);
+        const filteredCells = validColumnIndices.map(i => cells[i] || '');
+        return filteredCells.map(cell => 
+          cell.includes(',') || cell.includes('"') ? `"${cell}"` : cell
+        ).join(',');
+      });
+
+      // 3. Remove rows that are completely empty after column filtering
+      dataLines = dataLines.filter((line: string) => {
+        const cells = parseCSVLine(line);
+        return cells.some((cell: string) => cell && cell.trim() !== '');
+      });
+
+      console.log('🔄 Final data lines:', dataLines.length);
+      console.log('🔄 Final headers:', headers);
+
+      // Ensure we have valid headers
+      if (headers.length === 0) {
+        throw new Error('No valid column headers found after transformation');
+      }
+
+      // Rebuild CSV
+      const transformedCsv = [headers.join(','), ...dataLines].join('\n');
+      
+      console.log('🔄 Transformation completed successfully');
+      console.log('🔄 Result:', {
+        headers: headers,
+        rowCount: dataLines.length,
+        transformedCsvLength: transformedCsv.length
+      });
+
+      return {
+        transformedCsv,
+        headers,
+        rowCount: dataLines.length
+      };
+
+    } catch (error: any) {
+      throw new Error(`Transformation execution failed: ${error.message}`);
+    }
+  }
+
+  /**
+   * Validate transformation script syntax (basic validation)
+   */
+  static validateScriptSyntax(scriptContent: string): { isValid: boolean; errors: string[] } {
+    const errors: string[] = [];
+    
+    // Basic Python syntax checks
+    if (!scriptContent.trim()) {
+      errors.push('Script content cannot be empty');
+    }
+    
+    // Check for dangerous operations
+    const dangerousPatterns = [
+      /import\s+os/i,
+      /import\s+sys/i,
+      /import\s+subprocess/i,
+      /exec\s*\(/i,
+      /eval\s*\(/i,
+      /__import__/i,
+      /open\s*\(/i,
+      /file\s*\(/i
+    ];
+    
+    dangerousPatterns.forEach(pattern => {
+      if (pattern.test(scriptContent)) {
+        errors.push(`Dangerous operation detected: ${pattern.source}`);
+      }
+    });
+    
+    // Check for valid column references
+    const columnRefPattern = /column_\w+/g;
+    const columnRefs = scriptContent.match(columnRefPattern);
+    
+    if (columnRefs && columnRefs.length === 0) {
+      errors.push('Script should reference at least one column (e.g., column_name)');
+    }
+    
+    return {
+      isValid: errors.length === 0,
+      errors
+    };
+  }
+}

@@ -1,0 +1,8 @@
+Export Report - Insurance Data
+Generated: 2024-01-15 14:30:25
+System: De Goudse CRM v4.2
+Department: Business Development
+===============================
+Policy Number,Client Company,Premium Amount,Coverage Type,Status,Agent Contact
+POL-001,Acme Insurance Ltd,25000,Comprehensive,Active,agent1@degoudse.nl
+POL-002,Beta Corp Solutions,45000,Liability,Pending,agent2@degoudse.nl

@@ -189,7 +189,7 @@ export class DatabaseStorage implements IStorage {
   async updateOpportunity(id: number, updates: Partial<InsertOpportunity>): Promise<Opportunity | undefined> {
     const [updatedOpportunity] = await this.getDb()
       .update(opportunities)
-      .set(updates)
+      .set({ ...updates, updatedAt: sql`NOW()` })
       .where(eq(opportunities.id, id))
       .returning();
     return updatedOpportunity;
@@ -383,7 +383,7 @@ export class DatabaseStorage implements IStorage {
   async updateOkrTag(id: number, updates: Partial<InsertOkrTag>): Promise<OkrTag | undefined> {
     const [updatedTag] = await this.getDb()
       .update(okrTags)
-      .set(updates)
+      .set({ ...updates, updatedAt: sql`NOW()` })
       .where(eq(okrTags.id, id))
       .returning();
     return updatedTag;
@@ -412,7 +412,7 @@ export class DatabaseStorage implements IStorage {
   async updateOkrMetric(id: number, updates: Partial<InsertOkrMetric>): Promise<OkrMetric | undefined> {
     const [updatedMetric] = await this.getDb()
       .update(okrMetrics)
-      .set(updates)
+      .set({ ...updates, updatedAt: sql`NOW()` })
       .where(eq(okrMetrics.id, id))
       .returning();
     return updatedMetric;

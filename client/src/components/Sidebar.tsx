@@ -516,6 +516,18 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
               </svg>
               Database Admin
             </button>
+            <button
+              onClick={() => navigateTo('/settings/upload')}
+              className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/settings/upload") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"></path>
+                <polyline points="14,2 14,8 20,8"></polyline>
+                <path d="M12 18v-6"></path>
+                <path d="M9 15l3-3 3 3"></path>
+              </svg>
+              Upload Settings
+            </button>
           </div>
         )}
       </div>

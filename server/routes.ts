@@ -33,14 +33,20 @@ import {
   type Vendor
 } from '@shared/schema';
 import { eq, sql } from 'drizzle-orm';
-import { db, pool } from './db';
+import { db, pool, getEnvironmentPool, getEnvironmentDb } from './db';
 import multer from 'multer';
 import { copyEnvironmentData } from './initDatabase';
 import path from 'path';
 import fs from 'fs';
 import { promises as fsPromises } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+import { z } from 'zod';
 import { comparePdfDocuments, extractTextFromPdf } from './services/pdfComparison';
+import { discoverEntitySchemas, getAvailableEnvironments, isSupportedEntityType } from './services/schemaDiscoveryService';
+import { UploadSettingsService } from './services/uploadSettingsService';
+import { insertUploadSettingSchema, insertTransformationScriptSchema, insertUploadTemplateSchema } from '@shared/schema';
+
+
 
 // Aggressive in-memory cache for fast responses
 const cache = new Map();
@@ -110,7 +116,45 @@ const upload = multer({
   }
 });
 
+// Separate multer configuration for CSV files (transformation scripts)
+const csvUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 50 * 1024 * 1024, // Limit file size to 50MB for CSV files
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept CSV files with various MIME types and extensions
+    const csvMimeTypes = [
+      'text/csv',
+      'application/csv',
+      'text/plain',
+      'application/vnd.ms-excel',
+      'text/x-csv'
+    ];
+    
+    const isCsvFile = csvMimeTypes.includes(file.mimetype) || 
+                     file.originalname.toLowerCase().endsWith('.csv') ||
+                     file.originalname.toLowerCase().endsWith('.txt');
+    
+    console.log('File filter check:', {
+      filename: file.originalname,
+      mimetype: file.mimetype,
+      isCsvFile
+    });
+    
+    if (isCsvFile) {
+      cb(null, true);
+    } else {
+      cb(new Error(`File type not supported for transformation. Received: ${file.mimetype}, filename: ${file.originalname}`));
+    }
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Add environment middleware for environment-specific routes
+  const { environmentMiddleware } = await import('./middleware/environmentMiddleware');
+  app.use('/api/:environmentId', environmentMiddleware);
+  
   // All API redirects to De Goudse environment - clean routing
   app.get('/api/contacts', (req, res) => res.redirect('/api/degoudse/contacts'));
   app.post('/api/contacts', (req, res) => res.redirect(307, '/api/degoudse/contacts'));
@@ -216,8 +260,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Redirect opportunities to De Goudse environment
-  app.get('/api/opportunities', (req, res) => res.redirect('/api/degoudse/opportunities'));
+  // Direct opportunities handler - avoid redirect issues
+  app.get('/api/opportunities', async (req, res) => {
+    try {
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT o.*, 
+               STRING_AGG(DISTINCT c.name, ', ') as customer_names,
+               STRING_AGG(DISTINCT p.name, ', ') as partner_names,
+               STRING_AGG(DISTINCT pr.name, ', ') as product_names,
+               COUNT(DISTINCT co.customer_id) as customer_count,
+               COUNT(DISTINCT po.partner_id) as partner_count,
+               COUNT(DISTINCT op.product_id) as product_count
+        FROM degoudse.opportunities o
+        LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
+        LEFT JOIN degoudse.customers c ON c.id = co.customer_id
+        LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
+        LEFT JOIN degoudse.partners p ON p.id = po.partner_id
+        LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
+        LEFT JOIN degoudse.products pr ON pr.id = op.product_id
+        GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
+                 o."expectedCloseDate", o."clientId", o."partnerId", o."productId", 
+                 o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
+        ORDER BY o.id
+      `);
+      console.log(`Returning ${result.rows.length} opportunities from De Goudse database`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching opportunities:', error);
+      res.status(500).json({ error: 'Failed to fetch opportunities' });
+    }
+  });
 
 
 
@@ -3372,6 +3445,175 @@ Keep the tone clear and professional. Focus on what will help the account manage
     }
   });
 
+  // Update opportunity in De Goudse environment
+  app.put('/api/degoudse/opportunities/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { 
+        title, 
+        description, 
+        clientId,
+        productId,
+        estimatedValue,
+        probability,
+        status,
+        type,
+        expectedCloseDate
+      } = req.body;
+      
+      console.log('Updating De Goudse opportunity:', id, req.body);
+      
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        UPDATE degoudse.opportunities 
+        SET 
+          title = $1, 
+          description = $2, 
+          "clientId" = $3, 
+          "productId" = $4, 
+          "estimatedValue" = $5, 
+          probability = $6, 
+          status = $7, 
+          type = $8, 
+          "expectedCloseDate" = $9,
+          "updatedAt" = NOW()
+        WHERE id = $10
+        RETURNING *
+      `, [
+        title, 
+        description, 
+        clientId,
+        productId,
+        estimatedValue || 0,
+        probability,
+        status,
+        type,
+        expectedCloseDate || null,
+        id
+      ]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Opportunity not found' });
+      }
+      
+      const updatedOpportunity = result.rows[0];
+      console.log('De Goudse opportunity updated successfully:', updatedOpportunity.id);
+      
+      res.json({
+        id: updatedOpportunity.id,
+        title: updatedOpportunity.title,
+        description: updatedOpportunity.description,
+        status: updatedOpportunity.status,
+        type: updatedOpportunity.type,
+        probability: updatedOpportunity.probability,
+        estimatedValue: updatedOpportunity.estimatedValue,
+        expectedCloseDate: updatedOpportunity.expectedCloseDate,
+        createdAt: updatedOpportunity.createdAt,
+        updatedAt: updatedOpportunity.updatedAt
+      });
+    } catch (error) {
+      console.error('Error updating De Goudse opportunity:', error);
+      res.status(500).json({ message: 'Failed to update opportunity in De Goudse environment' });
+    }
+  });
+
+  // Update partners in De Goudse environment
+  app.put('/api/degoudse/partners/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { name, description, type, status, location, contact_email, contact_phone } = req.body;
+      
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        UPDATE degoudse.partners 
+        SET 
+          name = $1,
+          description = $2,
+          type = $3,
+          status = $4,
+          location = $5,
+          contact_email = $6,
+          contact_phone = $7,
+          updated_at = NOW()
+        WHERE id = $8
+        RETURNING *
+      `, [name, description, type, status, location, contact_email, contact_phone, id]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Partner not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating De Goudse partner:', error);
+      res.status(500).json({ error: 'Failed to update partner' });
+    }
+  });
+
+  // Update customers in De Goudse environment
+  app.put('/api/degoudse/customers/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { name, description, status, type, location, contact_email, contact_phone } = req.body;
+      
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        UPDATE degoudse.customers 
+        SET 
+          name = $1,
+          description = $2,
+          status = $3,
+          type = $4,
+          location = $5,
+          contact_email = $6,
+          contact_phone = $7,
+          updated_at = NOW()
+        WHERE id = $8
+        RETURNING *
+      `, [name, description, status, type, location, contact_email, contact_phone, id]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Customer not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating De Goudse customer:', error);
+      res.status(500).json({ error: 'Failed to update customer' });
+    }
+  });
+
+  // Update products in De Goudse environment
+  app.put('/api/degoudse/products/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { name, description, category, colorCode, aiContext } = req.body;
+      
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        UPDATE degoudse.products 
+        SET 
+          name = $1,
+          description = $2,
+          category = $3,
+          color_code = $4,
+          ai_context = $5,
+          updated_at = NOW()
+        WHERE id = $6
+        RETURNING *
+      `, [name, description, category, colorCode, aiContext, id]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating De Goudse product:', error);
+      res.status(500).json({ error: 'Failed to update product' });
+    }
+  });
+
   // De Goudse OKR Metrics endpoints
   app.get('/api/degoudse/okr-metrics', async (req, res) => {
     const cacheKey = 'degoudse_okr_metrics';
@@ -3488,6 +3730,59 @@ Keep the tone clear and professional. Focus on what will help the account manage
     }
   });
 
+  // Update contact in De Goudse environment
+  app.put('/api/degoudse/contacts/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { 
+        firstName, lastName, email, phone, 
+        company, position, department, linkedEntityType, linkedEntityId, 
+        notes, isActive 
+      } = req.body;
+      
+      const fullName = `${firstName} ${lastName}`.trim();
+      
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        UPDATE degoudse.contacts 
+        SET 
+          first_name = $1,
+          last_name = $2,
+          full_name = $3,
+          email = $4,
+          phone = $5,
+          job_title = $6,
+          department = $7,
+          company = $8,
+          linked_entity_type = $9,
+          linked_entity_id = $10,
+          notes = $11,
+          is_active = $12,
+          updated_at = NOW()
+        WHERE id = $13
+        RETURNING id, first_name, last_name, full_name, email, phone, 
+                 job_title, department, company, linked_entity_type, 
+                 linked_entity_id, is_primary, notes, tags, is_active, 
+                 created_at, updated_at
+      `, [
+        firstName, lastName, fullName, email || null, 
+        phone || null, position || null, department || null, company || null,
+        linkedEntityType || null, linkedEntityId || null, 
+        notes || null, isActive !== false, id
+      ]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Contact not found' });
+      }
+      
+      console.log(`Contact updated successfully in De Goudse environment:`, result.rows[0]);
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating De Goudse contact:', error);
+      res.status(500).json({ error: 'Failed to update contact' });
+    }
+  });
+
   // De Goudse Vendors endpoints
   app.get('/api/degoudse/vendors', async (req, res) => {
     const cacheKey = 'degoudse_vendors';
@@ -3560,6 +3855,58 @@ Keep the tone clear and professional. Focus on what will help the account manage
     } catch (error) {
       console.error('Error creating De Goudse vendor:', error);
       res.status(500).json({ error: 'Failed to create vendor' });
+    }
+  });
+
+  // Update vendor in De Goudse environment
+  app.put('/api/degoudse/vendors/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { 
+        name, 
+        description, 
+        location, 
+        contactEmail, 
+        primaryContact, 
+        partnerType, 
+        region, 
+        status, 
+        industry, 
+        size 
+      } = req.body;
+      
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        UPDATE degoudse.vendors 
+        SET 
+          name = $1,
+          description = $2,
+          location = $3,
+          contact_email = $4,
+          primary_contact = $5,
+          partner_type = $6,
+          region = $7,
+          status = $8,
+          industry = $9,
+          size = $10,
+          "updatedAt" = NOW()
+        WHERE id = $11
+        RETURNING *
+      `, [
+        name, description, location || null, contactEmail || null, primaryContact || null,
+        partnerType, region || null, status, industry, size, id
+      ]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Vendor not found' });
+      }
+      
+      const vendor = result.rows[0];
+      console.log('Vendor updated successfully in De Goudse environment:', vendor);
+      res.json(vendor);
+    } catch (error) {
+      console.error('Error updating De Goudse vendor:', error);
+      res.status(500).json({ error: 'Failed to update vendor' });
     }
   });
 
@@ -4266,6 +4613,92 @@ Keep the tone clear and professional. Focus on what will help the account manage
       res.status(500).json({ 
         success: false, 
         message: 'Failed to process upload for De Goudse environment' 
+      });
+    }
+  });
+
+  // AI Code Generation API endpoint
+  app.post('/api/:envId/generate-transformation-code', async (req, res) => {
+    try {
+      const { prompt, uploadType, context } = req.body;
+      
+      if (!prompt) {
+        return res.status(400).json({ error: 'Prompt is required' });
+      }
+
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(400).json({ 
+          error: 'OpenAI API key is required for AI code generation. Please provide OPENAI_API_KEY in environment variables.' 
+        });
+      }
+
+      // Import OpenAI dynamically
+      const { default: OpenAI } = await import('openai');
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+      // Create system prompt for code generation
+      const systemPrompt = `You are an expert at creating simple Python expressions for CSV data transformation. Generate ONLY the transformation expression, not a full function.
+
+Key requirements:
+1. Generate a SINGLE LINE expression that can be used in a preview system
+2. Use column references in format: column_name (lowercase, underscores for spaces)
+3. For combining columns, use: column_first_name + " " + column_last_name
+4. For conditional logic, use: "Yes" if column_status == "Active" else "No"
+5. Keep expressions simple and easy to preview
+6. NO function definitions, NO imports, NO pandas DataFrame operations
+7. Just the transformation expression itself
+
+Available columns from CSV: ${context.csvHeaders ? context.csvHeaders.join(', ') : 'Not provided'}
+Target attribute: ${context.attributeName || uploadType}
+
+Examples:
+- Combine names: column_first_name + " " + column_last_name
+- Add prefix: "CLIENT_" + column_id
+- Conditional: "Active" if column_status == "Y" else "Inactive"
+- Uppercase: column_name.upper()
+
+Respond with a JSON object containing:
+{
+  "code": "single line expression only",
+  "explanation": "a clear, non-technical explanation of what the expression does"
+}`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt
+          },
+          {
+            role: "user",
+            content: `Generate Python code for this transformation: ${prompt}`
+          }
+        ],
+        max_tokens: 2000,
+        temperature: 0.3
+      });
+
+      const result = response.choices[0].message.content;
+      
+      try {
+        const parsedResult = JSON.parse(result);
+        res.json(parsedResult);
+      } catch (parseError) {
+        // If JSON parsing fails, extract code and create explanation
+        const codeMatch = result.match(/```python\n([\s\S]*?)\n```/);
+        const code = codeMatch ? codeMatch[1] : result;
+        
+        res.json({
+          code: code,
+          explanation: "AI generated transformation code based on your description. The code uses pandas to process your CSV data and applies the requested transformations."
+        });
+      }
+
+    } catch (error) {
+      console.error('AI code generation error:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate transformation code. Please check your OpenAI API key and try again.' 
       });
     }
   });
@@ -5351,8 +5784,35 @@ Keep the tone clear and professional. Focus on what will help the account manage
     }
   });
 
-  // Delete product catalogue
-  app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
+// Saved Views API endpoints - redirect to De Goudse
+app.get('/api/saved-views', (req, res) => {
+  const queryParams = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
+  res.redirect(`/api/degoudse/saved-views${queryParams}`);
+});
+
+app.put('/api/saved-views/:id', async (req, res) => {
+  const queryParams = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
+  res.redirect(`/api/degoudse/saved-views/${req.params.id}${queryParams}`);
+});
+
+// Main entity routes - redirect all to De Goudse (opportunities already handled above)
+app.post('/api/opportunities', (req, res) => res.redirect(307, '/api/degoudse/opportunities'));
+app.get('/api/partners', (req, res) => res.redirect('/api/degoudse/partners'));
+app.get('/api/customers', (req, res) => res.redirect('/api/degoudse/customers'));
+app.get('/api/products', (req, res) => res.redirect('/api/degoudse/products'));
+app.get('/api/contacts', (req, res) => res.redirect('/api/degoudse/contacts'));
+app.post('/api/contacts', (req, res) => res.redirect(307, '/api/degoudse/contacts'));
+app.get('/api/vendors', (req, res) => res.redirect('/api/degoudse/vendors'));
+app.post('/api/vendors', (req, res) => res.redirect(307, '/api/degoudse/vendors'));
+app.get('/api/okr-metrics', (req, res) => res.redirect('/api/degoudse/okr-metrics'));
+app.get('/api/okr-tags', (req, res) => res.redirect('/api/degoudse/okr-tags'));
+app.get('/api/users', (req, res) => res.redirect('/api/degoudse/users'));
+app.post('/api/users', (req, res) => res.redirect(307, '/api/degoudse/users'));
+
+// Delete product catalogue
+app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
+  // original logic here (from stage)
+});
     try {
       const envId = req.params.envId;
       const catalogueId = parseInt(req.params.id);
@@ -7748,6 +8208,778 @@ Keep the tone clear and professional. Focus on what will help the account manage
     } catch (error) {
       console.error('Error creating product:', error);
       res.status(500).json({ error: 'Failed to create product' });
+    }
+  });
+
+  // Template Management Routes
+  app.get('/api/:environmentId/upload/templates', async (req: Request, res: Response) => {
+    try {
+      const { environmentId } = req.params;
+      const { entityType } = req.query;
+      
+      if (!getAvailableEnvironments().includes(environmentId)) {
+        return res.status(400).json({ error: 'Invalid environment' });
+      }
+      
+      let query = `SELECT id, template_name as name, description, entity_type as "entityType", 
+                          environment_id as "environmentId", template_data as "columnMappings",
+                          is_active as "isShared", 0 as "usageCount", null as "lastUsedAt",
+                          created_at as "createdAt", updated_at as "updatedAt"
+                   FROM upload_templates WHERE environment_id = $1 AND is_active = true`;
+      const params = [environmentId];
+      
+      if (entityType) {
+        query += ` AND entity_type = $2`;
+        params.push(entityType as string);
+      }
+      
+      query += ` ORDER BY created_at DESC`;
+      
+      const result = await pool.query(query, params);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+      res.status(500).json({ error: 'Failed to fetch templates' });
+    }
+  });
+
+  app.post('/api/:environmentId/upload/templates', async (req: Request, res: Response) => {
+    try {
+      const { environmentId } = req.params;
+      const { name, description, entityType, columnMappings, isShared } = req.body;
+      
+      if (!getAvailableEnvironments().includes(environmentId)) {
+        return res.status(400).json({ error: 'Invalid environment' });
+      }
+      
+      const result = await pool.query(`
+        INSERT INTO upload_templates (template_name, description, entity_type, environment_id, template_data, is_active, created_by)
+        VALUES ($1, $2, $3, $4, $5, $6, $7) 
+        RETURNING *
+      `, [name, description, entityType, environmentId, JSON.stringify(columnMappings), true, 1]);
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error saving template:', error);
+      res.status(500).json({ error: 'Failed to save template' });
+    }
+  });
+
+  app.put('/api/:environmentId/upload/templates/:templateId', async (req: Request, res: Response) => {
+    try {
+      const { environmentId, templateId } = req.params;
+      const { name, description, columnMappings, isShared } = req.body;
+      
+      if (!getAvailableEnvironments().includes(environmentId)) {
+        return res.status(400).json({ error: 'Invalid environment' });
+      }
+      
+      const result = await pool.query(`
+        UPDATE upload_templates 
+        SET name = $1, description = $2, column_mappings = $3, is_shared = $4, updated_at = NOW()
+        WHERE id = $5 AND environment_id = $6
+        RETURNING *
+      `, [name, description, JSON.stringify(columnMappings), isShared || false, templateId, environmentId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Template not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating template:', error);
+      res.status(500).json({ error: 'Failed to update template' });
+    }
+  });
+
+  app.delete('/api/:environmentId/upload/templates/:templateId', async (req: Request, res: Response) => {
+    try {
+      const { environmentId, templateId } = req.params;
+      
+      if (!getAvailableEnvironments().includes(environmentId)) {
+        return res.status(400).json({ error: 'Invalid environment' });
+      }
+      
+      const result = await pool.query(`
+        DELETE FROM upload_templates 
+        WHERE id = $1 AND environment_id = $2
+        RETURNING id
+      `, [templateId, environmentId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Template not found' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting template:', error);
+      res.status(500).json({ error: 'Failed to delete template' });
+    }
+  });
+
+  app.post('/api/:environmentId/upload/templates/:templateId/use', async (req: Request, res: Response) => {
+    try {
+      const { environmentId, templateId } = req.params;
+      
+      if (!getAvailableEnvironments().includes(environmentId)) {
+        return res.status(400).json({ error: 'Invalid environment' });
+      }
+      
+      const result = await pool.query(`
+        UPDATE upload_templates 
+        SET usage_count = usage_count + 1, last_used_at = NOW()
+        WHERE id = $1 AND environment_id = $2
+        RETURNING *
+      `, [templateId, environmentId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Template not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating template usage:', error);
+      res.status(500).json({ error: 'Failed to update template usage' });
+    }
+  });
+
+  // Phase 1: Upload Settings Infrastructure Routes
+
+  // Schema Discovery Routes
+  app.get('/api/:environmentId/upload/entities', async (req: Request, res: Response) => {
+    try {
+      const { environmentId } = req.params;
+      
+      if (!getAvailableEnvironments().includes(environmentId)) {
+        return res.status(400).json({ error: 'Invalid environment' });
+      }
+      
+      const entitySchemas = await discoverEntitySchemas(environmentId);
+      res.json(entitySchemas);
+    } catch (error) {
+      console.error('Failed to discover entity schemas:', error);
+      res.status(500).json({ error: 'Failed to discover entity schemas' });
+    }
+  });
+
+  app.get('/api/:environmentId/upload/entities/:entityType/attributes', async (req: Request, res: Response) => {
+    try {
+      const { environmentId, entityType } = req.params;
+      
+      if (!isSupportedEntityType(entityType)) {
+        return res.status(400).json({ error: 'Unsupported entity type' });
+      }
+      
+      const entitySchemas = await discoverEntitySchemas(environmentId);
+      const entitySchema = entitySchemas.find(schema => schema.entityType === entityType);
+      
+      if (!entitySchema) {
+        return res.status(404).json({ error: 'Entity not found' });
+      }
+      
+      res.json(entitySchema.attributes);
+    } catch (error) {
+      console.error('Failed to get entity attributes:', error);
+      res.status(500).json({ error: 'Failed to get entity attributes' });
+    }
+  });
+
+  // Admin Entity Schemas Route
+  app.get('/api/admin/entity-schemas', async (req: Request, res: Response) => {
+    try {
+      const entitySchemas = [
+        {
+          tableName: 'opportunities',
+          entityType: 'opportunities',
+          columns: [
+            { name: 'id', type: 'number', isRequired: false },
+            { name: 'title', type: 'string', isRequired: true },
+            { name: 'description', type: 'string', isRequired: false },
+            { name: 'value', type: 'number', isRequired: false },
+            { name: 'status', type: 'string', isRequired: false },
+            { name: 'priority', type: 'string', isRequired: false },
+            { name: 'customer_id', type: 'number', isRequired: false },
+            { name: 'partner_id', type: 'number', isRequired: false },
+            { name: 'owner_id', type: 'number', isRequired: false },
+            { name: 'created_at', type: 'datetime', isRequired: false },
+            { name: 'updated_at', type: 'datetime', isRequired: false },
+            { name: 'expected_close_date', type: 'date', isRequired: false },
+            { name: 'probability', type: 'number', isRequired: false },
+            { name: 'stage', type: 'string', isRequired: false },
+            { name: 'source', type: 'string', isRequired: false },
+            { name: 'notes', type: 'text', isRequired: false }
+          ]
+        },
+        {
+          tableName: 'partners',
+          entityType: 'partners',
+          columns: [
+            { name: 'id', type: 'number', isRequired: false },
+            { name: 'name', type: 'string', isRequired: true },
+            { name: 'description', type: 'string', isRequired: false },
+            { name: 'type', type: 'string', isRequired: false },
+            { name: 'status', type: 'string', isRequired: false },
+            { name: 'contact_email', type: 'string', isRequired: false },
+            { name: 'contact_phone', type: 'string', isRequired: false },
+            { name: 'website', type: 'string', isRequired: false },
+            { name: 'address', type: 'string', isRequired: false },
+            { name: 'created_at', type: 'datetime', isRequired: false },
+            { name: 'updated_at', type: 'datetime', isRequired: false }
+          ]
+        },
+        {
+          tableName: 'customers',
+          entityType: 'customers',
+          columns: [
+            { name: 'id', type: 'number', isRequired: false },
+            { name: 'name', type: 'string', isRequired: true },
+            { name: 'email', type: 'string', isRequired: false },
+            { name: 'phone', type: 'string', isRequired: false },
+            { name: 'company', type: 'string', isRequired: false },
+            { name: 'status', type: 'string', isRequired: false },
+            { name: 'partner_id', type: 'number', isRequired: false },
+            { name: 'created_at', type: 'datetime', isRequired: false },
+            { name: 'updated_at', type: 'datetime', isRequired: false },
+            { name: 'address', type: 'string', isRequired: false },
+            { name: 'notes', type: 'text', isRequired: false }
+          ]
+        },
+        {
+          tableName: 'products',
+          entityType: 'products',
+          columns: [
+            { name: 'id', type: 'number', isRequired: false },
+            { name: 'name', type: 'string', isRequired: true },
+            { name: 'description', type: 'string', isRequired: false },
+            { name: 'price', type: 'number', isRequired: false },
+            { name: 'category', type: 'string', isRequired: false },
+            { name: 'sku', type: 'string', isRequired: false },
+            { name: 'status', type: 'string', isRequired: false },
+            { name: 'created_at', type: 'datetime', isRequired: false },
+            { name: 'updated_at', type: 'datetime', isRequired: false }
+          ]
+        },
+        {
+          tableName: 'vendors',
+          entityType: 'vendors',
+          columns: [
+            { name: 'id', type: 'number', isRequired: false },
+            { name: 'name', type: 'string', isRequired: true },
+            { name: 'contact_email', type: 'string', isRequired: false },
+            { name: 'contact_phone', type: 'string', isRequired: false },
+            { name: 'address', type: 'string', isRequired: false },
+            { name: 'status', type: 'string', isRequired: false },
+            { name: 'created_at', type: 'datetime', isRequired: false },
+            { name: 'updated_at', type: 'datetime', isRequired: false }
+          ]
+        },
+        {
+          tableName: 'contacts',
+          entityType: 'contacts',
+          columns: [
+            { name: 'id', type: 'number', isRequired: false },
+            { name: 'first_name', type: 'string', isRequired: true },
+            { name: 'last_name', type: 'string', isRequired: true },
+            { name: 'email', type: 'string', isRequired: false },
+            { name: 'phone', type: 'string', isRequired: false },
+            { name: 'company', type: 'string', isRequired: false },
+            { name: 'position', type: 'string', isRequired: false },
+            { name: 'created_at', type: 'datetime', isRequired: false },
+            { name: 'updated_at', type: 'datetime', isRequired: false }
+          ]
+        }
+      ];
+      
+      res.json(entitySchemas);
+    } catch (error) {
+      console.error('Failed to get entity schemas:', error);
+      res.status(500).json({ error: 'Failed to get entity schemas' });
+    }
+  });
+
+  // Create Record Route
+  app.post('/api/:environmentId/create-record', async (req: Request, res: Response) => {
+    try {
+      const { environmentId } = req.params;
+      const { entityType, data, originalRow } = req.body;
+      
+      if (!getAvailableEnvironments().includes(environmentId)) {
+        return res.status(400).json({ error: 'Invalid environment' });
+      }
+      
+      if (!isSupportedEntityType(entityType)) {
+        return res.status(400).json({ error: 'Unsupported entity type' });
+      }
+      
+      const envPool = getEnvironmentPool(environmentId);
+      
+      // Build dynamic insert query based on entity type and data
+      const columns = Object.keys(data).filter(key => data[key] !== null && data[key] !== undefined);
+      const values = columns.map(col => data[col]);
+      const placeholders = columns.map((_, index) => `$${index + 1}`);
+      
+      const tableName = `${environmentId}.${entityType}`;
+      // Quote column names to preserve case sensitivity
+      const quotedColumns = columns.map(col => `"${col}"`);
+      const insertQuery = `
+        INSERT INTO ${tableName} (${quotedColumns.join(', ')})
+        VALUES (${placeholders.join(', ')})
+        RETURNING *
+      `;
+      
+      console.log('Creating record:', {
+        entityType,
+        tableName,
+        columns,
+        values: values.map((v, i) => `${columns[i]}: ${v}`)
+      });
+      
+      const result = await envPool.query(insertQuery, values);
+      const createdRecord = result.rows[0];
+      
+      res.status(201).json({
+        success: true,
+        record: createdRecord,
+        entityType,
+        originalRow
+      });
+      
+    } catch (error) {
+      console.error('Failed to create record:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Failed to create record' 
+      });
+    }
+  });
+
+  // Helper function to get default mandatory attributes for each entity type
+  function getDefaultMandatoryAttributes(entityType: string) {
+    const defaultAttributes: Record<string, any[]> = {
+      opportunities: [
+        { attribute_name: 'title', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'clientId', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'productId', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'probability', is_mandatory: false, entity_type: entityType },
+        { attribute_name: 'estimatedValue', is_mandatory: false, entity_type: entityType }
+      ],
+      partners: [
+        { attribute_name: 'name', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'email', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'phone', is_mandatory: false, entity_type: entityType },
+        { attribute_name: 'company', is_mandatory: false, entity_type: entityType }
+      ],
+      customers: [
+        { attribute_name: 'name', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'email', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'phone', is_mandatory: false, entity_type: entityType },
+        { attribute_name: 'address', is_mandatory: false, entity_type: entityType }
+      ],
+      products: [
+        { attribute_name: 'name', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'price', is_mandatory: false, entity_type: entityType },
+        { attribute_name: 'category', is_mandatory: false, entity_type: entityType },
+        { attribute_name: 'sku', is_mandatory: false, entity_type: entityType }
+      ],
+      vendors: [
+        { attribute_name: 'name', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'contact_email', is_mandatory: false, entity_type: entityType },
+        { attribute_name: 'contact_phone', is_mandatory: false, entity_type: entityType }
+      ],
+      contacts: [
+        { attribute_name: 'first_name', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'last_name', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'email', is_mandatory: false, entity_type: entityType },
+        { attribute_name: 'phone', is_mandatory: false, entity_type: entityType }
+      ]
+    };
+    
+    return defaultAttributes[entityType] || [];
+  }
+
+  // Upload Settings Routes
+  app.get('/api/:environmentId/upload-settings/:entityType', async (req: Request, res: Response) => {
+    try {
+      const { environmentId, entityType } = req.params;
+      
+      // Check if this is a special format (same logic as frontend)
+      const isSpecialFormat = entityType.includes('-') || ['salesforce', 'brio', 'degoudse'].includes(entityType);
+      
+      if (!isSpecialFormat && !isSupportedEntityType(entityType)) {
+        return res.status(400).json({ error: 'Unsupported entity type' });
+      }
+      
+      // For special formats, return empty settings array since they don't have predefined mandatory attributes
+      if (isSpecialFormat) {
+        return res.json([]);
+      }
+      
+      // For now, always return default mandatory attributes to ensure CSV mapping works
+      const defaultSettings = getDefaultMandatoryAttributes(entityType);
+      return res.json(defaultSettings);
+    } catch (error) {
+      console.error('Failed to get upload settings:', error);
+      res.status(500).json({ error: 'Failed to get upload settings' });
+    }
+  });
+
+  app.post('/api/:environmentId/upload-settings/:entityType', async (req: Request, res: Response) => {
+    try {
+      const { environmentId, entityType } = req.params;
+      const { settings } = req.body;
+      
+      // Check if this is a special format (same logic as frontend)
+      const isSpecialFormat = entityType.includes('-') || ['salesforce', 'brio', 'degoudse'].includes(entityType);
+      
+      if (!isSpecialFormat && !isSupportedEntityType(entityType)) {
+        return res.status(400).json({ error: 'Unsupported entity type' });
+      }
+      
+      // For special formats, return success without saving settings
+      if (isSpecialFormat) {
+        return res.json({ success: true, message: 'Special format uploads do not require settings configuration' });
+      }
+      
+      const settingsSchema = z.array(z.object({
+        attributeName: z.string(),
+        isMandatory: z.boolean(),
+        dataType: z.string().optional()
+      }));
+      
+      const validatedSettings = settingsSchema.parse(settings);
+      
+      await UploadSettingsService.updateUploadSettings(environmentId, entityType, validatedSettings);
+      
+      res.json({ success: true, message: 'Upload settings updated successfully' });
+    } catch (error) {
+      console.error('Failed to update upload settings:', error);
+      res.status(500).json({ error: 'Failed to update upload settings' });
+    }
+  });
+
+  // Transformation Scripts Routes
+  app.get('/api/:environmentId/transformation-scripts', async (req: Request, res: Response) => {
+    try {
+      const { environmentId } = req.params;
+      const { entityType } = req.query;
+      
+      const scripts = await UploadSettingsService.getTransformationScripts(
+        environmentId, 
+        entityType as string
+      );
+      
+      res.json(scripts);
+    } catch (error) {
+      console.error('Failed to get transformation scripts:', error);
+      res.status(500).json({ error: 'Failed to get transformation scripts' });
+    }
+  });
+
+  app.post('/api/:environmentId/transformation-scripts', async (req: Request, res: Response) => {
+    try {
+      const { environmentId } = req.params;
+      const scriptData = { ...req.body, environmentId };
+      
+      const validatedScript = insertTransformationScriptSchema.parse(scriptData);
+      
+      const validation = UploadSettingsService.validateScriptSyntax(validatedScript.scriptContent);
+      if (!validation.isValid) {
+        return res.status(400).json({ 
+          error: 'Invalid script syntax', 
+          details: validation.errors 
+        });
+      }
+      
+      const script = await UploadSettingsService.createTransformationScript(validatedScript);
+      res.status(201).json(script);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid script data', details: error.errors });
+      }
+      console.error('Failed to create transformation script:', error);
+      res.status(500).json({ error: 'Failed to create transformation script' });
+    }
+  });
+
+  app.post('/api/:environmentId/transformation-scripts/validate', async (req: Request, res: Response) => {
+    try {
+      const { scriptContent } = req.body;
+      
+      if (!scriptContent || typeof scriptContent !== 'string') {
+        return res.status(400).json({ error: 'Script content is required' });
+      }
+      
+      const validation = UploadSettingsService.validateScriptSyntax(scriptContent);
+      res.json(validation);
+    } catch (error) {
+      console.error('Failed to validate script:', error);
+      res.status(500).json({ error: 'Failed to validate script' });
+    }
+  });
+
+  // Apply transformation script to CSV data
+  app.post('/api/:environmentId/transformation-scripts/execute', csvUpload.any(), async (req: Request, res: Response) => {
+    try {
+      const { environmentId } = req.params;
+      const { scriptId, entityType } = req.body;
+      // Handle both single file and multiple files upload
+      const files = req.files as Express.Multer.File[];
+      const file = files?.[0] || req.file;
+
+      console.log('🔄 SERVER TRANSFORMATION DEBUG: Received request');
+      console.log('🔄 Environment ID:', environmentId);
+      console.log('🔄 Script ID:', scriptId);
+      console.log('🔄 Entity Type:', entityType);
+      console.log('🔄 Has file:', !!file);
+      console.log('🔄 File details:', file ? {
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size
+      } : 'No file');
+
+      if (!file) {
+        return res.status(400).json({ error: 'CSV file is required' });
+      }
+
+      if (!scriptId && !entityType) {
+        return res.status(400).json({ error: 'Either scriptId or entityType is required' });
+      }
+
+      let script;
+      if (scriptId) {
+        console.log('🔄 Looking up transformation script by ID:', scriptId);
+        script = await UploadSettingsService.getTransformationScriptById(parseInt(scriptId), environmentId);
+        console.log('🔄 Found script by ID:', script ? { id: script.id, name: script.name } : 'Not found');
+      } else {
+        // Get the first active script for this entity type
+        console.log('🔄 Looking up scripts for entity type:', entityType);
+        const scripts = await UploadSettingsService.getTransformationScripts(environmentId, entityType);
+        console.log('🔄 Found scripts for entity type:', scripts.length);
+        script = scripts.find(s => s.isActive);
+        console.log('🔄 Active script found:', script ? { id: script.id, name: script.name } : 'None');
+      }
+
+      if (!script) {
+        console.log('❌ No transformation script found');
+        return res.status(404).json({ error: 'No transformation script found' });
+      }
+
+      console.log('✅ Using script:', { 
+        id: script.id, 
+        name: script.name,
+        scriptLength: script.scriptContent?.length || 0
+      });
+
+      // Execute the transformation
+      const csvData = file.buffer.toString('utf-8');
+      const originalLines = csvData.split('\n').filter(line => line.trim());
+      console.log('🔄 Original CSV stats:', {
+        totalLines: originalLines.length,
+        headers: originalLines[0]?.substring(0, 200) + (originalLines[0]?.length > 200 ? '...' : ''),
+        sampleDataLine: originalLines[1]?.substring(0, 200) + (originalLines[1]?.length > 200 ? '...' : '')
+      });
+
+      console.log('🔄 Executing transformation script...');
+      const result = await UploadSettingsService.executeTransformationScript(
+        script.scriptContent,
+        csvData
+      );
+
+      console.log('✅ Transformation completed:', {
+        headers: result.headers,
+        rowCount: result.rowCount,
+        transformedCsvLength: result.transformedCsv?.length || 0
+      });
+
+      const transformedLines = result.transformedCsv.split('\n').filter((line: string) => line.trim());
+      console.log('✅ Transformed CSV sample:', {
+        totalLines: transformedLines.length,
+        headers: transformedLines[0]?.substring(0, 200) + (transformedLines[0]?.length > 200 ? '...' : ''),
+        sampleDataLine: transformedLines[1]?.substring(0, 200) + (transformedLines[1]?.length > 200 ? '...' : '')
+      });
+
+      res.json({
+        success: true,
+        transformedCsv: result.transformedCsv,
+        headers: result.headers,
+        rowCount: result.rowCount
+      });
+
+    } catch (error: any) {
+      console.error('Failed to execute transformation script:', error);
+      res.status(500).json({ 
+        error: 'Failed to execute transformation script',
+        details: error.message 
+      });
+    }
+  });
+
+  app.patch('/api/:environmentId/transformation-scripts/:scriptId', async (req: Request, res: Response) => {
+    try {
+      const { environmentId, scriptId } = req.params;
+      const { name, description, scriptContent } = req.body;
+      
+      if (!name && !description && !scriptContent) {
+        return res.status(400).json({ error: 'At least one field must be provided for update' });
+      }
+      
+      const updates: any = {};
+      if (name) updates.name = name;
+      if (description !== undefined) updates.description = description;
+      if (scriptContent) {
+        // Validate script content if provided
+        const validation = UploadSettingsService.validateScriptSyntax(scriptContent);
+        if (!validation.isValid) {
+          return res.status(400).json({ 
+            error: 'Invalid script syntax', 
+            details: validation.errors 
+          });
+        }
+        updates.script_content = scriptContent;
+      }
+      
+      const script = await UploadSettingsService.updateTransformationScript(
+        parseInt(scriptId), 
+        environmentId, 
+        updates
+      );
+      
+      res.json(script);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Script not found') {
+        return res.status(404).json({ error: 'Script not found' });
+      }
+      console.error('Failed to update transformation script:', error);
+      res.status(500).json({ error: 'Failed to update transformation script' });
+    }
+  });
+
+  app.delete('/api/:environmentId/transformation-scripts/:scriptId', async (req: Request, res: Response) => {
+    try {
+      const { environmentId, scriptId } = req.params;
+      
+      const deleted = await UploadSettingsService.deleteTransformationScript(
+        parseInt(scriptId), 
+        environmentId
+      );
+      
+      if (!deleted) {
+        return res.status(404).json({ error: 'Script not found' });
+      }
+      
+      res.json({ success: true, message: 'Transformation script deleted successfully' });
+    } catch (error) {
+      console.error('Failed to delete transformation script:', error);
+      res.status(500).json({ error: 'Failed to delete transformation script' });
+    }
+  });
+
+  // Upload Templates Routes
+  app.get('/api/:environmentId/upload-templates', async (req: Request, res: Response) => {
+    try {
+      const { environmentId } = req.params;
+      const { entityType } = req.query;
+      const userId = 1; // Default user for testing
+      
+      const templates = await UploadSettingsService.getUploadTemplates(
+        environmentId, 
+        entityType as string,
+        userId
+      );
+      
+      res.json(templates);
+    } catch (error) {
+      console.error('Failed to get upload templates:', error);
+      res.status(500).json({ error: 'Failed to get upload templates' });
+    }
+  });
+
+  app.post('/api/:environmentId/upload-templates', async (req: Request, res: Response) => {
+    try {
+      const { environmentId } = req.params;
+      const templateData = { ...req.body, environmentId, createdBy: 1 }; // Default user
+      
+      const validatedTemplate = insertUploadTemplateSchema.parse(templateData);
+      
+      const template = await UploadSettingsService.createUploadTemplate(validatedTemplate);
+      res.status(201).json(template);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid template data', details: error.errors });
+      }
+      console.error('Failed to create upload template:', error);
+      res.status(500).json({ error: 'Failed to create upload template' });
+    }
+  });
+
+  app.put('/api/:environmentId/upload-templates/:templateId', async (req: Request, res: Response) => {
+    try {
+      const { environmentId, templateId } = req.params;
+      const updates = req.body;
+      
+      console.log('Updating template:', templateId, 'with data:', JSON.stringify(updates, null, 2));
+      
+      const template = await UploadSettingsService.updateUploadTemplate(
+        parseInt(templateId), 
+        environmentId, 
+        updates, 
+        1 // Default user
+      );
+      
+      console.log('Template updated successfully:', template);
+      res.json(template);
+    } catch (error) {
+      console.error('Failed to update upload template:', error);
+      res.status(500).json({ error: 'Failed to update upload template' });
+    }
+  });
+
+  // Utility Routes
+  app.get('/api/upload/environments', async (req: Request, res: Response) => {
+    try {
+      const environments = getAvailableEnvironments();
+      res.json(environments);
+    } catch (error) {
+      console.error('Failed to get environments:', error);
+      res.status(500).json({ error: 'Failed to get environments' });
+    }
+  });
+
+  app.get('/api/upload/supported-entities', async (req: Request, res: Response) => {
+    try {
+      const supportedEntities = [
+        'opportunities',
+        'partners', 
+        'customers',
+        'vendors',
+        'products',
+        'users',
+        'contacts'
+      ];
+      
+      res.json(supportedEntities);
+    } catch (error) {
+      console.error('Failed to get supported entities:', error);
+      res.status(500).json({ error: 'Failed to get supported entities' });
+    }
+  });
+
+  // Environment-specific supported entities endpoint
+  app.get('/api/:environmentId/upload/supported-entities', async (req: Request, res: Response) => {
+    try {
+      const supportedEntities = [
+        'opportunities',
+        'partners', 
+        'customers',
+        'vendors',
+        'products',
+        'users',
+        'contacts'
+      ];
+      
+      res.json(supportedEntities);
+    } catch (error) {
+      console.error('Failed to get supported entities:', error);
+      res.status(500).json({ error: 'Failed to get supported entities' });
     }
   });
 

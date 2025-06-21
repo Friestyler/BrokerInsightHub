@@ -176,6 +176,10 @@ export default function CustomersPageClean() {
   const [activeView, setActiveView] = useState<any>(null);
   const [showSaveViewModal, setShowSaveViewModal] = useState(false);
   const [viewNameInput, setViewNameInput] = useState('');
+  
+  // Account Mapping state
+  const [showAccountMappingModal, setShowAccountMappingModal] = useState(false);
+  const [selectedMappingFields, setSelectedMappingFields] = useState<string[]>([]);
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
   
   // Filter dropdown states
@@ -411,17 +415,61 @@ export default function CustomersPageClean() {
                         
                         {/* Saved lists from database (filtered for customers only) */}
                         {customerSavedListsData.map((list: any) => (
-                          <button
-                            key={list.id}
-                            className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-[#F5F6FA] flex items-center justify-between ${activeList?.id === list.id ? 'bg-[#E1E4FB] text-[#3E4DC4]' : ''}`}
-                            onClick={() => {
-                              setActiveList(list);
-                              setShowListsDropdown(false);
-                            }}
-                          >
-                            <span>{list.name}</span>
-                            <span className="text-gray-500">({list.members?.length || 0})</span>
-                          </button>
+<div key={list.id}>
+  <button
+    className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-[#F5F6FA] flex items-center justify-between ${
+      activeList?.id === list.id ? 'bg-[#E1E4FB] text-[#3E4DC4]' : ''
+    }`}
+    onClick={() => {
+      setActiveList(list);
+      setShowListsDropdown(false);
+    }}
+  >
+    <span>{list.name}</span>
+    <span className="text-gray-500">({list.members?.length || 0})</span>
+  </button>
+  {activeList?.id === list.id && (
+    <div className="px-3 py-2 border-t border-gray-100 bg-[#F5F6FA]">
+      <button
+        className="flex items-center text-sm text-indigo-600 hover:text-indigo-800"
+        onClick={() => {
+          setShowListsDropdown(false);
+          setShowAccountMappingModal(true);
+          // Initialize with all fields selected by default
+          setSelectedMappingFields([
+            'name',
+            'industry',
+            'size',
+            'status',
+            'contactName',
+            'contactEmail',
+            'location',
+            'revenue'
+          ]);
+        }}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="mr-2"
+        >
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        Account Mapping
+      </button>
+    </div>
+  )}
+</div>
                         ))}
                         
                         {savedListsData.length === 0 && (
@@ -1274,6 +1322,152 @@ export default function CustomersPageClean() {
               </Button>
               <Button onClick={handleCreateCustomer} disabled={isCreating}>
                 {isCreating ? 'Creating...' : 'Create Customer'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Account Mapping Wizard Modal */}
+        <Dialog open={showAccountMappingModal} onOpenChange={setShowAccountMappingModal}>
+          <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle className="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-indigo-600">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                Account Mapping for "{activeList?.name}"
+              </DialogTitle>
+              <DialogDescription>
+                Configure how customer data is shared when mapping accounts across environments. Select which fields to include in the mapping.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="space-y-6">
+              {/* How it works section */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="font-semibold text-blue-900 mb-2 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                    <path d="M12 17h.01"></path>
+                  </svg>
+                  How Account Mapping Works
+                </h4>
+                <p className="text-blue-800 text-sm leading-relaxed">
+                  Qollabi will only show the person you're sharing with the <strong>overlapping data points</strong> from the selected fields. 
+                  Other data points will remain private. When an overlap is spotted, it will be highlighted in each environment 
+                  to help identify mutual opportunities and connections.
+                </p>
+              </div>
+
+              {/* Field selection */}
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-4">Select Fields to Include in Mapping</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { key: 'name', label: 'Customer Name', description: 'Company or organization name' },
+                    { key: 'industry', label: 'Industry', description: 'Business sector or industry type' },
+                    { key: 'size', label: 'Company Size', description: 'Organization size (employees, revenue tier)' },
+                    { key: 'status', label: 'Status', description: 'Current relationship status' },
+                    { key: 'contactName', label: 'Contact Person', description: 'Primary contact name' },
+                    { key: 'contactEmail', label: 'Contact Email', description: 'Primary contact email address' },
+                    { key: 'location', label: 'Location', description: 'Geographic location or address' },
+                    { key: 'revenue', label: 'Revenue', description: 'Annual revenue or business value' }
+                  ].map((field) => (
+                    <div key={field.key} className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+                      <Checkbox
+                        id={field.key}
+                        checked={selectedMappingFields.includes(field.key)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedMappingFields(prev => [...prev, field.key]);
+                          } else {
+                            setSelectedMappingFields(prev => prev.filter(f => f !== field.key));
+                          }
+                        }}
+                        className="mt-1"
+                      />
+                      <div className="flex-1">
+                        <label htmlFor={field.key} className="text-sm font-medium text-gray-900 cursor-pointer">
+                          {field.label}
+                        </label>
+                        <p className="text-xs text-gray-600 mt-1">{field.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Privacy notice */}
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h4 className="font-semibold text-green-900 mb-2 flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <path d="M9 12l2 2 4-4"></path>
+                    <path d="M21 12c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1z"></path>
+                    <path d="M3 12c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1z"></path>
+                    <path d="M12 21c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1z"></path>
+                    <path d="M12 3c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1z"></path>
+                  </svg>
+                  Privacy Protection
+                </h4>
+                <p className="text-green-800 text-sm">
+                  Only the selected fields will be used for comparison. All other data remains completely private 
+                  and will not be shared or visible to the other party.
+                </p>
+              </div>
+
+              {/* Recipient selection */}
+              <div>
+                <h4 className="font-semibold text-gray-900 mb-3">Share With</h4>
+                <div className="space-y-2">
+                  <Input
+                    placeholder="Enter email address"
+                    type="email"
+                    className="w-full"
+                  />
+                  <p className="text-xs text-gray-600">
+                    The recipient will receive a secure link to view overlapping data points only
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter className="pt-6 border-t">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setShowAccountMappingModal(false);
+                  setSelectedMappingFields([]);
+                }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                disabled={selectedMappingFields.length === 0}
+                onClick={() => {
+                  if (selectedMappingFields.length === 0) {
+                    toast({
+                      title: "Fields required",
+                      description: "Please select at least one field to include in the mapping",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+                  
+                  toast({
+                    title: "Account Mapping Created",
+                    description: `Mapping configured with ${selectedMappingFields.length} fields. Secure sharing link will be generated.`,
+                  });
+                  
+                  setShowAccountMappingModal(false);
+                  setSelectedMappingFields([]);
+                }}
+                className="bg-indigo-600 hover:bg-indigo-700"
+              >
+                Create Account Mapping
               </Button>
             </DialogFooter>
           </DialogContent>

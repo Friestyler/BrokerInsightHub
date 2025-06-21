@@ -1,0 +1,165 @@
+We'll implement the following - but before that, I want you to make a plan on how we will implement this step-by-step. Don't start implementing yet
+
+## Data Upload Function Specifications
+
+### Initial Upload Screen
+When users navigate to the data upload tab, they will see:
+- **Top section**: A carousel displaying all previously saved templates
+- **Main section**: All entities defined in the current environment (opportunities, partners, etc.)
+- **Special formats section**: Placeholders for specialized formats like Salesforce and Brio
+
+### Upload Settings Configuration
+**New Settings Section**: "Upload Settings"
+
+**Upload Settings UI Layout**:
+- **Top Section**: Dropdown menu labeled "Select Entity"
+  - Lists all available entities (opportunities, partners, etc.)
+- **Main Section**: Scrollable list of all attributes for the selected entity
+  - Each attribute displays with a checkbox next to it
+  - Checkbox checked = mandatory attribute
+  - Checkbox unchecked = optional attribute
+- **Bottom Section**: Save button to apply changes
+
+**UI Behavior**:
+- When entity is selected from dropdown, attribute list updates automatically
+- Real-time saving of checkbox states
+- Visual indication of mandatory vs optional attributes (different styling/icons)
+
+### Process Steps Navigation
+Once a user selects an entity or special format, a progress indicator appears at the top showing:
+1. **Transformation** (only for special formats)
+2. **Upload**
+3. **Mapping** 
+4. **Processing**
+5. **Complete**
+
+**Navigation Rules**:
+- Users can navigate back to previous steps to make changes
+- **Exception**: Once file is processed (Step 5: Complete), users cannot go back to modify the same upload session
+
+### Step-by-Step Process Flow
+
+**Step 1: Transformation** (Special formats only)
+
+**UI Layout**:
+- **Top Section**: Dropdown menu labeled "Select Transformation Script"
+  - Default option: "Create New Script"
+  - List of saved scripts with descriptive names
+- **Main Section**: 
+  - **Script Editor**: Large text area for writing/editing Python transformation code with real-time syntax highlighting
+  - **Description Box**: Small text input for script name/description
+- **Bottom Section**: Action buttons
+  - **Save Script** (appears when creating new or modifying existing)
+  - **Save As New** (appears when modifying existing script)
+  - **Next: Upload** (proceeds to upload step)
+
+**UI Behavior**:
+- When "Create New Script" selected: Empty editor, "Save Script" button visible
+- When existing script selected: Pre-populated editor, "Save As New" button visible
+- Optional preview panel showing sample transformation result
+
+**Step 2: Upload**
+- Users are prompted to upload a CSV file
+
+**Step 3: Mapping**
+Users are taken to the mapping interface featuring:
+
+**Left side**: Mandatory attributes for the selected entity (as defined in Upload Settings)
+**Right side**: Dropdown menus containing all column headers from the uploaded CSV file
+
+**Additional Features**:
+- Below mandatory attributes: "Add Attribute" button for non-mandatory attributes
+- When clicked, a new attribute appears with its own dropdown
+- The "Add Attribute" button moves below the new attribute for additional attributes
+- At the bottom of each column header dropdown: "Code" option that opens Python code editor for custom value definitions
+
+**Code Option UI** (when "Code" is selected from dropdown):
+- **Dropdown Section**: 
+  - Dropdown shows "Code" as selected option
+  - Small code icon appears next to dropdown
+- **Code Editor Section** (appears to the right of dropdown):
+  - **Python Code Input Box**: Multi-line text area with Python syntax highlighting
+  - **Helper Text**: Small gray text above editor: "Define custom logic using column references (Python)"
+- **Preview Section** (below code editor):
+  - **Sample Preview**: Shows first few rows of how the Python code will transform the data
+  - **Validation Status**: Green checkmark for valid syntax, red X for errors
+- **Code Editor Features**:
+  - Python syntax highlighting
+  - Column reference helper: Dropdown or autocomplete showing available column names
+  - Common functions: Quick insert buttons for frequent operations (+, -, concatenation, conditionals, etc.)
+- **Example Python Code Display**:
+  ```python
+  # Combine first and last name
+  column_first_name + " " + column_last_name
+  
+  # Add 20 to price
+  column_price + 20
+  
+  # Conditional logic
+  "Yes" if column_status == "Active" else "No"
+  ```
+- **Behavior**:
+  - Real-time Python syntax validation
+  - Preview updates as user types
+  - Error messages appear below editor for invalid syntax
+  - Save button becomes enabled when valid code is entered
+
+**Template Management** (within Mapping step):
+- Option to **use** a saved template
+- Option to **save** the current mapping setup (saves selected attributes and their matching column headers)
+- Option to **update** a currently selected template with new settings after modifications
+
+**Step 4: Processing**
+- **Process Upload** button initiates data processing  -> use the same data processing as what exists in de De Goudse Upload Wizard
+- If errors occur, user **remains in Processing step** and error handling interface appears
+- After resolving errors, click "Process Upload" again to retry processing
+
+**Error Handling UI** (within Processing step):
+- **Top Section**: Progress indicator remains on "4. Processing"
+- **Alert Banner**: Red/orange notification bar
+  - "Processing failed: X errors found in Y rows"
+  - Option to "Process without error rows" button
+- **Error Table**: 
+  - **Header**: Bulk action controls
+    - Checkboxes to "Select All"
+    - Dropdown: "Apply to Selected" with options (Skip, Replace, etc.)
+  - **Table Columns**: 
+    - Checkbox for row selection
+    - Row number from original CSV
+    - Error type (e.g., "Missing Required Data", "Duplicate Record")
+    - Problematic data values
+    - Resolution dropdown per row (Skip, Replace, Edit, etc.)
+  - **Filters**: Above each column for sorting/searching specific error types or values
+- **Bottom Section**: 
+  - **Process Upload** button (retry after resolving errors)
+  - Row count summary: "X total errors, Y resolved, Z remaining"
+
+**Error UI Behavior**:
+- Users can filter by error type to focus on specific issues
+- Bulk selections allow mass resolution of similar errors
+- Individual row dropdowns for granular control
+- Real-time counter updates as errors are resolved
+- "Process Upload" button remains disabled until critical errors are addressed
+
+### Error Handling & Common Error Types
+
+**Anticipated Error Categories**:
+1. **Format Errors**: Invalid file format, corrupted CSV structure, encoding issues
+2. **Missing Required Data**: Empty values in mandatory attributes (as defined in Upload Settings)
+3. **Data Type Mismatches**: Text in numeric attributes, invalid date formats, boolean format errors
+4. **Duplicate Records**: Existing records with same unique identifiers
+5. **Value Validation Errors**: Data outside acceptable ranges, invalid enum values
+6. **Reference Errors**: Foreign key violations, references to non-existent entities
+7. **Length Violations**: Text exceeding maximum character limits
+
+**Error Resolution Options**:
+- Process file excluding error rows
+- Resolve individual rows (e.g., replace duplicate vs. skip duplicate)
+- Apply bulk resolutions by selecting multiple rows
+- Edit values directly in error table for correction
+
+**Step 5: Complete**
+- Success confirmation displays upon completion
+- Summary of processed records and any skipped rows
+
+Does this comprehensive specification with the detailed Upload Settings UI capture your complete vision?

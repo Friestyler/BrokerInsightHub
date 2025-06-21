@@ -209,6 +209,28 @@
     @apply bg-white border-[#D6D7E4] !important;
   }
 
+  /* Fix for dropdown search input z-index issues */
+  [data-radix-select-content] {
+    position: relative;
+    isolation: isolate;
+  }
+  
+  .dropdown-search-sticky {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 999 !important;
+    background: white !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    isolation: isolate;
+  }
+  
+  .dropdown-search-input {
+    position: relative !important;
+    z-index: 1000 !important;
+    background: white !important;
+    isolation: isolate;
+  }
+
   /* Specific component overrides */
   .input,
   input.input,
