@@ -88,7 +88,17 @@ export default function PartnerPilot() {
   });
   const { environment } = useEnvironment();
 
+  const [location] = useLocation();
   const [activeSection, setActiveSection] = useState<'copilot' | 'reports' | 'data-upload-3' | 'data-upload-3-degoudse' | 'settings'>('copilot');
+
+  // Set active section based on URL
+  useEffect(() => {
+    if (location === '/partner-pilot/reports') {
+      setActiveSection('reports');
+    } else {
+      setActiveSection('copilot');
+    }
+  }, [location]);
 
   // Listen for navigation events from upload process pages
   useEffect(() => {
