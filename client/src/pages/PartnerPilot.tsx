@@ -48,6 +48,7 @@ import {
   Cloud,
   Database,
   Handshake,
+  RefreshCw,
   UserCheck,
   Phone,
   Factory
@@ -713,6 +714,78 @@ export default function PartnerPilot() {
               <CardFooter className="mt-auto">
                 <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
                   Upload Entity Data
+                </Button>
+              </CardFooter>
+            </Card>
+
+            <Card 
+              className="hover:shadow-md transition-shadow cursor-pointer border-2 border-blue-100 flex flex-col"
+            >
+              <CardHeader className="flex-grow">
+                <div className="flex justify-between items-start">
+                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Cloud className="h-5 w-5 text-blue-600" />
+                  </div>
+                </div>
+                <CardTitle className="text-lg mt-2">Upload from Broker Cloud</CardTitle>
+                <CardDescription>
+                  Import data from your Broker Cloud account
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="mt-auto">
+                <Button 
+                  variant="outline" 
+                  className="w-full border-gray-200"
+                >
+                  Connect
+                </Button>
+              </CardFooter>
+            </Card>
+
+            <Card 
+              className="hover:shadow-md transition-shadow cursor-pointer border-2 border-green-100 flex flex-col"
+            >
+              <CardHeader className="flex-grow">
+                <div className="flex justify-between items-start">
+                  <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                    <Database className="h-5 w-5 text-green-600" />
+                  </div>
+                </div>
+                <CardTitle className="text-lg mt-2">Upload from other CRM or portal</CardTitle>
+                <CardDescription>
+                  Import from any other third-party system
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="mt-auto">
+                <Button 
+                  variant="outline" 
+                  className="w-full border-gray-200"
+                >
+                  Select Source
+                </Button>
+              </CardFooter>
+            </Card>
+
+            <Card 
+              className="hover:shadow-md transition-shadow cursor-pointer border-2 border-purple-100 flex flex-col"
+            >
+              <CardHeader className="flex-grow">
+                <div className="flex justify-between items-start">
+                  <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                    <RefreshCw className="h-5 w-5 text-purple-600" />
+                  </div>
+                </div>
+                <CardTitle className="text-lg mt-2">Sync with your CRM</CardTitle>
+                <CardDescription>
+                  Set up automatic data synchronization
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="mt-auto">
+                <Button 
+                  variant="outline" 
+                  className="w-full border-gray-200"
+                >
+                  Set Up Sync
                 </Button>
               </CardFooter>
             </Card>
