@@ -60,29 +60,18 @@ export const EnvironmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
     return FALLBACK_ENVIRONMENTS[0];
   });
 
-  // Load environments from API
+  // Load environments - use fallback environments directly for demo
   const loadEnvironments = async () => {
-    try {
-      const response = await fetch('/api/admin/environments');
-      if (response.ok) {
-        const loadedEnvironments = await response.json();
-        const enrichedEnvironments = loadedEnvironments.map((env: any) => ({
-          ...env,
-          logo: getEnvironmentLogo(env.id)
-        }));
-        setEnvironments(enrichedEnvironments);
-        
-        // Update current environment if it's not in the new list
-        const savedEnvId = localStorage.getItem('selectedEnvironment');
-        if (savedEnvId) {
-          const currentEnv = enrichedEnvironments.find((e: Environment) => e.id === savedEnvId);
-          if (currentEnv) {
-            setEnvironmentState(currentEnv);
-          }
-        }
+    // For demo purposes, use the fallback environments which include both De Goudse and Baloise
+    setEnvironments(FALLBACK_ENVIRONMENTS);
+    
+    // Update current environment if needed
+    const savedEnvId = localStorage.getItem('selectedEnvironment');
+    if (savedEnvId) {
+      const currentEnv = FALLBACK_ENVIRONMENTS.find((e: Environment) => e.id === savedEnvId);
+      if (currentEnv) {
+        setEnvironmentState(currentEnv);
       }
-    } catch (error) {
-      console.log('Failed to load environments, using fallback list');
     }
   };
 
