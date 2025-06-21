@@ -154,11 +154,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
           className={`nav-container ${isActive("/") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <circle cx="12" cy="12" r="6"></circle>
-            <circle cx="12" cy="12" r="2"></circle>
-            <path d="M12 12l6 0" opacity="0.6"></path>
-            <path d="M18 12A6 6 0 0 0 12 6" strokeWidth="3" opacity="0.3"></path>
+            <path d="M2 12h4l3-8 4 16 3-8h4"></path>
           </svg>
           <span className={`ml-3 text-sm ${collapsed ? "hidden" : "hidden md:inline-block"}`}>
             {environment.id === 'myqollabi' ? 'Partner Hub' : 'Partner Hub'}
