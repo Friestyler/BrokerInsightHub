@@ -5031,18 +5031,13 @@ Respond with a JSON object containing:
     }
     
     try {
-      // Return available environments
+      // Return only De Goudse environment
       const environments = [{
         id: 'degoudse',
         name: 'De Goudse',
         apiBaseUrl: '/api/degoudse',
         databaseId: 'degoudse_db',
         logo: '/api/static/de-goudse-logo.png'
-      }, {
-        id: 'baloise',
-        name: 'Baloise',
-        apiBaseUrl: '/api/baloise',
-        databaseId: 'baloise_db'
       }];
 
       setCache('admin_environments', environments);

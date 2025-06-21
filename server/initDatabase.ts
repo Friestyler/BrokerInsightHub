@@ -1,7 +1,7 @@
 import { pool } from './db';
 
 // Only De Goudse schema - our primary environment
-const schemas = ['degoudse', 'baloise'];
+const schemas = ['degoudse'];
 
 /**
  * Initializes schemas for all environments

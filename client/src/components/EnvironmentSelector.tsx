@@ -9,7 +9,6 @@ import {
 } from "@/components/ui/select";
 import { useEnvironment } from "../contexts/EnvironmentContext";
 import deGoudseLogo from "../assets/de-goudse-logo.png";
-import baloiseLogo from "@assets/Baloise_1750500085509.png";
 
 interface EnvironmentSelectorProps {
   collapsed?: boolean;
@@ -32,14 +31,6 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
             <div className="w-7 h-7 flex items-center justify-center">
               <img 
                 src={deGoudseLogo} 
-                alt={environment.name} 
-                className="w-6 h-4 object-contain"
-              />
-            </div>
-          ) : environment.id === 'baloise' ? (
-            <div className="w-7 h-7 flex items-center justify-center">
-              <img 
-                src={baloiseLogo} 
                 alt={environment.name} 
                 className="w-6 h-4 object-contain"
               />
@@ -105,12 +96,6 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
                     alt={environment.name} 
                     className="w-6 h-4 object-contain"
                   />
-                ) : environment.id === 'baloise' ? (
-                  <img 
-                    src={baloiseLogo} 
-                    alt={environment.name} 
-                    className="w-6 h-4 object-contain"
-                  />
                 ) : environment.logo ? (
                   <img 
                     src={environment.logo} 
@@ -133,8 +118,6 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
                   <div className="flex items-center justify-center w-7 h-7 mr-2 text-xs">
                     {env.id === 'degoudse' ? (
                       <img src={deGoudseLogo} alt={env.name} className="w-6 h-4 object-contain" />
-                    ) : env.id === 'baloise' ? (
-                      <img src={baloiseLogo} alt={env.name} className="w-6 h-4 object-contain" />
                     ) : env.logo ? (
                       <img src={env.logo} alt={env.name} className="w-6 h-6" />
                     ) : (
