@@ -9,6 +9,7 @@ import LoginPage from "@/components/LoginPage";
 
 import Layout from "@/components/Layout";
 import PartnerPilot from "@/pages/PartnerPilot";
+import PortfolioInsights from "@/pages/PortfolioInsights";
 
 import DataUploadOptions from "@/pages/DataUpload/DataUploadOptions";
 import BrioUploadFlow from "@/pages/DataUpload/BrioUploadFlow";
@@ -83,6 +84,7 @@ function Router() {
           <Route path="/" component={PartnerPilot} />
           <Route path="/partner-pilot" component={PartnerPilot} />
           <Route path="/partner-pilot/reports" component={PartnerPilot} />
+          <Route path="/portfolio-insights" component={PortfolioInsights} />
 
           {/* Primary entity routes */}
           <Route path="/partners" component={PartnersPage} />
