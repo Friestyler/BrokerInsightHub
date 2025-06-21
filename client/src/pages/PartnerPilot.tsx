@@ -371,7 +371,7 @@ export default function PartnerPilot() {
           onClick={() => setActiveSection('data-upload-3')}
         >
           <Upload className="h-4 w-4 mr-2" />
-          Data Upload 3
+          Data Upload
         </Button>
       </div>
 
@@ -486,7 +486,7 @@ export default function PartnerPilot() {
       {activeSection === 'data-upload-3' && (
         <div className="w-full">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold mb-2">Data Upload 3</h1>
+            <h1 className="text-2xl font-bold mb-2">Data Upload</h1>
             <p className="text-gray-600">Upload your data using intelligent templates and entity mapping</p>
           </div>
           
