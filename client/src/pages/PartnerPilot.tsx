@@ -87,7 +87,7 @@ export default function PartnerPilot() {
   });
   const { environment } = useEnvironment();
 
-  const [activeSection, setActiveSection] = useState<'copilot' | 'reports' | 'data-upload' | 'data-upload-2' | 'data-upload-2-degoudse' | 'data-upload-3' | 'data-upload-3-degoudse' | 'settings'>('copilot');
+  const [activeSection, setActiveSection] = useState<'copilot' | 'reports' | 'data-upload-3' | 'data-upload-3-degoudse' | 'settings'>('copilot');
 
   // Listen for navigation events from upload process pages
   useEffect(() => {
@@ -363,22 +363,7 @@ export default function PartnerPilot() {
           <FileText className="h-4 w-4 mr-2" />
           Reports
         </Button>
-        <Button 
-          variant="ghost"
-          className={activeSection === 'data-upload' ? "bg-indigo-50 text-indigo-700 hover:bg-indigo-100" : ""}
-          onClick={() => setActiveSection('data-upload')}
-        >
-          <Upload className="h-4 w-4 mr-2" />
-          Data Upload
-        </Button>
-        <Button 
-          variant="ghost"
-          className={activeSection === 'data-upload-2' ? "bg-indigo-50 text-indigo-700 hover:bg-indigo-100" : ""}
-          onClick={() => setActiveSection('data-upload-2')}
-        >
-          <Upload className="h-4 w-4 mr-2" />
-          Data Upload 2
-        </Button>
+
         <Button 
           variant="ghost"
           className={activeSection === 'data-upload-3' ? "bg-indigo-50 text-indigo-700 hover:bg-indigo-100" : ""}
@@ -489,11 +474,9 @@ export default function PartnerPilot() {
 )}
 
 
-      {activeSection === 'data-upload' && (
-        <DataUploadOptions />
-      )}
 
-      {activeSection === 'data-upload-2' && (
+
+      {false && (
         <div className="w-full">
           <div className="mb-8">
             <h1 className="text-2xl font-bold mb-2">Data Upload 2</h1>
@@ -674,7 +657,7 @@ export default function PartnerPilot() {
         </div>
       )}
 
-      {activeSection === 'data-upload-2-degoudse' && (
+      {false && (
         <div className="w-full">
           <div className="mb-6">
             <Button 
