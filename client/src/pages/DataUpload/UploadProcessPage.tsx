@@ -55,12 +55,12 @@ const capitalizeUploadType = (type: string) => {
 };
 
 const getSteps = (uploadType: string) => {
-  // For entity-upload flow, add product mapping as first step
+  // For entity-upload flow, add product mapping before mapping step
   if (uploadType === 'entity-upload') {
     return [
-      { id: 1, name: 'Product Mapping', description: 'Set up product categories and subcategories' },
-      { id: 2, name: 'Entity Selection', description: 'Choose the type of data you want to upload' },
-      { id: 3, name: 'Upload', description: 'Upload your CSV file' },
+      { id: 1, name: 'Entity Selection', description: 'Choose the type of data you want to upload' },
+      { id: 2, name: 'Upload', description: 'Upload your CSV file' },
+      { id: 3, name: 'Product Mapping', description: 'Set up product categories and subcategories' },
       { id: 4, name: 'Mapping', description: 'Map CSV columns to entity attributes' },
       { id: 5, name: 'Processing', description: 'Review and validate your data before processing' },
       { id: 6, name: 'Complete', description: 'Review results' }
@@ -316,25 +316,15 @@ export default function UploadProcessPage() {
       </Card>
 
       {/* Step Content */}
-      {currentStep === 1 && isEntityUpload ? (
-        <ProductMappingStep
-          onNext={(categories) => {
-            setProductCategories(categories);
-            goToNextStep();
-          }}
-          onBack={() => setLocation('/data-upload-3')}
-          initialCategories={productCategories}
-        />
-      ) : (
-        <Card className="shadow-sm border-0 bg-white/90 backdrop-blur-sm">
-          <CardHeader className="pb-6">
-            <CardTitle className="text-xl font-semibold text-gray-900">Step {displayStepNumber}: {currentStepData?.name}</CardTitle>
-            <CardDescription className="text-gray-600 text-base">{currentStepData?.description}</CardDescription>
-          </CardHeader>
-          <CardContent className="pt-0">
+      <Card className="shadow-sm border-0 bg-white/90 backdrop-blur-sm">
+        <CardHeader className="pb-6">
+          <CardTitle className="text-xl font-semibold text-gray-900">Step {displayStepNumber}: {currentStepData?.name}</CardTitle>
+          <CardDescription className="text-gray-600 text-base">{currentStepData?.description}</CardDescription>
+        </CardHeader>
+        <CardContent className="pt-0">
 
           {/* Entity Selection Step (Entity Upload Only) */}
-          {currentStep === 2 && isEntityUpload && (
+          {currentStep === 1 && isEntityUpload && (
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <h3 className="text-lg font-medium mb-2">Choose Entity Type</h3>
@@ -438,7 +428,7 @@ export default function UploadProcessPage() {
           )}
 
           {/* Upload Step */}
-          {((currentStep === 2 && isSpecialFormat) || (currentStep === 3 && isEntityUpload) || (currentStep === 1 && !isSpecialFormat && !isEntityUpload)) && (
+          {((currentStep === 2 && isSpecialFormat) || (currentStep === 2 && isEntityUpload) || (currentStep === 1 && !isSpecialFormat && !isEntityUpload)) && (
             <div className="space-y-8">
               <div 
                 className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 ${
@@ -528,6 +518,37 @@ export default function UploadProcessPage() {
             </div>
           )}
 
+          {/* Product Mapping Step (Entity Upload Only) */}
+          {currentStep === 3 && isEntityUpload && (
+            <div className="space-y-6">
+              <div className="text-center py-16">
+                <h3 className="text-xl font-semibold text-gray-900 mb-4">Product Mapping</h3>
+                <p className="text-gray-600 mb-8">Set up product categories and subcategories for your data</p>
+                <div className="bg-gray-50 border-2 border-dashed border-gray-200 rounded-lg p-8">
+                  <p className="text-gray-500">Product mapping functionality coming soon...</p>
+                </div>
+              </div>
+              
+              <div className="flex justify-between pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={goToPreviousStep} 
+                  className="rounded-xl px-6 py-3 border-gray-300 hover:bg-gray-50"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+                <Button 
+                  onClick={goToNextStep}
+                  className="rounded-xl px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                >
+                  Continue to Mapping
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Mapping Step (Special Formats Only) - Apply transformation and extract headers */}
           {currentStep === 3 && isSpecialFormat && (
             <MappingStep 
@@ -548,7 +569,7 @@ export default function UploadProcessPage() {
           )}
 
           {/* Attribute Mapping Step */}
-          {((currentStep === 4 && isSpecialFormat) || (currentStep === 4 && isEntityUpload) || (currentStep === 2 && !isSpecialFormat && !isEntityUpload)) && (
+          {((currentStep === 3 && isSpecialFormat) || (currentStep === 4 && isEntityUpload) || (currentStep === 2 && !isSpecialFormat && !isEntityUpload)) && (
             <AttributeMappingStep 
               uploadedFile={isSpecialFormat && transformedFile ? transformedFile : uploadedFile}
               csvHeaders={csvHeaders}
@@ -640,7 +661,6 @@ export default function UploadProcessPage() {
           )}
         </CardContent>
       </Card>
-      )}
     </div>
   );
 }
