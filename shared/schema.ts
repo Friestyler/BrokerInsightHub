@@ -974,12 +974,7 @@ export const campaigns = pgTable("campaigns", {
   attachments: json("attachments").default([]),
 });
 
-export const campaignsRelations = relations(campaigns, ({ one }) => ({
-  createdBy: one(users, {
-    fields: [campaigns.created_by],
-    references: [users.id],
-  }),
-}));
+
 
 // Campaign insert schema and types
 export const insertCampaignSchema = createInsertSchema(campaigns).omit({

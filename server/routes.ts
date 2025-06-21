@@ -5811,8 +5811,6 @@ app.post('/api/users', (req, res) => res.redirect(307, '/api/degoudse/users'));
 
 // Delete product catalogue
 app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
-  // original logic here (from stage)
-});
     try {
       const envId = req.params.envId;
       const catalogueId = parseInt(req.params.id);
