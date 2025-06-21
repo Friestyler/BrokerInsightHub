@@ -376,7 +376,7 @@ export default function PartnerPilot() {
           onClick={() => setActiveSection('data-upload-3')}
         >
           <Upload className="h-4 w-4 mr-2" />
-          Data Upload
+          Data
         </Button>
       </div>
 
