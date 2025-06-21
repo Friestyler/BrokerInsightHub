@@ -180,7 +180,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
         
         <div ref={dataMenuRef} className="relative">
           <button 
-            className={`nav-container w-full text-left ${(collapsed && (location.startsWith('/partners') || location.startsWith('/lists/partners') || location.startsWith('/customers') || location.startsWith('/lists/customers') || location.startsWith('/opportunities') || location.startsWith('/lists/opportunities') || location.startsWith('/products') || location.startsWith('/contacts'))) ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+            className={`nav-container w-full text-left ${(collapsed && (location.startsWith('/partners') || location.startsWith('/lists/partners') || location.startsWith('/customers') || location.startsWith('/lists/customers') || location.startsWith('/opportunities') || location.startsWith('/lists/opportunities') || location.startsWith('/contacts'))) ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
             onClick={() => setDataMenuOpen(!dataMenuOpen)}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -214,7 +214,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
           </button>
           
           {/* Always show a tiny indicator on the sidebar if a list section is active */}
-          {collapsed && !dataMenuOpen && (location.startsWith('/partners') || location.startsWith('/lists/partners') || location.startsWith('/customers') || location.startsWith('/lists/customers') || location.startsWith('/opportunities') || location.startsWith('/lists/opportunities') || location.startsWith('/products') || location.startsWith('/contacts')) && (
+          {collapsed && !dataMenuOpen && (location.startsWith('/partners') || location.startsWith('/lists/partners') || location.startsWith('/customers') || location.startsWith('/lists/customers') || location.startsWith('/opportunities') || location.startsWith('/lists/opportunities') || location.startsWith('/contacts')) && (
             <div className="absolute top-[93px] right-0 w-1 h-7 bg-indigo-500 rounded-l-md"></div>
           )}
           
@@ -261,20 +261,6 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
                   <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
                 </svg>
                 Contacts
-              </button>
-              <button
-                onClick={() => navigateTo('/products')}
-                className={`submenu-nav-container ${location.startsWith("/products") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M21 7v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                  <path d="m14 9 7-7"></path>
-                  <path d="M9 14h.01"></path>
-                  <path d="M9 3 7 5 9 7 7 9"></path>
-                  <path d="M14 3h.01"></path>
-                  <path d="M19 3h.01"></path>
-                </svg>
-                Products
               </button>
             </div>
           )}
