@@ -1912,16 +1912,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Direct query with relationship counts from opportunities table, excluding original seed partners except partner 4 (De Goudse)
       const result = await envPool.query(`
         SELECT p.id, p.name, p.description, p.status, p.location, p.contact_email, 
-               p.primary_contact, p.region, p.assigned_user_ids, p."ownerId",
-               p.linked_opportunity_ids, p."createdAt", p."updatedAt",
-               u.name as owner_name,
+               p.primary_contact, p.region, p.assigned_user_ids, p.owner_id,
+               p.linked_opportunity_ids, p.created_at, p.updated_at,
+               u.full_name as owner_name,
                COALESCE(rel.opportunity_count, 0) as opportunity_count,
                COALESCE(rel.customer_count, 0) as customer_count,
                COALESCE(rel.total_opportunity_value, 0) as total_opportunity_value,
                COALESCE(rel.total_weighted_value, 0) as total_weighted_value,
                COALESCE(contact_rel.contact_count, 0) as contact_count
         FROM degoudse.partners p
-        LEFT JOIN degoudse.users u ON p."ownerId" = u.id
+        LEFT JOIN degoudse.users u ON p.owner_id = u.id
         LEFT JOIN (
           SELECT "partnerId", 
                  COUNT(*) as opportunity_count,
@@ -2869,12 +2869,12 @@ Keep the tone clear and professional. Focus on what will help the account manage
         envPool.query(`
           SELECT 
             COUNT(DISTINCT c.id) as total_customers,
-            COUNT(DISTINCT co."opportunityId") as total_opportunities,
+            COUNT(DISTINCT co.opportunity_id) as total_opportunities,
             COALESCE(SUM(CASE WHEN o."estimatedValue" IS NOT NULL THEN o."estimatedValue" ELSE 0 END), 0) as total_value,
             COALESCE(SUM(CASE WHEN o."estimatedValue" IS NOT NULL THEN o."estimatedValue" * o.probability / 100.0 ELSE 0 END), 0) as weighted_value
           FROM degoudse.customers c
-          LEFT JOIN degoudse.customer_opportunities co ON c.id = co."customerId"
-          LEFT JOIN degoudse.opportunities o ON co."opportunityId" = o.id
+          LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
+          LEFT JOIN degoudse.opportunities o ON co.opportunity_id = o.id
           WHERE c.id > 10
         `)
       ]);
@@ -3330,7 +3330,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
                  c.name as customer_name,
                  p.name as partner_name,
                  pr.name as product_name,
-                 am.name as account_manager_name
+                 am.full_name as account_manager_name
           FROM degoudse.opportunities o
           LEFT JOIN degoudse.customers c ON o."clientId" = c.id
           LEFT JOIN degoudse.partners p ON o."partnerId" = p.id
