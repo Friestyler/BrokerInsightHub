@@ -1,0 +1,937 @@
+import { useState, useEffect, useRef } from "react";
+import { useParams } from "wouter";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Link } from "wouter";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
+import { Search, Copy, Users, Trash2, MoreHorizontal, MessageSquare } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useToast } from "@/hooks/use-toast";
+import { useEnvironment } from "@/contexts/EnvironmentContext";
+import LogoUploadModal from "@/components/LogoUploadModal";
+
+export default function PartnerDetail() {
+  const { id } = useParams();
+  const { environment } = useEnvironment();
+  const [activeTab, setActiveTab] = useState("opportunities");
+  const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTag, setSelectedTag] = useState("all");
+  const [selectedUnit, setSelectedUnit] = useState("all");
+  const [selectedRange, setSelectedRange] = useState("all");
+  const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
+  const [comment, setComment] = useState("");
+  const [selectedMetricForComment, setSelectedMetricForComment] = useState<any>(null);
+  const [visibleToPartner, setVisibleToPartner] = useState(false);
+  const [assignedTo, setAssignedTo] = useState("");
+
+  // Logo upload state
+  const [showLogoUploadModal, setShowLogoUploadModal] = useState(false);
+  const [partnerLogo, setPartnerLogo] = useState<string | null>(null);
+
+  // Load existing logo on component mount
+  useEffect(() => {
+    const loadExistingLogo = async () => {
+      if (id) {
+        try {
+          const response = await fetch(`/api/entity-logos?entityType=partner&entityId=${id}&environmentId=${environment || 'myqollabi'}`);
+          if (response.ok) {
+            const logoData = await response.json();
+            if (logoData?.logoData) {
+              setPartnerLogo(logoData.logoData);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading existing logo:', error);
+        }
+      }
+    };
+    
+    loadExistingLogo();
+  }, [id, environment]);
+
+  // Opportunities-specific state
+  const [filterText, setFilterText] = useState("");
+  const [activeList, setActiveList] = useState<any>(null);
+  const [showListsDropdown, setShowListsDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch all partners to find this specific partner
+  const { data: partners, isLoading: partnersLoading } = useQuery({
+    queryKey: ['/api/partners'],
+  });
+
+  // Fetch related customers for this partner
+  const { data: relatedCustomers, isLoading: customersLoading } = useQuery({
+    queryKey: [`/api/partners/${id}/customers`],
+    enabled: !!id,
+  });
+
+  // Fetch related opportunities for this partner
+  const { data: relatedOpportunities, isLoading: opportunitiesLoading } = useQuery({
+    queryKey: [`/api/partners/${id}/opportunities`],
+    enabled: !!id,
+  });
+
+  // Fetch saved lists for opportunities that include this partner
+  const { data: savedListsData } = useQuery({
+    queryKey: ['/api/saved-lists', 'opportunities'],
+    queryFn: () => fetch(`/api/saved-lists?entity_type=opportunities`).then(res => res.json()),
+  });
+
+  // Filter saved lists to show partner-relevant lists
+  const partnerRelevantLists = (savedListsData as any[] || []).filter((list: any) => {
+    // Show lists that are shared with this partner or contain opportunities from this partner
+    if (list.filters?.partner_shared_with && String(list.filters.partner_shared_with) === String(id)) {
+      return true;
+    }
+    return false;
+  });
+
+  // Filter opportunities based on search and active list
+  const filteredOpportunities = (relatedOpportunities as any[] || []).filter((opportunity: any) => {
+    // Filter by search text
+    if (filterText) {
+      const searchLower = filterText.toLowerCase();
+      const matchesSearch = 
+        opportunity.title?.toLowerCase().includes(searchLower) ||
+        opportunity.clientName?.toLowerCase().includes(searchLower) ||
+        opportunity.stage?.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
+    }
+    
+    // If a specific list is selected, filter by its members
+    if (activeList) {
+      // If the list has members (specific opportunity IDs), only show those
+      if (activeList.members && activeList.members.length > 0) {
+        return activeList.members.includes(opportunity.id);
+      }
+      // If the list has filters, apply them
+      if (activeList.filters) {
+        // Additional filter logic can be added here if needed
+      }
+    }
+    
+    return true;
+  });
+
+  // Click outside handler to close dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowListsDropdown(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Fetch template assignments for this partner
+  const { data: templateAssignments } = useQuery({
+    queryKey: [`/api/template-assignments/partner`],
+    enabled: !!id,
+  });
+
+  // Fetch all OKR metrics to match with assignments
+  const { data: allMetrics } = useQuery({
+    queryKey: ['/api/okr-metrics'],
+  });
+
+  // Fetch OKR tags for filtering
+  const { data: tags } = useQuery({
+    queryKey: ['/api/okr-tags'],
+  });
+
+  // Create comment mutation
+  const createCommentMutation = useMutation({
+    mutationFn: async (data: { content: string; visible_to_partner: boolean; entityType: string; entityId: number; assignedTo?: string; metricId?: number }) => {
+      const envId = localStorage.getItem('selectedEnvironment') || 'degoudse';
+      
+      // Use OKR comment endpoint if a metric is selected
+      if (data.metricId) {
+        const response = await fetch(`/api/${envId}/okr/comments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            metricId: data.metricId,
+            partnerId: data.entityId,
+            comment: data.content,
+            userId: 1, // Default user ID
+          }),
+        });
+        if (!response.ok) {
+          const errorData = await response.text();
+          throw new Error(`Failed to create OKR comment: ${errorData}`);
+        }
+        return response.json();
+      } else {
+        // Use general comment endpoint
+        const response = await fetch(`/api/${envId}/comments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        if (!response.ok) {
+          const errorData = await response.text();
+          throw new Error(`Failed to create comment: ${errorData}`);
+        }
+        return response.json();
+      }
+    },
+    onSuccess: () => {
+      toast({
+        title: "Comment Added",
+        description: "Your comment has been successfully added.",
+      });
+      setIsCommentDialogOpen(false);
+      setComment("");
+      setSelectedMetricForComment(null);
+      setVisibleToPartner(false);
+      setAssignedTo("");
+      // Invalidate and refetch comments
+      queryClient.invalidateQueries({ queryKey: [`/api/okr/comments`] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleAddComment = (metric: any) => {
+    setSelectedMetricForComment(metric);
+    setIsCommentDialogOpen(true);
+  };
+
+  const handleCommentSubmit = () => {
+    if (!comment.trim()) return;
+    
+    createCommentMutation.mutate({
+      content: comment,
+      visible_to_partner: visibleToPartner,
+      entityType: 'partner',
+      entityId: parseInt(id!),
+      assignedTo: assignedTo || undefined,
+      metricId: selectedMetricForComment.id, // Pass the metric ID for OKR comments
+    });
+  };
+
+  if (partnersLoading || customersLoading || opportunitiesLoading) {
+    return <div className="p-4">Loading...</div>;
+  }
+
+  const partner = (partners as any[] || []).find((p: any) => p.id === parseInt(id || '1'));
+  
+  if (!partner) {
+    return <div className="p-4">Partner not found</div>;
+  }
+
+  // Get attached metrics for this partner
+  const partnerAssignments = (templateAssignments as any[] || []).filter((assignment: any) => 
+    assignment.entity_type === 'partner' && assignment.entity_id === parseInt(id || '0')
+  );
+  const attachedMetricIds = partnerAssignments.map((assignment: any) => assignment.template_id) || [];
+  const attachedMetrics = (allMetrics as any[] || []).filter((metric: any) => attachedMetricIds.includes(metric.id));
+
+  // Filter and search logic for OKR metrics (same as template page)
+  const filteredMetrics = attachedMetrics.filter((metric: any) => {
+    const matchesSearch = metric.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         metric.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesTag = selectedTag === "all" || metric.tags?.includes(selectedTag);
+    const matchesUnit = selectedUnit === "all" || metric.measure_unit === selectedUnit;
+    
+    let matchesRange = true;
+    if (selectedRange !== "all" && metric.target_value) {
+      const target = parseFloat(metric.target_value);
+      if (selectedRange === "0-50") matchesRange = target >= 0 && target <= 50;
+      else if (selectedRange === "50-100") matchesRange = target > 50 && target <= 100;
+      else if (selectedRange === "100+") matchesRange = target > 100;
+    }
+    
+    return matchesSearch && matchesTag && matchesUnit && matchesRange;
+  });
+
+  // Group metrics by tag for display
+  const groupedMetrics = filteredMetrics.reduce((acc: any, metric: any) => {
+    const tag = metric.tags && metric.tags.length > 0 ? metric.tags[0] : 'Untagged';
+    if (!acc[tag]) acc[tag] = [];
+    acc[tag].push(metric);
+    return acc;
+  }, {});
+
+  const handleMetricSelect = (metricId: number, checked: boolean) => {
+    setSelectedMetrics(prev => 
+      checked 
+        ? [...prev, metricId]
+        : prev.filter(id => id !== metricId)
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b">
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              {/* Company Logo Placeholder */}
+              <div className="flex-shrink-0">
+                <button
+                  onClick={() => setShowLogoUploadModal(true)}
+                  className={`w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center transition-colors group ${
+                    partnerLogo 
+                      ? "border-0 hover:bg-gray-50" 
+                      : "border-2 border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                  }`}
+                  title="Click to upload logo"
+                >
+                  {partnerLogo ? (
+                    <img
+                      src={partnerLogo}
+                      alt={`${partner?.name} logo`}
+                      className="w-full h-full object-cover rounded-md"
+                    />
+                  ) : (
+                    <svg className="w-6 h-6 text-gray-400 group-hover:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                </button>
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">{partner.name}</h1>
+                <p className="text-gray-600">{partner.type} • {partner.size}</p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Button variant="outline">
+                <MessageSquare className="w-4 h-4 mr-2" />
+                Message
+              </Button>
+              <Button>
+                <Users className="w-4 h-4 mr-2" />
+                Assign Tasks
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Tabs */}
+        <div className="px-6 border-b border-gray-200">
+          <nav className="flex space-x-2 mb-3">
+            <button 
+              onClick={() => setActiveTab("okr-plans")}
+              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                activeTab === "okr-plans" 
+                  ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+              }`}
+            >
+              OKR Plans ({attachedMetrics.length})
+            </button>
+            <button 
+              onClick={() => setActiveTab("opportunities")}
+              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                activeTab === "opportunities" 
+                  ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+              }`}
+            >
+              Opportunities ({(relatedOpportunities as any[] || []).length})
+            </button>
+            <button 
+              onClick={() => setActiveTab("customers")}
+              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                activeTab === "customers" 
+                  ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+              }`}
+            >
+              Customers ({(relatedCustomers as any[] || []).length})
+            </button>
+          </nav>
+        </div>
+      </div>
+
+      {/* Content area */}
+      <div className="px-6 py-6">
+        {activeTab === "okr-plans" && (
+          <div className="space-y-6">
+            {/* Filters Section - Exact same as template page */}
+            <div className="flex items-center space-x-4 bg-white p-4 rounded-lg">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                <Input
+                  placeholder="Search metrics..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              
+              <Select value={selectedTag} onValueChange={setSelectedTag}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Filter by tag" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Tags</SelectItem>
+                  {(tags as any[] || []).map((tag: any) => (
+                    <SelectItem key={tag.id} value={tag.name}>
+                      {tag.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              <Select value={selectedUnit} onValueChange={setSelectedUnit}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Filter by unit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Units</SelectItem>
+                  <SelectItem value="percentage">Percentage</SelectItem>
+                  <SelectItem value="number">Number</SelectItem>
+                  <SelectItem value="currency">Currency</SelectItem>
+                  <SelectItem value="rating">Rating</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={selectedRange} onValueChange={setSelectedRange}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Target range" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Ranges</SelectItem>
+                  <SelectItem value="0-50">0-50</SelectItem>
+                  <SelectItem value="50-100">50-100</SelectItem>
+                  <SelectItem value="100+">100+</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Bulk Actions Bar */}
+            {selectedMetrics.length > 0 && (
+              <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <span className="text-sm text-blue-700">
+                  {selectedMetrics.length} metric{selectedMetrics.length > 1 ? 's' : ''} selected
+                </span>
+                <div className="flex items-center space-x-2">
+                  <Button variant="outline" size="sm">
+                    <Users className="w-4 h-4 mr-2" />
+                    Assign to Team
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Copy className="w-4 h-4 mr-2" />
+                    Duplicate
+                  </Button>
+                  <Button variant="outline" size="sm">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Remove
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Metrics Table - Exact same structure as template page */}
+            {attachedMetrics.length === 0 ? (
+              <div className="text-center py-12">
+                <p className="text-gray-500">No OKR metrics attached to this partner</p>
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg">
+                {Object.entries(groupedMetrics).map(([tagName, tagMetrics]: [string, any]) => (
+                  <div key={tagName} className="mb-8">
+                    {/* Tag Header */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        <span 
+                          className="inline-block px-3 py-1 text-sm font-medium rounded-full text-white"
+                          style={{ 
+                            backgroundColor: (tags as any[] || []).find((tag: any) => tag.name === tagName)?.color || '#6B7280'
+                          }}
+                        >
+                          {tagName}
+                        </span>
+                        <span className="text-sm text-gray-500">
+                          ({tagMetrics.length} metric{tagMetrics.length > 1 ? 's' : ''})
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Metrics Table */}
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="border-b border-gray-200">
+                          <TableHead className="w-12">
+                            <Checkbox
+                              checked={tagMetrics.every((metric: any) => selectedMetrics.includes(metric.id))}
+                              onCheckedChange={(checked) => {
+                                const tagMetricIds = tagMetrics.map((metric: any) => metric.id);
+                                if (checked) {
+                                  setSelectedMetrics([...selectedMetrics, ...tagMetricIds.filter((id: number) => !selectedMetrics.includes(id))]);
+                                } else {
+                                  setSelectedMetrics(selectedMetrics.filter((id: number) => !tagMetricIds.includes(id)));
+                                }
+                              }}
+                            />
+                          </TableHead>
+                          <TableHead className="text-left font-medium text-gray-900">Name</TableHead>
+                          <TableHead className="text-left font-medium text-gray-900">Timeframe</TableHead>
+                          <TableHead className="text-left font-medium text-gray-900">Milestone Frequency</TableHead>
+                          <TableHead className="text-left font-medium text-gray-900">Target</TableHead>
+                          <TableHead className="w-12"></TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {tagMetrics.map((metric: any) => (
+                          <TableRow key={metric.id} className="group border-b border-gray-100 hover:bg-gray-50">
+                            <TableCell>
+                              <div className={`transition-opacity ${selectedMetrics.includes(metric.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                                <Checkbox
+                                  checked={selectedMetrics.includes(metric.id)}
+                                  onCheckedChange={(checked) => handleMetricSelect(metric.id, checked as boolean)}
+                                />
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div>
+                                <div className="font-medium text-gray-900">{metric.name}</div>
+                                <div className="text-sm text-gray-500">{metric.description}</div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-gray-700">{metric.timeframe || 'Not set'}</span>
+                            </TableCell>
+                            <TableCell>
+                              <span className="text-gray-700">{metric.milestone_frequency || 'Not set'}</span>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center space-x-2">
+                                <span className="text-gray-900">
+                                  {metric.target_value || '0'}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {metric.measure_unit || ''}
+                                </span>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <MoreHorizontal className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => handleAddComment(metric)}>
+                                    <MessageSquare className="w-4 h-4 mr-2" />
+                                    Add Comment
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem>Edit metric</DropdownMenuItem>
+                                  <DropdownMenuItem>Duplicate</DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem className="text-red-600">
+                                    Remove from partner
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "opportunities" && (
+          <div className="space-y-4">
+            {/* Enhanced unified toolbar - same as OpportunitiesPage */}
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <div className="flex flex-col gap-4">
+                {/* Top row with saved lists and views */}
+                <div className="flex flex-wrap items-center justify-between">
+                  {/* Left side - Saved Lists with actions */}
+                  <div className="flex items-center gap-3">
+                    {/* Lists heading */}
+                    <div className="flex flex-col mr-2">
+                      <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
+                    </div>
+                    {/* Saved Lists dropdown - functional implementation */}
+                    <div className="relative" ref={dropdownRef}>
+                      <button 
+                        className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
+                        onClick={() => setShowListsDropdown(!showListsDropdown)}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
+                          <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
+                        </svg>
+                        <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                          {activeList ? activeList.name : 'All opportunities'}
+                        </span>
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          width="14" 
+                          height="14" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          className={`transition-transform ${showListsDropdown ? 'rotate-180' : ''}`}
+                        >
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                      </button>
+                      
+                      {/* Dropdown menu */}
+                      {showListsDropdown && (
+                        <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                          <div className="p-2">
+                            {/* Default "All opportunities" option */}
+                            <button
+                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
+                                !activeList ? 'bg-[#E1E4FB] text-[#3E4DC4]' : 'text-gray-700'
+                              }`}
+                              onClick={() => {
+                                setActiveList(null);
+                                setShowListsDropdown(false);
+                              }}
+                            >
+                              <div className="flex items-center space-x-2">
+                                <span>All opportunities</span>
+                              </div>
+                            </button>
+                            
+                            {/* Partner-relevant saved lists */}
+                            {partnerRelevantLists.length > 0 && (
+                              <div className="border-t border-gray-100 my-2 pt-2">
+                                {partnerRelevantLists.map((list: any) => (
+                                  <button
+                                    key={list.id}
+                                    className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
+                                      activeList?.id === list.id ? 'bg-[#E1E4FB] text-[#3E4DC4]' : 'text-gray-700'
+                                    }`}
+                                    onClick={() => {
+                                      setActiveList(list);
+                                      setShowListsDropdown(false);
+                                    }}
+                                  >
+                                    <div className="flex items-center space-x-2">
+                                      <span>{list.name}</span>
+                                      {/* Show share icon if list is shared */}
+                                      {list.is_shared && (
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto text-green-500">
+                                          <circle cx="18" cy="5" r="3"></circle>
+                                          <circle cx="6" cy="12" r="3"></circle>
+                                          <circle cx="18" cy="19" r="3"></circle>
+                                          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                        </svg>
+                                      )}
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Right-side action buttons */}
+                  <div className="flex items-center gap-2">
+                    <Button variant="outline" size="sm" className="hidden md:flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                      </svg>
+                      Export
+                    </Button>
+                    
+                    <Button 
+                      size="sm" 
+                      className="flex items-center bg-indigo-600 hover:bg-indigo-700"
+                      onClick={() => {/* Handle new opportunity creation */}}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                      New
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Bottom row with search, views, and filters */}
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex flex-wrap items-center gap-3 flex-grow">
+                    {/* Search field */}
+                    <div className="relative w-60">
+                      <input
+                        type="text"
+                        placeholder="Search opportunities..."
+                        value={filterText}
+                        onChange={(e) => setFilterText(e.target.value)}
+                        className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+                      />
+                      <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                          <circle cx="11" cy="11" r="8"></circle>
+                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    {/* Views dropdown - next to search field */}
+                    <div className="relative">
+                      <button 
+                        className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium border-gray-300 hover:border-gray-400"
+                        onClick={() => {/* Handle views dropdown */}}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+                          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                        </svg>
+                        <span className="max-w-[120px] truncate">Views</span>
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          width="14" 
+                          height="14" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          className="transition-transform"
+                        >
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    {/* Filter buttons next to the views dropdown */}
+                    <div className="flex items-center gap-2 ml-3">
+                      <button 
+                        className="flex items-center px-3 py-2 border rounded-md text-sm font-medium border-gray-300 text-gray-700"
+                        onClick={() => {/* Handle status filter */}}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg>
+                        <span>Status</span>
+                      </button>
+                      
+                      <button 
+                        className="flex items-center px-3 py-2 border rounded-md text-sm font-medium border-gray-300 text-gray-700"
+                        onClick={() => {/* Handle type filter */}}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg>
+                        <span>Type</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Opportunities Table */}
+            <div className="bg-white rounded-lg shadow-sm">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12"><Checkbox /></TableHead>
+                    <TableHead>Opportunity</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Stage</TableHead>
+                    <TableHead>Value</TableHead>
+                    <TableHead>Close Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredOpportunities.map((opportunity: any) => (
+                    <TableRow key={opportunity.id}>
+                      <TableCell><Checkbox /></TableCell>
+                      <TableCell>
+                        <Link href={`/lists/opportunities/${opportunity.id}`}>
+                          <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
+                            {opportunity.title}
+                          </span>
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-gray-900">
+                          {opportunity.clientName || 'Unknown Customer'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                          {opportunity.stage}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        €{opportunity.estimated_value ? Number(opportunity.estimated_value).toLocaleString() : '0'}
+                      </TableCell>
+                      <TableCell>
+                        {opportunity.expected_close_date ? new Date(opportunity.expected_close_date).toLocaleDateString() : 'Not set'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
+        )}
+
+        {activeTab === "customers" && (
+          <div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12"><Checkbox /></TableHead>
+                  <TableHead>Customer Name</TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Opportunities</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(relatedCustomers as any[] || []).map((customer: any) => {
+                  const customerOpportunities = (relatedOpportunities as any[] || []).filter((o: any) => o.clientName === customer.name);
+                  return (
+                    <TableRow key={customer.id}>
+                      <TableCell><Checkbox /></TableCell>
+                      <TableCell>
+                        <Link href={`/lists/customers/${customer.id}`}>
+                          <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
+                            {customer.name}
+                          </span>
+                        </Link>
+                      </TableCell>
+                      <TableCell>{customer.contact_name || 'Not set'}</TableCell>
+                      <TableCell>{customer.contact_email || 'Not set'}</TableCell>
+                      <TableCell>{customer.contact_phone || 'Not set'}</TableCell>
+                      <TableCell>
+                        <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                          {customerOpportunities.length} opportunities
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+        )}
+      </div>
+
+      {/* Comment Dialog */}
+      <Dialog open={isCommentDialogOpen} onOpenChange={setIsCommentDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Comment to OKR Metric</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedMetricForComment && (
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="font-medium text-sm">{selectedMetricForComment.name}</p>
+                <p className="text-xs text-gray-600 mt-1">
+                  Current: {selectedMetricForComment.realized_value} {selectedMetricForComment.measure_unit}
+                  {selectedMetricForComment.target_value && (
+                    <span> / Target: {selectedMetricForComment.target_value} {selectedMetricForComment.measure_unit}</span>
+                  )}
+                </p>
+              </div>
+            )}
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Comment
+              </label>
+              <Textarea
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Add your comment here..."
+                rows={4}
+              />
+            </div>
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="visible-to-partner"
+                checked={visibleToPartner}
+                onCheckedChange={setVisibleToPartner}
+              />
+              <label
+                htmlFor="visible-to-partner"
+                className="text-sm text-gray-700"
+              >
+                Visible to partner
+              </label>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Assign to (optional)
+              </label>
+              <Input
+                value={assignedTo}
+                onChange={(e) => setAssignedTo(e.target.value)}
+                placeholder="Enter team member name"
+              />
+            </div>
+            <div className="flex justify-end space-x-3">
+              <Button
+                variant="outline"
+                onClick={() => setIsCommentDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCommentSubmit}
+                disabled={!comment.trim() || createCommentMutation.isPending}
+              >
+                {createCommentMutation.isPending ? 'Adding...' : 'Add Comment'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Logo Upload Modal */}
+      <LogoUploadModal
+        isOpen={showLogoUploadModal}
+        onClose={() => setShowLogoUploadModal(false)}
+        onUpload={(logoUrl) => {
+          setPartnerLogo(logoUrl);
+          setShowLogoUploadModal(false);
+        }}
+        entityName={partner?.name || 'Partner'}
+        entityType="partner"
+        entityId={partner?.id || 0}
+      />
+    </div>
+  );
+}

@@ -12,7 +12,25 @@ import {
   savedLists,
   savedViews,
   okrTemplateAssignments,
-  contacts
+  contacts,
+  entityLogos,
+  insertEntityLogoSchema,
+  campaigns,
+  campaignRecipients,
+  campaignFollowUps,
+  campaignShares,
+  insertCampaignSchema,
+  insertCampaignRecipientSchema,
+  insertCampaignFollowUpSchema,
+  insertCampaignShareSchema,
+  productCategories,
+  products,
+  vendors,
+  insertProductCategorySchema,
+  insertProductSchema,
+  type ProductCategory,
+  type Product,
+  type Vendor
 } from '@shared/schema';
 import { eq, sql } from 'drizzle-orm';
 import { db, pool, getEnvironmentPool, getEnvironmentDb } from './db';
@@ -29,6 +47,41 @@ import { UploadSettingsService } from './services/uploadSettingsService';
 import { insertUploadSettingSchema, insertTransformationScriptSchema, insertUploadTemplateSchema } from '@shared/schema';
 
 
+
+// Aggressive in-memory cache for fast responses
+const cache = new Map();
+const CACHE_TTL = 300000; // 5 minutes for critical endpoints
+const CRITICAL_CACHE_TTL = 600000; // 10 minutes for partners/customers
+
+function getCached(key: string) {
+  const cached = cache.get(key);
+  const ttl = key.includes('partners') || key.includes('customers') ? CRITICAL_CACHE_TTL : CACHE_TTL;
+  if (cached && Date.now() - cached.timestamp < ttl) {
+    return cached.data;
+  }
+  return null;
+}
+
+function setCache(key: string, data: any) {
+  cache.set(key, { data, timestamp: Date.now() });
+  
+  // Clear old cache entries periodically
+  if (cache.size > 100) {
+    const now = Date.now();
+    const keysToDelete = [];
+    cache.forEach((v, k) => {
+      if (now - v.timestamp > CRITICAL_CACHE_TTL) {
+        keysToDelete.push(k);
+      }
+    });
+    keysToDelete.forEach(k => cache.delete(k));
+  }
+}
+
+function clearCache() {
+  cache.clear();
+  console.log('Server cache cleared');
+}
 
 // Setup multer storage for file uploads
 const storage_config = multer.diskStorage({
@@ -1018,9 +1071,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const partnerId = parseInt(req.params.id);
       const result = await db.execute(sql`
         SELECT c.*, COUNT(o.id) as opportunity_count
-        FROM myqollabi.customers c
-        INNER JOIN myqollabi.partner_customers pc ON c.id = pc.customer_id
-        LEFT JOIN myqollabi.opportunities o ON o.client_id = c.id
+        FROM degoudse.customers c
+        INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
+        LEFT JOIN degoudse.opportunities o ON o.client_id = c.id
         WHERE pc.partner_id = ${partnerId}
         GROUP BY c.id, c.name, c.description, c.owner_id, c.created_at, c.updated_at, 
                  c.contact_name, c.contact_email, c.contact_phone
@@ -1050,9 +1103,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const partnerId = parseInt(req.params.id);
       const result = await db.execute(sql`
         SELECT o.*, c.name as client_name
-        FROM myqollabi.opportunities o
-        INNER JOIN myqollabi.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN myqollabi.customers c ON o.client_id = c.id
+        FROM degoudse.opportunities o
+        INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
+        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
         WHERE po.partner_id = ${partnerId}
         ORDER BY o.id
       `);
@@ -1074,6 +1127,282 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching partner opportunities:', error);
       res.status(500).json({ error: 'Failed to fetch partner opportunities' });
+    }
+  });
+
+  // Get activities for a specific partner
+  app.get('/api/:envId/partners/:id/activities', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const partnerId = parseInt(req.params.id);
+      
+      // Fetch tasks
+      const tasksResult = await db.execute(sql`
+        SELECT t.*, u.name as assigned_to_name
+        FROM ${sql.identifier(envId)}.activity_tasks t
+        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id
+        WHERE t.partner_id = ${partnerId}
+        ORDER BY t.created_at DESC
+      `);
+      
+      // Fetch comments
+      const commentsResult = await db.execute(sql`
+        SELECT c.*, u.name as author_name
+        FROM ${sql.identifier(envId)}.activity_comments c
+        LEFT JOIN ${sql.identifier(envId)}.users u ON c.user_id = u.id
+        WHERE c.partner_id = ${partnerId}
+        ORDER BY c.created_at DESC
+      `);
+      
+      // Fetch attachments
+      const attachmentsResult = await db.execute(sql`
+        SELECT a.*, u.name as author_name
+        FROM ${sql.identifier(envId)}.activity_attachments a
+        LEFT JOIN ${sql.identifier(envId)}.users u ON a.uploaded_by_id = u.id
+        WHERE a.partner_id = ${partnerId}
+        ORDER BY a.created_at DESC
+      `);
+      
+      res.json({
+        tasks: tasksResult.rows,
+        comments: commentsResult.rows,
+        attachments: attachmentsResult.rows
+      });
+    } catch (error) {
+      console.error('Error fetching partner activities:', error);
+      res.status(500).json({ error: 'Failed to fetch partner activities' });
+    }
+  });
+
+  // Get timeline for a specific partner
+  app.get('/api/:envId/partners/:id/timeline', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const partnerId = parseInt(req.params.id);
+      
+      // Fetch all timeline activities from database with user information
+      const timelineQuery = sql`
+        SELECT 
+          t.id, 
+          'task' as activity_type, 
+          t.title, 
+          t.title as content, 
+          t.description,
+          t.priority,
+          t.completed,
+          t.visible_to_partner,
+          t.assigned_to,
+          t.created_at,
+          t.updated_at,
+          u.name as author_name
+        FROM ${sql.identifier(envId)}.activity_tasks t
+        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id
+        WHERE t.partner_id = ${partnerId}
+        
+        UNION ALL
+        
+        SELECT 
+          c.id, 
+          'comment' as activity_type, 
+          'Comment' as title, 
+          c.content, 
+          null as description,
+          null as priority,
+          null as completed,
+          c.visible_to_partner,
+          c.user_id as assigned_to,
+          c.created_at,
+          c.updated_at,
+          u.name as author_name
+        FROM ${sql.identifier(envId)}.activity_comments c
+        LEFT JOIN ${sql.identifier(envId)}.users u ON c.user_id = u.id
+        WHERE c.partner_id = ${partnerId}
+        
+        UNION ALL
+        
+        SELECT 
+          a.id, 
+          'attachment' as activity_type, 
+          'Document' as title, 
+          a.filename as content, 
+          null as description,
+          null as priority,
+          null as completed,
+          a.visible_to_partner,
+          a.uploaded_by_id as assigned_to,
+          a.created_at,
+          null as updated_at,
+          u.name as author_name
+        FROM ${sql.identifier(envId)}.activity_attachments a
+        LEFT JOIN ${sql.identifier(envId)}.users u ON a.uploaded_by_id = u.id
+        WHERE a.partner_id = ${partnerId}
+        
+        ORDER BY created_at DESC
+      `;
+      
+      const timelineResult = await db.execute(timelineQuery);
+      
+      // Transform the results to match expected frontend format
+      const timeline = timelineResult.rows.map((item: any) => ({
+        id: item.id,
+        activity_type: item.activity_type,
+        title: item.title,
+        content: item.content,
+        description: item.description,
+        priority: item.priority,
+        completed: item.completed,
+        visible_to_partner: item.visible_to_partner,
+        assigned_to: item.assigned_to,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        author_name: item.author_name || 'Unknown User'
+      }));
+      
+      res.json(timeline);
+    } catch (error) {
+      console.error('Error fetching partner timeline:', error);
+      res.status(500).json({ error: 'Failed to fetch partner timeline' });
+    }
+  });
+
+  // Get next best actions for a specific partner
+  app.get('/api/:envId/partners/:id/next-actions', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const partnerId = parseInt(req.params.id);
+      
+      const actionsResult = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(envId)}.next_best_actions 
+        WHERE partner_id = ${partnerId}
+        ORDER BY priority DESC, created_at DESC
+      `);
+      
+      res.json(actionsResult.rows);
+    } catch (error) {
+      console.error('Error fetching next best actions:', error);
+      res.status(500).json({ error: 'Failed to fetch next best actions' });
+    }
+  });
+
+  // Create a new task for a partner
+  app.post('/api/:envId/partners/:id/tasks', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const partnerId = parseInt(req.params.id);
+      const { title, description, priority, visible_to_partner, assigned_to } = req.body;
+      
+      const result = await db.execute(sql`
+        INSERT INTO ${sql.identifier(envId)}.activity_tasks 
+        (partner_id, title, description, priority, visible_to_partner, assigned_to, completed)
+        VALUES (${partnerId}, ${title}, ${description || null}, ${priority || 'medium'}, ${visible_to_partner || false}, ${assigned_to || null}, false)
+        RETURNING *
+      `);
+      
+      // Sync to linked partner if this is Mevas BV or De Goudse
+      if (partnerId === 12 || partnerId === 4) {
+        const syncPartnerId = partnerId === 12 ? 4 : 12;
+        try {
+          await db.execute(sql`
+            INSERT INTO ${sql.identifier(envId)}.activity_tasks 
+            (partner_id, title, description, priority, visible_to_partner, assigned_to, completed, synced_from_partner_id, is_synced)
+            VALUES (${syncPartnerId}, ${title}, ${description || null}, ${priority || 'medium'}, ${visible_to_partner || false}, ${assigned_to || null}, false, ${partnerId}, true)
+          `);
+          console.log(`Synced task from partner ${partnerId} to partner ${syncPartnerId}`);
+        } catch (syncError) {
+          console.error('Error syncing task:', syncError);
+        }
+      }
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating task:', error);
+      res.status(500).json({ error: 'Failed to create task' });
+    }
+  });
+
+  // Create a new comment for a partner
+  app.post('/api/:envId/partners/:id/comments', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const partnerId = parseInt(req.params.id);
+      const { content, visible_to_partner, user_id } = req.body;
+      
+      const result = await db.execute(sql`
+        INSERT INTO ${sql.identifier(envId)}.activity_comments 
+        (partner_id, content, visible_to_partner, user_id)
+        VALUES (${partnerId}, ${content}, ${visible_to_partner || false}, ${user_id || 1})
+        RETURNING *
+      `);
+      
+      // Sync to linked partner if this is Mevas BV or De Goudse
+      if (partnerId === 12 || partnerId === 4) {
+        const syncPartnerId = partnerId === 12 ? 4 : 12;
+        try {
+          await db.execute(sql`
+            INSERT INTO ${sql.identifier(envId)}.activity_comments 
+            (partner_id, content, visible_to_partner, user_id, synced_from_partner_id, is_synced)
+            VALUES (${syncPartnerId}, ${content}, ${visible_to_partner || false}, ${user_id || 1}, ${partnerId}, true)
+          `);
+          console.log(`Synced comment from partner ${partnerId} to partner ${syncPartnerId}`);
+        } catch (syncError) {
+          console.error('Error syncing comment:', syncError);
+        }
+      }
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating comment:', error);
+      res.status(500).json({ error: 'Failed to create comment' });
+    }
+  });
+
+  // Update task completion status
+  app.patch('/api/:envId/tasks/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const taskId = parseInt(req.params.id);
+      const { completed } = req.body;
+      
+      // Get the task to check if it needs syncing
+      const taskResult = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(envId)}.activity_tasks WHERE id = ${taskId}
+      `);
+      
+      if (taskResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Task not found' });
+      }
+      
+      const task = taskResult.rows[0];
+      
+      const result = await db.execute(sql`
+        UPDATE ${sql.identifier(envId)}.activity_tasks 
+        SET completed = ${completed}, completed_at = ${completed ? new Date().toISOString() : null}
+        WHERE id = ${taskId}
+        RETURNING *
+      `);
+      
+      // Sync completion status to linked partner if this is Mevas BV or De Goudse
+      if ((task.partner_id === 12 || task.partner_id === 4) && !task.is_synced) {
+        const syncPartnerId = task.partner_id === 12 ? 4 : 12;
+        try {
+          await db.execute(sql`
+            UPDATE ${sql.identifier(envId)}.activity_tasks 
+            SET completed = ${completed}, completed_at = ${completed ? new Date().toISOString() : null}
+            WHERE partner_id = ${syncPartnerId} 
+            AND title = ${task.title} 
+            AND synced_from_partner_id = ${task.partner_id}
+            AND is_synced = true
+          `);
+          console.log(`Synced task completion from partner ${task.partner_id} to partner ${syncPartnerId}`);
+        } catch (syncError) {
+          console.error('Error syncing task completion:', syncError);
+        }
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating task:', error);
+      res.status(500).json({ error: 'Failed to update task' });
     }
   });
 
@@ -1323,7 +1652,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Fix De Goudse Relationships Endpoint
   app.post('/api/degoudse/fix-relationships', async (req: Request, res: Response) => {
     try {
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       let relationshipsCreated = 0;
       
       // Get all opportunities and available partners/customers
@@ -1455,22 +1784,160 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Users API endpoint for team member selection
+  app.get('/api/:envId/users', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        SELECT id, name, email, role, partner_id, created_at, updated_at
+        FROM ${envId}.users 
+        ORDER BY name
+      `);
+      
+      const users = result.rows.map((user: any) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        fullName: user.name,
+        role: user.role || 'Team Member',
+        partnerId: user.partner_id,
+        createdAt: user.created_at,
+        updatedAt: user.updated_at
+      }));
+      
+      res.json(users);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ error: 'Failed to fetch users' });
+    }
+  });
+
+  // Emergency fast partners endpoint - serves immediate response
+  app.get('/api/degoudse/partners-fast', async (req, res) => {
+    try {
+      const envPool = pool;
+      const result = await envPool.query(`SELECT id, name, description, status, location, contact_email FROM degoudse.partners ORDER BY id LIMIT 10`);
+      
+      const partners = result.rows.map((partner: any) => ({
+        id: partner.id,
+        name: partner.name,
+        description: partner.description,
+        initials: partner.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
+        industry: "Insurance",
+        type: "Partner",
+        size: "medium",
+        status: partner.status,
+        customers: 0,
+        opportunities: 0,
+        location: partner.location,
+        contactEmail: partner.contact_email
+      }));
+      
+      res.json(partners);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch partners' });
+    }
+  });
+
+  // Get distinct filter values for partners
+  app.get('/api/degoudse/partners/filter-options', async (req, res) => {
+    try {
+      const envPool = pool;
+      
+      // Get distinct values for all filter fields
+      const [statusResult, regionResult, locationResult] = await Promise.all([
+        envPool.query(`SELECT DISTINCT status FROM degoudse.partners WHERE status IS NOT NULL AND status != '' ORDER BY status`),
+        envPool.query(`SELECT DISTINCT region FROM degoudse.partners WHERE region IS NOT NULL AND region != '' ORDER BY region`),
+        envPool.query(`SELECT DISTINCT location FROM degoudse.partners WHERE location IS NOT NULL AND location != '' ORDER BY location`)
+      ]);
+      
+      const filterOptions = {
+        statuses: statusResult.rows.map(row => row.status),
+        regions: regionResult.rows.map(row => row.region),
+        locations: locationResult.rows.map(row => row.location)
+      };
+      
+      console.log('Partner filter options:', filterOptions);
+      res.json(filterOptions);
+    } catch (error) {
+      console.error('Error fetching partner filter options:', error);
+      res.status(500).json({ error: 'Failed to fetch filter options' });
+    }
+  });
+
+  // Get distinct filter values for customers related to a specific partner
+  app.get('/api/degoudse/partners/:id/customers/filter-options', async (req, res) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      // Get distinct values for status and industry from customers related to this partner
+      const [statusResult, industryResult] = await Promise.all([
+        envPool.query(`
+          SELECT DISTINCT c.status
+          FROM degoudse.customers c
+          INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
+          WHERE pc.partner_id = $1 AND c.status IS NOT NULL AND c.status != ''
+          ORDER BY c.status
+        `, [partnerId]),
+        envPool.query(`
+          SELECT DISTINCT c.industry
+          FROM degoudse.customers c
+          INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
+          WHERE pc.partner_id = $1 AND c.industry IS NOT NULL AND c.industry != ''
+          ORDER BY c.industry
+        `, [partnerId])
+      ]);
+      
+      const filterOptions = {
+        statuses: statusResult.rows.map(row => row.status),
+        industries: industryResult.rows.map(row => row.industry)
+      };
+      
+      console.log(`Customer filter options for partner ${partnerId}:`, filterOptions);
+      res.json(filterOptions);
+    } catch (error) {
+      console.error('Error fetching customer filter options:', error);
+      res.status(500).json({ error: 'Failed to fetch customer filter options' });
+    }
+  });
+
   // De Goudse environment API routes (using proper database isolation)
   app.get('/api/degoudse/partners', async (req, res) => {
     try {
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
+      
+      // Direct query with relationship counts from opportunities table, excluding original seed partners except partner 4 (De Goudse)
       const result = await envPool.query(`
-        SELECT p.*, 
-               COUNT(DISTINCT pc.customer_id) as customer_count,
-               COUNT(DISTINCT po.opportunity_id) as opportunity_count,
-               STRING_AGG(DISTINCT c.name, ', ') as customer_names
+        SELECT p.id, p.name, p.description, p.status, p.location, p.contact_email, 
+               p.primary_contact, p.region, p.assigned_user_ids, p.owner_id,
+               p.linked_opportunity_ids, p.created_at, p.updated_at,
+               u.name as owner_name,
+               COALESCE(rel.opportunity_count, 0) as opportunity_count,
+               COALESCE(rel.customer_count, 0) as customer_count,
+               COALESCE(rel.total_opportunity_value, 0) as total_opportunity_value,
+               COALESCE(rel.total_weighted_value, 0) as total_weighted_value,
+               COALESCE(contact_rel.contact_count, 0) as contact_count
         FROM degoudse.partners p
-        LEFT JOIN degoudse.partner_customers pc ON p.id = pc.partner_id
-        LEFT JOIN degoudse.partner_opportunities po ON p.id = po.partner_id
-        LEFT JOIN degoudse.customers c ON c.id = pc.customer_id
-        GROUP BY p.id, p.name, p.description, p.status, p.location, p.contact_email, 
-                 p.primary_contact, p.partner_type, p.region, p.assigned_user_ids, 
-                 p.linked_opportunity_ids, p.created_at, p.updated_at
+        LEFT JOIN degoudse.users u ON p.owner_id = u.id
+        LEFT JOIN (
+          SELECT partner_id, 
+                 COUNT(*) as opportunity_count,
+                 COUNT(DISTINCT client_id) as customer_count,
+                 SUM(COALESCE(estimated_value, 0)) as total_opportunity_value,
+                 SUM(COALESCE(estimated_value, 0) * COALESCE(probability, 0) / 100.0) as total_weighted_value
+          FROM degoudse.opportunities 
+          WHERE partner_id IS NOT NULL AND id > 16
+          GROUP BY partner_id
+        ) rel ON p.id = rel.partner_id
+        LEFT JOIN (
+          SELECT COUNT(*) as contact_count, 'placeholder' as partner_reference
+          FROM degoudse.contacts 
+          WHERE is_active = true
+        ) contact_rel ON 1=1
+        WHERE p.id > 5 OR p.id = 4
         ORDER BY p.id
       `);
       
@@ -1479,17 +1946,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: partner.name,
         description: partner.description,
         initials: partner.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
-        industry: "Insurance",
-        type: partner.partner_type || "Partner", 
-        size: "medium",
+        industry: getIndustryFromDescription(partner.description || ''),
+        type: getTypeFromDescription(partner.description || ''),
+        size: getSizeFromDescription(partner.description || ''),
         status: partner.status,
-        customers: partner.customer_count || 0,
-        opportunities: partner.opportunity_count || 0,
+        customerCount: parseInt(partner.customer_count) || 0,
+        opportunityCount: parseInt(partner.opportunity_count) || 0,
+        customers: parseInt(partner.customer_count) || 0,
+        opportunities: parseInt(partner.opportunity_count) || 0,
+        contacts: parseInt(partner.contact_count) || 0,
+        opportunity_value: parseFloat(partner.total_opportunity_value) || 0,
+        weighted_opportunity_value: parseFloat(partner.total_weighted_value) || 0,
         location: partner.location,
         contactEmail: partner.contact_email,
         primaryContact: partner.primary_contact,
+        partner_type: partner.partner_type,
         region: partner.region,
-        customerNames: partner.customer_names
+        assigned_user_ids: partner.assigned_user_ids,
+        linked_opportunity_ids: partner.linked_opportunity_ids,
+        createdAt: partner.created_at,
+        updatedAt: partner.updated_at,
+        customerNames: '',
+        owner_name: partner.owner_name
       }));
       
       console.log(`Returning ${partners.length} partners with relationship counts from degoudse schema`);
@@ -1504,9 +1982,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/partners/:id/customers', async (req, res) => {
     try {
       const partnerId = parseInt(req.params.id);
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       const result = await envPool.query(`
-        SELECT c.id, c.name, c.description
+        SELECT c.id, c.name, c.description, c.industry, c.status
         FROM degoudse.customers c
         INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
         WHERE pc.partner_id = $1
@@ -1516,7 +1994,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const customers = result.rows.map((customer: any) => ({
         id: customer.id,
         name: customer.name,
-        description: customer.description
+        description: customer.description,
+        industry: customer.industry,
+        status: customer.status
       }));
       
       res.json(customers);
@@ -1529,13 +2009,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/partners/:id/opportunities', async (req, res) => {
     try {
       const partnerId = parseInt(req.params.id);
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       const result = await envPool.query(`
-        SELECT o.*, c.name as client_name
+        SELECT o.id, o.title, o.description, o.status, o.stage, o.estimated_value, o.probability,
+               o.expected_close_date, o.start_date, o.insurance_description, o.account_manager_id,
+               o.client_id, o.partner_id, o.product_id, o.owner_id, o.type, o.created_at, o.updated_at,
+               c.name as client_name,
+               COUNT(DISTINCT contacts.id) as contact_count,
+               am.name as account_manager_name
         FROM degoudse.opportunities o
-        INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
-        WHERE po.partner_id = $1
+        LEFT JOIN degoudse.customers c ON o.client_id = c.id
+        LEFT JOIN degoudse.contacts contacts ON contacts.linked_entity_id = c.id AND contacts.linked_entity_type = 'customer'
+        LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
+        WHERE o.partner_id = $1 AND o.id > 16
+        GROUP BY o.id, o.title, o.description, o.status, o.stage, o.estimated_value, o.probability,
+                 o.expected_close_date, o.start_date, o.insurance_description, o.account_manager_id, 
+                 o.client_id, o.partner_id, o.product_id, o.owner_id, o.type, 
+                 o.created_at, o.updated_at, c.name, am.name
         ORDER BY o.id
       `, [partnerId]);
       
@@ -1545,9 +2035,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: opp.description,
         status: opp.status,
         stage: opp.stage,
-        estimated_value: opp.estimatedValue,
+        estimated_value: opp.estimated_value || opp.estimatedValue,
+        probability: opp.probability,
         clientName: opp.client_name,
-        expected_close_date: opp.expectedCloseDate
+        expected_close_date: opp.expected_close_date,
+        start_date: opp.start_date,
+        insurance_description: opp.insurance_description,
+        account_manager_name: opp.account_manager_name,
+        contactCount: parseInt(opp.contact_count) || 0
       }));
       
       res.json(opportunities);
@@ -1557,10 +2052,97 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get filter options for partner opportunities
+  app.get('/api/degoudse/partners/:id/opportunities/filters', async (req, res) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      console.log(`Fetching filter options for partner ${partnerId} opportunities from De Goudse database`);
+      
+      // Get unique stages
+      const stagesResult = await envPool.query(`
+        SELECT DISTINCT o.stage
+        FROM degoudse.opportunities o
+        WHERE o.partner_id = $1 AND o.stage IS NOT NULL
+        ORDER BY o.stage
+      `, [partnerId]);
+      
+      // Get unique customers
+      const customersResult = await envPool.query(`
+        SELECT DISTINCT c.name as customer_name
+        FROM degoudse.opportunities o
+        LEFT JOIN degoudse.customers c ON o.client_id = c.id
+        WHERE o.partner_id = $1 AND c.name IS NOT NULL
+        ORDER BY c.name
+      `, [partnerId]);
+      
+      // Get unique account managers
+      const accountManagersResult = await envPool.query(`
+        SELECT DISTINCT u.name as account_manager_name
+        FROM degoudse.opportunities o
+        LEFT JOIN degoudse.users u ON o.account_manager_id = u.id
+        WHERE o.partner_id = $1 AND u.name IS NOT NULL
+        ORDER BY u.name
+      `, [partnerId]);
+      
+      // Get unique insurance descriptions
+      const insuranceDescriptionsResult = await envPool.query(`
+        SELECT DISTINCT o.insurance_description
+        FROM degoudse.opportunities o
+        INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
+        WHERE po.partner_id = $1 AND o.insurance_description IS NOT NULL
+        ORDER BY o.insurance_description
+      `, [partnerId]);
+      
+      const filterOptions = {
+        stages: stagesResult.rows.map(row => row.stage),
+        customers: customersResult.rows.map(row => row.customer_name),
+        accountManagers: accountManagersResult.rows.map(row => row.account_manager_name),
+        insuranceDescriptions: insuranceDescriptionsResult.rows.map(row => row.insurance_description)
+      };
+      
+      console.log(`Filter options for partner ${partnerId}:`, filterOptions);
+      res.json(filterOptions);
+    } catch (error) {
+      console.error('Error fetching filter options:', error);
+      res.status(500).json({ error: 'Failed to fetch filter options' });
+    }
+  });
+
+  app.get('/api/degoudse/partners/:id/products', async (req, res) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+      const envPool = pool;
+      const result = await envPool.query(`
+        SELECT DISTINCT p.id, p.name, p.description, p.category,
+               p.created_at, p.updated_at
+        FROM degoudse.products p
+        INNER JOIN degoudse.opportunities o ON p.id = o.product_id
+        WHERE o.partner_id = $1
+        ORDER BY p.name
+      `, [partnerId]);
+      
+      const products = result.rows.map((product: any) => ({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        category: product.category,
+        created_at: product.created_at,
+        updated_at: product.updated_at
+      }));
+      
+      res.json(products);
+    } catch (error) {
+      console.error('Error fetching De Goudse partner products:', error);
+      res.status(500).json({ error: 'Failed to fetch partner products' });
+    }
+  });
+
   app.get('/api/degoudse/customers/:id/partners', async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       const result = await envPool.query(`
         SELECT p.*
         FROM degoudse.partners p
@@ -1588,14 +2170,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/customers/:id/opportunities', async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       const result = await envPool.query(`
-        SELECT o.*, p.name as partner_name
+        SELECT o.*, 
+               STRING_AGG(DISTINCT p.name, ', ') as partner_names
         FROM degoudse.opportunities o
         INNER JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
         LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
         LEFT JOIN degoudse.partners p ON p.id = po.partner_id
         WHERE co.customer_id = $1
+        GROUP BY o.id, o.title, o.description, o.status, o.stage, o.estimated_value, o.expected_close_date, o.client_id, o.partner_id, o.product_id, o.owner_id, o.probability, o.type, o.created_at, o.updated_at
         ORDER BY o.id
       `, [customerId]);
       
@@ -1606,7 +2190,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: opp.status,
         stage: opp.stage,
         estimated_value: opp.estimated_value,
-        partner_name: opp.partner_name,
+        partnerNames: opp.partner_names,
         expected_close_date: opp.expected_close_date
       }));
       
@@ -1621,7 +2205,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/customers/:id/products', async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       const result = await envPool.query(`
         SELECT DISTINCT p.*, v.name as vendor_name
         FROM degoudse.products p
@@ -1652,15 +2236,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get contacts for a specific customer in De Goudse environment
+  app.get('/api/degoudse/customers/:id/contacts', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const envPool = pool;
+      const result = await envPool.query(`
+        SELECT *
+        FROM degoudse.contacts
+        WHERE linked_entity_type = 'customer' AND linked_entity_id = $1
+        ORDER BY is_primary DESC, full_name ASC
+      `, [customerId]);
+      
+      const contacts = result.rows.map((contact: any) => ({
+        id: contact.id,
+        firstName: contact.first_name,
+        lastName: contact.last_name,
+        fullName: contact.full_name,
+        email: contact.email,
+        phone: contact.phone,
+        jobTitle: contact.job_title,
+        department: contact.department,
+        company: contact.company,
+        isPrimary: contact.is_primary,
+        isActive: contact.is_active,
+        notes: contact.notes,
+        tags: contact.tags,
+        createdAt: contact.created_at,
+        updatedAt: contact.updated_at
+      }));
+      
+      res.json(contacts);
+    } catch (error) {
+      console.error('Error fetching De Goudse customer contacts:', error);
+      res.status(500).json({ error: 'Failed to fetch customer contacts' });
+    }
+  });
+
   app.get('/api/degoudse/opportunities/:id/products', async (req, res) => {
     try {
       const opportunityId = parseInt(req.params.id);
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       const result = await envPool.query(`
         SELECT pr.*
         FROM degoudse.products pr
-        INNER JOIN degoudse.opportunity_products op ON pr.id = op.product_id
-        WHERE op.opportunity_id = $1
+        INNER JOIN degoudse.opportunities o ON pr.id = o.product_id
+        WHERE o.id = $1
         ORDER BY pr.id
       `, [opportunityId]);
       
@@ -1679,15 +2300,466 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Extract meeting preparation data for AI analysis
+  app.get('/api/degoudse/partners/:id/meeting-data', async (req, res) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      console.log(`Extracting meeting data for partner ${partnerId}`);
+      
+      // Get partner basic info
+      const partnerResult = await envPool.query(`
+        SELECT id, name, description, status, location, region, primary_contact
+        FROM degoudse.partners 
+        WHERE id = $1
+      `, [partnerId]);
+      
+      if (partnerResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Partner not found' });
+      }
+      
+      const partner = partnerResult.rows[0];
+      
+      // Get all OKRs assigned to this partner
+      const okrResult = await envPool.query(`
+        SELECT 
+          om.id,
+          om.name,
+          om.description,
+          om.realized_value,
+          om.target_value,
+          om.ytd_value,
+          om.last_year_value,
+          om.measure_unit,
+          om.currency_type,
+          om.frequency,
+          om.hierarchy,
+          om.tags,
+          om.timeframe_start,
+          om.timeframe_end,
+          ta.assigned_at,
+          ta.status as assignment_status,
+          ta.due_date,
+          ta.notes
+        FROM degoudse.okr_template_assignments ta
+        LEFT JOIN degoudse.okr_metrics om ON ta.template_id = om.id
+        WHERE ta.entity_type = 'partner' AND ta.entity_id = $1
+        ORDER BY ta.assigned_at DESC
+      `, [partnerId]);
+      
+      // Get all opportunities for this partner
+      const opportunitiesResult = await envPool.query(`
+        SELECT 
+          o.id,
+          o.title,
+          o.description,
+          o.stage,
+          o.estimated_value,
+          o.probability,
+          o.insurance_description,
+          o.created_at,
+          o.updated_at,
+          c.name as customer_name,
+          c.description as customer_description,
+          u.name as account_manager_name
+        FROM degoudse.opportunities o
+        LEFT JOIN degoudse.customers c ON o.client_id = c.id
+        LEFT JOIN degoudse.users u ON o.account_manager_id = u.id
+        WHERE o.partner_id = $1 AND o.id > 16
+        ORDER BY o.estimated_value DESC, o.created_at DESC
+      `, [partnerId]);
+      
+      // Structure the data for AI analysis - optimized for reasoning
+      const meetingData = {
+        partner: {
+          name: partner.name,
+          description: partner.description,
+          status: partner.status,
+          location: partner.location,
+          region: partner.region,
+          primary_contact: partner.primary_contact
+        },
+        okrs: okrResult.rows.map(okr => {
+          const realizedValue = parseFloat(okr.realized_value) || 0;
+          const targetValue = parseFloat(okr.target_value) || 0;
+          const progressRatio = targetValue > 0 ? (realizedValue / targetValue) : 0;
+          const progressPercent = Math.round(progressRatio * 100);
+          
+          return {
+            name: okr.name,
+            description: okr.description,
+            target_value: targetValue,
+            realized_value: realizedValue,
+            measure_unit: okr.measure_unit,
+            interpreted_progress: `${progressPercent}% of ${targetValue}${okr.measure_unit ? ' ' + okr.measure_unit : ''} target`,
+            assignment_status: okr.assignment_status,
+            tags: okr.tags,
+            due_date: okr.due_date,
+            notes: okr.notes
+          };
+        }),
+        opportunities: opportunitiesResult.rows.map(opp => {
+          const opportunity = {
+            title: opp.title,
+            stage: opp.stage,
+            estimated_value: opp.estimated_value,
+            probability: opp.probability,
+            weighted_value: (opp.estimated_value || 0) * (opp.probability || 0) / 100,
+            insurance_type: opp.insurance_description,
+            customer: opp.customer_name,
+            account_manager: opp.account_manager_name
+          };
+          
+          // Only include description if it has actual content
+          if (opp.description && opp.description.trim()) {
+            opportunity.description = opp.description;
+          }
+          
+          return opportunity;
+        })
+      };
+      
+      res.json(meetingData);
+    } catch (error) {
+      console.error('Error extracting meeting data:', error);
+      res.status(500).json({ error: 'Failed to extract meeting data' });
+    }
+  });
+
+  // AI-powered meeting preparation endpoint
+  app.post('/api/degoudse/partners/:id/prepare-meeting', async (req: Request, res: Response) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+      
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({ error: 'OpenAI API key not configured' });
+      }
+
+      console.log(`Preparing AI meeting briefing for partner ${partnerId}`);
+
+      // Get the meeting data using the same logic as the meeting-data endpoint
+      const partnerResult = await pool.query(`
+        SELECT * FROM degoudse.partners WHERE id = $1
+      `, [partnerId]);
+
+      if (partnerResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Partner not found' });
+      }
+
+      const partner = partnerResult.rows[0];
+
+      // Get OKRs (they are global, not partner-specific)
+      const okrResult = await pool.query(`
+        SELECT * FROM degoudse.okr_metrics 
+        ORDER BY created_at DESC
+        LIMIT 10
+      `);
+
+      // Get opportunities for this partner (excluding seed data)
+      const opportunitiesResult = await pool.query(`
+        SELECT 
+          o.*,
+          c.name as customer_name,
+          u.name as account_manager_name
+        FROM degoudse.opportunities o
+        LEFT JOIN degoudse.customers c ON o.client_id = c.id
+        LEFT JOIN degoudse.users u ON o.account_manager_id = u.id
+        WHERE o.partner_id = $1 AND o.id > 16
+        ORDER BY o.estimated_value DESC, o.created_at DESC
+      `, [partnerId]);
+
+      // Structure the data for AI analysis - same as meeting-data endpoint
+      const meetingData = {
+        partner: {
+          name: partner.name,
+          description: partner.description,
+          status: partner.status,
+          location: partner.location,
+          region: partner.region,
+          primary_contact: partner.primary_contact
+        },
+        okrs: okrResult.rows.map(okr => {
+          // Parse European formatted numbers (replace commas with periods, remove currency/percent symbols)
+          const parseEuropeanNumber = (value: string) => {
+            if (!value) return 0;
+            const cleanValue = value.toString()
+              .replace(/[€%\s]/g, '') // Remove currency and percent symbols
+              .replace(/\./g, '') // Remove thousand separators (periods)
+              .replace(/,/g, '.'); // Replace decimal comma with period
+            return parseFloat(cleanValue) || 0;
+          };
+
+          const ytdValue = parseEuropeanNumber(okr.ytd_value);
+          const lastYearValue = parseEuropeanNumber(okr.last_year_value);
+          const realizedValue = parseEuropeanNumber(okr.realized_value);
+          const targetValue = parseEuropeanNumber(okr.target_value);
+          
+          let progressPercent = 0;
+          let interpretedProgress = '';
+          
+          // For OKRs with YTD data, calculate year-over-year progress
+          if (ytdValue > 0 || lastYearValue > 0) {
+            if (lastYearValue > 0) {
+              const yoyRatio = ytdValue / lastYearValue;
+              progressPercent = Math.round(yoyRatio * 100);
+              const growthText = ytdValue > lastYearValue ? 'growth' : 'decline';
+              interpretedProgress = `${progressPercent}% vs last year (${ytdValue} vs ${lastYearValue}) - ${growthText}`;
+            } else {
+              interpretedProgress = `${ytdValue}${okr.measure_unit ? ' ' + okr.measure_unit : ''} YTD`;
+            }
+          } else if (targetValue > 0) {
+            // Fallback to traditional progress calculation
+            const progressRatio = realizedValue / targetValue;
+            progressPercent = Math.round(progressRatio * 100);
+            interpretedProgress = `${progressPercent}% of ${targetValue}${okr.measure_unit ? ' ' + okr.measure_unit : ''} target`;
+          } else {
+            interpretedProgress = `${realizedValue}${okr.measure_unit ? ' ' + okr.measure_unit : ''} current value`;
+          }
+          
+          return {
+            name: okr.name,
+            description: okr.description,
+            target_value: targetValue,
+            realized_value: realizedValue,
+            ytd_value: ytdValue,
+            last_year_value: lastYearValue,
+            measure_unit: okr.measure_unit,
+            interpreted_progress: interpretedProgress,
+            progress_percent: progressPercent,
+            assignment_status: okr.assignment_status,
+            tags: okr.tags,
+            due_date: okr.due_date,
+            notes: okr.notes
+          };
+        }),
+        opportunities: opportunitiesResult.rows.map(opp => {
+          const opportunity = {
+            title: opp.title,
+            stage: opp.stage,
+            estimated_value: opp.estimated_value,
+            probability: opp.probability,
+            weighted_value: (opp.estimated_value || 0) * (opp.probability || 0) / 100,
+            insurance_type: opp.insurance_description,
+            customer: opp.customer_name,
+            account_manager: opp.account_manager_name
+          };
+          
+          // Only include description if it has actual content
+          if (opp.description && opp.description.trim()) {
+            opportunity.description = opp.description;
+          }
+          
+          return opportunity;
+        })
+      };
+
+      // Send to OpenAI for analysis
+      const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          temperature: 0.7,
+          seed: Math.floor(Math.random() * 1000000),
+          messages: [
+            {
+              role: "system",
+              content: `You are assisting an account manager in preparing for an upcoming meeting with a broker.
+
+Current meeting preparation timestamp: ${new Date().toISOString()}
+
+You will receive:
+- A list of OKRs (Objectives, Activities, and Subactivities) that the broker is working on with the account manager
+- A list of opportunities linked to the broker
+
+Your task:
+
+1. Identify the 3 most relevant OKRs to discuss — those that stand out — and for each, briefly explain **why it should be discussed now**.
+
+CRITICAL: When selecting OKRs, analyze the actual data provided:
+- Look at "ytd_value" and "last_year_value" fields, not just "realized_value" and "target_value"
+- Look at "interpreted_progress" field for meaningful insights
+- Some OKRs may show significant year-over-year growth (e.g., YTD vs Last Year)
+- Some may show excellent performance ratios (e.g., 409% conversion rates)
+
+When selecting the top 3 OKRs to review, ensure **strategic diversity**:  
+Do **not** select three OKRs simply because they all show 0% progress in "realized_value".
+
+Instead, prioritize a mix such as:
+- One OKR with concerning performance or lack of progress
+- One OKR showing strong year-over-year improvement or exceptional performance
+- One OKR that requires strategic attention or broker collaboration
+
+Each OKR must have a **distinct and specific reason** for being selected. Avoid repetitive logic.
+
+Example of good selection:
+- "Omvang Portefeuille" showing 6% growth (€742,301 vs €700,599 last year) - discuss growth strategy
+- "Conversieratio" at 409% performance - understand this exceptional success
+- "Aantal Unieke Offertes" at 29% - needs immediate attention to improve
+
+IMPORTANT: Vary your selection approach each time. Consider different angles:
+- Sometimes focus on metrics with the highest absolute values
+- Sometimes prioritize metrics with unusual ratios or percentages
+- Sometimes emphasize metrics that show interesting trends
+- Always ensure each selected OKR has a unique justification
+
+If the partner has fewer than 3 OKRs:
+- Display only the number available.
+
+If the partner has no OKRs:
+- Display an empty state:  
+  _"No OKRs available for this partner at the moment."_
+
+---
+
+2. Identify the 3 most relevant opportunity types to discuss.
+
+These should highlight:
+- Stalled or slow-moving deals
+- High-probability or high-value opportunities
+- Win/loss patterns, cross-sell potential, or upcoming renewals
+- Market shifts or areas the broker specializes in
+
+Note: Common opportunity types include **Zonnepanelen**, **BGB**, and **Zonnepanelen onbekend**.
+
+Vary your focus each time - sometimes emphasize pipeline health, sometimes winning strategies, sometimes risk mitigation.
+
+If the partner has fewer than 3 opportunity types:
+- Only show what is available.
+If there are none:
+- Show an empty state:
+  _"No opportunity data available for this partner."_
+
+---
+
+3. Provide **exactly 3 actionable recommendations** for the meeting.
+
+These should:
+- Help the account manager guide the discussion
+- Be strategic, practical, or coordination-focused
+- Not repeat OKRs or opportunity descriptions word-for-word
+- Vary in focus each time (strategic planning, tactical execution, relationship building, etc.)
+
+---
+
+💡 Format your output like this:
+- Summary paragraph  
+- Section: **Top 3 OKRs to Discuss** – up to 3 bullet points  
+- Section: **Top 3 Opportunities to Discuss** – up to 3 bullet points  
+- Section: **Meeting Recommendations** – exactly 3 bullet points
+
+Keep the tone clear and professional. Focus on what will help the account manager lead a productive, data-driven conversation.`
+            },
+            {
+              role: "user",
+              content: `Meeting preparation request at ${new Date().toISOString()}\n\n${JSON.stringify(meetingData, null, 2)}`
+            }
+          ]
+        })
+      });
+
+      if (!openaiResponse.ok) {
+        const errorData = await openaiResponse.text();
+        console.error('OpenAI API error:', errorData);
+        return res.status(500).json({ error: 'Failed to generate meeting briefing' });
+      }
+
+      const aiResult = await openaiResponse.json();
+      const briefing = aiResult.choices[0].message.content;
+
+      console.log('=== AI MEETING BRIEFING ===');
+      console.log(`Partner: ${partner.name}`);
+      console.log('---');
+      console.log('RAW BRIEFING:');
+      console.log(briefing);
+      console.log('---');
+      console.log('BRIEFING LINES:');
+      briefing.split('\n').forEach((line, index) => {
+        console.log(`${index}: "${line}"`);
+      });
+      console.log('=== END BRIEFING ===');
+
+      res.json({
+        partner: partner.name,
+        briefing: briefing,
+        dataUsed: {
+          okrs: meetingData.okrs.length,
+          opportunities: meetingData.opportunities.length
+        }
+      });
+
+    } catch (error) {
+      console.error('Error preparing meeting briefing:', error);
+      res.status(500).json({ error: 'Failed to prepare meeting briefing' });
+    }
+  });
+
+  // Save meeting briefing endpoint
+  app.post('/api/degoudse/partners/:id/save-meeting-briefing', async (req: Request, res: Response) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+      const { partner, briefing, dataUsed } = req.body;
+
+      const result = await pool.query(`
+        INSERT INTO degoudse.meeting_briefings (partner_id, partner_name, briefing_content, data_used, created_by)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING id, created_at
+      `, [partnerId, partner, briefing, JSON.stringify(dataUsed), 1]);
+
+      res.json({ 
+        success: true, 
+        id: result.rows[0].id,
+        saved_at: result.rows[0].created_at
+      });
+    } catch (error) {
+      console.error('Error saving meeting briefing:', error);
+      res.status(500).json({ error: 'Failed to save meeting briefing' });
+    }
+  });
+
+  // Get latest saved meeting briefing endpoint
+  app.get('/api/degoudse/partners/:id/latest-meeting-briefing', async (req: Request, res: Response) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+
+      const result = await pool.query(`
+        SELECT partner_name as partner, briefing_content as briefing, data_used, created_at
+        FROM degoudse.meeting_briefings 
+        WHERE partner_id = $1 
+        ORDER BY created_at DESC 
+        LIMIT 1
+      `, [partnerId]);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'No saved meeting briefing found' });
+      }
+
+      const briefing = result.rows[0];
+      res.json({
+        partner: briefing.partner,
+        briefing: briefing.briefing,
+        dataUsed: briefing.data_used,
+        savedAt: briefing.created_at
+      });
+    } catch (error) {
+      console.error('Error retrieving meeting briefing:', error);
+      res.status(500).json({ error: 'Failed to retrieve meeting briefing' });
+    }
+  });
+
   app.get('/api/degoudse/opportunities/:id/partners', async (req, res) => {
     try {
       const opportunityId = parseInt(req.params.id);
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       const result = await envPool.query(`
         SELECT p.*
         FROM degoudse.partners p
-        INNER JOIN degoudse.partner_opportunities po ON p.id = po.partner_id
-        WHERE po.opportunity_id = $1
+        INNER JOIN degoudse.opportunities o ON p.id = o.partner_id
+        WHERE o.id = $1
         ORDER BY p.id
       `, [opportunityId]);
       
@@ -1712,12 +2784,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/opportunities/:id/customers', async (req, res) => {
     try {
       const opportunityId = parseInt(req.params.id);
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       const result = await envPool.query(`
         SELECT c.*
         FROM degoudse.customers c
-        INNER JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
-        WHERE co.opportunity_id = $1
+        INNER JOIN degoudse.opportunities o ON c.id = o.client_id
+        WHERE o.id = $1
         ORDER BY c.id
       `, [opportunityId]);
       
@@ -1737,37 +2809,157 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/degoudse/customers', async (req, res) => {
+  // Update opportunity stage
+  app.patch('/api/:envId/opportunities/:id', async (req, res) => {
     try {
-      const envPool = getEnvironmentPool('degoudse');
+      const envId = req.params.envId;
+      const opportunityId = parseInt(req.params.id);
+      const { stage } = req.body;
+
+      if (!stage) {
+        return res.status(400).json({ error: 'Stage is required' });
+      }
+
+      const envPool = pool;
+      const result = await envPool.query(
+        `UPDATE ${envId}.opportunities 
+         SET stage = $1, updated_at = NOW() 
+         WHERE id = $2 
+         RETURNING *`,
+        [stage, opportunityId]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Opportunity not found' });
+      }
+
+      const updatedOpportunity = result.rows[0];
+      res.json({
+        id: updatedOpportunity.id,
+        title: updatedOpportunity.title,
+        stage: updatedOpportunity.stage,
+        status: updatedOpportunity.status,
+        estimatedValue: updatedOpportunity.estimated_value,
+        expectedCloseDate: updatedOpportunity.expected_close_date,
+        updatedAt: updatedOpportunity.updated_at
+      });
+    } catch (error) {
+      console.error('Error updating opportunity stage:', error);
+      res.status(500).json({ error: 'Failed to update opportunity stage' });
+    }
+  });
+
+  app.get('/api/degoudse/customers', async (req, res) => {
+    // Add pagination parameters
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 100;
+    const offset = (page - 1) * limit;
+    
+    // Add caching headers
+    res.set('Cache-Control', 'public, max-age=60');
+    
+    try {
+      const envPool = pool;
+      
+      // Get total count and summary statistics, excluding original seed customers (IDs 1-10)
+      const [countResult, summaryResult] = await Promise.all([
+        envPool.query(`
+          SELECT COUNT(*) as total_count FROM degoudse.customers WHERE id > 10
+        `),
+        envPool.query(`
+          SELECT 
+            COUNT(DISTINCT c.id) as total_customers,
+            COUNT(DISTINCT co.opportunity_id) as total_opportunities,
+            COALESCE(SUM(CASE WHEN o.estimated_value IS NOT NULL THEN o.estimated_value ELSE 0 END), 0) as total_value,
+            COALESCE(SUM(CASE WHEN o.estimated_value IS NOT NULL THEN o.estimated_value * o.probability / 100.0 ELSE 0 END), 0) as weighted_value
+          FROM degoudse.customers c
+          LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
+          LEFT JOIN degoudse.opportunities o ON co.opportunity_id = o.id
+          WHERE c.id > 10
+        `)
+      ]);
+      
+      const totalCount = parseInt(countResult.rows[0].total_count);
+      const totalPages = Math.ceil(totalCount / limit);
+      const summary = summaryResult.rows[0];
+      
+      console.log(`Customer pagination debug: totalCount=${totalCount}, limit=${limit}, totalPages=${totalPages}, currentPage=${page}`);
+      console.log(`Count query result:`, countResult.rows[0]);
+      
+      // Query with pagination, excluding original seed customers (IDs 1-10)
       const result = await envPool.query(`
-        SELECT c.*, 
+        SELECT c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt",
                COUNT(DISTINCT pc.partner_id) as partner_count,
                COUNT(DISTINCT co.opportunity_id) as opportunity_count,
-               STRING_AGG(DISTINCT p.name, ', ') as partner_names
+               COALESCE(opp_values.total_opportunity_value, 0) as total_opportunity_value
         FROM degoudse.customers c
         LEFT JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
         LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
-        LEFT JOIN degoudse.partners p ON p.id = pc.partner_id
-        GROUP BY c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt"
+        LEFT JOIN (
+          SELECT co2.customer_id, SUM(o2.estimated_value) as total_opportunity_value
+          FROM degoudse.customer_opportunities co2
+          JOIN degoudse.opportunities o2 ON o2.id = co2.opportunity_id
+          GROUP BY co2.customer_id
+        ) opp_values ON opp_values.customer_id = c.id
+        WHERE c.id > 10
+        GROUP BY c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt", opp_values.total_opportunity_value
         ORDER BY c.id
-      `);
+        LIMIT $1 OFFSET $2
+      `, [limit, offset]);
       
-      const customers = result.rows.map((customer: any) => ({
-        id: customer.id,
-        name: customer.name,
-        description: customer.description,
-        initials: customer.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
-        ownerId: customer.ownerId,
-        createdAt: customer.createdAt,
-        updatedAt: customer.updatedAt,
-        partnerCount: customer.partner_count || 0,
-        opportunityCount: customer.opportunity_count || 0,
-        partnerNames: customer.partner_names
-      }));
+      console.log('Raw SQL result for customers:', result.rows.slice(0, 2));
       
-      console.log(`Returning ${customers.length} customers from De Goudse database`);
-      res.json(customers);
+      // Get partner details for each customer separately
+      const customerIds = result.rows.map(c => c.id);
+      const partnerDetails = await envPool.query(`
+        SELECT pc.customer_id, p.id as partner_id, p.name as partner_name
+        FROM degoudse.partner_customers pc
+        JOIN degoudse.partners p ON p.id = pc.partner_id
+        WHERE pc.customer_id = ANY($1)
+        ORDER BY pc.customer_id, p.name
+      `, [customerIds]);
+      
+      const customers = result.rows.map((customer: any) => {
+        const customerPartners = partnerDetails.rows.filter((p: any) => p.customer_id === customer.id);
+        const partnerNames = customerPartners.map((p: any) => p.partner_name).join(', ');
+        const partnerIds = customerPartners.map((p: any) => p.partner_id).join(',');
+        
+        const processedCustomer = {
+          id: customer.id,
+          name: customer.name,
+          description: customer.description,
+          initials: customer.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
+          ownerId: customer.ownerId,
+          createdAt: customer.createdAt,
+          updatedAt: customer.updatedAt,
+          partnerCount: parseInt(customer.partner_count) || 0,
+          opportunityCount: parseInt(customer.opportunity_count) || 0,
+          totalOpportunityValue: parseFloat(customer.total_opportunity_value) || 0,
+          partnerNames: partnerNames,
+          partnerIds: partnerIds
+        };
+        
+        console.log(`Processing customer ${customer.name}: opps=${customer.opportunity_count} -> ${processedCustomer.opportunityCount}, value=${customer.total_opportunity_value} -> ${processedCustomer.totalOpportunityValue}`);
+        
+        return processedCustomer;
+      });
+      
+      // Return paginated response with metadata and summary totals
+      console.log(`Returning ${customers.length} customers from De Goudse database (page ${page} of ${totalPages})`);
+      res.json({
+        data: customers,
+        pagination: {
+          page,
+          limit,
+          totalCount,
+          totalPages,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1
+        },
+        totalOpportunities: parseInt(summary.total_opportunities) || 0,
+        totalValue: parseFloat(summary.total_value) || 0,
+        weightedValue: parseFloat(summary.weighted_value) || 0
+      });
     } catch (error) {
       console.error('De Goudse customers API error:', error);
       res.status(500).json({ message: 'Failed to fetch customers for De Goudse environment' });
@@ -1776,91 +2968,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/degoudse/products', async (req, res) => {
     try {
-      const result = await db.execute(sql`
-        SELECT * FROM degoudse.products ORDER BY id
-      `);
-      console.log(`Returning ${result.rows.length} authentic products from De Goudse database`);
-      res.json(result.rows);
+      const degoudseDb = db;
+      const productsList = await degoudseDb.select().from(insuranceProducts);
+      console.log(`Returning ${productsList.length} products from De Goudse database`);
+      res.json(productsList);
     } catch (error) {
       console.error('De Goudse products API error:', error);
       res.status(500).json({ message: 'Failed to fetch products for De Goudse environment' });
     }
   });
 
-  app.get('/api/degoudse/products/:id', async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const result = await db.execute(sql`
-        SELECT * FROM degoudse.products WHERE id = ${id}
-      `);
-      
-      if (result.rows.length === 0) {
-        return res.status(404).json({ message: 'Product not found' });
-      }
-      
-      console.log(`Returning product ${id} from De Goudse database`);
-      res.json(result.rows[0]);
-    } catch (error) {
-      console.error('De Goudse product detail API error:', error);
-      res.status(500).json({ message: 'Failed to fetch product details for De Goudse environment' });
-    }
-  });
-
-  app.patch('/api/degoudse/products/:id', async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const updates = req.body;
-      
-      // Build dynamic update query based on provided fields
-      const updateFields = [];
-      const values = [];
-      let paramCount = 1;
-      
-      if (updates.name) {
-        updateFields.push(`name = $${paramCount++}`);
-        values.push(updates.name);
-      }
-      if (updates.description) {
-        updateFields.push(`description = $${paramCount++}`);
-        values.push(updates.description);
-      }
-      if (updates.category) {
-        updateFields.push(`category = $${paramCount++}`);
-        values.push(updates.category);
-      }
-      if (updates.sku !== undefined) {
-        updateFields.push(`sku = $${paramCount++}`);
-        values.push(updates.sku);
-      }
-      if (updates.price !== undefined) {
-        updateFields.push(`price = $${paramCount++}`);
-        values.push(updates.price);
-      }
-      if (updates.vendorId) {
-        updateFields.push(`vendor_id = $${paramCount++}`);
-        values.push(updates.vendorId);
-      }
-      
-      updateFields.push(`updated_at = NOW()`);
-      values.push(id);
-      
-      const result = await db.execute(sql`
-        UPDATE degoudse.products 
-        SET ${sql.raw(updateFields.join(', '))}
-        WHERE id = $${paramCount}
-        RETURNING *
-      `);
-      
-      if (result.rows.length === 0) {
-        return res.status(404).json({ message: 'Product not found' });
-      }
-      
-      console.log(`Updated product ${id} in De Goudse database`);
-      res.json(result.rows[0]);
-    } catch (error) {
-      console.error('De Goudse product update API error:', error);
-      res.status(500).json({ message: 'Failed to update product for De Goudse environment' });
-    }
+  // Cache clearing endpoint
+  app.post('/api/admin/clear-cache', (req, res) => {
+    clearCache();
+    res.json({ message: 'Cache cleared successfully' });
   });
 
   // WORKING TEST ROUTE
@@ -1871,7 +2992,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       const entityType = req.query.entity_type as string;
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       
       console.log(`TEST ROUTE: entityType='${entityType}'`);
       
@@ -1892,14 +3013,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get('/api/degoudse/saved-views', async (req, res) => {
-    // Disable all caching
-    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.set('Pragma', 'no-cache');
-    res.set('Expires', '0');
+    const entityType = req.query.entity_type as string;
+    
+    // Create cache key based on entity type
+    const cacheKey = `degoudse_saved_views_${entityType || 'all'}`;
+    
+    // Clear cache first to ensure fresh data after deletions
+    cache.delete(cacheKey);
     
     try {
-      const entityType = req.query.entity_type as string;
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       
       console.log(`FIXED: De Goudse saved views: entityType='${entityType}'`);
       
@@ -1913,10 +3036,73 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await envPool.query(query, params);
       console.log(`FIXED: Query returned ${result.rows.length} rows`);
       
+      setCache(cacheKey, result.rows);
       res.json(result.rows);
     } catch (error) {
       console.error('Error fetching De Goudse saved views:', error);
       res.status(500).json({ error: 'Failed to fetch saved views' });
+    }
+  });
+
+  // Create a new saved view in degoudse
+  app.post('/api/degoudse/saved-views', async (req, res) => {
+    try {
+      const { name, description, entity_type, filters, is_shared } = req.body;
+      const envPool = pool;
+      const created_by = 1; // Default user ID for now
+      
+      console.log(`FIXED: Creating saved view in degoudse:`, { name, entity_type, filters });
+      
+      const result = await envPool.query(`
+        INSERT INTO degoudse.saved_views 
+        (name, description, entity_type, filters, is_shared, is_default, created_by, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+        RETURNING *
+      `, [name, description || '', entity_type, JSON.stringify(filters || {}), is_shared || false, false, created_by]);
+      
+      console.log(`FIXED: Created saved view:`, result.rows[0]);
+      
+      // Clear cache for this entity type by deleting cache entries
+      cache.delete(`degoudse_saved_views_${entity_type}`);
+      cache.delete(`degoudse_saved_views_all`);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating De Goudse saved view:', error);
+      res.status(500).json({ error: 'Failed to create saved view' });
+    }
+  });
+
+  // Update a saved view in degoudse
+  app.put('/api/degoudse/saved-views/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, description, filters, is_shared } = req.body;
+      const envPool = pool;
+      
+      console.log(`FIXED: Updating saved view ${id} in degoudse:`, { name, filters });
+      
+      const result = await envPool.query(`
+        UPDATE degoudse.saved_views 
+        SET name = $1, description = $2, filters = $3, is_shared = $4, updated_at = NOW()
+        WHERE id = $5
+        RETURNING *
+      `, [name, description || '', JSON.stringify(filters || {}), is_shared || false, parseInt(id)]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Saved view not found' });
+      }
+      
+      console.log(`FIXED: Updated saved view:`, result.rows[0]);
+      
+      // Clear cache for this entity type
+      cache.delete(`degoudse_saved_views_partners`);
+      cache.delete(`degoudse_saved_views_all`);
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating De Goudse saved view:', error);
+      res.status(500).json({ error: 'Failed to update saved view' });
     }
   });
 
@@ -1929,7 +3115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.set('Expires', '0');
     
     try {
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       
       if (entityType === 'partners') {
         const result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC', ['partners']);
@@ -1953,74 +3139,232 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Original route with fixed filtering logic
   app.get('/api/degoudse/saved-lists', async (req, res) => {
     const entityType = req.query.entity_type as string;
+    const partnerId = req.query.partner_id as string;
     
-    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.set('Pragma', 'no-cache'); 
-    res.set('Expires', '0');
+    // Create cache key based on query parameters
+    const cacheKey = `degoudse_saved_lists_${entityType || 'all'}_${partnerId || 'none'}`;
+    const cached = getCached(cacheKey);
+    
+    if (cached) {
+      return res.json(cached);
+    }
     
     try {
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
+      let result;
       
-      if (entityType) {
-        const result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC', [entityType]);
-        return res.json(result.rows);
+      if (entityType && partnerId) {
+        // Filter by entity type and partner context (include both partner-specific lists and general lists)
+        result = await envPool.query(
+          'SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 AND (partner_id = $2 OR partner_id IS NULL) ORDER BY created_at DESC', 
+          [entityType, parseInt(partnerId)]
+        );
+      } else if (entityType) {
+        // Filter by entity type only, include general lists (partner_id IS NULL) but exclude partner-specific lists
+        result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC', [entityType]);
       } else {
-        const result = await envPool.query('SELECT * FROM degoudse.saved_lists ORDER BY created_at DESC');
-        return res.json(result.rows);
+        // Return all lists
+        result = await envPool.query('SELECT * FROM degoudse.saved_lists ORDER BY created_at DESC');
       }
+      
+      setCache(cacheKey, result.rows);
+      return res.json(result.rows);
     } catch (error) {
       console.error('De Goudse saved lists error:', error);
       res.status(500).json({ error: 'Database error' });
     }
   });
 
+  app.post('/api/degoudse/saved-lists', async (req, res) => {
+    try {
+      const { name, description, entity_type, members, isShared, partner_id, context } = req.body;
+      const envPool = pool;
+      const created_by = 1; // Default user ID for now
+      
+      const membersArray = members && Array.isArray(members) ? members : [];
+      const type = 'selection'; // Required field based on existing data
+      
+      const result = await envPool.query(`
+        INSERT INTO degoudse.saved_lists 
+        (name, description, type, entity_type, members, filters, is_shared, created_by, partner_id, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+        RETURNING *
+      `, [name, description || '', type, entity_type, membersArray, JSON.stringify({}), isShared || false, created_by, partner_id || null]);
+      
+      // Clear cache after creating a new list
+      cache.clear();
+      console.log('Cache cleared after creating new list');
+      
+      console.log('Created saved list:', result.rows[0]);
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating saved list in De Goudse:', error);
+      res.status(500).json({ error: 'Failed to create saved list' });
+    }
+  });
+
   app.get('/api/degoudse/opportunities', async (req, res) => {
     try {
-      const envPool = getEnvironmentPool('degoudse');
-      const result = await envPool.query(`
-        SELECT o.*, 
-               STRING_AGG(DISTINCT c.name, ', ') as customer_names,
-               STRING_AGG(DISTINCT p.name, ', ') as partner_names,
-               STRING_AGG(DISTINCT pr.name, ', ') as product_names,
-               COUNT(DISTINCT co.customer_id) as customer_count,
-               COUNT(DISTINCT po.partner_id) as partner_count,
-               COUNT(DISTINCT op.product_id) as product_count
-        FROM degoudse.opportunities o
-        LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
-        LEFT JOIN degoudse.customers c ON c.id = co.customer_id
-        LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN degoudse.partners p ON p.id = po.partner_id
-        LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
-        LEFT JOIN degoudse.products pr ON pr.id = op.product_id
-        GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
-                 o."expectedCloseDate", o."clientId", o."partnerId", o."productId", 
-                 o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
-        ORDER BY o.id
-      `);
+      const envPool = pool;
+      
+      // Check if this is a broker request by looking at the referer header
+      const referer = req.get('Referer') || '';
+      const isBrokerRequest = referer.includes('/broker-view') || req.query.brokerView === 'true';
+      
+      // Extract list ID from query parameters for broker requests
+      const listId = req.query.listId ? parseInt(req.query.listId as string) : null;
+      
+      console.log(`Opportunities request - Referer: ${referer}, isBrokerRequest: ${isBrokerRequest}, listId: ${listId}`);
+      
+      let result;
+      
+      if (isBrokerRequest) {
+        // Check for broker-partner mappings only for broker requests
+        const brokerMappingResult = await envPool.query(`
+          SELECT partner_id FROM degoudse.broker_partner_mappings 
+          WHERE broker_user_id = $1 AND environment_id = $2 AND is_active = true
+        `, [1, 'degoudse']);
+        
+        if (brokerMappingResult.rows.length > 0) {
+          // This is a broker with restricted access - show opportunities from shared lists only
+          console.log('Broker access detected - showing opportunities from shared lists');
+          
+          // If a specific list is requested, filter by list members
+          if (listId) {
+            console.log(`Broker requesting specific list ${listId} - applying list member filtering`);
+            
+            // Get list members
+            const listResult = await envPool.query(`
+              SELECT members FROM degoudse.saved_lists 
+              WHERE id = $1 AND entity_type = 'opportunities'
+            `, [listId]);
+            
+            if (listResult.rows.length > 0 && listResult.rows[0].members) {
+              const members = listResult.rows[0].members;
+              if (members.length > 0) {
+                console.log(`Filtering to ${members.length} specific opportunities from list ${listId}`);
+                result = await envPool.query(`
+                  SELECT o.*, 
+                         c.name as customer_name,
+                         p.name as partner_name,
+                         pr.name as product_name,
+                         am.name as account_manager_name
+                  FROM degoudse.opportunities o
+                  LEFT JOIN degoudse.customers c ON o.client_id = c.id
+                  LEFT JOIN degoudse.partners p ON o.partner_id = p.id
+                  LEFT JOIN degoudse.products pr ON o.product_id = pr.id
+                  LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
+                  WHERE o.id = ANY($1) AND o.id > 16
+                  ORDER BY o.id
+                `, [members]);
+              } else {
+                // Empty list - return no opportunities
+                result = { rows: [] };
+              }
+            } else {
+              // List not found or no members - return no opportunities
+              result = { rows: [] };
+            }
+          } else {
+            // When no specific list is requested, show all opportunities from all shared lists
+            console.log('Broker requesting all opportunities from shared lists');
+            
+            // Get all shared lists for John Smith
+            const sharedListsResult = await envPool.query(`
+              SELECT DISTINCT sl.id, sl.members 
+              FROM degoudse.saved_lists sl
+              JOIN degoudse.list_collaborators lc ON sl.id = lc.list_id
+              WHERE lc.email = 'john.smith@partner.com' 
+                AND lc.is_active = true 
+                AND sl.entity_type = 'opportunities'
+                AND sl.is_shared = true
+                AND NOT (sl.members <@ ARRAY[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16])
+            `);
+            
+            if (sharedListsResult.rows.length > 0) {
+              // Collect all opportunity IDs from all shared lists
+              const allOpportunityIds = new Set();
+              sharedListsResult.rows.forEach(list => {
+                if (list.members && list.members.length > 0) {
+                  list.members.forEach(id => {
+                    if (id > 16) { // Only include imported opportunities
+                      allOpportunityIds.add(id);
+                    }
+                  });
+                }
+              });
+              
+              if (allOpportunityIds.size > 0) {
+                const opportunityIdsArray = Array.from(allOpportunityIds);
+                console.log(`Showing ${opportunityIdsArray.length} opportunities from ${sharedListsResult.rows.length} shared lists`);
+                
+                result = await envPool.query(`
+                  SELECT o.*, 
+                         c.name as customer_name,
+                         p.name as partner_name,
+                         pr.name as product_name,
+                         am.name as account_manager_name
+                  FROM degoudse.opportunities o
+                  LEFT JOIN degoudse.customers c ON o.client_id = c.id
+                  LEFT JOIN degoudse.partners p ON o.partner_id = p.id
+                  LEFT JOIN degoudse.products pr ON o.product_id = pr.id
+                  LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
+                  WHERE o.id = ANY($1)
+                  ORDER BY o.id
+                `, [opportunityIdsArray]);
+              } else {
+                result = { rows: [] };
+              }
+            } else {
+              result = { rows: [] };
+            }
+          }
+        } else {
+          // Broker request but no mapping found - show no opportunities
+          result = { rows: [] };
+        }
+      } else {
+        // Regular access - show opportunities excluding original seed data (IDs 1-16, missing ID 6) but preserve partner 4 opportunities for broker access
+        result = await envPool.query(`
+          SELECT o.*, 
+                 c.name as customer_name,
+                 p.name as partner_name,
+                 pr.name as product_name,
+                 am.name as account_manager_name
+          FROM degoudse.opportunities o
+          LEFT JOIN degoudse.customers c ON o.client_id = c.id
+          LEFT JOIN degoudse.partners p ON o.partner_id = p.id
+          LEFT JOIN degoudse.products pr ON o.product_id = pr.id
+          LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
+          WHERE o.id > 16
+          ORDER BY o.id
+        `);
+      }
       
       const opportunities = result.rows.map((opp: any) => ({
         id: opp.id,
         title: opp.title,
         description: opp.description,
+        insuranceDescription: opp.insurance_description,
         status: opp.status,
         stage: opp.stage,
-        estimatedValue: opp.estimatedValue,
-        expectedCloseDate: opp.expectedCloseDate,
-        clientId: opp.clientId,
-        clientName: opp.customer_names || '',
-        customerNames: opp.customer_names || '',
-        partnerId: opp.partnerId,
-        partnerNames: opp.partner_names || '',
-        productId: opp.productId,
-        productNames: opp.product_names || '',
-        ownerId: opp.ownerId,
+        estimated_value: opp.estimated_value || opp.estimatedValue,
+        expectedCloseDate: opp.expected_close_date,
+        startDate: opp.start_date,
+        clientId: opp.client_id,
+        clientName: opp.customer_name || '',
+        customerName: opp.customer_name || '',
+        partnerId: opp.partner_id,
+        partnerName: opp.partner_name || '',
+        productId: opp.product_id,
+        productNames: opp.product_name || '',
+        ownerId: opp.owner_id,
+        accountManagerId: opp.account_manager_id,
+        accountManagerName: opp.account_manager_name || '',
         probability: opp.probability,
         type: opp.type,
-        createdAt: opp.createdAt,
-        updatedAt: opp.updatedAt,
-        customerCount: parseInt(opp.customer_count) || 0,
-        partnerCount: parseInt(opp.partner_count) || 0,
-        productCount: parseInt(opp.product_count) || 0
+        createdAt: opp.created_at,
+        updatedAt: opp.updated_at
       }));
       
       console.log(`Returning ${opportunities.length} opportunities from De Goudse database`);
@@ -2031,85 +3375,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create opportunity for De Goudse environment
-  app.post('/api/degoudse/opportunities', async (req, res) => {
-    try {
-      console.log('De Goudse opportunity creation request body:', req.body);
-      
-      const { 
-        title, 
-        description, 
-        clientId,
-        productId,
-        value,
-        probability = 50,
-        status = 'Qualifying',
-        type = 'New Business',
-        closeDate
-      } = req.body;
-      
-      if (!title || !description) {
-        return res.status(400).json({ message: 'Title and description are required' });
-      }
-      
-      if (!clientId || !productId) {
-        return res.status(400).json({ message: 'Customer and product selection are required' });
-      }
-      
-      console.log('Executing De Goudse opportunity insert query...');
-      
-      const envPool = getEnvironmentPool('degoudse');
-      const result = await envPool.query(`
-        INSERT INTO degoudse.opportunities (
-          title, description, "clientId", "productId", status, type, probability, 
-          "estimatedValue", "expectedCloseDate", "createdAt", "updatedAt"
-        ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW()
-        ) RETURNING *
-      `, [
-        title, 
-        description, 
-        clientId,
-        productId,
-        status, 
-        type, 
-        probability,
-        value || 0,
-        closeDate || null
-      ]);
-      
-      const newOpportunity = result.rows[0];
-      console.log('De Goudse opportunity created successfully:', newOpportunity.id);
-      
-      res.status(201).json({
-        id: newOpportunity.id,
-        title: newOpportunity.title,
-        description: newOpportunity.description,
-        status: newOpportunity.status,
-        type: newOpportunity.type,
-        probability: newOpportunity.probability,
-        estimatedValue: newOpportunity.estimatedValue,
-        expectedCloseDate: newOpportunity.expectedCloseDate,
-        createdAt: newOpportunity.createdAt,
-        updatedAt: newOpportunity.updatedAt
-      });
-    } catch (error) {
-      console.error('Detailed error creating De Goudse opportunity:', error);
-      res.status(500).json({ message: 'Failed to create opportunity in De Goudse environment' });
-    }
-  });
-
   // Get single opportunity for De Goudse environment
   app.get('/api/degoudse/opportunities/:id', async (req, res) => {
     try {
       const opportunityId = parseInt(req.params.id);
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       
       const result = await envPool.query(`
         SELECT o.*, 
                STRING_AGG(DISTINCT c.name, ', ') as customer_names,
                STRING_AGG(DISTINCT p.name, ', ') as partner_names,
                STRING_AGG(DISTINCT pr.name, ', ') as product_names,
+               am.name as account_manager_name,
                COUNT(DISTINCT co.customer_id) as customer_count,
                COUNT(DISTINCT po.partner_id) as partner_count,
                COUNT(DISTINCT op.product_id) as product_count
@@ -2120,10 +3397,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LEFT JOIN degoudse.partners p ON p.id = po.partner_id
         LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
         LEFT JOIN degoudse.products pr ON pr.id = op.product_id
-        WHERE o.id = $1
+        LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
+        WHERE o.id = $1 AND o.id > 16
         GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
-                 o."expectedCloseDate", o."clientId", o."partnerId", o."productId", 
-                 o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
+                 o."expectedCloseDate", o.start_date, o.account_manager_id, o."clientId", o."partnerId", o."productId", 
+                 o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt", am.name
       `, [opportunityId]);
       
       if (result.rows.length === 0) {
@@ -2135,10 +3413,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: opp.id,
         title: opp.title,
         description: opp.description,
+        insuranceDescription: opp.insurance_description,
         status: opp.status,
         stage: opp.stage,
         estimatedValue: opp.estimatedValue,
         expectedCloseDate: opp.expectedCloseDate,
+        startDate: opp.start_date,
         clientId: opp.clientId,
         clientName: opp.customer_names || '',
         customerNames: opp.customer_names || '',
@@ -2147,6 +3427,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         productId: opp.productId,
         productNames: opp.product_names || '',
         ownerId: opp.ownerId,
+        accountManagerId: opp.account_manager_id,
+        accountManagerName: opp.account_manager_name || '',
         probability: opp.probability,
         type: opp.type,
         createdAt: opp.createdAt,
@@ -2334,9 +3616,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // De Goudse OKR Metrics endpoints
   app.get('/api/degoudse/okr-metrics', async (req, res) => {
+    const cacheKey = 'degoudse_okr_metrics';
+    const cached = getCached(cacheKey);
+    
+    if (cached) {
+      return res.json(cached);
+    }
+    
     try {
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       const result = await envPool.query('SELECT * FROM degoudse.okr_metrics ORDER BY id');
+      setCache(cacheKey, result.rows);
       res.json(result.rows);
     } catch (error) {
       console.error('De Goudse OKR metrics API error:', error);
@@ -2346,9 +3636,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // De Goudse OKR Tags endpoints
   app.get('/api/degoudse/okr-tags', async (req, res) => {
+    const cacheKey = 'degoudse_okr_tags';
+    const cached = getCached(cacheKey);
+    
+    if (cached) {
+      return res.json(cached);
+    }
+    
     try {
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       const result = await envPool.query('SELECT * FROM degoudse.okr_tags ORDER BY name ASC');
+      setCache(cacheKey, result.rows);
       res.json(result.rows);
     } catch (error) {
       console.error('De Goudse OKR tags API error:', error);
@@ -2359,7 +3657,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // De Goudse Contacts endpoints
   app.get('/api/degoudse/contacts', async (req, res) => {
     try {
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       const { linkedEntityType, linkedEntityId } = req.query;
       
       let queryConditions = '';
@@ -2396,7 +3694,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/degoudse/contacts', async (req, res) => {
     try {
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       const { 
         firstName, lastName, email, phone, 
         company, position, department, linkedEntityType, linkedEntityId, 
@@ -2487,11 +3785,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // De Goudse Vendors endpoints
   app.get('/api/degoudse/vendors', async (req, res) => {
+    const cacheKey = 'degoudse_vendors';
+    const cached = getCached(cacheKey);
+    
+    if (cached) {
+      return res.json(cached);
+    }
+    
     try {
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       const result = await envPool.query(`
         SELECT id, name, description, initials, contact_name, contact_email, 
-               contact_phone, "ownerId", "createdAt", "updatedAt"
+               contact_phone, owner_id, created_at, updated_at
         FROM degoudse.vendors 
         ORDER BY name ASC
       `);
@@ -2502,6 +3807,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
       
       console.log(`Returning ${vendors.length} vendors from De Goudse database`);
+      setCache(cacheKey, vendors);
       res.json(vendors);
     } catch (error) {
       console.error('Error fetching De Goudse vendors:', error);
@@ -2511,7 +3817,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/degoudse/vendors', async (req, res) => {
     try {
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       const { 
         name, 
         description, 
@@ -2607,7 +3913,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/degoudse/okr-metrics', async (req, res) => {
     try {
       const { name, description, realized_value, target_value, measure_unit, frequency, hierarchy, tags } = req.body;
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       
       const tagsArray = Array.isArray(tags) ? tags : [];
       const tagsLiteral = tagsArray.length > 0 ? `ARRAY[${tagsArray.map(tag => `'${tag.replace(/'/g, "''")}'`).join(',')}]::text[]` : 'ARRAY[]::text[]';
@@ -2636,7 +3942,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/degoudse/okr-tags', async (req, res) => {
     try {
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       const result = await envPool.query('SELECT * FROM degoudse.okr_tags ORDER BY name');
       res.json(result.rows);
     } catch (error) {
@@ -2645,72 +3951,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // De Goudse Users endpoints
-  app.get('/api/degoudse/users', async (req, res) => {
-    try {
-      const envPool = getEnvironmentPool('degoudse');
-      
-      const result = await envPool.query(`
-        SELECT id, username, email, full_name, first_name, last_name, 
-               avatar_initials, role, department,
-               is_active, last_login_at, created_at, updated_at
-        FROM degoudse.users 
-        WHERE is_active = true
-        ORDER BY full_name ASC
-      `);
-      
-      console.log(`Returning ${result.rows.length} users from De Goudse database`);
-      res.json(result.rows);
-    } catch (error) {
-      console.error('Error fetching De Goudse users:', error);
-      res.status(500).json({ error: 'Failed to fetch users' });
-    }
-  });
-
-  app.post('/api/degoudse/users', async (req, res) => {
-    try {
-      const envPool = getEnvironmentPool('degoudse');
-      const { 
-        username, email, firstName, lastName, role, department, 
-        password, isActive = true 
-      } = req.body;
-      
-      if (!username || !email) {
-        return res.status(400).json({ error: 'Username and email are required' });
-      }
-
-      const fullName = `${firstName || ''} ${lastName || ''}`.trim() || username;
-      const avatarInitials = fullName.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2);
-      
-      // Use a default password if none provided (for demo purposes)
-      const userPassword = password || 'defaultPassword123';
-      
-      const result = await envPool.query(`
-        INSERT INTO degoudse.users (
-          username, email, password, full_name, first_name, last_name, avatar_initials,
-          role, department, is_active, created_at, updated_at
-        ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW()
-        ) RETURNING id, username, email, full_name, first_name, last_name, 
-                   avatar_initials, role, department, is_active, created_at, updated_at
-      `, [
-        username, email, userPassword, fullName, firstName || null, lastName || null, avatarInitials,
-        role || 'user', department || null, isActive
-      ]);
-      
-      const user = result.rows[0];
-      console.log('User created successfully in De Goudse environment:', user);
-      res.status(201).json(user);
-    } catch (error) {
-      console.error('Error creating De Goudse user:', error);
-      res.status(500).json({ error: 'Failed to create user' });
-    }
-  });
-
   app.post('/api/degoudse/okr-tags', async (req, res) => {
     try {
       const { name, color } = req.body;
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       
       const result = await envPool.query(`
         INSERT INTO degoudse.okr_tags (name, color)
@@ -2729,7 +3973,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const { name, color } = req.body;
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       
       const result = await envPool.query(`
         UPDATE degoudse.okr_tags 
@@ -2752,7 +3996,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/degoudse/okr-tags/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       
       const result = await envPool.query(`
         DELETE FROM degoudse.okr_tags WHERE id = $1
@@ -2769,11 +4013,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get individual saved list by ID for De Goudse
+  app.get('/api/degoudse/saved-lists/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        SELECT * FROM degoudse.saved_lists WHERE id = $1
+      `, [id]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Saved list not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error fetching saved list in De Goudse:', error);
+      res.status(500).json({ message: 'Failed to fetch saved list for De Goudse environment' });
+    }
+  });
+
+  app.delete('/api/degoudse/saved-lists/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const envPool = pool;
+      
+      console.log(`Attempting to delete saved list with ID: ${id} from degoudse schema`);
+      
+      const result = await envPool.query(`
+        DELETE FROM degoudse.saved_lists WHERE id = $1
+      `, [id]);
+      
+      console.log(`Delete result: rowCount = ${result.rowCount}`);
+      
+      if (result.rowCount === 0) {
+        return res.status(404).json({ message: 'Saved list not found' });
+      }
+      
+      // Clear cache after deleting a list
+      cache.clear();
+      console.log('Cache cleared after deleting list');
+      
+      res.json({ message: 'Saved list deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting saved list in De Goudse:', error);
+      res.status(500).json({ message: 'Failed to delete saved list for De Goudse environment' });
+    }
+  });
+
   // Template assignments API endpoints for De Goudse
   app.get('/api/degoudse/template-assignments/:entityType', async (req, res) => {
+    const { entityType } = req.params;
+    const cacheKey = `degoudse_template_assignments_${entityType}`;
+    const cached = getCached(cacheKey);
+    
+    if (cached) {
+      return res.json(cached);
+    }
+    
     try {
-      const { entityType } = req.params;
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       
       const result = await envPool.query(`
         SELECT 
@@ -2787,6 +4087,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY ta.assigned_at DESC
       `, [entityType]);
       
+      setCache(cacheKey, result.rows);
       res.json(result.rows);
     } catch (error) {
       console.error('Error fetching De Goudse template assignments:', error);
@@ -2794,37 +4095,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get template assignments for a specific entity ID
-  app.get('/api/degoudse/template-assignments/:entityType/:entityId', async (req, res) => {
-    try {
-      const { entityType, entityId } = req.params;
-      console.log(`DEBUG: Fetching template assignments for ${entityType} ${entityId}`);
-      const envPool = getEnvironmentPool('degoudse');
-      
-      const result = await envPool.query(`
-        SELECT 
-          ta.*,
-          om.name as template_name,
-          om.description as template_description,
-          om.tags
-        FROM degoudse.okr_template_assignments ta
-        LEFT JOIN degoudse.okr_metrics om ON ta.template_id = om.id
-        WHERE ta.entity_type = $1 AND ta.entity_id = $2
-        ORDER BY ta.assigned_at DESC
-      `, [entityType, parseInt(entityId)]);
-      
-      console.log(`DEBUG: Found ${result.rows.length} template assignments for ${entityType} ${entityId}:`, result.rows);
-      res.json(result.rows);
-    } catch (error) {
-      console.error('Error fetching template assignments for entity:', error);
-      res.json([]);
-    }
-  });
-
   app.post('/api/degoudse/template-assignments', async (req, res) => {
     try {
       const { templateIds, entityType, entityId, assignedBy, notes } = req.body;
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       
       const results = [];
       for (const templateId of templateIds) {
@@ -2845,11 +4119,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add opportunities to existing saved list
+  app.post('/api/saved-lists/:id/add-opportunities', async (req, res) => {
+    try {
+      const listId = parseInt(req.params.id);
+      const { opportunityIds } = req.body;
+      
+      if (!Array.isArray(opportunityIds) || opportunityIds.length === 0) {
+        return res.status(400).json({ error: 'opportunityIds must be a non-empty array' });
+      }
+
+      // Use degoudse environment pool directly since lists are in degoudse schema
+      const envPool = pool;
+
+      // Get current list to merge opportunities
+      const currentListResult = await envPool.query(`
+        SELECT members FROM degoudse.saved_lists 
+        WHERE id = $1
+      `, [listId]);
+      
+      if (currentListResult.rows.length === 0) {
+        return res.status(404).json({ error: 'List not found' });
+      }
+
+      const currentMembers = Array.isArray(currentListResult.rows[0].members) ? currentListResult.rows[0].members : [];
+      const combinedMembers = currentMembers.concat(opportunityIds);
+      const uniqueMembers = combinedMembers.filter((item: any, index: number) => combinedMembers.indexOf(item) === index);
+
+      // Update the list with merged opportunities
+      const result = await envPool.query(`
+        UPDATE degoudse.saved_lists 
+        SET 
+          members = $1,
+          updated_at = NOW()
+        WHERE id = $2
+        RETURNING *
+      `, [uniqueMembers, listId]);
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error adding opportunities to list:', error);
+      res.status(500).json({ error: 'Failed to add opportunities to list' });
+    }
+  });
+
   // Get existing shared links for a list
   app.get('/api/degoudse/shared-lists/by-list/:listId', async (req, res) => {
     try {
       const { listId } = req.params;
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       
       const result = await envPool.query(`
         SELECT share_token, list_name, list_description, message, created_at, expires_at
@@ -2869,7 +4187,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/degoudse/shared-lists', async (req, res) => {
     try {
       const { list_name, list_description, entity_type, data, message, list_id } = req.body;
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       
       // Generate a unique share token
       const shareToken = Math.random().toString(36).substring(2) + Date.now().toString(36);
@@ -2894,7 +4212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/shared-lists/:shareToken', async (req, res) => {
     try {
       const { shareToken } = req.params;
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       
       // Get shared list info
       const shareResult = await envPool.query(`
@@ -2949,7 +4267,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mapping templates API endpoints for De Goudse
   app.get('/api/degoudse/mapping-templates', async (req, res) => {
     try {
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       const result = await envPool.query(
         `SELECT * FROM degoudse.mapping_templates ORDER BY created_at DESC`
       );
@@ -2963,7 +4281,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/degoudse/mapping-templates', async (req, res) => {
     try {
       const { name, description, columnMappings } = req.body;
-      const envPool = getEnvironmentPool('degoudse');
+      const envPool = pool;
       
       const result = await envPool.query(
         `INSERT INTO degoudse.mapping_templates (name, description, column_mappings, created_at, updated_at)
@@ -3042,7 +4360,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else if (mapping.mappingType === 'entity_relationship' && mapping.entityType) {
             // Handle entity relationships
             try {
-              const envPool = getEnvironmentPool('degoudse');
+              const envPool = pool;
               
               if (mapping.entityType === 'customer') {
                 const result = await envPool.query(
@@ -3181,7 +4499,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         try {
           // Create the opportunity using direct SQL
-          const envPool = getEnvironmentPool('degoudse');
+          const envPool = pool;
           
           const opportunityResult = await envPool.query(
             `INSERT INTO degoudse.opportunities 
@@ -3538,7 +4856,7 @@ Respond with a JSON object containing:
       const result = await db.execute(sql`
         SELECT column_name, data_type, is_nullable 
         FROM information_schema.columns 
-        WHERE table_schema = 'degoudse' AND table_name = 'okr_metrics'
+        WHERE table_schema = 'myqollabi' AND table_name = 'okr_metrics'
         ORDER BY ordinal_position
       `);
       
@@ -3635,20 +4953,102 @@ Respond with a JSON object containing:
     }
   });
 
+  // Batch endpoint for common page data - major performance optimization
+  app.get('/api/degoudse/page-data/:pageType', async (req, res) => {
+    const { pageType } = req.params;
+    const cacheKey = `degoudse_page_data_${pageType}`;
+    const cached = getCached(cacheKey);
+    
+    if (cached) {
+      return res.json(cached);
+    }
+    
+    try {
+      const envPool = pool;
+      let result: any = {};
+      
+      if (pageType === 'partners') {
+        // Fetch all partners page data in one optimized query
+        const [partners, savedLists, savedViews, okrMetrics, okrTags] = await Promise.all([
+          envPool.query(`
+            SELECT p.*, 
+                   COUNT(DISTINCT pc.customer_id) as customer_count,
+                   COUNT(DISTINCT po.opportunity_id) as opportunity_count,
+                   STRING_AGG(DISTINCT c.name, ', ') as customer_names
+            FROM degoudse.partners p
+            LEFT JOIN degoudse.partner_customers pc ON p.id = pc.partner_id
+            LEFT JOIN degoudse.partner_opportunities po ON p.id = po.partner_id  
+            LEFT JOIN degoudse.customers c ON c.id = pc.customer_id
+            GROUP BY p.id, p.name, p.description, p.status, p.location, p.contact_email, 
+                     p.primary_contact, p.partner_type, p.region, p.assigned_user_ids, 
+                     p.linked_opportunity_ids, p.created_at, p.updated_at
+            ORDER BY p.id
+          `),
+          envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 AND partner_id IS NULL ORDER BY created_at DESC', ['partners']),
+          envPool.query('SELECT * FROM degoudse.saved_views WHERE entity_type = $1 ORDER BY created_at DESC', ['partners']),
+          envPool.query('SELECT * FROM degoudse.okr_metrics ORDER BY id'),
+          envPool.query('SELECT * FROM degoudse.okr_tags ORDER BY name ASC')
+        ]);
+        
+        result = {
+          partners: partners.rows.map((partner: any) => ({
+            id: partner.id,
+            name: partner.name,
+            description: partner.description,
+            initials: partner.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
+            industry: getIndustryFromDescription(partner.description || ''),
+            type: getTypeFromDescription(partner.description || ''),
+            size: getSizeFromDescription(partner.description || ''),
+            status: partner.status,
+            customers: partner.customer_count || 0,
+            opportunities: partner.opportunity_count || 0,
+            location: partner.location,
+            contactEmail: partner.contact_email,
+            primaryContact: partner.primary_contact,
+            partner_type: partner.partner_type,
+            region: partner.region,
+            assigned_user_ids: partner.assigned_user_ids,
+            linked_opportunity_ids: partner.linked_opportunity_ids,
+            createdAt: partner.created_at,
+            updatedAt: partner.updated_at,
+            customerNames: partner.customer_names || ''
+          })),
+          savedLists: savedLists.rows,
+          savedViews: savedViews.rows,
+          okrMetrics: okrMetrics.rows,
+          okrTags: okrTags.rows
+        };
+      }
+      
+      setCache(cacheKey, result);
+      res.json(result);
+    } catch (error) {
+      console.error('Error fetching batch page data:', error);
+      res.status(500).json({ error: 'Failed to fetch page data' });
+    }
+  });
+
   // Database Administration Endpoints
   // These endpoints should not be environment-specific as they manage all environments
 
   // Get all available environments - only De Goudse
   app.get('/api/admin/environments', async (req, res) => {
+    const cached = getCached('admin_environments');
+    if (cached) {
+      return res.json(cached);
+    }
+    
     try {
       // Return only De Goudse environment
       const environments = [{
         id: 'degoudse',
         name: 'De Goudse',
         apiBaseUrl: '/api/degoudse',
-        databaseId: 'degoudse_db'
+        databaseId: 'degoudse_db',
+        logo: '/api/static/de-goudse-logo.png'
       }];
 
+      setCache('admin_environments', environments);
       res.json(environments);
     } catch (error) {
       console.error('Error fetching environments:', error);
@@ -3672,7 +5072,7 @@ Respond with a JSON object containing:
       const stats: Record<string, any> = {};
 
       for (const envId of environments) {
-        const envPool = getEnvironmentPool(envId);
+        const envPool = pool;
         
         // Get table counts for this environment
         const customerCount = await envPool.query(`SELECT COUNT(*) as count FROM ${envId}.customers`);
@@ -3715,7 +5115,7 @@ Respond with a JSON object containing:
         return res.status(400).json({ error: 'Environment ID is required' });
       }
 
-      const envPool = getEnvironmentPool(envId);
+      const envPool = pool;
       const results = [];
 
       if (!entityType || entityType === 'all' || entityType === 'customers') {
@@ -3777,8 +5177,8 @@ Respond with a JSON object containing:
 
       console.log('Clone environment request:', { sourceEnvId, targetEnvId, name, description });
 
-      const sourcePool = getEnvironmentPool(sourceEnvId);
-      const targetPool = getEnvironmentPool(targetEnvId);
+      const sourcePool = pool;
+      const targetPool = pool;
 
       // Create the new schema using a safer approach
       // PostgreSQL doesn't support parameterized schema names, so we need to sanitize manually
@@ -3864,7 +5264,7 @@ Respond with a JSON object containing:
         });
       }
 
-      const envPool = getEnvironmentPool(envId);
+      const envPool = pool;
       
       // Import OpenAI dynamically to avoid build issues if not available
       const { default: OpenAI } = await import('openai');
@@ -4004,12 +5404,12 @@ Respond with a JSON object containing:
         return res.status(400).json({ error: 'Environment ID is required' });
       }
 
-      if (envId === 'degoudse' || envId === 'degoudse') {
+      if (envId === 'myqollabi' || envId === 'degoudse') {
         return res.status(400).json({ error: 'Cannot archive protected environments' });
       }
 
       // Create or update environment metadata table to track archived status
-      const envPool = getEnvironmentPool(envId);
+      const envPool = pool;
       
       await envPool.query(`
         CREATE TABLE IF NOT EXISTS ${envId}.environment_metadata (
@@ -4049,12 +5449,12 @@ Respond with a JSON object containing:
         return res.status(400).json({ error: 'Environment ID is required' });
       }
 
-      if (envId === 'degoudse' || envId === 'degoudse') {
+      if (envId === 'myqollabi' || envId === 'degoudse') {
         return res.status(400).json({ error: 'Cannot delete protected environments' });
       }
 
       // Get environment pool
-      const envPool = getEnvironmentPool(envId);
+      const envPool = pool;
       
       // Drop the entire schema and all its contents (properly quoted)
       await envPool.query(`DROP SCHEMA IF EXISTS "${envId}" CASCADE`);
@@ -4070,23 +5470,20 @@ Respond with a JSON object containing:
     }
   });
 
-  // OKR Comments API endpoints with environment support
+  // OKR Comments API endpoints
   
   // Get comments for a metric
-  app.get('/api/:envId/okr-metrics/:id/comments', async (req, res) => {
+  app.get('/api/okr-metrics/:id/comments', async (req, res) => {
     try {
-      const envId = req.params.envId;
       const metricId = parseInt(req.params.id);
-      const envPool = getEnvironmentPool(envId);
       
-      const result = await envPool.query(`
-        SELECT c.*, u.username as user_name, m.name as metric_name
-        FROM ${envId}.okr_comments c
-        LEFT JOIN ${envId}.users u ON c.user_id = u.id
-        LEFT JOIN ${envId}.okr_metrics m ON c.metric_id = m.id
-        WHERE c.metric_id = $1
+      const result = await db.execute(sql`
+        SELECT c.*, u.username as user_name
+        FROM myqollabi.okr_comments c
+        LEFT JOIN myqollabi.users u ON c.user_id = u.id
+        WHERE c.metric_id = ${metricId}
         ORDER BY c.created_at DESC
-      `, [metricId]);
+      `);
       
       res.json(result.rows);
     } catch (error) {
@@ -4096,23 +5493,521 @@ Respond with a JSON object containing:
   });
 
   // Create comment for a metric
-  app.post('/api/:envId/okr-metrics/:id/comments', async (req, res) => {
+  app.post('/api/okr-metrics/:id/comments', async (req, res) => {
     try {
-      const envId = req.params.envId;
       const metricId = parseInt(req.params.id);
-      const { comment, user_id, contact_id, partner_id } = req.body;
-      const envPool = getEnvironmentPool(envId);
+      const { comment, user_id, contact_id } = req.body;
       
-      const result = await envPool.query(`
-        INSERT INTO ${envId}.okr_comments (metric_id, user_id, contact_id, comment, partner_id)
-        VALUES ($1, $2, $3, $4, $5)
+      const result = await db.execute(sql`
+        INSERT INTO myqollabi.okr_comments (metric_id, user_id, contact_id, comment)
+        VALUES (${metricId}, ${user_id || 1}, ${contact_id}, ${comment})
         RETURNING *
-      `, [metricId, user_id || 1, contact_id, comment, partner_id]);
+      `);
       
       res.status(201).json(result.rows[0]);
     } catch (error) {
       console.error('Error creating OKR comment:', error);
       res.status(500).json({ error: 'Failed to create OKR comment' });
+    }
+  });
+
+  // Product Category API endpoints for nested hierarchy management
+  
+  // Get all product categories in hierarchical structure
+  app.get('/api/:envId/product-categories', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const cacheKey = `${envId}_product_categories`;
+      const cached = getCached(cacheKey);
+      
+      if (cached) {
+        return res.json(cached);
+      }
+      
+      const envPool = pool;
+      
+      // Get all categories with parent information
+      const result = await envPool.query(`
+        SELECT 
+          c.*,
+          p.name as parent_name,
+          (SELECT COUNT(*) FROM ${envId}.products WHERE category_id = c.id) as product_count,
+          (SELECT COUNT(*) FROM ${envId}.product_categories WHERE parent_id = c.id) as child_count
+        FROM ${envId}.product_categories c
+        LEFT JOIN ${envId}.product_categories p ON c.parent_id = p.id
+        ORDER BY c.parent_id NULLS FIRST, c.name
+      `);
+      
+      // Build hierarchical structure
+      const categories = result.rows;
+      const categoryMap = new Map();
+      const rootCategories = [];
+      
+      // First pass: create category objects
+      categories.forEach(cat => {
+        categoryMap.set(cat.id, { ...cat, children: [] });
+      });
+      
+      // Second pass: build hierarchy
+      categories.forEach(cat => {
+        const category = categoryMap.get(cat.id);
+        if (cat.parent_id) {
+          const parent = categoryMap.get(cat.parent_id);
+          if (parent) {
+            parent.children.push(category);
+          }
+        } else {
+          rootCategories.push(category);
+        }
+      });
+      
+      setCache(cacheKey, rootCategories);
+      res.json(rootCategories);
+    } catch (error) {
+      console.error('Error fetching product categories:', error);
+      res.status(500).json({ error: 'Failed to fetch product categories' });
+    }
+  });
+  
+  // Create new product category
+  app.post('/api/:envId/product-categories', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const validatedData = insertProductCategorySchema.parse(req.body);
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        INSERT INTO ${envId}.product_categories (name, description, parent_id, status)
+        VALUES ($1, $2, $3, $4)
+        RETURNING *
+      `, [validatedData.name, validatedData.description, validatedData.parentId, validatedData.status || 'active']);
+      
+      // Clear cache
+      cache.delete(`${envId}_product_categories`);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating product category:', error);
+      res.status(500).json({ error: 'Failed to create product category' });
+    }
+  });
+  
+  // Update product category
+  app.put('/api/:envId/product-categories/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const categoryId = parseInt(req.params.id);
+      const validatedData = insertProductCategorySchema.parse(req.body);
+      const envPool = pool;
+      
+      // Check for circular reference
+      if (validatedData.parentId) {
+        const checkResult = await envPool.query(`
+          WITH RECURSIVE category_path AS (
+            SELECT id, parent_id FROM ${envId}.product_categories WHERE id = $1
+            UNION ALL
+            SELECT c.id, c.parent_id 
+            FROM ${envId}.product_categories c
+            JOIN category_path cp ON c.id = cp.parent_id
+          )
+          SELECT id FROM category_path WHERE id = $2
+        `, [validatedData.parentId, categoryId]);
+        
+        if (checkResult.rows.length > 0) {
+          return res.status(400).json({ error: 'Cannot set parent - would create circular reference' });
+        }
+      }
+      
+      const result = await envPool.query(`
+        UPDATE ${envId}.product_categories 
+        SET name = $1, description = $2, parent_id = $3, status = $4, updated_at = NOW()
+        WHERE id = $5
+        RETURNING *
+      `, [validatedData.name, validatedData.description, validatedData.parentId, validatedData.status, categoryId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Product category not found' });
+      }
+      
+      // Clear cache
+      cache.delete(`${envId}_product_categories`);
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating product category:', error);
+      res.status(500).json({ error: 'Failed to update product category' });
+    }
+  });
+  
+  // Delete product category
+  app.delete('/api/:envId/product-categories/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const categoryId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      // Check if category has products or children
+      const checkResult = await envPool.query(`
+        SELECT 
+          (SELECT COUNT(*) FROM ${envId}.products WHERE category_id = $1) as product_count,
+          (SELECT COUNT(*) FROM ${envId}.product_categories WHERE parent_id = $1) as child_count
+      `, [categoryId]);
+      
+      const { product_count, child_count } = checkResult.rows[0];
+      
+      if (product_count > 0) {
+        return res.status(400).json({ 
+          error: `Cannot delete category - it contains ${product_count} products. Please move or delete the products first.` 
+        });
+      }
+      
+      if (child_count > 0) {
+        return res.status(400).json({ 
+          error: `Cannot delete category - it has ${child_count} subcategories. Please move or delete the subcategories first.` 
+        });
+      }
+      
+      const result = await envPool.query(`
+        DELETE FROM ${envId}.product_categories WHERE id = $1 RETURNING *
+      `, [categoryId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Product category not found' });
+      }
+      
+      // Clear cache
+      cache.delete(`${envId}_product_categories`);
+      
+      res.json({ message: 'Product category deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting product category:', error);
+      res.status(500).json({ error: 'Failed to delete product category' });
+    }
+  });
+
+  // ===== PRODUCT CATALOGUES API =====
+
+  // Get all product catalogues
+  app.get('/api/:envId/product-catalogues', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        SELECT 
+          pc.*,
+          (SELECT COUNT(*) FROM ${envId}.catalogue_products cp WHERE cp.catalogue_id = pc.id) as product_count
+        FROM ${envId}.product_catalogues pc
+        ORDER BY pc.name ASC
+      `);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching product catalogues:', error);
+      res.status(500).json({ error: 'Failed to fetch product catalogues' });
+    }
+  });
+
+  // Get single product catalogue by ID
+  app.get('/api/:envId/product-catalogues/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const catalogueId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      if (isNaN(catalogueId)) {
+        return res.status(400).json({ error: 'Invalid catalogue ID' });
+      }
+      
+      const result = await envPool.query(`
+        SELECT 
+          pc.*,
+          (SELECT COUNT(*) FROM ${envId}.catalogue_products cp WHERE cp.catalogue_id = pc.id) as product_count
+        FROM ${envId}.product_catalogues pc
+        WHERE pc.id = $1
+      `, [catalogueId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Product catalogue not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error fetching product catalogue:', error);
+      res.status(500).json({ error: 'Failed to fetch product catalogue' });
+    }
+  });
+
+  // Create product catalogue
+  app.post('/api/:envId/product-catalogues', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const { name, description, status, effectiveFrom, effectiveTo } = req.body;
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        INSERT INTO ${envId}.product_catalogues (name, description, status, effective_from, effective_to)
+        VALUES ($1, $2, $3, $4, $5)
+        RETURNING *
+      `, [name, description, status, effectiveFrom, effectiveTo]);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating product catalogue:', error);
+      res.status(500).json({ error: 'Failed to create product catalogue' });
+    }
+  });
+
+  // Update product catalogue
+  app.put('/api/:envId/product-catalogues/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const catalogueId = parseInt(req.params.id);
+      const { name, description, status, effectiveFrom, effectiveTo } = req.body;
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        UPDATE ${envId}.product_catalogues 
+        SET name = $1, description = $2, status = $3, effective_from = $4, effective_to = $5, updated_at = NOW()
+        WHERE id = $6
+        RETURNING *
+      `, [name, description, status, effectiveFrom, effectiveTo, catalogueId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Product catalogue not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating product catalogue:', error);
+      res.status(500).json({ error: 'Failed to update product catalogue' });
+    }
+  });
+
+// Saved Views API endpoints - redirect to De Goudse
+app.get('/api/saved-views', (req, res) => {
+  const queryParams = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
+  res.redirect(`/api/degoudse/saved-views${queryParams}`);
+});
+
+app.put('/api/saved-views/:id', async (req, res) => {
+  const queryParams = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
+  res.redirect(`/api/degoudse/saved-views/${req.params.id}${queryParams}`);
+});
+
+// Main entity routes - redirect all to De Goudse (opportunities already handled above)
+app.post('/api/opportunities', (req, res) => res.redirect(307, '/api/degoudse/opportunities'));
+app.get('/api/partners', (req, res) => res.redirect('/api/degoudse/partners'));
+app.get('/api/customers', (req, res) => res.redirect('/api/degoudse/customers'));
+app.get('/api/products', (req, res) => res.redirect('/api/degoudse/products'));
+app.get('/api/contacts', (req, res) => res.redirect('/api/degoudse/contacts'));
+app.post('/api/contacts', (req, res) => res.redirect(307, '/api/degoudse/contacts'));
+app.get('/api/vendors', (req, res) => res.redirect('/api/degoudse/vendors'));
+app.post('/api/vendors', (req, res) => res.redirect(307, '/api/degoudse/vendors'));
+app.get('/api/okr-metrics', (req, res) => res.redirect('/api/degoudse/okr-metrics'));
+app.get('/api/okr-tags', (req, res) => res.redirect('/api/degoudse/okr-tags'));
+app.get('/api/users', (req, res) => res.redirect('/api/degoudse/users'));
+app.post('/api/users', (req, res) => res.redirect(307, '/api/degoudse/users'));
+
+// Delete product catalogue
+app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
+  // original logic here (from stage)
+});
+    try {
+      const envId = req.params.envId;
+      const catalogueId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      // Check if catalogue has products
+      const checkResult = await envPool.query(`
+        SELECT COUNT(*) as product_count FROM ${envId}.catalogue_products WHERE catalogue_id = $1
+      `, [catalogueId]);
+      
+      const { product_count } = checkResult.rows[0];
+      
+      if (product_count > 0) {
+        return res.status(400).json({ 
+          error: `Cannot delete catalogue - it contains ${product_count} products. Please remove the products first.` 
+        });
+      }
+      
+      const result = await envPool.query(`
+        DELETE FROM ${envId}.product_catalogues WHERE id = $1 RETURNING *
+      `, [catalogueId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Product catalogue not found' });
+      }
+      
+      res.json({ message: 'Product catalogue deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting product catalogue:', error);
+      res.status(500).json({ error: 'Failed to delete product catalogue' });
+    }
+  });
+
+  // ===== CATALOGUE PRODUCTS API =====
+
+  // Get products in a specific catalogue with overrides
+  app.get('/api/:envId/catalogues/:catalogueId/products', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const catalogueId = parseInt(req.params.catalogueId);
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        SELECT 
+          cp.*,
+          p.name as product_name,
+          p.description as product_description,
+          p.sku,
+          p.price as base_price,
+          p.vendor_id,
+          v.name as vendor_name,
+          pc.name as category_name,
+          COALESCE(cp.name_override, p.name) as display_name,
+          COALESCE(cp.price_override, p.price) as display_price
+        FROM ${envId}.catalogue_products cp
+        JOIN ${envId}.products p ON cp.product_id = p.id
+        LEFT JOIN ${envId}.vendors v ON p.vendor_id = v.id
+        LEFT JOIN ${envId}.product_categories pc ON cp.category_id = pc.id
+        WHERE cp.catalogue_id = $1 AND cp.visible = true
+        ORDER BY COALESCE(cp.name_override, p.name) ASC
+      `, [catalogueId]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching catalogue products:', error);
+      res.status(500).json({ error: 'Failed to fetch catalogue products' });
+    }
+  });
+
+  // Add product to catalogue with optional overrides
+  app.post('/api/:envId/catalogues/:catalogueId/products', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const catalogueId = parseInt(req.params.catalogueId);
+      const { productId, categoryId, visible, nameOverride, priceOverride } = req.body;
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        INSERT INTO ${envId}.catalogue_products (product_id, catalogue_id, category_id, visible, name_override, price_override)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *
+      `, [productId, catalogueId, categoryId, visible, nameOverride, priceOverride]);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error adding product to catalogue:', error);
+      if (error.code === '23505') { // Unique constraint violation
+        res.status(400).json({ error: 'Product is already in this catalogue' });
+      } else {
+        res.status(500).json({ error: 'Failed to add product to catalogue' });
+      }
+    }
+  });
+
+  // Update catalogue product overrides
+  app.put('/api/:envId/catalogue-products/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const catalogueProductId = parseInt(req.params.id);
+      const { categoryId, visible, nameOverride, priceOverride } = req.body;
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        UPDATE ${envId}.catalogue_products 
+        SET category_id = $1, visible = $2, name_override = $3, price_override = $4, updated_at = NOW()
+        WHERE id = $5
+        RETURNING *
+      `, [categoryId, visible, nameOverride, priceOverride, catalogueProductId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Catalogue product not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating catalogue product:', error);
+      res.status(500).json({ error: 'Failed to update catalogue product' });
+    }
+  });
+
+  // Remove product from catalogue
+  app.delete('/api/:envId/catalogue-products/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const catalogueProductId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        DELETE FROM ${envId}.catalogue_products WHERE id = $1 RETURNING *
+      `, [catalogueProductId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Catalogue product not found' });
+      }
+      
+      res.json({ message: 'Product removed from catalogue successfully' });
+    } catch (error) {
+      console.error('Error removing product from catalogue:', error);
+      res.status(500).json({ error: 'Failed to remove product from catalogue' });
+    }
+  });
+  
+  // Get products by category (including subcategories)
+  app.get('/api/:envId/product-categories/:id/products', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const categoryId = parseInt(req.params.id);
+      const includeSubcategories = req.query.include_subcategories === 'true';
+      const envPool = pool;
+      
+      let query;
+      let params;
+      
+      if (includeSubcategories) {
+        // Get products from this category and all its subcategories
+        query = `
+          WITH RECURSIVE category_tree AS (
+            SELECT id FROM ${envId}.product_categories WHERE id = $1
+            UNION ALL
+            SELECT c.id 
+            FROM ${envId}.product_categories c
+            JOIN category_tree ct ON c.parent_id = ct.id
+          )
+          SELECT 
+            p.*,
+            c.name as category_name,
+            v.name as vendor_name
+          FROM ${envId}.products p
+          LEFT JOIN ${envId}.product_categories c ON p.category_id = c.id
+          LEFT JOIN ${envId}.vendors v ON p.vendor_id = v.id
+          WHERE p.category_id IN (SELECT id FROM category_tree)
+          ORDER BY p.name
+        `;
+        params = [categoryId];
+      } else {
+        // Get products only from this specific category
+        query = `
+          SELECT 
+            p.*,
+            c.name as category_name,
+            v.name as vendor_name
+          FROM ${envId}.products p
+          LEFT JOIN ${envId}.product_categories c ON p.category_id = c.id
+          LEFT JOIN ${envId}.vendors v ON p.vendor_id = v.id
+          WHERE p.category_id = $1
+          ORDER BY p.name
+        `;
+        params = [categoryId];
+      }
+      
+      const result = await envPool.query(query, params);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching products by category:', error);
+      res.status(500).json({ error: 'Failed to fetch products by category' });
     }
   });
 
@@ -4224,10 +6119,35 @@ Respond with a JSON object containing:
     }
   });
 
-  // Saved Lists API endpoints - redirect to De Goudse
-  app.get('/api/saved-lists', (req, res) => {
-    const queryParams = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
-    res.redirect(`/api/degoudse/saved-lists${queryParams}`);
+  // Saved Lists API endpoints
+  app.get('/api/saved-lists', async (req, res) => {
+    try {
+      const entityType = req.query.entity_type as string;
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      
+      // Disable caching for this response
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      
+      const envPool = pool;
+      
+      if (entityType && entityType.trim()) {
+        const result = await envPool.query(
+          `SELECT * FROM ${envId}.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC`,
+          [entityType]
+        );
+        res.json(result.rows);
+      } else {
+        const result = await envPool.query(
+          `SELECT * FROM ${envId}.saved_lists ORDER BY created_at DESC`
+        );
+        res.json(result.rows);
+      }
+    } catch (error) {
+      console.error('[GENERAL ROUTE] Error:', error);
+      res.status(500).json({ error: 'Failed to fetch saved lists' });
+    }
   });
 
   // REMOVED: Shadow endpoint causing conflicts with environment-specific endpoints
@@ -4237,13 +6157,24 @@ Respond with a JSON object containing:
     try {
       const id = parseInt(req.params.id);
       const { name, description, members, filters, is_shared } = req.body;
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || req.headers['x-environment'] || 'myqollabi';
+      
+      console.log('PUT /api/saved-lists/:id - Request data:', {
+        id,
+        envId,
+        requestBody: { name, description, members, filters, is_shared }
+      });
+      
+      // Validate required fields
+      if (!name) {
+        return res.status(400).json({ error: 'Name is required' });
+      }
       
       const result = await db.execute(sql`
         UPDATE ${sql.identifier(envId as string)}.saved_lists 
         SET 
           name = ${name},
-          description = ${description},
+          description = ${description || ''},
           members = ${JSON.stringify(members || [])},
           filters = ${JSON.stringify(filters || {})},
           is_shared = ${is_shared || false},
@@ -4252,21 +6183,76 @@ Respond with a JSON object containing:
         RETURNING *
       `);
       
+      console.log('PUT /api/saved-lists/:id - Update result:', result.rows);
+      
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Saved list not found' });
       }
       
-      res.json(result.rows[0]);
+      const updatedList = result.rows[0];
+      console.log('PUT /api/saved-lists/:id - Sending response:', updatedList);
+      
+      res.json(updatedList);
     } catch (error) {
       console.error('Error updating saved list:', error);
-      res.status(500).json({ error: 'Failed to update saved list' });
+      res.status(500).json({ error: 'Failed to update saved list', details: error.message });
+    }
+  });
+
+  // Environment-specific PUT endpoint for saved lists
+  app.put('/api/:envId/saved-lists/:id', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const id = parseInt(req.params.id);
+      const { name, description, members, filters, is_shared } = req.body;
+      
+      console.log(`PUT /api/${envId}/saved-lists/${id} - Request data:`, {
+        envId,
+        id,
+        requestBody: { name, description, members, filters, is_shared }
+      });
+      
+      // Validate required fields
+      if (!name) {
+        return res.status(400).json({ error: 'Name is required' });
+      }
+      
+      const envPool = pool;
+      
+      const result = await envPool.query(
+        `UPDATE ${envId}.saved_lists 
+         SET 
+           name = $1,
+           description = $2,
+           members = $3,
+           filters = $4,
+           is_shared = $5,
+           updated_at = NOW()
+         WHERE id = $6
+         RETURNING *`,
+        [name, description || '', members || [], JSON.stringify(filters || {}), is_shared || false, id]
+      );
+      
+      console.log(`PUT /api/${envId}/saved-lists/${id} - Update result:`, result.rows);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Saved list not found' });
+      }
+      
+      const updatedList = result.rows[0];
+      console.log(`PUT /api/${envId}/saved-lists/${id} - Sending response:`, updatedList);
+      
+      res.json(updatedList);
+    } catch (error) {
+      console.error(`Error updating saved list in ${req.params.envId}:`, error);
+      res.status(500).json({ error: 'Failed to update saved list', details: error.message });
     }
   });
 
   app.delete('/api/saved-lists/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       
       const result = await db.execute(sql`
         DELETE FROM ${sql.identifier(envId as string)}.saved_lists 
@@ -4278,6 +6264,10 @@ Respond with a JSON object containing:
         return res.status(404).json({ message: 'Saved list not found' });
       }
       
+      // Clear cache after deleting a list
+      cache.clear();
+      console.log('Cache cleared after deleting list');
+      
       res.json({ message: 'Saved list deleted successfully' });
     } catch (error) {
       console.error('Error deleting saved list:', error);
@@ -4285,31 +6275,297 @@ Respond with a JSON object containing:
     }
   });
 
-  // Saved Views API endpoints - redirect to De Goudse
-  app.get('/api/saved-views', (req, res) => {
-    const queryParams = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
-    res.redirect(`/api/degoudse/saved-views${queryParams}`);
+  // Helper function to sync is_shared flag based on collaborators
+  async function syncListSharedFlag(listId: number, envId: string) {
+    try {
+      const envPool = pool;
+      
+      // Check if list has any active collaborators
+      const collaboratorResult = await envPool.query(
+        `SELECT COUNT(*) as collaborator_count 
+         FROM ${envId}.list_collaborators 
+         WHERE list_id = $1 AND is_active = true`,
+        [listId]
+      );
+      
+      const hasCollaborators = parseInt(collaboratorResult.rows[0].collaborator_count) > 0;
+      
+      // Update is_shared flag to match collaborator presence
+      await envPool.query(
+        `UPDATE ${envId}.saved_lists 
+         SET is_shared = $1, updated_at = NOW()
+         WHERE id = $2`,
+        [hasCollaborators, listId]
+      );
+      
+      console.log(`Synced is_shared flag for list ${listId}: ${hasCollaborators}`);
+      return hasCollaborators;
+    } catch (error) {
+      console.error('Error syncing list shared flag:', error);
+      return false;
+    }
+  }
+
+  // List Collaborators API endpoints
+  app.get('/api/:envId/saved-lists/:listId/collaborators', async (req, res) => {
+    try {
+      const { envId, listId } = req.params;
+      const envPool = pool;
+      
+      const result = await envPool.query(
+        `SELECT lc.*, u.name as user_name, u.email as user_email 
+         FROM ${envId}.list_collaborators lc
+         LEFT JOIN ${envId}.users u ON lc.user_id = u.id
+         WHERE lc.list_id = $1 AND lc.is_active = true
+         ORDER BY lc.invited_at ASC`,
+        [parseInt(listId)]
+      );
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching list collaborators:', error);
+      res.status(500).json({ error: 'Failed to fetch collaborators' });
+    }
   });
 
-  // Main entity routes - redirect all to De Goudse (opportunities already handled above)
-  app.post('/api/opportunities', (req, res) => res.redirect(307, '/api/degoudse/opportunities'));
-  app.get('/api/partners', (req, res) => res.redirect('/api/degoudse/partners'));
-  app.get('/api/customers', (req, res) => res.redirect('/api/degoudse/customers'));
-  app.get('/api/products', (req, res) => res.redirect('/api/degoudse/products'));
-  app.get('/api/contacts', (req, res) => res.redirect('/api/degoudse/contacts'));
-  app.post('/api/contacts', (req, res) => res.redirect(307, '/api/degoudse/contacts'));
-  app.get('/api/vendors', (req, res) => res.redirect('/api/degoudse/vendors'));
-  app.post('/api/vendors', (req, res) => res.redirect(307, '/api/degoudse/vendors'));
-  app.get('/api/okr-metrics', (req, res) => res.redirect('/api/degoudse/okr-metrics'));
-  app.get('/api/okr-tags', (req, res) => res.redirect('/api/degoudse/okr-tags'));
-  app.get('/api/users', (req, res) => res.redirect('/api/degoudse/users'));
-  app.post('/api/users', (req, res) => res.redirect(307, '/api/degoudse/users'));
+  app.post('/api/:envId/saved-lists/:listId/collaborators', async (req, res) => {
+    try {
+      const { envId, listId } = req.params;
+      const { email, name, accessLevel, message } = req.body;
+      const envPool = pool;
+      
+      // Insert new collaborator
+      const result = await envPool.query(
+        `INSERT INTO ${envId}.list_collaborators 
+         (list_id, email, name, access_level, invited_by_id, invited_at, is_active)
+         VALUES ($1, $2, $3, $4, $5, NOW(), true)
+         RETURNING *`,
+        [parseInt(listId), email, name, accessLevel || 'viewer', 1]
+      );
+      
+      // Sync the is_shared flag
+      await syncListSharedFlag(parseInt(listId), envId);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error adding collaborator:', error);
+      res.status(500).json({ error: 'Failed to add collaborator' });
+    }
+  });
+
+  app.patch('/api/:envId/saved-lists/:listId/collaborators/:collaboratorId', async (req, res) => {
+    try {
+      const { envId, listId, collaboratorId } = req.params;
+      const { accessLevel } = req.body;
+      const envPool = pool;
+      
+      const result = await envPool.query(
+        `UPDATE ${envId}.list_collaborators 
+         SET access_level = $1
+         WHERE id = $2 AND list_id = $3 AND is_active = true
+         RETURNING *`,
+        [accessLevel, parseInt(collaboratorId), parseInt(listId)]
+      );
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Collaborator not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating collaborator access:', error);
+      res.status(500).json({ error: 'Failed to update collaborator access' });
+    }
+  });
+
+  app.delete('/api/:envId/saved-lists/:listId/collaborators/:collaboratorId', async (req, res) => {
+    try {
+      const { envId, listId, collaboratorId } = req.params;
+      const envPool = pool;
+      
+      // Mark collaborator as inactive instead of deleting
+      const result = await envPool.query(
+        `UPDATE ${envId}.list_collaborators 
+         SET is_active = false
+         WHERE id = $1 AND list_id = $2
+         RETURNING *`,
+        [parseInt(collaboratorId), parseInt(listId)]
+      );
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Collaborator not found' });
+      }
+      
+      // Sync the is_shared flag after removal
+      await syncListSharedFlag(parseInt(listId), envId);
+      
+      res.json({ message: 'Collaborator removed successfully' });
+    } catch (error) {
+      console.error('Error removing collaborator:', error);
+      res.status(500).json({ error: 'Failed to remove collaborator' });
+    }
+  });
+
+  // Broker-specific endpoint for lists shared with John Smith or partners
+  app.get('/api/:envId/broker/shared-lists', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const entityType = req.query.entity_type as string;
+      const envPool = pool;
+      
+      // Disable caching for this response
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      
+      // Get list collaborators first to find relevant list IDs
+      let baseQuery = `
+        SELECT lc.list_id
+        FROM ${envId}.list_collaborators lc
+        WHERE lc.is_active = true
+          AND (lc.email LIKE '%john.smith%' OR lc.email LIKE '%partner%' OR lc.name LIKE '%John Smith%')
+      `;
+      
+      const params = [];
+      
+      // First get the list IDs from collaborators table
+      const listIdsResult = await envPool.query(baseQuery, params);
+      const listIds = listIdsResult.rows.map(row => row.list_id);
+      
+      if (listIds.length === 0) {
+        console.log('No lists found shared with John Smith or partners');
+        res.json([]);
+        return;
+      }
+      
+      // Then get the full list details with collaborator info, filtering by entity_type if needed
+      // Exclude lists that contain only seed opportunity records (IDs 1-16)
+      const placeholders = listIds.map((_, index) => `$${index + 1}`).join(', ');
+      let query = `
+        SELECT sl.*,
+               COUNT(lc.id) as collaborator_count,
+               CASE WHEN COUNT(lc.id) > 0 THEN true ELSE false END as has_collaborators,
+               STRING_AGG(DISTINCT lc.email, ', ') as collaborator_emails,
+               STRING_AGG(DISTINCT lc.name, ', ') as collaborator_names
+        FROM ${envId}.saved_lists sl
+        LEFT JOIN ${envId}.list_collaborators lc ON sl.id = lc.list_id AND lc.is_active = true
+        WHERE sl.id IN (${placeholders}) AND sl.is_shared = true
+          AND NOT (sl.members <@ ARRAY[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16])
+      `;
+      
+      if (entityType) {
+        query += ` AND sl.entity_type = $${listIds.length + 1}`;
+        listIds.push(entityType);
+      }
+      
+      query += ` GROUP BY sl.id ORDER BY sl.created_at DESC`;
+      
+      const result = await envPool.query(query, listIds);
+      
+      console.log(`Found ${result.rows.length} lists shared with John Smith or partners`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error(`Error fetching broker shared lists from ${req.params.envId}:`, error);
+      res.status(500).json({ error: 'Failed to fetch broker shared lists' });
+    }
+  });
+
+  // Enhanced saved lists endpoint that includes collaborator data and syncs is_shared flag
+  app.get('/api/:envId/saved-lists', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const entityType = req.query.entity_type as string;
+      const partnerId = req.query.partner_id as string;
+      const envPool = pool;
+      
+      // Disable caching for this response
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      
+      let query = `
+        SELECT sl.*, 
+               COUNT(lc.id) as collaborator_count,
+               CASE WHEN COUNT(lc.id) > 0 THEN true ELSE false END as has_collaborators
+        FROM ${envId}.saved_lists sl
+        LEFT JOIN ${envId}.list_collaborators lc ON sl.id = lc.list_id AND lc.is_active = true
+      `;
+      const params = [];
+      const conditions = [];
+      
+      if (entityType) {
+        conditions.push(`sl.entity_type = $${params.length + 1}`);
+        params.push(entityType);
+      }
+      
+      if (partnerId) {
+        conditions.push(`sl.partner_id = $${params.length + 1}`);
+        params.push(parseInt(partnerId));
+      }
+      
+      if (conditions.length > 0) {
+        query += ` WHERE ${conditions.join(' AND ')}`;
+      }
+      
+      query += ` GROUP BY sl.id ORDER BY sl.created_at DESC`;
+      
+      const result = await envPool.query(query, params);
+      
+      // Sync is_shared flags for all lists that have mismatched states
+      for (const list of result.rows) {
+        const shouldBeShared = list.collaborator_count > 0;
+        if (list.is_shared !== shouldBeShared) {
+          console.log(`Syncing list ${list.id}: is_shared ${list.is_shared} -> ${shouldBeShared}`);
+          await syncListSharedFlag(list.id, envId);
+          list.is_shared = shouldBeShared; // Update the response data
+        }
+      }
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error(`Error fetching saved lists from ${req.params.envId}:`, error);
+      res.status(500).json({ error: 'Failed to fetch saved lists' });
+    }
+  });
+
+  // Saved Views API endpoints
+  app.get('/api/saved-views', async (req, res) => {
+    try {
+      const entityType = req.query.entity_type as string;
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envPool = pool;
+      
+      console.log(`Saved views API: entityType=${entityType}, envId=${envId}`);
+      
+      let query = `SELECT * FROM ${envId}.saved_views`;
+      const params = [];
+      
+      if (entityType) {
+        query += ` WHERE entity_type = $1`;
+        params.push(entityType);
+      }
+      
+      query += ` ORDER BY created_at DESC`;
+      
+      console.log(`Executing query: ${query} with params:`, params);
+      const result = await envPool.query(query, params);
+      console.log(`Query returned ${result.rows.length} rows`);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching saved views:', error);
+      res.status(500).json({ error: 'Failed to fetch saved views' });
+    }
+  });
+
+  // REMOVED: Shadow endpoint causing conflicts with environment-specific endpoints
+  // Use /api/degoudse/saved-views instead
 
   app.put('/api/saved-views/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const { name, description, filters, is_shared } = req.body;
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       
       const result = await db.execute(sql`
         UPDATE ${sql.identifier(envId as string)}.saved_views 
@@ -4337,7 +6593,7 @@ Respond with a JSON object containing:
   app.delete('/api/saved-views/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       
       const result = await db.execute(sql`
         DELETE FROM ${sql.identifier(envId as string)}.saved_views 
@@ -4359,7 +6615,7 @@ Respond with a JSON object containing:
   // User Management API endpoints
   app.get('/api/users', async (req, res) => {
     try {
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       
       const result = await db.execute(sql`
         SELECT id, username, email, full_name, first_name, last_name, 
@@ -4380,7 +6636,7 @@ Respond with a JSON object containing:
   app.get('/api/users/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       
       const result = await db.execute(sql`
         SELECT id, username, email, full_name, first_name, last_name, 
@@ -4403,7 +6659,7 @@ Respond with a JSON object containing:
 
   app.post('/api/users', async (req, res) => {
     try {
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       const { 
         username, email, password, fullName, firstName, lastName, 
         avatarInitials, role, department, jobTitle, phone, isActive 
@@ -4433,7 +6689,7 @@ Respond with a JSON object containing:
   app.put('/api/users/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       const { 
         username, email, fullName, firstName, lastName, avatarInitials, 
         role, department, jobTitle, phone, isActive 
@@ -4474,7 +6730,7 @@ Respond with a JSON object containing:
   app.delete('/api/users/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       
       // Soft delete - set is_active to false
       const result = await db.execute(sql`
@@ -4500,7 +6756,7 @@ Respond with a JSON object containing:
   app.get('/api/contacts/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       
       const result = await db.execute(sql`
         SELECT id, first_name, last_name, email, phone, 
@@ -4524,7 +6780,7 @@ Respond with a JSON object containing:
 
   app.post('/api/contacts', async (req, res) => {
     try {
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       const { 
         firstName, lastName, email, phone, 
         company, position, linkedEntityType, linkedEntityId, 
@@ -4561,7 +6817,7 @@ Respond with a JSON object containing:
   app.put('/api/contacts/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       const { 
         firstName, lastName, fullName, email, phone, jobTitle, 
         department, company, linkedEntityType, linkedEntityId, 
@@ -4607,7 +6863,7 @@ Respond with a JSON object containing:
   app.delete('/api/contacts/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       
       // Soft delete - set is_active to false
       const result = await db.execute(sql`
@@ -4632,7 +6888,7 @@ Respond with a JSON object containing:
   app.post('/api/contacts/:id/link', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       const { linkedEntityType, linkedEntityId, isPrimary } = req.body;
       
       const result = await db.execute(sql`
@@ -4662,7 +6918,7 @@ Respond with a JSON object containing:
   app.get('/api/entities/:entityType/:entityId/contacts', async (req, res) => {
     try {
       const { entityType, entityId } = req.params;
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       
       const result = await db.execute(sql`
         SELECT id, first_name, last_name, full_name, email, phone, 
@@ -4682,107 +6938,1143 @@ Respond with a JSON object containing:
     }
   });
 
-  // Activity System API Routes
-
-  // Get activities for a partner (tasks, comments, attachments, OKR comments)
-  app.get('/api/:envId/partners/:partnerId/activities', async (req, res) => {
+  // Entity Logos API Endpoints
+  
+  // Save entity logo
+  app.post('/api/entity-logos', async (req, res) => {
     try {
-      const { envId, partnerId } = req.params;
-      const envPool = getEnvironmentPool(envId);
+      const logoData = insertEntityLogoSchema.parse(req.body);
+      const envId = logoData.environmentId || 'degoudse';
       
-      // Get tasks
-      const tasksResult = await envPool.query(`
-        SELECT t.*, u1.full_name as assigned_to_name, u2.full_name as assigned_by_name
-        FROM ${envId}.activity_tasks t
-        LEFT JOIN ${envId}.users u1 ON t.assigned_to_id = u1.id
-        LEFT JOIN ${envId}.users u2 ON t.assigned_by_id = u2.id
-        WHERE t.entity_type = 'partner' AND t.entity_id = $1
-        ORDER BY t.created_at DESC
-      `, [parseInt(partnerId)]);
+      // Use environment-specific pool for logo operations
+      const envPool = pool;
       
-      // Get activity comments
-      const commentsResult = await envPool.query(`
-        SELECT c.*, u1.full_name as author_name, u2.full_name as assigned_to_name
-        FROM ${envId}.activity_comments c
-        LEFT JOIN ${envId}.users u1 ON c.author_id = u1.id
-        LEFT JOIN ${envId}.users u2 ON c.assigned_to_id = u2.id
-        WHERE c.entity_type = 'partner' AND c.entity_id = $1
-        ORDER BY c.created_at DESC
-      `, [parseInt(partnerId)]);
-      
-      // Get OKR comments for this partner
-      const okrCommentsResult = await envPool.query(`
-        SELECT oc.*, u.full_name as author_name, m.name as metric_name, 'okr_comment' as comment_type
-        FROM ${envId}.okr_comments oc
-        LEFT JOIN ${envId}.users u ON oc.user_id = u.id
-        LEFT JOIN ${envId}.okr_metrics m ON oc.metric_id = m.id
-        WHERE oc.partner_id = $1
-        ORDER BY oc.created_at DESC
-      `, [parseInt(partnerId)]);
-      
-      // Get attachments
-      const attachmentsResult = await envPool.query(`
-        SELECT a.*, u.full_name as uploaded_by_name
-        FROM ${envId}.activity_attachments a
-        LEFT JOIN ${envId}.users u ON a.uploaded_by_id = u.id
-        WHERE a.entity_type = 'partner' AND a.entity_id = $1
-        ORDER BY a.created_at DESC
-      `, [parseInt(partnerId)]);
-      
-      // Combine regular comments and OKR comments
-      const allComments = [
-        ...commentsResult.rows,
-        ...okrCommentsResult.rows.map(okrComment => ({
-          ...okrComment,
-          content: okrComment.comment,
-          okr_metric_name: okrComment.metric_name,
-          is_okr_comment: true
-        }))
-      ];
-      
-      res.json({
-        tasks: tasksResult.rows,
-        comments: allComments,
-        attachments: attachmentsResult.rows
-      });
+      // Check if logo already exists for this entity
+      const existingResult = await envPool.query(`
+        SELECT * FROM ${envId}.entity_logos 
+        WHERE entity_type = $1 AND entity_id = $2 AND environment_id = $3
+        LIMIT 1
+      `, [logoData.entityType, logoData.entityId, envId]);
+
+      if (existingResult.rows.length > 0) {
+        // Update existing logo
+        const updateResult = await envPool.query(`
+          UPDATE ${envId}.entity_logos 
+          SET logo_data = $1, mime_type = $2, original_filename = $3, 
+              file_size = $4, uploaded_by = $5, updated_at = NOW()
+          WHERE entity_type = $6 AND entity_id = $7 AND environment_id = $8
+          RETURNING *
+        `, [
+          logoData.logoData, logoData.mimeType, logoData.originalFilename,
+          logoData.fileSize, logoData.uploadedBy, logoData.entityType,
+          logoData.entityId, envId
+        ]);
+        
+        res.json(updateResult.rows[0]);
+      } else {
+        // Create new logo
+        const insertResult = await envPool.query(`
+          INSERT INTO ${envId}.entity_logos 
+          (entity_type, entity_id, environment_id, logo_data, mime_type, 
+           original_filename, file_size, uploaded_by)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          RETURNING *
+        `, [
+          logoData.entityType, logoData.entityId, envId, logoData.logoData,
+          logoData.mimeType, logoData.originalFilename, logoData.fileSize,
+          logoData.uploadedBy
+        ]);
+        
+        res.status(201).json(insertResult.rows[0]);
+      }
     } catch (error) {
-      console.error('Error fetching partner activities:', error);
-      res.status(500).json({ error: 'Failed to fetch partner activities' });
+      console.error('Error saving entity logo:', error);
+      res.status(500).json({ error: 'Failed to save entity logo' });
     }
   });
 
-  // Create a new task
+  // Get entity logo (query parameters version for useEntityLogo hook)
+  app.get('/api/entity-logos', async (req, res) => {
+    const { entityType, entityId, environmentId } = req.query;
+    
+    if (!entityType || !entityId || !environmentId) {
+      return res.status(400).json({ error: 'Missing required parameters: entityType, entityId, environmentId' });
+    }
+    
+    const cacheKey = `entity_logo_${entityType}_${entityId}_${environmentId}`;
+    const cached = getCached(cacheKey);
+    
+    if (cached) {
+      return res.json(cached);
+    }
+    
+    try {
+      const envId = environmentId as string;
+      const envPool = pool;
+      
+      // Check if entity_logos table exists first
+      const tableCheckResult = await envPool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = $1 AND table_name = 'entity_logos'
+        )
+      `, [envId]);
+      
+      if (!tableCheckResult.rows[0].exists) {
+        // Return empty result instead of error for missing table
+        return res.json(null);
+      }
+      
+      const result = await envPool.query(`
+        SELECT * FROM ${envId}.entity_logos 
+        WHERE entity_type = $1 AND entity_id = $2 AND environment_id = $3
+        LIMIT 1
+      `, [entityType, parseInt(entityId as string), envId]);
+
+      if (result.rows.length === 0) {
+        return res.json(null);
+      }
+
+      setCache(cacheKey, result.rows[0]);
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error fetching entity logo:', error);
+      res.json(null); // Return null instead of 500 error
+    }
+  });
+
+  // Get entity logo (URL parameters version for backward compatibility)
+  app.get('/api/entity-logos/:entityType/:entityId/:environmentId', async (req, res) => {
+    try {
+      const { entityType, entityId, environmentId } = req.params;
+      
+      const envPool = pool;
+      const result = await envPool.query(`
+        SELECT * FROM ${environmentId}.entity_logos 
+        WHERE entity_type = $1 AND entity_id = $2 AND environment_id = $3
+        LIMIT 1
+      `, [entityType, parseInt(entityId), environmentId]);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Logo not found' });
+      }
+
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error fetching entity logo:', error);
+      res.status(500).json({ error: 'Failed to fetch entity logo' });
+    }
+  });
+
+  // Delete entity logo
+  app.delete('/api/entity-logos/:entityType/:entityId/:environmentId', async (req, res) => {
+    try {
+      const { entityType, entityId, environmentId } = req.params;
+      
+      const envPool = pool;
+      const result = await envPool.query(`
+        DELETE FROM ${environmentId}.entity_logos 
+        WHERE entity_type = $1 AND entity_id = $2 AND environment_id = $3
+        RETURNING *
+      `, [entityType, parseInt(entityId), environmentId]);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Logo not found' });
+      }
+
+      res.json({ message: 'Logo deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting entity logo:', error);
+      res.status(500).json({ error: 'Failed to delete entity logo' });
+    }
+  });
+
+  // Campaigns API endpoints
+  app.get('/api/:envId/campaigns', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const { partner_id } = req.query;
+      
+      // For degoudse environment, check for shared templates
+      if (envId === 'degoudse') {
+        // Get user info from session/headers (for demo, we'll simulate John Smith as partner user)
+        // In a real app, this would come from authentication
+        const userId = 1; // John Smith's user ID
+        
+        try {
+          let query = `
+            SELECT c.*, u.name as created_by_name 
+            FROM ${envId}.campaigns c
+            LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
+            WHERE c.is_template = false
+          `;
+          
+          const queryParams = [];
+          
+          // If partner_id is specified, filter campaigns linked to that partner
+          if (partner_id) {
+            // Get the partner name first to search by name in recipients
+            const partnerResult = await pool.query(`SELECT name FROM ${envId}.partners WHERE id = $1`, [partner_id]);
+            if (partnerResult.rows.length > 0) {
+              const partnerName = partnerResult.rows[0].name;
+              
+              // Show campaigns that include this partner in their recipients OR are shared with this partner
+              query = `
+                WITH campaign_matches AS (
+                  SELECT DISTINCT c.id
+                  FROM ${envId}.campaigns c
+                  LEFT JOIN ${envId}.campaign_shares cs ON c.id = cs.campaign_id
+                  WHERE c.is_template = false
+                  AND (
+                    (c.recipients::text LIKE '%"name": "' || $1 || '"%' 
+                     OR c.recipients::text LIKE '%"id": ' || $2 || '%' 
+                     OR c.recipients::text LIKE '%"id":' || $2 || '%')
+                    OR 
+                    (cs.shared_with_type = 'partner' AND cs.shared_with_id = $3::integer AND cs.is_active = true)
+                  )
+                )
+                SELECT c.id, c.name, c.description, c.type, c.category, c.status, 
+                       c.created_by_id, c.sponsor_id, c.list_id, c.subject, c.email_body, 
+                       c.email_logo, c.from_name, c.from_email, c.scheduled_time, 
+                       c.frequency, c.is_shared, c.is_template, c.tags, c.created_at, 
+                       c.updated_at, c.heading, c.button_link, c.button_text, 
+                       c.button_color, c.follow_up_emails, c.target_entity_type, c.recipients,
+                       c.emails_sent, c.emails_opened, c.open_rate, c.total_clicks,
+                       u.name as created_by_name 
+                FROM ${envId}.campaigns c
+                LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
+                INNER JOIN campaign_matches cm ON c.id = cm.id
+              `;
+              queryParams.push(partnerName, partner_id, partner_id);
+            } else {
+              // Partner not found, return empty array
+              res.json([]);
+              return;
+            }
+          }
+          
+          query += ` ORDER BY c.created_at DESC`;
+          
+          // Get campaigns with user info
+          const result = await pool.query(query, queryParams);
+          
+          // Return campaigns with proper data structure matching frontend expectations
+          const campaigns = result.rows.map(campaign => ({
+            id: campaign.id,
+            name: campaign.name || 'Untitled Campaign',
+            type: campaign.type || 'cross_sell',
+            description: campaign.description || '',
+            status: campaign.status || 'draft',
+            created_by_id: campaign.created_by_id,
+            created_by_name: campaign.created_by_name || 'Unknown User',
+            created_at: campaign.created_at,
+            updated_at: campaign.updated_at,
+            subject: campaign.subject,
+            email_body: campaign.email_body,
+            email_logo: campaign.email_logo,
+            from_name: campaign.from_name,
+            from_email: campaign.from_email,
+            frequency: campaign.frequency,
+            is_shared: campaign.is_shared,
+            is_template: campaign.is_template,
+            tags: campaign.tags || [],
+            heading: campaign.heading,
+            button_link: campaign.button_link,
+            button_text: campaign.button_text,
+            button_color: campaign.button_color,
+            follow_up_emails: campaign.follow_up_emails || [],
+            scheduled_time: campaign.scheduled_time,
+            target_entity_type: campaign.target_entity_type,
+            recipients: campaign.recipients || [],
+            emails_sent: campaign.emails_sent || 0,
+            emails_opened: campaign.emails_opened || 0,
+            open_rate: campaign.open_rate || '0.00',
+            total_clicks: campaign.total_clicks || 0
+          }));
+          
+          console.log(`Returning ${campaigns.length} campaigns from ${envId} environment:`, campaigns);
+          res.json(campaigns);
+          return;
+        } catch (dbError) {
+          console.error('Database error in campaigns endpoint:', dbError);
+          console.log('Campaigns table does not exist yet, returning empty array');
+          res.json([]);
+          return;
+        }
+      }
+      
+      // For other environments, return empty array
+      const campaigns = [];
+      console.log(`Returning ${campaigns.length} campaigns from ${envId} environment`);
+      res.json(campaigns);
+    } catch (error) {
+      console.error('Error fetching campaigns:', error);
+      res.status(500).json({ error: 'Failed to fetch campaigns' });
+    }
+  });
+
+  // Create new campaign using new campaigns table
+  app.post('/api/:envId/campaigns', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const campaignData = req.body;
+      
+      if (envId === 'degoudse') {
+        try {
+          const result = await pool.query(`
+            INSERT INTO ${envId}.campaigns (
+              name, type, description, status, created_by_id, subject, email_body, 
+              objective, is_template, frequency, target_entity_type, recipients,
+              partner_id, environment_id
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+            RETURNING *
+          `, [
+            campaignData.name,
+            campaignData.type || 'cross_sell',
+            campaignData.description || '',
+            campaignData.status || 'draft',
+            campaignData.created_by || 1,
+            campaignData.emails?.[0]?.subject || 'Campaign Subject',
+            campaignData.emails?.[0]?.content || JSON.stringify(campaignData.emails || []),
+            campaignData.objective || null,
+            false,
+            'one_time',
+            campaignData.target_entity_type || null,
+            JSON.stringify(campaignData.recipients || []),
+            campaignData.partner_id || null,
+            envId
+          ]);
+          
+          const campaign = result.rows[0];
+          console.log('Campaign created successfully:', campaign);
+          res.status(201).json(campaign);
+          return;
+        } catch (dbError) {
+          console.error('Database error creating campaign:', dbError);
+          res.status(500).json({ error: 'Failed to create campaign' });
+          return;
+        }
+      }
+      
+      res.status(400).json({ error: 'Campaign creation not supported for this environment' });
+    } catch (error) {
+      console.error('Error creating campaign:', error);
+      res.status(500).json({ error: 'Failed to create campaign' });
+    }
+  });
+
+  // Update existing campaign
+  app.put('/api/:envId/campaigns/:id', async (req, res) => {
+    try {
+      const { envId, id } = req.params;
+      const campaignData = req.body;
+      
+      if (envId === 'degoudse') {
+        try {
+          const result = await pool.query(`
+            UPDATE ${envId}.campaigns SET
+              name = $1,
+              type = $2,
+              description = $3,
+              status = $4,
+              subject = $5,
+              email_body = $6,
+              objective = $7,
+              target_entity_type = $8,
+              recipients = $9,
+              updated_at = CURRENT_TIMESTAMP
+            WHERE id = $10
+            RETURNING *
+          `, [
+            campaignData.name,
+            campaignData.type || 'email',
+            campaignData.description,
+            campaignData.status || 'draft',
+            campaignData.emails?.[0]?.subject || null,
+            campaignData.emails?.[0]?.content || JSON.stringify(campaignData.emails || []),
+            campaignData.objective || null,
+            campaignData.target_entity_type || null,
+            JSON.stringify(campaignData.recipients || []),
+            parseInt(id)
+          ]);
+          
+          if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Campaign not found' });
+          }
+          
+          const campaign = result.rows[0];
+          console.log('Campaign updated successfully:', campaign);
+          res.json(campaign);
+          return;
+        } catch (dbError) {
+          console.error('Database error updating campaign:', dbError);
+          res.status(500).json({ error: 'Failed to update campaign' });
+          return;
+        }
+      }
+      
+      res.status(400).json({ error: 'Campaign update not supported for this environment' });
+    } catch (error) {
+      console.error('Error updating campaign:', error);
+      res.status(500).json({ error: 'Failed to update campaign' });
+    }
+  });
+
+  // Get single campaign by ID
+  app.get('/api/:envId/campaigns/:id', async (req, res) => {
+    try {
+      const { envId, id } = req.params;
+      
+      if (envId === 'degoudse') {
+        try {
+          const result = await pool.query(`
+            SELECT * FROM ${envId}.campaigns WHERE id = $1
+          `, [id]);
+          
+          if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Campaign not found' });
+          }
+          
+          const campaign = result.rows[0];
+          
+          // Transform the campaign data to match frontend expectations
+          const transformedCampaign = {
+            ...campaign,
+            createdById: campaign.created_by_id,
+            isShared: campaign.is_shared || false,
+            isTemplate: campaign.is_template || false,
+            tags: campaign.tags || [],
+            sponsorId: campaign.sponsor_id,
+            createdAt: campaign.created_at,
+            emailBody: campaign.email_body,
+            emailLogo: campaign.email_logo,
+            fromName: campaign.from_name,
+            fromEmail: campaign.from_email,
+            scheduledTime: campaign.scheduled_time,
+            followUpEmails: campaign.follow_up_emails || [],
+            target_entity_type: campaign.target_entity_type,
+            recipients: campaign.recipients || []
+          };
+          
+          console.log(`Returning campaign ${campaign.name} from ${envId} environment`);
+          res.json(transformedCampaign);
+          return;
+        } catch (dbError) {
+          console.log('Campaign not found or table does not exist');
+          res.status(404).json({ error: 'Campaign not found' });
+          return;
+        }
+      }
+      
+      // For other environments, return 404
+      res.status(404).json({ error: 'Campaign not found' });
+    } catch (error) {
+      console.error('Error fetching campaign:', error);
+      res.status(500).json({ error: 'Failed to fetch campaign' });
+    }
+  });
+
+  // Create new campaign
+  app.post('/api/:envId/campaigns', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const campaignData = req.body;
+      
+      // Insert campaign into database
+      const result = await pool.query(`
+        INSERT INTO ${envId}.campaigns (
+          name, description, type, category, status, created_by_id, 
+          sponsor_id, list_id, subject, heading, email_body, email_logo,
+          from_name, from_email, button_link, button_text, button_color,
+          follow_up_emails, scheduled_time, frequency, is_shared, is_template, tags
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23
+        ) RETURNING *
+      `, [
+        campaignData.name,
+        campaignData.description || null,
+        campaignData.type,
+        campaignData.category || null,
+        campaignData.status || 'draft',
+        campaignData.createdById || 1, // Default to user 1 for demo
+        campaignData.sponsorId || null,
+        campaignData.listId || null,
+        campaignData.subject || null,
+        campaignData.heading || null,
+        campaignData.emailBody || null,
+        campaignData.emailLogo || null,
+        campaignData.fromName || null,
+        campaignData.fromEmail || null,
+        campaignData.buttonLink || null,
+        campaignData.buttonText || null,
+        campaignData.buttonColor || null,
+        campaignData.followUpEmails ? JSON.stringify(campaignData.followUpEmails) : null,
+        campaignData.scheduledTime || null,
+        campaignData.frequency || 'one_time',
+        campaignData.isShared || false,
+        campaignData.isTemplate || false,
+        campaignData.tags || null
+      ]);
+      
+      const newCampaign = result.rows[0];
+      
+      console.log(`Created new campaign: ${newCampaign.name} in ${envId} environment`);
+      res.json(newCampaign);
+    } catch (error) {
+      console.error('Error creating campaign:', error);
+      res.status(500).json({ error: 'Failed to create campaign' });
+    }
+  });
+
+
+
+  // Delete campaign
+  app.delete('/api/:envId/campaigns/:id', async (req, res) => {
+    try {
+      const { envId, id } = req.params;
+      
+      // Delete campaign from database
+      const result = await pool.query(`
+        DELETE FROM ${envId}.campaigns WHERE id = $1 RETURNING *
+      `, [id]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Campaign not found' });
+      }
+      
+      const deletedCampaign = result.rows[0];
+      console.log(`Deleted campaign: ${deletedCampaign.name} from ${envId} environment`);
+      res.json({ message: 'Campaign deleted successfully', campaign: deletedCampaign });
+    } catch (error) {
+      console.error('Error deleting campaign:', error);
+      res.status(500).json({ error: 'Failed to delete campaign' });
+    }
+  });
+
+  // Bulk delete campaigns
+  app.delete('/api/:envId/campaigns/bulk-delete', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const { campaignIds } = req.body;
+      
+      if (!campaignIds || !Array.isArray(campaignIds) || campaignIds.length === 0) {
+        return res.status(400).json({ error: 'Campaign IDs are required' });
+      }
+      
+      if (envId === 'degoudse') {
+        try {
+          const placeholders = campaignIds.map((_, index) => `$${index + 1}`).join(', ');
+          const result = await pool.query(`
+            DELETE FROM ${envId}.campaigns WHERE id IN (${placeholders}) RETURNING *
+          `, campaignIds);
+          
+          console.log(`Bulk deleted ${result.rows.length} campaigns from ${envId} environment`);
+          res.json({ 
+            message: `${result.rows.length} campaigns deleted successfully`, 
+            deletedCampaigns: result.rows 
+          });
+          return;
+        } catch (dbError) {
+          console.error('Database error during bulk delete:', dbError);
+          res.status(500).json({ error: 'Failed to delete campaigns' });
+          return;
+        }
+      }
+      
+      res.status(400).json({ error: 'Bulk delete not supported for this environment' });
+    } catch (error) {
+      console.error('Error bulk deleting campaigns:', error);
+      res.status(500).json({ error: 'Failed to delete campaigns' });
+    }
+  });
+
+  // Bulk status change for campaigns
+  app.patch('/api/:envId/campaigns/bulk-status', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const { campaignIds, status } = req.body;
+      
+      if (!campaignIds || !Array.isArray(campaignIds) || campaignIds.length === 0) {
+        return res.status(400).json({ error: 'Campaign IDs are required' });
+      }
+      
+      if (!status) {
+        return res.status(400).json({ error: 'Status is required' });
+      }
+      
+      // Validate status
+      const validStatuses = ['draft', 'scheduled', 'in_progress', 'sent_once', 'sent_open', 'stopped', 'archived'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ error: 'Invalid status value' });
+      }
+      
+      if (envId === 'degoudse') {
+        try {
+          const placeholders = campaignIds.map((_, index) => `$${index + 2}`).join(', ');
+          const result = await pool.query(`
+            UPDATE ${envId}.campaigns 
+            SET status = $1, updated_at = NOW() 
+            WHERE id IN (${placeholders}) 
+            RETURNING *
+          `, [status, ...campaignIds]);
+          
+          console.log(`Bulk updated ${result.rows.length} campaigns to status "${status}" in ${envId} environment`);
+          res.json({ 
+            message: `${result.rows.length} campaigns updated to ${status} successfully`, 
+            updatedCampaigns: result.rows 
+          });
+          return;
+        } catch (dbError) {
+          console.error('Database error during bulk status update:', dbError);
+          res.status(500).json({ error: 'Failed to update campaign status' });
+          return;
+        }
+      }
+      
+      res.status(400).json({ error: 'Bulk status update not supported for this environment' });
+    } catch (error) {
+      console.error('Error bulk updating campaign status:', error);
+      res.status(500).json({ error: 'Failed to update campaign status' });
+    }
+  });
+
+  // Get campaigns shared with broker users (environment-specific route)
+  app.get('/api/:envId/broker/shared-campaigns', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      
+      if (envId === 'degoudse') {
+        try {
+          // Query campaigns with system-level sharing (shared with broker view)
+          const result = await pool.query(`
+            SELECT c.*, u.name as created_by_name, cs.created_at as shared_at, cs.access_level
+            FROM ${envId}.campaigns c
+            INNER JOIN ${envId}.campaign_shares cs ON c.id = cs.campaign_id
+            LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
+            WHERE cs.shared_with_type = 'system' 
+              AND cs.is_active = true
+            ORDER BY cs.created_at DESC
+          `);
+          
+          const sharedCampaigns = result.rows.map(campaign => ({
+            id: campaign.id,
+            name: campaign.name || 'Untitled Campaign',
+            description: campaign.description || '',
+            type: campaign.type || 'cross_sell',
+            category: campaign.category || campaign.type || 'cross_sell',
+            status: campaign.status || 'draft',
+            sharedAt: campaign.shared_at,
+            sharedBy: campaign.created_by_name || 'De Goudse Team',
+            accessLevel: campaign.access_level || 'view',
+            isTemplate: campaign.is_template || false,
+            sponsorName: 'De Goudse Insurance',
+            tags: campaign.tags || [],
+            subject: campaign.subject,
+            email_body: campaign.email_body,
+            emails_sent: campaign.emails_sent || 0,
+            emails_opened: campaign.emails_opened || 0,
+            open_rate: campaign.open_rate || '0.00',
+            total_clicks: campaign.total_clicks || 0,
+            recipients: campaign.recipients || 0,
+            partner_id: campaign.partner_id,
+            partner_name: campaign.partner_id === 12 ? 'Mevas BV' : campaign.partner_name,
+            environment_id: campaign.environment_id,
+            created_at: campaign.created_at,
+            updated_at: campaign.updated_at
+          }));
+          
+          console.log(`Returning ${sharedCampaigns.length} shared campaigns for broker view from ${envId}`);
+          res.json(sharedCampaigns);
+        } catch (dbError) {
+          console.error('Database error fetching shared campaigns:', dbError);
+          // Return empty array if campaigns table doesn't exist yet
+          res.json([]);
+        }
+      } else {
+        // For other environments, return empty array
+        res.json([]);
+      }
+    } catch (error) {
+      console.error('Error fetching shared campaigns:', error);
+      res.status(500).json({ error: 'Failed to fetch shared campaigns' });
+    }
+  });
+
+  // Get campaigns shared with broker users (for Regional Insurance Partners environment)
+  app.get('/api/broker/shared-campaigns', async (req, res) => {
+    try {
+      const envId = req.headers['x-environment-id'] || 'degoudse';
+      
+      if (envId === 'degoudse') {
+        try {
+          // Query campaigns with system-level sharing (shared with broker view)
+          const result = await pool.query(`
+            SELECT c.*, u.name as created_by_name, cs.created_at as shared_at, cs.access_level
+            FROM ${envId}.campaigns c
+            INNER JOIN ${envId}.campaign_shares cs ON c.id = cs.campaign_id
+            LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
+            WHERE cs.shared_with_type = 'system' 
+              AND cs.is_active = true
+            ORDER BY cs.created_at DESC
+          `);
+          
+          const sharedCampaigns = result.rows.map(campaign => ({
+            id: campaign.id,
+            name: campaign.name || 'Untitled Campaign',
+            description: campaign.description || '',
+            type: campaign.type || 'cross_sell',
+            category: campaign.category || campaign.type || 'cross_sell',
+            status: campaign.status || 'draft',
+            sharedAt: campaign.shared_at,
+            sharedBy: campaign.created_by_name || 'De Goudse Team',
+            accessLevel: campaign.access_level || 'view',
+            isTemplate: campaign.is_template || false,
+            sponsorName: 'De Goudse Insurance',
+            tags: campaign.tags || [],
+            subject: campaign.subject,
+            email_body: campaign.email_body,
+            emails_sent: campaign.emails_sent || 0,
+            emails_opened: campaign.emails_opened || 0,
+            open_rate: campaign.open_rate || '0.00',
+            total_clicks: campaign.total_clicks || 0,
+            created_at: campaign.created_at,
+            updated_at: campaign.updated_at
+          }));
+          
+          console.log(`Returning ${sharedCampaigns.length} shared campaigns for broker view`);
+          res.json(sharedCampaigns);
+        } catch (dbError) {
+          console.error('Database error fetching shared campaigns:', dbError);
+          // Return empty array if campaigns table doesn't exist yet
+          res.json([]);
+        }
+      } else {
+        // For other environments, return empty array
+        res.json([]);
+      }
+    } catch (error) {
+      console.error('Error fetching shared campaigns:', error);
+      res.status(500).json({ error: 'Failed to fetch shared campaigns' });
+    }
+  });
+
+  app.get('/api/campaigns/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      
+      // No campaigns table exists yet - return 404 for authentic data only
+      console.log(`Campaign ${id} not found in ${envId} environment - no campaigns table exists`);
+      res.status(404).json({ error: 'Campaign not found' });
+    } catch (error) {
+      console.error('Error fetching campaign details:', error);
+      res.status(500).json({ error: 'Failed to fetch campaign details' });
+    }
+  });
+
+  app.post('/api/campaigns', async (req, res) => {
+    try {
+      const envId = (req.headers['x-environment-id'] as string) || 'degoudse';
+      const envDb = db;
+      
+      const { sharing, ...campaignData } = req.body;
+      
+      // Create the campaign first
+      const [campaign] = await envDb
+        .insert(campaigns)
+        .values({
+          ...campaignData,
+          createdById: 1, // Default user for now
+          status: campaignData.status || 'draft'
+        })
+        .returning();
+      
+      // If campaign is shared, create sharing records
+      if (sharing && campaign.id) {
+        const shareRecords = [];
+        
+        // Add partner shares
+        if (sharing.sharedPartnerIds && sharing.sharedPartnerIds.length > 0) {
+          for (const partnerId of sharing.sharedPartnerIds) {
+            shareRecords.push({
+              campaignId: campaign.id,
+              sharedWithType: 'partner',
+              sharedWithId: parseInt(partnerId),
+              accessLevel: sharing.shareAccessLevel || 'view',
+              shareMessage: sharing.shareMessage || null,
+              sharedById: 1
+            });
+          }
+        }
+        
+        // Add contact shares
+        if (sharing.sharedContactIds && sharing.sharedContactIds.length > 0) {
+          for (const contactId of sharing.sharedContactIds) {
+            shareRecords.push({
+              campaignId: campaign.id,
+              sharedWithType: 'contact',
+              sharedWithId: parseInt(contactId),
+              accessLevel: sharing.shareAccessLevel || 'view',
+              shareMessage: sharing.shareMessage || null,
+              sharedById: 1
+            });
+          }
+        }
+        
+        // Insert sharing records if any exist
+        if (shareRecords.length > 0) {
+          await envDb.insert(campaignShares).values(shareRecords);
+        }
+      }
+      
+      // Create recipients if provided
+      if (campaignData.recipientIds && campaignData.recipientIds.length > 0) {
+        const recipientRecords = campaignData.recipientIds.map((contactId: number) => ({
+          campaignId: campaign.id,
+          contactId: contactId,
+          status: 'pending'
+        }));
+        
+        await envDb.insert(campaignRecipients).values(recipientRecords);
+      }
+      
+      // Create follow-ups if provided
+      if (campaignData.followUpEmails && campaignData.followUpEmails.length > 0) {
+        const followUpRecords = campaignData.followUpEmails.map((followUp: any) => ({
+          campaignId: campaign.id,
+          subject: followUp.subject || '',
+          emailBody: followUp.emailBody || '',
+          delayDays: followUp.delayDays,
+          status: 'pending',
+          attachment: followUp.attachment || null
+        }));
+        
+        await envDb.insert(campaignFollowUps).values(followUpRecords);
+      }
+      
+      console.log(`Campaign created successfully in ${envId} environment:`, campaign.id);
+      res.status(201).json(campaign);
+    } catch (error) {
+      console.error('Error creating campaign:', error);
+      res.status(500).json({ error: 'Failed to create campaign' });
+    }
+  });
+
+  // Campaign Shares API endpoint
+  app.post('/api/:envId/campaign-shares', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const shareData = req.body;
+      
+      console.log(`Creating campaign share in ${envId} environment:`, shareData);
+      
+      if (envId === 'degoudse') {
+        // Insert campaign share into degoudse environment
+        const result = await pool.query(`
+          INSERT INTO degoudse.campaign_shares (
+            campaign_id, shared_with_type, shared_with_id, access_level, 
+            shared_by_id, is_active, created_at, updated_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+          RETURNING *
+        `, [
+          shareData.campaign_id,
+          shareData.shared_with_type,
+          shareData.shared_with_id,
+          shareData.access_level,
+          shareData.shared_by_id,
+          shareData.is_active
+        ]);
+        
+        const campaignShare = result.rows[0];
+        console.log(`Campaign share created successfully in ${envId}:`, campaignShare);
+        res.status(201).json(campaignShare);
+      } else {
+        res.status(400).json({ error: 'Environment not supported' });
+      }
+    } catch (error) {
+      console.error('Error creating campaign share:', error);
+      res.status(500).json({ error: 'Failed to create campaign share' });
+    }
+  });
+
+  // Campaign Templates API endpoints
+  app.get('/api/:envId/campaign-templates', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      
+      const result = await pool.query(`
+        SELECT 
+          c.*,
+          u.name as created_by_name
+        FROM ${envId}.campaigns c
+        LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
+        WHERE c.is_template = true
+        ORDER BY c.created_at DESC
+      `);
+      
+      
+      const templates = result.rows.map(template => ({
+        id: template.id,
+        name: template.name,
+        description: template.description || '',
+        type: template.type,
+        category: template.category,
+        status: template.status,
+        created_by_id: template.created_by_id,
+        sponsor_id: template.sponsor_id,
+        subject: template.subject,
+        email_body: template.email_body,
+        email_logo: template.email_logo,
+        from_name: template.from_name,
+        from_email: template.from_email,
+        frequency: template.frequency,
+        is_shared: template.is_shared,
+        is_template: template.is_template,
+        tags: template.tags || [],
+        created_at: template.created_at,
+        updated_at: template.updated_at,
+        heading: template.heading,
+        button_link: template.button_link,
+        button_text: template.button_text,
+        button_color: template.button_color,
+        follow_up_emails: template.follow_up_emails || [],
+        icon: template.icon,
+        createdById: template.created_by_id,
+        isShared: template.is_shared,
+        isTemplate: template.is_template,
+        sponsorId: template.sponsor_id,
+        createdAt: template.created_at,
+        emailBody: template.email_body,
+        emailLogo: template.email_logo,
+        fromName: template.from_name,
+        fromEmail: template.from_email,
+        scheduledTime: template.scheduled_time,
+        followUpEmails: template.follow_up_emails || []
+      }));
+      
+      res.json(templates);
+    } catch (error) {
+      console.error('Error fetching campaign templates:', error);
+      res.status(500).json({ error: 'Failed to fetch campaign templates' });
+    }
+  });
+
+  // Get single campaign template by ID
+  app.get('/api/:envId/campaign-templates/:id', async (req, res) => {
+    try {
+      const { envId, id } = req.params;
+      
+      // Get template
+      const templateResult = await pool.query(`
+        SELECT * FROM ${envId}.campaigns WHERE id = $1 AND is_template = true
+      `, [id]);
+      
+      if (templateResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Template not found' });
+      }
+      
+      const template = templateResult.rows[0];
+      
+      // For templates, we don't need separate emails/blocks structure
+      // The template data is stored directly in the campaigns table
+      
+      const templateData = {
+        id: template.id,
+        name: template.name,
+        description: template.description || '',
+        type: template.type,
+        category: template.category,
+        status: template.status,
+        created_by_id: template.created_by_id,
+        sponsor_id: template.sponsor_id,
+        subject: template.subject,
+        email_body: template.email_body,
+        email_logo: template.email_logo,
+        from_name: template.from_name,
+        from_email: template.from_email,
+        frequency: template.frequency,
+        is_shared: template.is_shared,
+        is_template: template.is_template,
+        tags: template.tags || [],
+        created_at: template.created_at,
+        updated_at: template.updated_at,
+        heading: template.heading,
+        button_link: template.button_link,
+        button_text: template.button_text,
+        button_color: template.button_color,
+        follow_up_emails: template.follow_up_emails || [],
+        scheduled_time: template.scheduled_time
+      };
+      
+      res.json(templateData);
+    } catch (error) {
+      console.error('Error fetching campaign template:', error);
+      res.status(500).json({ error: 'Failed to fetch campaign template' });
+    }
+  });
+
+  // Create campaign template
+  app.post('/api/:envId/campaign-templates', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const { name, description, objective, entity, icon, status, attachments, emails } = req.body;
+      
+      console.log('Campaign template creation request:', { name, description, objective, entity, icon, status, emails: emails?.length });
+      
+      // Validate required fields
+      if (!name || !entity || !emails || !Array.isArray(emails)) {
+        return res.status(400).json({ error: 'Missing required fields: name, entity, and emails array' });
+      }
+      
+      // For now, use user ID 1 as default creator
+      const createdBy = 1;
+      
+      await pool.query('BEGIN');
+      
+      // Insert template
+      const templateResult = await pool.query(`
+        INSERT INTO campaign_templates (name, description, objective, entity, icon, status, attachments, created_by)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING id
+      `, [name, description, objective, entity, icon, status || 'draft', JSON.stringify(attachments || []), createdBy]);
+      
+      const templateId = templateResult.rows[0].id;
+      
+      // Insert emails and blocks
+      for (let emailIndex = 0; emailIndex < emails.length; emailIndex++) {
+        const email = emails[emailIndex];
+        
+        const emailResult = await pool.query(`
+          INSERT INTO campaign_emails (template_id, subject, follow_up_days, left_logo, right_logo, email_order)
+          VALUES ($1, $2, $3, $4, $5, $6)
+          RETURNING id
+        `, [templateId, email.subject, email.followUpDays || 0, email.leftLogo || null, email.rightLogo || null, emailIndex]);
+        
+        const emailId = emailResult.rows[0].id;
+        
+        // Parse blocks from content string
+        let blocks = [];
+        try {
+          blocks = JSON.parse(email.content || '[]');
+        } catch (e) {
+          console.log('Failed to parse email content as JSON, treating as empty blocks array');
+          blocks = [];
+        }
+        
+        // Insert blocks
+        for (let blockIndex = 0; blockIndex < blocks.length; blockIndex++) {
+          const block = blocks[blockIndex];
+          
+          await pool.query(`
+            INSERT INTO email_blocks (email_id, type, content, properties, block_order)
+            VALUES ($1, $2, $3, $4, $5)
+          `, [emailId, block.type || 'text', block.content || '', JSON.stringify(block.properties || {}), blockIndex]);
+        }
+      }
+      
+      await pool.query('COMMIT');
+      
+      res.json({ id: templateId, message: 'Template created successfully' });
+    } catch (error) {
+      await pool.query('ROLLBACK');
+      console.error('Error creating campaign template:', error);
+      res.status(500).json({ error: 'Failed to create campaign template' });
+    }
+  });
+
+  // Update campaign template
+  app.put('/api/:envId/campaign-templates/:id', async (req, res) => {
+    try {
+      const { envId, id } = req.params;
+      const { name, description, objective, entity, icon, status, attachments, emails } = req.body;
+      
+      await pool.query('BEGIN');
+      
+      // Update template
+      await pool.query(`
+        UPDATE campaign_templates 
+        SET name = $1, description = $2, objective = $3, entity = $4, icon = $5, status = $6, attachments = $7, updated_at = NOW()
+        WHERE id = $8
+      `, [name, description, objective, entity, icon, status || 'draft', JSON.stringify(attachments || []), id]);
+      
+      // Delete existing emails and blocks (cascade will handle blocks)
+      await pool.query('DELETE FROM campaign_emails WHERE template_id = $1', [id]);
+      
+      // Insert new emails and blocks
+      for (let emailIndex = 0; emailIndex < emails.length; emailIndex++) {
+        const email = emails[emailIndex];
+        
+        const emailResult = await pool.query(`
+          INSERT INTO campaign_emails (template_id, subject, follow_up_days, left_logo, right_logo, email_order)
+          VALUES ($1, $2, $3, $4, $5, $6)
+          RETURNING id
+        `, [id, email.subject, email.followUpDays || 0, email.leftLogo, email.rightLogo, emailIndex]);
+        
+        const emailId = emailResult.rows[0].id;
+        
+        // Insert blocks
+        for (let blockIndex = 0; blockIndex < email.blocks.length; blockIndex++) {
+          const block = email.blocks[blockIndex];
+          
+          await pool.query(`
+            INSERT INTO email_blocks (email_id, type, content, properties, block_order)
+            VALUES ($1, $2, $3, $4, $5)
+          `, [emailId, block.type, block.content, JSON.stringify(block.properties || {}), blockIndex]);
+        }
+      }
+      
+      await pool.query('COMMIT');
+      
+      res.json({ message: 'Template updated successfully' });
+    } catch (error) {
+      await pool.query('ROLLBACK');
+      console.error('Error updating campaign template:', error);
+      res.status(500).json({ error: 'Failed to update campaign template' });
+    }
+  });
+
+  // Activity API endpoints
   app.post('/api/:envId/activity/tasks', async (req, res) => {
     try {
       const { envId } = req.params;
-      const { title, description, entityType, entityId, assignedToId, assignedById, priority, dueDate, visibleToPartner } = req.body;
-      const envPool = getEnvironmentPool(envId);
+      const { title, priority, visibleToPartner, entityType, entityId, authorId, assignedTo, assignedById } = req.body;
+      
+      const envPool = pool;
       
       const result = await envPool.query(`
-        INSERT INTO ${envId}.activity_tasks (title, description, entity_type, entity_id, assigned_to_id, assigned_by_id, priority, due_date, visible_to_partner, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW()) RETURNING *
-      `, [title, description, entityType, parseInt(entityId), assignedToId, assignedById, priority || 'medium', dueDate, visibleToPartner || false]);
+        INSERT INTO ${envId}.activities (
+          activity_type, title, priority, visible_to_partner, 
+          entity_type, entity_id, author_id, assigned_to, assigned_by_id,
+          created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+        RETURNING *
+      `, ['task', title, priority, visibleToPartner, entityType, entityId, authorId, assignedTo, assignedById]);
       
-      res.json(result.rows[0]);
+      console.log('Task created successfully:', result.rows[0]);
+      res.status(201).json(result.rows[0]);
     } catch (error) {
       console.error('Error creating task:', error);
       res.status(500).json({ error: 'Failed to create task' });
     }
   });
 
-  // Update task completion status
   app.patch('/api/:envId/activity/tasks/:taskId', async (req, res) => {
     try {
       const { envId, taskId } = req.params;
       const { completed, completedAt } = req.body;
-      const envPool = getEnvironmentPool(envId);
+      
+      const envPool = pool;
       
       const result = await envPool.query(`
-        UPDATE ${envId}.activity_tasks 
+        UPDATE ${envId}.activities 
         SET completed = $1, completed_at = $2, updated_at = NOW()
-        WHERE id = $3 
+        WHERE id = $3 AND activity_type = 'task'
         RETURNING *
       `, [completed, completedAt, parseInt(taskId)]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Task not found' });
+      }
       
       res.json(result.rows[0]);
     } catch (error) {
@@ -4791,174 +8083,131 @@ Respond with a JSON object containing:
     }
   });
 
-  // Create a new comment
   app.post('/api/:envId/activity/comments', async (req, res) => {
     try {
       const { envId } = req.params;
-      const { content, authorId, entityType, entityId, assignedToId, parentCommentId, isInternal, visibleToPartner } = req.body;
-      const envPool = getEnvironmentPool(envId);
+      const { content, visibleToPartner, entityType, entityId, authorId } = req.body;
+      
+      const envPool = pool;
       
       const result = await envPool.query(`
-        INSERT INTO ${envId}.activity_comments (content, author_id, entity_type, entity_id, assigned_to_id, parent_comment_id, is_internal, visible_to_partner, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW()) RETURNING *
-      `, [content, authorId, entityType, parseInt(entityId), assignedToId, parentCommentId, isInternal || false, visibleToPartner || false]);
+        INSERT INTO ${envId}.activities (
+          activity_type, content, visible_to_partner, 
+          entity_type, entity_id, author_id,
+          created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+        RETURNING *
+      `, ['comment', content, visibleToPartner, entityType, entityId, authorId]);
       
-      res.json(result.rows[0]);
+      console.log('Comment created successfully:', result.rows[0]);
+      res.status(201).json(result.rows[0]);
     } catch (error) {
       console.error('Error creating comment:', error);
       res.status(500).json({ error: 'Failed to create comment' });
     }
   });
 
-  // Create a new OKR comment
-  app.post('/api/:envId/okr/comments', async (req, res) => {
+  // Table counts endpoint for Developer Dashboard
+  app.get('/api/:environment/table-counts', async (req, res) => {
     try {
-      const { envId } = req.params;
-      const { metricId, partnerId, comment, userId } = req.body;
-      const envPool = getEnvironmentPool(envId);
+      const environment = req.params.environment;
+      const { pool } = await import('./db');
+      const client = await pool.connect();
       
-      const result = await envPool.query(`
-        INSERT INTO ${envId}.okr_comments (metric_id, user_id, partner_id, comment, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, NOW(), NOW()) RETURNING *
-      `, [metricId, userId, partnerId, comment]);
-      
-      res.json(result.rows[0]);
-    } catch (error) {
-      console.error('Error creating OKR comment:', error);
-      res.status(500).json({ error: 'Failed to create OKR comment' });
-    }
-  });
-
-  // Get unified timeline for a partner
-  app.get('/api/:envId/partners/:partnerId/timeline', async (req, res) => {
-    try {
-      const { envId, partnerId } = req.params;
-      const envPool = getEnvironmentPool(envId);
-      
-      const result = await envPool.query(`
-        SELECT * FROM ${envId}.unified_activities 
-        WHERE entity_type = 'partner' AND entity_id = $1 
-        ORDER BY created_at DESC
-      `, [parseInt(partnerId)]);
-      
-      res.json(result.rows);
-    } catch (error) {
-      console.error('Error fetching partner timeline:', error);
-      res.status(500).json({ error: 'Failed to fetch partner timeline' });
-    }
-  });
-
-  // Get AI next best actions for a partner
-  app.get('/api/:envId/partners/:partnerId/next-actions', async (req, res) => {
-    try {
-      const { envId, partnerId } = req.params;
-      const envPool = getEnvironmentPool(envId);
-      
-      const result = await envPool.query(`
-        SELECT * FROM ${envId}.next_best_actions
-        WHERE partner_id = $1 AND status IN ('pending', 'in_progress')
-        ORDER BY priority DESC, confidence DESC, created_at DESC
-      `, [parseInt(partnerId)]);
-      
-      res.json(result.rows);
-    } catch (error) {
-      console.error('Error fetching next best actions:', error);
-      res.status(500).json({ error: 'Failed to fetch next best actions' });
-    }
-  });
-
-  // Generate AI next best actions for a partner
-  app.post('/api/:envId/partners/:partnerId/generate-actions', async (req, res) => {
-    try {
-      const { envId, partnerId } = req.params;
-      const envPool = getEnvironmentPool(envId);
-      
-      if (!process.env.OPENAI_API_KEY) {
-        return res.status(400).json({ 
-          error: 'OpenAI API key is required for AI recommendations. Please provide your OpenAI API key.' 
-        });
-      }
-      
-      // Get partner context
-      const partnerResult = await envPool.query(`
-        SELECT * FROM ${envId}.customers WHERE id = $1
-      `, [parseInt(partnerId)]);
-      
-      const partner = partnerResult.rows[0];
-      if (!partner) {
-        return res.status(404).json({ error: 'Partner not found' });
-      }
-      
-      // Get related data for context
-      const [customersResult, opportunitiesResult, tasksResult, commentsResult] = await Promise.all([
-        envPool.query(`SELECT * FROM ${envId}.customers WHERE id IN (SELECT customer_id FROM ${envId}.customer_partners WHERE partner_id = $1) LIMIT 5`, [parseInt(partnerId)]),
-        envPool.query(`SELECT * FROM ${envId}.opportunities WHERE id IN (SELECT opportunity_id FROM ${envId}.partner_opportunities WHERE partner_id = $1) LIMIT 5`, [parseInt(partnerId)]),
-        envPool.query(`SELECT * FROM ${envId}.activity_tasks WHERE entity_type = 'partner' AND entity_id = $1 ORDER BY created_at DESC LIMIT 5`, [parseInt(partnerId)]),
-        envPool.query(`SELECT * FROM ${envId}.activity_comments WHERE entity_type = 'partner' AND entity_id = $1 ORDER BY created_at DESC LIMIT 5`, [parseInt(partnerId)])
-      ]);
-      
-      const contextData = {
-        partner,
-        customers: customersResult.rows,
-        opportunities: opportunitiesResult.rows,
-        recentTasks: tasksResult.rows,
-        recentComments: commentsResult.rows
-      };
-      
-      // Generate AI recommendations using OpenAI
-      const { default: OpenAI } = await import('openai');
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-      
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-        messages: [
-          {
-            role: "system",
-            content: "You are an AI assistant that analyzes partner relationships and suggests next best actions. Provide specific, actionable recommendations based on the partner context. Respond with JSON containing an array of actions."
-          },
-          {
-            role: "user",
-            content: `Analyze this partner context and suggest 3-5 next best actions:
-            
-            Partner: ${JSON.stringify(partner, null, 2)}
-            Customers: ${JSON.stringify(contextData.customers, null, 2)}
-            Opportunities: ${JSON.stringify(contextData.opportunities, null, 2)}
-            Recent Tasks: ${JSON.stringify(contextData.recentTasks, null, 2)}
-            Recent Comments: ${JSON.stringify(contextData.recentComments, null, 2)}
-            
-            Return a JSON object with an "actions" array. Each action should have: actionType, title, description, priority (low/medium/high/urgent), confidence (0-1), reasoning, and suggestedDate.`
+      try {
+        // Get all tables in the environment schema
+        const tablesResult = await client.query(`
+          SELECT table_name 
+          FROM information_schema.tables 
+          WHERE table_schema = $1 
+          AND table_type = 'BASE TABLE'
+          ORDER BY table_name
+        `, [environment]);
+        
+        const tableCounts: Record<string, number> = {};
+        
+        // Get count for each table
+        for (const row of tablesResult.rows) {
+          const tableName = row.table_name;
+          try {
+            const countResult = await client.query(`SELECT COUNT(*) as count FROM "${environment}"."${tableName}"`);
+            tableCounts[tableName] = parseInt(countResult.rows[0].count);
+          } catch (countError) {
+            console.error(`Error counting rows in ${tableName}:`, countError);
+            tableCounts[tableName] = 0;
           }
-        ],
-        response_format: { type: "json_object" },
-      });
+        }
+        
+        console.log(`Table counts for ${environment}:`, tableCounts);
+        res.json(tableCounts);
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      console.error('Error fetching table counts:', error);
+      res.status(500).json({ error: 'Failed to fetch table counts' });
+    }
+  });
+
+  // Helper function to ensure there's always a default catalogue
+  async function ensureDefaultCatalogue(envId: string) {
+    try {
+      const envPool = pool;
       
-      const aiResult = JSON.parse(response.choices[0].message.content);
-      const actions = aiResult.actions || [];
+      // Check if default catalogue exists
+      const existing = await envPool.query(`
+        SELECT id FROM ${envId}.product_catalogues 
+        WHERE name = 'Products Catalogue' AND status = 'active'
+        LIMIT 1
+      `);
       
-      // Save generated actions to database
-      const savedActions = [];
-      for (const action of actions) {
+      if (existing.rows.length === 0) {
+        // Create default catalogue
         const result = await envPool.query(`
-          INSERT INTO ${envId}.next_best_actions (partner_id, action_type, title, description, priority, confidence, reasoning, context_data, suggested_date, created_at, updated_at)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW()) RETURNING *
-        `, [
-          parseInt(partnerId),
-          action.actionType,
-          action.title,
-          action.description,
-          action.priority || 'medium',
-          action.confidence || 0.8,
-          action.reasoning,
-          JSON.stringify(contextData),
-          action.suggestedDate
-        ]);
-        savedActions.push(result.rows[0]);
+          INSERT INTO ${envId}.product_catalogues (name, description, status)
+          VALUES ('Products Catalogue', 'Main product catalogue', 'active')
+          RETURNING id
+        `);
+        return result.rows[0].id;
       }
       
-      res.json(savedActions);
+      return existing.rows[0].id;
     } catch (error) {
-      console.error('Error generating AI actions:', error);
-      res.status(500).json({ error: 'Failed to generate AI recommendations' });
+      console.error('Error ensuring default catalogue:', error);
+      return 1; // Fallback to ID 1
+    }
+  }
+
+  // Update product creation to automatically assign to default catalogue
+  app.post('/api/:envId/products', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const { name, description, category, sku, price, vendorId } = req.body;
+      const envPool = pool;
+      
+      // Create the product
+      const productResult = await envPool.query(`
+        INSERT INTO ${envId}.products (name, description, category, sku, price, vendor_id)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *
+      `, [name, description, category, sku, price, vendorId]);
+      
+      const product = productResult.rows[0];
+      
+      // Ensure default catalogue exists and assign product to it
+      const catalogueId = await ensureDefaultCatalogue(envId);
+      
+      // Add product to default catalogue
+      await envPool.query(`
+        INSERT INTO ${envId}.catalogue_products (product_id, catalogue_id, visible)
+        VALUES ($1, $2, true)
+        ON CONFLICT (product_id, catalogue_id) DO NOTHING
+      `, [product.id, catalogueId]);
+      
+      res.status(201).json(product);
+    } catch (error) {
+      console.error('Error creating product:', error);
+      res.status(500).json({ error: 'Failed to create product' });
     }
   });
 

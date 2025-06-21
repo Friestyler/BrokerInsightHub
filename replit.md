@@ -1,8 +1,9 @@
+
 # Broker Copilot - Replit Development Guide
 
 ## Overview
 
-Broker Copilot is a comprehensive multi-environment broker portal powered by AI to revolutionize insurance market intelligence and operational workflows. The application serves as a SaaS platform built to streamline collaboration between insurance companies (providers) and insurance brokers (partners), with advanced entity management capabilities and AI-driven predictive analytics.
+Broker Copilot is a comprehensive multi-environment broker portal powered by AI designed to revolutionize insurance market intelligence and operational workflows. The application serves as a SaaS platform that streamlines collaboration between insurance companies (providers) and brokers/advisors (partners), focusing on data-driven insights for cross-sell/upsell opportunities, with advanced entity management capabilities and AI-driven predictive analytics.
 
 ## System Architecture
 
@@ -10,8 +11,9 @@ Broker Copilot is a comprehensive multi-environment broker portal powered by AI 
 - **React-based SPA** with TypeScript and Vite for fast development
 - **Shadcn/ui components** with Tailwind CSS for consistent design system
 - **Wouter routing** for client-side navigation
-- **TanStack Query** for efficient data fetching and caching
-- **Context-based state management** for environment switching
+- **TanStack Query (React Query)** for efficient data fetching and caching
+- **React Context** for application state and environment switching
+- **Lucide React and FontAwesome** for icons
 
 ### Backend Architecture
 - **Express.js REST API** with TypeScript
@@ -19,6 +21,7 @@ Broker Copilot is a comprehensive multi-environment broker portal powered by AI 
 - **Middleware-based environment routing** for data separation
 - **Drizzle ORM** for type-safe database operations
 - **File upload handling** with Multer for CSV/PDF processing
+- **Email Service**: SendGrid integration
 
 ### Database Design
 - **PostgreSQL with schema-based isolation** (degoudse schema as primary)
@@ -27,21 +30,32 @@ Broker Copilot is a comprehensive multi-environment broker portal powered by AI 
 - **Upload settings and transformation scripts** for data import
 - **Activity tracking and audit trails**
 
+### Multi-Environment Structure
+The application supports isolated environments:
+- **De Goudse** (primary environment)
+- **My Qollabi** (reference environment)
+- **ACME CO** (client environment)
+- **Globex Corp** (client environment)
+
+Each environment maintains its own data isolation while sharing the same application logic.
+
 ## Key Components
 
 ### Entity Management System
-- **Partners**: Broker organizations and contacts
-- **Customers**: End clients with relationship tracking  
-- **Opportunities**: Sales deals with probability scoring
+- **Partners**: Insurance brokers and distribution partners
+- **Customers**: End clients with relationship management
+- **Opportunities**: Sales pipeline management with probability tracking
 - **Products**: Insurance product catalog
-- **Vendors**: Service provider management
-- **Contacts**: Unified contact management across entities
+- **Contacts**: Universal contact management linked to any entity
+- **Vendors**: Supplier and vendor relationship management
 
 ### OKR (Objectives and Key Results) System
 - **Metrics creation** with customizable units and hierarchies
 - **Tag-based grouping** for organizational structure
 - **Template assignments** to entities for goal tracking
+- **Entity Assignment**: Link metrics to partners, customers, or opportunities
 - **Grouped views** with filtering and sorting capabilities
+- **Template System**: Reusable metric templates across environments
 
 ### Data Upload & Transformation
 - **CSV/Excel upload wizard** with field mapping
@@ -50,10 +64,17 @@ Broker Copilot is a comprehensive multi-environment broker portal powered by AI 
 - **Upload settings** for entity-specific configurations
 
 ### Campaign Management
-- **Email campaign builder** with AI assistance
+- **Campaign Builder**: AI-assisted email composition with template support
 - **List-based targeting** with dynamic segmentation
-- **Follow-up cadences** and sender configuration
-- **Shared campaign collaboration**
+- **Recipient Management**: Contact-based targeting with bulk operations
+- **Follow-up Automation**: Configurable cadence management
+- **Sender configuration** and shared campaign collaboration
+
+### Smart Lists and Views
+- **Dynamic Filtering**: Real-time filtering with saved view persistence
+- **Cross-entity Relationships**: Link opportunities to customers and partners
+- **Bulk Operations**: Multi-select actions across entity types
+- **Share Functionality**: Generate public links for external collaboration
 
 ## Data Flow
 
@@ -62,6 +83,13 @@ Broker Copilot is a comprehensive multi-environment broker portal powered by AI 
 2. Field mapping → Transformation script selection → Data validation
 3. Duplicate detection → Batch processing → Database insertion
 4. Success reporting → List refresh → Notification
+
+### Request Flow
+1. Client requests hit the Express.js server
+2. Environment middleware determines the target environment (defaults to 'degoudse')
+3. Database queries are executed against the appropriate schema
+4. Response data is cached for performance optimization
+5. Results are returned to the React frontend
 
 ### Environment Isolation
 1. Request middleware → Environment detection → Schema routing
@@ -73,10 +101,20 @@ Broker Copilot is a comprehensive multi-environment broker portal powered by AI 
 2. Template association → Entity assignment → Progress tracking
 3. Hierarchical views → Performance analytics → Goal achievement
 
+### Caching Strategy
+- Aggressive in-memory caching for frequently accessed data
+- 5-minute TTL for standard endpoints
+- 10-minute TTL for critical entities (partners/customers)
+- Cache invalidation on data mutations
+
 ## External Dependencies
 
+### Database
+- **PostgreSQL**: Primary data store with environment-based schemas
+- **Neon Serverless**: Cloud PostgreSQL provider
+- **Connection Pooling**: Managed through @neondatabase/serverless
+
 ### Core Dependencies
-- **@neondatabase/serverless**: PostgreSQL database connectivity
 - **drizzle-orm**: Type-safe database operations
 - **@tanstack/react-query**: Data fetching and caching
 - **@radix-ui components**: Accessible UI primitives
@@ -89,49 +127,54 @@ Broker Copilot is a comprehensive multi-environment broker portal powered by AI 
 - **csv-parser**: CSV file processing
 
 ### AI Integration
-- **@anthropic-ai/sdk**: AI-powered features (future enhancement)
+- **Anthropic Claude / @anthropic-ai/sdk**: AI-powered content generation and analysis (live + future)
+- **PDF Analysis**: Document comparison and text extraction
 
 ### Email Services
-- **@sendgrid/mail**: Email campaign delivery
+- **SendGrid / @sendgrid/mail**: Transactional email delivery
+- **Template Management**: HTML/text email template system
+
+### UI Components
+- **Radix UI**: Accessible component primitives
+- **Tailwind CSS**: Utility-first styling framework
+- **Lucide React**: Modern icon library
+- **React Hook Form**: Form state management
 
 ## Deployment Strategy
 
 ### Development Environment
-- **Replit-based development** with hot reload
-- **PostgreSQL 16** module for database
-- **Node.js 20** runtime environment
-- **Port 5000** for backend API serving
+- **Runtime**: Node.js 20
+- **Database**: PostgreSQL 16
+- **Package Manager**: npm
+- **Development Server**: Vite dev server with HMR
+- **Port Configuration**: Local port 5000, external port 80
 
-### Production Build
-- **Vite build** for optimized frontend bundle
-- **esbuild** for Node.js backend compilation
-- **Autoscale deployment** target for dynamic scaling
-- **Static file serving** from dist/public
+### Build Process
+1. **Frontend Build**: Vite builds React application to `dist/public`
+2. **Backend Build**: esbuild bundles server code to `dist/index.js`
+3. **Static Assets**: Served from build directory
+4. **Environment Variables**: DATABASE_URL, SENDGRID_API_KEY
+
+### Production Deployment
+- **Target**: Autoscale deployment on Replit
+- **Build Command**: `npm run build`
+- **Start Command**: `npm run start`
+- **Health Check**: Waits for port 5000 availability
 
 ### Database Management
-- **Drizzle migrations** for schema changes
-- **Environment-specific schemas** for data isolation
+- **Schema Sync**: Automatic schema synchronization across environments
+- **Migrations**: Drizzle Kit handles database migrations
+- **Seeding**: Initial data population for development environments
 - **Backup and restore** capabilities through admin panel
 
-## Recent Changes
-
-### June 14, 2025 - Data Upload Enhancements
-- **Streamlined Entity Upload Flow**: Removed CSV transformation step from entity-upload workflow
-- **Entity Selection Integration**: Step 1 now features visual entity selection cards (Opportunities, Partners, Customers, Products, Vendors, Contacts)
-- **AI-Powered Custom Logic**: Added natural language code generation for transformation scripts
-- **Template Auto-loading**: Implemented cross-compatible template system with auto-selection
-- **Navigation Fixes**: Resolved routing issues between upload sections
-
-### AI Code Generation Features
-- **Natural Language Processing**: Users can describe transformations in plain English
-- **Automatic Code Generation**: OpenAI GPT-4o generates Python pandas code based on descriptions
-- **Code Explanations**: AI provides clear, non-technical explanations of generated code
-- **Real-time Validation**: Built-in code validation with error reporting
-- **Smart Templates**: Generated code automatically populates script editor
-
 ## Changelog
-
-- June 14, 2025. Initial setup
+- June 14, 2025: Initial setup
+- June 14, 2025: Completed tabbed campaigns interface with Templates and Campaigns tabs, updated entity selection styling
+- June 14, 2025: Streamlined Entity Upload Flow, AI-powered code generation for transformation scripts
+- June 15, 2025: Cleaned legacy template flows, improved save flow, added AI content blocks, campaign wizard redesign
+- June 15, 2025: Full Flow Builder rebranding with consistent UX, enhanced hierarchical entity/contact selection
+- June 15, 2025: Added recipient system, tile redesigns, vertical step progress, better navigation
+- June 15, 2025: Natural language transformation logic, AI explanations, template auto-loading, routing fixes
 
 ## User Preferences
 

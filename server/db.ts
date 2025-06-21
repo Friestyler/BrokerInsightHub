@@ -3,26 +3,10 @@ import { drizzle } from 'drizzle-orm/neon-serverless';
 import ws from "ws";
 import * as schema from "@shared/schema";
 
+// Configure WebSocket with proper error handling
 neonConfig.webSocketConstructor = ws;
-
-// Environment configuration - each environment gets its own dedicated database
-interface DatabaseConfig {
-  connectionString: string;
-  name: string;
-}
-
-interface EnvironmentConfig {
-  [key: string]: DatabaseConfig;
-}
-
-// Configure only De Goudse environment
-const environmentConfigs: EnvironmentConfig = {
-  // De Goudse - primary environment
-  degoudse: {
-    connectionString: process.env.DATABASE_URL || '',
-    name: 'De Goudse Database'
-  }
-};
+neonConfig.useSecureWebSocket = true;
+neonConfig.pipelineConnect = false;
 
 if (!process.env.DATABASE_URL) {
   throw new Error(
@@ -30,26 +14,26 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Create a pool for each environment
-const pools: Record<string, Pool> = {};
-const dbs: Record<string, ReturnType<typeof drizzle>> = {};
-
-// Initialize database connections for all environments
-Object.entries(environmentConfigs).forEach(([envName, config]) => {
-  pools[envName] = new Pool({ connectionString: config.connectionString });
-  dbs[envName] = drizzle({ client: pools[envName], schema });
+// Create pool with connection limits and error handling
+export const pool = new Pool({ 
+  connectionString: process.env.DATABASE_URL,
+  max: 10,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000
 });
 
-// Default connections (De Goudse only)
-export const pool = pools.degoudse;
-export const db = dbs.degoudse;
+// Handle pool errors to prevent crashes
+pool.on('error', (err) => {
+  console.error('Database pool error:', err);
+});
 
-// Helper function to get database connection for a specific environment
-export function getEnvironmentDb(envId = 'degoudse') {
-  return dbs[envId] || db;
+export const db = drizzle(pool, { schema });
+
+// Add missing exports for environment support
+export function getEnvironmentDb(envId: string) {
+  return db;
 }
 
-// Helper function to get database pool for a specific environment
-export function getEnvironmentPool(envId = 'degoudse') {
-  return pools[envId] || pool;
+export function getEnvironmentPool(envId: string) {
+  return pool;
 }

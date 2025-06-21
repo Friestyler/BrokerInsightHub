@@ -7,29 +7,46 @@ const schemas = ['degoudse'];
  * Initializes schemas for all environments
  */
 export async function initializeSchemas() {
-  try {
-    console.log('Initializing database schemas for all environments...');
-    
-    // Connect to the database
-    const client = await pool.connect();
-    
+  let retries = 3;
+  let lastError;
+
+  while (retries > 0) {
     try {
-      // Create schemas for each environment if they don't exist
-      for (const schema of schemas) {
-        await client.query(`
-          CREATE SCHEMA IF NOT EXISTS "${schema}";
-        `);
-        console.log(`Schema "${schema}" created or verified.`);
-      }
+      console.log('Initializing database schemas for all environments...');
       
-      console.log('All database schemas initialized successfully');
-    } finally {
-      client.release();
+      // Connect to the database with timeout
+      const client = await pool.connect();
+      
+      try {
+        // Test the connection first
+        await client.query('SELECT 1');
+        console.log('Database connection established successfully');
+        
+        // Create schemas for each environment if they don't exist
+        for (const schema of schemas) {
+          await client.query(`CREATE SCHEMA IF NOT EXISTS "${schema}"`);
+          console.log(`Schema "${schema}" created or verified.`);
+        }
+        
+        console.log('All database schemas initialized successfully');
+        return; // Success, exit function
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      lastError = error;
+      retries--;
+      console.error(`Database initialization attempt failed (${3 - retries}/3):`, error);
+      
+      if (retries > 0) {
+        console.log(`Retrying in 2 seconds...`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+      }
     }
-  } catch (error) {
-    console.error('Error initializing database schemas:', error);
-    throw error;
   }
+  
+  console.error('Failed to initialize database after 3 attempts');
+  throw lastError;
 }
 
 /**
@@ -47,11 +64,11 @@ export async function copyEnvironmentData(sourceSchema: string, targetSchema: st
       const tablesResult = await client.query(`
         SELECT table_name 
         FROM information_schema.tables 
-        WHERE table_schema = $1 
+        WHERE table_schema = $1
         AND table_type = 'BASE TABLE'
       `, [sourceSchema]);
       
-      const tables = tablesResult.rows.map(row => row.table_name);
+      const tables = tablesResult.rows.map((row: any) => row.table_name);
       
       for (const tableName of tables) {
         // Copy table structure

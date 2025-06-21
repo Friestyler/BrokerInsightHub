@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { getEnvironmentDb } from '../db';
+import { db } from '../db';
 import { AsyncLocalStorage } from 'async_hooks';
 
 // Default environment if none specified
@@ -24,7 +24,7 @@ export function environmentMiddleware(req: Request, res: Response, next: NextFun
   (req as any).environmentId = envId;
   
   // Store the appropriate database connection in the request object
-  (req as any).db = getEnvironmentDb(envId);
+  (req as any).db = db;
   
   // Run the next middleware in the request context
   requestStorage.run(req, next);

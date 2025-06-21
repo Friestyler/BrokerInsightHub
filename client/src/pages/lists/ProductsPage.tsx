@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { Link } from "wouter";
 import { 
   Table, 
   TableBody, 
@@ -38,9 +37,11 @@ import {
   useQueryClient
 } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import { Package2, Plus, SquarePen, Building } from "lucide-react";
+import { Package2, Plus, Search, Tag } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useToast } from "@/hooks/use-toast";
+import { ProductCategoryManager } from "@/components/products/ProductCategoryManager";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Product = {
   id: number;
@@ -59,11 +60,23 @@ type Vendor = {
   name: string;
 };
 
+type Category = {
+  id: number;
+  name: string;
+  description: string;
+  parentId: number | null;
+  status: 'active' | 'inactive';
+  createdAt: string;
+  updatedAt: string;
+};
+
 export default function ProductsPage() {
   const { environment } = useEnvironment();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeTab, setActiveTab] = useState<string>('products');
   const [newProduct, setNewProduct] = useState({
     name: "",
     description: "",
@@ -80,6 +93,11 @@ export default function ProductsPage() {
 
   const { data: vendors } = useQuery<Vendor[]>({
     queryKey: [`/api/${environment.id}/vendors`],
+    enabled: true
+  });
+
+  const { data: categories } = useQuery<Category[]>({
+    queryKey: [`/api/${environment.id}/product-categories`],
     enabled: true
   });
 
@@ -103,21 +121,20 @@ export default function ProductsPage() {
         description: "Product created successfully",
       });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({
         title: "Error",
-        description: "Failed to create product. Please try again.",
+        description: error.message || "Failed to create product",
         variant: "destructive"
       });
-      console.error("Error creating product:", error);
     }
   });
 
   const handleCreateProduct = () => {
     if (!newProduct.name || !newProduct.description || !newProduct.category || !newProduct.vendorId) {
       toast({
-        title: "Validation Error",
-        description: "Name, description, category, and vendor are required",
+        title: "Error",
+        description: "Please fill in all required fields",
         variant: "destructive"
       });
       return;
@@ -125,16 +142,16 @@ export default function ProductsPage() {
 
     const productData = {
       ...newProduct,
-      price: newProduct.price ? parseInt(newProduct.price) : null,
+      price: newProduct.price ? parseFloat(newProduct.price) : null,
       vendorId: parseInt(newProduct.vendorId)
     };
 
     createProductMutation.mutate(productData);
   };
 
-  const getVendorName = (vendorId: number | null) => {
+  const getVendorName = (vendorId: number | null): string => {
     if (!vendorId || !vendors) return "Unknown";
-    const vendor = vendors.find(v => v.id === vendorId);
+    const vendor = vendors.find((v) => v.id === vendorId);
     return vendor ? vendor.name : "Unknown";
   };
 
@@ -147,101 +164,134 @@ export default function ProductsPage() {
     }).format(price);
   };
 
+  const filteredProducts = products?.filter(product => 
+    searchTerm === '' || 
+    product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    product.category.toLowerCase().includes(searchTerm.toLowerCase())
+  ) || [];
+
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Products</h1>
-          <p className="text-gray-500">Manage your product catalog</p>
+          <h1 className="text-3xl font-bold tracking-tight text-[#282A3F]">Products</h1>
+          <p className="text-gray-500 mt-1">Manage your product catalogue and categories</p>
         </div>
-        <Button 
-          className="bg-indigo-600 hover:bg-indigo-700"
-          onClick={() => setIsCreateModalOpen(true)}
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          Add Product
-        </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Products</CardTitle>
-          <CardDescription>
-            Your organization's product catalog.
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <div className="text-center py-4">Loading products...</div>
-          ) : products && products.length > 0 ? (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Vendor</TableHead>
-                  <TableHead></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {products.map((product) => (
-                  <TableRow key={product.id}>
-                    <TableCell className="font-medium">
-                      <div className="flex items-center">
-                        <Package2 className="h-4 w-4 mr-2 text-indigo-600" />
-                        {product.name}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className="inline-flex items-center rounded-full bg-indigo-50 px-2 py-1 text-xs text-indigo-700 ring-1 ring-inset ring-indigo-700/10">
-                        {product.category}
-                      </span>
-                    </TableCell>
-                    <TableCell>{product.sku || "N/A"}</TableCell>
-                    <TableCell>{formatPrice(product.price)}</TableCell>
-                    <TableCell>
-                      <Link 
-                        href={`/lists/vendors/${product.vendorId}`}
-                        className="inline-flex items-center text-indigo-600 hover:text-indigo-800"
-                      >
-                        <Building className="h-4 w-4 mr-1" />
-                        {getVendorName(product.vendorId)}
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex justify-end">
-                        <Link href={`/lists/products/${product.id}`}>
-                          <Button variant="ghost" size="sm">
-                            <SquarePen className="h-4 w-4" />
-                            <span className="sr-only">Edit</span>
-                          </Button>
-                        </Link>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          ) : (
-            <div className="text-center py-8">
-              <Package2 className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-semibold text-gray-900">No products</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by adding a new product.</p>
-              <div className="mt-6">
-                <Button 
-                  className="bg-indigo-600 hover:bg-indigo-700"
-                  onClick={() => setIsCreateModalOpen(true)}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Product
-                </Button>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="products">Products</TabsTrigger>
+          <TabsTrigger value="categories">Categories</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="products" className="space-y-4">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Search products..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 w-80"
+                />
               </div>
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <Button 
+              className="bg-indigo-600 hover:bg-indigo-700"
+              onClick={() => setIsCreateModalOpen(true)}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Add Product
+            </Button>
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <Package2 className="mr-2 h-5 w-5" />
+                All Products
+              </CardTitle>
+              <CardDescription>
+                View and manage all products in your catalogue
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+                  <p className="mt-2 text-sm text-gray-500">Loading products...</p>
+                </div>
+              ) : filteredProducts.length > 0 ? (
+                <div className="overflow-x-auto">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Product Name</TableHead>
+                        <TableHead>Description</TableHead>
+                        <TableHead>Category</TableHead>
+                        <TableHead>SKU</TableHead>
+                        <TableHead>Price</TableHead>
+                        <TableHead>Vendor</TableHead>
+                        <TableHead>Created</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredProducts.map((product) => (
+                        <TableRow key={product.id}>
+                          <TableCell className="font-medium">{product.name}</TableCell>
+                          <TableCell className="max-w-xs truncate">{product.description}</TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <Tag className="h-3 w-3 mr-1 text-indigo-600" />
+                              {product.category}
+                            </div>
+                          </TableCell>
+                          <TableCell>{product.sku || "—"}</TableCell>
+                          <TableCell>{formatPrice(product.price)}</TableCell>
+                          <TableCell>{getVendorName(product.vendorId)}</TableCell>
+                          <TableCell>
+                            {new Date(product.createdAt).toLocaleDateString('en-US', {
+                              month: 'short',
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="text-center py-12">
+                  <Package2 className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-4 text-lg font-medium text-[#282A3F]">No products found</h3>
+                  <p className="mt-2 text-sm text-gray-500">
+                    {searchTerm ? "No products match your search criteria." : "Get started by creating your first product."}
+                  </p>
+                  {!searchTerm && (
+                    <div className="mt-6">
+                      <Button 
+                        className="bg-indigo-600 hover:bg-indigo-700"
+                        onClick={() => setIsCreateModalOpen(true)}
+                      >
+                        <Plus className="mr-2 h-4 w-4" />
+                        Add Product
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="categories" className="space-y-4">
+          <ProductCategoryManager envId={environment.id} />
+        </TabsContent>
+      </Tabs>
 
       {/* Create Product Modal */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
@@ -251,11 +301,11 @@ export default function ProductsPage() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <label htmlFor="name" className="text-sm font-medium">
-                Name <span className="text-red-500">*</span>
+              <label htmlFor="product-name" className="text-sm font-medium">
+                Product Name <span className="text-red-500">*</span>
               </label>
               <Input
-                id="name"
+                id="product-name"
                 value={newProduct.name}
                 onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
                 placeholder="Enter product name"
@@ -263,11 +313,11 @@ export default function ProductsPage() {
               />
             </div>
             <div className="grid gap-2">
-              <label htmlFor="description" className="text-sm font-medium">
+              <label htmlFor="product-description" className="text-sm font-medium">
                 Description <span className="text-red-500">*</span>
               </label>
               <Textarea
-                id="description"
+                id="product-description"
                 value={newProduct.description}
                 onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
                 placeholder="Enter product description"
@@ -277,21 +327,21 @@ export default function ProductsPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <label htmlFor="category" className="text-sm font-medium">
+                <label htmlFor="product-category" className="text-sm font-medium">
                   Category <span className="text-red-500">*</span>
                 </label>
                 <Input
-                  id="category"
+                  id="product-category"
                   value={newProduct.category}
                   onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
-                  placeholder="E.g., Software, Hardware"
+                  placeholder="Enter category"
                   className={!newProduct.category ? "border-red-300" : ""}
                 />
               </div>
               <div className="grid gap-2">
-                <label htmlFor="sku" className="text-sm font-medium">SKU</label>
+                <label htmlFor="product-sku" className="text-sm font-medium">SKU</label>
                 <Input
-                  id="sku"
+                  id="product-sku"
                   value={newProduct.sku}
                   onChange={(e) => setNewProduct({ ...newProduct, sku: e.target.value })}
                   placeholder="Enter SKU (optional)"
@@ -300,24 +350,25 @@ export default function ProductsPage() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <label htmlFor="price" className="text-sm font-medium">Price (€)</label>
+                <label htmlFor="product-price" className="text-sm font-medium">Price (EUR)</label>
                 <Input
-                  id="price"
+                  id="product-price"
                   type="number"
+                  step="0.01"
                   value={newProduct.price}
                   onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-                  placeholder="Enter price (optional)"
+                  placeholder="Enter price"
                 />
               </div>
               <div className="grid gap-2">
-                <label htmlFor="vendor" className="text-sm font-medium">
+                <label htmlFor="product-vendor" className="text-sm font-medium">
                   Vendor <span className="text-red-500">*</span>
                 </label>
                 <Select
                   value={newProduct.vendorId}
                   onValueChange={(value) => setNewProduct({ ...newProduct, vendorId: value })}
                 >
-                  <SelectTrigger id="vendor">
+                  <SelectTrigger id="product-vendor" className={!newProduct.vendorId ? "border-red-300" : ""}>
                     <SelectValue placeholder="Select vendor" />
                   </SelectTrigger>
                   <SelectContent>
@@ -336,7 +387,6 @@ export default function ProductsPage() {
               Cancel
             </Button>
             <Button 
-              className="bg-indigo-600 hover:bg-indigo-700"
               onClick={handleCreateProduct}
               disabled={createProductMutation.isPending}
             >

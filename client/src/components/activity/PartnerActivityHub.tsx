@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useLocation } from 'wouter';
 import { 
   Plus, MessageSquare, CheckSquare, Paperclip, ChevronDown, ChevronRight, 
   Sparkles, Clock, User, Send, Eye, EyeOff, Check, X, Calendar, Filter, Brain, UserPlus, Bot, Target
@@ -12,6 +13,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
+import userAvatar from "@/assets/user-avatar.png";
 
 interface PartnerActivityHubProps {
   partnerId: number;
@@ -44,11 +46,12 @@ interface NextBestAction {
 }
 
 const activityTypes = [
-  { value: 'timeline', label: 'All', icon: Calendar, color: 'text-gray-600' },
+  { value: 'timeline', label: 'Timeline', icon: Calendar, color: 'text-gray-600' },
   { value: 'task', label: 'Tasks', icon: CheckSquare, color: 'text-green-600' },
   { value: 'comment', label: 'Comments', icon: MessageSquare, color: 'text-blue-600' },
   { value: 'attachment', label: 'Documents', icon: Paperclip, color: 'text-purple-600' },
-  { value: 'actions', label: 'Next Best Actions', icon: Sparkles, color: 'text-purple-600' }
+  { value: 'actions', label: 'Next Best Actions', icon: Sparkles, color: 'text-purple-600' },
+  { value: 'meeting', label: 'Prepare a Meeting', icon: Calendar, color: 'text-orange-600' }
 ];
 
 const priorityColors = {
@@ -58,11 +61,291 @@ const priorityColors = {
   urgent: 'bg-red-100 text-red-800'
 };
 
+// User role mapping function
+const getUserRoleName = (userId: number): string => {
+  const roleMap: { [key: number]: string } = {
+    1: 'Broker',
+    2: 'Account Manager', 
+    3: 'Relationship Manager'
+  };
+  return roleMap[userId] || 'Unknown User';
+};
+
+interface TimelineComposerProps {
+  onCreateTask: (taskData: {
+    title: string;
+    priority: string;
+    assignedTo: string;
+    visibleToPartner: boolean;
+  }) => void;
+  onCreateComment: (commentData: {
+    content: string;
+    visibleToPartner: boolean;
+  }) => void;
+  teamMembers: Array<{ id: string; name: string }>;
+  isLoading: boolean;
+}
+
+const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoading }: TimelineComposerProps) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [activeMode, setActiveMode] = useState<'task' | 'comment'>('comment');
+  const [content, setContent] = useState('');
+  const [priority, setPriority] = useState('medium');
+  const [assignedTo, setAssignedTo] = useState('');
+  const [visibleToPartner, setVisibleToPartner] = useState(true);
+
+  const handleSubmit = () => {
+    if (!content.trim()) return;
+    
+    if (activeMode === 'task') {
+      onCreateTask({
+        title: content.trim(),
+        priority,
+        assignedTo,
+        visibleToPartner
+      });
+    } else {
+      onCreateComment({
+        content: content.trim(),
+        visibleToPartner
+      });
+    }
+
+    // Reset form
+    setContent('');
+    setPriority('medium');
+    setAssignedTo('');
+    setVisibleToPartner(true);
+    setIsExpanded(false);
+  };
+
+  const handleCancel = () => {
+    setContent('');
+    setPriority('medium');
+    setAssignedTo('');
+    setVisibleToPartner(true);
+    setIsExpanded(false);
+  };
+
+  const getPlaceholder = () => {
+    return activeMode === 'task' ? 'What needs to be done?' : 'Write a comment...';
+  };
+
+  const getIcon = () => {
+    return activeMode === 'task' ? CheckSquare : MessageSquare;
+  };
+
+  const getIconColor = () => {
+    return activeMode === 'task' ? 'text-green-600' : 'text-blue-600';
+  };
+
+  if (!isExpanded) {
+    return (
+      <div className="border-t border-[#E6E7F1] pt-4 mt-4">
+        {/* Modern Floating Input Bar */}
+        <div className="relative">
+          <div className="bg-white rounded-full border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-200 p-1">
+            <div className="flex items-center gap-2">
+              {/* Comment Icon (Always visible) */}
+              <div className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-blue-100 text-blue-600">
+                <MessageSquare className="h-4 w-4" />
+              </div>
+
+              {/* Input Area */}
+              <button
+                onClick={() => setIsExpanded(true)}
+                className="flex-1 text-left px-3 py-2 text-gray-500 hover:text-gray-700 transition-colors duration-200"
+              >
+                Add a note or task...
+              </button>
+
+              {/* Right Actions */}
+              <div className="flex items-center gap-1 pr-1">
+                <button className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-all duration-200">
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
+                  </svg>
+                </button>
+                <button 
+                  onClick={() => {
+                    setActiveMode('task');
+                    setIsExpanded(true);
+                  }}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-green-600 hover:bg-green-100 transition-all duration-200"
+                >
+                  <CheckSquare className="h-4 w-4" />
+                </button>
+                <button 
+                  disabled
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-gray-300 cursor-not-allowed"
+                >
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="border-t border-[#E6E7F1] pt-4 mt-4">
+      {/* Modern Expanded Composer */}
+      <div className="bg-white rounded-2xl border border-gray-200 shadow-xl shadow-gray-100/50 overflow-hidden">
+        <div className="p-4 space-y-4">
+          {/* Input Field */}
+          <div className="relative">
+            <Textarea
+              placeholder={getPlaceholder()}
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                  e.preventDefault();
+                  handleSubmit();
+                }
+                if (e.key === 'Escape') {
+                  handleCancel();
+                }
+              }}
+              className="w-full min-h-[80px] resize-none border border-gray-200 bg-gray-50 text-gray-900 rounded-xl p-4 text-sm transition-all duration-200 focus:bg-white focus:border-blue-300 focus:ring-2 focus:ring-blue-100 placeholder:text-gray-500"
+              autoFocus
+            />
+          </div>
+
+          {/* Task-specific Controls */}
+          {activeMode === 'task' && (
+            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+              {/* Priority Selector */}
+              <Select value={priority} onValueChange={setPriority}>
+                <SelectTrigger className="w-32 h-9 text-sm bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-white border border-gray-200 rounded-xl shadow-lg">
+                  <SelectItem value="low">🟢 Low</SelectItem>
+                  <SelectItem value="medium">🟡 Medium</SelectItem>
+                  <SelectItem value="high">🟠 High</SelectItem>
+                  <SelectItem value="urgent">🔴 Urgent</SelectItem>
+                </SelectContent>
+              </Select>
+
+              {/* Assignee Selector */}
+              <Select value={assignedTo} onValueChange={setAssignedTo}>
+                <SelectTrigger className="w-40 h-9 text-sm bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+                  <SelectValue placeholder="Assign to..." />
+                </SelectTrigger>
+                <SelectContent className="bg-white border border-gray-200 rounded-xl shadow-lg">
+                  {teamMembers.map((member) => (
+                    <SelectItem key={member.id} value={member.id}>
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-gray-500" />
+                        <span className="font-medium">{member.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="ai-agent" disabled>
+                    <div className="flex items-center gap-2 text-gray-400">
+                      <Bot className="h-4 w-4" />
+                      <span>AI Agent (coming later)</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
+
+          {/* Footer */}
+          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+            {/* Visibility Toggle */}
+            <div className="flex items-center gap-3">
+              <Switch
+                checked={visibleToPartner}
+                onCheckedChange={setVisibleToPartner}
+                className="data-[state=checked]:bg-blue-500"
+              />
+              <span className="text-sm text-gray-600 flex items-center gap-2">
+                {visibleToPartner ? <Eye className="h-4 w-4 text-blue-500" /> : <EyeOff className="h-4 w-4 text-gray-400" />}
+                Visible to partner
+              </span>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleCancel} 
+                className="h-9 px-4 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={handleSubmit}
+                disabled={isLoading || !content.trim()}
+                className={`h-9 px-6 text-sm font-medium rounded-lg transition-all duration-200 ${
+                  activeMode === 'task' 
+                    ? 'bg-green-600 hover:bg-green-700 text-white' 
+                    : 'bg-blue-600 hover:bg-blue-700 text-white'
+                } disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md`}
+              >
+                {isLoading ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    <span>Sending...</span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                    </svg>
+                    {activeMode === 'task' ? 'Add Task' : 'Add Comment'}
+                  </div>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default function PartnerActivityHub({ partnerId, partnerName }: PartnerActivityHubProps) {
+  const [location] = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const [selectedActivityType, setSelectedActivityType] = useState<'task' | 'comment' | 'attachment' | 'timeline' | 'actions'>('timeline');
+  const [selectedActivityType, setSelectedActivityType] = useState<'task' | 'comment' | 'attachment' | 'timeline' | 'actions' | 'meeting'>('timeline');
   const [highlightActions, setHighlightActions] = useState(false);
   const [showActivityInput, setShowActivityInput] = useState(false);
+
+  // Detect if we're in broker view
+  const isBrokerView = location.startsWith('/broker-view');
+
+  // Filter activity types based on broker view
+  const filteredActivityTypes = isBrokerView 
+    ? activityTypes.filter(type => type.value !== 'actions' && type.value !== 'meeting')
+    : activityTypes;
+
+  // Reset selected activity type if it's not available in broker view
+  useEffect(() => {
+    if (isBrokerView && (selectedActivityType === 'actions' || selectedActivityType === 'meeting')) {
+      setSelectedActivityType('timeline');
+    }
+  }, [isBrokerView, selectedActivityType]);
+
+  // Function to render markdown bold text
+  const renderMarkdownText = (text: string) => {
+    const parts = text.split(/(\*\*.*?\*\*)/g);
+    return parts.map((part, index) => {
+      if (part.startsWith('**') && part.endsWith('**')) {
+        return <strong key={index}>{part.slice(2, -2)}</strong>;
+      }
+      return part;
+    });
+  };
   
   // Form states
   const [taskTitle, setTaskTitle] = useState('');
@@ -70,6 +353,10 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
   const [taskPriority, setTaskPriority] = useState('medium');
   const [visibleToPartner, setVisibleToPartner] = useState(false);
   const [assignedTo, setAssignedTo] = useState('');
+  
+  // Meeting preparation states
+  const [meetingBriefing, setMeetingBriefing] = useState<any>(null);
+  const [isPreparingMeeting, setIsPreparingMeeting] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -92,7 +379,8 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
   // Fetch timeline
   const { data: timeline } = useQuery({
     queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`],
-    enabled: selectedActivityType === 'timeline'
+    staleTime: 0,
+    gcTime: 0
   });
 
   // Fetch next best actions
@@ -107,38 +395,68 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
       const endpoint = selectedActivityType === 'task' ? 'tasks' : 
                      selectedActivityType === 'comment' ? 'comments' : 'attachments';
       
-      return fetch(`/api/${currentEnv}/activity/${endpoint}`, {
+      return fetch(`/api/${currentEnv}/partners/${partnerId}/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...activityData,
-          entityType: 'partner',
-          entityId: partnerId,
-          authorId: 1,
-          assignedById: 1
+          user_id: 1
         })
-      }).then(res => res.json());
+      }).then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.text().then(text => {
+          try {
+            return text ? JSON.parse(text) : { success: true };
+          } catch (e) {
+            console.log('Response is not JSON:', text);
+            return { success: true, message: text };
+          }
+        });
+      });
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Task created successfully:', data);
+      // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/activities`] });
-      if (selectedActivityType === 'timeline') {
-        queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`] });
-      }
+      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners`] });
+      
+      // Force immediate refetch with no cache
+      queryClient.refetchQueries({ 
+        queryKey: [`/api/${currentEnv}/partners/${partnerId}/activities`],
+        type: 'active'
+      });
+      queryClient.refetchQueries({ 
+        queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`],
+        type: 'active'
+      });
+      
       resetForm();
       toast({ title: `${selectedActivityType.charAt(0).toUpperCase() + selectedActivityType.slice(1)} created successfully` });
+    },
+    onError: (error) => {
+      console.error('Failed to create task:', error);
+      toast({ 
+        title: 'Failed to create task', 
+        description: 'Please try again',
+        variant: 'destructive' 
+      });
     }
   });
 
   // Toggle task completion
   const toggleTaskMutation = useMutation({
     mutationFn: ({ taskId, completed }: { taskId: number, completed: boolean }) =>
-      fetch(`/api/${currentEnv}/activity/tasks/${taskId}`, {
+      fetch(`/api/${currentEnv}/tasks/${taskId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ completed, completedAt: completed ? new Date().toISOString() : null })
       }).then(res => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/activities`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`] });
     }
   });
 
@@ -181,6 +499,73 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
       toast({ title: 'AI recommendation converted to task successfully' });
     }
   });
+
+  // Prepare meeting with AI
+  const prepareMeetingMutation = useMutation({
+    mutationFn: () => 
+      fetch(`/api/${currentEnv}/partners/${partnerId}/prepare-meeting`, {
+        method: 'POST'
+      }).then(res => res.json()),
+    onSuccess: (data) => {
+      setMeetingBriefing(data);
+      setIsPreparingMeeting(false);
+      toast({ title: 'Meeting briefing prepared successfully' });
+    },
+    onError: (error: any) => {
+      setIsPreparingMeeting(false);
+      toast({ 
+        title: 'Failed to prepare meeting briefing', 
+        description: 'Please check your OpenAI API configuration',
+        variant: 'destructive' 
+      });
+    }
+  });
+
+  // Save meeting briefing
+  const saveMeetingBriefingMutation = useMutation({
+    mutationFn: () => 
+      fetch(`/api/${currentEnv}/partners/${partnerId}/save-meeting-briefing`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(meetingBriefing)
+      }).then(res => res.json()),
+    onSuccess: (data) => {
+      toast({ title: 'Meeting briefing saved successfully' });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: 'Failed to save meeting briefing', 
+        description: 'Please try again',
+        variant: 'destructive' 
+      });
+    }
+  });
+
+  // Load latest saved meeting briefing
+  const { data: savedMeetingBriefing } = useQuery({
+    queryKey: [`/api/${currentEnv}/partners/${partnerId}/latest-meeting-briefing`],
+    enabled: selectedActivityType === 'meeting' && !meetingBriefing,
+    retry: false
+  });
+
+  const handlePrepareMeeting = () => {
+    setMeetingBriefing(null); // Clear previous briefing to ensure fresh content
+    setIsPreparingMeeting(true);
+    prepareMeetingMutation.mutate();
+  };
+
+  const handleSaveMeetingBriefing = () => {
+    if (meetingBriefing) {
+      saveMeetingBriefingMutation.mutate();
+    }
+  };
+
+  // Load saved briefing when switching to meeting tab
+  useEffect(() => {
+    if (savedMeetingBriefing && !meetingBriefing && selectedActivityType === 'meeting') {
+      setMeetingBriefing(savedMeetingBriefing);
+    }
+  }, [savedMeetingBriefing, meetingBriefing, selectedActivityType]);
 
   const resetForm = () => {
     setTaskTitle('');
@@ -235,7 +620,54 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
   const comments = (activities as any)?.comments || [];
   const attachments = (activities as any)?.attachments || [];
   const actions = (nextActions as any) || [];
-  const timelineData = (timeline as any) || [];
+  const rawTimelineData = (timeline as any) || [];
+  
+  // Merge tasks with timeline data, avoiding duplicates
+  const allTimelineItems = [
+    ...rawTimelineData,
+    ...tasks.filter((task: any) => !rawTimelineData.some((item: any) => 
+      item.activity_type === 'task' && item.id === task.id
+    )).map((task: any) => ({
+      ...task,
+      activity_type: 'task',
+      title: task.title,
+      content: task.title,
+      description: task.description || '',
+      priority: task.priority,
+      completed: task.completed,
+      visible_to_partner: task.visible_to_partner,
+      assigned_to_name: task.assignedTo ? teamMembers.find(m => m.id === task.assignedTo)?.name || task.assignedTo : null,
+      author_name: 'System'
+    })),
+    ...comments.filter((comment: any) => !rawTimelineData.some((item: any) => 
+      item.activity_type === 'comment' && item.id === comment.id
+    )).map((comment: any) => ({
+      ...comment,
+      activity_type: 'comment',
+      title: 'Comment',
+      content: comment.content,
+      visible_to_partner: comment.visible_to_partner,
+      author_name: comment.author_name || 'User'
+    })),
+    ...attachments.filter((attachment: any) => !rawTimelineData.some((item: any) => 
+      item.activity_type === 'attachment' && item.id === attachment.id
+    )).map((attachment: any) => ({
+      ...attachment,
+      activity_type: 'attachment',
+      title: 'Document',
+      content: attachment.filename || 'File attachment',
+      visible_to_partner: attachment.visible_to_partner,
+      author_name: attachment.author_name || 'User'
+    }))
+  ];
+
+  // Remove any remaining duplicates based on unique combination of activity_type, id, and created_at
+  const timelineData = allTimelineItems.filter((item: any, index: number, arr: any[]) => {
+    const uniqueKey = `${item.activity_type}-${item.id}-${item.created_at}`;
+    return arr.findIndex((other: any) => 
+      `${other.activity_type}-${other.id}-${other.created_at}` === uniqueKey
+    ) === index;
+  });
 
   const completedTasks = tasks.filter((t: any) => t.completed).length;
   const pendingTasks = tasks.filter((t: any) => !t.completed).length;
@@ -262,18 +694,20 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
             </div>
           </button>
           
-          <div className="flex items-center gap-2">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => generateActionsMutation.mutate()}
-              disabled={generateActionsMutation.isPending}
-              className="text-xs text-gray-600 hover:text-purple-600"
-            >
-              <Sparkles className="h-3 w-3 mr-1" />
-              {generateActionsMutation.isPending ? 'Generating...' : 'Generate Next Best Action'}
-            </Button>
-          </div>
+          {!isBrokerView && (
+            <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => generateActionsMutation.mutate()}
+                disabled={generateActionsMutation.isPending}
+                className="text-xs text-gray-600 hover:text-purple-600"
+              >
+                <Sparkles className="h-3 w-3 mr-1" />
+                {generateActionsMutation.isPending ? 'Generating...' : 'Generate Next Best Action'}
+              </Button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -282,13 +716,13 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
         <div className="p-4 space-y-4">
           {/* Activity Type Selector - Apple Style */}
           <div className="flex items-center gap-2 p-1 bg-gray-100 rounded-lg">
-            {activityTypes.map((type) => {
+            {filteredActivityTypes.map((type) => {
               const IconComponent = type.icon;
               return (
                 <button
                   key={type.value}
                   onClick={() => {
-                    setSelectedActivityType(type.value as any);
+                    setSelectedActivityType(type.value as 'task' | 'comment' | 'attachment' | 'timeline' | 'actions' | 'meeting');
                     if (type.value === 'task' || type.value === 'comment') {
                       if (!showActivityInput) setShowActivityInput(true);
                     } else {
@@ -400,7 +834,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
               {/* Task List */}
               <div className="space-y-2">
                 {tasks
-                  .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+                  .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
                   .map((task: any) => (
                   <div key={task.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition-colors">
                     <button
@@ -447,17 +881,25 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
               {/* Comments Timeline */}
               <div className="space-y-3 max-h-64 overflow-y-auto">
                 {comments
-                  .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+                  .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
                   .map((comment: any, index: number) => (
                   <div key={comment.id} className="flex items-start gap-3">
                     <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
                       comment.is_okr_comment ? 'bg-purple-100' : 'bg-blue-100'
                     }`}>
-                      <span className={`text-xs font-medium ${
-                        comment.is_okr_comment ? 'text-purple-600' : 'text-blue-600'
-                      }`}>
-                        {comment.author_name ? comment.author_name.charAt(0).toUpperCase() : 'U'}
-                      </span>
+                      {comment.user_id === 2 ? (
+                        <img 
+                          src={userAvatar} 
+                          alt="User Avatar" 
+                          className="w-full h-full object-cover rounded-full"
+                        />
+                      ) : (
+                        <span className={`text-xs font-medium ${
+                          comment.is_okr_comment ? 'text-purple-600' : 'text-blue-600'
+                        }`}>
+                          {comment.author_name ? comment.author_name.charAt(0).toUpperCase() : 'U'}
+                        </span>
+                      )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className={`rounded-lg px-3 py-2 ${
@@ -475,7 +917,12 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                       </div>
                       <div className="flex items-center gap-2 mt-1">
                         <span className="text-xs text-gray-500">
-                          {new Date(comment.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          {new Date(comment.created_at).toLocaleString([], { 
+                            month: 'short', 
+                            day: 'numeric', 
+                            hour: '2-digit', 
+                            minute: '2-digit' 
+                          })}
                         </span>
                         {comment.assigned_to_name && (
                           <div className="flex items-center gap-1">
@@ -569,114 +1016,158 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
 
           {/* Timeline View */}
           {selectedActivityType === 'timeline' && (
-            <div className="space-y-4 max-h-64 overflow-y-auto">
-              {[...tasks, ...comments, ...attachments]
-                .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-                .map((item: any, index) => {
-                  const isTask = item.title !== undefined;
-                  const isComment = item.content !== undefined && !item.filename;
-                  const isAttachment = item.filename !== undefined;
+            <div className="flex flex-col h-full">
+              {/* Timeline Content */}
+              <div className="flex-1 space-y-4 max-h-64 overflow-y-auto mb-4">
+                {timelineData && timelineData.length > 0 ? (
+                  timelineData
+                    .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                    .map((item: any, index: number) => {
+                      const isTask = item.activity_type === 'task';
+                      const isComment = item.activity_type === 'comment';
+                      const isAttachment = item.activity_type === 'attachment';
 
-                  return (
-                    <div key={`${isTask ? 'task' : isComment ? (item.is_okr_comment ? 'okr-comment' : 'comment') : 'attachment'}-${item.id}-${item.created_at}`} className="flex items-start gap-3 relative">
-                      {/* Timeline line */}
-                      {index < [...tasks, ...comments, ...attachments].length - 1 && (
-                        <div className="absolute left-4 top-10 w-px h-8 bg-gray-200"></div>
-                      )}
-                      
-                      {/* Avatar/Icon */}
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center relative z-10">
-                        {isTask && (
-                          <button
-                            onClick={() => toggleTaskMutation.mutate({ taskId: item.id, completed: !item.completed })}
-                            className={`w-6 h-6 border-2 rounded-full flex items-center justify-center transition-colors ${
-                              item.completed 
-                                ? 'bg-green-500 border-green-500 text-white' 
-                                : 'bg-white border-green-300 hover:border-green-400'
-                            }`}
-                          >
-                            {item.completed && <Check className="h-3 w-3" />}
-                          </button>
-                        )}
-                        {isComment && (
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            item.is_okr_comment ? 'bg-purple-100' : 'bg-blue-100'
-                          }`}>
-                            {item.is_okr_comment ? (
-                              <Target className="h-4 w-4 text-purple-600" />
-                            ) : (
-                              <span className="text-xs font-medium text-blue-600">
-                                {item.author_name ? item.author_name.charAt(0).toUpperCase() : 'U'}
-                              </span>
+                      return (
+                        <div key={`timeline-${item.activity_type}-${item.id}-${index}-${item.created_at.replace(/[^\w]/g, '')}`} className="flex items-start gap-3 relative">
+                          {/* Timeline line */}
+                          {index < timelineData.length - 1 && (
+                            <div className="absolute left-4 top-10 w-px h-8 bg-gray-200"></div>
+                          )}
+                          
+                          {/* Avatar/Icon */}
+                          <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center relative z-10 bg-white border-2 border-gray-200">
+                            {isTask && (
+                              <CheckSquare className="h-4 w-4 text-green-600" />
+                            )}
+                            {isComment && (
+                              <MessageSquare className="h-4 w-4 text-blue-600" />
+                            )}
+                            {isAttachment && (
+                              <Paperclip className="h-4 w-4 text-purple-600" />
+                            )}
+                            {!isTask && !isComment && !isAttachment && (
+                              <Clock className="h-4 w-4 text-gray-600" />
                             )}
                           </div>
-                        )}
-                        {isAttachment && (
-                          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                            <Paperclip className="h-4 w-4 text-purple-600" />
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        {isComment ? (
-                          <div className={`rounded-lg px-3 py-2 ${
-                            item.is_okr_comment ? 'bg-purple-50 border border-purple-200' : 'bg-gray-50'
-                          }`}>
-                            <p className="text-sm text-gray-900">{item.content}</p>
-                            {item.is_okr_comment && item.okr_metric_name && (
-                              <div className="flex items-center gap-1 mt-1">
-                                <Target className="h-3 w-3 text-purple-600" />
-                                <span className="text-xs text-purple-700 font-medium">{item.okr_metric_name}</span>
+                          
+                          <div className="flex-1 min-w-0">
+                            <div className="bg-white rounded-lg p-3 border border-gray-200">
+                              <div className="flex items-center justify-between mb-1">
+                                <span className="text-sm font-medium text-gray-900 capitalize">
+                                  {item.activity_type || 'Activity'}
+                                </span>
+                                <span className="text-xs text-gray-500">
+                                  {new Date(item.created_at).toLocaleString([], { 
+                                    month: 'short', 
+                                    day: 'numeric', 
+                                    hour: '2-digit', 
+                                    minute: '2-digit' 
+                                  })}
+                                </span>
                               </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="bg-white">
-                            <span className={`text-sm ${item.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
-                              {isTask ? item.title : item.filename}
-                            </span>
-                            {isTask && item.priority && (
-                              <Badge className={`ml-2 ${priorityColors[item.priority as keyof typeof priorityColors]}`}>
-                                {item.priority}
-                              </Badge>
-                            )}
-                          </div>
-                        )}
-                        
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-gray-500">
-                            {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                          {(item.assigned_to_name || item.assignedTo) && (
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs text-gray-400">•</span>
-                              <User className="h-3 w-3 text-gray-400" />
-                              <span className="text-xs text-gray-500">
-                                {item.assigned_to_name || item.assignedTo}
-                              </span>
+                              
+                              <p className="text-sm text-gray-700 mb-2">
+                                {item.activity_type === 'comment' ? item.content : (item.title || item.content || item.description || 'No description available')}
+                              </p>
+                              
+                              {item.details && (
+                                <p className="text-xs text-gray-500 mb-2">{item.details}</p>
+                              )}
+                              
+                              <div className="flex items-center gap-2 text-xs text-gray-500">
+                                {(item.user_id || item.assigned_to) && (
+                                  <div className="flex items-center gap-1">
+                                    <User className="h-3 w-3" />
+                                    <span>{getUserRoleName(item.user_id || item.assigned_to)}</span>
+                                  </div>
+                                )}
+                                {item.priority && (
+                                  <Badge className={`${priorityColors[item.priority as keyof typeof priorityColors]} text-xs`}>
+                                    {item.priority}
+                                  </Badge>
+                                )}
+                                {item.visible_to_partner && (
+                                  <div className="flex items-center gap-1">
+                                    <Eye className="h-3 w-3 text-blue-500" />
+                                    <span className="text-blue-600">visible</span>
+                                  </div>
+                                )}
+                              </div>
                             </div>
-                          )}
-                          {item.visible_to_partner && (
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs text-gray-400">•</span>
-                              <Eye className="h-3 w-3 text-blue-500" />
-                              <span className="text-xs text-blue-600">visible</span>
-                            </div>
-                          )}
+                          </div>
                         </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              
-              {totalActivities === 0 && (
-                <div className="text-center py-8 text-gray-500">
-                  <Calendar className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm">No activity yet</p>
-                  <p className="text-xs text-gray-400 mt-1">Start by adding a task or comment</p>
-                </div>
-              )}
+                      );
+                    })
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <Calendar className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                    <p className="text-sm">No timeline activity yet</p>
+                    <p className="text-xs text-gray-400 mt-1">Start by adding a task or comment to see the timeline</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Timeline Composer */}
+              <TimelineComposer
+                onCreateTask={(taskData: {
+                  title: string;
+                  priority: string;
+                  assignedTo: string;
+                  visibleToPartner: boolean;
+                }) => {
+                  // Use existing task creation logic
+                  const originalType = selectedActivityType;
+                  const originalTitle = taskTitle;
+                  const originalPriority = taskPriority;
+                  const originalAssignedTo = assignedTo;
+                  const originalVisibility = visibleToPartner;
+
+                  // Set temporary values for task creation
+                  setSelectedActivityType('task');
+                  setTaskTitle(taskData.title);
+                  setTaskPriority(taskData.priority);
+                  setAssignedTo(taskData.assignedTo);
+                  setVisibleToPartner(taskData.visibleToPartner);
+
+                  // Create the task
+                  handleCreateActivity();
+                  
+                  // Reset to original values after a brief delay
+                  setTimeout(() => {
+                    setSelectedActivityType(originalType);
+                    setTaskTitle(originalTitle);
+                    setTaskPriority(originalPriority);
+                    setAssignedTo(originalAssignedTo);
+                    setVisibleToPartner(originalVisibility);
+                  }, 100);
+                }}
+                onCreateComment={(commentData: {
+                  content: string;
+                  visibleToPartner: boolean;
+                }) => {
+                  // Use existing comment creation logic
+                  const originalType = selectedActivityType;
+                  const originalContent = commentContent;
+                  const originalVisibility = visibleToPartner;
+
+                  // Set temporary values for comment creation
+                  setSelectedActivityType('comment');
+                  setCommentContent(commentData.content);
+                  setVisibleToPartner(commentData.visibleToPartner);
+
+                  // Create the comment
+                  handleCreateActivity();
+                  
+                  // Reset to original values after a brief delay
+                  setTimeout(() => {
+                    setSelectedActivityType(originalType);
+                    setCommentContent(originalContent);
+                    setVisibleToPartner(originalVisibility);
+                  }, 100);
+                }}
+                teamMembers={teamMembers}
+                isLoading={createActivityMutation.isPending}
+              />
             </div>
           )}
 
@@ -766,6 +1257,224 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Prepare a Meeting */}
+          {selectedActivityType === 'meeting' && (
+            <div className="space-y-4">
+              {!meetingBriefing ? (
+                <div className="text-center py-8">
+                  <div className="flex flex-col items-center gap-4">
+                    <Brain className="h-12 w-12 text-orange-400" />
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">AI Meeting Preparation</h3>
+                      <p className="text-sm text-gray-600 mb-4">Generate intelligent briefing with OKR analysis and opportunity insights</p>
+                      <Button 
+                        onClick={handlePrepareMeeting}
+                        disabled={prepareMeetingMutation.isPending}
+                        className="bg-orange-600 hover:bg-orange-700"
+                      >
+                        {prepareMeetingMutation.isPending ? (
+                          <>
+                            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                            Analyzing...
+                          </>
+                        ) : (
+                          <>
+                            <Brain className="h-4 w-4 mr-2" />
+                            Prepare Meeting Briefing
+                          </>
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* Header */}
+                  <div className="flex items-center justify-between border-b border-gray-200 pb-4">
+                    <div className="flex items-center gap-3">
+                      <Brain className="h-5 w-5 text-orange-500" />
+                      <h3 className="text-lg font-semibold text-gray-900">Meeting Briefing: {meetingBriefing.partner}</h3>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={handleSaveMeetingBriefing}
+                        disabled={saveMeetingBriefingMutation.isPending}
+                      >
+                        {saveMeetingBriefingMutation.isPending ? (
+                          <>
+                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-600 mr-2"></div>
+                            Saving...
+                          </>
+                        ) : (
+                          'Save'
+                        )}
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={handlePrepareMeeting}
+                        disabled={prepareMeetingMutation.isPending}
+                      >
+                        <Brain className="h-4 w-4 mr-2" />
+                        Create New Briefing
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Summary */}
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h4 className="font-medium text-blue-900 mb-2">Executive Summary</h4>
+                    <p className="text-sm text-blue-800 leading-relaxed">
+                      {(() => {
+                        const actualOkrCount = meetingBriefing.dataUsed?.okrs || 0;
+                        const actualOpportunityCount = meetingBriefing.dataUsed?.opportunities || 0;
+                        
+                        // If no meaningful data, provide appropriate summary
+                        if (actualOkrCount === 0 && actualOpportunityCount === 0) {
+                          return `${meetingBriefing.partner} currently has limited data available. This would be a good opportunity to discuss setting up OKRs and exploring new business opportunities.`;
+                        }
+                        
+                        const lines = meetingBriefing.briefing.split('\n');
+                        // Look for summary paragraph (first substantial paragraph or line with "summary")
+                        const summaryLine = lines.find((line: string) => 
+                          (line.includes('summary') || line.includes('Summary')) && line.length > 20
+                        ) || lines.find((line: string) => 
+                          line.trim().length > 50 && !line.includes('**') && !line.startsWith('- ')
+                        );
+                        return summaryLine?.replace(/^-?\s*(summary:?)?/i, '').trim() || `Meeting preparation complete for ${meetingBriefing.partner} with ${actualOkrCount} OKR${actualOkrCount !== 1 ? 's' : ''} and ${actualOpportunityCount} opportunit${actualOpportunityCount !== 1 ? 'ies' : 'y'} to review.`;
+                      })()}
+                    </p>
+                  </div>
+
+                  {/* Content Sections */}
+                  <div className="grid gap-6">
+                    {/* Top 3 OKRs */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-5">
+                      <div className="flex items-center gap-2 mb-4">
+                        <Target className="h-5 w-5 text-green-500" />
+                        <h4 className="font-semibold text-gray-900">Top 3 OKRs to Review</h4>
+                      </div>
+                      <div className="space-y-3">
+                        {(() => {
+                          const actualOkrCount = meetingBriefing.dataUsed?.okrs || 0;
+                          
+                          if (actualOkrCount === 0) {
+                            return (
+                              <div className="text-center py-6 text-gray-500">
+                                <Target className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                                <p className="text-sm">No OKRs available for this partner at the moment.</p>
+                              </div>
+                            );
+                          }
+                          
+                          // Look for OKR section in the AI response
+                          const lines = meetingBriefing.briefing.split('\n');
+                          const okrSectionStart = lines.findIndex(line => 
+                            line.toLowerCase().includes('okr') && line.includes('**')
+                          );
+                          
+                          if (okrSectionStart === -1) {
+                            return (
+                              <div className="text-center py-6 text-gray-500">
+                                <Target className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                                <p className="text-sm">No OKR insights generated.</p>
+                              </div>
+                            );
+                          }
+                          
+                          // Extract bullet points from OKR section
+                          const okrItems = lines.slice(okrSectionStart + 1)
+                            .filter((line: string) => line.trim().startsWith('- '))
+                            .slice(0, Math.min(actualOkrCount, 3));
+                          
+                          return okrItems.map((item: string, index: number) => (
+                            <div key={index} className="flex items-start gap-3 p-3 bg-green-50 rounded-md">
+                              <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                              <div className="text-sm text-gray-700">
+                                {renderMarkdownText(item.replace('- ', ''))}
+                              </div>
+                            </div>
+                          ));
+                        })()}
+                      </div>
+                    </div>
+
+                    {/* Top 3 Opportunity Types */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-5">
+                      <div className="flex items-center gap-2 mb-4">
+                        <MessageSquare className="h-5 w-5 text-blue-500" />
+                        <h4 className="font-semibold text-gray-900">Top 3 Opportunity Types to Discuss</h4>
+                      </div>
+                      <div className="space-y-3">
+                        {meetingBriefing.briefing.split('\n').filter((line: string) => 
+                          line.trim().startsWith('- **') && line.includes('Zonnepanelen')
+                        ).map((item: string, index: number) => (
+                          <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-md">
+                            <MessageSquare className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                            <div className="text-sm text-gray-700">
+                              {renderMarkdownText(item.replace('- ', ''))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Recommendations */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-5">
+                      <div className="flex items-center gap-2 mb-4">
+                        <CheckSquare className="h-5 w-5 text-purple-500" />
+                        <h4 className="font-semibold text-gray-900">Meeting Recommendations</h4>
+                      </div>
+                      <div className="space-y-2">
+                        {(() => {
+                          const lines = meetingBriefing.briefing.split('\n');
+                          
+                          // Find recommendations section and extract bullet points
+                          const recommendationsStart = lines.findIndex(line => 
+                            line.toLowerCase().includes('recommendation') || 
+                            line.toLowerCase().includes('meeting recommendation')
+                          );
+                          
+                          if (recommendationsStart === -1) {
+                            // Fallback: look for bullet points that don't contain ** (not OKRs/opportunities)
+                            return lines.filter((line: string) => 
+                              line.trim().startsWith('- ') && 
+                              !line.includes('**') && 
+                              line.length > 15 &&
+                              !line.toLowerCase().includes('okr') &&
+                              !line.toLowerCase().includes('opportunity')
+                            ).slice(0, 3).map((item: string, index: number) => (
+                              <div key={index} className="flex items-start gap-3 p-2">
+                                <CheckSquare className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                                <span className="text-sm text-gray-700">{renderMarkdownText(item.replace('- ', ''))}</span>
+                              </div>
+                            ));
+                          }
+                          
+                          // Extract bullet points after recommendations header
+                          const recommendationItems = lines.slice(recommendationsStart + 1)
+                            .filter((line: string) => line.trim().startsWith('- '))
+                            .slice(0, 3);
+                            
+                          return recommendationItems.map((item: string, index: number) => (
+                            <div key={index} className="flex items-start gap-3 p-2">
+                              <CheckSquare className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                              <span className="text-sm text-gray-700">{renderMarkdownText(item.replace('- ', ''))}</span>
+                            </div>
+                          ));
+                        })()}
+                      </div>
+                    </div>
+
+
+                  </div>
                 </div>
               )}
             </div>

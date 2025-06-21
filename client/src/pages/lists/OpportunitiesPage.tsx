@@ -41,6 +41,8 @@ const useOpportunitiesData = () => {
     queryKey: ['/api/degoudse/opportunities'],
     queryFn: () => apiRequest('GET', '/api/degoudse/opportunities'),
     staleTime: 2 * 60 * 1000,
+    retry: 3,
+    retryDelay: 1000,
   });
 };
 
@@ -49,7 +51,8 @@ const useSavedLists = () => {
   return useQuery({
     queryKey: ['/api/saved-lists', 'opportunities'],
     queryFn: () => apiRequest('GET', '/api/saved-lists?entity_type=opportunities'),
-    staleTime: 2 * 60 * 1000,
+    staleTime: 0,
+    gcTime: 0,
   });
 };
 
@@ -61,6 +64,7 @@ const useCreateSavedList = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities'] });
     }
   });
 };
@@ -107,12 +111,26 @@ const useCreateSharedList = () => {
   });
 };
 
+const useDeleteSavedList = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (listId: number) => {
+      return apiRequest('DELETE', `/api/saved-lists/${listId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities'] });
+    }
+  });
+};
+
 // Hook to fetch customers for opportunity creation
 const useCustomers = () => {
   return useQuery({
     queryKey: ['/api/customers'],
     queryFn: () => apiRequest('GET', '/api/customers'),
     staleTime: 5 * 60 * 1000,
+    select: (data) => data?.data || [],
   });
 };
 
@@ -156,8 +174,17 @@ interface Opportunity {
 // Calculate opportunity statistics
 function calculateOpportunityStats(opportunities: any[]) {
   const totalOpportunities = opportunities.length;
-  const totalValue = opportunities.reduce((sum, opportunity) => sum + (opportunity.estimatedValue || 0), 0);
-  const weightedValue = opportunities.reduce((sum, opportunity) => sum + ((opportunity.estimatedValue || 0) * (opportunity.probability || 0) / 100), 0);
+  const totalValue = opportunities.reduce((sum, opportunity) => sum + (opportunity.estimated_value || 0), 0);
+  const weightedValue = opportunities.reduce((sum, opportunity) => {
+    const value = opportunity.estimated_value || 0;
+    const probability = opportunity.stage === 'Closed (Won)' ? 1.0 : 
+                      opportunity.stage === 'Proposal Sent to Client' ? 0.6 :
+                      opportunity.stage === 'Validated' ? 0.3 :
+                      opportunity.stage === 'Lost' ? 0 :
+                      opportunity.stage === 'Rejected' ? 0 :
+                      !opportunity.stage || opportunity.stage === '' ? 0 : 0;
+    return sum + (value * probability);
+  }, 0);
   const closedWon = opportunities.filter(o => o.status === 'Closed Won').length;
   
   return {
@@ -170,9 +197,9 @@ function calculateOpportunityStats(opportunities: any[]) {
 
 // Format currency
 function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-US', { 
+  return new Intl.NumberFormat('nl-NL', { 
     style: 'currency', 
-    currency: 'USD',
+    currency: 'EUR',
     maximumFractionDigits: 0
   }).format(value);
 }
@@ -338,11 +365,11 @@ function OpportunityDetailsModal({ opportunityId, onClose }: { opportunityId: nu
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">Customer</label>
-              <p className="mt-1">{opportunity.clientName || opportunity.customerNames}</p>
+              <p className="mt-1">{opportunity.clientName || opportunity.customerName}</p>
             </div>
             <div>
               <label className="text-sm font-medium text-gray-700">Partner</label>
-              <p className="mt-1">{opportunity.partnerNames || 'Not assigned'}</p>
+              <p className="mt-1">{opportunity.partnerName || 'Not assigned'}</p>
             </div>
           </div>
 
@@ -387,11 +414,15 @@ function OpportunitiesTable() {
   const { data: savedViewsData = [], isLoading: savedViewsLoading } = useSavedViews();
   const createSavedViewMutation = useCreateSavedView();
   const createSharedListMutation = useCreateSharedList();
+  const deleteSavedListMutation = useDeleteSavedList();
   const queryClient = useQueryClient();
   
   // Fetch customers and products for opportunity creation
-  const { data: customers = [] } = useCustomers();
+  const { data: customersResponse } = useCustomers();
   const { data: products = [] } = useProducts();
+  
+  // Extract customers array from paginated response
+  const customers = customersResponse?.data || [];
 
   // Filter saved lists to only show opportunity-related lists (client-side filtering)
   const opportunitySavedListsData = savedListsData.filter((list: any) => 
@@ -401,10 +432,50 @@ function OpportunitiesTable() {
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedType, setSelectedType] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState('');
+  const [selectedPartner, setSelectedPartner] = useState('');
+  const [selectedStage, setSelectedStage] = useState('');
+  const [selectedProbability, setSelectedProbability] = useState('');
   const [selectedOpportunities, setSelectedOpportunities] = useState<number[]>([]);
   const [bulkStatusValue, setBulkStatusValue] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
+  
+  // Dropdown state variables for new filter behavior
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [showTypeDropdown, setShowTypeDropdown] = useState(false);
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const [showPartnerDropdown, setShowPartnerDropdown] = useState(false);
+  const [showStageDropdown, setShowStageDropdown] = useState(false);
+  const [showProbabilityDropdown, setShowProbabilityDropdown] = useState(false);
+  
+  // Database-driven filter options extracted from opportunities data
+  const statusOptions = Array.from(new Set(opportunities.map((opp: any) => opp.status).filter(Boolean))).sort();
+  const typeOptions = Array.from(new Set(opportunities.map((opp: any) => opp.type).filter(Boolean))).sort();
+  const customerOptions = Array.from(new Set(opportunities.map((opp: any) => opp.clientName || opp.customerName).filter(Boolean))).sort();
+  const partnerOptions = Array.from(new Set(opportunities.map((opp: any) => opp.partnerName).filter(Boolean))).sort();
+  const stageOptions = Array.from(new Set(opportunities.map((opp: any) => opp.stage).filter(Boolean))).sort();
+  const probabilityOptions = Array.from(new Set(opportunities.map((opp: any) => opp.probability).filter(val => val !== null && val !== undefined))).sort((a, b) => a - b);
+  
+  // Handle click outside to close dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      if (!target.closest('.filter-dropdown')) {
+        setShowStatusDropdown(false);
+        setShowTypeDropdown(false);
+        setShowCustomerDropdown(false);
+        setShowPartnerDropdown(false);
+        setShowStageDropdown(false);
+        setShowProbabilityDropdown(false);
+        setShowViewsDropdown(false);
+        setShowListsDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
   
   // Initialize sorting state early to maintain hook order
   const [tableSortConfig, setTableSortConfig] = useState({ key: 'title', direction: 'asc' as 'asc' | 'desc' });
@@ -505,6 +576,7 @@ function OpportunitiesTable() {
   const [showAccountMappingModal, setShowAccountMappingModal] = useState(false);
   const [selectedMappingFields, setSelectedMappingFields] = useState<string[]>([]);
   const [showShareListModal, setShowShareListModal] = useState(false);
+  const [shareListData, setShareListData] = useState<any>(null);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
   const [showRenameListModal, setShowRenameListModal] = useState(false);
   const [showDeleteListModal, setShowDeleteListModal] = useState(false);
@@ -517,6 +589,7 @@ function OpportunitiesTable() {
   const [showUnsavedChangesModal, setShowUnsavedChangesModal] = useState(false);
   const [currentSharedLink, setCurrentSharedLink] = useState<string>('');
   const [existingSharedLinks, setExistingSharedLinks] = useState<any[]>([]);
+  const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
   
   // Create opportunity state
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -630,6 +703,32 @@ function OpportunitiesTable() {
     }
   }, [showShareListModal, activeList?.id, selectedOpportunities.length]);
   
+  // Handle list deletion
+  const handleDeleteList = async (listId: number) => {
+    try {
+      await deleteSavedListMutation.mutateAsync(listId);
+      
+      // If this was the active list, clear it
+      if (activeList && activeList.id === listId) {
+        setActiveList(null);
+        setFilterText('');
+        setSelectedStatus('');
+        setSelectedType('');
+      }
+      
+      toast({
+        title: "List deleted",
+        description: "The list has been deleted successfully.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete the list. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+  
   // Show loading state
   if (isLoading) {
     return (
@@ -672,13 +771,13 @@ function OpportunitiesTable() {
     return opportunitiesData.filter((opportunity: any) => {
       // Text search - using actual API response fields
       const title = opportunity.title || '';
-      const customerName = opportunity.clientName || opportunity.customerNames || '';
-      const partnerName = opportunity.partnerNames || '';
+      const searchCustomerName = opportunity.clientName || opportunity.customerName || '';
+      const searchPartnerName = opportunity.partnerName || '';
       
       const matchesText = !filterText || 
         title.toLowerCase().includes(filterText.toLowerCase()) ||
-        customerName.toLowerCase().includes(filterText.toLowerCase()) ||
-        partnerName.toLowerCase().includes(filterText.toLowerCase());
+        searchCustomerName.toLowerCase().includes(filterText.toLowerCase()) ||
+        searchPartnerName.toLowerCase().includes(filterText.toLowerCase());
         
       // Status filter (from UI or active list/view)
       const activeStatus = selectedStatus || activeList?.filters.status || activeView?.filters.status;
@@ -687,6 +786,22 @@ function OpportunitiesTable() {
       // Type filter (from UI or active list/view)
       const activeType = selectedType || activeList?.filters.type || activeView?.filters.type;
       const matchesType = !activeType || opportunity.type === activeType;
+      
+      // Customer filter
+      const filterCustomerName = opportunity.clientName || opportunity.customerName || '';
+      const matchesCustomer = !selectedCustomer || filterCustomerName === selectedCustomer;
+      
+      // Partner filter
+      const filterPartnerName = opportunity.partnerName || '';
+      const matchesPartner = !selectedPartner || filterPartnerName === selectedPartner;
+      
+      // Stage filter
+      const stage = opportunity.stage || '';
+      const matchesStage = !selectedStage || stage === selectedStage;
+      
+      // Probability filter
+      const probability = opportunity.probability;
+      const matchesProbability = !selectedProbability || String(probability) === selectedProbability;
       
       // Customer/Partner filters from active list
       const customerId = opportunity.customerId || opportunity.clientId;
@@ -697,7 +812,7 @@ function OpportunitiesTable() {
       const matchesPartnerId = !activeList?.filters.partnerId || 
         String(partnerId) === activeList.filters.partnerId;
       
-      return matchesText && matchesStatus && matchesType && matchesCustomerId && matchesPartnerId;
+      return matchesText && matchesStatus && matchesType && matchesCustomer && matchesPartner && matchesStage && matchesProbability && matchesCustomerId && matchesPartnerId;
     });
   })();
 
@@ -803,7 +918,7 @@ function OpportunitiesTable() {
   };
   
   return (
-    <div className="space-y-4">
+    <div className="p-6 space-y-6">
       {/* Enhanced unified toolbar */}
       <div className="bg-white p-4 rounded-lg shadow-sm">
         <div className="flex flex-col gap-4">
@@ -816,7 +931,7 @@ function OpportunitiesTable() {
                 <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
               </div>
               {/* Saved Lists dropdown - redesigned to match provided image */}
-              <div className="relative">
+              <div className="relative filter-dropdown">
                 <button 
                   className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
                   onClick={() => setShowListsDropdown(!showListsDropdown)}
@@ -870,71 +985,138 @@ function OpportunitiesTable() {
                           key={list.id}
                           className="relative"
                         >
-                          <div
-                            className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
-                            onClick={() => {
-                              // Don't do anything if clicking on already active list
-                              if (activeList?.id === list.id) {
+                          <div className="group relative flex items-center">
+                            <div
+                              className={`flex flex-1 cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
+                              onClick={() => {
+                                // Don't do anything if clicking on already active list
+                                if (activeList?.id === list.id) {
+                                  setShowListsDropdown(false);
+                                  return;
+                                }
+                                
+                                // Check if we're in list editing mode before switching lists
+                                if (isEditingList) {
+                                  // Store the pending action and show confirmation dialog
+                                  setPendingListAction({
+                                    type: list.isDefault && list.name === "All Opportunities" ? 'clear' : 'select',
+                                    list: list.isDefault && list.name === "All Opportunities" ? undefined : list
+                                  });
+                                  setShowUnsavedChangesModal(true);
+                                  setShowListsDropdown(false);
+                                  return;
+                                }
+                                
+                                // Special handling for "All Opportunities" default list
+                                if (list.isDefault && list.name === "All Opportunities") {
+                                  // Clear filters and active list (same behavior as "Return to all opportunities" button)
+                                  setActiveList(null);
+                                  setOriginalListFilters(null);
+                                  setFilterText('');
+                                  setSelectedStatus('');
+                                  setSelectedType('');
+                                  setHasUnsavedChanges(false);
+                                } else {
+                                  // Normal behavior for other lists
+                                  console.log('Setting activeList to:', list);
+                                  setActiveList(list);
+                                  // Store the original filters to enable reverting changes
+                                  setOriginalListFilters(list.filters);
+                                  // Apply filter settings
+                                  setFilterText(list.filters.searchText || '');
+                                  setSelectedStatus(list.filters.status || '');
+                                  setSelectedType(list.filters.type || '');
+                                  setHasUnsavedChanges(false);
+                                }
+                                
+                                // Clear any active view when switching lists
+                                setActiveView(null);
                                 setShowListsDropdown(false);
-                                return;
-                              }
+                              }}
+                            >
+                              <div className="flex flex-1 items-center">
+                                <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{list.name}</span>
+                                {/* Show share icon if list is shared */}
+                                {list.is_shared && (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-green-500">
+                                    <circle cx="18" cy="5" r="3"></circle>
+                                    <circle cx="6" cy="12" r="3"></circle>
+                                    <circle cx="18" cy="19" r="3"></circle>
+                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                  </svg>
+                                )}
+                              </div>
                               
-                              // Check if we're in list editing mode before switching lists
-                              if (isEditingList) {
-                                // Store the pending action and show confirmation dialog
-                                setPendingListAction({
-                                  type: list.isDefault && list.name === "All Opportunities" ? 'clear' : 'select',
-                                  list: list.isDefault && list.name === "All Opportunities" ? undefined : list
-                                });
-                                setShowUnsavedChangesModal(true);
-                                setShowListsDropdown(false);
-                                return;
-                              }
-                              
-                              // Special handling for "All Opportunities" default list
-                              if (list.isDefault && list.name === "All Opportunities") {
-                                // Clear filters and active list (same behavior as "Return to all opportunities" button)
-                                setActiveList(null);
-                                setOriginalListFilters(null);
-                                setFilterText('');
-                                setSelectedStatus('');
-                                setSelectedType('');
-                                setHasUnsavedChanges(false);
-                              } else {
-                                // Normal behavior for other lists
-                                setActiveList(list);
-                                // Store the original filters to enable reverting changes
-                                setOriginalListFilters(list.filters);
-                                // Apply filter settings
-                                setFilterText(list.filters.searchText || '');
-                                setSelectedStatus(list.filters.status || '');
-                                setSelectedType(list.filters.type || '');
-                                setHasUnsavedChanges(false);
-                              }
-                              
-                              // Clear any active view when switching lists
-                              setActiveView(null);
-                              setShowListsDropdown(false);
-                            }}
-                          >
-                            <div className="flex flex-1 items-center">
-                              <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{list.name}</span>
-                              {/* Show share icon if list has shared links */}
-                              {existingSharedLinks.length > 0 && activeList?.id === list.id && (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-green-500" title="Shared publicly">
-                                  <circle cx="18" cy="5" r="3"></circle>
-                                  <circle cx="6" cy="12" r="3"></circle>
-                                  <circle cx="18" cy="19" r="3"></circle>
-                                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                                </svg>
+                              {/* Visual indicator for default list */}
+                              {list.isDefault && (
+                                <div className="ml-auto">
+                                  <span className="text-xs text-[#282A3F] italic" style={{ fontFamily: 'Poppins, sans-serif' }}>Default</span>
+                                </div>
                               )}
                             </div>
                             
-                            {/* Visual indicator for default list */}
-                            {list.isDefault && (
-                              <div className="ml-auto">
-                                <span className="text-xs text-[#282A3F] italic" style={{ fontFamily: 'Poppins, sans-serif' }}>Default</span>
+                            {/* Three dots menu for non-default lists */}
+                            {!list.isDefault && (
+                              <div className="relative ml-1">
+                                <button
+                                  className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-slate-200 transition-all"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveDropdownId(activeDropdownId === list.id ? null : list.id);
+                                  }}
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="1"></circle>
+                                    <circle cx="12" cy="5" r="1"></circle>
+                                    <circle cx="12" cy="19" r="1"></circle>
+                                  </svg>
+                                </button>
+                                
+                                {/* Dropdown menu */}
+                                {activeDropdownId === list.id && (
+                                  <div className="absolute right-0 top-full mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-md z-50">
+                                    <div className="p-1">
+                                      <button
+                                        className="flex w-full items-center px-2 py-1.5 text-sm rounded-sm hover:bg-slate-100 text-left"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          // Navigate to broker view
+                                          window.open(`/broker-view/list/${list.id}`, '_blank');
+                                          setActiveDropdownId(null);
+                                          setShowListsDropdown(false);
+                                        }}
+                                      >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                                          <polyline points="10 17 15 12 10 7"></polyline>
+                                          <line x1="15" y1="12" x2="3" y2="12"></line>
+                                        </svg>
+                                        Open list as partner
+                                      </button>
+                                      <button
+                                        className="flex w-full items-center px-2 py-1.5 text-sm rounded-sm hover:bg-red-50 text-red-600 text-left"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          // Show confirmation dialog
+                                          if (confirm(`Are you sure you want to delete the list "${list.name}"? This action cannot be undone.`)) {
+                                            handleDeleteList(list.id);
+                                          }
+                                          setActiveDropdownId(null);
+                                          setShowListsDropdown(false);
+                                        }}
+                                      >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                          <polyline points="3 6 5 6 21 6"></polyline>
+                                          <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                          <line x1="10" y1="11" x2="10" y2="17"></line>
+                                          <line x1="14" y1="11" x2="14" y2="17"></line>
+                                        </svg>
+                                        Delete list
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
@@ -954,7 +1136,10 @@ function OpportunitiesTable() {
                     variant="ghost" 
                     size="sm" 
                     className="text-indigo-600"
-                    onClick={() => setShowShareListModal(true)}
+                    onClick={() => {
+                      console.log('Share button clicked, activeList:', activeList);
+                      setShowShareListModal(true);
+                    }}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                       <circle cx="18" cy="5" r="3"></circle>
@@ -1007,6 +1192,7 @@ function OpportunitiesTable() {
             
             {/* Right-side action buttons */}
             <div className="flex items-center gap-2">
+              
               {/* Save button - only shown when filters are applied */}
               {(filterText || selectedStatus || selectedType) && (
                 <Button 
@@ -1068,7 +1254,7 @@ function OpportunitiesTable() {
               </div>
               
               {/* Views dropdown - next to search field */}
-              <div className="relative">
+              <div className="relative filter-dropdown">
                 <button 
                   className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium ${activeView ? 'bg-indigo-50 border-indigo-400 text-indigo-700' : 'border-gray-300 hover:border-gray-400'}`}
                   onClick={() => setShowViewsDropdown(!showViewsDropdown)}
@@ -1150,39 +1336,435 @@ function OpportunitiesTable() {
                 )}
               </div>
               
-              {/* Filter buttons next to the views dropdown */}
+              {/* Database-driven filter dropdowns */}
               <div className="flex items-center gap-2 ml-3">
-                <button 
-                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedStatus(selectedStatus ? '' : 'In Progress')}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                  </svg>
-                  <span>{selectedStatus ? `Status: ${selectedStatus}` : 'Status'}</span>
-                  {selectedStatus && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                {/* Status Filter Dropdown */}
+                <div className="relative filter-dropdown">
+                  <button 
+                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}
+                    onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                     </svg>
+                    <span>{selectedStatus ? `Status: ${selectedStatus}` : 'Status'}</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className={`ml-2 transition-transform ${showStatusDropdown ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  
+                  {showStatusDropdown && (
+                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-lg">
+                      <div className="p-1">
+                        {selectedStatus && (
+                          <button
+                            className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+                            onClick={() => {
+                              setSelectedStatus('');
+                              setShowStatusDropdown(false);
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                            Clear Status Filter
+                          </button>
+                        )}
+                        {statusOptions.map((status) => (
+                          <button
+                            key={status}
+                            className={`flex w-full items-center px-3 py-2 text-sm rounded-md ${
+                              selectedStatus === status 
+                                ? 'bg-indigo-50 text-indigo-700' 
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                            onClick={() => {
+                              setSelectedStatus(status);
+                              setShowStatusDropdown(false);
+                            }}
+                          >
+                            <span className={`w-2 h-2 rounded-full mr-2 ${getStatusBadgeVariant(status)}`}></span>
+                            {status}
+                            {selectedStatus === status && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto text-indigo-600">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   )}
-                </button>
+                </div>
                 
-                <button 
-                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedType ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedType(selectedType ? '' : 'Renewal')}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                  </svg>
-                  <span>{selectedType ? `Type: ${selectedType}` : 'Type'}</span>
-                  {selectedType && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                {/* Type Filter Dropdown */}
+                <div className="relative filter-dropdown">
+                  <button 
+                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedType ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}
+                    onClick={() => setShowTypeDropdown(!showTypeDropdown)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                     </svg>
+                    <span>{selectedType ? `Type: ${selectedType}` : 'Type'}</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className={`ml-2 transition-transform ${showTypeDropdown ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  
+                  {showTypeDropdown && (
+                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-lg">
+                      <div className="p-1">
+                        {selectedType && (
+                          <button
+                            className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+                            onClick={() => {
+                              setSelectedType('');
+                              setShowTypeDropdown(false);
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                            Clear Type Filter
+                          </button>
+                        )}
+                        {typeOptions.map((type) => (
+                          <button
+                            key={type}
+                            className={`flex w-full items-center px-3 py-2 text-sm rounded-md ${
+                              selectedType === type 
+                                ? 'bg-indigo-50 text-indigo-700' 
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                            onClick={() => {
+                              setSelectedType(type);
+                              setShowTypeDropdown(false);
+                            }}
+                          >
+                            {type}
+                            {selectedType === type && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto text-indigo-600">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
                   )}
-                </button>
+                </div>
+                
+                {/* Customer Filter Dropdown */}
+                <div className="relative filter-dropdown">
+                  <button 
+                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedCustomer ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}
+                    onClick={() => setShowCustomerDropdown(!showCustomerDropdown)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <span>{selectedCustomer ? `Customer: ${selectedCustomer}` : 'Customer'}</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className={`ml-2 transition-transform ${showCustomerDropdown ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  
+                  {showCustomerDropdown && (
+                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-lg">
+                      <div className="p-1">
+                        {selectedCustomer && (
+                          <button
+                            className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+                            onClick={() => {
+                              setSelectedCustomer('');
+                              setShowCustomerDropdown(false);
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                            Clear Customer Filter
+                          </button>
+                        )}
+                        {customerOptions.map((customer) => (
+                          <button
+                            key={customer}
+                            className={`flex w-full items-center px-3 py-2 text-sm rounded-md ${
+                              selectedCustomer === customer 
+                                ? 'bg-indigo-50 text-indigo-700' 
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                            onClick={() => {
+                              setSelectedCustomer(customer);
+                              setShowCustomerDropdown(false);
+                            }}
+                          >
+                            {customer}
+                            {selectedCustomer === customer && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto text-indigo-600">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Partner Filter Dropdown */}
+                <div className="relative filter-dropdown">
+                  <button 
+                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedPartner ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}
+                    onClick={() => setShowPartnerDropdown(!showPartnerDropdown)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="9" cy="7" r="4"></circle>
+                      <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <span>{selectedPartner ? `Partner: ${selectedPartner}` : 'Partner'}</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className={`ml-2 transition-transform ${showPartnerDropdown ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  
+                  {showPartnerDropdown && (
+                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-lg">
+                      <div className="p-1">
+                        {selectedPartner && (
+                          <button
+                            className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+                            onClick={() => {
+                              setSelectedPartner('');
+                              setShowPartnerDropdown(false);
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                            Clear Partner Filter
+                          </button>
+                        )}
+                        {partnerOptions.map((partner) => (
+                          <button
+                            key={partner}
+                            className={`flex w-full items-center px-3 py-2 text-sm rounded-md ${
+                              selectedPartner === partner 
+                                ? 'bg-indigo-50 text-indigo-700' 
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                            onClick={() => {
+                              setSelectedPartner(partner);
+                              setShowPartnerDropdown(false);
+                            }}
+                          >
+                            {partner}
+                            {selectedPartner === partner && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto text-indigo-600">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Stage Filter Dropdown */}
+                <div className="relative filter-dropdown">
+                  <button 
+                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedStage ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}
+                    onClick={() => setShowStageDropdown(!showStageDropdown)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <polyline points="9 11 12 14 22 4"></polyline>
+                      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                    </svg>
+                    <span>{selectedStage ? `Stage: ${selectedStage}` : 'Stage'}</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className={`ml-2 transition-transform ${showStageDropdown ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  
+                  {showStageDropdown && (
+                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-lg">
+                      <div className="p-1">
+                        {selectedStage && (
+                          <button
+                            className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+                            onClick={() => {
+                              setSelectedStage('');
+                              setShowStageDropdown(false);
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                            Clear Stage Filter
+                          </button>
+                        )}
+                        {stageOptions.map((stage) => (
+                          <button
+                            key={stage}
+                            className={`flex w-full items-center px-3 py-2 text-sm rounded-md ${
+                              selectedStage === stage 
+                                ? 'bg-indigo-50 text-indigo-700' 
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                            onClick={() => {
+                              setSelectedStage(stage);
+                              setShowStageDropdown(false);
+                            }}
+                          >
+                            {stage}
+                            {selectedStage === stage && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto text-indigo-600">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                
+                {/* Probability Filter Dropdown */}
+                <div className="relative filter-dropdown">
+                  <button 
+                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedProbability ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700 hover:border-gray-400'}`}
+                    onClick={() => setShowProbabilityDropdown(!showProbabilityDropdown)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <line x1="18" y1="20" x2="18" y2="10"></line>
+                      <line x1="12" y1="20" x2="12" y2="4"></line>
+                      <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                    <span>{selectedProbability ? `Probability: ${selectedProbability}%` : 'Probability'}</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className={`ml-2 transition-transform ${showProbabilityDropdown ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  
+                  {showProbabilityDropdown && (
+                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-lg">
+                      <div className="p-1">
+                        {selectedProbability && (
+                          <button
+                            className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-md"
+                            onClick={() => {
+                              setSelectedProbability('');
+                              setShowProbabilityDropdown(false);
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                            Clear Probability Filter
+                          </button>
+                        )}
+                        {probabilityOptions.map((probability) => (
+                          <button
+                            key={probability}
+                            className={`flex w-full items-center px-3 py-2 text-sm rounded-md ${
+                              selectedProbability === String(probability) 
+                                ? 'bg-indigo-50 text-indigo-700' 
+                                : 'text-gray-700 hover:bg-gray-50'
+                            }`}
+                            onClick={() => {
+                              setSelectedProbability(String(probability));
+                              setShowProbabilityDropdown(false);
+                            }}
+                          >
+                            {probability}%
+                            {selectedProbability === String(probability) && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto text-indigo-600">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            )}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
             
@@ -1219,8 +1801,7 @@ function OpportunitiesTable() {
           </div>
         </div>
       </div>
-      
-      {/* Selection actions bar - visible when items are selected */}
+      {/* Bulk actions bar - only visible when opportunities are selected */}
       {selectedOpportunities.length > 0 && (
         <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
           <div className="flex items-center">
@@ -1279,7 +1860,6 @@ function OpportunitiesTable() {
               Create List
             </Button>
             
-
             <Button 
               variant="outline" 
               size="sm"
@@ -1299,6 +1879,7 @@ function OpportunitiesTable() {
             <Button 
               variant="outline" 
               size="sm"
+              className="text-indigo-600"
               onClick={() => {
                 // Load OKR templates when opening the modal
                 try {
@@ -1328,30 +1909,28 @@ function OpportunitiesTable() {
           </div>
         </div>
       )}
-
       {/* Statistics overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.totalOpportunities}</div>
+          <div className="text-xl font-semibold text-[#282A3F]">{stats.totalOpportunities}</div>
           <div className="text-sm text-gray-500">Total Opportunities</div>
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.closedWon}</div>
+          <div className="text-xl font-semibold text-[#282A3F]">{stats.closedWon}</div>
           <div className="text-sm text-gray-500">Closed Won</div>
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.totalValue}</div>
-          <div className="text-sm text-gray-500">Total Value</div>
+          <div className="text-xl font-semibold text-[#282A3F]">{stats.totalValue}</div>
+          <div className="text-sm text-gray-500">Total Value Opportunities</div>
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.weightedValue}</div>
-          <div className="text-sm text-gray-500">Weighted Value</div>
+          <div className="text-xl font-semibold text-[#282A3F]">{stats.weightedValue}</div>
+          <div className="text-sm text-gray-500">Weighted Value Opportunities</div>
         </div>
       </div>
-      
       {/* Save List Modal */}
       <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
         <DialogContent className="sm:max-w-md">
@@ -1452,12 +2031,16 @@ function OpportunitiesTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
       {/* Google-Style Share Modal */}
       <ShareModal
         isOpen={showShareListModal}
-        onClose={() => setShowShareListModal(false)}
-        itemName={activeList?.name || 'Selected Items'}
+        onClose={() => {
+          setShowShareListModal(false);
+          setShareListData(null);
+        }}
+        itemName={shareListData?.name || activeList?.name || 'Selected Items'}
+        listId={shareListData?.id || activeList?.id || 0}
+        envId={environment.id}
         currentSharedLink={currentSharedLink}
         existingSharedLinks={existingSharedLinks}
         onCopyLink={() => {
@@ -1556,17 +2139,25 @@ function OpportunitiesTable() {
           }
         }}
         isCreating={createSharedListMutation.isPending}
+        onRefreshList={() => {
+          // Refresh the saved lists to update is_shared flags
+          queryClient.invalidateQueries({
+            queryKey: [`/api/${environment.id}/saved-lists`]
+          });
+        }}
+        listData={activeList ? opportunities.filter(opp => activeList.members.includes(opp.id)) : opportunities}
       />
-      
       {/* Table section without a border */}
       <div className="bg-white overflow-x-auto rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-white">
             <tr>
-              <th scope="col" className="relative px-3 py-3.5 w-10">
+              <th scope="col" className="relative px-3 py-3.5 w-10 bg-white group">
                 <input
                   type="checkbox"
-                  className="absolute h-4 w-4 rounded border-gray-300"
+                  className={`absolute h-4 w-4 rounded border-gray-300 ${
+                    selectedOpportunities.length > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 transition-opacity'
+                  }`}
                   checked={selectedOpportunities.length === displayedOpportunities.length && displayedOpportunities.length > 0}
                   onChange={toggleSelectAll}
                 />
@@ -1576,39 +2167,16 @@ function OpportunitiesTable() {
                 currentSortKey={tableSortConfig.key} 
                 currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
-                className="w-[250px]"
+                className="w-[200px]"
               >
-                Title
+                Opportunity
               </SortableTableHead>
-              <SortableTableHead 
-                sortKey="status" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[120px]"
-              >
-                Status
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="type" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[120px]"
-              >
-                Type
-              </SortableTableHead>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px]">
-                <div className="flex items-center text-[#696C8C] text-[13px] font-medium">
-                  Template
-                </div>
-              </th>
               <SortableTableHead 
                 sortKey="clientName" 
                 currentSortKey={tableSortConfig.key} 
                 currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
-                className="w-[140px]"
+                className="w-[120px]"
               >
                 Customer
               </SortableTableHead>
@@ -1617,16 +2185,47 @@ function OpportunitiesTable() {
                 currentSortKey={tableSortConfig.key} 
                 currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
-                className="w-[140px]"
+                className="w-[120px]"
               >
                 Partner
+              </SortableTableHead>
+
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px] bg-white">
+                <div className="flex items-center text-[#696C8C] text-[14px] font-medium">Contacts</div>
+              </th>
+              <SortableTableHead 
+                sortKey="startDate" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[110px]"
+              >
+                Start Date
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="insuranceDescription" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[150px]"
+              >
+                Insurance Description
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="stage" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[100px]"
+              >
+                Stage
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="estimatedValue" 
                 currentSortKey={tableSortConfig.key} 
                 currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
-                className="w-[120px]"
+                className="w-[100px]"
               >
                 Value
               </SortableTableHead>
@@ -1635,16 +2234,39 @@ function OpportunitiesTable() {
                 currentSortKey={tableSortConfig.key} 
                 currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
-                className="w-[100px]"
+                className="w-[90px]"
               >
                 Probability
               </SortableTableHead>
+              <SortableTableHead 
+                sortKey="status" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[100px]"
+              >
+                Status
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="type" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[100px]"
+              >
+                Type
+              </SortableTableHead>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[100px] bg-white">
+                <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
+                  Template
+                </div>
+              </th>
               <SortableTableHead 
                 sortKey="expectedCloseDate" 
                 currentSortKey={tableSortConfig.key} 
                 currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
-                className="w-[120px]"
+                className="w-[110px]"
               >
                 Close Date
               </SortableTableHead>
@@ -1654,7 +2276,7 @@ function OpportunitiesTable() {
             {displayedOpportunities.map((opportunity: any) => (
               <tr 
                 key={opportunity.id}
-                className={`hover:bg-gray-50 cursor-pointer ${
+                className={`hover:bg-gray-50 cursor-pointer group ${
                   selectedOpportunities.includes(opportunity.id) ? 'bg-blue-50' : ''
                 }`}
                 onClick={(e) => {
@@ -1667,13 +2289,15 @@ function OpportunitiesTable() {
                 <td className="relative px-3 py-4 w-10">
                   <input
                     type="checkbox"
-                    className="absolute h-4 w-4 rounded border-gray-300"
+                    className={`absolute h-4 w-4 rounded border-gray-300 ${
+                      selectedOpportunities.includes(opportunity.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 transition-opacity'
+                    }`}
                     checked={selectedOpportunities.includes(opportunity.id)}
                     onChange={() => toggleSelectOpportunity(opportunity.id)}
                   />
                 </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[250px]">
-                  <div className="max-w-[230px]">
+                <td className="px-3 py-4 text-sm text-gray-900 w-[200px]">
+                  <div className="max-w-[180px]">
                     <div className="font-medium text-gray-900 truncate">
                       {opportunity.title}
                     </div>
@@ -1682,31 +2306,72 @@ function OpportunitiesTable() {
                     </div>
                   </div>
                 </td>
-                <td className="px-3 py-4 text-sm w-[120px]">
+                <td className="px-3 py-4 text-sm w-[120px] truncate">
+                  {(opportunity.clientName || opportunity.customerName) ? (
+                    <a 
+                      href={`/lists/customers/${opportunity.clientId || opportunity.customerId}`}
+                      className="text-indigo-600 hover:text-indigo-500 truncate block"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Store current location in session storage for back navigation
+                        sessionStorage.setItem('previousLocation', window.location.pathname + window.location.search);
+                      }}
+                    >
+                      {opportunity.clientName || opportunity.customerName}
+                    </a>
+                  ) : (
+                    <span className="text-gray-400">-</span>
+                  )}
+                </td>
+                <td className="px-3 py-4 text-sm w-[120px] truncate">
+                  {opportunity.partnerName ? (
+                    <a 
+                      href={`/lists/partners/${opportunity.partnerId}`}
+                      className="text-indigo-600 hover:text-indigo-500 truncate block"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // Store current location in session storage for back navigation
+                        sessionStorage.setItem('previousLocation', window.location.pathname + window.location.search);
+                      }}
+                    >
+                      {opportunity.partnerName}
+                    </a>
+                  ) : (
+                    <span className="text-gray-400">-</span>
+                  )}
+                </td>
+
+                <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
+                  <span className="text-gray-500 text-xs">0</span>
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[110px]">
+                  {opportunity.startDate ? new Date(opportunity.startDate).toLocaleDateString() : '-'}
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[150px] truncate">
+                  {opportunity.insuranceDescription || '-'}
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
+                  {opportunity.stage || '-'}
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
+                  {formatCurrency(opportunity.estimated_value || 0)}
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[90px]">
+                  {opportunity.probability}%
+                </td>
+                <td className="px-3 py-4 text-sm w-[100px]">
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeVariant(opportunity.status)}`}>
                     {opportunity.status}
                   </span>
                 </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
+                <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
                   {opportunity.type || 'General'}
                 </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
+                <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
                   <TemplateBadges opportunityId={opportunity.id} />
                 </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[140px] truncate">
-                  {opportunity.clientName || opportunity.customerNames}
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[140px] truncate">
-                  {opportunity.partnerNames}
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
-                  {formatCurrency(opportunity.estimatedValue || 0)}
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
-                  {opportunity.probability}%
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
-                  {opportunity.closeDate}
+                <td className="px-3 py-4 text-sm text-gray-900 w-[110px]">
+                  {opportunity.expectedCloseDate ? new Date(opportunity.expectedCloseDate).toLocaleDateString() : opportunity.closeDate || '-'}
                 </td>
               </tr>
             ))}
@@ -1731,7 +2396,6 @@ function OpportunitiesTable() {
           </div>
         )}
       </div>
-      
       {/* Create Opportunity Modal */}
       <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
         <DialogContent className="sm:max-w-[600px]">
@@ -1870,7 +2534,6 @@ function OpportunitiesTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Assign Template Modal */}
       <Dialog open={showAssignTemplateModal} onOpenChange={setShowAssignTemplateModal}>
         <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
@@ -2117,152 +2780,181 @@ function OpportunitiesTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+{/* Account Mapping Wizard Modal */}
+<Dialog open={showAccountMappingModal} onOpenChange={setShowAccountMappingModal}>
+  <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
+    <DialogHeader>
+      <DialogTitle className="flex items-center">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="20"
+          height="20"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="mr-2 text-indigo-600"
+        >
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        Account Mapping for "{activeList?.name}"
+      </DialogTitle>
+      <DialogDescription>
+        Configure how data is shared when mapping accounts across environments. Select which fields to include in the mapping.
+      </DialogDescription>
+    </DialogHeader>
 
-      {/* Account Mapping Wizard Modal */}
-      <Dialog open={showAccountMappingModal} onOpenChange={setShowAccountMappingModal}>
-        <DialogContent className="sm:max-w-2xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-indigo-600">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-              </svg>
-              Account Mapping for "{activeList?.name}"
-            </DialogTitle>
-            <DialogDescription>
-              Configure how data is shared when mapping accounts across environments. Select which fields to include in the mapping.
-            </DialogDescription>
-          </DialogHeader>
+    <div className="space-y-6">
+      {/* How it works section */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <h4 className="font-semibold text-blue-900 mb-2 flex items-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="mr-2"
+          >
+            <circle cx="12" cy="12" r="10"></circle>
+            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+            <path d="M12 17h.01"></path>
+          </svg>
+          How Account Mapping Works
+        </h4>
+        <p className="text-blue-800 text-sm leading-relaxed">
+          Qollabi will only show the person you're sharing with the <strong>overlapping data points</strong> from the selected fields. Other data points will remain private. When an overlap is spotted, it will be highlighted in each environment to help identify mutual opportunities and connections.
+        </p>
+      </div>
 
-          <div className="space-y-6">
-            {/* How it works section */}
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-              <h4 className="font-semibold text-blue-900 mb-2 flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                  <path d="M12 17h.01"></path>
-                </svg>
-                How Account Mapping Works
-              </h4>
-              <p className="text-blue-800 text-sm leading-relaxed">
-                Qollabi will only show the person you're sharing with the <strong>overlapping data points</strong> from the selected fields. 
-                Other data points will remain private. When an overlap is spotted, it will be highlighted in each environment 
-                to help identify mutual opportunities and connections.
-              </p>
-            </div>
-
-            {/* Field selection */}
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-4">Select Fields to Include in Mapping</h4>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { key: 'title', label: 'Opportunity Title', description: 'Name and description of the opportunity' },
-                  { key: 'status', label: 'Status', description: 'Current opportunity status' },
-                  { key: 'type', label: 'Type', description: 'Opportunity type (New Business, Renewal, etc.)' },
-                  { key: 'customerName', label: 'Customer', description: 'Associated customer or client name' },
-                  { key: 'partnerName', label: 'Partner', description: 'Partner organization details' },
-                  { key: 'estimatedValue', label: 'Estimated Value', description: 'Financial value of the opportunity' },
-                  { key: 'probability', label: 'Probability', description: 'Success probability percentage' },
-                  { key: 'closeDate', label: 'Close Date', description: 'Expected closing date' }
-                ].map((field) => (
-                  <div key={field.key} className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-                    <Checkbox
-                      id={field.key}
-                      checked={selectedMappingFields.includes(field.key)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedMappingFields(prev => [...prev, field.key]);
-                        } else {
-                          setSelectedMappingFields(prev => prev.filter(f => f !== field.key));
-                        }
-                      }}
-                      className="mt-1"
-                    />
-                    <div className="flex-1">
-                      <label htmlFor={field.key} className="text-sm font-medium text-gray-900 cursor-pointer">
-                        {field.label}
-                      </label>
-                      <p className="text-xs text-gray-600 mt-1">{field.description}</p>
-                    </div>
-                  </div>
-                ))}
+      {/* Field selection */}
+      <div>
+        <h4 className="font-semibold text-gray-900 mb-4">Select Fields to Include in Mapping</h4>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { key: 'title', label: 'Opportunity Title', description: 'Name and description of the opportunity' },
+            { key: 'status', label: 'Status', description: 'Current opportunity status' },
+            { key: 'type', label: 'Type', description: 'Opportunity type (New Business, Renewal, etc.)' },
+            { key: 'customerName', label: 'Customer', description: 'Associated customer or client name' },
+            { key: 'partnerName', label: 'Partner', description: 'Partner organization details' },
+            { key: 'estimatedValue', label: 'Estimated Value', description: 'Financial value of the opportunity' },
+            { key: 'probability', label: 'Probability', description: 'Success probability percentage' },
+            { key: 'closeDate', label: 'Close Date', description: 'Expected closing date' }
+          ].map((field) => (
+            <div key={field.key} className="flex items-start space-x-3 p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
+              <Checkbox
+                id={field.key}
+                checked={selectedMappingFields.includes(field.key)}
+                onCheckedChange={(checked) => {
+                  if (checked) {
+                    setSelectedMappingFields(prev => [...prev, field.key]);
+                  } else {
+                    setSelectedMappingFields(prev => prev.filter(f => f !== field.key));
+                  }
+                }}
+                className="mt-1"
+              />
+              <div className="flex-1">
+                <label htmlFor={field.key} className="text-sm font-medium text-gray-900 cursor-pointer">
+                  {field.label}
+                </label>
+                <p className="text-xs text-gray-600 mt-1">{field.description}</p>
               </div>
             </div>
+          ))}
+        </div>
+      </div>
 
-            {/* Privacy notice */}
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <h4 className="font-semibold text-green-900 mb-2 flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                  <path d="M9 12l2 2 4-4"></path>
-                  <path d="M21 12c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1z"></path>
-                  <path d="M3 12c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1z"></path>
-                  <path d="M12 21c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1z"></path>
-                  <path d="M12 3c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1z"></path>
-                </svg>
-                Privacy Protection
-              </h4>
-              <p className="text-green-800 text-sm">
-                Only the selected fields will be used for comparison. All other data remains completely private 
-                and will not be shared or visible to the other party.
-              </p>
-            </div>
+      {/* Privacy notice */}
+      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+        <h4 className="font-semibold text-green-900 mb-2 flex items-center">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="mr-2"
+          >
+            <path d="M9 12l2 2 4-4"></path>
+            <path d="M21 12c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1z"></path>
+            <path d="M3 12c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1z"></path>
+            <path d="M12 21c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1z"></path>
+            <path d="M12 3c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1z"></path>
+          </svg>
+          Privacy Protection
+        </h4>
+        <p className="text-green-800 text-sm">
+          Only the selected fields will be used for comparison. All other data remains completely private and will not be shared or visible to the other party.
+        </p>
+      </div>
 
-            {/* Recipient selection */}
-            <div>
-              <h4 className="font-semibold text-gray-900 mb-3">Share With</h4>
-              <div className="space-y-2">
-                <Input
-                  placeholder="Enter email address"
-                  type="email"
-                  className="w-full"
-                />
-                <p className="text-xs text-gray-600">
-                  The recipient will receive a secure link to view overlapping data points only
-                </p>
-              </div>
-            </div>
-          </div>
+      {/* Recipient selection */}
+      <div>
+        <h4 className="font-semibold text-gray-900 mb-3">Share With</h4>
+        <div className="space-y-2">
+          <Input
+            placeholder="Enter email address"
+            type="email"
+            className="w-full"
+          />
+          <p className="text-xs text-gray-600">
+            The recipient will receive a secure link to view overlapping data points only
+          </p>
+        </div>
+      </div>
+    </div>
 
-          <DialogFooter className="pt-6 border-t">
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setShowAccountMappingModal(false);
-                setSelectedMappingFields([]);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button 
-              disabled={selectedMappingFields.length === 0}
-              onClick={() => {
-                if (selectedMappingFields.length === 0) {
-                  toast({
-                    title: "Fields required",
-                    description: "Please select at least one field to include in the mapping",
-                    variant: "destructive"
-                  });
-                  return;
-                }
-                
-                toast({
-                  title: "Account Mapping Created",
-                  description: `Mapping configured with ${selectedMappingFields.length} fields. Secure sharing link will be generated.`,
-                });
-                
-                setShowAccountMappingModal(false);
-                setSelectedMappingFields([]);
-              }}
-              className="bg-indigo-600 hover:bg-indigo-700"
-            >
-              Create Account Mapping
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+    <DialogFooter className="pt-6 border-t">
+      <Button
+        variant="outline"
+        onClick={() => {
+          setShowAccountMappingModal(false);
+          setSelectedMappingFields([]);
+        }}
+      >
+        Cancel
+      </Button>
+      <Button
+        disabled={selectedMappingFields.length === 0}
+        onClick={() => {
+          if (selectedMappingFields.length === 0) {
+            toast({
+              title: "Fields required",
+              description: "Please select at least one field to include in the mapping",
+              variant: "destructive"
+            });
+            return;
+          }
+
+          toast({
+            title: "Account Mapping Created",
+            description: `Mapping configured with ${selectedMappingFields.length} fields. Secure sharing link will be generated.`,
+          });
+
+          setShowAccountMappingModal(false);
+          setSelectedMappingFields([]);
+        }}
+        className="bg-indigo-600 hover:bg-indigo-700"
+      >
+        Create Account Mapping
+      </Button>
+    </DialogFooter>
+  </DialogContent>
+</Dialog>
 
     </div>
   );

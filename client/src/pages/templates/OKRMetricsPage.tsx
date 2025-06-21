@@ -49,6 +49,8 @@ interface OKRMetric {
   description?: string;
   realized_value: number;
   target_value?: number;
+  ytd_value?: string;
+  last_year_value?: string;
   measure_unit: string;
   currency_type?: string;
   frequency: string;
@@ -373,7 +375,7 @@ export default function OKRMetricsPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 {groupBy === 'none' && (
-                  <thead className="bg-gray-50 border-b">
+                  <thead className="bg-white border-b">
                     <tr>
                       <th className="w-12 px-6 py-3 text-left">
                         <Checkbox
@@ -435,7 +437,31 @@ export default function OKRMetricsPage() {
                         <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</td>
                         <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timeframe</td>
                         <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Milestone Frequency</td>
-                        <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Target</td>
+                        {(() => {
+                          // Check if any metric in this tag group has YTD or Last Year values
+                          const hasYtdValues = tagMetrics.some((metric: any) => metric.ytd_value);
+                          const hasLastYearValues = tagMetrics.some((metric: any) => metric.last_year_value);
+                          
+                          if (hasYtdValues || hasLastYearValues) {
+                            return (
+                              <>
+                                {hasYtdValues && (
+                                  <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">YTD</td>
+                                )}
+                                {hasLastYearValues && (
+                                  <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Year</td>
+                                )}
+                              </>
+                            );
+                          } else {
+                            return (
+                              <>
+                                <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Realized</td>
+                                <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Target</td>
+                              </>
+                            );
+                          }
+                        })()}
                         <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</td>
                       </tr>
                     ] : []),
@@ -480,13 +506,51 @@ export default function OKRMetricsPage() {
                               {metric.frequency}
                             </div>
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm text-gray-900">
-                              {metric.target_value || '-'}
-                              {metric.measure_unit === 'percent' && metric.target_value ? '%' : ''}
-                              {metric.measure_unit === 'currency' && metric.target_value ? 'M' : ''}
-                            </div>
-                          </td>
+                          {(() => {
+                            // Check if this metric has YTD or Last Year values
+                            const hasYtdValue = metric.ytd_value;
+                            const hasLastYearValue = metric.last_year_value;
+                            
+                            if (hasYtdValue || hasLastYearValue) {
+                              return (
+                                <>
+                                  {hasYtdValue && (
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                      <div className="text-sm text-gray-900">
+                                        {metric.ytd_value}
+                                      </div>
+                                    </td>
+                                  )}
+                                  {hasLastYearValue && (
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                      <div className="text-sm text-gray-900">
+                                        {metric.last_year_value}
+                                      </div>
+                                    </td>
+                                  )}
+                                </>
+                              );
+                            } else {
+                              return (
+                                <>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="text-sm text-gray-900">
+                                      {metric.realized_value || '0'}
+                                      {metric.measure_unit === 'percent' && metric.realized_value ? '%' : ''}
+                                      {metric.measure_unit === 'currency' && metric.realized_value ? 'M' : ''}
+                                    </div>
+                                  </td>
+                                  <td className="px-6 py-4 whitespace-nowrap">
+                                    <div className="text-sm text-gray-900">
+                                      {metric.target_value || '-'}
+                                      {metric.measure_unit === 'percent' && metric.target_value ? '%' : ''}
+                                      {metric.measure_unit === 'currency' && metric.target_value ? 'M' : ''}
+                                    </div>
+                                  </td>
+                                </>
+                              );
+                            }
+                          })()}
                           <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                             <DropdownMenu>
                               <DropdownMenuTrigger asChild>
@@ -590,7 +654,9 @@ function CreateMetricForm({ tags, onSubmit, isSubmitting }: {
     hierarchy: 'metric',
     tags: [] as string[],
     target_value: '',
-    realized_value: '0'
+    realized_value: '0',
+    ytd_value: '',
+    last_year_value: ''
   });
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -679,6 +745,32 @@ function CreateMetricForm({ tags, onSubmit, isSubmitting }: {
             onChange={(e) => setFormData({ ...formData, target_value: e.target.value })}
             placeholder="Enter target value"
           />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <div>
+          <Label htmlFor="ytd_value">Year-To-Date Value (Optional)</Label>
+          <Input
+            id="ytd_value"
+            type="text"
+            value={formData.ytd_value || ''}
+            onChange={(e) => setFormData({ ...formData, ytd_value: e.target.value })}
+            placeholder="e.g., 742.301,32 €"
+          />
+          <p className="text-xs text-gray-500 mt-1">Use this for current year-to-date values</p>
+        </div>
+
+        <div>
+          <Label htmlFor="last_year_value">Last Year Value (Optional)</Label>
+          <Input
+            id="last_year_value"
+            type="text"
+            value={formData.last_year_value || ''}
+            onChange={(e) => setFormData({ ...formData, last_year_value: e.target.value })}
+            placeholder="e.g., 700.599 €"
+          />
+          <p className="text-xs text-gray-500 mt-1">Use this for comparison to same period last year</p>
         </div>
       </div>
 

@@ -42,7 +42,11 @@ export const EnvironmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [environments, setEnvironments] = useState<Environment[]>(FALLBACK_ENVIRONMENTS);
   const [environment, setEnvironmentState] = useState<Environment>(() => {
     const savedEnvId = localStorage.getItem('selectedEnvironment');
-    return FALLBACK_ENVIRONMENTS.find(env => env.id === savedEnvId) || FALLBACK_ENVIRONMENTS[0];
+    // If we have an old environment saved that's not degoudse, clear it and default to degoudse
+    if (savedEnvId && savedEnvId !== 'degoudse') {
+      localStorage.setItem('selectedEnvironment', 'degoudse');
+    }
+    return FALLBACK_ENVIRONMENTS.find(env => env.id === (savedEnvId === 'degoudse' ? savedEnvId : 'degoudse')) || FALLBACK_ENVIRONMENTS[0];
   });
 
   // Load environments from API

@@ -39,11 +39,11 @@ export function SortableTableHead({
 
   return (
     <TableHead 
-      className={`cursor-pointer select-none hover:bg-gray-50 ${className}`}
+      className={`cursor-pointer select-none bg-white hover:bg-gray-50 ${className}`}
       onClick={() => onSort(sortKey)}
     >
       <div className="flex items-center justify-between">
-        <span>{children}</span>
+        <span className="text-[#696C8C] text-[14px] font-medium" style={{ fontFamily: 'Poppins' }}>{children}</span>
         {getSortIcon()}
       </div>
     </TableHead>

@@ -45,7 +45,101 @@
   --neutral-700: 229 5% 35%;
   --neutral-800: 229 5% 25%;
   --neutral-900: 229 5% 15%;
+
+  /* Specific Qollabi brand colors for back button hover states */
+  --qollabi-hover-bg: 231 73% 97%; /* #F5F6FE */
+  --qollabi-hover-icon: 231 73% 62%; /* #5567E5 */
 }
+
+/* Custom environment selector styling */
+.environment-selector-bg {
+  background-color: #F5F6FA !important;
+}
+
+/* Custom sidebar navigation colors */
+.nav-item-inactive {
+  color: #282A3F !important;
+}
+
+.nav-item-inactive svg {
+  color: #696C8C !important;
+}
+
+.nav-item-inactive:hover {
+  color: #282A3F !important;
+  background-color: #E6E7F1 !important;
+}
+
+.nav-item-inactive:hover svg {
+  color: #51536C !important;
+}
+
+.nav-item-active {
+  color: #3E4DC4 !important;
+  font-weight: normal !important;
+}
+
+.nav-item-active svg {
+  color: #3E4DC4 !important;
+}
+
+/* Override any remaining font-medium classes in active navigation items */
+.nav-item-active.font-medium {
+  font-weight: normal !important;
+}
+
+/* Override hover background for all navigation items */
+.hover\:bg-indigo-50:hover {
+  background-color: #E6E7F1 !important;
+}
+
+/* Override active background for all navigation items */
+.bg-indigo-50 {
+  background-color: #E1E4FB !important;
+}
+
+/* Override font size and line height for navigation text */
+.text-sm {
+  font-size: 14px !important;
+  line-height: 16px !important;
+}
+
+/* Navigation container styling */
+.nav-container {
+  height: 32px !important;
+  width: 224px !important;
+  border-radius: 6px !important;
+  padding: 8px !important;
+  margin: 0 16px 8px 16px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Submenu navigation container styling */
+.submenu-nav-container {
+  height: 32px !important;
+  width: 192px !important;
+  border-radius: 6px !important;
+  padding: 8px !important;
+  margin: 0 32px 8px 32px !important;
+  display: flex !important;
+  align-items: center !important;
+  font-size: 14px !important;
+  line-height: 16px !important;
+}
+
+/* Override default padding classes */
+.py-2\.5 {
+  padding-top: 8px !important;  
+  padding-bottom: 8px !important;
+}
+
+.px-4 {
+  padding-left: 8px !important;
+  padding-right: 8px !important;
+}
+
+
 
 .dark {
   --background: 229 15% 15%;

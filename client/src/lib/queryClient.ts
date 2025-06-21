@@ -7,12 +7,16 @@ declare global {
   }
 }
 
+// Aggressive caching for instant navigation
+const CACHE_TIME = 10 * 60 * 1000; // 10 minutes
+const STALE_TIME = 5 * 60 * 1000; // 5 minutes - data considered fresh
+
 // Get the current environment ID from window
 function getCurrentEnvironmentId(): string {
   const envFromWindow = window.__APP_ENV__;
   const envFromStorage = localStorage.getItem('selectedEnvironment');
   console.log('Environment detection:', { envFromWindow, envFromStorage });
-  return envFromWindow || envFromStorage || 'myqollabi';
+  return envFromWindow || envFromStorage || 'degoudse';
 }
 
 // Function to add environment to API URL
@@ -28,15 +32,19 @@ export function getEnvironmentUrl(url: string): string {
   }
   
   // Don't modify URLs that already include environment information
-  if (url.includes('/degoudse') || url.includes('/acme') || url.includes('/globex') || url.includes('/oceanic')) {
+  if (url.includes('/degoudse')) {
     console.log('URL already has environment prefix, returning as-is');
     return url;
   }
   
-  // If we're in the default environment (myqollabi), use the standard API URLs
-  if (envId === 'myqollabi') {
-    console.log('MyQollabi environment, using standard API URLs');
-    return url;
+  // For degoudse environment, always prefix the URL with the environment path
+  if (envId === 'degoudse') {
+    // For degoudse environment, prefix the URL with the environment path
+    if (url.startsWith('/api/')) {
+      const newUrl = url.replace('/api/', `/api/${envId}/`);
+      console.log('Environment URL transformed:', { from: url, to: newUrl });
+      return newUrl;
+    }
   }
   
   // For other environments, prefix the URL with the environment path
@@ -65,11 +73,12 @@ export async function apiRequest<T = any>(
   try {
     // Apply environment to URL
     const envUrl = getEnvironmentUrl(url);
-    console.log('apiRequest - Fetching from URL:', envUrl);
-    
-    // Add a timeout to detect hanging requests
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+console.log('apiRequest - Fetching from URL:', envUrl);
+
+// Add a timeout to detect hanging requests
+const controller = new AbortController();
+const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+
     
     const res = await fetch(envUrl, {
       method,
@@ -89,12 +98,12 @@ export async function apiRequest<T = any>(
     await throwIfResNotOk(res);
     return res.json();
   } catch (error: any) {
-    // For network errors, return empty data instead of throwing
+    // Handle AbortError and network errors gracefully
     if (error?.name === 'AbortError' || error?.message === 'Failed to fetch') {
       console.warn(`Network error for ${url} - returning empty data instead of throwing`);
       return [] as T; // Return empty array/data instead of throwing
     }
-    
+
     console.error('apiRequest error details:', {
       error: error,
       errorName: error?.constructor?.name,
@@ -104,10 +113,14 @@ export async function apiRequest<T = any>(
       method: method,
       timestamp: new Date().toISOString()
     });
-    
-    // For other errors, still throw but only log if not template-assignments
+
     if (!url.includes('template-assignments')) {
       console.error('Full error object:', error);
+    }
+
+    throw error;
+  }
+
     }
     throw error;
   }
@@ -119,42 +132,41 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    // Get the base URL from the query key
     const baseUrl = queryKey[0] as string;
-    
-    try {
-      // Apply environment to URL
-      const envUrl = getEnvironmentUrl(baseUrl);
-      console.log('Fetching from URL:', envUrl);
-      
-      const res = await fetch(envUrl, {
-        credentials: "include",
-        headers: {
-          // Add environment header as an alternative way to specify environment
-          'X-Environment': getCurrentEnvironmentId()
-        }
-      });
+try {
+  // Apply environment to URL
+  const envUrl = getEnvironmentUrl(baseUrl);
+  console.log('Fetching from URL:', envUrl);
 
-      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-        return null;
-      }
-
-      // Check if response is HTML (indicates a routing error)
-      const contentType = res.headers.get('content-type');
-      if (contentType && contentType.includes('text/html')) {
-        throw new Error(`Endpoint ${envUrl} returned HTML instead of JSON - likely missing backend route`);
-      }
-
-      await throwIfResNotOk(res);
-      return await res.json();
-    } catch (error) {
-      // Only log errors for non-template-assignment endpoints to reduce noise
-      if (!baseUrl.includes('template-assignments')) {
-        console.error('Fetch error in queryFn:', error);
-        console.error('Query key:', queryKey);
-      }
-      throw error;
+  const res = await fetch(envUrl, {
+    credentials: "include",
+    headers: {
+      // Add environment header as an alternative way to specify environment
+      'X-Environment': getCurrentEnvironmentId()
     }
+  });
+
+  if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+    return null;
+  }
+
+  // Check if response is HTML (indicates a routing error)
+  const contentType = res.headers.get('content-type');
+  if (contentType && contentType.includes('text/html')) {
+    throw new Error(`Endpoint ${envUrl} returned HTML instead of JSON - likely missing backend route`);
+  }
+
+  await throwIfResNotOk(res);
+  return await res.json();
+} catch (error) {
+  // Only log errors for non-template-assignment endpoints to reduce noise
+  if (!baseUrl.includes('template-assignments')) {
+    console.error('Fetch error in queryFn:', error);
+    console.error('Query key:', queryKey);
+  }
+  throw error;
+}
+
   };
 
 export const queryClient = new QueryClient({
@@ -163,8 +175,11 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
+      staleTime: Infinity, // data is always considered fresh
+      gcTime: CACHE_TIME, // 10 minutes - keep in cache
       retry: 1,
+      retryDelay: 500,
+
     },
     mutations: {
       retry: false,

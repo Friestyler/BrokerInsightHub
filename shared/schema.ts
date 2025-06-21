@@ -69,7 +69,7 @@ export const activityComments = pgTable("activity_comments", {
   entityType: text("entity_type").notNull(), // partner, customer, opportunity, okr, task
   entityId: integer("entity_id").notNull(),
   assignedToId: integer("assigned_to_id").references(() => users.id), // optional assignment
-  parentCommentId: integer("parent_comment_id").references(() => activityComments.id), // for replies
+  parentCommentId: integer("parent_comment_id"), // for replies - removed self-reference
   isInternal: boolean("is_internal").notNull().default(false), // internal vs partner-visible
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -94,7 +94,7 @@ export const activityAttachments = pgTable("activity_attachments", {
 // AI Next Best Actions model
 export const nextBestActions = pgTable("next_best_actions", {
   id: serial("id").primaryKey(),
-  partnerId: integer("partner_id").notNull().references(() => customers.id),
+  partnerId: integer("partner_id").notNull(),
   actionType: text("action_type").notNull(), // follow_up, schedule_meeting, review_okr, etc.
   title: text("title").notNull(),
   description: text("description").notNull(),
@@ -154,7 +154,12 @@ export const opportunities = pgTable("opportunities", {
   type: text("type"),
   description: text("description"),
   notes: text("notes"),
+  insuranceDescription: text("insurance_description"),
   expectedCloseDate: timestamp("expected_close_date"),
+  startDate: timestamp("start_date"),
+  partnerId: integer("partner_id"),
+  ownerId: integer("owner_id"),
+  accountManagerId: integer("account_manager_id").references(() => users.id),
   createdAt: timestamp("created_at"),
   updatedAt: timestamp("updated_at"),
 });
@@ -204,7 +209,7 @@ export const customerTeamMembers = pgTable("customer_team_members", {
 export const customerPartners = pgTable("customer_partners", {
   id: serial("id").primaryKey(),
   customerId: integer("customer_id").notNull().references(() => customers.id),
-  partnerId: integer("partner_id").notNull().references(() => clients.id),
+  partnerId: integer("partner_id").notNull(),
 });
 
 // Products catalog for De Goudse environment
@@ -234,10 +239,6 @@ export const opportunitiesRelations = relations(opportunities, ({ one }) => ({
 // User relations
 export const usersRelations = relations(users, ({ many }) => ({
   ownedCustomers: many(customers, { relationName: "customerOwner" }),
-  createdCampaigns: many(campaigns),
-  okrComments: many(okrComments),
-  assignedTemplates: many(okrTemplateAssignments, { relationName: "assignedByUser" }),
-  responsibleTemplates: many(okrTemplateAssignments, { relationName: "responsibleUser" }),
 }));
 
 // Contact relations
@@ -254,7 +255,7 @@ export const customersRelations = relations(customers, ({ one, many }) => ({
   }),
   teamMembers: many(customerTeamMembers),
   partners: many(customerPartners),
-  opportunities: many(opportunities),
+  partnerOpportunities: many(opportunities, { relationName: "opportunityPartner" }),
 }));
 
 // Insert schemas
@@ -326,9 +327,12 @@ export const insertOpportunitySchema = createInsertSchema(opportunities).pick({
   estimatedValue: true,
   ownerId: true,
   partnerId: true,
+  accountManagerId: true,
   description: true,
   notes: true,
+  insuranceDescription: true,
   expectedCloseDate: true,
+  startDate: true,
 });
 
 export const insertDocumentSchema = createInsertSchema(documents).pick({
@@ -389,6 +393,20 @@ export const savedLists = pgTable("saved_lists", {
   updated_at: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// List Collaborators table - for managing list-specific access permissions
+export const listCollaborators = pgTable("list_collaborators", {
+  id: serial("id").primaryKey(),
+  listId: integer("list_id").notNull().references(() => savedLists.id, { onDelete: "cascade" }),
+  userId: integer("user_id").references(() => users.id),
+  email: text("email"), // For external collaborators not yet in the system
+  name: text("name"), // Display name for external collaborators
+  accessLevel: text("access_level").notNull().default("viewer"), // 'viewer', 'commenter', 'editor'
+  invitedById: integer("invited_by_id").notNull().references(() => users.id),
+  invitedAt: timestamp("invited_at").notNull().defaultNow(),
+  acceptedAt: timestamp("accepted_at"),
+  isActive: boolean("is_active").notNull().default(true),
+});
+
 // Saved Views table - for storing user-created filter views
 export const savedViews = pgTable("saved_views", {
   id: serial("id").primaryKey(),
@@ -404,9 +422,25 @@ export const savedViews = pgTable("saved_views", {
 });
 
 // Define relationships for saved lists and views
-export const savedListsRelations = relations(savedLists, ({ one }) => ({
+export const savedListsRelations = relations(savedLists, ({ one, many }) => ({
   createdBy: one(users, {
     fields: [savedLists.created_by],
+    references: [users.id],
+  }),
+  collaborators: many(listCollaborators),
+}));
+
+export const listCollaboratorsRelations = relations(listCollaborators, ({ one }) => ({
+  list: one(savedLists, {
+    fields: [listCollaborators.listId],
+    references: [savedLists.id],
+  }),
+  user: one(users, {
+    fields: [listCollaborators.userId],
+    references: [users.id],
+  }),
+  invitedBy: one(users, {
+    fields: [listCollaborators.invitedById],
     references: [users.id],
   }),
 }));
@@ -417,6 +451,84 @@ export const savedViewsRelations = relations(savedViews, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+// Campaign Templates table
+export const campaignTemplates = pgTable("campaign_templates", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  objective: text("objective"),
+  entity: text("entity").notNull(), // 'partners', 'customers', 'opportunities'
+  icon: text("icon"),
+  status: text("status").notNull().default("draft"), // 'draft', 'published'
+  attachments: json("attachments").$type<Array<{id: string, name: string, type: string, size: number}>>().default([]),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Campaign Emails table (templates can have multiple emails)
+export const campaignEmails = pgTable("campaign_emails", {
+  id: serial("id").primaryKey(),
+  templateId: integer("template_id").notNull().references(() => campaignTemplates.id, { onDelete: 'cascade' }),
+  subject: text("subject").notNull(),
+  followUpDays: integer("follow_up_days").notNull().default(0),
+  leftLogo: text("left_logo"),
+  rightLogo: text("right_logo"),
+  emailOrder: integer("email_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Email Blocks table (each email can have multiple blocks)
+export const emailBlocks = pgTable("email_blocks", {
+  id: serial("id").primaryKey(),
+  emailId: integer("email_id").notNull().references(() => campaignEmails.id, { onDelete: 'cascade' }),
+  type: text("type").notNull(), // 'text', 'heading', 'quote', 'divider', 'image', 'button', 'spacer', 'ai'
+  content: text("content").notNull(),
+  properties: json("properties").$type<{
+    alignment?: 'left' | 'center' | 'right';
+    fontSize?: 'small' | 'medium' | 'large';
+    color?: string;
+    backgroundColor?: string;
+    url?: string;
+    buttonText?: string;
+    imageUrl?: string;
+    imageAlt?: string;
+    spacerHeight?: number;
+    aiType?: string;
+  }>(),
+  blockOrder: integer("block_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Removed duplicate schemas - using the ones defined later in the file
+
+// Campaign template relations
+export const campaignTemplatesRelations = relations(campaignTemplates, ({ one, many }) => ({
+  createdBy: one(users, {
+    fields: [campaignTemplates.createdBy],
+    references: [users.id],
+  }),
+  emails: many(campaignEmails),
+}));
+
+export const campaignEmailsRelations = relations(campaignEmails, ({ one, many }) => ({
+  template: one(campaignTemplates, {
+    fields: [campaignEmails.templateId],
+    references: [campaignTemplates.id],
+  }),
+  blocks: many(emailBlocks),
+}));
+
+export const emailBlocksRelations = relations(emailBlocks, ({ one }) => ({
+  email: one(campaignEmails, {
+    fields: [emailBlocks.emailId],
+    references: [campaignEmails.id],
+  }),
+}));
+
+
 
 // Insert schemas for saved lists and views
 export const insertSavedListSchema = createInsertSchema(savedLists).pick({
@@ -440,6 +552,29 @@ export const insertSavedViewSchema = createInsertSchema(savedViews).pick({
   is_default: true,
   created_by: true,
 });
+
+// Campaign template insert schemas
+export const insertCampaignTemplateSchema = createInsertSchema(campaignTemplates).pick({
+  name: true,
+  description: true,
+  objective: true,
+  entity: true,
+  icon: true,
+  status: true,
+  attachments: true,
+  createdBy: true,
+});
+
+export const insertCampaignEmailSchema = createInsertSchema(campaignEmails).pick({
+  templateId: true,
+  subject: true,
+  followUpDays: true,
+  leftLogo: true,
+  rightLogo: true,
+  emailOrder: true,
+});
+
+// Template schemas defined later in file to avoid duplicates
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -478,8 +613,8 @@ export type CustomerTeamMember = typeof customerTeamMembers.$inferSelect;
 export type InsertCustomerPartner = z.infer<typeof insertCustomerPartnerSchema>;
 export type CustomerPartner = typeof customerPartners.$inferSelect;
 
-export type InsertProduct = z.infer<typeof insertProductSchema>;
-export type Product = typeof products.$inferSelect;
+export type InsertProductCatalog = z.infer<typeof insertProductCatalogSchema>;
+export type ProductCatalog = typeof productCatalog.$inferSelect;
 
 export type InsertSavedList = z.infer<typeof insertSavedListSchema>;
 export type SavedList = typeof savedLists.$inferSelect;
@@ -501,12 +636,24 @@ export const vendors = pgTable("vendors", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Product model
+// Product Categories model - supports nested hierarchy
+export const productCategories = pgTable("product_categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  parentId: integer("parent_id").references(() => productCategories.id),
+  status: text("status").notNull().default("active"), // active, inactive
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Product model - updated to use category reference
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description").notNull(),
-  category: text("category").notNull(),
+  categoryId: integer("category_id").references(() => productCategories.id),
+  category: text("category"), // Legacy field - will be phased out
   sku: text("sku"),
   price: integer("price"),
   vendorId: integer("vendor_id").references(() => vendors.id),
@@ -524,12 +671,32 @@ export const vendorsRelations = relations(vendors, ({ one, many }) => ({
   products: many(products),
 }));
 
-export const productsRelations = relations(products, ({ one }) => ({
+// Product Categories relationships - self-referencing for hierarchy
+export const productCategoriesRelations = relations(productCategories, ({ one, many }) => ({
+  parent: one(productCategories, {
+    fields: [productCategories.parentId],
+    references: [productCategories.id],
+    relationName: "categoryParent",
+  }),
+  children: many(productCategories, {
+    relationName: "categoryParent",
+  }),
+  products: many(products),
+}));
+
+export const productsRelations = relations(products, ({ one, many }) => ({
   vendor: one(vendors, {
     fields: [products.vendorId],
     references: [vendors.id],
   }),
+  category: one(productCategories, {
+    fields: [products.categoryId],
+    references: [productCategories.id],
+  }),
+  catalogueProducts: many(catalogueProducts),
 }));
+
+
 
 // Insert schemas
 export const insertVendorSchema = createInsertSchema(vendors).pick({
@@ -542,17 +709,89 @@ export const insertVendorSchema = createInsertSchema(vendors).pick({
   ownerId: true,
 });
 
-export type InsertVendor = z.infer<typeof insertVendorSchema>;
-export type Vendor = typeof vendors.$inferSelect;
+export const insertProductCategorySchema = createInsertSchema(productCategories).pick({
+  name: true,
+  description: true,
+  parentId: true,
+  status: true,
+});
 
 export const insertProductSchema = createInsertSchema(products).pick({
   name: true,
   description: true,
+  categoryId: true,
   category: true,
   sku: true,
   price: true,
   vendorId: true,
 });
+
+// Product Catalogues - master catalogues that can contain products
+export const productCatalogues = pgTable("product_catalogues", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  status: text("status").default("active"),
+  effectiveFrom: date("effective_from"),
+  effectiveTo: date("effective_to"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Catalogue Products - join table connecting products to catalogues with optional overrides
+export const catalogueProducts = pgTable("catalogue_products", {
+  id: serial("id").primaryKey(),
+  productId: integer("product_id").references(() => products.id).notNull(),
+  catalogueId: integer("catalogue_id").references(() => productCatalogues.id).notNull(),
+  categoryId: integer("category_id").references(() => productCategories.id),
+  visible: boolean("visible").default(true),
+  nameOverride: text("name_override"),
+  priceOverride: integer("price_override"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Broker-Partner mapping table - links broker users to specific partners in environments
+export const brokerPartnerMappings = pgTable("broker_partner_mappings", {
+  id: serial("id").primaryKey(),
+  brokerUserId: integer("broker_user_id").notNull().references(() => users.id),
+  environmentId: text("environment_id").notNull(), // e.g., "degoudse", "myqollabi"
+  partnerId: integer("partner_id").notNull(), // Partner ID in the specific environment
+  brokerPartnerName: text("broker_partner_name").notNull(), // Display name in broker view
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Entity logos table - stores uploaded logos for partners, customers, etc.
+export const entityLogos = pgTable("entity_logos", {
+  id: serial("id").primaryKey(),
+  entityType: text("entity_type").notNull(), // "partner", "customer", "vendor", "opportunity"
+  entityId: integer("entity_id").notNull(), // ID of the entity in its respective table
+  environmentId: text("environment_id").notNull(), // e.g., "degoudse", "myqollabi"
+  logoData: text("logo_data").notNull(), // Base64 encoded image data
+  mimeType: text("mime_type").notNull(), // image/png, image/jpeg, etc.
+  originalFilename: text("original_filename"),
+  fileSize: integer("file_size"), // in bytes
+  uploadedBy: integer("uploaded_by").references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Insert schemas for entity logos
+export const insertEntityLogoSchema = createInsertSchema(entityLogos).pick({
+  entityType: true,
+  entityId: true,
+  environmentId: true,
+  logoData: true,
+  mimeType: true,
+  originalFilename: true,
+  fileSize: true,
+  uploadedBy: true,
+});
+
+export type InsertEntityLogo = z.infer<typeof insertEntityLogoSchema>;
+export type EntityLogo = typeof entityLogos.$inferSelect;
 
 // For compatibility - new UI using mock data doesn't need these in the database yet
 export { customers as partners };
@@ -563,8 +802,7 @@ export { opportunities as projects };
 export type Project = Opportunity;
 export type InsertProject = InsertOpportunity;
 
-// Remove old contact alias - we now have a proper contacts table above
-export type InsertContact = InsertCustomerTeamMember;
+// Contact types already defined above
 
 // OKR tags schema
 export const okrTags = pgTable("okr_tags", {
@@ -578,7 +816,7 @@ export const okrTags = pgTable("okr_tags", {
 // OKR Template Assignments table - tracks which templates are assigned to which entities
 export const okrTemplateAssignments = pgTable("okr_template_assignments", {
   id: serial("id").primaryKey(),
-  template_id: integer("template_id").notNull().references(() => okrMetrics.id),
+  template_id: integer("template_id").notNull(),
   entity_type: text("entity_type").notNull(), // 'partner', 'customer', 'opportunity'
   entity_id: integer("entity_id").notNull(),
   assigned_at: timestamp("assigned_at").defaultNow(),
@@ -598,6 +836,10 @@ export const okrMetrics = pgTable("okr_metrics", {
   // Value fields
   realized_value: text("realized_value").default("0"),
   target_value: text("target_value"),
+  
+  // Year-to-date and historical comparison fields
+  ytd_value: text("ytd_value"), // Current Year-To-Date value (e.g., "742.301,32 €")
+  last_year_value: text("last_year_value"), // Equivalent value for same period last year (e.g., "700.599 €")
   
   // Measure unit types
   measure_unit: text("measure_unit").notNull().default("number"), // currency, number, percent, checkbox, picklist_single, picklist_multiple, traffic_light, progress_bar, trend_chart
@@ -628,7 +870,7 @@ export const okrMetrics = pgTable("okr_metrics", {
   
   // Hierarchy
   hierarchy: text("hierarchy").notNull().default("activity"), // objective, activity, subactivity
-  parent_id: integer("parent_id").references(() => okrMetrics.id), // For hierarchical relationships
+  parent_id: integer("parent_id"), // For hierarchical relationships - removed self-reference
   
   // Tags and categorization
   tags: text("tags").array().default([]),
@@ -693,6 +935,61 @@ export const okrCommentsRelations = relations(okrComments, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+// Campaigns table for active marketing campaigns
+export const campaigns = pgTable("campaigns", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull().default("email"), // email, sms, mixed
+  description: text("description"),
+  template_id: integer("template_id"), // reference to campaign template if created from one
+  target_entity_type: text("target_entity_type").notNull(), // partners, customers, opportunities, internal
+  target_entity_id: integer("target_entity_id"), // specific entity if targeting single entity
+  partner_id: integer("partner_id"), // ID of the partner this campaign is associated with
+  environment_id: text("environment_id"), // environment this campaign belongs to (e.g., "degoudse")
+  status: text("status").notNull().default("draft"), // draft, scheduled, in_progress, sent, archived
+  created_by: integer("created_by").notNull().references(() => users.id),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+  updated_at: timestamp("updated_at").notNull().defaultNow(),
+  send_at: timestamp("send_at"), // scheduled datetime for sending
+  shared_with: text("shared_with").array().default([]), // list of user or partner IDs
+  is_ai_generated: boolean("is_ai_generated").notNull().default(false),
+  engagement_summary: json("engagement_summary"), // aggregated stats object
+  last_sent_at: timestamp("last_sent_at"), // timestamp of last email sent
+  
+  // Email tracking metrics
+  emails_sent: integer("emails_sent").default(0), // total emails sent
+  emails_opened: integer("emails_opened").default(0), // total unique opens
+  open_rate: numeric("open_rate", { precision: 5, scale: 2 }).default("0.00"), // percentage of emails opened
+  total_clicks: integer("total_clicks").default(0), // total number of clicks
+  
+  // Campaign content and configuration
+  emails: json("emails").notNull(), // array of email objects with content
+  recipients: json("recipients").notNull(), // array of selected recipients
+  settings: json("settings").notNull(), // campaign settings like timing, tracking options
+  
+  // Additional metadata
+  icon: text("icon").notNull().default("mail"),
+  objective: text("objective"),
+  attachments: json("attachments").default([]),
+});
+
+export const campaignsRelations = relations(campaigns, ({ one }) => ({
+  createdBy: one(users, {
+    fields: [campaigns.created_by],
+    references: [users.id],
+  }),
+}));
+
+// Campaign insert schema and types
+export const insertCampaignSchema = createInsertSchema(campaigns).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
+
+export type Campaign = typeof campaigns.$inferSelect;
+export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
 
 // Activity tables relations
 export const activityTasksRelations = relations(activityTasks, ({ one, many }) => ({
@@ -793,56 +1090,41 @@ export type OkrMetric = typeof okrMetrics.$inferSelect;
 export type InsertOkrTemplateAssignment = z.infer<typeof insertOkrTemplateAssignmentSchema>;
 export type OkrTemplateAssignment = typeof okrTemplateAssignments.$inferSelect;
 
-export type InsertVendor = z.infer<typeof insertVendorSchema>;
-export type Vendor = typeof vendors.$inferSelect;
-
-// Campaign model
-export const campaigns = pgTable("campaigns", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  type: text("type").notNull(), // e.g., "cross_sell", "upsell", "custom"
-  category: text("category"), // e.g., "Life + Pension", "Car + Legal", etc.
-  status: text("status").notNull().default("draft"), // draft, active, completed, paused
-  createdById: integer("created_by_id").references(() => users.id),
-  sponsorId: integer("sponsor_id"), // Optional sponsor (e.g., AXA)
-  listId: integer("list_id"), // The list of entities this campaign targets
-  subject: text("subject"),
-  emailBody: text("email_body"),
-  emailLogo: text("email_logo"), // URL to the logo
-  fromName: text("from_name"),
-  fromEmail: text("from_email"),
-  scheduledTime: timestamp("scheduled_time"),
-  frequency: text("frequency").default("one_time"), // one_time, weekly, monthly
-  isShared: boolean("is_shared").default(false),
-  isTemplate: boolean("is_template").default(false),
-  tags: text("tags").array(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// Campaign recipients
+// Campaign Recipients, Follow-ups, and Shares tables
 export const campaignRecipients = pgTable("campaign_recipients", {
   id: serial("id").primaryKey(),
   campaignId: integer("campaign_id").notNull().references(() => campaigns.id),
-  contactId: integer("contact_id").notNull(), // Reference to a contact
+  contactId: integer("contact_id").notNull(),
+  email: text("email").notNull(),
+  name: text("name").notNull(),
   status: text("status").notNull().default("pending"), // pending, sent, opened, clicked, responded
+  sentAt: timestamp("sent_at"),
+  openedAt: timestamp("opened_at"),
+  clickedAt: timestamp("clicked_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Campaign follow-ups
 export const campaignFollowUps = pgTable("campaign_follow_ups", {
   id: serial("id").primaryKey(),
   campaignId: integer("campaign_id").notNull().references(() => campaigns.id),
-  subject: text("subject"),
-  emailBody: text("email_body"),
-  delayDays: integer("delay_days").notNull(), // Days after the initial campaign
+  subject: text("subject").notNull(),
+  emailBody: text("email_body").notNull(),
+  delayDays: integer("delay_days").notNull(),
   status: text("status").notNull().default("pending"), // pending, sent, completed
-  attachment: text("attachment"), // URL to attachment
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-
+export const campaignShares = pgTable("campaign_shares", {
+  id: serial("id").primaryKey(),
+  campaignId: integer("campaign_id").notNull().references(() => campaigns.id),
+  sharedWithType: text("shared_with_type").notNull(), // partner, contact, user
+  sharedWithId: integer("shared_with_id").notNull(),
+  accessLevel: text("access_level").notNull().default("view"), // view, comment, edit, admin
+  shareMessage: text("share_message"),
+  sharedById: integer("shared_by_id").references(() => users.id),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
 
 // Define relationships
 export const campaignsRelations = relations(campaigns, ({ one, many }) => ({
@@ -853,6 +1135,7 @@ export const campaignsRelations = relations(campaigns, ({ one, many }) => ({
   recipients: many(campaignRecipients),
   followUps: many(campaignFollowUps),
 }));
+
 
 export const campaignRecipientsRelations = relations(campaignRecipients, ({ one }) => ({
   campaign: one(campaigns, {
@@ -868,31 +1151,23 @@ export const campaignFollowUpsRelations = relations(campaignFollowUps, ({ one })
   }),
 }));
 
-// Insert schemas
-export const insertCampaignSchema = createInsertSchema(campaigns).pick({
-  name: true,
-  description: true,
-  type: true,
-  category: true,
-  status: true,
-  createdById: true,
-  sponsorId: true,
-  listId: true,
-  subject: true,
-  emailBody: true,
-  emailLogo: true,
-  fromName: true,
-  fromEmail: true,
-  scheduledTime: true,
-  frequency: true,
-  isShared: true,
-  isTemplate: true,
-  tags: true,
-});
+export const campaignSharesRelations = relations(campaignShares, ({ one }) => ({
+  campaign: one(campaigns, {
+    fields: [campaignShares.campaignId],
+    references: [campaigns.id],
+  }),
+  sharedBy: one(users, {
+    fields: [campaignShares.sharedById],
+    references: [users.id],
+  }),
+}));
 
+// Updated insert schemas
 export const insertCampaignRecipientSchema = createInsertSchema(campaignRecipients).pick({
   campaignId: true,
   contactId: true,
+  email: true,
+  name: true,
   status: true,
 });
 
@@ -902,17 +1177,27 @@ export const insertCampaignFollowUpSchema = createInsertSchema(campaignFollowUps
   emailBody: true,
   delayDays: true,
   status: true,
-  attachment: true,
 });
 
-export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
-export type Campaign = typeof campaigns.$inferSelect;
+export const insertCampaignShareSchema = createInsertSchema(campaignShares).pick({
+  campaignId: true,
+  sharedWithType: true,
+  sharedWithId: true,
+  accessLevel: true,
+  shareMessage: true,
+  sharedById: true,
+  isActive: true,
+});
 
 export type InsertCampaignRecipient = z.infer<typeof insertCampaignRecipientSchema>;
 export type CampaignRecipient = typeof campaignRecipients.$inferSelect;
 
 export type InsertCampaignFollowUp = z.infer<typeof insertCampaignFollowUpSchema>;
 export type CampaignFollowUp = typeof campaignFollowUps.$inferSelect;
+
+// Campaign Share types
+export type InsertCampaignShare = z.infer<typeof insertCampaignShareSchema>;
+export type CampaignShare = typeof campaignShares.$inferSelect;
 
 // Upload Settings Infrastructure - Phase 1
 
@@ -1125,4 +1410,69 @@ export type InsertActivityAttachment = z.infer<typeof insertActivityAttachmentSc
 export type NextBestAction = typeof nextBestActions.$inferSelect;
 export type InsertNextBestAction = z.infer<typeof insertNextBestActionSchema>;
 
+// Product and Category types
+export type Vendor = typeof vendors.$inferSelect;
+export type InsertVendor = z.infer<typeof insertVendorSchema>;
+
+export type ProductCategory = typeof productCategories.$inferSelect;
+export type InsertProductCategory = z.infer<typeof insertProductCategorySchema>;
+
+export type Product = typeof products.$inferSelect;
+export type InsertProduct = z.infer<typeof insertProductSchema>;
+
+// Product Catalogue insert schemas and types
+export const insertProductCatalogueSchema = createInsertSchema(productCatalogues).pick({
+  name: true,
+  description: true,
+  status: true,
+  effectiveFrom: true,
+  effectiveTo: true,
+});
+
+export const insertCatalogueProductSchema = createInsertSchema(catalogueProducts).pick({
+  productId: true,
+  catalogueId: true,
+  categoryId: true,
+  visible: true,
+  nameOverride: true,
+  priceOverride: true,
+});
+
+export type ProductCatalogue = typeof productCatalogues.$inferSelect;
+export type InsertProductCatalogue = z.infer<typeof insertProductCatalogueSchema>;
+
+export type CatalogueProduct = typeof catalogueProducts.$inferSelect;
+export type InsertCatalogueProduct = z.infer<typeof insertCatalogueProductSchema>;
+
+// Product Catalogues relationships
+export const productCataloguesRelations = relations(productCatalogues, ({ many }) => ({
+  catalogueProducts: many(catalogueProducts),
+}));
+
+// Catalogue Products relationships
+export const catalogueProductsRelations = relations(catalogueProducts, ({ one }) => ({
+  product: one(products, {
+    fields: [catalogueProducts.productId],
+    references: [products.id],
+  }),
+  catalogue: one(productCatalogues, {
+    fields: [catalogueProducts.catalogueId],
+    references: [productCatalogues.id],
+  }),
+  category: one(productCategories, {
+    fields: [catalogueProducts.categoryId],
+    references: [productCategories.id],
+  }),
+}));
+
+export const insertBrokerPartnerMappingSchema = createInsertSchema(brokerPartnerMappings).pick({
+  brokerUserId: true,
+  environmentId: true,
+  partnerId: true,
+  brokerPartnerName: true,
+  isActive: true,
+});
+
+export type BrokerPartnerMapping = typeof brokerPartnerMappings.$inferSelect;
+export type InsertBrokerPartnerMapping = z.infer<typeof insertBrokerPartnerMappingSchema>;
 

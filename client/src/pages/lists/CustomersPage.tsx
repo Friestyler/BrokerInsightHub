@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, useMemo, createContext, useContext } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useEnvironment } from "@/contexts/EnvironmentContext";
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import EntityAvatar from "@/components/EntityAvatar";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
 import { 
@@ -44,11 +45,48 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 
-// Fetch customers from database
-const useCustomersData = () => {
+// Calculate total value from ALL opportunities linked to customers (not just displayed page)
+function calculateCustomerTotalValue(customers: any[], opportunities: any[] = []): number {
+  // Filter opportunities that have a clientId (linked to any customer)
+  const relevantOpportunities = opportunities.filter(opp => opp.clientId);
+  
+  // Sum unique opportunity values (no double counting)
+  return relevantOpportunities.reduce((sum, opp) => {
+    const value = parseFloat(opp.estimated_value) || 0;
+    return sum + value;
+  }, 0);
+}
+
+// Calculate weighted value from ALL opportunities linked to customers (not just displayed page)
+function calculateCustomerWeightedValue(customers: any[], opportunities: any[] = []): number {
+  // Filter opportunities that have a clientId (linked to any customer)
+  const relevantOpportunities = opportunities.filter(opp => opp.clientId);
+  
+  // Calculate probability-adjusted sum of opportunity values using stage-based probabilities
+  return relevantOpportunities.reduce((sum, opp) => {
+    const value = parseFloat(opp.estimated_value) || 0;
+    const probability = opp.stage === 'Closed (Won)' ? 1.0 : 
+                      opp.stage === 'Proposal Sent to Client' ? 0.6 :
+                      opp.stage === 'Validated' ? 0.3 :
+                      opp.stage === 'Lost' ? 0 :
+                      opp.stage === 'Rejected' ? 0 :
+                      !opp.stage || opp.stage === '' ? 0 : 0;
+    return sum + (value * probability);
+  }, 0);
+}
+
+// Fetch customers from database with pagination
+const useCustomersData = (page: number = 1, limit: number = 100) => {
   return useQuery({
-    queryKey: ['/api/customers'],
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    queryKey: ['/api/customers', page, limit],
+    queryFn: async () => {
+      const result = await apiRequest('GET', `/api/customers?page=${page}&limit=${limit}`);
+      return result;
+    },
+    staleTime: 0,
+    gcTime: 0,
+    refetchOnMount: true,
+    refetchOnWindowFocus: true,
   });
 };
 
@@ -57,7 +95,8 @@ const useSavedLists = () => {
   return useQuery({
     queryKey: ['/api/saved-lists', 'customers'],
     queryFn: () => apiRequest('GET', '/api/saved-lists?entity_type=customers'),
-    staleTime: 2 * 60 * 1000,
+    staleTime: 0,
+    gcTime: 0,
   });
 };
 
@@ -69,6 +108,7 @@ const useCreateSavedList = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'customers'] });
     }
   });
 };
@@ -108,6 +148,10 @@ export default function CustomersPageClean() {
     status: [] as string[]
   });
   
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(100);
+  
   // Create customer modal state
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
@@ -143,8 +187,42 @@ export default function CustomersPageClean() {
   const [showTypeFilter, setShowTypeFilter] = useState(false);
   const [showIndustryFilter, setShowIndustryFilter] = useState(false);
   
-  // Data fetching
-  const { data: customers = [], isLoading, error } = useCustomersData();
+  // Data fetching with pagination
+  const { data: customersResponse, isLoading, error } = useCustomersData(currentPage, itemsPerPage);
+  
+  // Fetch opportunities for accurate value calculations
+  const { data: opportunities = [] } = useQuery({
+    queryKey: ['/api/opportunities'],
+    enabled: true
+  });
+  const customers = useMemo(() => {
+    if (!customersResponse?.data) return [];
+    
+    // Debug: Log the raw data structure
+    console.log('Raw customer data:', customersResponse.data[0]);
+    
+    // Ensure data is properly structured and values are numbers
+    const processedCustomers = customersResponse.data.map((customer: any) => {
+      console.log('Processing customer:', customer.name, {
+        opportunityCount: customer.opportunityCount,
+        totalOpportunityValue: customer.totalOpportunityValue,
+        partnerCount: customer.partnerCount
+      });
+      
+      return {
+        ...customer,
+        opportunityCount: Number(customer.opportunityCount) || 0,
+        totalOpportunityValue: Number(customer.totalOpportunityValue) || 0,
+        partnerCount: Number(customer.partnerCount) || 0
+      };
+    });
+    
+    console.log('Processed customers:', processedCustomers[0]);
+    return processedCustomers;
+  }, [customersResponse?.data]);
+  
+  const pagination = customersResponse?.pagination || { page: 1, totalPages: 1, totalCount: 0, hasNextPage: false, hasPreviousPage: false };
+  
   const { data: savedListsData = [], isLoading: savedListsLoading } = useSavedLists();
   const createSavedListMutation = useCreateSavedList();
   const { data: savedViewsData = [], isLoading: savedViewsLoading } = useSavedViews();
@@ -325,7 +403,7 @@ export default function CustomersPageClean() {
                       <div className="p-2">
                         {/* Default "All Customers" option */}
                         <button
-                          className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 flex items-center justify-between ${!activeList ? 'bg-blue-50 text-blue-600' : ''}`}
+                          className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-[#F5F6FA] flex items-center justify-between ${!activeList ? 'bg-[#E1E4FB] text-[#3E4DC4]' : ''}`}
                           onClick={() => {
                             setActiveList(null);
                             setShowListsDropdown(false);
@@ -337,39 +415,61 @@ export default function CustomersPageClean() {
                         
                         {/* Saved lists from database (filtered for customers only) */}
                         {customerSavedListsData.map((list: any) => (
-                          <div key={list.id}>
-                            <button
-                              className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 flex items-center justify-between ${activeList?.id === list.id ? 'bg-blue-50 text-blue-600' : ''}`}
-                              onClick={() => {
-                                setActiveList(list);
-                                setShowListsDropdown(false);
-                              }}
-                            >
-                              <span>{list.name}</span>
-                              <span className="text-gray-500">({list.members?.length || 0})</span>
-                            </button>
-                            {activeList?.id === list.id && (
-                              <div className="px-3 py-2 border-t border-gray-100 bg-gray-50">
-                                <button
-                                  className="flex items-center text-sm text-indigo-600 hover:text-indigo-800"
-                                  onClick={() => {
-                                    setShowListsDropdown(false);
-                                    setShowAccountMappingModal(true);
-                                    // Initialize with all fields selected by default
-                                    setSelectedMappingFields(['name', 'industry', 'size', 'status', 'contactName', 'contactEmail', 'location', 'revenue']);
-                                  }}
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                                    <circle cx="9" cy="7" r="4"></circle>
-                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                                  </svg>
-                                  Account Mapping
-                                </button>
-                              </div>
-                            )}
-                          </div>
+<div key={list.id}>
+  <button
+    className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-[#F5F6FA] flex items-center justify-between ${
+      activeList?.id === list.id ? 'bg-[#E1E4FB] text-[#3E4DC4]' : ''
+    }`}
+    onClick={() => {
+      setActiveList(list);
+      setShowListsDropdown(false);
+    }}
+  >
+    <span>{list.name}</span>
+    <span className="text-gray-500">({list.members?.length || 0})</span>
+  </button>
+  {activeList?.id === list.id && (
+    <div className="px-3 py-2 border-t border-gray-100 bg-[#F5F6FA]">
+      <button
+        className="flex items-center text-sm text-indigo-600 hover:text-indigo-800"
+        onClick={() => {
+          setShowListsDropdown(false);
+          setShowAccountMappingModal(true);
+          // Initialize with all fields selected by default
+          setSelectedMappingFields([
+            'name',
+            'industry',
+            'size',
+            'status',
+            'contactName',
+            'contactEmail',
+            'location',
+            'revenue'
+          ]);
+        }}
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className="mr-2"
+        >
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+          <circle cx="9" cy="7" r="4"></circle>
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        </svg>
+        Account Mapping
+      </button>
+    </div>
+  )}
+</div>
                         ))}
                         
                         {savedListsData.length === 0 && (
@@ -445,7 +545,7 @@ export default function CustomersPageClean() {
                   </button>
                   
                   {showViewsDropdown && (
-                    <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                    <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                       <div className="py-1 max-h-64 overflow-y-auto">
                         {savedViewsData.map((view: any) => (
                           <button
@@ -496,7 +596,7 @@ export default function CustomersPageClean() {
                     </button>
                     
                     {showStatusFilter && (
-                      <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                      <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                         <div className="py-1">
                           {['active', 'inactive', 'pending'].map((status) => (
                             <label key={status} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
@@ -543,7 +643,7 @@ export default function CustomersPageClean() {
                     </button>
                     
                     {showTypeFilter && (
-                      <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                      <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                         <div className="py-1">
                           {['small', 'medium', 'large', 'enterprise'].map((size) => (
                             <label key={size} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
@@ -590,7 +690,7 @@ export default function CustomersPageClean() {
                     </button>
                     
                     {showIndustryFilter && (
-                      <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                      <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                         <div className="py-1">
                           {['Technology', 'Insurance', 'Healthcare', 'Finance', 'Manufacturing', 'Retail'].map((industry) => (
                             <label key={industry} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
@@ -639,7 +739,7 @@ export default function CustomersPageClean() {
           </div>
         </div>
 
-        {/* Selection actions bar - visible when items are selected */}
+        {/* Bulk actions bar - only visible when customers are selected */}
         {selectedCustomers.length > 0 && (
           <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
             <div className="flex items-center">
@@ -706,6 +806,7 @@ export default function CustomersPageClean() {
               <Button 
                 variant="outline" 
                 size="sm"
+                className="text-indigo-600"
                 onClick={() => {
                   alert('Assign template functionality will be implemented in future');
                 }}
@@ -720,25 +821,31 @@ export default function CustomersPageClean() {
           </div>
         )}
 
-        {/* Statistics overview - exact match to Opportunities */}
+        {/* Statistics overview */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white p-4 rounded-md border border-gray-200">
-            <div className="text-xl font-semibold">{filteredCustomers.length}</div>
+            <div className="text-xl font-semibold text-[#282A3F]">{pagination.totalCount}</div>
             <div className="text-sm text-gray-500">Total Customers</div>
           </div>
           
           <div className="bg-white p-4 rounded-md border border-gray-200">
-            <div className="text-xl font-semibold">1</div>
-            <div className="text-sm text-gray-500">Active</div>
+            <div className="text-xl font-semibold text-[#282A3F]">
+              {customersResponse?.totalOpportunities || 0}
+            </div>
+            <div className="text-sm text-gray-500">Total Opportunities</div>
           </div>
           
           <div className="bg-white p-4 rounded-md border border-gray-200">
-            <div className="text-xl font-semibold">€10K</div>
+            <div className="text-xl font-semibold text-[#282A3F]">
+              €{calculateCustomerTotalValue(customers, opportunities).toLocaleString()}
+            </div>
             <div className="text-sm text-gray-500">Total Value</div>
           </div>
           
           <div className="bg-white p-4 rounded-md border border-gray-200">
-            <div className="text-xl font-semibold">€5K</div>
+            <div className="text-xl font-semibold text-[#282A3F]">
+              €{calculateCustomerWeightedValue(customers, opportunities).toLocaleString()}
+            </div>
             <div className="text-sm text-gray-500">Weighted Value</div>
           </div>
         </div>
@@ -746,22 +853,24 @@ export default function CustomersPageClean() {
 
 
         {/* Customers table - exact match to Opportunities */}
-        <div className="overflow-hidden bg-white sm:rounded-lg">
+        <div className="bg-white rounded-lg shadow-sm">
           <table className="min-w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-white">
               <tr>
-                <th scope="col" className="relative px-3 py-3.5 w-10 pt-[12px] pb-[12px]">
+                <th scope="col" className="relative px-3 py-3.5 w-10 pt-[12px] pb-[12px] group">
                   <div className="flex items-center justify-center">
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded border-gray-300"
+                      className={`h-4 w-4 rounded border-gray-300 ${
+                        selectedCustomers.length > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 transition-opacity'
+                      }`}
                       checked={selectedCustomers.length === filteredCustomers.length && filteredCustomers.length > 0}
                       onChange={handleSelectAll}
                     />
                   </div>
                 </th>
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold w-[250px] text-[#696C8C] pt-[12px] pb-[12px]">
-                  <div className="flex items-center text-[#696C8C] text-[13px] font-medium">
+                  <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
                     Customer
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
                       <path d="M8 9l4-4 4 4"></path>
@@ -770,7 +879,7 @@ export default function CustomersPageClean() {
                   </div>
                 </th>
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C] pt-[12px] pb-[12px]">
-                  <div className="flex items-center text-[13px] font-medium text-[#696C8C]">
+                  <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
                     Partner
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
                       <path d="M8 9l4-4 4 4"></path>
@@ -779,7 +888,7 @@ export default function CustomersPageClean() {
                   </div>
                 </th>
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C] pt-[12px] pb-[12px]">
-                  <div className="flex items-center text-[13px] font-medium text-[#696C8C]">
+                  <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
                     Industry
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
                       <path d="M8 9l4-4 4 4"></path>
@@ -788,7 +897,7 @@ export default function CustomersPageClean() {
                   </div>
                 </th>
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C]">
-                  <div className="flex items-center text-[13px] font-medium text-[#696C8C]">
+                  <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
                     Type
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
                       <path d="M8 9l4-4 4 4"></path>
@@ -797,7 +906,7 @@ export default function CustomersPageClean() {
                   </div>
                 </th>
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                  <div className="flex items-center text-[13px] font-medium text-[#696C8C]">
+                  <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
                     Status
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
                       <path d="M8 9l4-4 4 4"></path>
@@ -806,7 +915,7 @@ export default function CustomersPageClean() {
                   </div>
                 </th>
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                  <div className="flex items-center text-[13px] font-medium text-[#696C8C]">
+                  <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
                     Value
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
                       <path d="M8 9l4-4 4 4"></path>
@@ -815,7 +924,7 @@ export default function CustomersPageClean() {
                   </div>
                 </th>
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                  <div className="flex items-center text-[#696C8C] text-[13px] font-medium">
+                  <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
                     Template
                   </div>
                 </th>
@@ -824,8 +933,8 @@ export default function CustomersPageClean() {
             <tbody className="bg-white">
               {filteredCustomers.map((customer: any) => (
                 <tr 
-                  key={customer.id} 
-                  className="hover:bg-gray-50 group"
+                  key={customer.id}
+                  className="hover:bg-gray-50 group border-b border-gray-200"
                 >
                   <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm w-10">
                     <input
@@ -835,22 +944,16 @@ export default function CustomersPageClean() {
                       onChange={() => handleCustomerSelect(customer.id)}
                     />
                   </td>
-                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium w-[250px]">
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        <Avatar className="h-10 w-10">
-                          <AvatarFallback className="bg-indigo-100 text-indigo-700 text-sm font-medium">
-                            {customer.name.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                      </div>
-                      <div className="ml-3">
-                        <Link href={`/lists/customers/${customer.id}`}>
-                          <div className="font-medium text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer">
-                            {customer.name}
-                          </div>
-                        </Link>
-                      </div>
+                      <EntityAvatar
+                        entityType="customer"
+                        entityId={customer.id}
+                        fallbackText={customer.name.substring(0, 2).toUpperCase()}
+                        className="mr-3"
+                        size="md"
+                      />
+                      <Link href={`/lists/customers/${customer.id}`} className="font-medium text-gray-900 hover:text-indigo-700">{customer.name}</Link>
                     </div>
                   </td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
@@ -884,25 +987,111 @@ export default function CustomersPageClean() {
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Insurance</td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">Customer</td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Active</td>
-                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">€10,000</td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                    €{customer.totalOpportunityValue ? Number(customer.totalOpportunityValue).toLocaleString() : '0'}
+                  </td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                     <div className="flex space-x-1">
-                      <Avatar className="h-6 w-6">
-                        <AvatarFallback className="bg-green-100 text-green-600 text-xs font-medium">
-                          NB
-                        </AvatarFallback>
-                      </Avatar>
-                      <Avatar className="h-6 w-6">
-                        <AvatarFallback className="bg-purple-100 text-purple-600 text-xs font-medium">
-                          PR
-                        </AvatarFallback>
-                      </Avatar>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        NB
+                      </span>
+                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                        PR
+                      </span>
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+          
+          {/* Pagination Controls */}
+          <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+            <div className="flex flex-1 justify-between sm:hidden">
+              <button
+                onClick={() => setCurrentPage(currentPage - 1)}
+                disabled={!pagination.hasPreviousPage}
+                className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
+              >
+                Previous
+              </button>
+              <button
+                onClick={() => setCurrentPage(currentPage + 1)}
+                disabled={!pagination.hasNextPage}
+                className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:bg-gray-100 disabled:text-gray-400"
+              >
+                Next
+              </button>
+            </div>
+            <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+              <div>
+                <p className="text-sm text-gray-700">
+                  Showing{' '}
+                  <span className="font-medium">{((currentPage - 1) * itemsPerPage) + 1}</span>{' '}
+                  to{' '}
+                  <span className="font-medium">
+                    {Math.min(currentPage * itemsPerPage, pagination.totalCount)}
+                  </span>{' '}
+                  of{' '}
+                  <span className="font-medium">{pagination.totalCount}</span>{' '}
+                  customers
+                </p>
+              </div>
+              <div>
+                <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+                  <button
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    disabled={!pagination.hasPreviousPage}
+                    className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:bg-gray-100 disabled:text-gray-300"
+                  >
+                    <span className="sr-only">Previous</span>
+                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                  
+                  {/* Page Numbers */}
+                  {Array.from({ length: Math.min(pagination.totalPages, 5) }, (_, i) => {
+                    let pageNum = currentPage;
+                    if (pagination.totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= pagination.totalPages - 2) {
+                      pageNum = pagination.totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`relative inline-flex items-center px-4 py-2 text-sm font-semibold ${
+                          pageNum === currentPage
+                            ? 'z-10 bg-indigo-600 text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600'
+                            : 'text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0'
+                        }`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                  
+                  <button
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    disabled={!pagination.hasNextPage}
+                    className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 disabled:bg-gray-100 disabled:text-gray-300"
+                  >
+                    <span className="sr-only">Next</span>
+                    <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                      <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                    </svg>
+                  </button>
+                </nav>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* New List Dialog */}

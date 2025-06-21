@@ -1,0 +1,72 @@
+[
+  {
+    "partner_name": "Mevas BV",
+    "name": "Omvang Portefeuille – Schade Zakelijk",
+    "tags": ["Productie Dashboard - Schade Zakelijk 2025"],
+    "measure_unit": "currency",
+    "currency_type": "EUR",
+    "ytd_value": "742.301,32 €",
+    "last_year_value": "700.599 €",
+    "progress_ratio": 1.05,
+    "traffic_light": "green",
+    "hierarchy": "objective"
+  },
+  {
+    "partner_name": "Mevas BV",
+    "name": "Nieuwe Productie – Schade Zakelijk",
+    "tags": ["Productie Dashboard - Schade Zakelijk 2025"],
+    "measure_unit": "currency",
+    "currency_type": "EUR",
+    "ytd_value": "66.481,77 €",
+    "last_year_value": "145.673 €",
+    "progress_ratio": 0.45,
+    "traffic_light": "green",
+    "hierarchy": "objective"
+  },
+  {
+    "partner_name": "Mevas BV",
+    "name": "Royement – Schade Zakelijk",
+    "tags": ["Productie Dashboard - Schade Zakelijk 2025"],
+    "measure_unit": "currency",
+    "currency_type": "EUR",
+    "ytd_value": "-29.138,18 €",
+    "last_year_value": "-84.496 €",
+    "progress_ratio": 0.34,
+    "traffic_light": "orange",
+    "hierarchy": "objective"
+  },
+  {
+    "partner_name": "Mevas BV",
+    "name": "Schaderatio – Schade Zakelijk",
+    "tags": ["Productie Dashboard - Schade Zakelijk 2025"],
+    "measure_unit": "percent",
+    "ytd_value": "19,74 %",
+    "last_year_value": "22,04 %",
+    "progress_ratio": 0.89,
+    "traffic_light": "green",
+    "hierarchy": "objective"
+  },
+  {
+    "partner_name": "Mevas BV",
+    "name": "Schadelast Jaar",
+    "tags": ["Productie Dashboard - Schade Zakelijk 2025"],
+    "measure_unit": "currency",
+    "currency_type": "EUR",
+    "ytd_value": "60.128,83 €",
+    "last_year_value": "145.504 €",
+    "progress_ratio": 0.41,
+    "traffic_light": "orange",
+    "hierarchy": "objective"
+  },
+  {
+    "partner_name": "Mevas BV",
+    "name": "Schadefrequentie",
+    "tags": ["Productie Dashboard - Schade Zakelijk 2025"],
+    "measure_unit": "percent",
+    "ytd_value": "5,36 %",
+    "last_year_value": "6,01 %",
+    "progress_ratio": 0.89,
+    "traffic_light": "green",
+    "hierarchy": "objective"
+  }
+]

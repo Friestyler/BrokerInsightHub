@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -18,7 +18,8 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import EntityAvatar from "@/components/EntityAvatar";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
 import { 
@@ -48,7 +49,7 @@ import { SortableTableHead } from "@/components/ui/sortable-table-head";
 const usePartnersData = () => {
   return useQuery({
     queryKey: ['/api/partners'],
-    staleTime: 2 * 60 * 1000, // 2 minutes
+    staleTime: 0, // Force fresh data to show updated relationship counts
   });
 };
 
@@ -57,7 +58,8 @@ const useSavedLists = () => {
   return useQuery({
     queryKey: ['/api/saved-lists', 'partners'],
     queryFn: () => apiRequest('GET', '/api/saved-lists?entity_type=partners'),
-    staleTime: 2 * 60 * 1000,
+    staleTime: 0, // Always fetch fresh data for lists to see immediate updates
+    gcTime: 0, // No cache to ensure immediate updates
   });
 };
 
@@ -75,7 +77,9 @@ const useCreateSavedList = () => {
       return apiRequest('POST', '/api/saved-lists', data);
     },
     onSuccess: () => {
+      // Clear cache for immediate updates
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'partners'] });
     }
   });
 };
@@ -91,27 +95,93 @@ const useUpdateSavedList = () => {
   });
 };
 
+const useDeleteSavedList = () => {
+  return useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest('DELETE', `/api/saved-lists/${id}`);
+    },
+    onSuccess: () => {
+      // Clear cache for immediate updates
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+    }
+  });
+};
+
 const useCreateSavedView = () => {
   return useMutation({
     mutationFn: async (data: any) => {
       return apiRequest('POST', '/api/saved-views', data);
     },
     onSuccess: () => {
+      // Invalidate both the general and specific cache keys to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-views', 'partners'] });
     }
   });
 };
 
+const useUpdateSavedView = () => {
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string, data: any }) => {
+      return apiRequest('PUT', `/api/saved-views/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-views', 'partners'] });
+    }
+  });
+};
+
+// Format currency in European format
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('nl-NL', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount);
+}
+
 // Calculate partner statistics
-function calculatePartnerStats(partners: any[]) {
+function calculatePartnerStats(partners: any[], opportunities: any[] = []) {
+  // Total Partners now shows count of partners currently displayed in the active list/view
   const totalPartners = partners.length;
+  // Total Customers counts all customer records linked to the displayed partners
   const totalCustomers = partners.reduce((sum, partner) => {
     const customerCount = parseInt(partner.customers) || 0;
     return sum + customerCount;
   }, 0);
+  // Total Opportunities counts all opportunity records attached to the displayed partners
   const totalOpportunities = partners.reduce((sum, partner) => {
     const opportunityCount = parseInt(partner.opportunities) || 0;
     return sum + opportunityCount;
+  }, 0);
+  
+  // Get partner IDs from displayed partners
+  const partnerIds = partners.map(p => p.id);
+  
+  // Filter opportunities that belong to displayed partners
+  const relevantOpportunities = opportunities.filter(opp => 
+    opp.partnerId && partnerIds.includes(opp.partnerId)
+  );
+  
+  // Total Value sums unique opportunity amounts (no double counting)
+  const totalValue = relevantOpportunities.reduce((sum, opp) => {
+    const value = parseFloat(opp.estimated_value) || 0;
+    return sum + value;
+  }, 0);
+  
+  // Weighted Value calculates probability-adjusted sum of opportunity values
+  const weightedValue = relevantOpportunities.reduce((sum, opp) => {
+    const value = parseFloat(opp.estimated_value) || 0;
+    const probability = opp.stage === 'Closed (Won)' ? 1.0 : 
+                      opp.stage === 'Proposal Sent to Client' ? 0.6 :
+                      opp.stage === 'Validated' ? 0.3 :
+                      opp.stage === 'Lost' ? 0 :
+                      opp.stage === 'Rejected' ? 0 :
+                      !opp.stage || opp.stage === '' ? 0 : 0;
+    return sum + (value * probability);
   }, 0);
   const activePartners = partners.filter(p => p.status === 'active').length;
   
@@ -119,6 +189,8 @@ function calculatePartnerStats(partners: any[]) {
     totalPartners,
     totalCustomers,
     totalOpportunities,
+    totalValue,
+    weightedValue,
     activePartners
   };
 }
@@ -185,7 +257,6 @@ interface SavedList {
     searchText?: string;
     status?: string;
     industry?: string;
-    type?: string;
     size?: string;
   };
   members?: number[]; // Array of partner IDs for Custom Lists
@@ -205,7 +276,6 @@ interface SavedView {
     searchText?: string;
     status?: string;
     industry?: string;
-    type?: string;
     size?: string;
   };
   createdBy: string;
@@ -222,13 +292,35 @@ function PartnersTable() {
   // Fetch partners from database
   const { data: partners = [], isLoading, error } = usePartnersData();
   
+  // Fetch opportunities for accurate value calculations
+  const { data: opportunities = [] } = useQuery({
+    queryKey: ['/api/opportunities'],
+    enabled: true
+  });
+  
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('');
-  const [selectedType, setSelectedType] = useState('');
+  const [selectedActualIndustry, setSelectedActualIndustry] = useState('');
+  const [selectedSize, setSelectedSize] = useState('');
+
   const [selectedPartners, setSelectedPartners] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
+  
+  // Dropdown state for filters
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [showIndustryDropdown, setShowIndustryDropdown] = useState(false);
+  const [showActualIndustryDropdown, setShowActualIndustryDropdown] = useState(false);
+  const [showSizeDropdown, setShowSizeDropdown] = useState(false);
+
+  
+  // Refs for dropdown positioning
+  const statusDropdownRef = useRef<HTMLDivElement>(null);
+  const industryDropdownRef = useRef<HTMLDivElement>(null);
+  const actualIndustryDropdownRef = useRef<HTMLDivElement>(null);
+  const sizeDropdownRef = useRef<HTMLDivElement>(null);
+
   
   // Sorting state
   const [tableSortConfig, setTableSortConfig] = useState({
@@ -270,8 +362,8 @@ function PartnersTable() {
   
   // Fetch saved lists from database
   const { data: savedListsData = [], isLoading: savedListsLoading } = useSavedLists();
-  const createSavedListMutation = useCreateSavedList();
   const updateSavedListMutation = useUpdateSavedList();
+  const deleteSavedListMutation = useDeleteSavedList();
   
   // Filter saved lists to only show partner-related lists (client-side filtering)
   const partnerSavedListsData = savedListsData.filter((list: any) => 
@@ -318,9 +410,46 @@ function PartnersTable() {
   const [newListName, setNewListName] = useState("");
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
   
+  // Custom create list mutation that can access component state
+  const createSavedListMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest('POST', '/api/saved-lists', data);
+    },
+    onSuccess: (newList) => {
+      // Clear cache for immediate updates
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+      
+      // Auto-select the newly created list
+      if (newList) {
+        const convertedList = {
+          id: newList.id.toString(),
+          name: newList.name,
+          description: newList.description,
+          type: newList.type as 'filter' | 'selection',
+          filters: newList.filters || {},
+          members: newList.members || [],
+          isShared: newList.is_shared,
+          createdBy: newList.created_by,
+          createdAt: new Date(newList.created_at),
+          isDefault: newList.is_default
+        };
+        
+        // Set the new list as active
+        setActiveList(convertedList);
+        setOriginalListFilters(convertedList.filters);
+        setHasUnsavedChanges(false);
+        
+        // Clear any active view when switching to new list
+        setActiveView(null);
+      }
+    }
+  });
+  
   // Fetch saved views from database
   const { data: savedViewsData = [], isLoading: savedViewsLoading } = useSavedViews();
   const createSavedViewMutation = useCreateSavedView();
+  const updateSavedViewMutation = useUpdateSavedView();
   
   // Convert database records to local interface format
   const savedViews: SavedView[] = savedViewsData.map((view: any) => ({
@@ -336,6 +465,38 @@ function PartnersTable() {
   const [showSaveViewModal, setShowSaveViewModal] = useState(false);
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
   const [viewNameInput, setViewNameInput] = useState('');
+  
+  // Ref for views dropdown to handle outside clicks
+  const viewsDropdownRef = useRef<HTMLDivElement>(null);
+  const viewsButtonRef = useRef<HTMLButtonElement>(null);
+  
+  // Handle outside clicks for all dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (viewsDropdownRef.current && !viewsDropdownRef.current.contains(event.target as Node) &&
+          viewsButtonRef.current && !viewsButtonRef.current.contains(event.target as Node)) {
+        setShowViewsDropdown(false);
+      }
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target as Node)) {
+        setShowStatusDropdown(false);
+      }
+      if (industryDropdownRef.current && !industryDropdownRef.current.contains(event.target as Node)) {
+        setShowIndustryDropdown(false);
+      }
+      if (actualIndustryDropdownRef.current && !actualIndustryDropdownRef.current.contains(event.target as Node)) {
+        setShowActualIndustryDropdown(false);
+      }
+      if (sizeDropdownRef.current && !sizeDropdownRef.current.contains(event.target as Node)) {
+        setShowSizeDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showViewsDropdown, showStatusDropdown, showIndustryDropdown, showActualIndustryDropdown, showSizeDropdown]);
+  
   const [isCreatingNewList, setIsCreatingNewList] = useState(false); // Default to adding to existing list
   const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
   
@@ -431,8 +592,19 @@ function PartnersTable() {
     }
   });
     
+  // Fetch unique filter values from database
+  const { data: filterOptions, isLoading: filterOptionsLoading } = useQuery({
+    queryKey: ['/api/partners/filter-options'],
+    staleTime: 5 * 60 * 1000, // Cache for 5 minutes
+  });
+
+  // Extract filter values from database response
+  const uniqueStatuses = filterOptions?.statuses || [];
+  const uniqueRegions = filterOptions?.regions || [];
+  const uniqueLocations = filterOptions?.locations || [];
+
   // Filter partners based on search text, filter selections, and list membership
-  const displayedPartners = partners
+  const displayedPartners = (partners as any[])
     .filter((partner: any) => {
       // Handle selection-based lists (with member IDs)
       if (activeList && !activeList.isDefault && activeList.type === 'selection' && Array.isArray(activeList.members)) {
@@ -450,21 +622,21 @@ function PartnersTable() {
         if (activeList.filters.industry && partner.industry !== activeList.filters.industry) {
           return false;
         }
-        if (activeList.filters.type && partner.type !== activeList.filters.type) {
-          return false;
-        }
+
       }
       
       const matchesText = !filterText || 
         partner.name.toLowerCase().includes(filterText.toLowerCase()) ||
-        partner.industry.toLowerCase().includes(filterText.toLowerCase()) ||
-        partner.type.toLowerCase().includes(filterText.toLowerCase());
+        (partner.region && partner.region.toLowerCase().includes(filterText.toLowerCase())) ||
+        (partner.partner_type && partner.partner_type.toLowerCase().includes(filterText.toLowerCase())) ||
+        (partner.industry && partner.industry.toLowerCase().includes(filterText.toLowerCase()));
         
       const matchesStatus = !selectedStatus || partner.status === selectedStatus;
-      const matchesIndustry = !selectedIndustry || partner.industry === selectedIndustry;
-      const matchesType = !selectedType || partner.type === selectedType;
+      const matchesIndustry = !selectedIndustry || partner.region === selectedIndustry;
+      const matchesActualIndustry = !selectedActualIndustry || partner.industry === selectedActualIndustry;
+      const matchesSize = !selectedSize || partner.size?.toLowerCase() === selectedSize.toLowerCase();
       
-      return matchesText && matchesStatus && matchesIndustry && matchesType;
+      return matchesText && matchesStatus && matchesIndustry && matchesActualIndustry && matchesSize;
     })
     // Apply sorting
     .sort((a: any, b: any) => {
@@ -498,8 +670,7 @@ function PartnersTable() {
         searchText: filterText || undefined,
         status: selectedStatus || undefined,
         industry: selectedIndustry || undefined,
-        type: selectedType || undefined,
-        size: originalListFilters.size // Preserve size filter if it exists
+        size: selectedSize || undefined
       };
       
       // Compare current filters with original list filters
@@ -507,13 +678,13 @@ function PartnersTable() {
         currentFilters.searchText !== originalListFilters.searchText ||
         currentFilters.status !== originalListFilters.status ||
         currentFilters.industry !== originalListFilters.industry ||
-        currentFilters.type !== originalListFilters.type;
+        currentFilters.size !== originalListFilters.size;
       
       setHasUnsavedChanges(hasChanges);
     } else {
       setHasUnsavedChanges(false);
     }
-  }, [filterText, selectedStatus, selectedIndustry, selectedType, activeList, originalListFilters]);
+  }, [filterText, selectedStatus, selectedIndustry, selectedSize, activeList, originalListFilters]);
   
   // Function to revert changes to the original list filters
   const revertChanges = () => {
@@ -521,7 +692,7 @@ function PartnersTable() {
       setFilterText(originalListFilters.searchText || '');
       setSelectedStatus(originalListFilters.status || '');
       setSelectedIndustry(originalListFilters.industry || '');
-      setSelectedType(originalListFilters.type || '');
+      setSelectedSize(originalListFilters.size || '');
       setHasUnsavedChanges(false);
     }
   };
@@ -538,18 +709,12 @@ function PartnersTable() {
           searchText: filterText || undefined,
           status: selectedStatus || undefined,
           industry: selectedIndustry || undefined,
-          type: selectedType || undefined,
           size: originalListFilters?.size // Preserve size filter if it exists
         },
         createdAt: new Date() // Update the timestamp
       };
       
-      // Update the list in the savedLists array
-      const updatedLists = savedLists.map(list => 
-        list.id === activeList.id ? updatedList : list
-      );
-      
-      setSavedLists(updatedLists);
+      // Cache invalidation is handled by the mutation hook automatically
       setActiveList(updatedList);
       setOriginalListFilters(updatedList.filters);
       setHasUnsavedChanges(false);
@@ -566,7 +731,7 @@ function PartnersTable() {
 
   // Calculate stats based on the same data shown in the table
   const tableData = isEditingList ? partners : displayedPartners;
-  const stats = calculatePartnerStats(Array.isArray(tableData) ? tableData : []);
+  const stats = calculatePartnerStats(Array.isArray(tableData) ? tableData : [], opportunities);
   
   // Function to toggle partner selection
   const toggleSelectPartner = (id: number) => {
@@ -680,7 +845,6 @@ function PartnersTable() {
                                 setFilterText('');
                                 setSelectedStatus('');
                                 setSelectedIndustry('');
-                                setSelectedType('');
                                 setHasUnsavedChanges(false);
                               } else {
                                 // Normal behavior for other lists
@@ -691,7 +855,6 @@ function PartnersTable() {
                                 setFilterText(list.filters.searchText || '');
                                 setSelectedStatus(list.filters.status || '');
                                 setSelectedIndustry(list.filters.industry || '');
-                                setSelectedType(list.filters.type || '');
                                 setHasUnsavedChanges(false);
                               }
                               
@@ -703,7 +866,7 @@ function PartnersTable() {
                             <div className="flex flex-1 items-center">
                               <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{list.name}</span>
                               {list.isShared && (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-indigo-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-green-500">
                                   <circle cx="18" cy="5" r="3"></circle>
                                   <circle cx="6" cy="12" r="3"></circle>
                                   <circle cx="18" cy="19" r="3"></circle>
@@ -845,12 +1008,7 @@ function PartnersTable() {
                       
                       // Update the list with the edited members
                       if (activeList) {
-                        const updatedLists = savedLists.map(list => 
-                          list.id === activeList.id 
-                            ? {...list, members: editedListMembers}
-                            : list
-                        );
-                        setSavedLists(updatedLists);
+                        // Cache invalidation is handled by the mutation hook automatically
                         setActiveList({...activeList, members: editedListMembers});
                         
                         // Show success toast
@@ -915,6 +1073,7 @@ function PartnersTable() {
               {/* Saved Views Dropdown */}
               <div className="relative">
                 <button 
+                  ref={viewsButtonRef}
                   className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white ${isEditingList ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
                   onClick={() => {
                     if (!isEditingList) {
@@ -945,7 +1104,7 @@ function PartnersTable() {
                 
                 {/* Saved Views dropdown menu */}
                 {showViewsDropdown && (
-                  <div className="absolute z-50 mt-1 w-64 rounded-md border border-slate-200 bg-white shadow-md">
+                  <div ref={viewsDropdownRef} className="absolute z-50 mt-1 w-64 rounded-md border border-slate-200 bg-white shadow-md">
                     <div className="p-2 border-b">
                       {savedViews.map(view => (
                         <div 
@@ -956,7 +1115,7 @@ function PartnersTable() {
                             setFilterText(view.filters.searchText || '');
                             setSelectedStatus(view.filters.status || '');
                             setSelectedIndustry(view.filters.industry || '');
-                            setSelectedType(view.filters.type || '');
+                            setSelectedActualIndustry('');
                             setShowViewsDropdown(false);
                           }}
                         >
@@ -983,7 +1142,7 @@ function PartnersTable() {
                             setFilterText('');
                             setSelectedStatus('');
                             setSelectedIndustry('');
-                            setSelectedType('');
+                            setSelectedActualIndustry('');
                           }}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
@@ -1000,53 +1159,252 @@ function PartnersTable() {
               
               {/* Filter buttons next to the views dropdown */}
               <div className="flex items-center gap-2 ml-3">
-                <button 
-                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedStatus(selectedStatus ? '' : 'active')}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                  </svg>
-                  <span>{selectedStatus ? `Status: ${selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1)}` : 'Status'}</span>
-                  {selectedStatus && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                <div className="relative" ref={statusDropdownRef}>
+                  <button 
+                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                    onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                     </svg>
+                    <span>{selectedStatus ? `Status: ${selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1)}` : 'Status'}</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className={`ml-2 transition-transform ${showStatusDropdown ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  
+                  {showStatusDropdown && (
+                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-md">
+                      <div className="p-1">
+                        <div 
+                          className="flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 text-slate-700"
+                          onClick={() => {
+                            setSelectedStatus('');
+                            setShowStatusDropdown(false);
+                          }}
+                        >
+                          <span>All Statuses</span>
+                          {!selectedStatus && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
+                        </div>
+                        {uniqueStatuses.map(status => (
+                          <div 
+                            key={status}
+                            className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${selectedStatus === status ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                            onClick={() => {
+                              setSelectedStatus(status);
+                              setShowStatusDropdown(false);
+                            }}
+                          >
+                            <span>{status.charAt(0).toUpperCase() + status.slice(1)}</span>
+                            {selectedStatus === status && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
-                </button>
+                </div>
                 
-                <button 
-                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedIndustry(selectedIndustry ? '' : 'Insurance')}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                  </svg>
-                  <span>{selectedIndustry ? `Industry: ${selectedIndustry}` : 'Industry'}</span>
-                  {selectedIndustry && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                <div className="relative" ref={industryDropdownRef}>
+                  <button 
+                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                    onClick={() => setShowIndustryDropdown(!showIndustryDropdown)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                     </svg>
+                    <span>{selectedIndustry ? `Region: ${selectedIndustry}` : 'Region'}</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className={`ml-2 transition-transform ${showIndustryDropdown ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  
+                  {showIndustryDropdown && (
+                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-md">
+                      <div className="p-1">
+                        <div 
+                          className="flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 text-slate-700"
+                          onClick={() => {
+                            setSelectedIndustry('');
+                            setShowIndustryDropdown(false);
+                          }}
+                        >
+                          <span>All Regions</span>
+                          {!selectedIndustry && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
+                        </div>
+                        {uniqueRegions.map(region => (
+                          <div 
+                            key={region}
+                            className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${selectedIndustry === region ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                            onClick={() => {
+                              setSelectedIndustry(region);
+                              setShowIndustryDropdown(false);
+                            }}
+                          >
+                            <span>{region}</span>
+                            {selectedIndustry === region && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
-                </button>
+                </div>
                 
-                <button 
-                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedType ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedType(selectedType ? '' : 'Broker')}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                  </svg>
-                  <span>{selectedType ? `Type: ${selectedType}` : 'Type'}</span>
-                  {selectedType && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
+
+                
+                <div className="relative" ref={actualIndustryDropdownRef}>
+                  <button 
+                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedActualIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                    onClick={() => setShowActualIndustryDropdown(!showActualIndustryDropdown)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                     </svg>
+                    <span>{selectedActualIndustry ? `Location: ${selectedActualIndustry}` : 'Location'}</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className={`ml-2 transition-transform ${showActualIndustryDropdown ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  
+                  {showActualIndustryDropdown && (
+                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-md">
+                      <div className="p-1">
+                        <div 
+                          className="flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 text-slate-700"
+                          onClick={() => {
+                            setSelectedActualIndustry('');
+                            setShowActualIndustryDropdown(false);
+                          }}
+                        >
+                          <span>All Locations</span>
+                          {!selectedActualIndustry && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
+                        </div>
+                        {uniqueLocations.map(location => (
+                          <div 
+                            key={location}
+                            className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${selectedActualIndustry === location ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                            onClick={() => {
+                              setSelectedActualIndustry(location);
+                              setShowActualIndustryDropdown(false);
+                            }}
+                          >
+                            <span>{location}</span>
+                            {selectedActualIndustry === location && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
-                </button>
+                </div>
+                
+                {/* Size Filter */}
+                <div className="relative" ref={sizeDropdownRef}>
+                  <button 
+                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedSize ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                    onClick={() => setShowSizeDropdown(!showSizeDropdown)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    <span>{selectedSize ? `Size: ${selectedSize}` : 'Size'}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
+                  {showSizeDropdown && (
+                    <div className="absolute z-50 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg">
+                      <div className="py-1">
+                        <div 
+                          className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${!selectedSize ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                          onClick={() => {
+                            setSelectedSize('');
+                            setShowSizeDropdown(false);
+                          }}
+                        >
+                          <span>All Sizes</span>
+                          {!selectedSize && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
+                        </div>
+                        {['Small', 'Medium', 'Large'].map(size => (
+                          <div 
+                            key={size}
+                            className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${selectedSize === size ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                            onClick={() => {
+                              setSelectedSize(size);
+                              setShowSizeDropdown(false);
+                            }}
+                          >
+                            <span>{size}</span>
+                            {selectedSize === size && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
               
               {/* Action buttons - only shown when filters have changed from an existing view or no view is selected */}
@@ -1057,10 +1415,11 @@ function PartnersTable() {
                   (filterText !== (activeView.filters.searchText || '') || 
                    selectedStatus !== (activeView.filters.status || '') || 
                    selectedIndustry !== (activeView.filters.industry || '') || 
-                   selectedType !== (activeView.filters.type || ''));
+                   selectedActualIndustry !== '' ||
+                   selectedSize !== '');
                    
                 // Only render buttons if there are filters applied or filters have changed
-                return (filterText || selectedStatus || selectedIndustry || selectedType) && (
+                return (filterText || selectedStatus || selectedIndustry || selectedActualIndustry || selectedSize) && (
                   <div className="flex items-center gap-2">
                     {/* Show Revert and Save buttons only when a view is active AND filters have changed */}
                     {filtersChanged && (
@@ -1073,7 +1432,8 @@ function PartnersTable() {
                             setFilterText(activeView.filters.searchText || '');
                             setSelectedStatus(activeView.filters.status || '');
                             setSelectedIndustry(activeView.filters.industry || '');
-                            setSelectedType(activeView.filters.type || '');
+                            setSelectedActualIndustry('');
+                            setSelectedSize('');
                           }}
                           style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
                         >
@@ -1088,28 +1448,45 @@ function PartnersTable() {
                         <button 
                           className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
                           onClick={() => {
-                            // Update the current view
-                            const updatedViews = savedViews.map(view => {
-                              if (view.id === activeView.id) {
-                                return {
-                                  ...view,
-                                  filters: {
-                                    searchText: filterText || undefined,
-                                    status: selectedStatus || undefined,
-                                    industry: selectedIndustry || undefined,
-                                    type: selectedType || undefined
-                                  }
-                                };
-                              }
-                              return view;
-                            });
-                            setSavedViews(updatedViews);
-                            setActiveView(updatedViews.find(view => view.id === activeView.id) || null);
-                            
-                            toast({
-                              title: "View Updated",
-                              description: "Your changes have been saved to the current view"
-                            });
+                            if (activeView) {
+                              const updatedFilters = {
+                                searchText: filterText || undefined,
+                                status: selectedStatus || undefined,
+                                industry: selectedIndustry || undefined,
+                                actualIndustry: selectedActualIndustry || undefined
+                              };
+                              
+                              updateSavedViewMutation.mutate({
+                                id: activeView.id,
+                                data: {
+                                  name: activeView.name,
+                                  description: activeView.description,
+                                  filters: updatedFilters,
+                                  entity_type: 'partners',
+                                  is_shared: false
+                                }
+                              }, {
+                                onSuccess: () => {
+                                  // Update local active view state with new filters
+                                  setActiveView({
+                                    ...activeView,
+                                    filters: updatedFilters
+                                  });
+                                  
+                                  toast({
+                                    title: "View Updated",
+                                    description: "Your changes have been saved to the current view"
+                                  });
+                                },
+                                onError: () => {
+                                  toast({
+                                    title: "Error",
+                                    description: "Failed to update view. Please try again.",
+                                    variant: "destructive"
+                                  });
+                                }
+                              });
+                            }
                           }}
                           style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
                         >
@@ -1158,7 +1535,7 @@ function PartnersTable() {
             </div>
             
             {/* Clear filters button - shown when any filters are applied */}
-            {(filterText || selectedStatus || selectedIndustry || selectedType) && (
+            {(filterText || selectedStatus || selectedIndustry || selectedActualIndustry) && (
               <div className="mt-2">
                 <button 
                   className="flex items-center text-sm text-gray-500 hover:text-gray-700"
@@ -1166,7 +1543,7 @@ function PartnersTable() {
                     setFilterText('');
                     setSelectedStatus('');
                     setSelectedIndustry('');
-                    setSelectedType('');
+                    setSelectedActualIndustry('');
                   }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
@@ -1212,7 +1589,7 @@ function PartnersTable() {
           </div>
         </div>
       </div>
-      {/* Selection actions bar - visible when items are selected */}
+      {/* Bulk actions bar - only visible when partners are selected */}
       {selectedPartners.length > 0 && (
         <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
           <div className="flex items-center">
@@ -1264,6 +1641,7 @@ function PartnersTable() {
             <Button 
               variant="outline" 
               size="sm"
+              className="text-indigo-600"
               onClick={() => {
                 // Reload templates when opening the modal
                 const storedTemplates = localStorage.getItem('okrTemplates');
@@ -1288,25 +1666,31 @@ function PartnersTable() {
         </div>
       )}
       {/* Statistics overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.totalPartners}</div>
+          <div className="text-xl font-semibold text-[#282A3F]">{stats.totalPartners}</div>
           <div className="text-sm text-gray-500">Total Partners</div>
         </div>
         
+
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.activePartners}</div>
-          <div className="text-sm text-gray-500">Active Partners</div>
+          <div className="text-xl font-semibold text-[#282A3F]">{stats.totalOpportunities}</div>
+          <div className="text-sm text-gray-500">Total Opportunities</div>
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.totalCustomers}</div>
+          <div className="text-xl font-semibold text-[#282A3F]">{stats.totalCustomers}</div>
           <div className="text-sm text-gray-500">Total Customers</div>
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.totalOpportunities}</div>
-          <div className="text-sm text-gray-500">Total Opportunities</div>
+          <div className="text-xl font-semibold text-[#282A3F]">{formatCurrency(stats.totalValue)}</div>
+          <div className="text-sm text-gray-500">Total Value Opportunities</div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-md border border-gray-200">
+          <div className="text-xl font-semibold text-[#282A3F]">{formatCurrency(Math.round(stats.weightedValue))}</div>
+          <div className="text-sm text-gray-500">Weighted Value Opportunities</div>
         </div>
       </div>
       {/* Add to List Modal */}
@@ -1447,7 +1831,7 @@ function PartnersTable() {
                     createdAt: new Date()
                   };
                   
-                  // Create the new list in database
+                  // Create the new list in database using the custom mutation with auto-selection
                   createSavedListMutation.mutate({
                     name: listName,
                     description: listDescription || undefined,
@@ -1456,23 +1840,6 @@ function PartnersTable() {
                     members: selectedPartners,
                     filters: {},
                     is_shared: false
-                  }, {
-                    onSuccess: (createdList) => {
-                      // Convert to local format and set as active
-                      const newList: SavedList = {
-                        id: createdList.id.toString(),
-                        name: createdList.name,
-                        description: createdList.description,
-                        type: 'selection',
-                        filters: {},
-                        members: createdList.members || [],
-                        isShared: false,
-                        createdBy: 'John Smith',
-                        createdAt: new Date(createdList.created_at)
-                      };
-                      setActiveList(newList);
-                      setOriginalListFilters(newList.filters);
-                    }
                   });
                   
                   // Clear selections and close modal
@@ -1614,19 +1981,14 @@ function PartnersTable() {
                     <span className="text-[#282A3F]">{selectedIndustry}</span>
                   </div>
                 )}
-                {selectedType && (
-                  <div className="flex items-center text-sm">
-                    <span className="font-medium w-24 text-[#3E4DC4]">Type:</span>
-                    <span className="text-[#282A3F]">{selectedType}</span>
-                  </div>
-                )}
+
                 {filterText && (
                   <div className="flex items-center text-sm">
                     <span className="font-medium w-24 text-[#3E4DC4]">Search:</span>
                     <span className="text-[#282A3F]">{filterText}</span>
                   </div>
                 )}
-                {!selectedStatus && !selectedIndustry && !selectedType && !filterText && (
+                {!selectedStatus && !selectedIndustry && !filterText && (
                   <div className="text-sm text-[#5F6585] italic">No filters currently applied</div>
                 )}
               </div>
@@ -1674,8 +2036,7 @@ function PartnersTable() {
                   filters: {
                     searchText: filterText || undefined,
                     status: selectedStatus || undefined,
-                    industry: selectedIndustry || undefined,
-                    type: selectedType || undefined
+                    industry: selectedIndustry || undefined
                   },
                   createdBy: 'John Smith',
                   createdAt: new Date()
@@ -1688,8 +2049,7 @@ function PartnersTable() {
                   filters: {
                     searchText: filterText || undefined,
                     status: selectedStatus || undefined,
-                    industry: selectedIndustry || undefined,
-                    type: selectedType || undefined
+                    industry: selectedIndustry || undefined
                   },
                   is_shared: false
                 }, {
@@ -1703,6 +2063,7 @@ function PartnersTable() {
                       createdAt: new Date(createdView.created_at)
                     };
                     setActiveView(newView);
+                    // Cache invalidation is handled automatically by the mutation hook
                   }
                 });
                 
@@ -2029,13 +2390,17 @@ function PartnersTable() {
       {/* Table section without a border */}
       <div className="bg-white overflow-x-auto rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-white">
             <tr>
-              <th scope="col" className="relative px-3 py-3.5 w-10 pt-[12px] pb-[12px]">
+              <th scope="col" className="relative px-3 py-3.5 w-10 pt-[12px] pb-[12px] group">
                 <div className="flex items-center justify-center">
                   <input
                     type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300"
+                    className={`h-4 w-4 rounded border-gray-300 ${
+                      isEditingList 
+                        ? 'visible' 
+                        : (selectedPartners.length > 0 ? 'visible' : 'invisible group-hover:visible')
+                    }`}
                   checked={isEditingList 
                     ? editedListMembers.length === (activeList ? partners.length : displayedPartners.length) && (activeList ? partners.length : displayedPartners.length) > 0
                     : selectedPartners.length === displayedPartners.length && displayedPartners.length > 0
@@ -2071,15 +2436,7 @@ function PartnersTable() {
               >
                 Industry
               </SortableTableHead>
-              <SortableTableHead 
-                sortKey="type" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[120px]"
-              >
-                Type
-              </SortableTableHead>
+
               <SortableTableHead 
                 sortKey="size" 
                 currentSortKey={tableSortConfig.key} 
@@ -2124,6 +2481,15 @@ function PartnersTable() {
                 className="w-[120px]"
               >
                 Opportunities
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="contacts" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[120px]"
+              >
+                Contacts
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="template" 
@@ -2174,14 +2540,17 @@ function PartnersTable() {
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
                   <div className="flex items-center">
-                    <Avatar className="h-9 w-9 mr-3 bg-indigo-100 text-indigo-600">
-                      <AvatarFallback>{partner.initials}</AvatarFallback>
-                    </Avatar>
+                    <EntityAvatar
+                      entityType="partner"
+                      entityId={partner.id}
+                      fallbackText={partner.initials}
+                      className="mr-3"
+                      size="md"
+                    />
                     <Link href={`/lists/partners/${partner.id}`} className="font-medium text-gray-900 hover:text-indigo-700">{partner.name}</Link>
                   </div>
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.industry}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.type}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">{partner.size}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">{partner.region}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
@@ -2189,8 +2558,25 @@ function PartnersTable() {
                     {partner.status}
                   </Badge>
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.customers || 0}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.opportunities || 0}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  <Link 
+                    href={`/lists/partners/${partner.id}?tab=customers`} 
+                    className="text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer"
+                  >
+                    {partner.customers || 0}
+                  </Link>
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  <Link 
+                    href={`/lists/partners/${partner.id}?tab=opportunities`} 
+                    className="text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer"
+                  >
+                    {partner.opportunities || 0}
+                  </Link>
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  {partner.contacts || 0}
+                </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   <TemplateBadges partnerId={partner.id} templateAssignments={templateAssignments} okrTags={okrTags} />
                 </td>
@@ -2199,7 +2585,7 @@ function PartnersTable() {
             
             {displayedPartners.length === 0 && !isEditingList && (
               <tr>
-                <td colSpan={9} className="py-10 text-center">
+                <td colSpan={10} className="py-10 text-center">
                   <div className="flex flex-col items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
                       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
@@ -2233,7 +2619,6 @@ function PartnersTable() {
                             setFilterText('');
                             setSelectedStatus('');
                             setSelectedIndustry('');
-                            setSelectedType('');
                           }}
                         >
                           Clear Filters
@@ -2274,11 +2659,7 @@ function PartnersTable() {
             <Button 
               onClick={() => {
                 if (listToRename && newListName.trim() !== '' && newListName !== listToRename.name) {
-                  // Update the list name in the savedLists array
-                  const updatedLists = savedLists.map(l => 
-                    l.id === listToRename.id ? {...l, name: newListName.trim()} : l
-                  );
-                  setSavedLists(updatedLists);
+                  // Cache invalidation is handled by the mutation hook automatically
                   
                   // If this is the active list, update that too
                   if (activeList && activeList.id === listToRename.id) {
@@ -2323,7 +2704,7 @@ function PartnersTable() {
             </Button>
             <Button 
               className="text-[#FFFFFF] bg-[#D3321D] pl-[14px] pr-[14px] ml-[12px] mr-[12px] hover:bg-destructive/90"
-              onClick={() => {
+              onClick={async () => {
                 if (listToDelete) {
                   // Prevent deletion of system lists
                   if (listToDelete.isDefault) {
@@ -2337,42 +2718,59 @@ function PartnersTable() {
                     return;
                   }
                 
-                  // Remove the list from savedLists
-                  const updatedLists = savedLists.filter(l => l.id !== listToDelete.id);
-                  setSavedLists(updatedLists);
-                  
-                  // If this was the active list, go back to "All Partners"
-                  if (activeList && activeList.id === listToDelete.id) {
-                    // Find the "All Partners" list
-                    const allPartnersList = savedLists.find(list => list.id === 'all-partners');
-                    if (allPartnersList) {
-                      setActiveList(allPartnersList);
-                      setOriginalListFilters(allPartnersList.filters);
-                    } else {
-                      setActiveList(null);
-                      setOriginalListFilters(null);
+                  try {
+                    // Actually delete the list from the database
+                    await deleteSavedListMutation.mutateAsync(parseInt(listToDelete.id));
+                    
+                    // If this was the active list, go back to "All Partners"
+                    if (activeList && activeList.id === listToDelete.id) {
+                      // Find the "All Partners" list
+                      const allPartnersList = savedLists.find(list => list.id === 'all-partners');
+                      if (allPartnersList) {
+                        setActiveList(allPartnersList);
+                        setOriginalListFilters(allPartnersList.filters);
+                      } else {
+                        setActiveList(null);
+                        setOriginalListFilters(null);
+                      }
+                      
+                      // Reset filters
+                      setFilterText('');
+                      setSelectedStatus('');
+                      setSelectedIndustry('');
+                      setHasUnsavedChanges(false);
                     }
                     
-                    // Reset filters
-                    setFilterText('');
-                    setSelectedStatus('');
-                    setSelectedIndustry('');
-                    setSelectedType('');
-                    setHasUnsavedChanges(false);
+                    // Additional immediate cache refresh to ensure UI updates
+                    await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+                    await queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+                    queryClient.removeQueries({ queryKey: ['/api/saved-lists', 'partners'] });
+                    
+                    // Show success message
+                    toast({
+                      title: "List deleted",
+                      description: `The list "${listToDelete.name}" has been deleted. Your partner records remain intact.`,
+                    });
+                    
+                    // Close the dialog and dropdown
+                    setShowDeleteListModal(false);
+                    setShowListsDropdown(false);
+                    
+                    // Reset list references to ensure clean state
+                    setListToDelete(null);
+                  } catch (error) {
+                    toast({
+                      title: "Error",
+                      description: "Failed to delete the list. Please try again.",
+                      variant: "destructive"
+                    });
                   }
-                  
-                  // Show success message
-                  toast({
-                    title: "List deleted",
-                    description: `The list "${listToDelete.name}" has been deleted. Your partner records remain intact.`,
-                  });
-                  
-                  // Close the dialog and dropdown
-                  setShowDeleteListModal(false);
-                  setShowListsDropdown(false);
                 }
               }}
-            >Delete list</Button>
+              disabled={deleteSavedListMutation.isPending}
+            >
+              {deleteSavedListMutation.isPending ? 'Deleting...' : 'Delete list'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -2419,7 +2817,6 @@ function PartnersTable() {
                     setFilterText(list.filters.searchText || '');
                     setSelectedStatus(list.filters.status || '');
                     setSelectedIndustry(list.filters.industry || '');
-                    setSelectedType(list.filters.type || '');
                   }
                   
                   // Set the active list and store its original filters
@@ -2452,10 +2849,7 @@ function PartnersTable() {
                     members: editedListMembers
                   };
                   
-                  // Update in saved lists
-                  setSavedLists(savedLists.map(list => 
-                    list.id === activeList.id ? updatedList : list
-                  ));
+                  // Cache invalidation is handled by the mutation hook automatically
                   
                   // Exit editing mode
                   setIsEditingList(false);
@@ -2470,7 +2864,6 @@ function PartnersTable() {
                       setFilterText(list.filters.searchText || '');
                       setSelectedStatus(list.filters.status || '');
                       setSelectedIndustry(list.filters.industry || '');
-                      setSelectedType(list.filters.type || '');
                     }
                     
                     // Set the active list and store its original filters
