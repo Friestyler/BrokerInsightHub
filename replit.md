@@ -26,6 +26,7 @@ Broker Copilot is a comprehensive multi-environment broker portal powered by AI 
 ### Database Design
 - **PostgreSQL with schema-based isolation** (degoudse schema as primary)
 - **Comprehensive entity relationships** (partners, customers, opportunities, products, etc.)
+- **Mixed column naming conventions**: Main tables use camelCase (clientId, partnerId, estimatedValue), relationship tables use snake_case (customer_id, opportunity_id)
 - **OKR metrics system** with hierarchical grouping
 - **Upload settings and transformation scripts** for data import
 - **Activity tracking and audit trails**
@@ -175,6 +176,7 @@ Each environment maintains its own data isolation while sharing the same applica
 - June 15, 2025: Full Flow Builder rebranding with consistent UX, enhanced hierarchical entity/contact selection
 - June 15, 2025: Added recipient system, tile redesigns, vertical step progress, better navigation
 - June 15, 2025: Natural language transformation logic, AI explanations, template auto-loading, routing fixes
+- June 21, 2025: Major database connectivity and relationship fixes - resolved PostgreSQL case sensitivity issues between camelCase schema and snake_case queries, fixed all entity relationship endpoints, application now fully functional with authentic data
 
 ## User Preferences
 

@@ -134,9 +134,9 @@ export default function CustomerDetailNew() {
   // Load existing logo on component mount
   useEffect(() => {
     const loadExistingLogo = async () => {
-      if (id) {
+      if (customerId) {
         try {
-          const response = await fetch(`/api/entity-logos?entityType=customer&entityId=${id}&environmentId=${environment || 'myqollabi'}`);
+          const response = await fetch(`/api/entity-logos?entityType=customer&entityId=${customerId}&environmentId=${environment || 'myqollabi'}`);
           if (response.ok) {
             const logoData = await response.json();
             if (logoData?.logoData) {
@@ -150,7 +150,7 @@ export default function CustomerDetailNew() {
     };
     
     loadExistingLogo();
-  }, [id, environment]);
+  }, [customerId, environment]);
 
   // Fetch customer data from database
   const { data: customersResponse, isLoading: customersLoading } = useQuery({
@@ -159,7 +159,7 @@ export default function CustomerDetailNew() {
 
   // Parse and validate customer ID
   const customerId = id ? parseInt(id as string) : null;
-  const isValidId = customerId && !isNaN(customerId);
+  const isValidId = Boolean(customerId && !isNaN(customerId));
 
   // Fetch related partners for this customer
   const { data: relatedPartners, isLoading: partnersLoading } = useQuery({
@@ -187,8 +187,8 @@ export default function CustomerDetailNew() {
 
   // Fetch template assignments for this customer
   const { data: templateAssignments } = useQuery({
-    queryKey: [`/api/template-assignments/customer/${id}`],
-    enabled: !!id,
+    queryKey: [`/api/template-assignments/customer/${customerId}`],
+    enabled: isValidId,
   });
 
   // Fetch all OKR metrics to match with assignments
@@ -213,7 +213,7 @@ export default function CustomerDetailNew() {
 
   // Extract customers array from paginated response
   const customers = customersResponse?.data || [];
-  const customer = customers?.find((c: any) => c.id === parseInt(id || '0'));
+  const customer = customers?.find((c: any) => c.id === customerId);
   
   // Initialize dialog data when it opens (after customer is declared)
   useEffect(() => {
