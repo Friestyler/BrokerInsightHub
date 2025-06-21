@@ -179,7 +179,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                STRING_AGG(DISTINCT c.name, ', ') as customer_names
         FROM myqollabi.partners p
         LEFT JOIN myqollabi.partner_customers pc ON p.id = pc.partner_id
-        LEFT JOIN myqollabi.partner_opportunities po ON p.id = po.partner_id
+        LEFT JOIN myqollabi.partner_opportunities po ON p.id = po.partnerId
         LEFT JOIN myqollabi.customers c ON c.id = pc.customer_id
         GROUP BY p.id, p.name, p.description, p.status, p.location, p.contact_email, 
                  p.primary_contact, p.partner_type, p.region, p.assigned_user_ids, 
@@ -270,13 +270,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
                STRING_AGG(DISTINCT p.name, ', ') as partner_names,
                STRING_AGG(DISTINCT pr.name, ', ') as product_names,
                COUNT(DISTINCT co.customer_id) as customer_count,
-               COUNT(DISTINCT po.partner_id) as partner_count,
+               COUNT(DISTINCT po.partnerId) as partner_count,
                COUNT(DISTINCT op.product_id) as product_count
         FROM degoudse.opportunities o
         LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
         LEFT JOIN degoudse.customers c ON c.id = co.customer_id
         LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN degoudse.partners p ON p.id = po.partner_id
+        LEFT JOIN degoudse.partners p ON p.id = po.partnerId
         LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
         LEFT JOIN degoudse.products pr ON pr.id = op.product_id
         GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
@@ -304,7 +304,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                STRING_AGG(DISTINCT c.name, ', ') as customer_names
         FROM myqollabi.partners p
         LEFT JOIN myqollabi.partner_customers pc ON p.id = pc.partner_id
-        LEFT JOIN myqollabi.partner_opportunities po ON p.id = po.partner_id
+        LEFT JOIN myqollabi.partner_opportunities po ON p.id = po.partnerId
         LEFT JOIN myqollabi.customers c ON c.id = pc.customer_id
         GROUP BY p.id, p.name, p.description, p.status, p.location, p.contact_email, 
                  p.primary_contact, p.partner_type, p.region, p.assigned_user_ids, 
@@ -1033,7 +1033,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                COUNT(DISTINCT pc.partner_id) as partner_count,
                STRING_AGG(DISTINCT p.name, ', ') as partner_names
         FROM myqollabi.customers c
-        LEFT JOIN myqollabi.opportunities o ON o.client_id = c.id
+        LEFT JOIN myqollabi.opportunities o ON o.clientId = c.id
         LEFT JOIN myqollabi.partner_customers pc ON pc.customer_id = c.id
         LEFT JOIN myqollabi.partners p ON p.id = pc.partner_id
         GROUP BY c.id, c.name, c.description, c.owner_id, c.created_at, c.updated_at, 
@@ -1073,7 +1073,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT c.*, COUNT(o.id) as opportunity_count
         FROM degoudse.customers c
         INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
-        LEFT JOIN degoudse.opportunities o ON o.client_id = c.id
+        LEFT JOIN degoudse.opportunities o ON o.clientId = c.id
         WHERE pc.partner_id = ${partnerId}
         GROUP BY c.id, c.name, c.description, c.owner_id, c.created_at, c.updated_at, 
                  c.contact_name, c.contact_email, c.contact_phone
@@ -1106,7 +1106,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM degoudse.opportunities o
         INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
         LEFT JOIN degoudse.customers c ON o."clientId" = c.id
-        WHERE po.partner_id = ${partnerId}
+        WHERE po.partnerId = ${partnerId}
         ORDER BY o.id
       `);
       
@@ -1441,7 +1441,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await db.execute(sql`
         SELECT p.*
         FROM myqollabi.partners p
-        INNER JOIN myqollabi.partner_opportunities po ON p.id = po.partner_id
+        INNER JOIN myqollabi.partner_opportunities po ON p.id = po.partnerId
         WHERE po.opportunity_id = ${opportunityId}
         ORDER BY p.id
       `);
@@ -2013,18 +2013,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await envPool.query(`
         SELECT o.id, o.title, o.description, o.status, o.stage, o.estimated_value, o.probability,
                o.expected_close_date, o.start_date, o.insurance_description, o.account_manager_id,
-               o.client_id, o.partner_id, o.product_id, o.owner_id, o.type, o.created_at, o.updated_at,
+               o.clientId, o.partnerId, o.product_id, o.owner_id, o.type, o.created_at, o.updated_at,
                c.name as client_name,
                COUNT(DISTINCT contacts.id) as contact_count,
                am.name as account_manager_name
         FROM degoudse.opportunities o
-        LEFT JOIN degoudse.customers c ON o.client_id = c.id
+        LEFT JOIN degoudse.customers c ON o.clientId = c.id
         LEFT JOIN degoudse.contacts contacts ON contacts.linked_entity_id = c.id AND contacts.linked_entity_type = 'customer'
         LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
-        WHERE o.partner_id = $1 AND o.id > 16
+        WHERE o.partnerId = $1 AND o.id > 16
         GROUP BY o.id, o.title, o.description, o.status, o.stage, o.estimated_value, o.probability,
                  o.expected_close_date, o.start_date, o.insurance_description, o.account_manager_id, 
-                 o.client_id, o.partner_id, o.product_id, o.owner_id, o.type, 
+                 o.clientId, o.partnerId, o.product_id, o.owner_id, o.type, 
                  o.created_at, o.updated_at, c.name, am.name
         ORDER BY o.id
       `, [partnerId]);
@@ -2064,7 +2064,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const stagesResult = await envPool.query(`
         SELECT DISTINCT o.stage
         FROM degoudse.opportunities o
-        WHERE o.partner_id = $1 AND o.stage IS NOT NULL
+        WHERE o.partnerId = $1 AND o.stage IS NOT NULL
         ORDER BY o.stage
       `, [partnerId]);
       
@@ -2072,8 +2072,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const customersResult = await envPool.query(`
         SELECT DISTINCT c.name as customer_name
         FROM degoudse.opportunities o
-        LEFT JOIN degoudse.customers c ON o.client_id = c.id
-        WHERE o.partner_id = $1 AND c.name IS NOT NULL
+        LEFT JOIN degoudse.customers c ON o.clientId = c.id
+        WHERE o.partnerId = $1 AND c.name IS NOT NULL
         ORDER BY c.name
       `, [partnerId]);
       
@@ -2082,7 +2082,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT DISTINCT u.name as account_manager_name
         FROM degoudse.opportunities o
         LEFT JOIN degoudse.users u ON o.account_manager_id = u.id
-        WHERE o.partner_id = $1 AND u.name IS NOT NULL
+        WHERE o.partnerId = $1 AND u.name IS NOT NULL
         ORDER BY u.name
       `, [partnerId]);
       
@@ -2091,7 +2091,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT DISTINCT o.insurance_description
         FROM degoudse.opportunities o
         INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        WHERE po.partner_id = $1 AND o.insurance_description IS NOT NULL
+        WHERE po.partnerId = $1 AND o.insurance_description IS NOT NULL
         ORDER BY o.insurance_description
       `, [partnerId]);
       
@@ -2119,7 +2119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                p.created_at, p.updated_at
         FROM degoudse.products p
         INNER JOIN degoudse.opportunities o ON p.id = o.product_id
-        WHERE o.partner_id = $1
+        WHERE o.partnerId = $1
         ORDER BY p.name
       `, [partnerId]);
       
@@ -2177,9 +2177,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM degoudse.opportunities o
         INNER JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
         LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN degoudse.partners p ON p.id = po.partner_id
+        LEFT JOIN degoudse.partners p ON p.id = po.partnerId
         WHERE co.customer_id = $1
-        GROUP BY o.id, o.title, o.description, o.status, o.stage, o.estimated_value, o.expected_close_date, o.client_id, o.partner_id, o.product_id, o.owner_id, o.probability, o.type, o.created_at, o.updated_at
+        GROUP BY o.id, o.title, o.description, o.status, o.stage, o.estimated_value, o.expected_close_date, o.clientId, o.partnerId, o.product_id, o.owner_id, o.probability, o.type, o.created_at, o.updated_at
         ORDER BY o.id
       `, [customerId]);
       
@@ -2364,9 +2364,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.description as customer_description,
           u.name as account_manager_name
         FROM degoudse.opportunities o
-        LEFT JOIN degoudse.customers c ON o.client_id = c.id
+        LEFT JOIN degoudse.customers c ON o.clientId = c.id
         LEFT JOIN degoudse.users u ON o.account_manager_id = u.id
-        WHERE o.partner_id = $1 AND o.id > 16
+        WHERE o.partnerId = $1 AND o.id > 16
         ORDER BY o.estimated_value DESC, o.created_at DESC
       `, [partnerId]);
       
@@ -2463,9 +2463,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.name as customer_name,
           u.name as account_manager_name
         FROM degoudse.opportunities o
-        LEFT JOIN degoudse.customers c ON o.client_id = c.id
+        LEFT JOIN degoudse.customers c ON o.clientId = c.id
         LEFT JOIN degoudse.users u ON o.account_manager_id = u.id
-        WHERE o.partner_id = $1 AND o.id > 16
+        WHERE o.partnerId = $1 AND o.id > 16
         ORDER BY o.estimated_value DESC, o.created_at DESC
       `, [partnerId]);
 
@@ -2758,7 +2758,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
       const result = await envPool.query(`
         SELECT p.*
         FROM degoudse.partners p
-        INNER JOIN degoudse.opportunities o ON p.id = o.partner_id
+        INNER JOIN degoudse.opportunities o ON p.id = o.partnerId
         WHERE o.id = $1
         ORDER BY p.id
       `, [opportunityId]);
@@ -2788,7 +2788,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
       const result = await envPool.query(`
         SELECT c.*
         FROM degoudse.customers c
-        INNER JOIN degoudse.opportunities o ON c.id = o.client_id
+        INNER JOIN degoudse.opportunities o ON c.id = o.clientId
         WHERE o.id = $1
         ORDER BY c.id
       `, [opportunityId]);
@@ -3250,8 +3250,8 @@ Keep the tone clear and professional. Focus on what will help the account manage
                          pr.name as product_name,
                          am.name as account_manager_name
                   FROM degoudse.opportunities o
-                  LEFT JOIN degoudse.customers c ON o.client_id = c.id
-                  LEFT JOIN degoudse.partners p ON o.partner_id = p.id
+                  LEFT JOIN degoudse.customers c ON o.clientId = c.id
+                  LEFT JOIN degoudse.partners p ON o.partnerId = p.id
                   LEFT JOIN degoudse.products pr ON o.product_id = pr.id
                   LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
                   WHERE o.id = ANY($1) AND o.id > 16
@@ -3305,8 +3305,8 @@ Keep the tone clear and professional. Focus on what will help the account manage
                          pr.name as product_name,
                          am.name as account_manager_name
                   FROM degoudse.opportunities o
-                  LEFT JOIN degoudse.customers c ON o.client_id = c.id
-                  LEFT JOIN degoudse.partners p ON o.partner_id = p.id
+                  LEFT JOIN degoudse.customers c ON o.clientId = c.id
+                  LEFT JOIN degoudse.partners p ON o.partnerId = p.id
                   LEFT JOIN degoudse.products pr ON o.product_id = pr.id
                   LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
                   WHERE o.id = ANY($1)
@@ -3332,8 +3332,8 @@ Keep the tone clear and professional. Focus on what will help the account manage
                  pr.name as product_name,
                  am.name as account_manager_name
           FROM degoudse.opportunities o
-          LEFT JOIN degoudse.customers c ON o.client_id = c.id
-          LEFT JOIN degoudse.partners p ON o.partner_id = p.id
+          LEFT JOIN degoudse.customers c ON o.clientId = c.id
+          LEFT JOIN degoudse.partners p ON o.partnerId = p.id
           LEFT JOIN degoudse.products pr ON o.product_id = pr.id
           LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
           WHERE o.id > 16
@@ -3388,13 +3388,13 @@ Keep the tone clear and professional. Focus on what will help the account manage
                STRING_AGG(DISTINCT pr.name, ', ') as product_names,
                am.name as account_manager_name,
                COUNT(DISTINCT co.customer_id) as customer_count,
-               COUNT(DISTINCT po.partner_id) as partner_count,
+               COUNT(DISTINCT po.partnerId) as partner_count,
                COUNT(DISTINCT op.product_id) as product_count
         FROM degoudse.opportunities o
         LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
         LEFT JOIN degoudse.customers c ON c.id = co.customer_id
         LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN degoudse.partners p ON p.id = po.partner_id
+        LEFT JOIN degoudse.partners p ON p.id = po.partnerId
         LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
         LEFT JOIN degoudse.products pr ON pr.id = op.product_id
         LEFT JOIN degoudse.users am ON o.account_manager_id = am.id
@@ -4235,7 +4235,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
           SELECT p.*, COUNT(DISTINCT c.id) as customers, COUNT(DISTINCT o.id) as opportunities
           FROM degoudse.partners p
           LEFT JOIN degoudse.customers c ON c.partner_id = p.id
-          LEFT JOIN degoudse.opportunities o ON o.partner_id = p.id
+          LEFT JOIN degoudse.opportunities o ON o.partnerId = p.id
           GROUP BY p.id
           ORDER BY p.name
         `);
@@ -4977,7 +4977,7 @@ Respond with a JSON object containing:
                    STRING_AGG(DISTINCT c.name, ', ') as customer_names
             FROM degoudse.partners p
             LEFT JOIN degoudse.partner_customers pc ON p.id = pc.partner_id
-            LEFT JOIN degoudse.partner_opportunities po ON p.id = po.partner_id  
+            LEFT JOIN degoudse.partner_opportunities po ON p.id = po.partnerId  
             LEFT JOIN degoudse.customers c ON c.id = pc.customer_id
             GROUP BY p.id, p.name, p.description, p.status, p.location, p.contact_email, 
                      p.primary_contact, p.partner_type, p.region, p.assigned_user_ids, 
