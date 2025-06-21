@@ -354,7 +354,7 @@ export default function PartnerPilot() {
           onClick={() => setActiveSection('copilot')}
         >
           <MessageSquare className="h-4 w-4 mr-2" />
-          Insurance Copilot
+          Inbox
         </Button>
         <Button 
           variant="ghost"
