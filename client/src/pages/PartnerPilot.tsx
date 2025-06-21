@@ -28,18 +28,18 @@ import {
   ListFilter, 
   Archive, 
   Bell,
+  DollarSign,
+  Sparkles,
+  AlertTriangle,
   Send,
   CheckSquare,
   Users,
   Timer,
   TrendingUp,
-  AlertTriangle,
   Target,
   Calendar,
-  DollarSign,
   Clock,
   Plus,
-  Sparkles,
   FileSpreadsheet,
   Settings,
   Building,
@@ -53,7 +53,6 @@ import {
   UserCheck,
   Phone,
   Factory
-
 } from 'lucide-react';
 
 type ActivityItem = {
@@ -89,7 +88,7 @@ export default function PartnerPilot() {
   const { environment } = useEnvironment();
 
   const [location] = useLocation();
-  const [activeSection, setActiveSection] = useState<'copilot' | 'reports' | 'data-upload-3' | 'data-upload-3-degoudse' | 'settings'>('copilot');
+  const [activeSection, setActiveSection] = useState<'copilot' | 'portfolio-insights' | 'reports' | 'data-upload-3' | 'data-upload-3-degoudse' | 'settings'>('copilot');
 
   // Set active section based on URL
   useEffect(() => {
@@ -607,6 +606,331 @@ export default function PartnerPilot() {
 
 
 
+
+{activeSection === 'portfolio-insights' && (
+  <div className="mx-auto max-w-6xl">
+    <div className="mb-8">
+      <h1 className="text-2xl font-bold mb-2">Portfolio Insights</h1>
+      <p className="text-gray-600">Analyze your portfolio performance and identify growth opportunities</p>
+    </div>
+
+    <Tabs defaultValue="dashboard" className="w-full">
+      <TabsList className="grid w-full grid-cols-2 mb-8">
+        <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
+        <TabsTrigger value="whitespace">White Space Analysis</TabsTrigger>
+      </TabsList>
+
+      <TabsContent value="dashboard" className="space-y-6">
+        {/* Quick Overview Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-600 text-sm font-medium">Total Portfolio Value</p>
+                  <p className="text-2xl font-bold text-blue-900">
+                    €{opportunities?.reduce((sum: number, opp: any) => sum + (opp.estimated_value || 0), 0).toLocaleString() || '0'}
+                  </p>
+                </div>
+                <div className="p-2 bg-blue-200 rounded-lg">
+                  <DollarSign className="h-5 w-5 text-blue-700" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-green-50 to-green-100 border-green-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-green-600 text-sm font-medium">Active Partners</p>
+                  <p className="text-2xl font-bold text-green-900">{partners?.length || 0}</p>
+                </div>
+                <div className="p-2 bg-green-200 rounded-lg">
+                  <Building className="h-5 w-5 text-green-700" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-purple-50 to-purple-100 border-purple-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-purple-600 text-sm font-medium">Growth Rate</p>
+                  <p className="text-2xl font-bold text-purple-900">+12.5%</p>
+                </div>
+                <div className="p-2 bg-purple-200 rounded-lg">
+                  <TrendingUp className="h-5 w-5 text-purple-700" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-orange-50 to-orange-100 border-orange-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-orange-600 text-sm font-medium">Conversion Rate</p>
+                  <p className="text-2xl font-bold text-orange-900">24.8%</p>
+                </div>
+                <div className="p-2 bg-orange-200 rounded-lg">
+                  <Target className="h-5 w-5 text-orange-700" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Portfolio Performance Charts */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Portfolio Performance</CardTitle>
+              <CardDescription>Monthly growth trends across all partners</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+                <div className="text-center">
+                  <BarChart2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">Portfolio performance chart</p>
+                  <p className="text-sm text-gray-400">Interactive dashboard coming soon</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Partner Distribution</CardTitle>
+              <CardDescription>Portfolio breakdown by partner type</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="h-64 flex items-center justify-center bg-gray-50 rounded-lg">
+                <div className="text-center">
+                  <Target className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                  <p className="text-gray-500">Partner distribution chart</p>
+                  <p className="text-sm text-gray-400">Detailed breakdown by segment</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Top Performing Partners */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Top Performing Partners</CardTitle>
+            <CardDescription>Highest value contributors this month</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              {partners?.slice(0, 5).map((partner: any, index: number) => (
+                <div key={partner.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center justify-center w-8 h-8 bg-blue-100 text-blue-600 rounded-full text-sm font-medium">
+                      {index + 1}
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">{partner.name}</p>
+                      <p className="text-sm text-gray-500">{partner.email}</p>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-medium text-gray-900">€{(Math.random() * 50000 + 10000).toFixed(0)}</p>
+                    <p className="text-sm text-green-600">+{(Math.random() * 20 + 5).toFixed(1)}%</p>
+                  </div>
+                </div>
+              )) || (
+                <div className="text-center py-8 text-gray-500">
+                  No partners data available
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+
+      <TabsContent value="whitespace" className="space-y-6">
+        {/* White Space Analysis Header */}
+        <Card className="bg-gradient-to-r from-indigo-50 to-purple-50 border-indigo-200">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-indigo-900 mb-2">White Space Analysis</h3>
+                <p className="text-indigo-700">Identify untapped opportunities and growth potential across your partner network</p>
+              </div>
+              <div className="p-3 bg-indigo-100 rounded-lg">
+                <Search className="h-6 w-6 text-indigo-600" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Analysis Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <Card className="bg-gradient-to-br from-yellow-50 to-yellow-100 border-yellow-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-yellow-600 text-sm font-medium">Untapped Segments</p>
+                  <p className="text-2xl font-bold text-yellow-900">8</p>
+                </div>
+                <div className="p-2 bg-yellow-200 rounded-lg">
+                  <AlertTriangle className="h-5 w-5 text-yellow-700" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-emerald-50 to-emerald-100 border-emerald-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-emerald-600 text-sm font-medium">Growth Potential</p>
+                  <p className="text-2xl font-bold text-emerald-900">€2.4M</p>
+                </div>
+                <div className="p-2 bg-emerald-200 rounded-lg">
+                  <TrendingUp className="h-5 w-5 text-emerald-700" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-gradient-to-br from-blue-50 to-blue-100 border-blue-200">
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-blue-600 text-sm font-medium">Opportunity Score</p>
+                  <p className="text-2xl font-bold text-blue-900">87/100</p>
+                </div>
+                <div className="p-2 bg-blue-200 rounded-lg">
+                  <Sparkles className="h-5 w-5 text-blue-700" />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* White Space Opportunities */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Market Gap Analysis</CardTitle>
+              <CardDescription>Underserved market segments with high potential</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div>
+                    <p className="font-medium text-red-900">Construction Insurance</p>
+                    <p className="text-sm text-red-600">High demand, low coverage</p>
+                  </div>
+                  <Badge variant="destructive">Critical</Badge>
+                </div>
+                
+                <div className="flex items-center justify-between p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div>
+                    <p className="font-medium text-yellow-900">SME Health Insurance</p>
+                    <p className="text-sm text-yellow-600">Growing market segment</p>
+                  </div>
+                  <Badge className="bg-yellow-100 text-yellow-700">High</Badge>
+                </div>
+                
+                <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div>
+                    <p className="font-medium text-blue-900">Cyber Security Coverage</p>
+                    <p className="text-sm text-blue-600">Emerging opportunity</p>
+                  </div>
+                  <Badge className="bg-blue-100 text-blue-700">Medium</Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Partner Expansion Opportunities</CardTitle>
+              <CardDescription>Partners ready for portfolio expansion</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {partners?.slice(0, 4).map((partner: any) => (
+                  <div key={partner.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                    <div>
+                      <p className="font-medium text-gray-900">{partner.name}</p>
+                      <p className="text-sm text-gray-500">Ready for {Math.floor(Math.random() * 3) + 2} new products</p>
+                    </div>
+                    <Button size="sm" variant="outline">
+                      Analyze
+                    </Button>
+                  </div>
+                )) || (
+                  <div className="text-center py-8 text-gray-500">
+                    No expansion opportunities identified
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Action Items */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recommended Actions</CardTitle>
+            <CardDescription>Prioritized steps to capture white space opportunities</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-4">
+              <div className="flex items-start space-x-3 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <div className="flex-shrink-0 w-6 h-6 bg-green-100 text-green-600 rounded-full flex items-center justify-center text-sm font-medium mt-0.5">
+                  1
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-green-900">Launch Construction Insurance Campaign</p>
+                  <p className="text-sm text-green-600 mt-1">Target 15 construction partners with tailored insurance packages</p>
+                  <div className="flex items-center mt-2">
+                    <Badge className="bg-green-100 text-green-700 mr-2">High Impact</Badge>
+                    <span className="text-xs text-green-600">Est. €850K potential</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <div className="flex-shrink-0 w-6 h-6 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-medium mt-0.5">
+                  2
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-blue-900">Partner Portfolio Review</p>
+                  <p className="text-sm text-blue-600 mt-1">Conduct detailed analysis of top 10 partners for expansion opportunities</p>
+                  <div className="flex items-center mt-2">
+                    <Badge className="bg-blue-100 text-blue-700 mr-2">Medium Impact</Badge>
+                    <span className="text-xs text-blue-600">Est. €620K potential</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-start space-x-3 p-4 bg-purple-50 border border-purple-200 rounded-lg">
+                <div className="flex-shrink-0 w-6 h-6 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center text-sm font-medium mt-0.5">
+                  3
+                </div>
+                <div className="flex-1">
+                  <p className="font-medium text-purple-900">Digital Insurance Products</p>
+                  <p className="text-sm text-purple-600 mt-1">Develop cyber security and digital asset protection offerings</p>
+                  <div className="flex items-center mt-2">
+                    <Badge className="bg-purple-100 text-purple-700 mr-2">Future Growth</Badge>
+                    <span className="text-xs text-purple-600">Est. €1.2M potential</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </TabsContent>
+    </Tabs>
+  </div>
+)}
 
       {activeSection === 'reports' && (
         <ReportsPage />
