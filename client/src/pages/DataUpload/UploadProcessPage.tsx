@@ -12,6 +12,7 @@ import AttributeMappingStep from './AttributeMappingStep';
 import ProcessingStep from './ProcessingStep';
 import TransformationStep from './TransformationStep';
 import ProductMappingStep from './ProductMappingStep';
+import ProductAssignmentStep from './ProductAssignmentStep';
 
 interface UploadProcessProps {
   entityType?: string;
@@ -58,12 +59,13 @@ const getSteps = (uploadType: string) => {
   // For entity-upload flow, add product mapping as first step
   if (uploadType === 'entity-upload') {
     return [
-      { id: 1, name: 'Product Mapping', description: 'Set up product categories and subcategories' },
+      { id: 1, name: 'Categories', description: 'Set up product categories and subcategories' },
       { id: 2, name: 'Entity Selection', description: 'Choose the type of data you want to upload' },
       { id: 3, name: 'Upload', description: 'Upload your CSV file' },
-      { id: 4, name: 'Mapping', description: 'Map CSV columns to entity attributes' },
-      { id: 5, name: 'Processing', description: 'Review and validate your data before processing' },
-      { id: 6, name: 'Complete', description: 'Review results' }
+      { id: 4, name: 'Product Mapping', description: 'Assign products to categories' },
+      { id: 5, name: 'Mapping', description: 'Map CSV columns to entity attributes' },
+      { id: 6, name: 'Processing', description: 'Review and validate your data before processing' },
+      { id: 7, name: 'Complete', description: 'Review results' }
     ];
   }
   
@@ -117,6 +119,8 @@ export default function UploadProcessPage() {
     errors: any[];
   } | null>(null);
   const [productCategories, setProductCategories] = useState<any[]>([]);
+  const [productMappings, setProductMappings] = useState<Record<string, any>>({});
+  const [detectedProducts, setDetectedProducts] = useState<any[]>([]);
 
   // For entity-upload, show all steps. For special formats, show all steps. For regular entities, skip transformation.
   const visibleSteps = isEntityUpload || isSpecialFormat ? steps : steps.slice(1);

@@ -1,0 +1,139 @@
+I want to assign each detected product to the correct category or subcategory
+So that my product data is properly organized for cross-sell analysis
+
+Acceptance Criteria:
+Product Assignment
+Given that I have uploaded products in step 1 and created categories in step 2
+
+When I arrive at step 3
+
+Then I see all detected products in a list
+
+And each product has a dropdown to select a category
+
+And I see product details such as ID, name, and number of records
+
+Category Selection Interface
+Given that I want to assign a product
+
+When I open the dropdown for a product
+
+Then I see all main categories with a 📁 icon
+
+And I see all subcategories with a 📄 icon in a hierarchical view
+
+And the options are grouped under their respective main categories
+
+Visual Feedback on Assignment
+Given that I have assigned a product to a category
+
+When the assignment is made
+
+Then a green badge with the category name appears
+
+And the dropdown value is updated
+
+And I can immediately see which products have been assigned
+
+Mapping Status Overview
+Given that I am assigning products
+
+When I view the mapping status panel
+
+Then I see how many products have been assigned out of the total
+
+And this is updated in real-time with every assignment
+
+And I get a clear view of the progress
+
+Flexible Assignment Options
+Given that I want to assign a product
+
+When I make a selection from the dropdown
+
+Then I can choose between main categories and subcategories
+
+And there is a clear distinction between "📁 Life Insurance" and "📄 Life Insurance > Term Life"
+
+And I can change the assignment later
+
+Product Information Display
+Given that I am reviewing products for assignment
+
+When I look at the product list
+
+Then I see for each product:
+
+Product ID (e.g., "AUTO_001")
+
+Full product name (e.g., "WA Car Insurance")
+
+Number of records (e.g., "1,250 records")
+
+Current assignment status
+
+Progress to Next Step
+Given that I haven’t assigned any products
+
+When I try to go to step 4
+
+Then the "Next" button is disabled
+
+And I cannot proceed
+
+Given that I have assigned at least one product
+
+When I click "Next: Variables & Aggregation"
+
+Then I proceed to step 4 with my product mappings
+
+Back Navigation
+Given that I am in step 3
+
+When I click "Previous"
+
+Then I return to step 2 (Categories)
+
+And my mappings are preserved
+
+Definition of Done:
+All uploaded products are visible with relevant details
+
+Dropdown interface shows hierarchical category structure with icons
+
+Visual feedback indicates assigned products using badges
+
+Real-time status updates show mapping progress
+
+User can select both main and subcategories
+
+Validation prevents proceeding without mappings
+
+Assignments can be changed later
+
+Navigation between steps retains data
+
+Technical Notes:
+Mapping state is stored as productId -> {targetId, targetType}
+
+Dropdown options are dynamically generated from created categories
+
+Badge display uses getCategoryName() function for hierarchical display
+
+Status count is calculated via Object.keys(productMapping).length
+
+Interface supports both click and keyboard navigation
+
+Edge Cases:
+Given that a category is deleted after a mapping
+
+Then the associated mappings are invalidated
+
+And the user receives a warning
+
+Given that there are many products (>50)
+
+Then the interface remains performant and well-organized
+
+And products can be filtered/searched if needed
+

@@ -156,14 +156,14 @@ export default function ProductMappingStep({ onNext, onBack, initialCategories =
           </Button>
         </div>
       </div>
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column - Category Creation */}
         <div className="space-y-6">
           <Card>
             <CardHeader>
               <CardTitle>Categorieën Aanmaken</CardTitle>
-              <p className="text-sm text-gray-600">Maak hoofdcategorieën en subcategorieën aan voor uw producten</p>
+              <p className="text-sm text-gray-600">Create main categories and subcategories for your products.
+</p>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* New Main Category */}
