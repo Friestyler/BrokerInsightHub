@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import acmeLogo from "../assets/acme-logo.svg";
 import qollabiLogo from "../assets/qollabi-placeholder.svg";
-import baloiseLogo from "../assets/baloise-logo.svg";
+import baloiseLogo from "../assets/baloise-logo.png";
 
 export interface Environment {
   id: string;
@@ -32,7 +32,7 @@ const FALLBACK_ENVIRONMENTS: Environment[] = [
     name: "Baloise", 
     logo: baloiseLogo,
     apiBaseUrl: "/api/degoudse", // Same backend data as De Goudse
-    databaseId: "degoudse_db"
+    databaseId: "degoudse"
   }
 ];
 

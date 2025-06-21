@@ -37,11 +37,11 @@ export function getEnvironmentUrl(url: string): string {
     return url;
   }
   
-  // For degoudse environment, always prefix the URL with the environment path
-  if (envId === 'degoudse') {
-    // For degoudse environment, prefix the URL with the environment path
+  // Both degoudse and baloise should use the degoudse backend data
+  if (envId === 'degoudse' || envId === 'baloise') {
+    // Both environments use degoudse data backend
     if (url.startsWith('/api/')) {
-      const newUrl = url.replace('/api/', `/api/${envId}/`);
+      const newUrl = url.replace('/api/', `/api/degoudse/`);
       console.log('Environment URL transformed:', { from: url, to: newUrl });
       return newUrl;
     }
