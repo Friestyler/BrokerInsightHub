@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/select";
 import { useEnvironment } from "../contexts/EnvironmentContext";
 import deGoudseLogo from "../assets/de-goudse-logo.png";
-import baloiseLogo from "../assets/baloise-logo.svg";
+import baloiseLogo from "../assets/baloise-logo.png";
 
 interface EnvironmentSelectorProps {
   collapsed?: boolean;
