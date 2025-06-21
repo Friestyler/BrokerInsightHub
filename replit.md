@@ -3,7 +3,7 @@
 
 ## Overview
 
-Baloise Insurance Copilot is a comprehensive AI-powered insurance growth platform designed to revolutionize cross-sell and upsell opportunities across broker networks. The application serves as an intelligent SaaS platform that maximizes insurance portfolio expansion through data-driven insights, predictive analytics, and automated relationship management between insurance providers and broker partners.
+Broker Copilot is a comprehensive multi-environment broker portal powered by AI designed to revolutionize insurance market intelligence and operational workflows. The application serves as a SaaS platform that streamlines collaboration between insurance companies (providers) and brokers/advisors (partners), focusing on data-driven insights for cross-sell/upsell opportunities, with advanced entity management capabilities and AI-driven predictive analytics.
 
 ## System Architecture
 

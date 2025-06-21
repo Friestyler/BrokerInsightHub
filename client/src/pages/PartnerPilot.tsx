@@ -197,12 +197,12 @@ export default function PartnerPilot() {
       );
       if (highValueOpps.length > 0) {
         actions.push({
-          title: "Priority Insurance Opportunities",
-          description: `${highValueOpps.length} high-value cross-sell opportunities worth €${highValueOpps.reduce((sum: number, opp: any) => sum + (opp.estimated_value || 0), 0).toLocaleString()}`,
+          title: "Review High-Value Opportunities",
+          description: `${highValueOpps.length} opportunities worth €${highValueOpps.reduce((sum: number, opp: any) => sum + (opp.estimated_value || 0), 0).toLocaleString()}`,
           action: () => setLocation('/opportunities'),
           icon: <DollarSign className="h-5 w-5 text-green-600" />,
           priority: 'high' as const,
-          data: `Portfolio expansion potential: €${highValueOpps.reduce((sum: number, opp: any) => sum + (opp.estimated_value || 0), 0).toLocaleString()}`
+          data: `Total value: €${highValueOpps.reduce((sum: number, opp: any) => sum + (opp.estimated_value || 0), 0).toLocaleString()}`
         });
       }
     }
@@ -214,12 +214,12 @@ export default function PartnerPilot() {
       );
       if (partnersNeedingAttention.length > 0) {
         actions.push({
-          title: "Activate Insurance Broker Network",
-          description: `${partnersNeedingAttention.length} brokers ready for premium growth initiatives`,
+          title: "Engage Top-Performing Partners",
+          description: `${partnersNeedingAttention.length} partners with active opportunities`,
           action: () => setLocation('/partners'),
           icon: <Users className="h-5 w-5 text-blue-600" />,
           priority: 'medium' as const,
-          data: `${partnersNeedingAttention.reduce((sum: number, p: any) => sum + p.opportunityCount, 0)} cross-sell opportunities identified`
+          data: `${partnersNeedingAttention.reduce((sum: number, p: any) => sum + p.opportunityCount, 0)} active opportunities`
         });
       }
     }
@@ -231,12 +231,12 @@ export default function PartnerPilot() {
       );
       if (customersWithOpportunities.length > 0) {
         actions.push({
-          title: "Insurance Portfolio Expansion",
-          description: `${customersWithOpportunities.length} clients with untapped insurance needs`,
+          title: "Customer Relationship Review",
+          description: `${customersWithOpportunities.length} customers with pending opportunities`,
           action: () => setLocation('/customers'),
           icon: <TrendingUp className="h-5 w-5 text-purple-600" />,
           priority: 'medium' as const,
-          data: `Multi-product upsell opportunities available`
+          data: `Active customer relationships`
         });
       }
     }
@@ -261,8 +261,8 @@ export default function PartnerPilot() {
     // Time-sensitive actions
     const currentDate = new Date();
     actions.push({
-      title: "Insurance Performance Analytics",
-      description: "Review cross-sell success rates and premium growth metrics",
+      title: "Weekly Performance Review",
+      description: "Review this week's partner and opportunity metrics",
       action: () => setLocation('/reports'),
       icon: <BarChart2 className="h-5 w-5 text-indigo-600" />,
       priority: 'low' as const,
@@ -271,12 +271,12 @@ export default function PartnerPilot() {
 
     // Campaign optimization
     actions.push({
-      title: "Insurance Campaign Optimization",
-      description: "Enhance targeting for life, auto, and property insurance offers",
+      title: "Optimize Active Campaigns",
+      description: "Review campaign performance and adjust targeting",
       action: () => setLocation('/campaigns'),
       icon: <Target className="h-5 w-5 text-red-600" />,
       priority: 'medium' as const,
-      data: "Cross-sell campaign performance insights"
+      data: "Campaign performance insights"
     });
 
     return actions.slice(0, 6); // Limit to 6 actions
@@ -354,7 +354,7 @@ export default function PartnerPilot() {
           onClick={() => setActiveSection('copilot')}
         >
           <MessageSquare className="h-4 w-4 mr-2" />
-          Insurance Copilot
+          Partner copilot
         </Button>
         <Button 
           variant="ghost"
@@ -377,21 +377,6 @@ export default function PartnerPilot() {
 
 {activeSection === 'copilot' && (
   <>
-    {/* Baloise Branding Header */}
-    <div className="mb-8 mx-auto max-w-6xl">
-      <div className="text-center">
-        <div className="inline-flex items-center justify-center gap-3 mb-4">
-          <div className="h-8 w-8 rounded-lg bg-gradient-to-br from-blue-600 to-indigo-700 flex items-center justify-center">
-            <div className="text-white font-bold text-sm">B</div>
-          </div>
-          <h1 className="text-3xl font-bold text-gray-900">Baloise Insurance Copilot</h1>
-        </div>
-        <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-          Your AI-powered assistant for maximizing insurance cross-sell and upsell opportunities across your broker network
-        </p>
-      </div>
-    </div>
-
     {/* Next Best Actions Section */}
     <div className="mb-10 mx-auto max-w-6xl">
       <div className="text-center mb-8">
@@ -401,9 +386,9 @@ export default function PartnerPilot() {
           </div>
         </div>
         <div className="flex items-center justify-center gap-4 mb-4">
-          <h2 className="text-2xl font-semibold text-gray-900">Insurance Portfolio Growth Opportunities</h2>
+          <h2 className="text-2xl font-semibold text-gray-900">Next Best Actions</h2>
         </div>
-        <p className="text-gray-600 text-sm">AI-powered recommendations to maximize cross-sell and upsell potential across your insurance portfolio</p>
+        <p className="text-gray-600 text-sm">Smart recommendations based on your current activities and priorities</p>
       </div>
 
       {/* Smart Actions Grid */}
@@ -468,21 +453,21 @@ export default function PartnerPilot() {
           className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
         >
           <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-          Insurance Opportunities
+          View All Opportunities
         </button>
         <button 
           onClick={() => window.location.href = '/partners'}
           className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
         >
           <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-          Broker Network
+          Partner Overview
         </button>
         <button 
           onClick={() => window.location.href = '/campaigns'}
           className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
         >
           <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-          Cross-Sell Campaigns
+          Campaign Center
         </button>
       </div>
     </div>
