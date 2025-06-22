@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, Edit2, Save, X } from 'lucide-react';
+import { Plus, Trash2, Edit2, Save, X, Check } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -209,7 +209,11 @@ export function CategoryManagerForProducts() {
 
   const handleCategoryKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      addCategory();
+      if (editingCategory) {
+        saveEditCategory();
+      } else {
+        addCategory();
+      }
     }
   };
 
@@ -226,27 +230,30 @@ export function CategoryManagerForProducts() {
   const startEditingCategory = (categoryId: string, currentName: string) => {
     setEditingCategory(categoryId);
     setEditingCategoryName(currentName);
+    setNewCategoryName(currentName);
+    categoryInputRef.current?.focus();
   };
 
   const saveEditCategory = async () => {
-    if (!editingCategory || !editingCategoryName.trim()) return;
+    if (!editingCategory || !newCategoryName.trim()) return;
 
     try {
       await updateCategoryMutation.mutateAsync({
         id: editingCategory,
-        name: editingCategoryName.trim(),
+        name: newCategoryName.trim(),
         description: '',
         status: 'active'
       });
 
       setCategories(prev => prev.map(cat => 
         cat.id === editingCategory 
-          ? { ...cat, name: editingCategoryName.trim() }
+          ? { ...cat, name: newCategoryName.trim() }
           : cat
       ));
 
       setEditingCategory(null);
       setEditingCategoryName('');
+      setNewCategoryName('');
 
       toast({
         title: "Category updated",
@@ -264,6 +271,7 @@ export function CategoryManagerForProducts() {
   const cancelEditCategory = () => {
     setEditingCategory(null);
     setEditingCategoryName('');
+    setNewCategoryName('');
   };
 
   const deleteCategory = async (categoryId: string) => {
@@ -310,10 +318,10 @@ export function CategoryManagerForProducts() {
               <p className="text-sm text-gray-600">Maak hoofdcategorieën en subcategorieën aan voor uw producten</p>
             </CardHeader>
             <CardContent className="space-y-6">
-              {/* New Main Category */}
+              {/* New Main Category / Edit Category */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Nieuwe Hoofdcategorie
+                  {editingCategory ? 'Categorie Bewerken' : 'Nieuwe Hoofdcategorie'}
                 </label>
                 <div className="flex gap-2">
                   <Input
@@ -321,17 +329,37 @@ export function CategoryManagerForProducts() {
                     value={newCategoryName}
                     onChange={(e) => setNewCategoryName(e.target.value)}
                     onKeyPress={handleCategoryKeyPress}
-                    placeholder="Bijv. Levensverzekeringen"
-                    className="flex-1"
+                    placeholder={editingCategory ? 'Wijzig categorienaam' : 'Bijv. Levensverzekeringen'}
+                    className={`flex-1 ${editingCategory ? 'border-blue-300 bg-blue-50' : ''}`}
                   />
-                  <Button
-                    onClick={addCategory}
-                    disabled={!newCategoryName.trim() || createCategoryMutation.isPending}
-                    size="icon"
-                    className="bg-gray-900 hover:bg-gray-800"
-                  >
-                    <Plus className="h-4 w-4" />
-                  </Button>
+                  {editingCategory ? (
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={saveEditCategory}
+                        disabled={!newCategoryName.trim() || updateCategoryMutation.isPending}
+                        size="icon"
+                        className="bg-green-600 hover:bg-green-700"
+                      >
+                        <Check className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        onClick={cancelEditCategory}
+                        size="icon"
+                        variant="outline"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={addCategory}
+                      disabled={!newCategoryName.trim() || createCategoryMutation.isPending}
+                      size="icon"
+                      className="bg-gray-900 hover:bg-gray-800"
+                    >
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  )}
                 </div>
               </div>
 
