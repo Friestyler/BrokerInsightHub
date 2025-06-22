@@ -40,8 +40,14 @@ export function getEnvironmentUrl(url: string): string {
   // Both degoudse and baloise should use the degoudse backend data
   if (envId === 'degoudse' || envId === 'baloise') {
     // Both environments use degoudse data backend
-    if (url.startsWith('/api/')) {
+    if (url.startsWith('/api/') && !url.includes('/degoudse/') && !url.includes('/baloise/')) {
       const newUrl = url.replace('/api/', `/api/degoudse/`);
+      console.log('Environment URL transformed:', { from: url, to: newUrl });
+      return newUrl;
+    }
+    // If URL already has environment prefix, don't double-prefix
+    if (url.includes('/baloise/')) {
+      const newUrl = url.replace('/api/baloise/', '/api/degoudse/');
       console.log('Environment URL transformed:', { from: url, to: newUrl });
       return newUrl;
     }

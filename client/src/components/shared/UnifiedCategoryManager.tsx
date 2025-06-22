@@ -396,7 +396,7 @@ export function UnifiedCategoryManager({
                       <SelectValue placeholder="Select parent category (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No parent (root category)</SelectItem>
+                      <SelectItem value="none">No parent (root category)</SelectItem>
                       {flatCategories
                         .filter(cat => !editingCategory || cat.id !== editingCategory.id)
                         .map(cat => (
