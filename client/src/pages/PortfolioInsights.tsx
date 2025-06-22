@@ -576,7 +576,7 @@ function DashboardSection() {
                         <p className="text-sm text-gray-600">{product.potential.toLocaleString()} potential</p>
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-green-600">€{(product.value / 1000000).toFixed(1)}M waarde</p>
+                        <p className="text-sm font-medium text-green-600">€{(product.value / 1000000).toFixed(1)}M value</p>
                       </div>
                     </div>
                     <Progress value={product.penetration} className="h-2" />
@@ -803,7 +803,7 @@ export default function PortfolioInsights() {
             <div className="flex items-center space-x-6">
               {/* Segment Selector */}
               <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium">Klantensegment</span>
+                <span className="text-sm font-medium">Customer Segment</span>
                 <Select value={selectedSegment} onValueChange={setSelectedSegment}>
                   <SelectTrigger className="w-48">
                     <SelectValue />
@@ -820,7 +820,7 @@ export default function PortfolioInsights() {
 
               {/* Conversion Rate Slider */}
               <div className="flex items-center space-x-3">
-                <span className="text-sm font-medium">Conversie rate: {conversionRate[0]}%</span>
+                <span className="text-sm font-medium">Conversion rate: {conversionRate[0]}%</span>
                 <Slider
                   value={conversionRate}
                   onValueChange={setConversionRate}
@@ -832,7 +832,7 @@ export default function PortfolioInsights() {
               </div>
 
               <div className="text-sm text-gray-600">
-                {currentSegment?.name} - {currentSegment?.count.toLocaleString()} klanten
+                {currentSegment?.name} - {currentSegment?.count.toLocaleString()} customers
               </div>
             </div>
 
@@ -843,7 +843,7 @@ export default function PortfolioInsights() {
               </Button>
               <Button variant="outline" size="sm" onClick={() => setShowProductConfig(!showProductConfig)}>
                 <Settings className="h-4 w-4 mr-1" />
-                Producten
+                Products
               </Button>
             </div>
           </div>
@@ -853,7 +853,7 @@ export default function PortfolioInsights() {
             <Card className="border-2 border-orange-200">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">Product Configuratie</CardTitle>
+                  <CardTitle className="text-lg">Product Configuration</CardTitle>
                   <Button variant="ghost" size="sm" onClick={() => setShowProductConfig(false)}>
                     <X className="h-4 w-4" />
                   </Button>
@@ -1226,7 +1226,7 @@ export default function PortfolioInsights() {
             <Card className="border-2 border-gray-200">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">Totaal Overzicht</CardTitle>
+                  <CardTitle className="text-lg">Total Overview</CardTitle>
                   <Button variant="ghost" size="sm" onClick={() => setShowProductConfig(false)}>
                     <X className="h-4 w-4" />
                   </Button>
