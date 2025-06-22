@@ -1176,7 +1176,7 @@ export default function MetricsPage() {
                 <p className="text-xs text-gray-500 mb-2">
                   {parentObjectiveId 
                     ? "This activity will inherit the tag from its parent objective."
-                    : "Add a tag if you want this OKR be part of a plan."
+                    : "Add a tag if you want this key metric to be part of a plan."
                   }
                 </p>
                 
@@ -1259,14 +1259,9 @@ export default function MetricsPage() {
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
-                  <div className="flex items-center gap-1 text-xs text-gray-500 bg-blue-50 px-2 py-1 rounded-full">
-                    <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    Fields below adapt based on your selection
-                  </div>
+                  
                 </div>
-                <p className="text-gray-600 text-[12px]">Choose the format that best fits how progress will be tracked for this OKR.</p>
+                <p className="text-gray-600 text-[12px]">Choose the format that best fits how progress will be tracked for this key metric.</p>
               </div>
               
               <div className="grid grid-cols-5 gap-2">
@@ -1356,7 +1351,7 @@ export default function MetricsPage() {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <label className="text-sm font-medium text-gray-900">
-                      Over what time frame will you measure this OKR? <span className="text-red-500">*</span>
+                      Over what time frame will you measure this key metric? <span className="text-red-500">*</span>
                     </label>
                     <TooltipProvider>
                       <Tooltip>
@@ -1511,7 +1506,7 @@ export default function MetricsPage() {
                             <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
                             <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
                             <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
-                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this OKR into smaller chunks)">No milestone (I don't want to split this OKR into smaller chunks)</SelectItem>
+                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this key metric into smaller chunks)">No milestone (I don't want to split this key metric into smaller chunks)</SelectItem>
                           );
                         } else if (timeframeDuration > 6 && timeframeDuration < 12) {
                           // Between 6-12 months: Weekly, Monthly, Quarterly, No milestone
