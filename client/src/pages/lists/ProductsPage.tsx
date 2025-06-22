@@ -171,12 +171,42 @@ export default function ProductsPage() {
       queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/products`] });
       setIsCreateModalOpen(false);
       setNewProduct({
+        productId: "",
         name: "",
         description: "",
         category: "",
+        categoryId: "",
+        
+        // Provider information
+        providerId: "",
+        providerType: "",
+        providerName: "",
+        
+        // Contract information
+        contractStartDate: "",
+        contractEndDate: "",
+        
+        // Financial information
+        totalValue: "",
+        premiumValue: "",
+        premiumPercentage: "",
+        discount: "",
+        discountPercentage: "",
+        
+        // Legacy fields
         sku: "",
         price: "",
-        vendorId: ""
+        vendorId: "",
+        
+        // Linking fields
+        customerId: "",
+        opportunityId: "",
+        partnerId: "",
+        
+        // Metadata
+        status: "active",
+        notes: "",
+        tags: []
       });
       toast({
         title: "Success",
@@ -240,7 +270,7 @@ export default function ProductsPage() {
   const filteredProducts = products?.filter(product => 
     searchTerm === '' || 
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    product.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (product.description?.toLowerCase().includes(searchTerm.toLowerCase())) ||
     product.category.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
