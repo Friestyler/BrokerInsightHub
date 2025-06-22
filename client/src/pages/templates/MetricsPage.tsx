@@ -44,177 +44,23 @@ import { CalendarIcon, Info } from "lucide-react";
 import { AdvancedTimeframeFilter } from "@/components/ui/advanced-timeframe-filter";
 import { format } from "date-fns";
 
-// Mock data for OKR templates
-const mockOKRTemplates = [
-  {
-    id: 1,
-    title: "Increase Annual Revenue",
-    type: "currency",
-    target: 1000000,
-    tag: "Revenue Growth",
-    timeframe: "this-year",
-    milestoneFrequency: "Monthly",
-    isExpanded: false,
-    nestedCount: 2,
-    trafficLights: true,
-    trafficLightStyle: 'system',
-    progressBar: true,
-    activities: [
-      {
-        id: 101,
-        title: "Q1 Sales Campaign",
-        type: "currency",
-        target: 250000,
-        tag: "Revenue Growth",
-        timeframe: "Q1-2024",
-        milestoneFrequency: "Monthly",
-        trafficLights: true,
-        trafficLightStyle: 'system',
-        progressBar: true,
-        parentId: 1
-      },
-      {
-        id: 102,
-        title: "Enterprise Client Outreach",
-        type: "number",
-        target: 15,
-        tag: "Revenue Growth",
-        timeframe: "this-quarter",
-        milestoneFrequency: "Weekly",
-        trafficLights: true,
-        trafficLightStyle: 'manual',
-        progressBar: true,
-        parentId: 1
-      }
-    ]
-  },
-  {
-    id: 2,
-    title: "Improve Customer Satisfaction Score",
-    type: "percent",
-    target: 85,
-    tag: "Customer Experience",
-    timeframe: "this-quarter",
-    milestoneFrequency: "Monthly",
-    isExpanded: false,
-    nestedCount: 0,
-    trafficLights: true,
-    trafficLightStyle: 'custom',
-    progressBar: true
-  },
-  {
-    id: 3,
-    title: "Launch New Product Feature",
-    type: "checkbox",
-    target: null,
-    tag: "Product Innovation",
-    timeframe: "next-quarter",
-    milestoneFrequency: "Weekly",
-    isExpanded: false,
-    nestedCount: 3,
-    trafficLights: true,
-    trafficLightStyle: 'manual',
-    progressBar: false,
-    activities: [
-      {
-        id: 301,
-        title: "User Research & Requirements",
-        type: "checkbox",
-        target: null,
-        tag: "Product Innovation",
-        timeframe: "this-month",
-        milestoneFrequency: "Weekly",
-        trafficLights: true,
-        trafficLightStyle: 'manual',
-        progressBar: false,
-        parentId: 3
-      },
-      {
-        id: 302,
-        title: "Development Sprint Planning",
-        type: "number",
-        target: 5,
-        tag: "Product Innovation",
-        timeframe: "next-month",
-        milestoneFrequency: "Weekly",
-        trafficLights: true,
-        trafficLightStyle: 'system',
-        progressBar: true,
-        parentId: 3
-      },
-      {
-        id: 303,
-        title: "Beta Testing Program",
-        type: "percent",
-        target: 95,
-        tag: "Product Innovation",
-        timeframe: "Q2-2024",
-        milestoneFrequency: "Weekly",
-        trafficLights: true,
-        trafficLightStyle: 'system',
-        progressBar: true,
-        parentId: 3
-      }
-    ]
-  },
-  {
-    id: 4,
-    title: "Expand Market Reach",
-    type: "number",
-    target: 50,
-    tag: "Market Expansion",
-    timeframe: "last-6-months",
-    milestoneFrequency: "Quarterly",
-    isExpanded: false,
-    nestedCount: 1,
-    trafficLights: false,
-    trafficLightStyle: 'disabled',
-    progressBar: true,
-    activities: [
-      {
-        id: 401,
-        title: "Regional Market Analysis",
-        type: "percent",
-        target: 100,
-        tag: "Market Expansion",
-        timeframe: "this-quarter",
-        milestoneFrequency: "Monthly",
-        trafficLights: true,
-        trafficLightStyle: 'system',
-        progressBar: true,
-        parentId: 4
-      }
-    ]
-  },
-  {
-    id: 5,
-    title: "Team Development Program",
-    type: "percent",
-    target: 90,
-    tag: "Team Development",
-    timeframe: "this-month",
-    milestoneFrequency: "Weekly",
-    isExpanded: false,
-    nestedCount: 0,
-    trafficLights: true,
-    trafficLightStyle: 'system',
-    progressBar: false
-  },
-  {
-    id: 6,
-    title: "Customer Onboarding Optimization",
-    type: "number",
-    target: 25,
-    tag: "Operational Excellence",
-    timeframe: "last-30-days",
-    milestoneFrequency: "Weekly",
-    isExpanded: false,
-    nestedCount: 1,
-    trafficLights: false,
-    trafficLightStyle: 'disabled',
-    progressBar: false
-  }
-];
+// OKR interface for TypeScript
+interface OKRTemplate {
+  id: number;
+  title: string;
+  type: string;
+  target: number | null;
+  tag: string;
+  timeframe: string;
+  milestoneFrequency: string;
+  isExpanded: boolean;
+  nestedCount: number;
+  trafficLights: boolean;
+  trafficLightStyle: string;
+  progressBar: boolean;
+  parentId?: number;
+  activities?: OKRTemplate[];
+}
 
 // Function to convert timeframe values to date range display
 const getTimeframeDisplayLabel = (timeframe: string): string => {
@@ -353,17 +199,63 @@ export default function MetricsPage() {
   const [parentObjectiveId, setParentObjectiveId] = useState<number | null>(null);
   const [parentObjectiveTag, setParentObjectiveTag] = useState<string>("");
   const [parentObjectiveName, setParentObjectiveName] = useState<string>("");
-  const [okrTemplates, setOkrTemplates] = useState(mockOKRTemplates);
   const [isMilestoneInfoOpen, setIsMilestoneInfoOpen] = useState(false);
   
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  // Fetch OKR metrics from the database
+  const { data: okrMetrics = [], isLoading: isLoadingMetrics, error: metricsError } = useQuery({
+    queryKey: ['/api/okr-metrics', 'with-activities'],
+    enabled: true
+  });
+
   // Fetch tags from API
   const { data: tags = [] } = useQuery<Tag[]>({
     queryKey: ['/api/tags'],
-    queryFn: () => fetch('/api/tags').then(res => res.json()),
+    enabled: true
   });
 
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
+  // Transform database metrics to match the component's expected format
+  const okrTemplates = okrMetrics.map((metric: any) => ({
+    id: metric.id,
+    title: metric.title,
+    type: metric.type,
+    target: metric.target,
+    tag: metric.tag || '',
+    timeframe: metric.timeframe || '',
+    milestoneFrequency: metric.milestoneFrequency || '',
+    isExpanded: false,
+    nestedCount: metric.activities?.length || 0,
+    trafficLights: metric.trafficLights || false,
+    trafficLightStyle: metric.trafficLightStyle || 'system',
+    progressBar: metric.progressBar || false,
+    parentId: metric.parentId,
+    activities: metric.activities || [],
+    hierarchy: metric.hierarchy || 'objective',
+    description: metric.description || '',
+    status: metric.status || 'active'
+  }));
+
+  // Create OKR metric mutation
+  const createOkrMetricMutation = useMutation({
+    mutationFn: (newMetric: any) => apiRequest('POST', '/api/okr-metrics', newMetric),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/okr-metrics', 'with-activities'] });
+      toast({
+        title: "Success",
+        description: "OKR metric created successfully"
+      });
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create OKR metric",
+        variant: "destructive"
+      });
+    }
+  });
 
   // Create tag mutation
   const createTagMutation = useMutation({
@@ -692,48 +584,26 @@ export default function MetricsPage() {
 
   const handleCreateOKR = () => {
     const submissionData = {
-      ...formData,
-      enableTrafficLights: formData.enableTrafficLights,
+      title: formData.name,
+      description: formData.description,
+      type: formData.okrType,
+      target: formData.target,
+      tag: formData.tag,
+      timeframe: formData.timeframe,
+      milestoneFrequency: formData.milestoneFrequency,
+      hierarchy: parentObjectiveId ? 'activity' : 'objective',
+      parentId: parentObjectiveId,
+      trafficLights: formData.enableTrafficLights,
       trafficLightStyle: formData.trafficLightStyle,
+      progressBar: formData.enableProgressBar,
+      status: 'active',
+      progress: 0,
       trafficLightYellowThreshold: formData.trafficLightYellowThreshold,
       trafficLightGreenThreshold: formData.trafficLightGreenThreshold,
       targetBehavior: formData.targetBehavior
     };
-    console.log("Creating OKR with data:", submissionData);
     
-    if (parentObjectiveId) {
-      // Creating an activity under a parent objective
-      const newActivity = {
-        id: Date.now(), // Simple ID generation for demo
-        title: formData.name,
-        type: formData.okrType,
-        target: formData.target,
-        tag: parentObjectiveTag,
-        timeframe: formData.timeframe,
-        milestoneFrequency: formData.milestoneFrequency,
-        trafficLights: formData.enableTrafficLights,
-        trafficLightStyle: formData.trafficLightStyle,
-        progressBar: formData.enableProgressBar,
-        parentId: parentObjectiveId
-      };
-      
-      // Update the okrTemplates state to add the new activity
-      setOkrTemplates(prev => prev.map(okr => {
-        if (okr.id === parentObjectiveId) {
-          return {
-            ...okr,
-            activities: [...(okr.activities || []), newActivity],
-            nestedCount: (okr.activities?.length || 0) + 1
-          };
-        }
-        return okr;
-      }));
-    } else {
-      // Creating a regular OKR template (not implemented yet)
-      console.log("Creating regular OKR template");
-    }
-    
-    resetForm();
+    createOkrMetricMutation.mutate(submissionData);
   };
 
   return (
