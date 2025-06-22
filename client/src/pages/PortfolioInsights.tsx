@@ -121,11 +121,11 @@ const crossSellData: Record<string, CrossSellData> = {
 };
 
 function getCellColor(rate: number): string {
-  if (rate >= 70) return 'bg-green-600'; // High potential - dark green
-  if (rate >= 55) return 'bg-green-500'; // Good potential - medium green
-  if (rate >= 40) return 'bg-yellow-500'; // Medium potential - yellow
-  if (rate >= 25) return 'bg-orange-500'; // Lower potential - orange
-  return 'bg-red-500'; // Low potential - red
+  if (rate >= 70) return 'bg-emerald-100 border-emerald-200'; // High potential - soft emerald
+  if (rate >= 55) return 'bg-green-50 border-green-100'; // Good potential - subtle green
+  if (rate >= 40) return 'bg-amber-50 border-amber-100'; // Medium potential - soft amber
+  if (rate >= 25) return 'bg-orange-50 border-orange-100'; // Lower potential - soft orange
+  return 'bg-red-50 border-red-100'; // Low potential - soft red
 }
 
 function getBenchmarkIcon(rate: number, benchmark: number): string {
@@ -1173,25 +1173,25 @@ export default function PortfolioInsights() {
                             >
                               <div className="text-center space-y-1">
                                 <div className="flex items-center justify-center space-x-1">
-                                  <span className="font-bold text-white">{cellData.rate}%</span>
+                                  <span className="font-bold text-gray-700">{cellData.rate}%</span>
                                   <span className="text-xs">{getBenchmarkIcon(cellData.rate, cellData.benchmark)}</span>
                                 </div>
-                                <div className="text-xs text-white opacity-90">
+                                <div className="text-xs text-gray-600">
                                   vs {cellData.benchmark}% benchmark
                                 </div>
-                                <div className="text-xs text-white">
+                                <div className="text-xs text-gray-600">
                                   {cellData.rate > cellData.benchmark ? '+' : ''}{cellData.rate - cellData.benchmark}%
                                 </div>
-                                <div className="text-xs text-white font-medium">
+                                <div className="text-xs text-gray-700 font-medium">
                                   Has both: {cellData.customers}
                                 </div>
-                                <div className="text-xs text-white">
+                                <div className="text-xs text-gray-600">
                                   Cross-sell potential: {cellData.potential}
                                 </div>
-                                <div className="text-xs text-white font-medium">
+                                <div className="text-xs text-gray-700 font-medium">
                                   €{Math.round(cellData.maxValue / 1000)}K max potential
                                 </div>
-                                <div className="text-xs text-white">
+                                <div className="text-xs text-gray-600">
                                   €{Math.round((cellData.expectedRevenue * conversionRate[0]) / 20000)}K at {conversionRate[0]}% conversion
                                 </div>
                               </div>
