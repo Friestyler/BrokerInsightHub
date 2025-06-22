@@ -1235,25 +1235,25 @@ export default function PortfolioInsights() {
               <CardContent>
                 <div className="grid grid-cols-4 gap-4">
                   <div>
-                    <div className="text-sm text-gray-600 mb-1">Segment: Alle segmenten • {Object.values(crossSellData).reduce((acc, data) => acc + data.customers, 0).toLocaleString()} klanten</div>
+                    <div className="text-sm text-gray-600 mb-1">Segment: All segments • {Object.values(crossSellData).reduce((acc, data) => acc + data.customers, 0).toLocaleString()} customers</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-blue-600">
                       {Object.values(crossSellData).reduce((acc, data) => acc + data.potential, 0).toLocaleString()}
                     </div>
-                    <div className="text-sm text-gray-600">Totaal potentiële klanten</div>
+                    <div className="text-sm text-gray-600">Total potential customers</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-purple-600">
                       €{Math.round(Object.values(crossSellData).reduce((acc, data) => acc + data.maxValue, 0) / 1000)}K
                     </div>
-                    <div className="text-sm text-gray-600">Totaal max. potentieel</div>
+                    <div className="text-sm text-gray-600">Total max. potential</div>
                   </div>
                   <div className="text-center">
                     <div className="text-2xl font-bold text-green-600">
                       €{Math.round(Object.values(crossSellData).reduce((acc, data) => acc + (data.expectedRevenue * conversionRate[0]) / 100, 0) / 1000)}K
                     </div>
-                    <div className="text-sm text-gray-600">Bij {conversionRate[0]}% conversie</div>
+                    <div className="text-sm text-gray-600">At {conversionRate[0]}% conversion</div>
                   </div>
                 </div>
               </CardContent>
@@ -1286,15 +1286,15 @@ export default function PortfolioInsights() {
                     </div>
                     <div>
                       <div className="text-2xl font-bold text-green-600">{selectedCellData.potential}</div>
-                      <div className="text-sm text-gray-600">Potentiële klanten</div>
+                      <div className="text-sm text-gray-600">Potential customers</div>
                     </div>
                     <div>
                       <div className="text-2xl font-bold text-purple-600">€{Math.round(selectedCellData.maxValue / 1000)}K</div>
-                      <div className="text-sm text-gray-600">Max. potentieel</div>
+                      <div className="text-sm text-gray-600">Max. potential</div>
                     </div>
                     <div>
                       <div className="text-2xl font-bold text-orange-600">€{Math.round((selectedCellData.expectedRevenue * conversionRate[0]) / 100000)}K</div>
-                      <div className="text-sm text-gray-600">Bij {conversionRate[0]}% conversie</div>
+                      <div className="text-sm text-gray-600">At {conversionRate[0]}% conversion</div>
                     </div>
                   </div>
                   <div className="flex space-x-2">
