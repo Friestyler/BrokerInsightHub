@@ -483,12 +483,27 @@ export default function PortfolioInsights() {
     const fromId = parseInt(fromProduct);
     const toId = parseInt(toProduct);
     
-    // Use simple math to generate consistent but varied data
-    const baseRate = 30 + ((fromId + toId) % 50);
-    const benchmark = 35 + ((fromId * toId) % 40);
-    const customers = 50 + ((fromId + toId * 2) % 200);
-    const potential = 25 + ((fromId * 3 + toId) % 150);
-    const maxValue = (50000 + ((fromId + toId) * 10000)) * (1 + (fromId % 5) * 0.2);
+    // Create more varied rates with better contrast
+    const hashValue = (fromId * 37 + toId * 41) % 100;
+    let baseRate: number;
+    
+    // Generate more varied distribution for better visual contrast
+    if (hashValue < 15) {
+      baseRate = 10 + (hashValue % 15); // Low: 10-24%
+    } else if (hashValue < 35) {
+      baseRate = 25 + (hashValue % 15); // Medium-low: 25-39%
+    } else if (hashValue < 60) {
+      baseRate = 40 + (hashValue % 15); // Medium: 40-54%
+    } else if (hashValue < 80) {
+      baseRate = 55 + (hashValue % 15); // Good: 55-69%
+    } else {
+      baseRate = 70 + (hashValue % 20); // High: 70-89%
+    }
+    
+    const benchmark = Math.max(15, baseRate + ((fromId - toId) % 20) - 10);
+    const customers = 30 + ((fromId + toId * 2) % 180);
+    const potential = Math.floor(customers * (baseRate / 100) * (0.8 + (hashValue % 40) / 100));
+    const maxValue = (30000 + ((fromId + toId) * 8000)) * (1 + (baseRate / 100));
     
     return {
       rate: baseRate,
@@ -496,7 +511,7 @@ export default function PortfolioInsights() {
       customers: customers,
       potential: potential,
       maxValue: maxValue,
-      expectedRevenue: maxValue * 0.3
+      expectedRevenue: maxValue * (baseRate / 100) * 0.4
     };
   };
 
