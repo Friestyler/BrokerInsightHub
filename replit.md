@@ -191,6 +191,7 @@ Each environment maintains its own data isolation while sharing the same applica
 - June 22, 2025: Replaced mock products with 20 authentic insurance products properly linked to category hierarchy - includes real Belgian insurance products from major providers (Dela, AG, NN, AXA, Baloise, Ethias, Corona Direct, KBC, Allianz, Touring) covering Life (Death Cover, Branch 21/23, Pension Savings, IPT, Group Insurance), Non-Life (Health, Mobility, Property & Liability, Business), and Travel categories with detailed product descriptions and proper category associations.
 - June 22, 2025: Enhanced insurance products with comprehensive CSV attributes - added provider information, contract dates, financial details (total value, premium value, premium percentage, discount percentage), customer/partner/opportunity linking, and updated Products page to display complete authentic product information with formatted financial data, contract periods, and relationship indicators.
 - June 22, 2025: Moved Products section from "More" submenu back to main "Lists" navigation section - positioned Products under Contacts in the Lists dropdown for better organization and easier access to product catalog alongside other entity lists.
+- June 22, 2025: Streamlined Products table interface - replaced "Links" column with "Relationships" showing actual counts of connected customers, partners, and opportunities per product, and removed Contract Period column for cleaner, more business-focused product overview with essential relationship metrics.
 
 ## User Preferences
 

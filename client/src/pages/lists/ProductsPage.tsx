@@ -358,7 +358,7 @@ export default function ProductsPage() {
                         <TableHead>Product Name</TableHead>
                         <TableHead>Category</TableHead>
                         <TableHead>Provider</TableHead>
-                        <TableHead>Contract Period</TableHead>
+
                         <TableHead>Total Value</TableHead>
                         <TableHead>Premium</TableHead>
                         <TableHead>Discount</TableHead>
@@ -384,17 +384,7 @@ export default function ProductsPage() {
                               )}
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="text-sm">
-                              {((product as any).contract_start_date || (product as any).contractstartdate || product.contractStartDate) && 
-                               ((product as any).contract_end_date || (product as any).contractenddate || product.contractEndDate) ? (
-                                <>
-                                  <div>{new Date((product as any).contract_start_date || (product as any).contractstartdate || product.contractStartDate).toLocaleDateString()}</div>
-                                  <div className="text-gray-500">to {new Date((product as any).contract_end_date || (product as any).contractenddate || product.contractEndDate).toLocaleDateString()}</div>
-                                </>
-                              ) : "—"}
-                            </div>
-                          </TableCell>
+
                           <TableCell>
                             <div className="text-sm font-medium">
                               {((product as any).total_value || (product as any).totalvalue || product.totalValue) ? 
