@@ -141,6 +141,18 @@ function DashboardSection() {
   const [selectedProduct, setSelectedProduct] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [showMoreFilters, setShowMoreFilters] = useState(false);
+  const [collapsedDashboardCategories, setCollapsedDashboardCategories] = useState<Set<string>>(new Set());
+
+  // Helper function for dashboard category collapse/expand
+  const toggleDashboardCategoryCollapse = (categoryName: string) => {
+    const newCollapsed = new Set(collapsedDashboardCategories);
+    if (newCollapsed.has(categoryName)) {
+      newCollapsed.delete(categoryName);
+    } else {
+      newCollapsed.add(categoryName);
+    }
+    setCollapsedDashboardCategories(newCollapsed);
+  };
 
   // Fetch authentic data
   const { data: customers = { data: [] } } = useQuery({ queryKey: ['/api/customers'] });
@@ -320,12 +332,43 @@ function DashboardSection() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Alle producten</SelectItem>
-            {productCategories.map(category => (
-              <SelectItem key={category.name} value={category.name}>
-                {category.name}
-              </SelectItem>
-            ))}
+            <SelectItem value="all">
+              <div className="flex items-center space-x-2">
+                <span>✓ Alle producten</span>
+              </div>
+            </SelectItem>
+            {productCategories.map(category => {
+              const isCategoryCollapsed = collapsedDashboardCategories.has(category.name);
+              return (
+                <div key={category.name}>
+                  <SelectItem value={category.name}>
+                    <div className="flex items-center space-x-2 w-full">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          toggleDashboardCategoryCollapse(category.name);
+                        }}
+                        className="p-0.5 hover:bg-gray-200 rounded"
+                      >
+                        {isCategoryCollapsed ? (
+                          <ChevronRight className="h-3 w-3 text-gray-500" />
+                        ) : (
+                          <ChevronDown className="h-3 w-3 text-gray-500" />
+                        )}
+                      </button>
+                      <div 
+                        className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
+                        style={{ backgroundColor: category.color }}
+                      />
+                      <span>{category.name}</span>
+                      <span className="text-xs text-gray-500">({category.productCount} products)</span>
+                    </div>
+                  </SelectItem>
+                  
+
+                </div>
+              );
+            })}
           </SelectContent>
         </Select>
         <Button variant="outline" size="sm" onClick={() => setShowMoreFilters(!showMoreFilters)}>
@@ -453,37 +496,61 @@ function DashboardSection() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {filteredProducts.map((product, index) => (
-              <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
-                <div className="flex-1">
-                  <div className="flex items-center space-x-3 mb-2">
-                    <h3 className="font-medium text-gray-900">{product.name}</h3>
-                    <Badge 
-                      variant={product.penetration > 50 ? "default" : "secondary"}
-                      className={product.penetration > 50 ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}
-                    >
-                      {product.penetration}% penetratie
-                    </Badge>
+            {filteredProducts.map((product, index) => {
+              const isCategoryCollapsed = collapsedDashboardCategories.has(product.name);
+              return (
+                <div key={index} className="border rounded-lg">
+                  {/* Category Header */}
+                  <div className="flex items-center justify-between p-4">
+                    <div className="flex items-center space-x-3 flex-1">
+                      <button
+                        onClick={() => toggleDashboardCategoryCollapse(product.name)}
+                        className="p-1 hover:bg-gray-200 rounded"
+                      >
+                        {isCategoryCollapsed ? (
+                          <ChevronRight className="h-4 w-4 text-gray-500" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4 text-gray-500" />
+                        )}
+                      </button>
+                      <div 
+                        className="w-3 h-3 rounded-full flex-shrink-0" 
+                        style={{ backgroundColor: product.color }}
+                      />
+                      <h3 className="font-medium text-gray-900">{product.name}</h3>
+                      <Badge 
+                        variant={product.penetration > 50 ? "default" : "secondary"}
+                        className={product.penetration > 50 ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}
+                      >
+                        {product.penetration.toFixed(0)}% penetratie
+                      </Badge>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <Eye className="h-3 w-3 mr-1" />
+                      Details
+                    </Button>
                   </div>
-                  <div className="grid grid-cols-3 gap-4 mb-3">
-                    <div>
-                      <p className="text-sm text-gray-600">{product.current.toLocaleString()} klanten</p>
+                  
+                  {/* Category Details (Collapsible) */}
+                  {!isCategoryCollapsed && (
+                    <div className="px-4 pb-4 pt-0">
+                      <div className="grid grid-cols-3 gap-4 mb-3">
+                        <div>
+                          <p className="text-sm text-gray-600">{product.current.toLocaleString()} klanten</p>
+                        </div>
+                        <div>
+                          <p className="text-sm text-gray-600">{product.potential.toLocaleString()} potentieel</p>
+                        </div>
+                        <div>
+                          <p className="text-sm font-medium text-green-600">€{(product.value / 1000000).toFixed(1)}M waarde</p>
+                        </div>
+                      </div>
+                      <Progress value={product.penetration} className="h-2" />
                     </div>
-                    <div>
-                      <p className="text-sm text-gray-600">{product.potential.toLocaleString()} potentieel</p>
-                    </div>
-                    <div>
-                      <p className="text-sm font-medium text-green-600">€{(product.value / 1000000).toFixed(1)}M waarde</p>
-                    </div>
-                  </div>
-                  <Progress value={product.penetration} className="h-2" />
+                  )}
                 </div>
-                <Button variant="outline" size="sm" className="ml-4">
-                  <Eye className="h-3 w-3 mr-1" />
-                  Details
-                </Button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>
