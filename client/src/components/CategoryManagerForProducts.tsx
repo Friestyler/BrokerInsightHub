@@ -102,8 +102,12 @@ export function CategoryManagerForProducts() {
 
   // Update category mutation
   const updateCategoryMutation = useMutation({
-    mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      return apiRequest('PUT', `/api/product-categories/${id}`, { name });
+    mutationFn: async ({ id, name, description, status }: { id: string; name: string; description?: string; status?: string }) => {
+      return apiRequest('PUT', `/api/product-categories/${id}`, { 
+        name, 
+        description: description || '', 
+        status: status || 'active' 
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/product-categories'] });
@@ -230,7 +234,9 @@ export function CategoryManagerForProducts() {
     try {
       await updateCategoryMutation.mutateAsync({
         id: editingCategory,
-        name: editingCategoryName.trim()
+        name: editingCategoryName.trim(),
+        description: '',
+        status: 'active'
       });
 
       setCategories(prev => prev.map(cat => 
