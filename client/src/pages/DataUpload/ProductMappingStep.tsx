@@ -80,7 +80,7 @@ export default function ProductMappingStep({ onNext, onBack, initialCategories =
   // Create category mutation
   const createCategoryMutation = useMutation({
     mutationFn: async (categoryData: { name: string; parentId?: number }) => {
-      return apiRequest('/api/product-categories', 'POST', categoryData);
+      return apiRequest('POST', '/api/product-categories', categoryData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/product-categories'] });
