@@ -71,7 +71,6 @@ export function UnifiedCategoryManager({
   // Fetch product categories
   const { data: categories = [], isLoading } = useQuery({
     queryKey: [`/api/${environment.id}/product-categories`],
-    queryFn: () => apiRequest(`/api/${environment.id}/product-categories`)
   });
 
   // Create category mutation
@@ -461,7 +460,7 @@ export function UnifiedCategoryManager({
         {mode === 'selection' && onCategorySelect && hierarchicalCategories.length > 0 && (
           <div className="mt-6 pt-4 border-t">
             <Button 
-              onClick={() => onCategorySelect(hierarchicalCategories)}
+              onClick={() => onCategorySelect(hierarchicalCategories as any[])}
               className="w-full"
             >
               Continue with {hierarchicalCategories.length} Categories
