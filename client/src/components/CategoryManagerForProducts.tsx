@@ -53,34 +53,35 @@ export function CategoryManagerForProducts() {
     select: (data: any[]) => {
       if (!data || !Array.isArray(data)) return [];
       
-      // Transform database categories to local format
-      const categoryMap = new Map<string, Category>();
+      // Transform database hierarchical structure to local format
+      const categories: Category[] = [];
       
-      data.forEach((dbCat: any) => {
-        if (!dbCat.parentId) {
+      data.forEach((dbCat: any, index: number) => {
+        if (!dbCat.parent_id) {
           // This is a main category
-          if (!categoryMap.has(dbCat.id.toString())) {
-            categoryMap.set(dbCat.id.toString(), {
-              id: dbCat.id.toString(),
-              name: dbCat.name,
-              color: COLORS[categoryMap.size % COLORS.length],
-              subcategories: []
+          const category: Category = {
+            id: dbCat.id.toString(),
+            name: dbCat.name,
+            color: COLORS[index % COLORS.length],
+            subcategories: []
+          };
+          
+          // Add subcategories from children array
+          if (dbCat.children && Array.isArray(dbCat.children)) {
+            dbCat.children.forEach((child: any) => {
+              category.subcategories.push({
+                id: child.id.toString(),
+                name: child.name,
+                categoryId: dbCat.id.toString()
+              });
             });
           }
-        } else {
-          // This is a subcategory
-          const parentId = dbCat.parentId.toString();
-          if (categoryMap.has(parentId)) {
-            categoryMap.get(parentId)!.subcategories.push({
-              id: dbCat.id.toString(),
-              name: dbCat.name,
-              categoryId: parentId
-            });
-          }
+          
+          categories.push(category);
         }
       });
       
-      return Array.from(categoryMap.values());
+      return categories;
     }
   });
 
