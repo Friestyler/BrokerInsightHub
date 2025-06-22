@@ -2960,10 +2960,25 @@ Keep the tone clear and professional. Focus on what will help the account manage
 
   app.get('/api/degoudse/products', async (req, res) => {
     try {
-      const degoudseDb = db;
-      const productsList = await degoudseDb.select().from(insuranceProducts);
-      console.log(`Returning ${productsList.length} products from De Goudse database`);
-      res.json(productsList);
+      const envPool = pool;
+      const result = await envPool.query(`
+        SELECT 
+          p.id,
+          p.name,
+          p.description,
+          p.category,
+          pc.name as category_name,
+          parent.name as parent_category_name,
+          pc.color as category_color,
+          p.created_at,
+          p.updated_at
+        FROM degoudse.insurance_products p
+        LEFT JOIN degoudse.product_categories pc ON p.category = pc.id::text
+        LEFT JOIN degoudse.product_categories parent ON pc.parent_id = parent.id
+        ORDER BY parent.name, pc.name, p.name
+      `);
+      console.log(`Returning ${result.rows.length} products from De Goudse database`);
+      res.json(result.rows);
     } catch (error) {
       console.error('De Goudse products API error:', error);
       res.status(500).json({ message: 'Failed to fetch products for De Goudse environment' });
