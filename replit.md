@@ -194,6 +194,7 @@ Each environment maintains its own data isolation while sharing the same applica
 - June 22, 2025: Streamlined Products table interface - replaced "Links" column with "Relationships" showing actual counts of connected customers, partners, and opportunities per product, and removed Contract Period column for cleaner, more business-focused product overview with essential relationship metrics.
 - June 22, 2025: Enhanced Products table layout - separated relationship counts into individual Customers, Partners, and Opportunities columns with color-coded badges (blue, purple, green respectively) and center alignment for improved data readability and comparison across products.
 - June 22, 2025: Redesigned Category Management with Apple/Google style UX - removed excessive white space, borders, and frames while maintaining all functionality. Implemented cleaner hierarchical structure with subtle hover effects, borderless inputs, compact tags, and improved visual density. Enhanced user experience with hidden-until-hover edit controls, streamlined add buttons, and more intuitive navigation through category levels.
+- June 22, 2025: Updated Product Assignment Step 4 with Apple/Google style category dropdown - implemented clean hierarchical category selection with visual color indicators, improved hover states, borderless design with subtle shadows, and organized subcategory grouping with connecting lines. Enhanced product item cards with rounded corners, better spacing, and refined typography for easier category assignment workflow.
 
 ## User Preferences
 

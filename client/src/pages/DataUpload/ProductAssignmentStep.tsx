@@ -133,7 +133,7 @@ export default function ProductAssignmentStep({
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Product Mapping</h2>
-          <p className="text-gray-600 mt-1">Wijs elk gedetecteerd product toe aan een categorie of subcategorie</p>
+          <p className="text-gray-600 mt-1">Assign each detected product to a category or subcategory</p>
         </div>
         
         {/* Progress Panel */}
@@ -159,30 +159,30 @@ export default function ProductAssignmentStep({
       </div>
 
       {/* Product List */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Gedetecteerde Producten</CardTitle>
+      <Card className="border-gray-200 shadow-sm">
+        <CardHeader className="border-b border-gray-100 bg-gray-50/50">
+          <CardTitle className="text-lg font-semibold text-gray-900">Detected Products</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-3 p-6">
           {products.map((product) => {
             const mapping = productMappings[product.id];
             const isAssigned = !!mapping;
             
             return (
-              <div key={product.id} className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+              <div key={product.id} className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all duration-200">
                 <div className="flex-1">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <h4 className="font-medium text-gray-900">{product.name}</h4>
-                      <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
-                        <span>{product.id}</span>
-                        <span>•</span>
+                  <div className="flex items-center gap-4">
+                    <div className="flex-1">
+                      <h4 className="font-semibold text-gray-900 text-base">{product.name}</h4>
+                      <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
+                        <span className="font-medium">ID: {product.id}</span>
+                        <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
                         <span>{product.recordCount.toLocaleString()} records</span>
                       </div>
                     </div>
                     
                     {isAssigned && (
-                      <Badge className="bg-green-100 text-green-700 border-green-200">
+                      <Badge className="bg-green-50 text-green-700 border-green-200 font-medium px-3 py-1 rounded-lg">
                         {getCategoryName(mapping, activeCategories)}
                       </Badge>
                     )}
@@ -199,39 +199,46 @@ export default function ProductAssignmentStep({
                       }
                     }}
                   >
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Selecteer categorie..." />
+                    <SelectTrigger className="w-full border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-200">
+                      <SelectValue placeholder="Select category..." />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-80 overflow-y-auto border-gray-200 shadow-lg">
                       {activeCategories.map((category) => (
-                        <div key={category.id}>
+                        <div key={category.id} className="space-y-1 py-1">
                           {/* Main Category Option */}
                           <SelectItem 
                             value={`category:${category.id}`}
-                            className="font-medium"
+                            className="font-medium text-gray-900 hover:bg-gray-50 focus:bg-blue-50 focus:text-blue-900 cursor-pointer py-2 px-3 rounded-md transition-colors duration-150"
                           >
-                            <div className="flex items-center gap-2">
+                            <div className="flex items-center gap-3">
                               <div 
-                                className="w-3 h-3 rounded-full" 
+                                className="w-3 h-3 rounded-full flex-shrink-0 shadow-sm" 
                                 style={{ backgroundColor: category.color }}
                               />
-                              <span>{category.name}</span>
+                              <span className="font-medium">{category.name}</span>
                             </div>
                           </SelectItem>
                           
                           {/* Subcategory Options */}
-                          {category.subcategories.map((subcategory) => (
-                            <SelectItem 
-                              key={subcategory.id}
-                              value={`subcategory:${subcategory.id}`}
-                              className="pl-8"
-                            >
-                              <div className="flex items-center gap-2">
-                                <FileText className="h-4 w-4 text-gray-500" />
-                                <span>{category.name} &gt; {subcategory.name}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
+                          {category.subcategories.length > 0 && (
+                            <div className="ml-4 space-y-0.5 border-l-2 pl-3" style={{ borderColor: `${category.color}20` }}>
+                              {category.subcategories.map((subcategory) => (
+                                <SelectItem 
+                                  key={subcategory.id}
+                                  value={`subcategory:${subcategory.id}`}
+                                  className="text-gray-700 hover:bg-gray-50 focus:bg-blue-50 focus:text-blue-800 cursor-pointer py-1.5 px-2 rounded-md text-sm transition-colors duration-150"
+                                >
+                                  <div className="flex items-center gap-2">
+                                    <div 
+                                      className="w-2 h-2 rounded-full flex-shrink-0" 
+                                      style={{ backgroundColor: `${category.color}80` }}
+                                    />
+                                    <span>{subcategory.name}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       ))}
                     </SelectContent>
@@ -267,7 +274,7 @@ export default function ProductAssignmentStep({
       {!canProceed && (
         <div className="text-center p-4 bg-amber-50 border border-amber-200 rounded-lg">
           <p className="text-amber-800 text-sm">
-            Wijs ten minste één product toe aan een categorie om door te gaan naar de volgende stap.
+            Assign at least one product to a category to continue to the next step.
           </p>
         </div>
       )}
