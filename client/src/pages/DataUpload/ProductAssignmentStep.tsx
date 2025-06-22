@@ -54,20 +54,55 @@ const useProductCategories = () => {
   return useQuery({
     queryKey: ['/api/product-categories'],
     select: (data: any[]) => {
-      // Transform the flat data into hierarchical structure
-      const categories = data.filter(item => !item.parentId);
-      return categories.map(category => ({
-        id: category.id.toString(),
-        name: category.name,
-        color: category.color || '#3B82F6',
-        subcategories: data
-          .filter(item => item.parentId === category.id)
-          .map(sub => ({
-            id: sub.id.toString(),
-            name: sub.name,
-            categoryId: category.id.toString()
-          }))
-      }));
+      // Transform the hierarchical data structure from API
+      const categories = data.filter(item => !item.parent_id);
+      return categories.map(category => {
+        // Collect all subcategories (level 2) and sub-subcategories (level 3)
+        const allSubcategories: any[] = [];
+        
+        // Add direct subcategories (level 2)
+        if (category.subcategories) {
+          category.subcategories.forEach((sub: any) => {
+            allSubcategories.push({
+              id: sub.id.toString(),
+              name: sub.name,
+              categoryId: category.id.toString(),
+              color: sub.color || category.color
+            });
+            
+            // Add sub-subcategories (level 3) as flattened subcategories
+            if (sub.subSubcategories) {
+              sub.subSubcategories.forEach((subSub: any) => {
+                allSubcategories.push({
+                  id: subSub.id.toString(),
+                  name: `${sub.name} > ${subSub.name}`,
+                  categoryId: category.id.toString(),
+                  color: subSub.color || sub.color || category.color
+                });
+              });
+            }
+          });
+        }
+        
+        // Handle sub-subcategories that are directly under category (if any)
+        if (category.subSubcategories) {
+          category.subSubcategories.forEach((subSub: any) => {
+            allSubcategories.push({
+              id: subSub.id.toString(),
+              name: subSub.name,
+              categoryId: category.id.toString(),
+              color: subSub.color || category.color
+            });
+          });
+        }
+        
+        return {
+          id: category.id.toString(),
+          name: category.name,
+          color: category.color || '#3B82F6',
+          subcategories: allSubcategories
+        };
+      });
     }
   });
 };
