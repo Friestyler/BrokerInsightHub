@@ -5638,20 +5638,13 @@ Respond with a JSON object containing:
       const categoryId = parseInt(req.params.id);
       const envPool = pool;
       
-      // Check if category has products or children
+      // Check if category has children (skip product check since products use text categories)
       const checkResult = await envPool.query(`
         SELECT 
-          (SELECT COUNT(*) FROM ${envId}.products WHERE category = $1) as product_count,
-          (SELECT COUNT(*) FROM ${envId}.product_categories WHERE parent_id = $2) as child_count
-      `, [categoryId.toString(), categoryId]);
+          (SELECT COUNT(*) FROM ${envId}.product_categories WHERE parent_id = $1) as child_count
+      `, [categoryId]);
       
-      const { product_count, child_count } = checkResult.rows[0];
-      
-      if (product_count > 0) {
-        return res.status(400).json({ 
-          error: `Cannot delete category - it contains ${product_count} products. Please move or delete the products first.` 
-        });
-      }
+      const { child_count } = checkResult.rows[0];
       
       if (child_count > 0) {
         return res.status(400).json({ 
