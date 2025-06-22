@@ -1,0 +1,21 @@
+Product ID,Product Name,Product Category,Main Category,Provider,Contract Start Date,Contract End Date,Total Value (€),Premium Value (€),Premium (%),Discount (%),Linked Customer ID,Linked Opportunity ID,Linked Partner ID,Linked Vendor
+49717af0-3978-4f8b-a6d2-a201f7c0ca08,Dela Funeral Insurance,Death Cover,Life,Dela,2023-05-09,2026-05-04,44619.49,8430.15,18.89,7.13,CUST-6302,OPP-9293,PARTNER-467,Dela
+48bf57ae-9749-4cfd-b7e7-c79e79c9e381,AG Tak 21 Savings Insurance,Tak 21,Life,AG Insurance,2023-02-02,2025-03-02,38788.92,7373.67,19.01,2.2,CUST-7766,OPP-2027,PARTNER-729,
+60ce9e53-7b62-468b-ac99-4c7faa844bee,NN Tak 23 Investment Insurance,Tak 23,Life,NN,2024-04-19,2026-07-10,9936.2,997.24,10.04,9.46,CUST-8229,OPP-9992,PARTNER-653,NN
+b08f1713-844b-4703-ad6a-1408e1c6c37e,AXA Pension Savings (3rd Pillar),Pension Savings,Life,AXA,2022-12-17,2025-11-13,45631.34,8707.33,19.08,3.86,CUST-5674,OPP-7462,PARTNER-377,
+a347b41d-9970-44e3-a99b-6106804aa683,Baloise IPT,IPT,Life,Baloise,2023-04-08,2025-11-23,49745.76,4353.91,8.75,1.91,CUST-1088,OPP-8052,PARTNER-670,
+99ddee1a-402c-4dfd-bb7a-79a49042e815,NN VAPZ,VAPZ,Life,NN,2023-09-26,2026-04-27,22587.34,2559.91,11.33,5.83,CUST-6354,OPP-1456,PARTNER-463,NN
+debe2550-b3b2-4d41-962c-d49d8130e6af,Allianz Group Life for Employees,Group Insurance,Life,Allianz,2022-11-24,2024-03-29,10197.25,1593.49,15.63,5.91,CUST-6412,OPP-5934,PARTNER-823,Allianz
+9642ce0b-2e05-412d-86ee-1c648088b7ea,Ethias Hospitalisation Insurance,Hospitalisation,Non-Life,Ethias,2024-10-11,2026-01-29,43779.95,7956.91,18.17,3.36,CUST-7303,OPP-1286,PARTNER-234,
+786c3d4b-a488-4f52-b5f6-3e4647041277,AG Dental Insurance Smile,Dental,Non-Life,AG Insurance,2023-02-12,2024-03-24,12311.92,2056.46,16.7,2.69,CUST-9387,OPP-2286,PARTNER-107,AG Insurance
+7c7a235f-759e-41d3-bfb5-9260bbc52f8a,Baloise Income Protection,Disability,Non-Life,Baloise,2023-06-19,2025-04-19,28668.52,3468.22,12.1,3.36,CUST-5085,OPP-1786,PARTNER-401,Baloise
+9f8325ef-d64e-430e-8cf8-b0fbbb138970,Ethias Car Insurance (BA),Car Liability,Non-Life,Ethias,2024-04-10,2026-08-26,35197.74,3808.11,10.82,8.22,CUST-1299,OPP-3617,PARTNER-805,
+c11b79d4-8e45-47b1-b805-0f6f07d8f7f1,Corona Direct Kilometer Car Insurance,Car Liability,Non-Life,Corona Direct,2023-05-14,2024-12-10,45553.61,4059.39,8.91,3.57,CUST-4983,OPP-7653,PARTNER-659,Corona Direct
+3ee84421-c58a-46db-a0fe-474d2493707c,Baloise Mini Omnium,Partial Comprehensive,Non-Life,Baloise,2024-08-31,2026-10-23,27268.36,4018.37,14.74,9.42,CUST-7884,OPP-7540,PARTNER-865,Baloise
+a464abd6-d4ec-4ff8-b25e-643335e7cd6e,KBC Bike Insurance,Bicycle,Non-Life,KBC,2024-06-29,2027-03-20,9645.34,1733.89,17.98,9.74,CUST-8596,OPP-5855,PARTNER-703,KBC
+e9b3f9fb-447b-4194-8637-9983cfee0947,AG Fire Insurance Top Habitation,Fire,Non-Life,AG Insurance,2024-01-08,2026-04-30,46607.69,3831.72,8.22,1.64,CUST-1766,OPP-5304,PARTNER-220,
+99773995-99bf-4a9d-8a55-f16dc9315cfb,Baloise Household Contents Insurance,Contents,Non-Life,Baloise,2023-08-21,2025-03-16,49283.07,4183.35,8.49,7.87,CUST-7360,OPP-8597,PARTNER-614,
+c893795e-8050-461e-b7c8-02dbe15bb65d,AXA Personal Liability Insurance,Personal Liability,Non-Life,AXA,2024-04-06,2026-09-18,30187.73,3215.51,10.65,3.61,CUST-4467,OPP-5579,PARTNER-828,
+6421bf4e-8013-4727-8225-10a39d3240cf,AG Cyber Insurance for SMEs,Cyber,Non-Life,AG Insurance,2024-10-31,2027-03-07,42785.1,8130.51,19.0,9.25,CUST-8715,OPP-3044,PARTNER-925,AG Insurance
+9dc160c8-d574-4ff1-9a32-1555d14b8d4b,Ethias Professional Liability,Professional Liability,Non-Life,Ethias,2024-09-14,2026-07-05,23923.66,2745.03,11.47,1.77,CUST-7596,OPP-2108,PARTNER-424,
+6bb44c44-8011-439c-af22-924846429588,Touring Travel Assistance Insurance,Travel Assistance,Non-Life,Touring,2023-12-28,2025-02-20,27005.64,2264.21,8.38,5.1,CUST-8957,OPP-2403,PARTNER-242,

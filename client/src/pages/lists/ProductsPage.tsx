@@ -390,13 +390,9 @@ export default function ProductsPage() {
                           </TableCell>
                           <TableCell>
                             <div className="text-sm">
-                              {product.discount && (
-                                <div className="text-green-600 font-medium">€{parseFloat(product.discount).toLocaleString()}</div>
-                              )}
-                              {product.discountPercentage && (
-                                <div className="text-green-500">{parseFloat(product.discountPercentage)}%</div>
-                              )}
-                              {!product.discount && !product.discountPercentage && "—"}
+                              {product.discountPercentage ? (
+                                <div className="text-green-600 font-medium">{parseFloat(product.discountPercentage)}%</div>
+                              ) : "—"}
                             </div>
                           </TableCell>
                           <TableCell>
