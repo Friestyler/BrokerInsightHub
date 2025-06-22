@@ -5642,8 +5642,8 @@ Respond with a JSON object containing:
       const checkResult = await envPool.query(`
         SELECT 
           (SELECT COUNT(*) FROM ${envId}.products WHERE category = $1) as product_count,
-          (SELECT COUNT(*) FROM ${envId}.product_categories WHERE parent_id = $1) as child_count
-      `, [categoryId]);
+          (SELECT COUNT(*) FROM ${envId}.product_categories WHERE parent_id = $2) as child_count
+      `, [categoryId.toString(), categoryId]);
       
       const { product_count, child_count } = checkResult.rows[0];
       
