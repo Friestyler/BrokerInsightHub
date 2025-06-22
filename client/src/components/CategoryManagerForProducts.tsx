@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus, Trash2, Edit2, Save, X, Check } from 'lucide-react';
+import { Folder, ChevronDown, ChevronRight, ArrowRight } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -414,298 +415,312 @@ export function CategoryManagerForProducts() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto space-y-6">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Column - Category Creation Only */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Create New Category</CardTitle>
-              <p className="text-sm text-gray-600">Add main categories for your products</p>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category Name
-                </label>
-                <div className="flex gap-2">
-                  <Input
-                    ref={categoryInputRef}
-                    value={newCategoryName}
-                    onChange={(e) => setNewCategoryName(e.target.value)}
-                    onKeyPress={handleCategoryKeyPress}
-                    placeholder="e.g. Life Insurance"
-                    className="flex-1"
-                  />
-                  <Button
-                    onClick={addCategory}
-                    disabled={!newCategoryName.trim() || createCategoryMutation.isPending}
-                    className="bg-gray-900 hover:bg-gray-800"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Category
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="pt-4 border-t">
-                <p className="text-sm text-gray-500">
-                  After creating a category, click on it in the overview to add subcategories and manage details.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+    <div className="max-w-7xl mx-auto space-y-6">
+      {/* Create New Category - Top Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Plus className="h-5 w-5" />
+            Create New Category
+          </CardTitle>
+          <p className="text-sm text-gray-600">Add main categories for your products</p>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-3 max-w-md">
+            <Input
+              ref={categoryInputRef}
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              onKeyPress={handleCategoryKeyPress}
+              placeholder="e.g. Life Insurance"
+              className="flex-1"
+            />
+            <Button
+              onClick={addCategory}
+              disabled={!newCategoryName.trim() || createCategoryMutation.isPending}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Add Category
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
-        {/* Right Column - Interactive Category Management */}
-        <div className="space-y-6">
-          <Card>
-            <CardHeader>
-              <CardTitle>Manage Categories</CardTitle>
-              <p className="text-sm text-gray-600">Click on categories to expand and edit them</p>
-            </CardHeader>
-            <CardContent>
-              {categories.length === 0 ? (
-                <div className="text-center py-8 text-gray-500">
-                  <p>No categories created yet</p>
-                  <p className="text-sm mt-1">Start by adding a main category</p>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {categories.map((category) => (
-                    <div
-                      key={category.id}
-                      className="border border-gray-200 rounded-lg overflow-hidden"
-                    >
-                      {/* Category Header */}
-                      <div 
-                        className={`p-4 cursor-pointer transition-all hover:bg-gray-50 ${
-                          expandedCategories.has(category.id) ? 'bg-blue-50 border-b border-gray-200' : ''
-                        }`}
-                        onClick={() => toggleCategory(category.id)}
-                      >
-                        <div className="flex items-center justify-between">
+      {/* Category Management - Large Section */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Folder className="h-5 w-5" />
+            Category Management
+          </CardTitle>
+          <p className="text-sm text-gray-600">Organize your products with hierarchical categories and tags</p>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {categories.length === 0 ? (
+            <div className="text-center py-12 text-gray-500">
+              <Folder className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <p className="text-lg font-medium">No categories created yet</p>
+              <p className="text-sm mt-1">Start by adding your first category above</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {categories.map((category) => (
+                <div
+                  key={category.id}
+                  className="group border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all bg-white"
+                >
+                  {/* Category Header */}
+                  <div 
+                    className={`p-5 cursor-pointer transition-all ${
+                      expandedCategories.has(category.id) 
+                        ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200' 
+                        : 'hover:bg-gray-50'
+                    }`}
+                    onClick={() => toggleCategory(category.id)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        {editingCategory === category.id ? (
                           <div className="flex items-center gap-3">
-                            {editingCategory === category.id ? (
-                              <div className="flex items-center gap-2">
-                                <Input
-                                  value={editingCategoryName}
-                                  onChange={(e) => setEditingCategoryName(e.target.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      saveEditCategory();
-                                    } else if (e.key === 'Escape') {
-                                      cancelEditCategory();
-                                    }
-                                  }}
-                                  className="text-sm h-8 w-48"
-                                  autoFocus
-                                  onClick={(e) => e.stopPropagation()}
-                                />
-                                <Button
-                                  size="sm"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    saveEditCategory();
-                                  }}
-                                  className="h-8 px-2"
-                                >
-                                  <Check className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="outline"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    cancelEditCategory();
-                                  }}
-                                  className="h-8 px-2"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <>
-                                <Badge 
-                                  style={{ backgroundColor: category.color }}
-                                  className="text-white text-sm px-3 py-1"
-                                >
-                                  {category.name}
-                                </Badge>
-                                <span className="text-sm text-gray-500">
-                                  {category.subcategories.length} subcategories
-                                </span>
-                              </>
-                            )}
+                            <Input
+                              value={editingCategoryName}
+                              onChange={(e) => setEditingCategoryName(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  saveEditCategory();
+                                } else if (e.key === 'Escape') {
+                                  cancelEditCategory();
+                                }
+                              }}
+                              className="text-base h-9 w-64 font-medium"
+                              autoFocus
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                            <Button
+                              size="sm"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                saveEditCategory();
+                              }}
+                              className="h-9 px-3 bg-green-600 hover:bg-green-700"
+                            >
+                              <Check className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                cancelEditCategory();
+                              }}
+                              className="h-9 px-3"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
                           </div>
-                          
-                          <div className="flex items-center gap-2">
-                            {editingCategory !== category.id && (
-                              <>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    startEditCategory(category.id, category.name);
-                                  }}
-                                  className="h-8 px-2"
-                                >
-                                  <Edit2 className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  variant="ghost"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    deleteCategory(category.id);
-                                  }}
-                                  className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </>
-                            )}
+                        ) : (
+                          <>
+                            <div className="flex items-center gap-3">
+                              <div 
+                                className="w-3 h-3 rounded-full"
+                                style={{ backgroundColor: category.color }}
+                              />
+                              <h3 className="text-lg font-semibold text-gray-900">
+                                {category.name}
+                              </h3>
+                            </div>
+                            <div className="flex items-center gap-3 ml-2">
+                              <Badge variant="secondary" className="bg-gray-100 text-gray-700">
+                                {category.subcategories.length} subcategories
+                              </Badge>
+                              {expandedCategories.has(category.id) ? (
+                                <ChevronDown className="h-4 w-4 text-gray-500" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-gray-500" />
+                              )}
+                            </div>
+                          </>
+                        )}
+                      </div>
+                      
+                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                        {editingCategory !== category.id && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                startEditCategory(category.id, category.name);
+                              }}
+                              className="h-9 px-3 hover:bg-blue-100"
+                            >
+                              <Edit2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteCategory(category.id);
+                              }}
+                              className="h-9 px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Expanded Category Content */}
+                  {expandedCategories.has(category.id) && (
+                    <div className="p-6 bg-gradient-to-br from-gray-50 to-white border-t">
+                      {/* Add Subcategory Section */}
+                      <div className="mb-6">
+                        <label className="block text-sm font-semibold text-gray-800 mb-3">
+                          Add Subcategory
+                        </label>
+                        {addingSubcategoryTo === category.id ? (
+                          <div className="flex gap-3">
+                            <Input
+                              value={newSubcategoryForCategory}
+                              onChange={(e) => setNewSubcategoryForCategory(e.target.value)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  addSubcategoryToCategory();
+                                } else if (e.key === 'Escape') {
+                                  cancelAddSubcategory();
+                                }
+                              }}
+                              placeholder="e.g. Term Life Insurance"
+                              className="flex-1 h-10"
+                              autoFocus
+                            />
+                            <Button
+                              onClick={addSubcategoryToCategory}
+                              disabled={!newSubcategoryForCategory.trim()}
+                              className="h-10 px-4 bg-blue-600 hover:bg-blue-700"
+                            >
+                              <Check className="h-4 w-4 mr-2" />
+                              Add
+                            </Button>
+                            <Button
+                              onClick={cancelAddSubcategory}
+                              variant="outline"
+                              className="h-10 px-4"
+                            >
+                              Cancel
+                            </Button>
                           </div>
-                        </div>
+                        ) : (
+                          <Button
+                            onClick={() => startAddSubcategory(category.id)}
+                            variant="outline"
+                            className="h-10 px-4 border-dashed border-2 hover:border-blue-300 hover:bg-blue-50"
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            Add Subcategory
+                          </Button>
+                        )}
                       </div>
 
-                      {/* Expanded Category Content */}
-                      {expandedCategories.has(category.id) && (
-                        <div className="p-4 bg-gray-50">
-                          {/* Add Subcategory Section */}
-                          <div className="mb-4">
-                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                              Add Subcategory
-                            </label>
-                            {addingSubcategoryTo === category.id ? (
-                              <div className="flex gap-2">
-                                <Input
-                                  value={newSubcategoryForCategory}
-                                  onChange={(e) => setNewSubcategoryForCategory(e.target.value)}
-                                  onKeyDown={(e) => {
-                                    if (e.key === 'Enter') {
-                                      addSubcategoryToCategory();
-                                    } else if (e.key === 'Escape') {
-                                      cancelAddSubcategory();
-                                    }
-                                  }}
-                                  placeholder="e.g. Term Life"
-                                  className="flex-1"
-                                  autoFocus
-                                />
-                                <Button
-                                  onClick={addSubcategoryToCategory}
-                                  disabled={!newSubcategoryForCategory.trim()}
-                                  size="sm"
-                                >
-                                  <Check className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  onClick={cancelAddSubcategory}
-                                  variant="outline"
-                                  size="sm"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                            ) : (
-                              <Button
-                                onClick={() => startAddSubcategory(category.id)}
-                                variant="outline"
-                                size="sm"
-                                className="w-full"
+                      {/* Subcategories Hierarchy */}
+                      {category.subcategories.length > 0 && (
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-800 mb-3">
+                            Subcategories ({category.subcategories.length})
+                          </label>
+                          <div className="grid gap-3">
+                            {category.subcategories.map((sub, index) => (
+                              <div
+                                key={sub.id}
+                                className="group flex items-center justify-between bg-white border border-gray-200 rounded-lg px-4 py-3 hover:shadow-sm transition-all"
                               >
-                                <Plus className="h-4 w-4 mr-2" />
-                                Add Subcategory
-                              </Button>
-                            )}
-                          </div>
-
-                          {/* Subcategories List */}
-                          {category.subcategories.length > 0 && (
-                            <div>
-                              <label className="block text-sm font-medium text-gray-700 mb-2">
-                                Subcategories ({category.subcategories.length})
-                              </label>
-                              <div className="space-y-2">
-                                {category.subcategories.map((sub) => (
-                                  <div
-                                    key={sub.id}
-                                    className="flex items-center justify-between bg-white border border-gray-200 rounded-md px-3 py-2"
-                                  >
-                                    {editingSubcategory === sub.id ? (
-                                      <div className="flex items-center gap-2 flex-1">
-                                        <Input
-                                          value={editingSubcategoryName}
-                                          onChange={(e) => setEditingSubcategoryName(e.target.value)}
-                                          onKeyDown={(e) => {
-                                            if (e.key === 'Enter') {
-                                              saveEditSubcategory();
-                                            } else if (e.key === 'Escape') {
-                                              cancelEditSubcategory();
-                                            }
-                                          }}
-                                          className="text-sm h-8 flex-1"
-                                          autoFocus
-                                        />
-                                        <Button
-                                          onClick={saveEditSubcategory}
-                                          size="sm"
-                                          className="h-8 px-2"
-                                        >
-                                          <Check className="h-4 w-4" />
-                                        </Button>
-                                        <Button
-                                          onClick={cancelEditSubcategory}
-                                          variant="outline"
-                                          size="sm"
-                                          className="h-8 px-2"
-                                        >
-                                          <X className="h-4 w-4" />
-                                        </Button>
-                                      </div>
-                                    ) : (
-                                      <>
-                                        <span className="text-sm text-gray-700 flex-1">{sub.name}</span>
-                                        <div className="flex items-center gap-1">
-                                          <Button
-                                            onClick={() => {
-                                              setEditingSubcategory(sub.id);
-                                              setEditingSubcategoryName(sub.name);
-                                            }}
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-8 px-2"
-                                          >
-                                            <Edit2 className="h-3 w-3" />
-                                          </Button>
-                                          <Button
-                                            onClick={() => deleteSubcategory(sub.id)}
-                                            variant="ghost"
-                                            size="sm"
-                                            className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                          >
-                                            <Trash2 className="h-3 w-3" />
-                                          </Button>
-                                        </div>
-                                      </>
-                                    )}
+                                {editingSubcategory === sub.id ? (
+                                  <div className="flex items-center gap-3 flex-1">
+                                    <div className="flex items-center gap-2 text-gray-400">
+                                      <div className="w-px h-6 bg-gray-300" />
+                                      <ArrowRight className="h-3 w-3" />
+                                    </div>
+                                    <Input
+                                      value={editingSubcategoryName}
+                                      onChange={(e) => setEditingSubcategoryName(e.target.value)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          saveEditSubcategory();
+                                        } else if (e.key === 'Escape') {
+                                          cancelEditSubcategory();
+                                        }
+                                      }}
+                                      className="text-sm h-8 flex-1"
+                                      autoFocus
+                                    />
+                                    <Button
+                                      onClick={saveEditSubcategory}
+                                      size="sm"
+                                      className="h-8 px-2 bg-green-600 hover:bg-green-700"
+                                    >
+                                      <Check className="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                      onClick={cancelEditSubcategory}
+                                      variant="outline"
+                                      size="sm"
+                                      className="h-8 px-2"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </Button>
                                   </div>
-                                ))}
+                                ) : (
+                                  <>
+                                    <div className="flex items-center gap-3 flex-1">
+                                      <div className="flex items-center gap-2 text-gray-400">
+                                        <div className="w-px h-6 bg-gray-300" />
+                                        <ArrowRight className="h-3 w-3" />
+                                      </div>
+                                      <span className="text-sm font-medium text-gray-700">{sub.name}</span>
+                                      <Badge variant="outline" className="text-xs">
+                                        {index + 1}
+                                      </Badge>
+                                    </div>
+                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                      <Button
+                                        onClick={() => {
+                                          setEditingSubcategory(sub.id);
+                                          setEditingSubcategoryName(sub.name);
+                                        }}
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-8 px-2"
+                                      >
+                                        <Edit2 className="h-3 w-3" />
+                                      </Button>
+                                      <Button
+                                        onClick={() => deleteSubcategory(sub.id)}
+                                        variant="ghost"
+                                        size="sm"
+                                        className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
+                                      >
+                                        <Trash2 className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </>
+                                )}
                               </div>
-                            </div>
-                          )}
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
-                  ))}
+                  )}
                 </div>
-              )}
-            </CardContent>
-          </Card>
-        </div>
-      </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }
