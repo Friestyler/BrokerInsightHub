@@ -241,8 +241,7 @@ export function CategoryManagerForProducts() {
         id: editingCategory,
         name: editingCategoryName.trim(),
         description: '',
-        status: 'active',
-        color: editingCategoryColor
+        status: 'active'
       });
 
       setCategories(prev => prev.map(cat => 
