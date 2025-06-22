@@ -1117,8 +1117,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (tags && typeof tags === 'string') {
         const tagArray = tags.split(',');
-        // Filter by tags using array overlap
-        query = query.where(inArray(okrMetrics.tag, tagArray));
+        // Filter by single tag field using OR conditions
+        const tagConditions = tagArray.map(tag => eq(okrMetrics.tag, tag));
+        query = query.where(or(...tagConditions));
       }
       
       const metrics = await query;
