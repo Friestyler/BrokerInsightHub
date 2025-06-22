@@ -561,7 +561,7 @@ export default function CatalogueDetailsPage({ catalogueId }: CatalogueDetailsPa
                       <SelectValue placeholder="Select parent (optional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No Parent</SelectItem>
+                      <SelectItem value="root">No Parent</SelectItem>
                       {categories?.filter(cat => cat.id !== selectedCategory.id).map((category) => (
                         <SelectItem key={category.id} value={category.id.toString()}>
                           {category.name}

@@ -236,7 +236,7 @@ export default function ProductMappingStep({ onNext, onBack }: ProductMappingSte
                   <SelectValue placeholder="Filter by current category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All categories</SelectItem>
+                  <SelectItem value="all">All categories</SelectItem>
                   {Array.from(new Set(products.map((p: Product) => p.category))).map(category => (
                     <SelectItem key={category} value={category}>{category}</SelectItem>
                   ))}
