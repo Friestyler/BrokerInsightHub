@@ -49,6 +49,29 @@ const useDetectedProducts = () => {
   });
 };
 
+// Fetch authentic product categories from database
+const useProductCategories = () => {
+  return useQuery({
+    queryKey: ['/api/product-categories'],
+    select: (data: any[]) => {
+      // Transform the flat data into hierarchical structure
+      const categories = data.filter(item => !item.parentId);
+      return categories.map(category => ({
+        id: category.id.toString(),
+        name: category.name,
+        color: category.color || '#3B82F6',
+        subcategories: data
+          .filter(item => item.parentId === category.id)
+          .map(sub => ({
+            id: sub.id.toString(),
+            name: sub.name,
+            categoryId: category.id.toString()
+          }))
+      }));
+    }
+  });
+};
+
 const getCategoryName = (mapping: ProductMapping, categories: Category[]): string => {
   if (mapping.targetType === 'category') {
     const category = categories.find(c => c.id === mapping.targetId);
@@ -71,8 +94,12 @@ export default function ProductAssignmentStep({
   categories,
   uploadedFile 
 }: ProductAssignmentStepProps) {
-  const { data: products = [], isLoading } = useDetectedProducts();
+  const { data: products = [], isLoading: productsLoading } = useDetectedProducts();
+  const { data: dbCategories = [], isLoading: categoriesLoading } = useProductCategories();
   const [productMappings, setProductMappings] = useState<Record<string, ProductMapping>>({});
+
+  // Use database categories instead of props
+  const activeCategories = dbCategories.length > 0 ? dbCategories : categories;
 
   const handleProductMapping = (productId: string, targetId: string, targetType: 'category' | 'subcategory') => {
     setProductMappings(prev => ({
@@ -89,12 +116,12 @@ export default function ProductAssignmentStep({
   const totalProducts = products.length;
   const canProceed = assignedCount > 0;
 
-  if (isLoading) {
+  if (productsLoading || categoriesLoading) {
     return (
       <div className="space-y-6">
         <div className="text-center py-16">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-600 mt-4">Loading products from database...</p>
+          <p className="text-gray-600 mt-4">Loading products and categories from database...</p>
         </div>
       </div>
     );
@@ -156,7 +183,7 @@ export default function ProductAssignmentStep({
                     
                     {isAssigned && (
                       <Badge className="bg-green-100 text-green-700 border-green-200">
-                        {getCategoryName(mapping, categories)}
+                        {getCategoryName(mapping, activeCategories)}
                       </Badge>
                     )}
                   </div>
@@ -176,7 +203,7 @@ export default function ProductAssignmentStep({
                       <SelectValue placeholder="Selecteer categorie..." />
                     </SelectTrigger>
                     <SelectContent>
-                      {categories.map((category) => (
+                      {activeCategories.map((category) => (
                         <div key={category.id}>
                           {/* Main Category Option */}
                           <SelectItem 
@@ -184,7 +211,10 @@ export default function ProductAssignmentStep({
                             className="font-medium"
                           >
                             <div className="flex items-center gap-2">
-                              <FolderOpen className="h-4 w-4 text-blue-500" />
+                              <div 
+                                className="w-3 h-3 rounded-full" 
+                                style={{ backgroundColor: category.color }}
+                              />
                               <span>{category.name}</span>
                             </div>
                           </SelectItem>
