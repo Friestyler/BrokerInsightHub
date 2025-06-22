@@ -370,14 +370,14 @@ export function CategoryManagerForProducts() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Categorieën Aanmaken</CardTitle>
-              <p className="text-sm text-gray-600">Maak hoofdcategorieën en subcategorieën aan voor uw producten</p>
+              <CardTitle>Create Categories</CardTitle>
+              <p className="text-sm text-gray-600">Create main categories and subcategories for your products</p>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* New Main Category / Edit Category */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  {editingCategory ? 'Categorie Bewerken' : 'Nieuwe Hoofdcategorie'}
+                  {editingCategory ? 'Edit Category' : 'New Main Category'}
                 </label>
                 <div className="flex gap-2">
                   <Input
@@ -385,7 +385,7 @@ export function CategoryManagerForProducts() {
                     value={newCategoryName}
                     onChange={(e) => setNewCategoryName(e.target.value)}
                     onKeyPress={handleCategoryKeyPress}
-                    placeholder={editingCategory ? 'Wijzig categorienaam' : 'Bijv. Levensverzekeringen'}
+                    placeholder={editingCategory ? 'Change category name' : 'e.g. Life Insurance'}
                     className={`flex-1 ${editingCategory ? 'border-blue-300 bg-blue-50' : ''}`}
                   />
                   {editingCategory ? (
@@ -423,7 +423,7 @@ export function CategoryManagerForProducts() {
               {selectedCategory && (
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Subcategorie voor "{selectedCategory.name}"
+                    Subcategory for "{selectedCategory.name}"
                   </label>
                   <div className="flex gap-2">
                     <Input
@@ -431,7 +431,7 @@ export function CategoryManagerForProducts() {
                       value={newSubcategoryName}
                       onChange={(e) => setNewSubcategoryName(e.target.value)}
                       onKeyPress={handleSubcategoryKeyPress}
-                      placeholder="Bijv. Term Life"
+                      placeholder="e.g. Term Life"
                       className="flex-1"
                     />
                     <Button
@@ -453,14 +453,14 @@ export function CategoryManagerForProducts() {
         <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle>Categorie Overzicht</CardTitle>
-              <p className="text-sm text-gray-600">Uw aangemaakte categorieën en subcategorieën</p>
+              <CardTitle>Category Overview</CardTitle>
+              <p className="text-sm text-gray-600">Your created categories and subcategories</p>
             </CardHeader>
             <CardContent>
               {categories.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  <p>Nog geen categorieën aangemaakt</p>
-                  <p className="text-sm mt-1">Begin met het toevoegen van een hoofdcategorie</p>
+                  <p>No categories created yet</p>
+                  <p className="text-sm mt-1">Start by adding a main category</p>
                 </div>
               ) : (
                 <div className="space-y-3">
