@@ -51,6 +51,7 @@ interface ProductMappingStepProps {
 export default function ProductMappingStep({ onNext, onBack }: ProductMappingStepProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [selectedProduct, setSelectedProduct] = useState<number | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set());
   const [expandedSubcategories, setExpandedSubcategories] = useState<Set<number>>(new Set());
   const [productMappings, setProductMappings] = useState<Map<number, ProductMapping>>(new Map());
@@ -58,15 +59,17 @@ export default function ProductMappingStep({ onNext, onBack }: ProductMappingSte
   const queryClient = useQueryClient();
 
   // Fetch products from database
-  const { data: products = [], isLoading: productsLoading } = useQuery({
+  const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
     queryKey: ['/api/products'],
-    select: (data) => data || []
+    select: (data: any) => data || []
   });
 
   // Fetch categories with hierarchy
-  const { data: categoriesData = [], isLoading: categoriesLoading } = useQuery({
+  const { data: categoriesData = [], isLoading: categoriesLoading } = useQuery<Category[]>({
     queryKey: ['/api/product-categories'],
-    select: (data) => {
+    select: (data: any) => {
+      if (!data || !Array.isArray(data)) return [];
+      
       const categories: Category[] = [];
       
       data.forEach((dbCat: any) => {
@@ -250,18 +253,26 @@ export default function ProductMappingStep({ onNext, onBack }: ProductMappingSte
               ) : (
                 filteredProducts.map((product: Product) => {
                   const mapping = getMappingStatus(product.id);
-                  const isSelected = !!mapping;
+                  const isMapped = !!mapping;
+                  const isActiveSelection = selectedProduct === product.id;
                   
                   return (
                     <div
                       key={product.id}
                       className={`p-3 border rounded-lg cursor-pointer transition-colors ${
-                        isSelected ? 'border-green-500 bg-green-50' : 'border-gray-200 hover:border-gray-300'
+                        isMapped 
+                          ? 'border-green-500 bg-green-50' 
+                          : isActiveSelection 
+                          ? 'border-blue-500 bg-blue-50' 
+                          : 'border-gray-200 hover:border-gray-300'
                       }`}
+                      onClick={() => setSelectedProduct(product.id)}
                     >
                       <div className="flex items-center gap-2 mb-1">
-                        {isSelected ? (
+                        {isMapped ? (
                           <CheckCircle2 className="h-4 w-4 text-green-500" />
+                        ) : isActiveSelection ? (
+                          <Circle className="h-4 w-4 text-blue-500 fill-blue-500" />
                         ) : (
                           <Circle className="h-4 w-4 text-gray-400" />
                         )}
@@ -273,6 +284,11 @@ export default function ProductMappingStep({ onNext, onBack }: ProductMappingSte
                       {mapping && (
                         <div className="text-sm text-green-600 mt-1">
                           Mapped to: {getCategoryPath(mapping)}
+                        </div>
+                      )}
+                      {isActiveSelection && !isMapped && (
+                        <div className="text-sm text-blue-600 mt-1">
+                          Selected - choose a category to map
                         </div>
                       )}
                     </div>
@@ -319,12 +335,18 @@ export default function ProductMappingStep({ onNext, onBack }: ProductMappingSte
                         className="ml-auto h-6 text-xs"
                         onClick={(e) => {
                           e.stopPropagation();
-                          // Handle direct category mapping
-                          const selectedProducts = filteredProducts.filter((p: Product) => 
-                            !getMappingStatus(p.id)
-                          );
-                          if (selectedProducts.length > 0) {
-                            handleProductMapping(selectedProducts[0].id, category.id);
+                          if (selectedProduct) {
+                            handleProductMapping(selectedProduct, category.id);
+                            toast({
+                              title: "Product Mapped",
+                              description: `Mapped to ${category.name}`,
+                            });
+                          } else {
+                            toast({
+                              title: "Select a Product",
+                              description: "Please select a product first",
+                              variant: "destructive",
+                            });
                           }
                         }}
                       >
