@@ -312,13 +312,21 @@ export default function UploadProcessPage() {
                     {isCompleted ? <CheckCircle className="h-5 w-5" /> : stepNumber}
                   </div>
                   <div className="min-h-[3rem] flex flex-col justify-center">
-                    <div className={`text-sm font-medium transition-colors ${
-                      isActive ? 'text-blue-600' : isCompleted ? 'text-green-600' : 'text-gray-500'
+                    <div className={`text-sm font-semibold transition-all duration-300 ${
+                      isActive 
+                        ? 'text-blue-700 transform scale-105' 
+                        : isCompleted 
+                          ? 'text-green-700 font-bold' 
+                          : 'text-gray-600'
                     }`}>
                       {step.name}
                     </div>
-                    <div className={`text-xs mt-1 max-w-28 transition-colors ${
-                      isCompleted ? 'text-green-600 font-medium' : 'text-gray-500'
+                    <div className={`text-xs mt-1.5 max-w-32 transition-all duration-300 leading-relaxed ${
+                      isActive
+                        ? 'text-blue-600 font-medium opacity-100 transform translate-y-0'
+                        : isCompleted 
+                          ? 'text-green-600 font-semibold opacity-100 transform translate-y-0' 
+                          : 'text-gray-500 opacity-75'
                     }`}>
                       {getStepMetadata()}
                     </div>
