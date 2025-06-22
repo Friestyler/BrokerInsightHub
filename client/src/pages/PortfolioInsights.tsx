@@ -457,9 +457,9 @@ function DashboardSection() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Gem. Penetratie</p>
+                <p className="text-sm font-medium text-gray-600">Avg. Penetration</p>
                 <p className="text-2xl font-bold text-gray-900">{averagePenetration.toFixed(1)}%</p>
-                <p className="text-xs text-gray-500 mt-1">Across alle producten</p>
+                <p className="text-xs text-gray-500 mt-1">Across all products</p>
               </div>
               <TrendingUp className="h-8 w-8 text-orange-500" />
             </div>
@@ -471,8 +471,8 @@ function DashboardSection() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Product Penetratie</CardTitle>
-            <p className="text-sm text-gray-600">Huidige klanten vs. potentieel per product</p>
+            <CardTitle>Product Penetration</CardTitle>
+            <p className="text-sm text-gray-600">Current customers vs. potential per product</p>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -487,8 +487,8 @@ function DashboardSection() {
                 />
                 <YAxis />
                 <Tooltip />
-                <Bar dataKey="current" fill="#6366f1" name="Huidige klanten" />
-                <Bar dataKey="potential" fill="#a855f7" name="Potentieel" />
+                <Bar dataKey="current" fill="#6366f1" name="Current customers" />
+                <Bar dataKey="potential" fill="#a855f7" name="Potential" />
               </BarChart>
             </ResponsiveContainer>
           </CardContent>
@@ -496,8 +496,8 @@ function DashboardSection() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Portfolio Verdeling</CardTitle>
-            <p className="text-sm text-gray-600">Huidige vs. potentiële klanten</p>
+            <CardTitle>Portfolio Distribution</CardTitle>
+            <p className="text-sm text-gray-600">Current vs. potential customers</p>
           </CardHeader>
           <CardContent>
             <ResponsiveContainer width="100%" height={300}>
@@ -526,8 +526,8 @@ function DashboardSection() {
       {/* Product Categories Detail */}
       <Card>
         <CardHeader>
-          <CardTitle>Product Categorieën Detail</CardTitle>
-          <p className="text-sm text-gray-600">Gedetailleerde analyse per productcategorie</p>
+          <CardTitle>Product Categories Detail</CardTitle>
+          <p className="text-sm text-gray-600">Detailed analysis per product category</p>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -557,7 +557,7 @@ function DashboardSection() {
                         variant={product.penetration > 50 ? "default" : "secondary"}
                         className={product.penetration > 50 ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}
                       >
-                        {product.penetration.toFixed(0)}% penetratie
+                        {product.penetration.toFixed(0)}% penetration
                       </Badge>
                     </div>
                     <Button variant="outline" size="sm">
@@ -570,10 +570,10 @@ function DashboardSection() {
                   <div className="px-4 pb-2 pt-0">
                     <div className="grid grid-cols-3 gap-4 mb-3">
                       <div>
-                        <p className="text-sm text-gray-600">{product.current.toLocaleString()} klanten</p>
+                        <p className="text-sm text-gray-600">{product.current.toLocaleString()} customers</p>
                       </div>
                       <div>
-                        <p className="text-sm text-gray-600">{product.potential.toLocaleString()} potentieel</p>
+                        <p className="text-sm text-gray-600">{product.potential.toLocaleString()} potential</p>
                       </div>
                       <div>
                         <p className="text-sm font-medium text-green-600">€{(product.value / 1000000).toFixed(1)}M waarde</p>
