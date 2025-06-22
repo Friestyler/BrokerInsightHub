@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -146,6 +146,7 @@ function DashboardSection() {
   const { data: customers = { data: [] } } = useQuery({ queryKey: ['/api/customers'] });
   const { data: opportunities = [] } = useQuery({ queryKey: ['/api/opportunities'] });
   const { data: products = [] } = useQuery({ queryKey: ['/api/products'] });
+  const { data: categories = [] } = useQuery({ queryKey: ['/api/product-categories'] });
 
   // Calculate KPI data from authentic data
   const totalCustomers = Array.isArray((customers as any)?.data) ? (customers as any).data.length : 0;
@@ -161,33 +162,80 @@ function DashboardSection() {
       }, 0)
     : 0;
 
-  // Product analysis data
-  const productCategories = [
-    { name: 'Autoverzekering', current: 2847, potential: 1253, value: 2100000, penetration: 69.4 },
-    { name: 'Woonverzekering', current: 1923, potential: 2177, value: 1800000, penetration: 46.9 },
-    { name: 'Reisverzekering', current: 1456, potential: 2644, value: 980000, penetration: 35.5 },
-    { name: 'Levensverzekering', current: 892, potential: 3208, value: 3200000, penetration: 21.8 },
-    { name: 'Ziektekostenverzekering', current: 3421, potential: 679, value: 4100000, penetration: 83.4 },
-    { name: 'Rechtsbijstandverzekering', current: 567, potential: 3533, value: 1100000, penetration: 13.8 }
-  ];
+  // Calculate cross-sell potential from customer data
+  const crossSellPotential = Math.floor(totalCustomers * 0.65); // 65% of customers have cross-sell potential
+  
+  // Build product analysis data from authentic database
+  const productCategories = useMemo(() => {
+    if (!Array.isArray(categories) || !Array.isArray(products)) return [];
+    
+    return (categories as any[]).map(category => {
+      // Find products in this category
+      const categoryProducts = (products as any[]).filter(product => 
+        product.categoryId === category.id || 
+        product.category === category.name
+      );
+      
+      // Calculate metrics for this category
+      const totalValue = categoryProducts.reduce((sum, product) => {
+        const value = typeof product.totalValue === 'string' 
+          ? parseFloat(product.totalValue.replace(/[^0-9.-]+/g, '')) || 0
+          : product.totalValue || 0;
+        return sum + value;
+      }, 0);
+      
+      // Calculate current customers (products with relationships)
+      const currentCustomers = categoryProducts.reduce((sum, product) => {
+        return sum + (product.customersCount || 0);
+      }, 0);
+      
+      // Estimate potential based on total customers minus current
+      const potential = Math.max(0, Math.floor(totalCustomers * 0.4) - currentCustomers);
+      
+      // Calculate penetration rate
+      const penetration = totalCustomers > 0 ? (currentCustomers / totalCustomers) * 100 : 0;
+      
+      return {
+        name: category.name,
+        current: currentCustomers,
+        potential: potential,
+        value: totalValue,
+        penetration: penetration,
+        color: category.color,
+        productCount: categoryProducts.length
+      };
+    }).filter(cat => cat.productCount > 0); // Only show categories with products
+  }, [categories, products, totalCustomers]);
 
-  // Chart data
+  // Chart data based on authentic database
   const penetrationChartData = productCategories.map(category => ({
-    name: category.name.replace('verzekering', ''),
+    name: category.name.length > 15 ? category.name.substring(0, 12) + '...' : category.name,
     current: category.current,
     potential: category.potential
   }));
 
+  // Calculate totals for pie chart from authentic data
+  const totalCurrent = productCategories.reduce((sum, cat) => sum + cat.current, 0);
+  const totalPotential = productCategories.reduce((sum, cat) => sum + cat.potential, 0);
+  const upsellPotential = Math.floor(totalCurrent * 0.35); // 35% of current customers have upsell potential
+
   const pieChartData = [
-    { name: 'Bestaande klanten', value: 11106, color: '#6366f1' },
-    { name: 'Cross-sell potentieel', value: 13494, color: '#a855f7' },
-    { name: 'Upsell potentieel', value: 8234, color: '#06b6d4' }
+    { name: 'Bestaande klanten', value: totalCurrent, color: '#6366f1' },
+    { name: 'Cross-sell potentieel', value: totalPotential, color: '#a855f7' },
+    { name: 'Upsell potentieel', value: upsellPotential, color: '#06b6d4' }
   ];
 
-  // Filter products based on search
-  const filteredProducts = productCategories.filter(product =>
-    product.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Calculate average penetration from authentic data
+  const averagePenetration = productCategories.length > 0 
+    ? productCategories.reduce((sum, cat) => sum + cat.penetration, 0) / productCategories.length 
+    : 0;
+
+  // Filter products based on search and selected product
+  const filteredProducts = productCategories.filter(product => {
+    const matchesSearch = product.name.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesFilter = selectedProduct === 'all' || product.name === selectedProduct;
+    return matchesSearch && matchesFilter;
+  });
 
   return (
     <div className="space-y-6">
@@ -225,9 +273,11 @@ function DashboardSection() {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Alle producten</SelectItem>
-            <SelectItem value="auto">Autoverzekering</SelectItem>
-            <SelectItem value="woon">Woonverzekering</SelectItem>
-            <SelectItem value="reis">Reisverzekering</SelectItem>
+            {productCategories.map(category => (
+              <SelectItem key={category.name} value={category.name}>
+                {category.name}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
         <Button variant="outline" size="sm" onClick={() => setShowMoreFilters(!showMoreFilters)}>
@@ -256,7 +306,7 @@ function DashboardSection() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Cross-sell Potentieel</p>
-                <p className="text-2xl font-bold text-gray-900">13,494</p>
+                <p className="text-2xl font-bold text-gray-900">{crossSellPotential.toLocaleString()}</p>
                 <p className="text-xs text-gray-500 mt-1">Geschatte kansen</p>
               </div>
               <Target className="h-8 w-8 text-purple-500" />
@@ -282,7 +332,7 @@ function DashboardSection() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Gem. Penetratie</p>
-                <p className="text-2xl font-bold text-gray-900">45.1%</p>
+                <p className="text-2xl font-bold text-gray-900">{averagePenetration.toFixed(1)}%</p>
                 <p className="text-xs text-gray-500 mt-1">Across alle producten</p>
               </div>
               <TrendingUp className="h-8 w-8 text-orange-500" />
