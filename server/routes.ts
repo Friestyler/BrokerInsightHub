@@ -5535,20 +5535,34 @@ Respond with a JSON object containing:
       const categoryMap = new Map();
       const rootCategories = [];
       
-      // First pass: create category objects
+      // First pass: create category objects with proper structure
       categories.forEach(cat => {
-        categoryMap.set(cat.id, { ...cat, children: [] });
+        categoryMap.set(cat.id, { 
+          ...cat, 
+          subcategories: [],
+          subSubcategories: []
+        });
       });
       
-      // Second pass: build hierarchy
+      // Second pass: build three-level hierarchy
       categories.forEach(cat => {
         const category = categoryMap.get(cat.id);
         if (cat.parent_id) {
           const parent = categoryMap.get(cat.parent_id);
           if (parent) {
-            parent.children.push(category);
+            // Check if parent has a parent (making this a sub-subcategory)
+            if (parent.parent_id) {
+              // This is a sub-subcategory (third level)
+              if (!parent.subSubcategories) parent.subSubcategories = [];
+              parent.subSubcategories.push(category);
+            } else {
+              // This is a subcategory (second level)
+              if (!parent.subcategories) parent.subcategories = [];
+              parent.subcategories.push(category);
+            }
           }
         } else {
+          // This is a root category (first level)
           rootCategories.push(category);
         }
       });

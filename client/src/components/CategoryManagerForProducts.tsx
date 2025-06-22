@@ -397,7 +397,7 @@ export function CategoryManagerForProducts() {
       const subSubcategoryData = {
         name: newSubSubcategoryForSubcategory.trim(),
         description: '',
-        parent_id: parseInt(addingSubSubcategoryTo),
+        parentId: parseInt(addingSubSubcategoryTo),
         status: 'active'
       };
 
@@ -527,7 +527,7 @@ export function CategoryManagerForProducts() {
       const subcategoryData = {
         name: newSubcategoryForCategory.trim(),
         description: '',
-        parent_id: parseInt(addingSubcategoryTo),
+        parentId: parseInt(addingSubcategoryTo),
         status: 'active'
       };
 
