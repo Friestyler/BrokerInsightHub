@@ -1141,6 +1141,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get OKR metrics with their activities (nested structure) - MUST come before parameterized routes
+  app.get('/api/okr-metrics/with-activities', async (req, res) => {
+    try {
+      // Use raw SQL to avoid Drizzle schema mismatch issues
+      const result = await pool.query('SELECT * FROM qollabi.okr_metrics ORDER BY id');
+      const allMetrics = result.rows;
+      
+      // Organize metrics into parent-child relationships
+      const metricsMap = new Map();
+      const rootMetrics = [];
+      
+      // First pass: create map of all metrics
+      allMetrics.forEach((metric: any) => {
+        metricsMap.set(metric.id, { ...metric, activities: [] });
+      });
+      
+      // Second pass: organize parent-child relationships
+      allMetrics.forEach((metric: any) => {
+        if (metric.parent_id) {
+          const parent = metricsMap.get(metric.parent_id);
+          if (parent) {
+            parent.activities.push(metricsMap.get(metric.id));
+          }
+        } else {
+          rootMetrics.push(metricsMap.get(metric.id));
+        }
+      });
+      
+      res.json(rootMetrics);
+    } catch (error) {
+      console.error('Error fetching OKR metrics with activities:', error);
+      res.status(500).json({ error: 'Failed to fetch OKR metrics with activities' });
+    }
+  });
+
   app.get('/api/okr-metrics/:id', async (req, res) => {
     try {
       const metricId = parseInt(req.params.id);
@@ -1196,41 +1231,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting OKR metric:', error);
       res.status(500).json({ error: 'Failed to delete OKR metric' });
-    }
-  });
-
-  // Get OKR metrics with their activities (nested structure)
-  app.get('/api/okr-metrics/with-activities', async (req, res) => {
-    try {
-      // Use raw SQL to avoid Drizzle schema mismatch issues
-      const result = await pool.query('SELECT * FROM qollabi.okr_metrics ORDER BY id');
-      const allMetrics = result.rows;
-      
-      // Organize metrics into parent-child relationships
-      const metricsMap = new Map();
-      const rootMetrics = [];
-      
-      // First pass: create map of all metrics
-      allMetrics.forEach(metric => {
-        metricsMap.set(metric.id, { ...metric, activities: [] });
-      });
-      
-      // Second pass: organize parent-child relationships
-      allMetrics.forEach(metric => {
-        if (metric.parent_id) {
-          const parent = metricsMap.get(metric.parent_id);
-          if (parent) {
-            parent.activities.push(metricsMap.get(metric.id));
-          }
-        } else {
-          rootMetrics.push(metricsMap.get(metric.id));
-        }
-      });
-      
-      res.json(rootMetrics);
-    } catch (error) {
-      console.error('Error fetching OKR metrics with activities:', error);
-      res.status(500).json({ error: 'Failed to fetch OKR metrics with activities' });
     }
   });
 
