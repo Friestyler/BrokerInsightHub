@@ -121,11 +121,11 @@ const crossSellData: Record<string, CrossSellData> = {
 };
 
 function getCellColor(rate: number): string {
-  if (rate >= 70) return 'bg-green-400';
-  if (rate >= 50) return 'bg-green-300';
-  if (rate >= 30) return 'bg-yellow-300';
-  if (rate >= 15) return 'bg-orange-300';
-  return 'bg-red-300';
+  if (rate >= 70) return 'bg-green-600'; // High potential - dark green
+  if (rate >= 55) return 'bg-green-500'; // Good potential - medium green
+  if (rate >= 40) return 'bg-yellow-500'; // Medium potential - yellow
+  if (rate >= 25) return 'bg-orange-500'; // Lower potential - orange
+  return 'bg-red-500'; // Low potential - red
 }
 
 function getBenchmarkIcon(rate: number, benchmark: number): string {
