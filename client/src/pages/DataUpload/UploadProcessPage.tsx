@@ -13,6 +13,7 @@ import ProcessingStep from './ProcessingStep';
 import TransformationStep from './TransformationStep';
 import ProductMappingStep from './ProductMappingStep';
 import ProductAssignmentStep from './ProductAssignmentStep';
+import { CategoryManagerForProducts } from '@/components/CategoryManagerForProducts';
 
 interface UploadProcessProps {
   entityType?: string;
@@ -348,12 +349,33 @@ export default function UploadProcessPage() {
 
           {/* Product Categories Step (Entity Upload Only) - Step 1 */}
           {currentStep === 1 && isEntityUpload && (
-            <ProductMappingStep
-              onNext={() => {
-                goToNextStep();
-              }}
-              onBack={() => {}}
-            />
+            <div className="space-y-6">
+              <div className="text-center mb-6">
+                <h3 className="text-lg font-medium mb-2">Product Categories</h3>
+                <p className="text-gray-600">Manage your product categories and subcategories</p>
+              </div>
+              
+              <CategoryManagerForProducts />
+              
+              <div className="flex justify-between pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={goToPreviousStep} 
+                  disabled={currentStep <= 1}
+                  className="rounded-xl px-6 py-3 border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+                <Button 
+                  onClick={goToNextStep}
+                  className="rounded-xl px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                >
+                  Continue to Entity Selection
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
+            </div>
           )}
 
           {/* Entity Selection Step (Entity Upload Only) - Step 2 */}
