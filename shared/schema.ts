@@ -622,6 +622,23 @@ export type SavedList = typeof savedLists.$inferSelect;
 export type InsertSavedView = z.infer<typeof insertSavedViewSchema>;
 export type SavedView = typeof savedViews.$inferSelect;
 
+// Partners model - broker and distribution partners
+export const partners = pgTable("partners", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  status: text("status").notNull().default("active"),
+  location: text("location"),
+  contactEmail: text("contact_email"),
+  primaryContact: text("primary_contact"),
+  partnerType: text("partner_type"),
+  region: text("region"),
+  assignedUserIds: integer("assigned_user_ids").array(),
+  linkedOpportunityIds: integer("linked_opportunity_ids").array(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Vendor model - aligned with customers schema
 export const vendors = pgTable("vendors", {
   id: serial("id").primaryKey(),
@@ -641,22 +658,55 @@ export const productCategories = pgTable("product_categories", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
-  parentId: integer("parent_id").references(() => productCategories.id),
+  parentId: integer("parent_id"),
   status: text("status").notNull().default("active"), // active, inactive
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Product model - updated to use category reference
+// Will define relations later after all tables are declared
+
+// Product model - comprehensive insurance product management
 export const products = pgTable("products", {
   id: serial("id").primaryKey(),
+  productId: text("product_id").notNull().unique(), // Unique product identifier
   name: text("name").notNull(),
-  description: text("description").notNull(),
+  description: text("description"),
   categoryId: integer("category_id").references(() => productCategories.id),
   category: text("category"), // Legacy field - will be phased out
+  
+  // Provider information - can be vendor, broker/partner, or other
+  providerId: integer("provider_id"), // References vendors.id, partners.id, or other entities
+  providerType: text("provider_type"), // 'vendor', 'partner', 'other'
+  providerName: text("provider_name"), // Direct provider name storage
+  
+  // Contract information
+  contractStartDate: date("contract_start_date"),
+  contractEndDate: date("contract_end_date"),
+  
+  // Financial information
+  totalValue: numeric("total_value", { precision: 12, scale: 2 }),
+  premiumValue: numeric("premium_value", { precision: 12, scale: 2 }),
+  premiumPercentage: numeric("premium_percentage", { precision: 5, scale: 2 }), // e.g., 15.25%
+  discount: numeric("discount", { precision: 12, scale: 2 }),
+  discountPercentage: numeric("discount_percentage", { precision: 5, scale: 2 }),
+  
+  // Legacy fields for backward compatibility
   sku: text("sku"),
   price: integer("price"),
   vendorId: integer("vendor_id").references(() => vendors.id),
+  
+  // Linking fields
+  customerId: integer("customer_id"), // Link to customer
+  opportunityId: integer("opportunity_id"), // Link to opportunity
+  partnerId: integer("partner_id"), // Link to partner (broker/intermediary)
+  
+  // Metadata
+  isActive: boolean("is_active").notNull().default(true),
+  status: text("status").notNull().default("active"), // active, inactive, expired
+  notes: text("notes"),
+  tags: text("tags").array(),
+  
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
@@ -671,18 +721,7 @@ export const vendorsRelations = relations(vendors, ({ one, many }) => ({
   products: many(products),
 }));
 
-// Product Categories relationships - self-referencing for hierarchy
-export const productCategoriesRelations = relations(productCategories, ({ one, many }) => ({
-  parent: one(productCategories, {
-    fields: [productCategories.parentId],
-    references: [productCategories.id],
-    relationName: "categoryParent",
-  }),
-  children: many(productCategories, {
-    relationName: "categoryParent",
-  }),
-  products: many(products),
-}));
+// Duplicate removed - keeping only the first definition
 
 export const productsRelations = relations(products, ({ one, many }) => ({
   vendor: one(vendors, {
@@ -692,6 +731,18 @@ export const productsRelations = relations(products, ({ one, many }) => ({
   category: one(productCategories, {
     fields: [products.categoryId],
     references: [productCategories.id],
+  }),
+  customer: one(customers, {
+    fields: [products.customerId],
+    references: [customers.id],
+  }),
+  opportunity: one(opportunities, {
+    fields: [products.opportunityId],
+    references: [opportunities.id],
+  }),
+  partner: one(partners, {
+    fields: [products.partnerId],
+    references: [partners.id],
   }),
   catalogueProducts: many(catalogueProducts),
 }));
@@ -717,13 +768,31 @@ export const insertProductCategorySchema = createInsertSchema(productCategories)
 });
 
 export const insertProductSchema = createInsertSchema(products).pick({
+  productId: true,
   name: true,
   description: true,
   categoryId: true,
   category: true,
+  providerId: true,
+  providerType: true,
+  providerName: true,
+  contractStartDate: true,
+  contractEndDate: true,
+  totalValue: true,
+  premiumValue: true,
+  premiumPercentage: true,
+  discount: true,
+  discountPercentage: true,
+  customerId: true,
+  opportunityId: true,
+  partnerId: true,
   sku: true,
   price: true,
   vendorId: true,
+  isActive: true,
+  status: true,
+  notes: true,
+  tags: true,
 });
 
 // Product Catalogues - master catalogues that can contain products
@@ -793,10 +862,22 @@ export const insertEntityLogoSchema = createInsertSchema(entityLogos).pick({
 export type InsertEntityLogo = z.infer<typeof insertEntityLogoSchema>;
 export type EntityLogo = typeof entityLogos.$inferSelect;
 
-// For compatibility - new UI using mock data doesn't need these in the database yet
-export { customers as partners };
-export type Partner = Customer;
-export type InsertPartner = InsertCustomer;
+// Partner types
+export type InsertPartner = z.infer<typeof insertPartnerSchema>;
+export type Partner = typeof partners.$inferSelect;
+
+export const insertPartnerSchema = createInsertSchema(partners).pick({
+  name: true,
+  description: true,
+  status: true,
+  location: true,
+  contactEmail: true,
+  primaryContact: true,
+  partnerType: true,
+  region: true,
+  assignedUserIds: true,
+  linkedOpportunityIds: true,
+});
 
 export { opportunities as projects };
 export type Project = Opportunity;
