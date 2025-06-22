@@ -85,18 +85,34 @@ export function CategoryManagerForProducts() {
           const category: Category = {
             id: dbCat.id.toString(),
             name: dbCat.name,
-            color: COLORS[index % COLORS.length],
+            color: dbCat.color || COLORS[index % COLORS.length],
             subcategories: []
           };
           
-          // Add subcategories from children array
-          if (dbCat.children && Array.isArray(dbCat.children)) {
-            dbCat.children.forEach((child: any) => {
-              category.subcategories.push({
-                id: child.id.toString(),
-                name: child.name,
-                categoryId: dbCat.id.toString()
-              });
+          // Add subcategories from the subcategories array
+          if (dbCat.subcategories && Array.isArray(dbCat.subcategories)) {
+            dbCat.subcategories.forEach((sub: any) => {
+              const subcategory: Subcategory = {
+                id: sub.id.toString(),
+                name: sub.name,
+                categoryId: dbCat.id.toString(),
+                color: sub.color || '#6b7280',
+                subSubcategories: []
+              };
+              
+              // Add sub-subcategories if they exist
+              if (sub.subSubcategories && Array.isArray(sub.subSubcategories)) {
+                sub.subSubcategories.forEach((subSub: any) => {
+                  subcategory.subSubcategories!.push({
+                    id: subSub.id.toString(),
+                    name: subSub.name,
+                    subcategoryId: sub.id.toString(),
+                    color: subSub.color || '#9ca3af'
+                  });
+                });
+              }
+              
+              category.subcategories.push(subcategory);
             });
           }
           
