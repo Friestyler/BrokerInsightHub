@@ -3788,7 +3788,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
       const envPool = pool;
       const result = await envPool.query(`
         SELECT id, name, description, initials, contact_name, contact_email, 
-               contact_phone, "ownerId", created_at, updated_at
+               contact_phone, "ownerId", "createdAt", "updatedAt"
         FROM degoudse.vendors 
         ORDER BY name ASC
       `);

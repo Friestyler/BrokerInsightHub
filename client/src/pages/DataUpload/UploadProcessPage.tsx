@@ -341,12 +341,10 @@ export default function UploadProcessPage() {
           {/* Product Categories Step (Entity Upload Only) - Step 1 */}
           {currentStep === 1 && isEntityUpload && (
             <ProductMappingStep
-              onNext={(categories) => {
-                setProductCategories(categories);
+              onNext={() => {
                 goToNextStep();
               }}
               onBack={() => {}}
-              initialCategories={productCategories}
             />
           )}
 
