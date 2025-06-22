@@ -241,7 +241,7 @@ export default function MetricsPage() {
   const createOkrMetricMutation = useMutation({
     mutationFn: (newMetric: any) => apiRequest('POST', '/api/okr-metrics', newMetric),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/okr-metrics', 'with-activities'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/okr-metrics/with-activities'] });
       toast({
         title: "Success",
         description: "OKR metric created successfully"
