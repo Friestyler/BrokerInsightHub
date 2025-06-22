@@ -2970,11 +2970,26 @@ Keep the tone clear and professional. Focus on what will help the account manage
           pc.name as category_name,
           parent.name as parent_category_name,
           pc.color as category_color,
+          p.provider,
+          p.contract_start_date,
+          p.contract_end_date,
+          p.total_value,
+          p.premium_value,
+          p.premium_percentage,
+          p.discount_percentage,
+          p.linked_customer_id,
+          p.linked_opportunity_id,
+          p.linked_partner_id,
+          p.linked_vendor,
+          cust.name as customer_name,
+          part.name as partner_name,
           p.created_at,
           p.updated_at
         FROM degoudse.insurance_products p
         LEFT JOIN degoudse.product_categories pc ON p.category = pc.id::text
         LEFT JOIN degoudse.product_categories parent ON pc.parent_id = parent.id
+        LEFT JOIN degoudse.customers cust ON p.linked_customer_id = cust.id
+        LEFT JOIN degoudse.partners part ON p.linked_partner_id = part.id
         ORDER BY parent.name, pc.name, p.name
       `);
       console.log(`Returning ${result.rows.length} products from De Goudse database`);
