@@ -1176,7 +1176,7 @@ export default function MetricsPage() {
                 <p className="text-xs text-gray-500 mb-2">
                   {parentObjectiveId 
                     ? "This activity will inherit the tag from its parent objective."
-                    : "Add a tag if you want to add this OKR to a plan."
+                    : "Add a tag if you want this OKR be part of a plan."
                   }
                 </p>
                 
