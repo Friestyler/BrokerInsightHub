@@ -384,79 +384,57 @@ export function CategoryManagerForProducts() {
                       }`}
                       onClick={() => selectCategory(category.id)}
                     >
-                      <div className="flex items-center justify-between mb-2">
-                        {editingCategory === category.id ? (
-                          <div className="flex items-center gap-2 flex-1">
-                            <Input
-                              value={editingCategoryName}
-                              onChange={(e) => setEditingCategoryName(e.target.value)}
-                              className="flex-1"
-                              onKeyPress={(e) => e.key === 'Enter' && saveEditCategory()}
-                            />
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Badge className={`${category.color} border`}>
+                            {category.name}
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-500">
+                            {category.subcategories.length} subcategorieën
+                          </span>
+                          <div className="flex items-center gap-1">
                             <Button
                               size="sm"
-                              variant="outline"
-                              onClick={saveEditCategory}
-                              disabled={updateCategoryMutation.isPending}
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                startEditingCategory(category.id, category.name);
+                              }}
                             >
-                              <Save className="h-3 w-3" />
+                              <Edit2 className="h-3 w-3" />
                             </Button>
                             <Button
                               size="sm"
-                              variant="outline"
-                              onClick={cancelEditCategory}
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                deleteCategory(category.id);
+                              }}
+                              disabled={deleteCategoryMutation.isPending}
                             >
-                              <X className="h-3 w-3" />
+                              <Trash2 className="h-3 w-3" />
                             </Button>
                           </div>
-                        ) : (
-                          <>
-                            <Badge className={`${category.color} font-medium`}>
-                              {category.name}
-                            </Badge>
-                            <div className="flex items-center gap-1">
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  startEditingCategory(category.id, category.name);
-                                }}
-                              >
-                                <Edit2 className="h-3 w-3" />
-                              </Button>
-                              <Button
-                                size="sm"
-                                variant="ghost"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  deleteCategory(category.id);
-                                }}
-                                disabled={deleteCategoryMutation.isPending}
-                              >
-                                <Trash2 className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          </>
-                        )}
+                        </div>
                       </div>
                       
                       {category.subcategories.length > 0 && (
-                        <div className="flex flex-wrap gap-1 mt-2">
-                          {category.subcategories.map((subcategory) => (
-                            <span
-                              key={subcategory.id}
-                              className="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded-md"
-                            >
-                              {subcategory.name}
-                            </span>
-                          ))}
+                        <div className="mt-3 pl-4 border-l-2 border-gray-100">
+                          <div className="flex flex-wrap gap-2">
+                            {category.subcategories.map((sub) => (
+                              <Badge
+                                key={sub.id}
+                                variant="outline"
+                                className="text-xs bg-gray-50"
+                              >
+                                {sub.name}
+                              </Badge>
+                            ))}
+                          </div>
                         </div>
                       )}
-                      
-                      <div className="text-xs text-gray-500 mt-2">
-                        {category.subcategories.length} subcategorieën
-                      </div>
                     </div>
                   ))}
                 </div>
