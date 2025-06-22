@@ -446,14 +446,14 @@ export function CategoryManagerForProducts() {
         </CardContent>
       </Card>
 
-      {/* Category Management - Large Section */}
+      {/* Category Management - Tag Style Display */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Folder className="h-5 w-5" />
             Category Management
           </CardTitle>
-          <p className="text-sm text-gray-600">Organize your products with hierarchical categories and tags</p>
+          <p className="text-sm text-gray-600">Manage your product categories and subcategories</p>
         </CardHeader>
         <CardContent className="space-y-6">
           {categories.length === 0 ? (
@@ -463,258 +463,190 @@ export function CategoryManagerForProducts() {
               <p className="text-sm mt-1">Start by adding your first category above</p>
             </div>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-8">
               {categories.map((category) => (
-                <div
-                  key={category.id}
-                  className="group border border-gray-200 rounded-xl overflow-hidden shadow-sm hover:shadow-md transition-all bg-white"
-                >
-                  {/* Category Header */}
-                  <div 
-                    className={`p-5 cursor-pointer transition-all ${
-                      expandedCategories.has(category.id) 
-                        ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-200' 
-                        : 'hover:bg-gray-50'
-                    }`}
-                    onClick={() => toggleCategory(category.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        {editingCategory === category.id ? (
-                          <div className="flex items-center gap-3">
-                            <Input
-                              value={editingCategoryName}
-                              onChange={(e) => setEditingCategoryName(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  saveEditCategory();
-                                } else if (e.key === 'Escape') {
-                                  cancelEditCategory();
-                                }
-                              }}
-                              className="text-base h-9 w-64 font-medium"
-                              autoFocus
-                              onClick={(e) => e.stopPropagation()}
-                            />
-                            <Button
-                              size="sm"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                saveEditCategory();
-                              }}
-                              className="h-9 px-3 bg-green-600 hover:bg-green-700"
-                            >
-                              <Check className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                cancelEditCategory();
-                              }}
-                              className="h-9 px-3"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        ) : (
-                          <>
-                            <div className="flex items-center gap-3">
-                              <div 
-                                className="w-3 h-3 rounded-full"
-                                style={{ backgroundColor: category.color }}
-                              />
-                              <h3 className="text-lg font-semibold text-gray-900">
-                                {category.name}
-                              </h3>
-                            </div>
-                            <div className="flex items-center gap-3 ml-2">
-                              <Badge variant="secondary" className="bg-gray-100 text-gray-700">
-                                {category.subcategories.length} subcategories
-                              </Badge>
-                              {expandedCategories.has(category.id) ? (
-                                <ChevronDown className="h-4 w-4 text-gray-500" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4 text-gray-500" />
-                              )}
-                            </div>
-                          </>
-                        )}
+                <div key={category.id} className="space-y-4">
+                  {/* Category Tag */}
+                  <div className="flex items-center gap-3">
+                    {editingCategory === category.id ? (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={editingCategoryName}
+                          onChange={(e) => setEditingCategoryName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              saveEditCategory();
+                            } else if (e.key === 'Escape') {
+                              cancelEditCategory();
+                            }
+                          }}
+                          className="text-sm h-8 w-48"
+                          autoFocus
+                        />
+                        <Button
+                          onClick={saveEditCategory}
+                          size="sm"
+                          className="h-8 px-2 bg-green-600 hover:bg-green-700"
+                        >
+                          <Check className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          onClick={cancelEditCategory}
+                          variant="outline"
+                          size="sm"
+                          className="h-8 px-2"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
                       </div>
-                      
-                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                        {editingCategory !== category.id && (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                startEditCategory(category.id, category.name);
-                              }}
-                              className="h-9 px-3 hover:bg-blue-100"
-                            >
-                              <Edit2 className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                deleteCategory(category.id);
-                              }}
-                              className="h-9 px-3 text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </div>
+                    ) : (
+                      <>
+                        <div 
+                          className="inline-flex items-center gap-2 px-4 py-2 bg-blue-100 text-blue-800 rounded-full text-sm font-medium border border-blue-200 hover:bg-blue-150 transition-colors"
+                          style={{ 
+                            backgroundColor: `${category.color}20`,
+                            borderColor: category.color,
+                            color: category.color
+                          }}
+                        >
+                          <div 
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: category.color }}
+                          />
+                          {category.name}
+                        </div>
+                        <Button
+                          onClick={() => startEditCategory(category.id, category.name)}
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2 text-gray-500 hover:text-gray-700"
+                        >
+                          <Edit2 className="h-3 w-3" />
+                        </Button>
+                        <Button
+                          onClick={() => deleteCategory(category.id)}
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 px-2 text-red-500 hover:text-red-700"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      </>
+                    )}
                   </div>
 
-                  {/* Expanded Category Content */}
-                  {expandedCategories.has(category.id) && (
-                    <div className="p-6 bg-gradient-to-br from-gray-50 to-white border-t">
-                      {/* Add Subcategory Section */}
-                      <div className="mb-6">
-                        <label className="block text-sm font-semibold text-gray-800 mb-3">
-                          Add Subcategory
-                        </label>
-                        {addingSubcategoryTo === category.id ? (
-                          <div className="flex gap-3">
-                            <Input
-                              value={newSubcategoryForCategory}
-                              onChange={(e) => setNewSubcategoryForCategory(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === 'Enter') {
-                                  addSubcategoryToCategory();
-                                } else if (e.key === 'Escape') {
-                                  cancelAddSubcategory();
-                                }
-                              }}
-                              placeholder="e.g. Term Life Insurance"
-                              className="flex-1 h-10"
-                              autoFocus
-                            />
-                            <Button
-                              onClick={addSubcategoryToCategory}
-                              disabled={!newSubcategoryForCategory.trim()}
-                              className="h-10 px-4 bg-blue-600 hover:bg-blue-700"
-                            >
-                              <Check className="h-4 w-4 mr-2" />
-                              Add
-                            </Button>
-                            <Button
-                              onClick={cancelAddSubcategory}
-                              variant="outline"
-                              className="h-10 px-4"
-                            >
-                              Cancel
-                            </Button>
-                          </div>
-                        ) : (
-                          <Button
-                            onClick={() => startAddSubcategory(category.id)}
-                            variant="outline"
-                            className="h-10 px-4 border-dashed border-2 hover:border-blue-300 hover:bg-blue-50"
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            Add Subcategory
-                          </Button>
-                        )}
-                      </div>
-
-                      {/* Subcategories Hierarchy */}
-                      {category.subcategories.length > 0 && (
-                        <div>
-                          <label className="block text-sm font-semibold text-gray-800 mb-3">
-                            Subcategories ({category.subcategories.length})
-                          </label>
-                          <div className="grid gap-3">
-                            {category.subcategories.map((sub, index) => (
-                              <div
-                                key={sub.id}
-                                className="group flex items-center justify-between bg-white border border-gray-200 rounded-lg px-4 py-3 hover:shadow-sm transition-all"
+                  {/* Subcategories Tags */}
+                  <div className="pl-6 space-y-3">
+                    <div className="flex flex-wrap gap-2">
+                      {category.subcategories.map((sub) => (
+                        <div key={sub.id} className="flex items-center gap-1">
+                          {editingSubcategory === sub.id ? (
+                            <div className="flex items-center gap-2">
+                              <Input
+                                value={editingSubcategoryName}
+                                onChange={(e) => setEditingSubcategoryName(e.target.value)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    saveEditSubcategory();
+                                  } else if (e.key === 'Escape') {
+                                    cancelEditSubcategory();
+                                  }
+                                }}
+                                className="text-sm h-7 w-40"
+                                autoFocus
+                              />
+                              <Button
+                                onClick={saveEditSubcategory}
+                                size="sm"
+                                className="h-7 px-2 bg-green-600 hover:bg-green-700"
                               >
-                                {editingSubcategory === sub.id ? (
-                                  <div className="flex items-center gap-3 flex-1">
-                                    <div className="flex items-center gap-2 text-gray-400">
-                                      <div className="w-px h-6 bg-gray-300" />
-                                      <ArrowRight className="h-3 w-3" />
-                                    </div>
-                                    <Input
-                                      value={editingSubcategoryName}
-                                      onChange={(e) => setEditingSubcategoryName(e.target.value)}
-                                      onKeyDown={(e) => {
-                                        if (e.key === 'Enter') {
-                                          saveEditSubcategory();
-                                        } else if (e.key === 'Escape') {
-                                          cancelEditSubcategory();
-                                        }
-                                      }}
-                                      className="text-sm h-8 flex-1"
-                                      autoFocus
-                                    />
-                                    <Button
-                                      onClick={saveEditSubcategory}
-                                      size="sm"
-                                      className="h-8 px-2 bg-green-600 hover:bg-green-700"
-                                    >
-                                      <Check className="h-3 w-3" />
-                                    </Button>
-                                    <Button
-                                      onClick={cancelEditSubcategory}
-                                      variant="outline"
-                                      size="sm"
-                                      className="h-8 px-2"
-                                    >
-                                      <X className="h-3 w-3" />
-                                    </Button>
-                                  </div>
-                                ) : (
-                                  <>
-                                    <div className="flex items-center gap-3 flex-1">
-                                      <div className="flex items-center gap-2 text-gray-400">
-                                        <div className="w-px h-6 bg-gray-300" />
-                                        <ArrowRight className="h-3 w-3" />
-                                      </div>
-                                      <span className="text-sm font-medium text-gray-700">{sub.name}</span>
-                                      <Badge variant="outline" className="text-xs">
-                                        {index + 1}
-                                      </Badge>
-                                    </div>
-                                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                                      <Button
-                                        onClick={() => {
-                                          setEditingSubcategory(sub.id);
-                                          setEditingSubcategoryName(sub.name);
-                                        }}
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-8 px-2"
-                                      >
-                                        <Edit2 className="h-3 w-3" />
-                                      </Button>
-                                      <Button
-                                        onClick={() => deleteSubcategory(sub.id)}
-                                        variant="ghost"
-                                        size="sm"
-                                        className="h-8 px-2 text-red-600 hover:text-red-700 hover:bg-red-50"
-                                      >
-                                        <Trash2 className="h-3 w-3" />
-                                      </Button>
-                                    </div>
-                                  </>
-                                )}
+                                <Check className="h-3 w-3" />
+                              </Button>
+                              <Button
+                                onClick={cancelEditSubcategory}
+                                variant="outline"
+                                size="sm"
+                                className="h-7 px-2"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ) : (
+                            <div className="group flex items-center gap-1">
+                              <div className="inline-flex items-center px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium border border-gray-200 hover:bg-gray-150 transition-colors">
+                                {sub.name}
                               </div>
-                            ))}
-                          </div>
+                              <Button
+                                onClick={() => {
+                                  setEditingSubcategory(sub.id);
+                                  setEditingSubcategoryName(sub.name);
+                                }}
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-1 opacity-0 group-hover:opacity-100 transition-opacity text-gray-400 hover:text-gray-600"
+                              >
+                                <Edit2 className="h-2.5 w-2.5" />
+                              </Button>
+                              <Button
+                                onClick={() => deleteSubcategory(sub.id)}
+                                variant="ghost"
+                                size="sm"
+                                className="h-6 px-1 opacity-0 group-hover:opacity-100 transition-opacity text-red-400 hover:text-red-600"
+                              >
+                                <Trash2 className="h-2.5 w-2.5" />
+                              </Button>
+                            </div>
+                          )}
                         </div>
+                      ))}
+                      
+                      {/* Add Subcategory Button */}
+                      {addingSubcategoryTo === category.id ? (
+                        <div className="flex items-center gap-2">
+                          <Input
+                            value={newSubcategoryForCategory}
+                            onChange={(e) => setNewSubcategoryForCategory(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                addSubcategoryToCategory();
+                              } else if (e.key === 'Escape') {
+                                cancelAddSubcategory();
+                              }
+                            }}
+                            placeholder="Subcategory name"
+                            className="text-sm h-7 w-32"
+                            autoFocus
+                          />
+                          <Button
+                            onClick={addSubcategoryToCategory}
+                            disabled={!newSubcategoryForCategory.trim()}
+                            size="sm"
+                            className="h-7 px-2 bg-blue-600 hover:bg-blue-700"
+                          >
+                            <Check className="h-3 w-3" />
+                          </Button>
+                          <Button
+                            onClick={cancelAddSubcategory}
+                            variant="outline"
+                            size="sm"
+                            className="h-7 px-2"
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          onClick={() => startAddSubcategory(category.id)}
+                          variant="outline"
+                          size="sm"
+                          className="h-7 px-3 text-xs border-dashed border-gray-300 text-gray-500 hover:border-blue-300 hover:text-blue-600 hover:bg-blue-50"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add Subcategory
+                        </Button>
                       )}
                     </div>
-                  )}
+                  </div>
                 </div>
               ))}
             </div>
