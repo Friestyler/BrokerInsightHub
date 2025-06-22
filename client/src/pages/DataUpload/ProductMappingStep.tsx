@@ -57,34 +57,17 @@ export default function ProductMappingStep({ onNext, onBack, initialCategories =
     select: (data: any[]) => {
       if (!data || !Array.isArray(data)) return [];
       
-      // Transform database categories to local format
-      const categoryMap = new Map<string, Category>();
-      
-      data.forEach((dbCat: any) => {
-        if (!dbCat.parentId) {
-          // This is a main category
-          if (!categoryMap.has(dbCat.id.toString())) {
-            categoryMap.set(dbCat.id.toString(), {
-              id: dbCat.id.toString(),
-              name: dbCat.name,
-              color: COLORS[categoryMap.size % COLORS.length],
-              subcategories: []
-            });
-          }
-        } else {
-          // This is a subcategory
-          const parentId = dbCat.parentId.toString();
-          if (categoryMap.has(parentId)) {
-            categoryMap.get(parentId)!.subcategories.push({
-              id: dbCat.id.toString(),
-              name: dbCat.name,
-              categoryId: parentId
-            });
-          }
-        }
-      });
-      
-      return Array.from(categoryMap.values());
+      // Transform hierarchical database response to local format
+      return data.map((dbCat: any) => ({
+        id: dbCat.id.toString(),
+        name: dbCat.name,
+        color: COLORS[data.indexOf(dbCat) % COLORS.length],
+        subcategories: (dbCat.children || []).map((child: any) => ({
+          id: child.id.toString(),
+          name: child.name,
+          categoryId: dbCat.id.toString()
+        }))
+      }));
     }
   });
 
@@ -146,27 +129,42 @@ export default function ProductMappingStep({ onNext, onBack, initialCategories =
     }
   };
 
-  const addSubcategory = () => {
+  const addSubcategory = async () => {
     if (!newSubcategoryName.trim() || !selectedCategoryId) return;
 
-    const newSubcategory: Subcategory = {
-      id: generateId(),
-      name: newSubcategoryName.trim(),
-      categoryId: selectedCategoryId
-    };
+    try {
+      // Create subcategory in database
+      await createCategoryMutation.mutateAsync({
+        name: newSubcategoryName.trim(),
+        parentId: parseInt(selectedCategoryId)
+      });
 
-    setCategories(prev => prev.map(cat => 
-      cat.id === selectedCategoryId 
-        ? { ...cat, subcategories: [...cat.subcategories, newSubcategory] }
-        : cat
-    ));
-    
-    setNewSubcategoryName('');
-    
-    toast({
-      title: "Subcategory added",
-      description: `"${newSubcategory.name}" has been added`,
-    });
+      // Update local state immediately for better UX
+      const newSubcategory: Subcategory = {
+        id: generateId(),
+        name: newSubcategoryName.trim(),
+        categoryId: selectedCategoryId
+      };
+
+      setCategories(prev => prev.map(cat => 
+        cat.id === selectedCategoryId 
+          ? { ...cat, subcategories: [...cat.subcategories, newSubcategory] }
+          : cat
+      ));
+      
+      setNewSubcategoryName('');
+      
+      toast({
+        title: "Subcategory added",
+        description: `"${newSubcategory.name}" has been added`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create subcategory",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleCategoryKeyPress = (e: React.KeyboardEvent) => {
