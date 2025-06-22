@@ -1514,7 +1514,7 @@ export default function MetricsPage() {
                             <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
                             <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
                             <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
-                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this OKR into smaller chunks)">No milestone (I don't want to split this OKR into smaller chunks)</SelectItem>
+                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this key metric into smaller chunks)">No milestone (I don't want to split this key metric into smaller chunks)</SelectItem>
                           );
                         } else if (timeframeDuration === 12) {
                           // Exactly 12 months: Weekly, Monthly, Quarterly, No milestone
@@ -1522,7 +1522,7 @@ export default function MetricsPage() {
                             <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
                             <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
                             <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
-                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this OKR into smaller chunks)">No milestone (I don't want to split this OKR into smaller chunks)</SelectItem>
+                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this key metric into smaller chunks)">No milestone (I don't want to split this key metric into smaller chunks)</SelectItem>
                           );
                         } else if (timeframeDuration > 12 && timeframeDuration < 24) {
                           // Between 12-24 months: Weekly, Monthly, Quarterly, No milestone
@@ -1530,7 +1530,7 @@ export default function MetricsPage() {
                             <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
                             <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
                             <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
-                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this OKR into smaller chunks)">No milestone (I don't want to split this OKR into smaller chunks)</SelectItem>
+                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this key metric into smaller chunks)">No milestone (I don't want to split this key metric into smaller chunks)</SelectItem>
                           );
                         } else if (timeframeDuration >= 24) {
                           // 2+ years: Weekly, Monthly, Quarterly, Yearly, No milestone
@@ -1539,7 +1539,7 @@ export default function MetricsPage() {
                             <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
                             <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
                             <SelectItem key="yearly" value="Yearly">Yearly</SelectItem>,
-                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this OKR into smaller chunks)">No milestone (I don't want to split this OKR into smaller chunks)</SelectItem>
+                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this key metric into smaller chunks)">No milestone (I don't want to split this key metric into smaller chunks)</SelectItem>
                           );
                         } else {
                           // Default: show all options
@@ -1549,7 +1549,7 @@ export default function MetricsPage() {
                             <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
                             <SelectItem key="yearly" value="Yearly">Yearly</SelectItem>,
                             <SelectItem key="custom" value="Custom">Custom</SelectItem>,
-                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this OKR into smaller chunks)">No milestone (I don't want to split this OKR into smaller chunks)</SelectItem>
+                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this key metric into smaller chunks)">No milestone (I don't want to split this key metric into smaller chunks)</SelectItem>
                           );
                         }
                         
