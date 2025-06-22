@@ -962,55 +962,99 @@ export default function PortfolioInsights() {
             </Card>
           )}
 
-          {/* Selected Cell Detail */}
-          {selectedCellData && (
-            <Card className="border-2 border-blue-200">
+          {/* Overview Cards */}
+          {!selectedCell ? (
+            <Card className="border-2 border-gray-200">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">
-                    {selectedCell?.replace('-', ' → ').toUpperCase()}
-                  </CardTitle>
-                  <Button variant="ghost" size="sm" onClick={() => setSelectedCell(null)}>
+                  <CardTitle className="text-lg">Totaal Overzicht</CardTitle>
+                  <Button variant="ghost" size="sm" onClick={() => setShowProductConfig(false)}>
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                <div className="grid grid-cols-4 gap-4">
                   <div>
-                    <div className="text-2xl font-bold text-blue-600">{selectedCellData.rate}%</div>
-                    <div className="text-sm text-gray-600">Cross-sell rate</div>
-                    <div className="text-xs text-gray-500">vs {selectedCellData.benchmark}% benchmark</div>
+                    <div className="text-sm text-gray-600 mb-1">Segment: Alle segmenten • {Object.values(crossSellData).reduce((acc, data) => acc + data.customers, 0).toLocaleString()} klanten</div>
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-green-600">{selectedCellData.potential}</div>
-                    <div className="text-sm text-gray-600">Potentiële klanten</div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {Object.values(crossSellData).reduce((acc, data) => acc + data.potential, 0).toLocaleString()}
+                    </div>
+                    <div className="text-sm text-gray-600">Totaal potentiële klanten</div>
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-purple-600">€{Math.round(selectedCellData.maxValue / 1000)}K</div>
-                    <div className="text-sm text-gray-600">Max. potentieel</div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-600">
+                      €{Math.round(Object.values(crossSellData).reduce((acc, data) => acc + data.maxValue, 0) / 1000)}K
+                    </div>
+                    <div className="text-sm text-gray-600">Totaal max. potentieel</div>
                   </div>
-                  <div>
-                    <div className="text-2xl font-bold text-orange-600">€{Math.round(selectedCellData.expectedRevenue / 1000)}K</div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">
+                      €{Math.round(Object.values(crossSellData).reduce((acc, data) => acc + (data.expectedRevenue * conversionRate[0]) / 100, 0) / 1000)}K
+                    </div>
                     <div className="text-sm text-gray-600">Bij {conversionRate[0]}% conversie</div>
                   </div>
                 </div>
-                <div className="flex space-x-2">
-                  <Button size="sm" className="bg-green-600 hover:bg-green-700">
-                    <Send className="h-3 w-3 mr-1" />
-                    Start Campagne
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Target className="h-3 w-3 mr-1" />
-                    Creëer Opportuniteit
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <List className="h-3 w-3 mr-1" />
-                    Creëer Klanten Lijst
-                  </Button>
-                </div>
               </CardContent>
             </Card>
+          ) : (
+            /* Selected Cell Detail */
+            selectedCellData && (
+              <Card className="border-2 border-blue-200">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">
+                      {selectedCell?.split('-').map(id => {
+                        const product = [...horizontalProducts, ...verticalProducts].find(p => p.id.toString() === id);
+                        return product?.name || id;
+                      }).join(' → ')}
+                    </CardTitle>
+                    <Button variant="ghost" size="sm" onClick={() => setSelectedCell(null)}>
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-4 gap-4 mb-4">
+                    <div>
+                      <div className="text-2xl font-bold text-blue-600">{selectedCellData.rate}%</div>
+                      <div className="text-sm text-gray-600">Cross-sell rate (benchmark: {selectedCellData.benchmark}%)</div>
+                      <div className="text-xs text-gray-500 font-medium">
+                        {selectedCellData.rate > selectedCellData.benchmark ? '+' : ''}{selectedCellData.rate - selectedCellData.benchmark}%
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-green-600">{selectedCellData.potential}</div>
+                      <div className="text-sm text-gray-600">Potentiële klanten</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-purple-600">€{Math.round(selectedCellData.maxValue / 1000)}K</div>
+                      <div className="text-sm text-gray-600">Max. potentieel</div>
+                    </div>
+                    <div>
+                      <div className="text-2xl font-bold text-orange-600">€{Math.round((selectedCellData.expectedRevenue * conversionRate[0]) / 100000)}K</div>
+                      <div className="text-sm text-gray-600">Bij {conversionRate[0]}% conversie</div>
+                    </div>
+                  </div>
+                  <div className="flex space-x-2">
+                    <Button size="sm" className="bg-green-600 hover:bg-green-700">
+                      <Send className="h-3 w-3 mr-1" />
+                      Start Campagne
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Target className="h-3 w-3 mr-1" />
+                      Creëer Opportuniteit
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <List className="h-3 w-3 mr-1" />
+                      Creëer Klanten Lijst
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )
           )}
 
           {/* Tabs */}
