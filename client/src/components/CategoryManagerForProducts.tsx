@@ -524,6 +524,13 @@ export function CategoryManagerForProducts() {
                                       type="text"
                                       value={editingSubcategoryName}
                                       onChange={(e) => setEditingSubcategoryName(e.target.value)}
+                                      onKeyDown={(e) => {
+                                        if (e.key === 'Enter') {
+                                          saveEditSubcategory();
+                                        } else if (e.key === 'Escape') {
+                                          cancelEditSubcategory();
+                                        }
+                                      }}
                                       className="text-xs border border-gray-300 rounded px-1 py-0.5 w-20"
                                       autoFocus
                                     />
