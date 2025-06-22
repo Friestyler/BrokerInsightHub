@@ -408,7 +408,6 @@ export default function PortfolioInsights() {
 
   // Helper functions for collapse/expand
   const toggleCategoryCollapse = (categoryId: string) => {
-    console.log('Toggling category collapse:', categoryId);
     const newCollapsed = new Set(collapsedCategories);
     if (newCollapsed.has(categoryId)) {
       newCollapsed.delete(categoryId);
@@ -419,7 +418,6 @@ export default function PortfolioInsights() {
   };
 
   const toggleSubcategoryCollapse = (subcategoryId: string) => {
-    console.log('Toggling subcategory collapse:', subcategoryId);
     const newCollapsed = new Set(collapsedSubcategories);
     if (newCollapsed.has(subcategoryId)) {
       newCollapsed.delete(subcategoryId);
@@ -502,7 +500,10 @@ export default function PortfolioInsights() {
     };
   };
 
-  const selectedCellData = selectedCell ? crossSellData[selectedCell] || null : null;
+  const selectedCellData = selectedCell ? (() => {
+    const [fromId, toId] = selectedCell.split('-');
+    return getCellData(fromId, toId);
+  })() : null;
 
   return (
     <div className="container mx-auto px-4 py-6 max-w-full">
@@ -1153,10 +1154,7 @@ export default function PortfolioInsights() {
                             <td 
                               key={colProduct.id} 
                               className={`border p-2 cursor-pointer transition-all ${getCellColor(cellData.rate)} ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
-                              onClick={() => {
-                                console.log('Matrix cell clicked:', `${colProduct.id}-${rowProduct.id}`);
-                                setSelectedCell(`${colProduct.id}-${rowProduct.id}`);
-                              }}
+                              onClick={() => setSelectedCell(`${colProduct.id}-${rowProduct.id}`)}
                             >
                               <div className="text-center space-y-1">
                                 <div className="flex items-center justify-center space-x-1">
