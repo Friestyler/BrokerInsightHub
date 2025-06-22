@@ -3788,7 +3788,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
       const envPool = pool;
       const result = await envPool.query(`
         SELECT id, name, description, initials, contact_name, contact_email, 
-               contact_phone, owner_id, created_at, updated_at
+               contact_phone, "ownerId", created_at, updated_at
         FROM degoudse.vendors 
         ORDER BY name ASC
       `);
@@ -5523,11 +5523,11 @@ Respond with a JSON object containing:
         SELECT 
           c.*,
           p.name as parent_name,
-          (SELECT COUNT(*) FROM ${envId}.products WHERE category_id = c.id) as product_count,
-          (SELECT COUNT(*) FROM ${envId}.product_categories WHERE parent_id = c.id) as child_count
+          (SELECT COUNT(*) FROM ${envId}.products WHERE category = c.name) as product_count,
+          (SELECT COUNT(*) FROM ${envId}.product_categories WHERE "parentId" = c.id) as child_count
         FROM ${envId}.product_categories c
-        LEFT JOIN ${envId}.product_categories p ON c.parent_id = p.id
-        ORDER BY c.parent_id NULLS FIRST, c.name
+        LEFT JOIN ${envId}.product_categories p ON c."parentId" = p.id
+        ORDER BY c."parentId" NULLS FIRST, c.name
       `);
       
       // Build hierarchical structure

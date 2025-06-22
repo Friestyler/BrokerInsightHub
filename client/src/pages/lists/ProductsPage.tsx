@@ -40,7 +40,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Package2, Plus, Search, Tag } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useToast } from "@/hooks/use-toast";
-import { UnifiedCategoryManager } from "@/components/shared/UnifiedCategoryManager";
+import { CategoryManagerForProducts } from "@/components/CategoryManagerForProducts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Product = {
@@ -451,7 +451,7 @@ export default function ProductsPage() {
         </TabsContent>
 
         <TabsContent value="categories" className="space-y-4">
-          <UnifiedCategoryManager mode="full" showActions={true} />
+          <CategoryManagerForProducts />
         </TabsContent>
       </Tabs>
 
