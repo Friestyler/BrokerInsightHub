@@ -2997,6 +2997,9 @@ Keep the tone clear and professional. Focus on what will help the account manage
           null as sku,
           null as price,
           null as vendorId,
+          (SELECT COUNT(*) FROM degoudse.customers c WHERE c.id = p.linked_customer_id AND p.linked_customer_id IS NOT NULL) as customerCount,
+          (SELECT COUNT(*) FROM degoudse.partners pt WHERE pt.id = p.linked_partner_id AND p.linked_partner_id IS NOT NULL) as partnerCount,
+          (SELECT COUNT(*) FROM degoudse.opportunities o WHERE o.id = p.linked_opportunity_id AND p.linked_opportunity_id IS NOT NULL) as opportunityCount,
           p.created_at as createdAt,
           p.updated_at as updatedAt
         FROM degoudse.insurance_products p
