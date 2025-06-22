@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { BarChart3, Search, Settings, Target, X, Star, Send, Users, List, DollarSign, TrendingUp, Download, Filter, Eye } from "lucide-react";
+import { BarChart3, Search, Settings, Target, X, Star, Send, Users, List, DollarSign, TrendingUp, Download, Filter, Eye, ChevronDown, ChevronRight } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 // Fetch authentic product categories with hierarchy
@@ -403,6 +403,29 @@ export default function PortfolioInsights() {
   const [activeTab, setActiveTab] = useState('matrix');
   const [showProductConfig, setShowProductConfig] = useState(false);
   const [showBenchmarkConfig, setShowBenchmarkConfig] = useState(false);
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+  const [collapsedSubcategories, setCollapsedSubcategories] = useState<Set<string>>(new Set());
+
+  // Helper functions for collapse/expand
+  const toggleCategoryCollapse = (categoryId: string) => {
+    const newCollapsed = new Set(collapsedCategories);
+    if (newCollapsed.has(categoryId)) {
+      newCollapsed.delete(categoryId);
+    } else {
+      newCollapsed.add(categoryId);
+    }
+    setCollapsedCategories(newCollapsed);
+  };
+
+  const toggleSubcategoryCollapse = (subcategoryId: string) => {
+    const newCollapsed = new Set(collapsedSubcategories);
+    if (newCollapsed.has(subcategoryId)) {
+      newCollapsed.delete(subcategoryId);
+    } else {
+      newCollapsed.add(subcategoryId);
+    }
+    setCollapsedSubcategories(newCollapsed);
+  };
 
   // Fetch authentic data
   const { data: categories = [], isLoading: categoriesLoading } = useProductCategories();
@@ -585,113 +608,149 @@ export default function PortfolioInsights() {
                       {hierarchicalLoading ? (
                         <div className="text-sm text-gray-500">Loading categories...</div>
                       ) : (
-                        categories.map(category => (
-                          <div key={`h-cat-${category.id}`} className="space-y-1">
-                            {/* Main Category */}
-                            <label className="flex items-center space-x-3 p-2 rounded hover:bg-white cursor-pointer group">
-                              <input
-                                type="checkbox"
-                                checked={selectedHorizontalProducts.includes(category.id.toString())}
-                                onChange={(e) => {
-                                  const categoryId = category.id.toString();
-                                  if (e.target.checked) {
-                                    setSelectedHorizontalProducts([...selectedHorizontalProducts, categoryId]);
-                                  } else {
-                                    setSelectedHorizontalProducts(selectedHorizontalProducts.filter(p => p !== categoryId));
-                                  }
-                                }}
-                                className="rounded"
-                              />
-                              <div 
-                                className="w-3 h-3 rounded-full flex-shrink-0" 
-                                style={{ backgroundColor: category.color }}
-                              />
-                              <div className="flex-1">
-                                <span className="text-sm font-semibold text-gray-900">{category.name}</span>
-                                <div className="text-xs text-gray-500">{category.child_count} subcategories</div>
-                              </div>
-                            </label>
-
-                            {/* Subcategories */}
-                            {category.subcategories && category.subcategories.map((sub: any) => (
-                              <div key={`h-sub-${sub.id}`} className="ml-6 space-y-1">
-                                <label className="flex items-center space-x-3 p-1.5 rounded hover:bg-white cursor-pointer group">
+                        categories.map(category => {
+                          const categoryId = category.id.toString();
+                          const isCategoryCollapsed = collapsedCategories.has(categoryId);
+                          
+                          return (
+                            <div key={`h-cat-${category.id}`} className="space-y-1">
+                              {/* Main Category */}
+                              <div className="flex items-center space-x-2 p-2 rounded hover:bg-white group">
+                                <button
+                                  onClick={() => toggleCategoryCollapse(categoryId)}
+                                  className="p-1 hover:bg-gray-200 rounded"
+                                >
+                                  {isCategoryCollapsed ? (
+                                    <ChevronRight className="h-3 w-3 text-gray-500" />
+                                  ) : (
+                                    <ChevronDown className="h-3 w-3 text-gray-500" />
+                                  )}
+                                </button>
+                                <label className="flex items-center space-x-3 flex-1 cursor-pointer">
                                   <input
                                     type="checkbox"
-                                    checked={selectedHorizontalProducts.includes(sub.id.toString())}
+                                    checked={selectedHorizontalProducts.includes(categoryId)}
                                     onChange={(e) => {
-                                      const subId = sub.id.toString();
                                       if (e.target.checked) {
-                                        setSelectedHorizontalProducts([...selectedHorizontalProducts, subId]);
+                                        setSelectedHorizontalProducts([...selectedHorizontalProducts, categoryId]);
                                       } else {
-                                        setSelectedHorizontalProducts(selectedHorizontalProducts.filter(p => p !== subId));
+                                        setSelectedHorizontalProducts(selectedHorizontalProducts.filter(p => p !== categoryId));
                                       }
                                     }}
                                     className="rounded"
                                   />
                                   <div 
-                                    className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
-                                    style={{ backgroundColor: sub.color || category.color }}
+                                    className="w-3 h-3 rounded-full flex-shrink-0" 
+                                    style={{ backgroundColor: category.color }}
                                   />
                                   <div className="flex-1">
-                                    <span className="text-sm font-medium text-gray-800">{sub.name}</span>
-                                    {sub.child_count > 0 && (
-                                      <div className="text-xs text-gray-500">{sub.child_count} sub-subcategories</div>
-                                    )}
+                                    <span className="text-sm font-semibold text-gray-900">{category.name}</span>
+                                    <div className="text-xs text-gray-500">{category.child_count} subcategories</div>
                                   </div>
                                 </label>
-
-                                {/* Sub-subcategories */}
-                                {sub.subSubcategories && sub.subSubcategories.map((subSub: any) => (
-                                  <label key={`h-subsub-${subSub.id}`} className="flex items-center space-x-3 p-1.5 rounded hover:bg-white cursor-pointer group ml-6">
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedHorizontalProducts.includes(subSub.id.toString())}
-                                      onChange={(e) => {
-                                        const subSubId = subSub.id.toString();
-                                        if (e.target.checked) {
-                                          setSelectedHorizontalProducts([...selectedHorizontalProducts, subSubId]);
-                                        } else {
-                                          setSelectedHorizontalProducts(selectedHorizontalProducts.filter(p => p !== subSubId));
-                                        }
-                                      }}
-                                      className="rounded"
-                                    />
-                                    <div 
-                                      className="w-2 h-2 rounded-full flex-shrink-0" 
-                                      style={{ backgroundColor: subSub.color || sub.color || category.color }}
-                                    />
-                                    <span className="text-sm text-gray-700">{subSub.name}</span>
-                                  </label>
-                                ))}
-
-                                {/* Products under subcategory */}
-                                {products.filter(p => p.category === sub.name).map((product: any) => (
-                                  <label key={`h-prod-${product.id}`} className="flex items-center space-x-3 p-1 rounded hover:bg-white cursor-pointer group ml-8">
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedHorizontalProducts.includes(`product-${product.id}`)}
-                                      onChange={(e) => {
-                                        const productId = `product-${product.id}`;
-                                        if (e.target.checked) {
-                                          setSelectedHorizontalProducts([...selectedHorizontalProducts, productId]);
-                                        } else {
-                                          setSelectedHorizontalProducts(selectedHorizontalProducts.filter(p => p !== productId));
-                                        }
-                                      }}
-                                      className="rounded"
-                                    />
-                                    <div className="w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0" />
-                                    <span className="text-xs text-gray-600">{product.name}</span>
-                                    {product.provider && (
-                                      <span className="text-xs text-gray-400">({product.provider})</span>
-                                    )}
-                                  </label>
-                                ))}
                               </div>
-                            ))}
-                          </div>
-                        ))
+
+                              {/* Subcategories */}
+                              {!isCategoryCollapsed && category.subcategories && category.subcategories.map((sub: any) => {
+                                const subId = sub.id.toString();
+                                const isSubCollapsed = collapsedSubcategories.has(subId);
+                                
+                                return (
+                                  <div key={`h-sub-${sub.id}`} className="ml-6 space-y-1">
+                                    <div className="flex items-center space-x-2 p-1.5 rounded hover:bg-white group">
+                                      <button
+                                        onClick={() => toggleSubcategoryCollapse(subId)}
+                                        className="p-1 hover:bg-gray-200 rounded"
+                                      >
+                                        {sub.child_count > 0 ? (
+                                          isSubCollapsed ? (
+                                            <ChevronRight className="h-3 w-3 text-gray-500" />
+                                          ) : (
+                                            <ChevronDown className="h-3 w-3 text-gray-500" />
+                                          )
+                                        ) : (
+                                          <div className="h-3 w-3" />
+                                        )}
+                                      </button>
+                                      <label className="flex items-center space-x-3 flex-1 cursor-pointer">
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedHorizontalProducts.includes(subId)}
+                                          onChange={(e) => {
+                                            if (e.target.checked) {
+                                              setSelectedHorizontalProducts([...selectedHorizontalProducts, subId]);
+                                            } else {
+                                              setSelectedHorizontalProducts(selectedHorizontalProducts.filter(p => p !== subId));
+                                            }
+                                          }}
+                                          className="rounded"
+                                        />
+                                        <div 
+                                          className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
+                                          style={{ backgroundColor: sub.color || category.color }}
+                                        />
+                                        <div className="flex-1">
+                                          <span className="text-sm font-medium text-gray-800">{sub.name}</span>
+                                          {sub.child_count > 0 && (
+                                            <div className="text-xs text-gray-500">{sub.child_count} sub-subcategories</div>
+                                          )}
+                                        </div>
+                                      </label>
+                                    </div>
+
+                                    {/* Sub-subcategories */}
+                                    {!isSubCollapsed && sub.subSubcategories && sub.subSubcategories.map((subSub: any) => (
+                                      <label key={`h-subsub-${subSub.id}`} className="flex items-center space-x-3 p-1.5 rounded hover:bg-white cursor-pointer group ml-6">
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedHorizontalProducts.includes(subSub.id.toString())}
+                                          onChange={(e) => {
+                                            const subSubId = subSub.id.toString();
+                                            if (e.target.checked) {
+                                              setSelectedHorizontalProducts([...selectedHorizontalProducts, subSubId]);
+                                            } else {
+                                              setSelectedHorizontalProducts(selectedHorizontalProducts.filter(p => p !== subSubId));
+                                            }
+                                          }}
+                                          className="rounded"
+                                        />
+                                        <div 
+                                          className="w-2 h-2 rounded-full flex-shrink-0" 
+                                          style={{ backgroundColor: subSub.color || sub.color || category.color }}
+                                        />
+                                        <span className="text-sm text-gray-700">{subSub.name}</span>
+                                      </label>
+                                    ))}
+
+                                    {/* Products under subcategory */}
+                                    {!isSubCollapsed && products.filter(p => p.category === sub.name).map((product: any) => (
+                                      <label key={`h-prod-${product.id}`} className="flex items-center space-x-3 p-1 rounded hover:bg-white cursor-pointer group ml-8">
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedHorizontalProducts.includes(`product-${product.id}`)}
+                                          onChange={(e) => {
+                                            const productId = `product-${product.id}`;
+                                            if (e.target.checked) {
+                                              setSelectedHorizontalProducts([...selectedHorizontalProducts, productId]);
+                                            } else {
+                                              setSelectedHorizontalProducts(selectedHorizontalProducts.filter(p => p !== productId));
+                                            }
+                                          }}
+                                          className="rounded"
+                                        />
+                                        <div className="w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0" />
+                                        <span className="text-xs text-gray-600">{product.name}</span>
+                                        {product.provider && (
+                                          <span className="text-xs text-gray-400">({product.provider})</span>
+                                        )}
+                                      </label>
+                                    ))}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })
                       )}
                     </div>
                   </div>
@@ -702,113 +761,149 @@ export default function PortfolioInsights() {
                       {hierarchicalLoading ? (
                         <div className="text-sm text-gray-500">Loading categories...</div>
                       ) : (
-                        categories.map(category => (
-                          <div key={`v-cat-${category.id}`} className="space-y-1">
-                            {/* Main Category */}
-                            <label className="flex items-center space-x-3 p-2 rounded hover:bg-white cursor-pointer group">
-                              <input
-                                type="checkbox"
-                                checked={selectedVerticalProducts.includes(category.id.toString())}
-                                onChange={(e) => {
-                                  const categoryId = category.id.toString();
-                                  if (e.target.checked) {
-                                    setSelectedVerticalProducts([...selectedVerticalProducts, categoryId]);
-                                  } else {
-                                    setSelectedVerticalProducts(selectedVerticalProducts.filter(p => p !== categoryId));
-                                  }
-                                }}
-                                className="rounded"
-                              />
-                              <div 
-                                className="w-3 h-3 rounded-full flex-shrink-0" 
-                                style={{ backgroundColor: category.color }}
-                              />
-                              <div className="flex-1">
-                                <span className="text-sm font-semibold text-gray-900">{category.name}</span>
-                                <div className="text-xs text-gray-500">{category.child_count} subcategories</div>
-                              </div>
-                            </label>
-
-                            {/* Subcategories */}
-                            {category.subcategories && category.subcategories.map((sub: any) => (
-                              <div key={`v-sub-${sub.id}`} className="ml-6 space-y-1">
-                                <label className="flex items-center space-x-3 p-1.5 rounded hover:bg-white cursor-pointer group">
+                        categories.map(category => {
+                          const categoryId = category.id.toString();
+                          const isCategoryCollapsed = collapsedCategories.has(categoryId);
+                          
+                          return (
+                            <div key={`v-cat-${category.id}`} className="space-y-1">
+                              {/* Main Category */}
+                              <div className="flex items-center space-x-2 p-2 rounded hover:bg-white group">
+                                <button
+                                  onClick={() => toggleCategoryCollapse(categoryId)}
+                                  className="p-1 hover:bg-gray-200 rounded"
+                                >
+                                  {isCategoryCollapsed ? (
+                                    <ChevronRight className="h-3 w-3 text-gray-500" />
+                                  ) : (
+                                    <ChevronDown className="h-3 w-3 text-gray-500" />
+                                  )}
+                                </button>
+                                <label className="flex items-center space-x-3 flex-1 cursor-pointer">
                                   <input
                                     type="checkbox"
-                                    checked={selectedVerticalProducts.includes(sub.id.toString())}
+                                    checked={selectedVerticalProducts.includes(categoryId)}
                                     onChange={(e) => {
-                                      const subId = sub.id.toString();
                                       if (e.target.checked) {
-                                        setSelectedVerticalProducts([...selectedVerticalProducts, subId]);
+                                        setSelectedVerticalProducts([...selectedVerticalProducts, categoryId]);
                                       } else {
-                                        setSelectedVerticalProducts(selectedVerticalProducts.filter(p => p !== subId));
+                                        setSelectedVerticalProducts(selectedVerticalProducts.filter(p => p !== categoryId));
                                       }
                                     }}
                                     className="rounded"
                                   />
                                   <div 
-                                    className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
-                                    style={{ backgroundColor: sub.color || category.color }}
+                                    className="w-3 h-3 rounded-full flex-shrink-0" 
+                                    style={{ backgroundColor: category.color }}
                                   />
                                   <div className="flex-1">
-                                    <span className="text-sm font-medium text-gray-800">{sub.name}</span>
-                                    {sub.child_count > 0 && (
-                                      <div className="text-xs text-gray-500">{sub.child_count} sub-subcategories</div>
-                                    )}
+                                    <span className="text-sm font-semibold text-gray-900">{category.name}</span>
+                                    <div className="text-xs text-gray-500">{category.child_count} subcategories</div>
                                   </div>
                                 </label>
-
-                                {/* Sub-subcategories */}
-                                {sub.subSubcategories && sub.subSubcategories.map((subSub: any) => (
-                                  <label key={`v-subsub-${subSub.id}`} className="flex items-center space-x-3 p-1.5 rounded hover:bg-white cursor-pointer group ml-6">
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedVerticalProducts.includes(subSub.id.toString())}
-                                      onChange={(e) => {
-                                        const subSubId = subSub.id.toString();
-                                        if (e.target.checked) {
-                                          setSelectedVerticalProducts([...selectedVerticalProducts, subSubId]);
-                                        } else {
-                                          setSelectedVerticalProducts(selectedVerticalProducts.filter(p => p !== subSubId));
-                                        }
-                                      }}
-                                      className="rounded"
-                                    />
-                                    <div 
-                                      className="w-2 h-2 rounded-full flex-shrink-0" 
-                                      style={{ backgroundColor: subSub.color || sub.color || category.color }}
-                                    />
-                                    <span className="text-sm text-gray-700">{subSub.name}</span>
-                                  </label>
-                                ))}
-
-                                {/* Products under subcategory */}
-                                {products.filter(p => p.category === sub.name).map((product: any) => (
-                                  <label key={`v-prod-${product.id}`} className="flex items-center space-x-3 p-1 rounded hover:bg-white cursor-pointer group ml-8">
-                                    <input
-                                      type="checkbox"
-                                      checked={selectedVerticalProducts.includes(`product-${product.id}`)}
-                                      onChange={(e) => {
-                                        const productId = `product-${product.id}`;
-                                        if (e.target.checked) {
-                                          setSelectedVerticalProducts([...selectedVerticalProducts, productId]);
-                                        } else {
-                                          setSelectedVerticalProducts(selectedVerticalProducts.filter(p => p !== productId));
-                                        }
-                                      }}
-                                      className="rounded"
-                                    />
-                                    <div className="w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0" />
-                                    <span className="text-xs text-gray-600">{product.name}</span>
-                                    {product.provider && (
-                                      <span className="text-xs text-gray-400">({product.provider})</span>
-                                    )}
-                                  </label>
-                                ))}
                               </div>
-                            ))}
-                          </div>
-                        ))
+
+                              {/* Subcategories */}
+                              {!isCategoryCollapsed && category.subcategories && category.subcategories.map((sub: any) => {
+                                const subId = sub.id.toString();
+                                const isSubCollapsed = collapsedSubcategories.has(subId);
+                                
+                                return (
+                                  <div key={`v-sub-${sub.id}`} className="ml-6 space-y-1">
+                                    <div className="flex items-center space-x-2 p-1.5 rounded hover:bg-white group">
+                                      <button
+                                        onClick={() => toggleSubcategoryCollapse(subId)}
+                                        className="p-1 hover:bg-gray-200 rounded"
+                                      >
+                                        {sub.child_count > 0 ? (
+                                          isSubCollapsed ? (
+                                            <ChevronRight className="h-3 w-3 text-gray-500" />
+                                          ) : (
+                                            <ChevronDown className="h-3 w-3 text-gray-500" />
+                                          )
+                                        ) : (
+                                          <div className="h-3 w-3" />
+                                        )}
+                                      </button>
+                                      <label className="flex items-center space-x-3 flex-1 cursor-pointer">
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedVerticalProducts.includes(subId)}
+                                          onChange={(e) => {
+                                            if (e.target.checked) {
+                                              setSelectedVerticalProducts([...selectedVerticalProducts, subId]);
+                                            } else {
+                                              setSelectedVerticalProducts(selectedVerticalProducts.filter(p => p !== subId));
+                                            }
+                                          }}
+                                          className="rounded"
+                                        />
+                                        <div 
+                                          className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
+                                          style={{ backgroundColor: sub.color || category.color }}
+                                        />
+                                        <div className="flex-1">
+                                          <span className="text-sm font-medium text-gray-800">{sub.name}</span>
+                                          {sub.child_count > 0 && (
+                                            <div className="text-xs text-gray-500">{sub.child_count} sub-subcategories</div>
+                                          )}
+                                        </div>
+                                      </label>
+                                    </div>
+
+                                    {/* Sub-subcategories */}
+                                    {!isSubCollapsed && sub.subSubcategories && sub.subSubcategories.map((subSub: any) => (
+                                      <label key={`v-subsub-${subSub.id}`} className="flex items-center space-x-3 p-1.5 rounded hover:bg-white cursor-pointer group ml-6">
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedVerticalProducts.includes(subSub.id.toString())}
+                                          onChange={(e) => {
+                                            const subSubId = subSub.id.toString();
+                                            if (e.target.checked) {
+                                              setSelectedVerticalProducts([...selectedVerticalProducts, subSubId]);
+                                            } else {
+                                              setSelectedVerticalProducts(selectedVerticalProducts.filter(p => p !== subSubId));
+                                            }
+                                          }}
+                                          className="rounded"
+                                        />
+                                        <div 
+                                          className="w-2 h-2 rounded-full flex-shrink-0" 
+                                          style={{ backgroundColor: subSub.color || sub.color || category.color }}
+                                        />
+                                        <span className="text-sm text-gray-700">{subSub.name}</span>
+                                      </label>
+                                    ))}
+
+                                    {/* Products under subcategory */}
+                                    {!isSubCollapsed && products.filter(p => p.category === sub.name).map((product: any) => (
+                                      <label key={`v-prod-${product.id}`} className="flex items-center space-x-3 p-1 rounded hover:bg-white cursor-pointer group ml-8">
+                                        <input
+                                          type="checkbox"
+                                          checked={selectedVerticalProducts.includes(`product-${product.id}`)}
+                                          onChange={(e) => {
+                                            const productId = `product-${product.id}`;
+                                            if (e.target.checked) {
+                                              setSelectedVerticalProducts([...selectedVerticalProducts, productId]);
+                                            } else {
+                                              setSelectedVerticalProducts(selectedVerticalProducts.filter(p => p !== productId));
+                                            }
+                                          }}
+                                          className="rounded"
+                                        />
+                                        <div className="w-1.5 h-1.5 rounded-full bg-gray-400 flex-shrink-0" />
+                                        <span className="text-xs text-gray-600">{product.name}</span>
+                                        {product.provider && (
+                                          <span className="text-xs text-gray-400">({product.provider})</span>
+                                        )}
+                                      </label>
+                                    ))}
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          );
+                        })
                       )}
                     </div>
                   </div>
