@@ -434,12 +434,26 @@ export function CategoryManagerForProducts() {
         status: 'active'
       });
 
+      // Update local state to reflect color change immediately
+      setCategories(prev => prev.map(cat => ({
+        ...cat,
+        subcategories: cat.subcategories.map(sub => ({
+          ...sub,
+          subSubcategories: sub.subSubcategories?.map(subSub => 
+            subSub.id === editingSubSubcategory 
+              ? { ...subSub, name: editingSubSubcategoryName.trim(), color: editingSubSubcategoryColor }
+              : subSub
+          )
+        }))
+      })));
+
       setEditingSubSubcategory(null);
       setEditingSubSubcategoryName('');
+      setEditingSubSubcategoryColor('#9ca3af');
 
       toast({
         title: "Sub-subcategory updated",
-        description: "Sub-subcategory name has been updated",
+        description: "Sub-subcategory name and color have been updated",
       });
     } catch (error) {
       toast({
