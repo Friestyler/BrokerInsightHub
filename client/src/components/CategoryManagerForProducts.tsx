@@ -41,6 +41,8 @@ export function CategoryManagerForProducts() {
   const [newSubcategoryName, setNewSubcategoryName] = useState('');
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [editingCategoryName, setEditingCategoryName] = useState('');
+  const [editingSubcategory, setEditingSubcategory] = useState<string | null>(null);
+  const [editingSubcategoryName, setEditingSubcategoryName] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -297,6 +299,59 @@ export function CategoryManagerForProducts() {
     }
   };
 
+  // Subcategory editing functions
+  const startEditingSubcategory = (subcategoryId: string, subcategoryName: string) => {
+    setEditingSubcategory(subcategoryId);
+    setEditingSubcategoryName(subcategoryName);
+  };
+
+  const saveEditSubcategory = async () => {
+    if (!editingSubcategory || !editingSubcategoryName.trim()) return;
+
+    try {
+      await updateCategoryMutation.mutateAsync({
+        id: editingSubcategory,
+        name: editingSubcategoryName.trim()
+      });
+
+      setEditingSubcategory(null);
+      setEditingSubcategoryName('');
+
+      toast({
+        title: "Subcategory updated",
+        description: "Subcategory name has been updated",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update subcategory",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const cancelEditSubcategory = () => {
+    setEditingSubcategory(null);
+    setEditingSubcategoryName('');
+  };
+
+  const deleteSubcategory = async (subcategoryId: string) => {
+    try {
+      await deleteCategoryMutation.mutateAsync(subcategoryId);
+
+      toast({
+        title: "Subcategory deleted",
+        description: "Subcategory has been removed",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete subcategory",
+        variant: "destructive"
+      });
+    }
+  };
+
   const selectedCategory = categories.find(cat => cat.id === selectedCategoryId);
 
   if (isLoading) {
@@ -459,13 +514,57 @@ export function CategoryManagerForProducts() {
                         <div className="mt-3 pl-4 border-l-2 border-gray-100">
                           <div className="flex flex-wrap gap-2">
                             {category.subcategories.map((sub) => (
-                              <Badge
+                              <div
                                 key={sub.id}
-                                variant="outline"
-                                className="text-xs bg-gray-50"
+                                className="flex items-center gap-1 bg-gray-50 border border-gray-200 rounded-md px-2 py-1"
                               >
-                                {sub.name}
-                              </Badge>
+                                {editingSubcategory === sub.id ? (
+                                  <div className="flex items-center gap-1">
+                                    <input
+                                      type="text"
+                                      value={editingSubcategoryName}
+                                      onChange={(e) => setEditingSubcategoryName(e.target.value)}
+                                      className="text-xs border border-gray-300 rounded px-1 py-0.5 w-20"
+                                      autoFocus
+                                    />
+                                    <button
+                                      onClick={saveEditSubcategory}
+                                      className="text-green-600 hover:text-green-700"
+                                    >
+                                      <Check className="h-3 w-3" />
+                                    </button>
+                                    <button
+                                      onClick={cancelEditSubcategory}
+                                      className="text-gray-400 hover:text-gray-600"
+                                    >
+                                      <X className="h-3 w-3" />
+                                    </button>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-xs text-gray-700">{sub.name}</span>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        startEditingSubcategory(sub.id, sub.name);
+                                      }}
+                                      className="text-gray-400 hover:text-gray-600"
+                                    >
+                                      <Edit2 className="h-3 w-3" />
+                                    </button>
+                                    <button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        deleteSubcategory(sub.id);
+                                      }}
+                                      className="text-red-400 hover:text-red-600"
+                                      disabled={deleteCategoryMutation.isPending}
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
                             ))}
                           </div>
                         </div>
