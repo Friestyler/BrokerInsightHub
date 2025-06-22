@@ -362,7 +362,9 @@ export default function ProductsPage() {
                         <TableHead>Total Value</TableHead>
                         <TableHead>Premium</TableHead>
                         <TableHead>Discount</TableHead>
-                        <TableHead>Relationships</TableHead>
+                        <TableHead>Customers</TableHead>
+                        <TableHead>Partners</TableHead>
+                        <TableHead>Opportunities</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -410,24 +412,20 @@ export default function ProductsPage() {
                               ) : "—"}
                             </div>
                           </TableCell>
-                          <TableCell>
-                            <div className="flex flex-wrap gap-2 text-sm">
-                              <div className="flex items-center">
-                                <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
-                                  {(product as any).customercount || product.customerCount || 0} Customers
-                                </span>
-                              </div>
-                              <div className="flex items-center">
-                                <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded">
-                                  {(product as any).partnercount || product.partnerCount || 0} Partners
-                                </span>
-                              </div>
-                              <div className="flex items-center">
-                                <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded">
-                                  {(product as any).opportunitycount || product.opportunityCount || 0} Opportunities
-                                </span>
-                              </div>
-                            </div>
+                          <TableCell className="text-center">
+                            <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
+                              {(product as any).customercount || product.customerCount || 0}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded">
+                              {(product as any).partnercount || product.partnerCount || 0}
+                            </span>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded">
+                              {(product as any).opportunitycount || product.opportunityCount || 0}
+                            </span>
                           </TableCell>
                         </TableRow>
                       ))}
