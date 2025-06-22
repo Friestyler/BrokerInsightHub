@@ -13,7 +13,6 @@ import ProcessingStep from './ProcessingStep';
 import TransformationStep from './TransformationStep';
 import ProductMappingStep from './ProductMappingStep';
 import ProductAssignmentStep from './ProductAssignmentStep';
-import { UnifiedCategoryManager } from '@/components/shared/UnifiedCategoryManager';
 
 interface UploadProcessProps {
   entityType?: string;
@@ -120,14 +119,14 @@ export default function UploadProcessPage() {
     errors: any[];
   } | null>(null);
   const [productCategories, setProductCategories] = useState<Array<{
-    id: number;
+    id: string;
     name: string;
-    description?: string;
-    parentId?: number | null;
-    status: 'active' | 'inactive';
-    children?: any[];
-    createdAt: string;
-    updatedAt: string;
+    color: string;
+    subcategories: Array<{
+      id: string;
+      name: string;
+      categoryId: string;
+    }>;
   }>>([]);
   const [productMappings, setProductMappings] = useState<Record<string, {
     targetId: string;
@@ -341,14 +340,13 @@ export default function UploadProcessPage() {
 
           {/* Product Categories Step (Entity Upload Only) - Step 1 */}
           {currentStep === 1 && isEntityUpload && (
-            <UnifiedCategoryManager
-              mode="selection"
-              onCategorySelect={(categories: any[]) => {
+            <ProductMappingStep
+              onNext={(categories) => {
                 setProductCategories(categories);
                 goToNextStep();
               }}
-              selectedCategories={productCategories as any[]}
-              showActions={false}
+              onBack={() => {}}
+              initialCategories={productCategories}
             />
           )}
 
