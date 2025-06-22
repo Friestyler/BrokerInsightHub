@@ -1109,21 +1109,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/okr-metrics', async (req, res) => {
     try {
       const { templateId, tags } = req.query;
-      let query = db.select().from(okrMetrics);
+      let sqlQuery = 'SELECT * FROM qollabi.okr_metrics';
+      let params: any[] = [];
+      let conditions: string[] = [];
       
       if (templateId) {
-        query = query.where(eq(okrMetrics.templateId, parseInt(templateId as string)));
+        conditions.push('template_id = $' + (params.length + 1));
+        params.push(parseInt(templateId as string));
       }
       
       if (tags && typeof tags === 'string') {
         const tagArray = tags.split(',');
-        // Filter by single tag field using OR conditions
-        const tagConditions = tagArray.map(tag => eq(okrMetrics.tag, tag));
-        query = query.where(or(...tagConditions));
+        const tagConditions = tagArray.map((_, index) => `tag = $${params.length + index + 1}`);
+        conditions.push(`(${tagConditions.join(' OR ')})`);
+        params.push(...tagArray);
       }
       
-      const metrics = await query;
-      res.json(metrics);
+      if (conditions.length > 0) {
+        sqlQuery += ' WHERE ' + conditions.join(' AND ');
+      }
+      
+      sqlQuery += ' ORDER BY id';
+      
+      const result = await pool.query(sqlQuery, params);
+      res.json(result.rows);
     } catch (error) {
       console.error('Error fetching OKR metrics:', error);
       res.status(500).json({ error: 'Failed to fetch OKR metrics' });

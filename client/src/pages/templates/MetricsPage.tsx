@@ -206,7 +206,7 @@ export default function MetricsPage() {
 
   // Fetch OKR metrics from the database
   const { data: okrMetrics = [], isLoading: isLoadingMetrics, error: metricsError } = useQuery({
-    queryKey: ['/api/okr-metrics', 'with-activities'],
+    queryKey: ['/api/okr-metrics/with-activities'],
     enabled: true
   });
 
