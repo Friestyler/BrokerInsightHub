@@ -588,8 +588,8 @@ export default function AttributeMappingStep({
                             ...csvHeaders
                               .filter(header => header && header.trim().length > 0)
                               .map(header => ({
-                                value: header,
-                                label: header
+                                value: header.trim(),
+                                label: header.trim()
                               }))
                           ]}
                           className="bg-transparent border-0 shadow-none"

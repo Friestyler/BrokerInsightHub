@@ -205,7 +205,7 @@ function CategoryForm({ category, categories, onClose, onSave }: CategoryFormPro
             <SelectValue placeholder="Select parent category (optional)" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">No Parent (Root Category)</SelectItem>
+            <SelectItem value="root">No Parent (Root Category)</SelectItem>
             {availableParents.map((cat) => (
               <SelectItem key={cat.id} value={cat.id.toString()}>
                 {cat.name}
