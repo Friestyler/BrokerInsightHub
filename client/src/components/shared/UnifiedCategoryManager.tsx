@@ -243,7 +243,7 @@ export function UnifiedCategoryManager({
     return result;
   };
 
-  const hierarchicalCategories = buildCategoryTree(categories);
+  const hierarchicalCategories = buildCategoryTree(categories as any[]);
   const flatCategories = getFlatCategories(hierarchicalCategories);
 
   // Category tree component
