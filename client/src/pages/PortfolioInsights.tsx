@@ -302,8 +302,8 @@ function DashboardSection() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Product Analyse Dashboard</h1>
-          <p className="text-gray-600 mt-1">Cross- en upsell kansen in uw klantenportefeuille</p>
+          <h1 className="text-2xl font-bold text-gray-900">Product Analysis Dashboard</h1>
+          <p className="text-gray-600 mt-1">Cross-sell and upsell opportunities in your customer portfolio</p>
         </div>
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="sm">
@@ -312,7 +312,7 @@ function DashboardSection() {
           </Button>
           <Button variant="outline" size="sm">
             <Settings className="h-4 w-4 mr-1" />
-            Instellingen
+            Settings
           </Button>
         </div>
       </div>
@@ -321,7 +321,7 @@ function DashboardSection() {
       <div className="flex items-center space-x-4 bg-gray-50 p-4 rounded-lg">
         <div className="flex-1">
           <Input
-            placeholder="Zoek productcategorieën..."
+            placeholder="Search product categories..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="max-w-xs"
@@ -334,7 +334,7 @@ function DashboardSection() {
           <SelectContent>
             <SelectItem value="all">
               <div className="flex items-center space-x-2">
-                <span>✓ Alle producten</span>
+                <span>✓ All products</span>
               </div>
             </SelectItem>
             {productCategories.map(category => {
@@ -408,7 +408,7 @@ function DashboardSection() {
         </Select>
         <Button variant="outline" size="sm" onClick={() => setShowMoreFilters(!showMoreFilters)}>
           <Filter className="h-4 w-4 mr-1" />
-          Meer filters
+          More filters
         </Button>
       </div>
 
@@ -418,9 +418,9 @@ function DashboardSection() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Totaal Klanten</p>
+                <p className="text-sm font-medium text-gray-600">Total Customers</p>
                 <p className="text-2xl font-bold text-gray-900">{totalCustomers.toLocaleString()}</p>
-                <p className="text-xs text-green-600 mt-1">+12% vs vorige maand</p>
+                <p className="text-xs text-green-600 mt-1">+12% vs previous month</p>
               </div>
               <Users className="h-8 w-8 text-blue-500" />
             </div>
@@ -431,9 +431,9 @@ function DashboardSection() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Cross-sell Potentieel</p>
+                <p className="text-sm font-medium text-gray-600">Cross-sell Potential</p>
                 <p className="text-2xl font-bold text-gray-900">{crossSellPotential.toLocaleString()}</p>
-                <p className="text-xs text-gray-500 mt-1">Geschatte kansen</p>
+                <p className="text-xs text-gray-500 mt-1">Estimated opportunities</p>
               </div>
               <Target className="h-8 w-8 text-purple-500" />
             </div>
@@ -444,9 +444,9 @@ function DashboardSection() {
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Potentiële Waarde</p>
+                <p className="text-sm font-medium text-gray-600">Potential Value</p>
                 <p className="text-2xl font-bold text-gray-900">€{(potentialValue / 1000000).toFixed(1)}M</p>
-                <p className="text-xs text-gray-500 mt-1">Jaarlijkse premie potentieel</p>
+                <p className="text-xs text-gray-500 mt-1">Annual premium potential</p>
               </div>
               <DollarSign className="h-8 w-8 text-green-500" />
             </div>
