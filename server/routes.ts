@@ -4398,7 +4398,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
                 
                 if (result.rows.length === 0) {
                   await envPool.query(
-                    `INSERT INTO degoudse.vendors (name, description, created_at, updated_at)
+                    `INSERT INTO degoudse.vendors (name, description, "createdAt", "updatedAt")
                      VALUES ($1, $2, NOW(), NOW())`,
                     [cellValue, `Vendor created from ${fileName}`]
                   );
