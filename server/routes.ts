@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { opportunities, clients, insuranceProducts, tags, insertTagSchema, okrTemplates, okrMetrics, insertOkrTemplateSchema, insertOkrMetricSchema } from '@shared/schema';
 import { eq, inArray } from 'drizzle-orm';
-import { db } from './db';
+import { db, pool } from './db';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -1144,13 +1144,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/okr-metrics/:id', async (req, res) => {
     try {
       const metricId = parseInt(req.params.id);
-      const [metric] = await db.select().from(okrMetrics).where(eq(okrMetrics.id, metricId));
+      const result = await pool.query('SELECT * FROM qollabi.okr_metrics WHERE id = $1', [metricId]);
       
-      if (!metric) {
+      if (result.rows.length === 0) {
         return res.status(404).json({ error: 'OKR metric not found' });
       }
       
-      res.json(metric);
+      res.json(result.rows[0]);
     } catch (error) {
       console.error('Error fetching OKR metric:', error);
       res.status(500).json({ error: 'Failed to fetch OKR metric' });
@@ -1202,7 +1202,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get OKR metrics with their activities (nested structure)
   app.get('/api/okr-metrics/with-activities', async (req, res) => {
     try {
-      const allMetrics = await db.select().from(okrMetrics);
+      // Use raw SQL to avoid Drizzle schema mismatch issues
+      const result = await pool.query('SELECT * FROM qollabi.okr_metrics ORDER BY id');
+      const allMetrics = result.rows;
       
       // Organize metrics into parent-child relationships
       const metricsMap = new Map();
@@ -1215,8 +1217,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Second pass: organize parent-child relationships
       allMetrics.forEach(metric => {
-        if (metric.parentId) {
-          const parent = metricsMap.get(metric.parentId);
+        if (metric.parent_id) {
+          const parent = metricsMap.get(metric.parent_id);
           if (parent) {
             parent.activities.push(metricsMap.get(metric.id));
           }
