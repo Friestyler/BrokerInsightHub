@@ -1,8 +1,8 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { opportunities, clients, insuranceProducts, tags, insertTagSchema } from '@shared/schema';
-import { eq } from 'drizzle-orm';
+import { opportunities, clients, insuranceProducts, tags, insertTagSchema, okrTemplates, okrMetrics, insertOkrTemplateSchema, insertOkrMetricSchema } from '@shared/schema';
+import { eq, inArray } from 'drizzle-orm';
 import { db } from './db';
 import multer from 'multer';
 import path from 'path';
@@ -1064,6 +1064,170 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error bulk updating opportunity status:', error);
       res.status(500).json({ message: 'Failed to update opportunity status' });
+    }
+  });
+
+  // OKR Templates API endpoints
+  app.get('/api/okr-templates', async (req, res) => {
+    try {
+      const templates = await db.select().from(okrTemplates);
+      res.json(templates);
+    } catch (error) {
+      console.error('Error fetching OKR templates:', error);
+      res.status(500).json({ error: 'Failed to fetch OKR templates' });
+    }
+  });
+
+  app.post('/api/okr-templates', async (req, res) => {
+    try {
+      const templateData = insertOkrTemplateSchema.parse(req.body);
+      const [newTemplate] = await db.insert(okrTemplates).values(templateData).returning();
+      res.json(newTemplate);
+    } catch (error) {
+      console.error('Error creating OKR template:', error);
+      res.status(500).json({ error: 'Failed to create OKR template' });
+    }
+  });
+
+  app.get('/api/okr-templates/:id', async (req, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      const [template] = await db.select().from(okrTemplates).where(eq(okrTemplates.id, templateId));
+      
+      if (!template) {
+        return res.status(404).json({ error: 'OKR template not found' });
+      }
+      
+      res.json(template);
+    } catch (error) {
+      console.error('Error fetching OKR template:', error);
+      res.status(500).json({ error: 'Failed to fetch OKR template' });
+    }
+  });
+
+  // OKR Metrics API endpoints
+  app.get('/api/okr-metrics', async (req, res) => {
+    try {
+      const { templateId, tags } = req.query;
+      let query = db.select().from(okrMetrics);
+      
+      if (templateId) {
+        query = query.where(eq(okrMetrics.templateId, parseInt(templateId as string)));
+      }
+      
+      if (tags && typeof tags === 'string') {
+        const tagArray = tags.split(',');
+        // Filter by tags using array overlap
+        query = query.where(inArray(okrMetrics.tag, tagArray));
+      }
+      
+      const metrics = await query;
+      res.json(metrics);
+    } catch (error) {
+      console.error('Error fetching OKR metrics:', error);
+      res.status(500).json({ error: 'Failed to fetch OKR metrics' });
+    }
+  });
+
+  app.post('/api/okr-metrics', async (req, res) => {
+    try {
+      const metricData = insertOkrMetricSchema.parse(req.body);
+      const [newMetric] = await db.insert(okrMetrics).values(metricData).returning();
+      res.json(newMetric);
+    } catch (error) {
+      console.error('Error creating OKR metric:', error);
+      res.status(500).json({ error: 'Failed to create OKR metric' });
+    }
+  });
+
+  app.get('/api/okr-metrics/:id', async (req, res) => {
+    try {
+      const metricId = parseInt(req.params.id);
+      const [metric] = await db.select().from(okrMetrics).where(eq(okrMetrics.id, metricId));
+      
+      if (!metric) {
+        return res.status(404).json({ error: 'OKR metric not found' });
+      }
+      
+      res.json(metric);
+    } catch (error) {
+      console.error('Error fetching OKR metric:', error);
+      res.status(500).json({ error: 'Failed to fetch OKR metric' });
+    }
+  });
+
+  app.put('/api/okr-metrics/:id', async (req, res) => {
+    try {
+      const metricId = parseInt(req.params.id);
+      const metricData = insertOkrMetricSchema.partial().parse(req.body);
+      
+      const [updatedMetric] = await db
+        .update(okrMetrics)
+        .set({ ...metricData, updatedAt: new Date() })
+        .where(eq(okrMetrics.id, metricId))
+        .returning();
+      
+      if (!updatedMetric) {
+        return res.status(404).json({ error: 'OKR metric not found' });
+      }
+      
+      res.json(updatedMetric);
+    } catch (error) {
+      console.error('Error updating OKR metric:', error);
+      res.status(500).json({ error: 'Failed to update OKR metric' });
+    }
+  });
+
+  app.delete('/api/okr-metrics/:id', async (req, res) => {
+    try {
+      const metricId = parseInt(req.params.id);
+      
+      const [deletedMetric] = await db
+        .delete(okrMetrics)
+        .where(eq(okrMetrics.id, metricId))
+        .returning();
+      
+      if (!deletedMetric) {
+        return res.status(404).json({ error: 'OKR metric not found' });
+      }
+      
+      res.json({ success: true, message: 'OKR metric deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting OKR metric:', error);
+      res.status(500).json({ error: 'Failed to delete OKR metric' });
+    }
+  });
+
+  // Get OKR metrics with their activities (nested structure)
+  app.get('/api/okr-metrics/with-activities', async (req, res) => {
+    try {
+      const allMetrics = await db.select().from(okrMetrics);
+      
+      // Organize metrics into parent-child relationships
+      const metricsMap = new Map();
+      const rootMetrics = [];
+      
+      // First pass: create map of all metrics
+      allMetrics.forEach(metric => {
+        metricsMap.set(metric.id, { ...metric, activities: [] });
+      });
+      
+      // Second pass: organize parent-child relationships
+      allMetrics.forEach(metric => {
+        if (metric.parentId) {
+          const parent = metricsMap.get(metric.parentId);
+          if (parent) {
+            parent.activities.push(metricsMap.get(metric.id));
+          }
+        } else {
+          rootMetrics.push(metricsMap.get(metric.id));
+        }
+      });
+      
+      res.json(rootMetrics);
+    } catch (error) {
+      console.error('Error fetching OKR metrics with activities:', error);
+      res.status(500).json({ error: 'Failed to fetch OKR metrics with activities' });
     }
   });
 

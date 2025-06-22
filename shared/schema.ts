@@ -370,7 +370,7 @@ export const okrMetrics = pgTable("okr_metrics", {
   templateId: integer("template_id").references(() => okrTemplates.id),
   targetValue: integer("target_value"),
   realizedValue: integer("realized_value"),
-  unit: text("unit").default("number"), // currency, number, percentage, boolean
+  unit: text("unit").default("number"), // currency, number, percent, checkbox
   progress: integer("progress"),
   status: text("status").default("on_track"), // on_track, at_risk, off_track
   responsibleId: integer("responsible_id").references(() => users.id),
@@ -380,6 +380,16 @@ export const okrMetrics = pgTable("okr_metrics", {
   parentId: integer("parent_id"),
   hierarchy: text("hierarchy").default("activity"), // objective, activity, subactivity
   tags: text("tags").array().default([]),
+  // Additional fields from the frontend
+  type: text("type").default("number"), // currency, number, percent, checkbox
+  target: integer("target"),
+  tag: text("tag"), // Single tag for display
+  milestoneFrequency: text("milestone_frequency"), // Monthly, Weekly, Quarterly
+  isExpanded: boolean("is_expanded").default(false),
+  nestedCount: integer("nested_count").default(0),
+  trafficLights: boolean("traffic_lights").default(false),
+  trafficLightStyle: text("traffic_light_style").default("system"), // system, manual, custom, disabled
+  progressBar: boolean("progress_bar").default(true),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });
@@ -425,6 +435,15 @@ export const insertOkrMetricSchema = createInsertSchema(okrMetrics).pick({
   parentId: true,
   hierarchy: true,
   tags: true,
+  type: true,
+  target: true,
+  tag: true,
+  milestoneFrequency: true,
+  isExpanded: true,
+  nestedCount: true,
+  trafficLights: true,
+  trafficLightStyle: true,
+  progressBar: true,
 });
 
 export type InsertOkrTemplate = z.infer<typeof insertOkrTemplateSchema>;
