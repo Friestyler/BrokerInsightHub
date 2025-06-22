@@ -2964,29 +2964,36 @@ Keep the tone clear and professional. Focus on what will help the account manage
       const result = await envPool.query(`
         SELECT 
           p.id,
+          p.id as productId,
           p.name,
           p.description,
-          p.category,
+          COALESCE(pc.name, p.category) as category,
+          pc.id as categoryId,
           pc.name as category_name,
           parent.name as parent_category_name,
           pc.color as category_color,
-          p.provider,
-          p.contract_start_date,
-          p.contract_end_date,
-          p.total_value,
-          p.premium_value,
-          p.premium_percentage,
-          p.discount_percentage,
-          p.linked_customer_id,
-          p.linked_opportunity_id,
-          p.linked_partner_id,
+          p.provider as providerName,
+          p.provider as providerType,
+          p.contract_start_date as contractStartDate,
+          p.contract_end_date as contractEndDate,
+          p.total_value as totalValue,
+          p.premium_value as premiumValue,
+          p.premium_percentage as premiumPercentage,
+          p.discount_percentage as discount,
+          p.discount_percentage as discountPercentage,
+          p.linked_customer_id as customerId,
+          p.linked_opportunity_id as opportunityId,
+          p.linked_partner_id as partnerId,
           p.linked_vendor,
           cust.name as customer_name,
           part.name as partner_name,
-          p.created_at,
-          p.updated_at
+          null as sku,
+          null as price,
+          null as vendorId,
+          p.created_at as createdAt,
+          p.updated_at as updatedAt
         FROM degoudse.insurance_products p
-        LEFT JOIN degoudse.product_categories pc ON p.category = pc.id::text
+        LEFT JOIN degoudse.product_categories pc ON p.category::integer = pc.id
         LEFT JOIN degoudse.product_categories parent ON pc.parent_id = parent.id
         LEFT JOIN degoudse.customers cust ON p.linked_customer_id = cust.id
         LEFT JOIN degoudse.partners part ON p.linked_partner_id = part.id
