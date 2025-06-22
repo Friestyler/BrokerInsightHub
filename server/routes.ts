@@ -5615,7 +5615,7 @@ Respond with a JSON object containing:
         SET name = $1, description = $2, parent_id = $3, status = $4, updated_at = NOW()
         WHERE id = $5
         RETURNING *
-      `, [validatedData.name, validatedData.description, validatedData.parentId, validatedData.status, categoryId]);
+      `, [validatedData.name, validatedData.description, validatedData.parentId, validatedData.status || 'active', categoryId]);
       
       if (result.rows.length === 0) {
         return res.status(404).json({ error: 'Product category not found' });
@@ -5641,7 +5641,7 @@ Respond with a JSON object containing:
       // Check if category has products or children
       const checkResult = await envPool.query(`
         SELECT 
-          (SELECT COUNT(*) FROM ${envId}.products WHERE category_id = $1) as product_count,
+          (SELECT COUNT(*) FROM ${envId}.products WHERE category = $1) as product_count,
           (SELECT COUNT(*) FROM ${envId}.product_categories WHERE parent_id = $1) as child_count
       `, [categoryId]);
       
