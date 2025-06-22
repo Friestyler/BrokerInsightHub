@@ -93,10 +93,7 @@ export function CategoryManagerForProducts() {
   // Create category mutation
   const createCategoryMutation = useMutation({
     mutationFn: async (categoryData: { name: string; parentId?: number }) => {
-      return apiRequest('/api/product-categories', {
-        method: 'POST',
-        body: JSON.stringify(categoryData)
-      });
+      return apiRequest('/api/product-categories', 'POST', categoryData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/product-categories'] });
@@ -106,10 +103,7 @@ export function CategoryManagerForProducts() {
   // Update category mutation
   const updateCategoryMutation = useMutation({
     mutationFn: async ({ id, name }: { id: string; name: string }) => {
-      return apiRequest(`/api/product-categories/${id}`, {
-        method: 'PUT',
-        body: JSON.stringify({ name })
-      });
+      return apiRequest(`/api/product-categories/${id}`, 'PUT', { name });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/product-categories'] });
@@ -119,9 +113,7 @@ export function CategoryManagerForProducts() {
   // Delete category mutation
   const deleteCategoryMutation = useMutation({
     mutationFn: async (id: string) => {
-      return apiRequest(`/api/product-categories/${id}`, {
-        method: 'DELETE'
-      });
+      return apiRequest(`/api/product-categories/${id}`, 'DELETE');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/product-categories'] });

@@ -5524,10 +5524,10 @@ Respond with a JSON object containing:
           c.*,
           p.name as parent_name,
           (SELECT COUNT(*) FROM ${envId}.products WHERE category = c.name) as product_count,
-          (SELECT COUNT(*) FROM ${envId}.product_categories WHERE "parentId" = c.id) as child_count
+          (SELECT COUNT(*) FROM ${envId}.product_categories WHERE parent_id = c.id) as child_count
         FROM ${envId}.product_categories c
-        LEFT JOIN ${envId}.product_categories p ON c."parentId" = p.id
-        ORDER BY c."parentId" NULLS FIRST, c.name
+        LEFT JOIN ${envId}.product_categories p ON c.parent_id = p.id
+        ORDER BY c.parent_id NULLS FIRST, c.name
       `);
       
       // Build hierarchical structure

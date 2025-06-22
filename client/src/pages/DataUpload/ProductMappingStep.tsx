@@ -5,6 +5,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Plus, ChevronRight, ArrowLeft } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 
 interface Category {
   id: string;
@@ -44,9 +46,63 @@ export default function ProductMappingStep({ onNext, onBack, initialCategories =
   const [newCategoryName, setNewCategoryName] = useState('');
   const [newSubcategoryName, setNewSubcategoryName] = useState('');
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   const categoryInputRef = useRef<HTMLInputElement>(null);
   const subcategoryInputRef = useRef<HTMLInputElement>(null);
+
+  // Load categories from database
+  const { data: dbCategories, isLoading } = useQuery({
+    queryKey: ['/api/product-categories'],
+    select: (data: any[]) => {
+      if (!data || !Array.isArray(data)) return [];
+      
+      // Transform database categories to local format
+      const categoryMap = new Map<string, Category>();
+      
+      data.forEach((dbCat: any) => {
+        if (!dbCat.parentId) {
+          // This is a main category
+          if (!categoryMap.has(dbCat.id.toString())) {
+            categoryMap.set(dbCat.id.toString(), {
+              id: dbCat.id.toString(),
+              name: dbCat.name,
+              color: COLORS[categoryMap.size % COLORS.length],
+              subcategories: []
+            });
+          }
+        } else {
+          // This is a subcategory
+          const parentId = dbCat.parentId.toString();
+          if (categoryMap.has(parentId)) {
+            categoryMap.get(parentId)!.subcategories.push({
+              id: dbCat.id.toString(),
+              name: dbCat.name,
+              categoryId: parentId
+            });
+          }
+        }
+      });
+      
+      return Array.from(categoryMap.values());
+    }
+  });
+
+  useEffect(() => {
+    if (dbCategories) {
+      setCategories(dbCategories);
+    }
+  }, [dbCategories]);
+
+  // Create category mutation
+  const createCategoryMutation = useMutation({
+    mutationFn: async (categoryData: { name: string; parentId?: number }) => {
+      return apiRequest('/api/product-categories', 'POST', categoryData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/product-categories'] });
+    }
+  });
 
   const getNextColor = () => {
     return COLORS[categories.length % COLORS.length];
@@ -56,24 +112,38 @@ export default function ProductMappingStep({ onNext, onBack, initialCategories =
     return Date.now().toString() + Math.random().toString(36).substr(2, 9);
   };
 
-  const addCategory = () => {
+  const addCategory = async () => {
     if (!newCategoryName.trim()) return;
 
-    const newCategory: Category = {
-      id: generateId(),
-      name: newCategoryName.trim(),
-      color: getNextColor(),
-      subcategories: []
-    };
+    try {
+      // Create in database
+      await createCategoryMutation.mutateAsync({
+        name: newCategoryName.trim()
+      });
 
-    setCategories(prev => [...prev, newCategory]);
-    setNewCategoryName('');
-    setSelectedCategoryId(newCategory.id);
-    
-    toast({
-      title: "Category created",
-      description: `"${newCategory.name}" has been added`,
-    });
+      // Update local state immediately for better UX
+      const newCategory: Category = {
+        id: generateId(),
+        name: newCategoryName.trim(),
+        color: getNextColor(),
+        subcategories: []
+      };
+
+      setCategories(prev => [...prev, newCategory]);
+      setNewCategoryName('');
+      setSelectedCategoryId(newCategory.id);
+      
+      toast({
+        title: "Category created",
+        description: `"${newCategory.name}" has been added`,
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create category",
+        variant: "destructive"
+      });
+    }
   };
 
   const addSubcategory = () => {
