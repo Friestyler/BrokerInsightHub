@@ -10,15 +10,76 @@ import { Progress } from "@/components/ui/progress";
 import { BarChart3, Search, Settings, Target, X, Star, Send, Users, List, DollarSign, TrendingUp, Download, Filter, Eye } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
-// Mock data based on typical insurance cross-sell scenarios
-const insuranceProducts = [
-  { id: 'auto', name: 'Auto', category: 'Property' },
-  { id: 'home', name: 'Woon', category: 'Property' },
-  { id: 'life', name: 'Term Leven', category: 'Life' },
-  { id: 'pension', name: 'Pensioen', category: 'Life' },
-  { id: 'health', name: 'Gezondheid', category: 'Health' },
-  { id: 'business', name: 'Bedrijf', category: 'Commercial' }
-];
+// Fetch authentic product categories from database
+const useProductCategories = () => {
+  return useQuery({
+    queryKey: ['/api/product-categories'],
+    select: (data: any[]) => {
+      // Transform hierarchical data into flattened product list for matrix
+      const allProducts: any[] = [];
+      
+      data.filter(item => !item.parent_id).forEach(category => {
+        // Add main category products
+        if (category.product_count > 0) {
+          allProducts.push({
+            id: category.id.toString(),
+            name: category.name,
+            category: category.name,
+            color: category.color,
+            type: 'category'
+          });
+        }
+        
+        // Add subcategory products
+        if (category.subcategories) {
+          category.subcategories.forEach((sub: any) => {
+            allProducts.push({
+              id: sub.id.toString(),
+              name: sub.name,
+              category: category.name,
+              color: sub.color || category.color,
+              parentName: category.name,
+              type: 'subcategory'
+            });
+            
+            // Add sub-subcategory products
+            if (sub.subSubcategories) {
+              sub.subSubcategories.forEach((subSub: any) => {
+                allProducts.push({
+                  id: subSub.id.toString(),
+                  name: subSub.name,
+                  category: category.name,
+                  color: subSub.color || sub.color || category.color,
+                  parentName: `${category.name} > ${sub.name}`,
+                  type: 'subsubcategory'
+                });
+              });
+            }
+          });
+        }
+      });
+      
+      return allProducts;
+    }
+  });
+};
+
+// Fetch authentic products data
+const useProducts = () => {
+  return useQuery({
+    queryKey: ['/api/products'],
+    select: (data: any[]) => {
+      return data.map(product => ({
+        id: product.id.toString(),
+        name: product.name,
+        provider: product.provider,
+        category: product.category || 'Uncategorized',
+        totalValue: product.totalValue || 0,
+        premiumValue: product.premiumValue || 0
+      }));
+    }
+  });
+};
 
 const customerSegments = [
   { id: 'all', name: 'Alle segmenten', count: 5127 },
@@ -324,14 +385,30 @@ export default function PortfolioInsights() {
   const [activeSection, setActiveSection] = useState('dashboard');
   const [selectedSegment, setSelectedSegment] = useState('all');
   const [conversionRate, setConversionRate] = useState([20]);
-  const [selectedProducts, setSelectedProducts] = useState(['auto', 'home', 'life', 'pension']);
+  const [selectedHorizontalProducts, setSelectedHorizontalProducts] = useState<string[]>([]);
+  const [selectedVerticalProducts, setSelectedVerticalProducts] = useState<string[]>([]);
   const [selectedCell, setSelectedCell] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('matrix');
   const [showProductConfig, setShowProductConfig] = useState(false);
   const [showBenchmarkConfig, setShowBenchmarkConfig] = useState(false);
 
+  // Fetch authentic data
+  const { data: categories = [], isLoading: categoriesLoading } = useProductCategories();
+  const { data: products = [], isLoading: productsLoading } = useProducts();
+  
+  // Initialize selected products with first few categories
+  const [initialized, setInitialized] = useState(false);
+  if (!initialized && categories.length > 0) {
+    const defaultSelection = categories.slice(0, 4).map(c => c.id);
+    setSelectedHorizontalProducts(defaultSelection);
+    setSelectedVerticalProducts(defaultSelection);
+    setInitialized(true);
+  }
+
   const currentSegment = customerSegments.find(s => s.id === selectedSegment);
-  const matrixProducts = insuranceProducts.filter(p => selectedProducts.includes(p.id));
+  const horizontalProducts = categories.filter(c => selectedHorizontalProducts.includes(c.id));
+  const verticalProducts = categories.filter(c => selectedVerticalProducts.includes(c.id));
+  const matrixProducts = horizontalProducts; // Use horizontal products for main matrix display
 
   const getCellData = (fromProduct: string, toProduct: string): CrossSellData | null => {
     if (fromProduct === toProduct) return null;
@@ -442,47 +519,73 @@ export default function PortfolioInsights() {
               <CardContent>
                 <div className="grid grid-cols-2 gap-6">
                   <div>
-                    <h4 className="font-medium mb-3">Horizontale As (4 geselecteerd)</h4>
-                    <div className="space-y-2">
-                      {insuranceProducts.map(product => (
-                        <label key={`h-${product.id}`} className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            checked={selectedProducts.includes(product.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedProducts([...selectedProducts, product.id]);
-                              } else {
-                                setSelectedProducts(selectedProducts.filter(p => p !== product.id));
-                              }
-                            }}
-                            className="rounded"
-                          />
-                          <span className="text-sm">{product.name}</span>
-                        </label>
-                      ))}
+                    <h4 className="font-medium mb-3">Horizontal Axis ({selectedHorizontalProducts.length} selected)</h4>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {categoriesLoading ? (
+                        <div className="text-sm text-gray-500">Loading categories...</div>
+                      ) : (
+                        categories.map(category => (
+                          <label key={`h-${category.id}`} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                            <input
+                              type="checkbox"
+                              checked={selectedHorizontalProducts.includes(category.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedHorizontalProducts([...selectedHorizontalProducts, category.id]);
+                                } else {
+                                  setSelectedHorizontalProducts(selectedHorizontalProducts.filter(p => p !== category.id));
+                                }
+                              }}
+                              className="rounded"
+                            />
+                            <div 
+                              className="w-3 h-3 rounded-full flex-shrink-0" 
+                              style={{ backgroundColor: category.color }}
+                            />
+                            <div className="flex-1">
+                              <span className="text-sm font-medium">{category.name}</span>
+                              {category.parentName && (
+                                <div className="text-xs text-gray-500">{category.parentName}</div>
+                              )}
+                            </div>
+                          </label>
+                        ))
+                      )}
                     </div>
                   </div>
                   <div>
-                    <h4 className="font-medium mb-3">Verticale As (4 geselecteerd)</h4>
-                    <div className="space-y-2">
-                      {insuranceProducts.map(product => (
-                        <label key={`v-${product.id}`} className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            checked={selectedProducts.includes(product.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedProducts([...selectedProducts, product.id]);
-                              } else {
-                                setSelectedProducts(selectedProducts.filter(p => p !== product.id));
-                              }
-                            }}
-                            className="rounded"
-                          />
-                          <span className="text-sm">{product.name}</span>
-                        </label>
-                      ))}
+                    <h4 className="font-medium mb-3">Vertical Axis ({selectedVerticalProducts.length} selected)</h4>
+                    <div className="space-y-2 max-h-64 overflow-y-auto">
+                      {categoriesLoading ? (
+                        <div className="text-sm text-gray-500">Loading categories...</div>
+                      ) : (
+                        categories.map(category => (
+                          <label key={`v-${category.id}`} className="flex items-center space-x-3 p-2 rounded hover:bg-gray-50">
+                            <input
+                              type="checkbox"
+                              checked={selectedVerticalProducts.includes(category.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedVerticalProducts([...selectedVerticalProducts, category.id]);
+                                } else {
+                                  setSelectedVerticalProducts(selectedVerticalProducts.filter(p => p !== category.id));
+                                }
+                              }}
+                              className="rounded"
+                            />
+                            <div 
+                              className="w-3 h-3 rounded-full flex-shrink-0" 
+                              style={{ backgroundColor: category.color }}
+                            />
+                            <div className="flex-1">
+                              <span className="text-sm font-medium">{category.name}</span>
+                              {category.parentName && (
+                                <div className="text-xs text-gray-500">{category.parentName}</div>
+                              )}
+                            </div>
+                          </label>
+                        ))
+                      )}
                     </div>
                   </div>
                 </div>
@@ -619,75 +722,106 @@ export default function PortfolioInsights() {
           {/* Matrix Tab */}
           {activeTab === 'matrix' && (
             <div className="overflow-x-auto">
-              <table className="w-full border-collapse">
-                <thead>
-                  <tr>
-                    <th className="border p-2 bg-gray-100 text-left">
-                      <div className="text-sm font-medium">Heeft Product →</div>
-                      <div className="text-xs text-gray-600">Wil Product ↓</div>
-                    </th>
-                    {matrixProducts.map(product => (
-                      <th key={product.id} className="border p-2 bg-blue-50 text-center min-w-32">
-                        <div className="font-medium">{product.name}</div>
+              {categoriesLoading ? (
+                <div className="text-center py-8">
+                  <div className="text-gray-500">Loading product categories...</div>
+                </div>
+              ) : horizontalProducts.length === 0 || verticalProducts.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="text-gray-500">Please select products in the configuration panel to display the matrix</div>
+                </div>
+              ) : (
+                <table className="w-full border-collapse">
+                  <thead>
+                    <tr>
+                      <th className="border p-2 bg-gray-100 text-left">
+                        <div className="text-sm font-medium">Has Product →</div>
+                        <div className="text-xs text-gray-600">Wants Product ↓</div>
                       </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {matrixProducts.map(rowProduct => (
-                    <tr key={rowProduct.id}>
-                      <td className="border p-2 bg-blue-50 font-medium">
-                        {rowProduct.name}
-                      </td>
-                      {matrixProducts.map(colProduct => {
-                        const cellData = getCellData(colProduct.id, rowProduct.id);
-                        const isSelected = selectedCell === `${colProduct.id}-${rowProduct.id}`;
-                        
-                        if (!cellData) {
+                      {horizontalProducts.map(product => (
+                        <th key={product.id} className="border p-2 bg-blue-50 text-center min-w-32">
+                          <div className="flex items-center justify-center space-x-2">
+                            <div 
+                              className="w-3 h-3 rounded-full" 
+                              style={{ backgroundColor: product.color }}
+                            />
+                            <div className="font-medium">{product.name}</div>
+                          </div>
+                          {product.parentName && (
+                            <div className="text-xs text-gray-500">{product.parentName}</div>
+                          )}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {verticalProducts.map(rowProduct => (
+                      <tr key={rowProduct.id}>
+                        <td className="border p-2 bg-blue-50 font-medium">
+                          <div className="flex items-center space-x-2">
+                            <div 
+                              className="w-3 h-3 rounded-full flex-shrink-0" 
+                              style={{ backgroundColor: rowProduct.color }}
+                            />
+                            <div>
+                              <div className="font-medium">{rowProduct.name}</div>
+                              {rowProduct.parentName && (
+                                <div className="text-xs text-gray-500">{rowProduct.parentName}</div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        {horizontalProducts.map(colProduct => {
+                          const cellData = getCellData(colProduct.id, rowProduct.id);
+                          const isSelected = selectedCell === `${colProduct.id}-${rowProduct.id}`;
+                          
+                          if (!cellData) {
+                            return (
+                              <td key={colProduct.id} className="border p-2 bg-gray-100 text-center text-gray-400">
+                                <div className="text-sm">—</div>
+                                <div className="text-xs">No data</div>
+                              </td>
+                            );
+                          }
+
                           return (
-                            <td key={colProduct.id} className="border p-2 bg-gray-100 text-center text-gray-400">
-                              —
+                            <td 
+                              key={colProduct.id} 
+                              className={`border p-2 cursor-pointer transition-all ${getCellColor(cellData.rate)} ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
+                              onClick={() => setSelectedCell(`${colProduct.id}-${rowProduct.id}`)}
+                            >
+                              <div className="text-center space-y-1">
+                                <div className="flex items-center justify-center space-x-1">
+                                  <span className="font-bold text-white">{cellData.rate}%</span>
+                                  <span className="text-xs">{getBenchmarkIcon(cellData.rate, cellData.benchmark)}</span>
+                                </div>
+                                <div className="text-xs text-white opacity-90">
+                                  vs {cellData.benchmark}% benchmark
+                                </div>
+                                <div className="text-xs text-white">
+                                  {cellData.rate > cellData.benchmark ? '+' : ''}{cellData.rate - cellData.benchmark}%
+                                </div>
+                                <div className="text-xs text-white font-medium">
+                                  Has both: {cellData.customers}
+                                </div>
+                                <div className="text-xs text-white">
+                                  Cross-sell potential: {cellData.potential}
+                                </div>
+                                <div className="text-xs text-white font-medium">
+                                  €{Math.round(cellData.maxValue / 1000)}K max potential
+                                </div>
+                                <div className="text-xs text-white">
+                                  €{Math.round((cellData.expectedRevenue * conversionRate[0]) / 20000)}K at {conversionRate[0]}% conversion
+                                </div>
+                              </div>
                             </td>
                           );
-                        }
-
-                        return (
-                          <td 
-                            key={colProduct.id} 
-                            className={`border p-2 cursor-pointer transition-all ${getCellColor(cellData.rate)} ${isSelected ? 'ring-2 ring-blue-500' : ''}`}
-                            onClick={() => setSelectedCell(`${colProduct.id}-${rowProduct.id}`)}
-                          >
-                            <div className="text-center space-y-1">
-                              <div className="flex items-center justify-center space-x-1">
-                                <span className="font-bold text-white">{cellData.rate}%</span>
-                                <span className="text-xs">{getBenchmarkIcon(cellData.rate, cellData.benchmark)}</span>
-                              </div>
-                              <div className="text-xs text-white opacity-90">
-                                vs {cellData.benchmark}% benchmark
-                              </div>
-                              <div className="text-xs text-white">
-                                {cellData.rate > cellData.benchmark ? '+' : ''}{cellData.rate - cellData.benchmark}%
-                              </div>
-                              <div className="text-xs text-white font-medium">
-                                Heeft beide: {cellData.customers}
-                              </div>
-                              <div className="text-xs text-white">
-                                Kan cross-sell: {cellData.potential}
-                              </div>
-                              <div className="text-xs text-white font-medium">
-                                €{Math.round(cellData.maxValue / 1000)}K max. potentieel
-                              </div>
-                              <div className="text-xs text-white">
-                                €{Math.round((cellData.expectedRevenue * conversionRate[0]) / 20000)}K bij {conversionRate[0]}% conversie
-                              </div>
-                            </div>
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                        })}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           )}
 
