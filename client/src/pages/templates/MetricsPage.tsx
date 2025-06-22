@@ -217,7 +217,7 @@ export default function MetricsPage() {
   });
 
   // Transform database metrics to match the component's expected format
-  const okrTemplates = okrMetrics.map((metric: any) => ({
+  const okrTemplates = Array.isArray(okrMetrics) ? okrMetrics.map((metric: any) => ({
     id: metric.id,
     title: metric.title,
     type: metric.type,
@@ -235,7 +235,7 @@ export default function MetricsPage() {
     hierarchy: metric.hierarchy || 'objective',
     description: metric.description || '',
     status: metric.status || 'active'
-  }));
+  })) : [];
 
   // Create OKR metric mutation
   const createOkrMetricMutation = useMutation({
