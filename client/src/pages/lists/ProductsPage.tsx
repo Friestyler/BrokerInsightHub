@@ -46,19 +46,28 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 type Product = {
   id: number;
   productId?: string;
+  productid?: string;
   name: string;
   description?: string;
   category: string;
   categoryId?: number;
+  categoryid?: number;
   
   // Provider information
+  provider?: string;
   providerId?: number;
   providerType?: string;
   providerName?: string;
+  providername?: string;
+  providertype?: string;
   
   // Contract information
   contractStartDate?: string;
   contractEndDate?: string;
+  contract_start_date?: string;
+  contract_end_date?: string;
+  contractstartdate?: string;
+  contractenddate?: string;
   
   // Financial information
   totalValue?: string;
@@ -66,6 +75,14 @@ type Product = {
   premiumPercentage?: string;
   discount?: string;
   discountPercentage?: string;
+  total_value?: string;
+  premium_value?: string;
+  premium_percentage?: string;
+  discount_percentage?: string;
+  totalvalue?: string;
+  premiumvalue?: string;
+  premiumpercentage?: string;
+  discountpercentage?: string;
   
   // Legacy fields
   sku: string | null;
@@ -356,42 +373,45 @@ export default function ProductsPage() {
                           </TableCell>
                           <TableCell>
                             <div className="text-sm">
-                              <div className="font-medium">{product.providerName || getVendorName(product.vendorId) || "—"}</div>
-                              {product.providerType && (
-                                <div className="text-gray-500 capitalize">{product.providerType}</div>
+                              <div className="font-medium">{(product as any).provider || (product as any).providername || product.providerName || getVendorName(product.vendorId) || "—"}</div>
+                              {(product as any).providertype && (product as any).providertype !== (product as any).provider && (
+                                <div className="text-gray-500 capitalize">{(product as any).providertype}</div>
                               )}
                             </div>
                           </TableCell>
                           <TableCell>
                             <div className="text-sm">
-                              {product.contractStartDate && product.contractEndDate ? (
+                              {((product as any).contract_start_date || (product as any).contractstartdate || product.contractStartDate) && 
+                               ((product as any).contract_end_date || (product as any).contractenddate || product.contractEndDate) ? (
                                 <>
-                                  <div>{new Date(product.contractStartDate).toLocaleDateString()}</div>
-                                  <div className="text-gray-500">to {new Date(product.contractEndDate).toLocaleDateString()}</div>
+                                  <div>{new Date((product as any).contract_start_date || (product as any).contractstartdate || product.contractStartDate).toLocaleDateString()}</div>
+                                  <div className="text-gray-500">to {new Date((product as any).contract_end_date || (product as any).contractenddate || product.contractEndDate).toLocaleDateString()}</div>
                                 </>
                               ) : "—"}
                             </div>
                           </TableCell>
                           <TableCell>
                             <div className="text-sm font-medium">
-                              {product.totalValue ? `€${parseFloat(product.totalValue).toLocaleString()}` : "—"}
+                              {((product as any).total_value || (product as any).totalvalue || product.totalValue) ? 
+                                `€${parseFloat((product as any).total_value || (product as any).totalvalue || product.totalValue).toLocaleString()}` : "—"}
                             </div>
                           </TableCell>
                           <TableCell>
                             <div className="text-sm">
-                              {product.premiumValue && (
-                                <div className="font-medium">€{parseFloat(product.premiumValue).toLocaleString()}</div>
+                              {((product as any).premium_value || (product as any).premiumvalue || product.premiumValue) && (
+                                <div className="font-medium">€{parseFloat((product as any).premium_value || (product as any).premiumvalue || product.premiumValue).toLocaleString()}</div>
                               )}
-                              {product.premiumPercentage && (
-                                <div className="text-gray-500">{parseFloat(product.premiumPercentage)}%</div>
+                              {((product as any).premium_percentage || (product as any).premiumpercentage || product.premiumPercentage) && (
+                                <div className="text-gray-500">{parseFloat((product as any).premium_percentage || (product as any).premiumpercentage || product.premiumPercentage)}%</div>
                               )}
-                              {!product.premiumValue && !product.premiumPercentage && "—"}
+                              {!((product as any).premium_value || (product as any).premiumvalue || product.premiumValue) && 
+                               !((product as any).premium_percentage || (product as any).premiumpercentage || product.premiumPercentage) && "—"}
                             </div>
                           </TableCell>
                           <TableCell>
                             <div className="text-sm">
-                              {product.discountPercentage ? (
-                                <div className="text-green-600 font-medium">{parseFloat(product.discountPercentage)}%</div>
+                              {((product as any).discount_percentage || (product as any).discountpercentage || product.discountPercentage) ? (
+                                <div className="text-green-600 font-medium">{parseFloat((product as any).discount_percentage || (product as any).discountpercentage || product.discountPercentage)}%</div>
                               ) : "—"}
                             </div>
                           </TableCell>
