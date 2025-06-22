@@ -482,7 +482,7 @@ export function CategoryManagerForProducts() {
                         </div>
                         <div className="flex items-center gap-2">
                           <span className="text-sm text-gray-500">
-                            {category.subcategories.length} subcategorieën
+                            {category.subcategories.length} subcategories
                           </span>
                           <div className="flex items-center gap-1">
                             <Button
