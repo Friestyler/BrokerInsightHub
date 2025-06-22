@@ -229,16 +229,7 @@ export function CategoryManagerForProducts() {
     }
   };
 
-  const selectCategory = (categoryId: string) => {
-    setSelectedCategoryId(categoryId);
-  };
 
-  const startEditingCategory = (categoryId: string, currentName: string) => {
-    setEditingCategory(categoryId);
-    setEditingCategoryName(currentName);
-    setNewCategoryName(currentName);
-    categoryInputRef.current?.focus();
-  };
 
   const saveEditCategory = async () => {
     if (!editingCategory || !editingCategoryName.trim()) return;
