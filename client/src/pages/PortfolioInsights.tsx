@@ -365,7 +365,42 @@ function DashboardSection() {
                     </div>
                   </SelectItem>
                   
-
+                  {/* Show subcategories and products when expanded */}
+                  {!isCategoryCollapsed && (
+                    <>
+                      {/* Show related products from database */}
+                      {(products as any[]).filter((product: any) => 
+                        product.parent_category_name === category.name ||
+                        (category.name === 'Non-Life' && (
+                          product.parent_category_name === 'Business' ||
+                          product.parent_category_name === 'Health' ||
+                          product.parent_category_name === 'Mobility' ||
+                          product.parent_category_name === 'Property & Liability'
+                        )) ||
+                        (category.name === 'Life' && (
+                          product.parent_category_name === 'Life' ||
+                          product.category?.toLowerCase().includes('life') ||
+                          product.category?.toLowerCase().includes('death') ||
+                          product.category?.toLowerCase().includes('pension')
+                        )) ||
+                        (category.name === 'Services' && (
+                          product.parent_category_name === 'Travel' ||
+                          product.category?.toLowerCase().includes('service')
+                        ))
+                      ).map((product: any) => (
+                        <SelectItem key={`product-${product.id}`} value={product.name} className="ml-6">
+                          <div className="flex items-center space-x-2">
+                            <div 
+                              className="w-2 h-2 rounded-full flex-shrink-0" 
+                              style={{ backgroundColor: product.category_color || category.color }}
+                            />
+                            <span className="text-sm">{product.name}</span>
+                            <span className="text-xs text-gray-400">€{(parseFloat(product.total_value || '0') / 1000).toFixed(0)}k</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
                 </div>
               );
             })}
@@ -531,21 +566,62 @@ function DashboardSection() {
                     </Button>
                   </div>
                   
-                  {/* Category Details (Collapsible) */}
-                  {!isCategoryCollapsed && (
-                    <div className="px-4 pb-4 pt-0">
-                      <div className="grid grid-cols-3 gap-4 mb-3">
-                        <div>
-                          <p className="text-sm text-gray-600">{product.current.toLocaleString()} klanten</p>
-                        </div>
-                        <div>
-                          <p className="text-sm text-gray-600">{product.potential.toLocaleString()} potentieel</p>
-                        </div>
-                        <div>
-                          <p className="text-sm font-medium text-green-600">€{(product.value / 1000000).toFixed(1)}M waarde</p>
-                        </div>
+                  {/* Category Details (Always visible summary) */}
+                  <div className="px-4 pb-2 pt-0">
+                    <div className="grid grid-cols-3 gap-4 mb-3">
+                      <div>
+                        <p className="text-sm text-gray-600">{product.current.toLocaleString()} klanten</p>
                       </div>
-                      <Progress value={product.penetration} className="h-2" />
+                      <div>
+                        <p className="text-sm text-gray-600">{product.potential.toLocaleString()} potentieel</p>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-green-600">€{(product.value / 1000000).toFixed(1)}M waarde</p>
+                      </div>
+                    </div>
+                    <Progress value={product.penetration} className="h-2" />
+                  </div>
+
+                  {/* Expanded Details - Show underlying products when expanded */}
+                  {!isCategoryCollapsed && (
+                    <div className="px-4 pb-4 border-t border-gray-100">
+                      <h4 className="text-sm font-medium text-gray-700 mt-3 mb-2">Onderliggende producten:</h4>
+                      <div className="space-y-2">
+                        {(products as any[]).filter((prod: any) => 
+                          prod.parent_category_name === product.name ||
+                          (product.name === 'Non-Life' && (
+                            prod.parent_category_name === 'Business' ||
+                            prod.parent_category_name === 'Health' ||
+                            prod.parent_category_name === 'Mobility' ||
+                            prod.parent_category_name === 'Property & Liability'
+                          )) ||
+                          (product.name === 'Life' && (
+                            prod.parent_category_name === 'Life' ||
+                            prod.category?.toLowerCase().includes('life') ||
+                            prod.category?.toLowerCase().includes('death') ||
+                            prod.category?.toLowerCase().includes('pension')
+                          )) ||
+                          (product.name === 'Services' && (
+                            prod.parent_category_name === 'Travel' ||
+                            prod.category?.toLowerCase().includes('service')
+                          ))
+                        ).map((prod: any) => (
+                          <div key={prod.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
+                            <div className="flex items-center space-x-2">
+                              <div 
+                                className="w-2 h-2 rounded-full flex-shrink-0" 
+                                style={{ backgroundColor: prod.category_color || product.color }}
+                              />
+                              <span className="text-sm text-gray-700">{prod.name}</span>
+                              <span className="text-xs text-gray-500">({prod.provider})</span>
+                            </div>
+                            <div className="flex items-center space-x-3">
+                              <span className="text-xs text-gray-600">€{(parseFloat(prod.total_value || '0') / 1000).toFixed(0)}k</span>
+                              <span className="text-xs text-blue-600">{prod.customers || 0} klanten</span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   )}
                 </div>
