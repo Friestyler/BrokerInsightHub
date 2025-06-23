@@ -2125,8 +2125,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       const envPool = pool;
       const result = await envPool.query(`
-        SELECT c.id, c.name, c.description, c.status, c.type, c.location, 
-               c.contact_email, c.contact_phone, c.owner_id, c.created_at, c.updated_at,
+        SELECT c.id, c.name, c.description, c.status, c.industry, c.owner_id, c.created_at, c.updated_at,
                u.name as owner_name,
                COUNT(DISTINCT o.id) as opportunity_count,
                COUNT(DISTINCT CASE WHEN o.partner_id IS NOT NULL THEN o.partner_id END) as partner_count,
@@ -2135,8 +2134,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LEFT JOIN degoudse.users u ON c.owner_id = u.id
         LEFT JOIN degoudse.opportunities o ON c.id = o.client_id
         WHERE c.id = $1
-        GROUP BY c.id, c.name, c.description, c.status, c.type, c.location, 
-                 c.contact_email, c.contact_phone, c.owner_id, c.created_at, c.updated_at, u.name
+        GROUP BY c.id, c.name, c.description, c.status, c.industry, c.owner_id, c.created_at, c.updated_at, u.name
       `, [customerId]);
       
       if (result.rows.length === 0) {
@@ -2149,10 +2147,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: customer.name,
         description: customer.description,
         status: customer.status,
-        type: customer.type,
-        location: customer.location,
-        contactEmail: customer.contact_email,
-        contactPhone: customer.contact_phone,
+        industry: customer.industry,
         ownerId: customer.owner_id,
         ownerName: customer.owner_name,
         createdAt: customer.created_at,
