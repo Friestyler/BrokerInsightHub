@@ -1896,7 +1896,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT p.id, p.name, p.description, p.status, p.location, p.contact_email, 
                p.primary_contact, p.region, p.assigned_user_ids, p.owner_id,
                p.linked_opportunity_ids, p.created_at, p.updated_at,
-               u.full_name as owner_name,
+               u.name as owner_name,
                COALESCE(rel.opportunity_count, 0) as opportunity_count,
                COALESCE(rel.customer_count, 0) as customer_count,
                COALESCE(rel.total_opportunity_value, 0) as total_opportunity_value,
