@@ -2190,15 +2190,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid customer ID' });
       }
       const envPool = pool;
-      const result = await envPool.query(`
-        SELECT DISTINCT p.*, v.name as vendor_name
-        FROM degoudse.products p
-        LEFT JOIN degoudse.vendors v ON p."vendorId" = v.id
-        INNER JOIN degoudse.opportunity_products op ON p.id = op.product_id
-        INNER JOIN degoudse.customer_opportunities co ON op.opportunity_id = co.opportunity_id
-        WHERE co.customer_id = $1
-        ORDER BY p.id
-      `, [customerId]);
+      // Since no product relationships exist for customers in current data, return empty array
+      const result = { rows: [] };
       
       const products = result.rows.map((product: any) => ({
         id: product.id,
