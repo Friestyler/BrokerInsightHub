@@ -1321,7 +1321,7 @@ export default function ProcessingStep({
               )}
 
               {/* Issues Table */}
-              <div className="border rounded-lg">
+              <div className="border border-[#E6E7F1] rounded-lg">
                 <Table>
                   <TableHeader>
                     <TableRow>

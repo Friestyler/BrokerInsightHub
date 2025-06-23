@@ -614,7 +614,7 @@ export default function AttributeMappingStep({
 
                 {/* Code Editor Section - appears when "Code" is selected */}
                 {showCodeEditor[index] && mapping.csvColumn === 'CODE' && (
-                  <div className="mt-4 bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                  <div className="mt-4 bg-white border border-[#E6E7F1] rounded-2xl shadow-sm overflow-hidden">
                     {/* Clean Header */}
                     <div className="px-6 py-4 bg-gradient-to-r from-purple-50 to-blue-50 border-b border-gray-100">
                       <div className="flex items-center justify-between">

@@ -176,7 +176,7 @@ export default function ProductAssignmentStep({
         </CardHeader>
         <CardContent className="p-6">
           {/* Column Headers */}
-          <div className="grid grid-cols-6 gap-4 pb-4 border-b border-gray-200 mb-4">
+          <div className="grid grid-cols-6 gap-4 pb-4 border-b border-[#E6E7F1] mb-4">
             <div className="col-span-2">
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Product Information</h3>
             </div>
@@ -203,7 +203,7 @@ export default function ProductAssignmentStep({
               const hasAutoMatch = isExistingProduct && mapping?.existingProductId;
               
               return (
-                <div key={product.id} className="grid grid-cols-6 gap-4 p-4 bg-white border border-gray-100 rounded-lg hover:border-gray-200 hover:shadow-sm transition-all duration-200 items-center">
+                <div key={product.id} className="grid grid-cols-6 gap-4 p-4 bg-white border border-[#E6E7F1] rounded-lg hover:border-gray-200 hover:shadow-sm transition-all duration-200 items-center">
                   {/* Column 1-2: Product Information */}
                   <div className="col-span-2">
                     <div className="flex items-center gap-3 mb-1">
