@@ -219,6 +219,11 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
         targetEntityType: campaignDataFromAPI.target_entity_type
       });
 
+      console.log('Setting campaign entity from API:', {
+        target_entity_type: campaignDataFromAPI.target_entity_type,
+        entity_mapped_to: campaignDataFromAPI.target_entity_type || ''
+      });
+
       setCampaignData({
         name: campaignDataFromAPI.name || '',
         entity: campaignDataFromAPI.target_entity_type || '',
