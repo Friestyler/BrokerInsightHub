@@ -3372,16 +3372,16 @@ Keep the tone clear and professional. Focus on what will help the account manage
                 console.log(`Showing ${opportunityIdsArray.length} opportunities from ${sharedListsResult.rows.length} shared lists`);
                 
                 result = await envPool.query(`
-                  SELECT o.id, o.title, o.clientId, o.productId, o.probability, o.estimatedValue, o.type, o.status, o.stage, o.ownerId, o.description, o.partnerId, o.createdAt, o.updatedAt, o.expectedCloseDate, 
+                  SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, 
                          c.name as customer_name,
                          p.name as partner_name,
                          pr.name as product_name,
                          am.name as account_manager_name
                   FROM degoudse.opportunities o
-                  LEFT JOIN degoudse.customers c ON o.clientId = c.id
-                  LEFT JOIN degoudse.partners p ON o.partnerId = p.id
-                  LEFT JOIN degoudse.products pr ON o.productId = pr.id
-                  LEFT JOIN degoudse.users am ON o.ownerId = am.id
+                  LEFT JOIN degoudse.customers c ON o.client_id = c.id
+                  LEFT JOIN degoudse.partners p ON o.partner_id = p.id
+                  LEFT JOIN degoudse.products pr ON o.product_id = pr.id
+                  LEFT JOIN degoudse.users am ON o.owner_id = am.id
                   WHERE o.id = ANY($1)
                   ORDER BY o.id
                 `, [opportunityIdsArray]);
