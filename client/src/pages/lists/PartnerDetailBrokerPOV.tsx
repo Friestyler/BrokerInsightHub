@@ -118,10 +118,29 @@ export default function PartnerDetailBrokerPOV() {
     staleTime: 2 * 60 * 1000,
   });
 
-  // Fetch customers for this partner in broker view
+  // Fetch customers for this partner in broker view - filtered by shared opportunities
   const { data: partnerCustomers = [], isLoading: customersLoading } = useQuery({
-    queryKey: ['/api/degoudse/partners/4/customers'],
-    queryFn: () => apiRequest('GET', '/api/degoudse/partners/4/customers'),
+    queryKey: ['/api/degoudse/partners/4/customers', allOpportunities.length],
+    queryFn: async () => {
+      // Get unique customer IDs from the shared opportunities
+      const customerIds = [...new Set(allOpportunities.map((opp: any) => opp.clientId).filter(Boolean))];
+      console.log('Broker customer filtering - Opportunity customer IDs:', customerIds);
+      console.log('Broker customer filtering - Total opportunities:', allOpportunities.length);
+      
+      if (customerIds.length === 0) {
+        console.log('Broker customer filtering - No customer IDs found, returning empty array');
+        return [];
+      }
+      
+      // Fetch all customers and filter to only those with shared opportunities
+      const allCustomers = await apiRequest('GET', '/api/degoudse/partners/4/customers');
+      const filteredCustomers = allCustomers.filter((customer: any) => customerIds.includes(customer.id));
+      console.log('Broker customer filtering - All customers:', allCustomers.length);
+      console.log('Broker customer filtering - Filtered customers:', filteredCustomers.length);
+      
+      return filteredCustomers;
+    },
+    enabled: allOpportunities.length >= 0, // Enable even if 0 opportunities to show empty state
     staleTime: 2 * 60 * 1000,
   });
 
