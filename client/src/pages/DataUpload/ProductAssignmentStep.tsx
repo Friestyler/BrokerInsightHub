@@ -44,11 +44,11 @@ interface ProductAssignmentStepProps {
 const useDetectedProducts = () => {
   return useQuery({
     queryKey: ['/api/products'],
-    select: (data: any[]) => data.map(product => ({
+    select: (data: any[]) => data.map((product, index) => ({
       id: product.id,
       sku: product.sku,
       name: product.name,
-      recordCount: Math.floor(Math.random() * 2000) + 100 // Random count for demonstration
+      recordCount: 500 + (product.id * 47) % 1500 // Stable deterministic count based on product ID
     }))
   });
 };
