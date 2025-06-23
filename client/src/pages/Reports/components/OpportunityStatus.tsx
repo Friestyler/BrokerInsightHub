@@ -199,12 +199,22 @@ const OpportunityStatus: React.FC<OpportunityStatusProps> = ({ timeFrame, region
   const totalValue = opportunities.reduce((sum, opp) => sum + opp.value, 0);
   const weightedValue = opportunities.reduce((sum, opp) => {
     const value = opp.value || 0;
-    const probability = opp.stage === 'Closed (Won)' ? 1.0 : 
+    const probability = opp.stage === 'Closed Won' ? 1.0 : 
+                      opp.stage === 'Closed (Won)' ? 1.0 : 
+                      opp.stage === 'Negotiation' ? 0.7 :
                       opp.stage === 'Proposal Sent to Client' ? 0.6 :
+                      opp.stage === 'Proposal Sent' ? 0.6 :
+                      opp.stage === 'Proposal' ? 0.6 :
+                      opp.stage === 'proposal' ? 0.6 :
+                      opp.stage === 'Qualified Lead' ? 0.4 :
+                      opp.stage === 'qualification' ? 0.4 :
                       opp.stage === 'Validated' ? 0.3 :
+                      opp.stage === 'Discovery' ? 0.2 :
+                      opp.stage === 'discovery' ? 0.2 :
+                      opp.stage === 'Closed Lost' ? 0 :
                       opp.stage === 'Lost' ? 0 :
                       opp.stage === 'Rejected' ? 0 :
-                      !opp.stage || opp.stage === '' ? 0 : 0;
+                      !opp.stage || opp.stage === '' ? 0.1 : 0.1;
     return sum + (value * probability);
   }, 0);
   const averageProbability = opportunities.length > 0 

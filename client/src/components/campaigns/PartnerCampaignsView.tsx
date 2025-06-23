@@ -84,7 +84,7 @@ export default function PartnerCampaignsView({ partnerId, partnerName }: Partner
 
     return [
       {
-        title: "Partner Campaigns",
+        title: "Total Campaigns",
         value: totalCampaigns,
         icon: Mail,
         color: "text-blue-600"
