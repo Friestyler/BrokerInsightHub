@@ -345,11 +345,25 @@ export default function ProductAssignmentStep({
                         <SelectValue placeholder={mapping?.productAction === 'existing' ? 'Select product...' : 'N/A'} />
                       </SelectTrigger>
                       <SelectContent>
-                        {products.filter(p => p.id !== product.id).map((existingProduct) => (
-                          <SelectItem key={existingProduct.id} value={existingProduct.id.toString()}>
-                            {existingProduct.sku} - {existingProduct.name}
-                          </SelectItem>
-                        ))}
+                        {products.filter(p => p.id !== product.id).map((existingProduct) => {
+                          // Check if this product is already selected by another row
+                          const isAlreadySelected = Object.entries(productMappings).some(([otherProductId, otherMapping]) => 
+                            otherProductId !== product.id.toString() && 
+                            otherMapping.existingProductId === existingProduct.id.toString()
+                          );
+                          
+                          return (
+                            <SelectItem 
+                              key={existingProduct.id} 
+                              value={existingProduct.id.toString()}
+                              disabled={isAlreadySelected}
+                              className={isAlreadySelected ? 'opacity-50 cursor-not-allowed' : ''}
+                            >
+                              {existingProduct.sku} - {existingProduct.name}
+                              {isAlreadySelected && ' (Already mapped)'}
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                   </div>
