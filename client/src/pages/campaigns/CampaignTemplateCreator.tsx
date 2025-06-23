@@ -182,9 +182,12 @@ export default function CampaignTemplateCreator() {
       console.log('Campaign data set for editing:', { 
         entity: templateData.target_entity_type,
         name: templateData.name,
+        icon: templateData.icon,
         emailCount: emails.length,
         firstEmailBlocks: emails[0]?.blocks?.length
       });
+      
+      console.log('Full template data:', templateData);
     }
   }, [templateData, isEditMode]);
 
