@@ -48,6 +48,22 @@
 
   /* Specific Qollabi brand colors for back button hover states */
   --qollabi-hover-bg: 231 73% 97%; /* #F5F6FE */
+}
+
+/* Force tab styling overrides */
+[data-radix-collection-item][data-state="active"] {
+  background-color: #E1E4FB !important;
+  color: #3E4DC4 !important;
+  box-shadow: none !important;
+}
+
+[data-radix-collection-item]:not([data-state="active"]):hover {
+  background-color: #F5F6FE !important;
+  color: #5567E5 !important;
+}
+
+[data-radix-collection-item]:not([data-state="active"]) {
+  color: #6b7280 !important;
   --qollabi-hover-icon: 231 73% 62%; /* #5567E5 */
 }
 
