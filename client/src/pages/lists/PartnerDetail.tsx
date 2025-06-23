@@ -620,6 +620,7 @@ export default function PartnerDetail() {
     enabled: !!id,
     staleTime: 0, // Always fetch fresh data
     gcTime: 0, // Don't cache
+    refetchInterval: false, // Disable polling - we'll use manual refetch when needed
   });
 
   // Fetch all opportunity lists for the modal
@@ -650,9 +651,8 @@ export default function PartnerDetail() {
   // Filter saved lists to show partner-relevant lists, sorted alphabetically
   const partnerRelevantLists = (savedListsData as any[] || [])
     .filter((list: any) => {
-      // Show lists that belong to this partner (partner_id matches) or are general lists (partner_id is null)
-      // The backend already handles this filtering, so we can show all returned lists
-      return true;
+      // Show lists that are shared (is_shared = true) or belong to this partner
+      return list.is_shared === true || list.partner_id === parseInt(id || '0');
     })
     .sort((a: any, b: any) => {
       // Sort alphabetically by name
