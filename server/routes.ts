@@ -1140,7 +1140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const tasksResult = await db.execute(sql`
         SELECT t.*, u.name as assigned_to_name
         FROM ${sql.identifier(envId)}.activity_tasks t
-        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to_id = u.id
+        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id
         WHERE t.partner_id = ${partnerId}
         ORDER BY t.created_at DESC
       `);
@@ -1191,12 +1191,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
           t.priority,
           t.completed,
           t.visible_to_partner,
-          t.assigned_to_id as assigned_to,
+          t.assigned_to as assigned_to,
           t.created_at,
           t.updated_at,
           u.name as author_name
         FROM ${sql.identifier(envId)}.activity_tasks t
-        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to_id = u.id
+        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id
         WHERE t.partner_id = ${partnerId}
         
         UNION ALL
@@ -2044,7 +2044,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const stagesResult = await envPool.query(`
         SELECT DISTINCT o.stage
         FROM degoudse.opportunities o
-        WHERE o.partnerId = $1 AND o.stage IS NOT NULL
+        WHERE o.partner_id = $1 AND o.stage IS NOT NULL
         ORDER BY o.stage
       `, [partnerId]);
       
@@ -2052,8 +2052,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const customersResult = await envPool.query(`
         SELECT DISTINCT c.name as customer_name
         FROM degoudse.opportunities o
-        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
-        WHERE o."partnerId" = $1 AND c.name IS NOT NULL
+        LEFT JOIN degoudse.customers c ON o.client_id = c.id
+        WHERE o.partner_id = $1 AND c.name IS NOT NULL
         ORDER BY c.name
       `, [partnerId]);
       
@@ -2061,8 +2061,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const accountManagersResult = await envPool.query(`
         SELECT DISTINCT u.name as account_manager_name
         FROM degoudse.opportunities o
-        LEFT JOIN degoudse.users u ON o."ownerId" = u.id
-        WHERE o."partnerId" = $1 AND u.name IS NOT NULL
+        LEFT JOIN degoudse.users u ON o.owner_id = u.id
+        WHERE o.partner_id = $1 AND u.name IS NOT NULL
         ORDER BY u.name
       `, [partnerId]);
       
@@ -2096,10 +2096,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envPool = pool;
       const result = await envPool.query(`
         SELECT DISTINCT p.id, p.name, p.description, p.category,
-               p."createdAt", p."updatedAt"
+               p.created_at, p.updated_at
         FROM degoudse.products p
-        INNER JOIN degoudse.opportunities o ON p.id = o."productId"
-        WHERE o."partnerId" = $1
+        INNER JOIN degoudse.opportunities o ON p.id = o.product_id
+        WHERE o.partner_id = $1
         ORDER BY p.name
       `, [partnerId]);
       
