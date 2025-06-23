@@ -40,7 +40,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { Package2, Plus, Search, Tag } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useToast } from "@/hooks/use-toast";
-import { CategoryManagerForProducts } from "@/components/CategoryManagerForProducts";
+import CategoryManagerForProducts from "@/components/CategoryManagerForProducts";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 type Product = {

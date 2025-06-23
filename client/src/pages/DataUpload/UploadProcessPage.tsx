@@ -13,7 +13,7 @@ import ProcessingStep from './ProcessingStep';
 import TransformationStep from './TransformationStep';
 import ProductMappingStep from './ProductMappingStep';
 import ProductAssignmentStep from './ProductAssignmentStep';
-import CategoryManagerForProducts from '@/components/CategoryManagerForProducts';
+// import CategoryManagerForProducts from '@/components/CategoryManagerForProducts';
 
 interface UploadProcessProps {
   entityType?: string;
@@ -570,7 +570,15 @@ export default function UploadProcessPage() {
                     <p className="text-gray-600 text-sm">Create and organize categories for your products</p>
                   </div>
                   
-                  <CategoryManagerForProducts />
+                  <div className="space-y-4">
+                    <div className="text-center py-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200">
+                      <div className="text-gray-600">
+                        <h4 className="font-medium mb-2">Category Management</h4>
+                        <p className="text-sm">Manage your product categories here</p>
+                        <p className="text-xs text-gray-500 mt-2">Feature coming soon</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </div>
               
