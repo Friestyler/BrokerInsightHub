@@ -50,39 +50,80 @@
   --qollabi-hover-bg: 231 73% 97%; /* #F5F6FE */
 }
 
-/* Force tab styling overrides with highest specificity */
-button[role="tab"][data-state="active"] {
+/* Ultra-specific tab styling overrides - targeting all possible Radix UI selectors */
+html body .container button[role="tab"][data-state="active"],
+html body div[role="tablist"] button[role="tab"][data-state="active"],
+html body button[role="tab"][data-state="active"],
+html body [data-radix-tabs-trigger][data-state="active"] {
   background-color: #E1E4FB !important;
   color: #3E4DC4 !important;
   box-shadow: none !important;
+  border: none !important;
+  background: #E1E4FB !important;
 }
 
-button[role="tab"]:not([data-state="active"]):hover {
+html body .container button[role="tab"]:not([data-state="active"]):hover,
+html body div[role="tablist"] button[role="tab"]:not([data-state="active"]):hover,
+html body button[role="tab"]:not([data-state="active"]):hover,
+html body [data-radix-tabs-trigger]:not([data-state="active"]):hover {
   background-color: #F5F6FE !important;
   color: #5567E5 !important;
+  border: none !important;
+  background: #F5F6FE !important;
 }
 
-button[role="tab"]:not([data-state="active"]) {
+html body .container button[role="tab"]:not([data-state="active"]),
+html body div[role="tablist"] button[role="tab"]:not([data-state="active"]),
+html body button[role="tab"]:not([data-state="active"]),
+html body [data-radix-tabs-trigger]:not([data-state="active"]) {
   color: #6b7280 !important;
   background-color: transparent !important;
+  border: none !important;
+  background: transparent !important;
 }
 
-/* Specific Radix UI tab overrides */
-[data-radix-collection-item][data-state="active"] {
+/* Additional Radix UI specific overrides */
+html body .container [data-radix-collection-item][data-state="active"],
+html body div[role="tablist"] [data-radix-collection-item][data-state="active"],
+html body [data-radix-collection-item][data-state="active"] {
   background-color: #E1E4FB !important;
   color: #3E4DC4 !important;
   box-shadow: none !important;
+  border: none !important;
+  background: #E1E4FB !important;
 }
 
-[data-radix-collection-item]:hover:not([data-state="active"]) {
+html body .container [data-radix-collection-item]:hover:not([data-state="active"]),
+html body div[role="tablist"] [data-radix-collection-item]:hover:not([data-state="active"]),
+html body [data-radix-collection-item]:hover:not([data-state="active"]) {
   background-color: #F5F6FE !important;
   color: #5567E5 !important;
+  border: none !important;
+  background: #F5F6FE !important;
 }
 
-[data-radix-collection-item]:not([data-state="active"]) {
+html body .container [data-radix-collection-item]:not([data-state="active"]),
+html body div[role="tablist"] [data-radix-collection-item]:not([data-state="active"]),
+html body [data-radix-collection-item]:not([data-state="active"]) {
   color: #6b7280 !important;
   background-color: transparent !important;
-  --qollabi-hover-icon: 231 73% 62%; /* #5567E5 */
+  border: none !important;
+  background: transparent !important;
+}
+
+/* Force all possible background properties */
+html body [data-radix-tabs-trigger] {
+  --tw-bg-opacity: 1 !important;
+}
+
+html body [data-radix-tabs-trigger][data-state="active"] {
+  --tw-bg-opacity: 1 !important;
+  background: rgb(225 228 251) !important;
+}
+
+html body [data-radix-tabs-trigger]:not([data-state="active"]):hover {
+  --tw-bg-opacity: 1 !important;
+  background: rgb(245 246 254) !important;
 }
 
 /* Custom environment selector styling */
