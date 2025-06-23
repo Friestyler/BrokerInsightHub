@@ -7975,12 +7975,12 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       
       await pool.query('BEGIN');
       
-      // Insert template
+      // Insert template into campaigns table
       const templateResult = await pool.query(`
-        INSERT INTO campaign_templates (name, description, objective, entity, icon, status, attachments, created_by)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        INSERT INTO campaigns (name, description, objective, icon, status, is_template, type, created_by_id, target_entity_type)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         RETURNING id
-      `, [name, description, objective, entity, icon, status || 'draft', JSON.stringify(attachments || []), createdBy]);
+      `, [name, description, objective, icon, status || 'draft', true, 'email', createdBy, entity]);
       
       const templateId = templateResult.rows[0].id;
       
