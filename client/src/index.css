@@ -50,20 +50,34 @@
   --qollabi-hover-bg: 231 73% 97%; /* #F5F6FE */
 }
 
-/* Force tab styling overrides */
-[data-radix-collection-item][data-state="active"] {
+/* Force tab styling overrides - Updated */
+[data-radix-collection-item][data-state="active"],
+button[data-state="active"] {
   background-color: #E1E4FB !important;
   color: #3E4DC4 !important;
   box-shadow: none !important;
 }
 
-[data-radix-collection-item]:not([data-state="active"]):hover {
+[data-radix-collection-item]:not([data-state="active"]):hover,
+button:not([data-state="active"]):hover {
   background-color: #F5F6FE !important;
   color: #5567E5 !important;
 }
 
-[data-radix-collection-item]:not([data-state="active"]) {
+[data-radix-collection-item]:not([data-state="active"]),
+button:not([data-state="active"]) {
   color: #6b7280 !important;
+}
+
+/* Additional specific targeting for tabs */
+.tabs-trigger-override[data-state="active"] {
+  background-color: #E1E4FB !important;
+  color: #3E4DC4 !important;
+}
+
+.tabs-trigger-override:hover:not([data-state="active"]) {
+  background-color: #F5F6FE !important;
+  color: #5567E5 !important;
   --qollabi-hover-icon: 231 73% 62%; /* #5567E5 */
 }
 
