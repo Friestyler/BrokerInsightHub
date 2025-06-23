@@ -2990,7 +2990,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
           (SELECT COUNT(*) FROM degoudse.opportunities o WHERE o.id = p.linked_opportunity_id AND p.linked_opportunity_id IS NOT NULL) as opportunityCount,
           p.created_at as createdAt,
           p.updated_at as updatedAt
-        FROM degoudse.insurance_products p
+        FROM degoudse.products p
         LEFT JOIN degoudse.product_categories pc ON p.category::integer = pc.id
         LEFT JOIN degoudse.product_categories parent ON pc.parent_id = parent.id
         LEFT JOIN degoudse.customers cust ON p.linked_customer_id = cust.id
@@ -4442,13 +4442,13 @@ Keep the tone clear and professional. Focus on what will help the account manage
               
               } else if (mapping.entityType === 'product') {
                 const result = await envPool.query(
-                  `SELECT * FROM degoudse.insurance_products WHERE LOWER(name) = LOWER($1)`,
+                  `SELECT * FROM degoudse.products WHERE LOWER(name) = LOWER($1)`,
                   [cellValue]
                 );
                 
                 if (result.rows.length === 0) {
                   await envPool.query(
-                    `INSERT INTO degoudse.insurance_products (name, description, category, created_at, updated_at)
+                    `INSERT INTO degoudse.products (name, description, category, created_at, updated_at)
                      VALUES ($1, $2, $3, NOW(), NOW())`,
                     [cellValue, `Product created from ${fileName}`, 'imported']
                   );
