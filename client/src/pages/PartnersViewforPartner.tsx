@@ -56,20 +56,20 @@ function PartnerTable({ stats }: { stats: any }) {
     direction: 'asc' as 'asc' | 'desc'
   });
 
-  // Show only De Goudse as the partner since they shared the list
-  const deGoudsePartner = {
+  // Show only Baloise as the partner since they shared the list
+  const baloisePartner = {
     id: 'degoudse',
-    name: 'De Goudse',
+    name: 'Baloise',
     primary_contact: 'Partner Representative',
-    contact_email: 'partner@degoudse.nl',
-    location: 'Netherlands',
-    phone: '+31 20 123 4567',
+    contact_email: 'partner@baloise.be',
+    location: 'Belgium',
+    phone: '+32 2 123 4567',
     description: 'Insurance company that shared this list',
     industry: 'Insurance',
     type: 'Insurance Provider',
     status: 'Active',
     size: 'Large',
-    region: 'Netherlands',
+    region: 'Belgium',
     relationship_count: 1,
     customers: 8,
     opportunities: 15,
@@ -77,8 +77,8 @@ function PartnerTable({ stats }: { stats: any }) {
     weighted_opportunity_value: 945000
   };
 
-  // Only show De Goudse in broker view
-  const allPartners = [deGoudsePartner];
+  // Only show Baloise in broker view
+  const allPartners = [baloisePartner];
   const partnersLoading = false;
 
   // Handle table sorting
@@ -421,10 +421,10 @@ function PartnerTable({ stats }: { stats: any }) {
 }
 
 export default function PartnersViewforPartner() {
-  // Use hardcoded De Goudse partner data for statistics
-  const deGoudsePartnerForStats = {
+  // Use hardcoded Baloise partner data for statistics
+  const baloisePartnerForStats = {
     id: 'degoudse',
-    name: 'De Goudse',
+    name: 'Baloise',
     customers: 8,
     opportunities: 15,
     opportunity_value: 1350000,
@@ -432,7 +432,7 @@ export default function PartnersViewforPartner() {
   };
 
   // Calculate statistics from hardcoded data
-  const stats = calculatePartnerStats([deGoudsePartnerForStats]);
+  const stats = calculatePartnerStats([baloisePartnerForStats]);
 
   return (
     <div className="p-6">
