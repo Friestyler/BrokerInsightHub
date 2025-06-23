@@ -113,6 +113,50 @@ export default function PartnerPilot() {
     };
   }, []);
 
+  // Apply custom tab styling after component mounts and updates
+  useEffect(() => {
+    const applyTabStyling = () => {
+      const triggers = document.querySelectorAll('[role="tab"]');
+      triggers.forEach((trigger) => {
+        const element = trigger as HTMLElement;
+        
+        // Apply active state styling
+        if (element.getAttribute('data-state') === 'active') {
+          element.style.backgroundColor = '#E1E4FB';
+          element.style.color = '#3E4DC4';
+          element.style.boxShadow = 'none';
+        } else {
+          element.style.backgroundColor = 'transparent';
+          element.style.color = '#6b7280';
+        }
+
+        // Remove existing event listeners to avoid duplicates
+        const newElement = element.cloneNode(true) as HTMLElement;
+        element.parentNode?.replaceChild(newElement, element);
+
+        // Add hover event listeners
+        newElement.addEventListener('mouseenter', () => {
+          if (newElement.getAttribute('data-state') !== 'active') {
+            newElement.style.backgroundColor = '#F5F6FE';
+            newElement.style.color = '#5567E5';
+          }
+        });
+
+        newElement.addEventListener('mouseleave', () => {
+          if (newElement.getAttribute('data-state') !== 'active') {
+            newElement.style.backgroundColor = 'transparent';
+            newElement.style.color = '#6b7280';
+          }
+        });
+      });
+    };
+
+    // Apply styling after DOM updates
+    const timer = setTimeout(applyTabStyling, 100);
+    
+    return () => clearTimeout(timer);
+  }, [activeSection, activeTab]);
+
   // Fetch real data from the system
   const { data: opportunities } = useQuery({
     queryKey: ['/api/opportunities'],
@@ -466,7 +510,21 @@ export default function PartnerPilot() {
 
           {/* Activity Filter Tabs */}
           <div className="mb-6">
-            <Tabs defaultValue="all" className="w-full">
+            <Tabs defaultValue="all" className="w-full" onValueChange={(value) => {
+              // Force apply styles after tab change
+              setTimeout(() => {
+                const triggers = document.querySelectorAll('[role="tab"]');
+                triggers.forEach(trigger => {
+                  if (trigger.getAttribute('data-state') === 'active') {
+                    trigger.style.backgroundColor = '#E1E4FB';
+                    trigger.style.color = '#3E4DC4';
+                  } else {
+                    trigger.style.backgroundColor = 'transparent';
+                    trigger.style.color = '#6b7280';
+                  }
+                });
+              }, 10);
+            }}>
               <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="all">All</TabsTrigger>
                 <TabsTrigger value="mentions">Mentions</TabsTrigger>
