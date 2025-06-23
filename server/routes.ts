@@ -2116,6 +2116,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get individual customer details in De Goudse environment
+  app.get('/api/degoudse/customers/:id', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      if (isNaN(customerId)) {
+        return res.status(400).json({ error: 'Invalid customer ID' });
+      }
+      const envPool = pool;
+      const result = await envPool.query(`
+        SELECT c.id, c.name, c.description, c.status, c.type, c.location, 
+               c.contact_email, c.contact_phone, c.owner_id, c.created_at, c.updated_at,
+               u.name as owner_name,
+               COUNT(DISTINCT o.id) as opportunity_count,
+               COUNT(DISTINCT CASE WHEN o.partner_id IS NOT NULL THEN o.partner_id END) as partner_count,
+               COALESCE(SUM(o.estimated_value), 0) as total_pipeline_value
+        FROM degoudse.customers c
+        LEFT JOIN degoudse.users u ON c.owner_id = u.id
+        LEFT JOIN degoudse.opportunities o ON c.id = o.client_id
+        WHERE c.id = $1
+        GROUP BY c.id, c.name, c.description, c.status, c.type, c.location, 
+                 c.contact_email, c.contact_phone, c.owner_id, c.created_at, c.updated_at, u.name
+      `, [customerId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Customer not found' });
+      }
+      
+      const customer = result.rows[0];
+      const customerData = {
+        id: customer.id,
+        name: customer.name,
+        description: customer.description,
+        status: customer.status,
+        type: customer.type,
+        location: customer.location,
+        contactEmail: customer.contact_email,
+        contactPhone: customer.contact_phone,
+        ownerId: customer.owner_id,
+        ownerName: customer.owner_name,
+        createdAt: customer.created_at,
+        updatedAt: customer.updated_at,
+        opportunityCount: parseInt(customer.opportunity_count) || 0,
+        partnerCount: parseInt(customer.partner_count) || 0,
+        totalPipelineValue: parseFloat(customer.total_pipeline_value) || 0
+      };
+      
+      res.json(customerData);
+    } catch (error) {
+      console.error('Error fetching De Goudse customer:', error);
+      res.status(500).json({ error: 'Failed to fetch customer' });
+    }
+  });
+
   app.get('/api/degoudse/customers/:id/partners', async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
