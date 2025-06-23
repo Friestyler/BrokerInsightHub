@@ -7980,7 +7980,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         INSERT INTO degoudse.campaigns (name, description, objective, icon, status, is_template, type, created_by_id, target_entity_type)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         RETURNING id
-      `, [name, description, objective, icon, status || 'draft', true, 'email', createdBy, entity]);
+      `, [name, description || '', objective || '', icon, status || 'draft', true, 'email', createdBy, entity]);
       
       const templateId = templateResult.rows[0].id;
       
