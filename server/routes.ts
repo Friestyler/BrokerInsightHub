@@ -7443,6 +7443,8 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
             sponsorId: null,
             target_entity_type: 'opportunities',
             followUpEmails: [],
+            frequency: 'one_time',
+            scheduledTime: null,
             // Campaign steps data
             steps: [
               {
@@ -7451,29 +7453,9 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
                 step_type: 'email',
                 name: 'Initial Notification',
                 description: 'Send initial notification about policy expiration',
-                subject: 'Your IPT Policy is Expiring - Renewal Options Available',
-                email_body: 'Dear valued customer, your IPT policy is approaching its end date. We have prepared attractive renewal options for you.',
+                subject: 'Proficiat met jouw pensioen!',
+                email_body: 'Proficiat met jouw welverdiende pensioen! Je kan je afvragen: "wat nu?" Wel, we gaan over tot het uitkeren van jouw IPT fonds aan jou. Graag hadden we hiervoor kort besproken welke opties er voor jou zijn.',
                 delay_days: 0,
-                is_active: true
-              },
-              {
-                id: 2,
-                step_number: 2,
-                step_type: 'email',
-                name: 'Follow-up Reminder',
-                description: 'Send follow-up reminder with detailed renewal options',
-                subject: 'Don\'t Miss Out - IPT Policy Renewal Deadline Approaching',
-                email_body: 'This is a friendly reminder that your IPT policy expires soon. Our team has prepared several renewal options tailored to your needs.',
-                delay_days: 7,
-                is_active: true
-              },
-              {
-                id: 3,
-                step_number: 3,
-                step_type: 'task',
-                name: 'Personal Contact',
-                description: 'Schedule personal contact to discuss renewal options',
-                delay_days: 14,
                 is_active: true
               }
             ]
