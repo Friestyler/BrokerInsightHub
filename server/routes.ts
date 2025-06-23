@@ -1102,11 +1102,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const partnerId = parseInt(req.params.id);
       const result = await db.execute(sql`
-        SELECT o.id, o.title, o.clientId, o.productId, o.probability, o.estimatedValue, o.type, o.status, o.stage, o.ownerId, o.description, o.partnerId, o.createdAt, o.updatedAt, o.expectedCloseDate, c.name as client_name
+        SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, c.name as client_name
         FROM degoudse.opportunities o
-        INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
-        WHERE po.partnerId = ${partnerId}
+        LEFT JOIN degoudse.customers c ON o.client_id = c.id
+        WHERE o.partner_id = ${partnerId}
         ORDER BY o.id
       `);
       
@@ -2070,8 +2069,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const insuranceDescriptionsResult = await envPool.query(`
         SELECT DISTINCT o.insurance_description
         FROM degoudse.opportunities o
-        INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        WHERE po."partnerId" = $1 AND o.insurance_description IS NOT NULL
+        WHERE o.partner_id = $1 AND o.insurance_description IS NOT NULL
         ORDER BY o.insurance_description
       `, [partnerId]);
       
