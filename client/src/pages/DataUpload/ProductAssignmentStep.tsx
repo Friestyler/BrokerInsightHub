@@ -155,32 +155,24 @@ export default function ProductAssignmentStep({
 
   return (
     <div className="space-y-6">
-      {/* Progress Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Detected Products</h2>
-          <p className="text-gray-600 mt-1">
-            Map detected products to existing products or assign them to categories
-          </p>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          <div className="text-sm text-gray-500">
-            <span className="font-medium text-primary">{assignedCount}</span> of{' '}
-            <span className="font-medium">{totalProducts}</span> products assigned
-          </div>
-          <div className="w-32 bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-primary h-2 rounded-full transition-all duration-300"
-              style={{ width: `${totalProducts > 0 ? (assignedCount / totalProducts) * 100 : 0}%` }}
-            />
-          </div>
-        </div>
-      </div>
       {/* Detected Products */}
       <Card className="border border-gray-200 shadow-sm">
         <CardHeader className="border-b border-gray-100 bg-gray-50/50">
-          <CardTitle className="text-lg font-semibold text-gray-900">Detected Products</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-lg font-semibold text-gray-900">Detected Products</CardTitle>
+            <div className="flex items-center gap-4">
+              <div className="text-sm text-gray-500">
+                <span className="font-medium text-primary">{assignedCount}</span> of{' '}
+                <span className="font-medium">{totalProducts}</span> products mapped
+              </div>
+              <div className="w-32 bg-gray-200 rounded-full h-2">
+                <div 
+                  className="bg-primary h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${totalProducts > 0 ? (assignedCount / totalProducts) * 100 : 0}%` }}
+                />
+              </div>
+            </div>
+          </div>
         </CardHeader>
         <CardContent className="p-6">
           {/* Column Headers */}
@@ -473,7 +465,7 @@ export default function ProductAssignmentStep({
                         )}
                       </div>
                     ) : (
-                      <span className="text-gray-400 text-xs">Not assigned</span>
+                      <span className="text-gray-400 text-xs">Not mapped</span>
                     )}
                   </div>
                 </div>
