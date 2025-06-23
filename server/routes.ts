@@ -1114,10 +1114,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: opp.description,
         status: opp.status,
         stage: opp.stage,
-        estimatedValue: opp.estimatedValue,
+        estimatedValue: opp.estimated_value,
         clientName: opp.client_name,
-        createdAt: opp.createdAt,
-        updatedAt: opp.updatedAt,
+        createdAt: opp.created_at,
+        updatedAt: opp.updated_at,
         expectedCloseDate: opp.expected_close_date
       }));
       
@@ -1989,21 +1989,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const partnerId = parseInt(req.params.id);
       const envPool = pool;
       const result = await envPool.query(`
-        SELECT o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", o.probability,
-               o."expectedCloseDate", o.start_date, o.insurance_description, o."ownerId",
-               o."clientId", o."partnerId", o."productId", o."ownerId", o.type, o."createdAt", o."updatedAt",
+        SELECT o.id, o.title, o.description, o.status, o.stage, o.estimated_value, o.probability,
+               o.expected_close_date, o.start_date, o.insurance_description, o.owner_id,
+               o.client_id, o.partner_id, o.product_id, o.type, o.created_at, o.updated_at,
                c.name as client_name,
                COUNT(DISTINCT contacts.id) as contact_count,
                am.name as account_manager_name
         FROM degoudse.opportunities o
-        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
+        LEFT JOIN degoudse.customers c ON o.client_id = c.id
         LEFT JOIN degoudse.contacts contacts ON contacts.linked_entity_id = c.id AND contacts.linked_entity_type = 'customer'
-        LEFT JOIN degoudse.users am ON o."ownerId" = am.id
-        WHERE o."partnerId" = $1 AND o.id > 16
-        GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", o.probability,
-                 o."expectedCloseDate", o.start_date, o.insurance_description, o."ownerId", 
-                 o."clientId", o."partnerId", o."productId", o."ownerId", o.type, 
-                 o."createdAt", o."updatedAt", c.name, am.name
+        LEFT JOIN degoudse.users am ON o.owner_id = am.id
+        WHERE o.partner_id = $1 AND o.id > 16
+        GROUP BY o.id, o.title, o.description, o.status, o.stage, o.estimated_value, o.probability,
+                 o.expected_close_date, o.start_date, o.insurance_description, o.owner_id, 
+                 o.client_id, o.partner_id, o.product_id, o.type, 
+                 o.created_at, o.updated_at, c.name, am.name
         ORDER BY o.id
       `, [partnerId]);
       
