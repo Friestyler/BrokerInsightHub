@@ -7432,7 +7432,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
             emails_opened: 89,
             open_rate: '36.33',
             total_clicks: 34,
-            recipients: 245,
+            recipients: [],
             partner_id: 12,
             partner_name: 'Mevas BV',
             environment_id: 'baloise',
