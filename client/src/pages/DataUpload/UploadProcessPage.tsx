@@ -13,7 +13,7 @@ import ProcessingStep from './ProcessingStep';
 import TransformationStep from './TransformationStep';
 import ProductMappingStep from './ProductMappingStep';
 import ProductAssignmentStep from './ProductAssignmentStep';
-import { CategoryManagerForProducts } from '@/components/CategoryManagerForProducts';
+import CategoryManagerForProducts from '@/components/CategoryManagerForProducts';
 
 interface UploadProcessProps {
   entityType?: string;
@@ -64,7 +64,8 @@ const getSteps = (uploadType: string) => {
       { id: 2, name: 'Upload', description: 'Upload your CSV file' },
       { id: 3, name: 'Product Mapping', description: 'Map detected products to categories and create new categories as needed' },
       { id: 4, name: 'Attribute Mapping', description: 'Map CSV columns to entity attributes' },
-      { id: 5, name: 'Processing', description: 'Review and validate your data before processing' }
+      { id: 5, name: 'Processing', description: 'Review and validate your data before processing' },
+      { id: 6, name: 'Complete', description: 'Review results' }
     ];
   }
   
@@ -245,7 +246,7 @@ export default function UploadProcessPage() {
         <CardContent className="p-8">
           <div className="mb-6">
             <div className="flex justify-between text-sm font-medium text-gray-700 mb-3">
-              <span>Step {currentStep} of {isEntityUpload ? 5 : isSpecialFormat ? 5 : 4}</span>
+              <span>Step {currentStep} of {isEntityUpload ? 6 : isSpecialFormat ? 5 : 4}</span>
               <span className="text-blue-600 font-semibold">{Math.round(progressPercentage)}% Complete</span>
             </div>
             <Progress value={progressPercentage} className="h-3 bg-gray-100" />
@@ -559,7 +560,6 @@ export default function UploadProcessPage() {
                     onBack={goToPreviousStep}
                     categories={productCategories}
                     uploadedFile={uploadedFile}
-                    isEmbedded={true}
                   />
                 </div>
                 
@@ -654,7 +654,7 @@ export default function UploadProcessPage() {
           )}
 
           {/* Results Step */}
-          {((currentStep === 5 && isSpecialFormat) || (currentStep === 7 && isEntityUpload) || (currentStep === 4 && !isSpecialFormat && !isEntityUpload)) && (
+          {((currentStep === 5 && isSpecialFormat) || (currentStep === 6 && isEntityUpload) || (currentStep === 4 && !isSpecialFormat && !isEntityUpload)) && (
             <div className="text-center py-16">
               <div className="mx-auto w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-lg mb-6">
                 <CheckCircle className="h-10 w-10 text-white" strokeWidth={2} />
