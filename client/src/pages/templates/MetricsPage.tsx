@@ -1169,7 +1169,7 @@ export default function MetricsPage() {
               </div>
 
               {/* Tag Field */}
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <label htmlFor="okr-tag" className="text-sm font-medium text-gray-900">
                   Tag {parentObjectiveId && <span className="text-blue-600">(inherited from objective)</span>}
                 </label>
