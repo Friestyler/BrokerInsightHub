@@ -546,11 +546,6 @@ export default function UploadProcessPage() {
             <div className="space-y-8">
               {/* Product Assignment Section */}
               <div className="space-y-6">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Detected Products</h3>
-                  <p className="text-gray-600 text-sm">Products found in your uploaded file that need to be mapped</p>
-                </div>
-                
                 <ProductAssignmentStep
                   onNext={(mappings) => {
                     setProductMappings(mappings);
@@ -563,7 +558,7 @@ export default function UploadProcessPage() {
               </div>
               
               {/* Category Management Section - Below Product Assignment */}
-              <div className="space-y-6 border-t pt-8">
+              <div className="space-y-6 border-t pt-8" data-section="product-categories">
                 <div>
                   <h3 className="text-lg font-medium text-gray-900 mb-2">Product Categories</h3>
                   <p className="text-gray-600 text-sm">Create and organize categories for your products</p>

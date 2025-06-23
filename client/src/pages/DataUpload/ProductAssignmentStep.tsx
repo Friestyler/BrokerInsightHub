@@ -431,6 +431,27 @@ export default function ProductAssignmentStep({
                             )}
                           </div>
                         ))}
+                        
+                        {/* Add Category Option */}
+                        <div className="border-t border-gray-200 mt-2 pt-2">
+                          <div 
+                            className="flex items-center gap-2 px-3 py-2 text-sm text-primary hover:bg-primary/5 cursor-pointer rounded-md transition-colors duration-150"
+                            onClick={(e) => {
+                              e.preventDefault();
+                              e.stopPropagation();
+                              // Scroll to Product Categories section
+                              const categorySection = document.querySelector('[data-section="product-categories"]');
+                              if (categorySection) {
+                                categorySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                              }
+                            }}
+                          >
+                            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                            </svg>
+                            <span className="font-medium">Add New Category</span>
+                          </div>
+                        </div>
                       </SelectContent>
                     </Select>
                   </div>
