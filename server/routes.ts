@@ -2260,7 +2260,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await envPool.query(`
         SELECT pr.*
         FROM degoudse.products pr
-        INNER JOIN degoudse.opportunities o ON pr.id = o.productId
+        INNER JOIN degoudse.opportunities o ON pr.id = o.product_id
         WHERE o.id = $1
         ORDER BY pr.id
       `, [opportunityId]);
@@ -2738,7 +2738,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
       const result = await envPool.query(`
         SELECT p.*
         FROM degoudse.partners p
-        INNER JOIN degoudse.opportunities o ON p.id = o.partnerId
+        INNER JOIN degoudse.opportunities o ON p.id = o.partner_id
         WHERE o.id = $1
         ORDER BY p.id
       `, [opportunityId]);
@@ -2768,7 +2768,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
       const result = await envPool.query(`
         SELECT c.*
         FROM degoudse.customers c
-        INNER JOIN degoudse.opportunities o ON c.id = o.clientId
+        INNER JOIN degoudse.opportunities o ON c.id = o.client_id
         WHERE o.id = $1
         ORDER BY c.id
       `, [opportunityId]);
@@ -3409,26 +3409,26 @@ Keep the tone clear and professional. Focus on what will help the account manage
       const envPool = pool;
       
       const result = await envPool.query(`
-        SELECT o.id, o.title, o.clientId, o.productId, o.probability, o.estimatedValue, o.type, o.status, o.stage, o.ownerId, o.description, o.partnerId, o.createdAt, o.updatedAt, o.expectedCloseDate, 
+        SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, 
                STRING_AGG(DISTINCT c.name, ', ') as customer_names,
                STRING_AGG(DISTINCT p.name, ', ') as partner_names,
                STRING_AGG(DISTINCT pr.name, ', ') as product_names,
                am.name as account_manager_name,
                COUNT(DISTINCT co.customer_id) as customer_count,
-               COUNT(DISTINCT po.partnerId) as partner_count,
+               COUNT(DISTINCT po.partner_id) as partner_count,
                COUNT(DISTINCT op.product_id) as product_count
         FROM degoudse.opportunities o
         LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
         LEFT JOIN degoudse.customers c ON c.id = co.customer_id
         LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN degoudse.partners p ON p.id = po.partnerId
+        LEFT JOIN degoudse.partners p ON p.id = po.partner_id
         LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
         LEFT JOIN degoudse.products pr ON pr.id = op.product_id
-        LEFT JOIN degoudse.users am ON o.ownerId = am.id
+        LEFT JOIN degoudse.users am ON o.owner_id = am.id
         WHERE o.id = $1 AND o.id > 16
-        GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
-                 o."expectedCloseDate", o.start_date, o.ownerId, o."clientId", o."partnerId", o."productId", 
-                 o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt", am.name
+        GROUP BY o.id, o.title, o.description, o.status, o.stage, o.estimated_value, 
+                 o.expected_close_date, o.start_date, o.owner_id, o.client_id, o.partner_id, o.product_id, 
+                 o.probability, o.type, o.created_at, o.updated_at, am.name
       `, [opportunityId]);
       
       if (result.rows.length === 0) {
@@ -3443,17 +3443,17 @@ Keep the tone clear and professional. Focus on what will help the account manage
         insuranceDescription: opp.insurance_description,
         status: opp.status,
         stage: opp.stage,
-        estimatedValue: opp.estimatedValue,
-        expectedCloseDate: opp.expectedCloseDate,
+        estimatedValue: opp.estimated_value,
+        expectedCloseDate: opp.expected_close_date,
         startDate: opp.start_date,
-        clientId: opp.clientId,
+        clientId: opp.client_id,
         clientName: opp.customer_names || '',
         customerNames: opp.customer_names || '',
-        partnerId: opp.partnerId,
+        partnerId: opp.partner_id,
         partnerNames: opp.partner_names || '',
-        productId: opp.productId,
+        productId: opp.product_id,
         productNames: opp.product_names || '',
-        ownerId: opp.ownerId,
+        ownerId: opp.owner_id,
         accountManagerId: opp.account_manager_id,
         accountManagerName: opp.account_manager_name || '',
         probability: opp.probability,
