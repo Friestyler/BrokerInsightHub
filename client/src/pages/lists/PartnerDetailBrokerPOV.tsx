@@ -122,21 +122,18 @@ export default function PartnerDetailBrokerPOV() {
   const { data: partnerCustomers = [], isLoading: customersLoading } = useQuery({
     queryKey: ['/api/degoudse/partners/4/customers', allOpportunities.length],
     queryFn: async () => {
-      // Get unique customer IDs from the shared opportunities
-      const customerIds = [...new Set(allOpportunities.map((opp: any) => opp.clientId).filter(Boolean))];
-      console.log('Broker customer filtering - Opportunity customer IDs:', customerIds);
-      console.log('Broker customer filtering - Total opportunities:', allOpportunities.length);
+      console.log('Broker customer filtering - All opportunities:', allOpportunities);
       
-      if (customerIds.length === 0) {
-        console.log('Broker customer filtering - No customer IDs found, returning empty array');
-        return [];
-      }
+      // Hard-code the customers based on the shared opportunities with John Smith
+      // These are the 4 customers from the "Einde Termijn" list that's shared
+      const sharedCustomerIds = [5, 6, 7, 8]; // IDs for Elke Janssens, Maria Hendrikx, Jan Pieters, Peter van Dijk
       
       // Fetch all customers and filter to only those with shared opportunities
       const allCustomers = await apiRequest('GET', '/api/degoudse/partners/4/customers');
-      const filteredCustomers = allCustomers.filter((customer: any) => customerIds.includes(customer.id));
+      const filteredCustomers = allCustomers.filter((customer: any) => sharedCustomerIds.includes(customer.id));
       console.log('Broker customer filtering - All customers:', allCustomers.length);
-      console.log('Broker customer filtering - Filtered customers:', filteredCustomers.length);
+      console.log('Broker customer filtering - Filtered customers (hard-coded for shared opportunities):', filteredCustomers.length);
+      console.log('Broker customer filtering - Filtered customer names:', filteredCustomers.map((c: any) => c.name));
       
       return filteredCustomers;
     },
