@@ -1,6 +1,6 @@
-const XLSX = require('xlsx');
-const fs = require('fs');
-const { Pool } = require('@neondatabase/serverless');
+import XLSX from 'xlsx';
+import fs from 'fs';
+import { Pool } from '@neondatabase/serverless';
 
 const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
@@ -312,16 +312,14 @@ async function createOpportunities(client, opportunities, customerIds, partnerId
 }
 
 // Run the import
-if (require.main === module) {
-  processBaloiseOpportunities()
-    .then(() => {
-      console.log('Import completed successfully');
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error('Import failed:', error);
-      process.exit(1);
-    });
-}
+processBaloiseOpportunities()
+  .then(() => {
+    console.log('Import completed successfully');
+    process.exit(0);
+  })
+  .catch((error) => {
+    console.error('Import failed:', error);
+    process.exit(1);
+  });
 
-module.exports = { processBaloiseOpportunities };
+export { processBaloiseOpportunities };
