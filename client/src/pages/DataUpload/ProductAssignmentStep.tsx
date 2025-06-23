@@ -8,6 +8,7 @@ import { useQuery } from '@tanstack/react-query';
 
 interface Product {
   id: number;
+  sku: string;
   name: string;
   recordCount: number;
 }
@@ -43,6 +44,7 @@ const useDetectedProducts = () => {
     queryKey: ['/api/products'],
     select: (data: any[]) => data.map(product => ({
       id: product.id,
+      sku: product.sku,
       name: product.name,
       recordCount: Math.floor(Math.random() * 2000) + 100 // Random count for demonstration
     }))
@@ -210,7 +212,7 @@ export default function ProductAssignmentStep({
                     <div className="flex-1">
                       <h4 className="font-semibold text-gray-900 text-base">{product.name}</h4>
                       <div className="flex items-center gap-3 text-sm text-gray-500 mt-1">
-                        <span className="font-medium">ID: {product.id}</span>
+                        <span className="font-medium">ID: {product.sku}</span>
                         <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
                         <span>{product.recordCount.toLocaleString()} records</span>
                       </div>
