@@ -150,6 +150,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       let emails = [];
       if (campaignDataFromAPI.email_body) {
         try {
+          // Try to parse as JSON first
           const blocks = JSON.parse(campaignDataFromAPI.email_body);
           emails = [{
             id: '1',
@@ -160,11 +161,17 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             rightLogo: null
           }];
         } catch (e) {
-          console.warn('Failed to parse email_body:', e);
+          console.warn('Failed to parse email_body as JSON, treating as plain text:', e);
+          // Convert plain text to text block format
+          const textBlock = {
+            id: '1',
+            type: 'text',
+            content: campaignDataFromAPI.email_body
+          };
           emails = [{
             id: '1',
             subject: campaignDataFromAPI.subject || '',
-            blocks: [],
+            blocks: [textBlock],
             followUpDays: 0,
             leftLogo: null,
             rightLogo: null
