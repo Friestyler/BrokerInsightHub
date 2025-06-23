@@ -1962,7 +1962,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/partners/:id/customers', async (req, res) => {
     try {
       const partnerId = parseInt(req.params.id);
-      console.log(`Fetching customers for partner ${partnerId} from De Goudse database`);
       const envPool = pool;
       const result = await envPool.query(`
         SELECT DISTINCT c.id, c.name, c.description
@@ -1971,8 +1970,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         WHERE o.partner_id = $1
         ORDER BY c.id
       `, [partnerId]);
-      
-      console.log(`Found ${result.rows.length} customers for partner ${partnerId}`);
       
       const customers = result.rows.map((customer: any) => ({
         id: customer.id,
@@ -2156,18 +2153,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isNaN(customerId)) {
         return res.status(400).json({ error: 'Invalid customer ID' });
       }
+      console.log(`Fetching opportunities for customer ${customerId}`);
       const envPool = pool;
       const result = await envPool.query(`
-        SELECT o.id, o.title, o."clientId", o."productId", o.probability, o."estimatedValue", o.type, o.status, o.stage, o."ownerId", o.description, o."partnerId", o."createdAt", o."updatedAt", o."expectedCloseDate", 
-               STRING_AGG(DISTINCT p.name, ', ') as partner_names
+        SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, 
+               p.name as partner_name
         FROM degoudse.opportunities o
-        INNER JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
-        LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN degoudse.partners p ON p.id = po.partner_id
-        WHERE co.customer_id = $1
-        GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", o."expectedCloseDate", o."clientId", o."partnerId", o."productId", o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
+        LEFT JOIN degoudse.partners p ON o.partner_id = p.id
+        WHERE o.client_id = $1
         ORDER BY o.id
       `, [customerId]);
+      
+      console.log(`Found ${result.rows.length} opportunities for customer ${customerId}`);
       
       const opportunities = result.rows.map((opp: any) => ({
         id: opp.id,
@@ -2176,7 +2173,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: opp.status,
         stage: opp.stage,
         estimated_value: opp.estimated_value,
-        partnerNames: opp.partner_names,
+        probability: opp.probability,
+        partnerName: opp.partner_name,
         expected_close_date: opp.expected_close_date
       }));
       
