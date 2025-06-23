@@ -208,12 +208,24 @@ export default function CategoryManagerForProducts() {
     const hasSubcategories = subcategory.subcategories && subcategory.subcategories.length > 0;
     const isExpanded = expandedSubcategories.has(subcategory.id);
     const isAddingSubcategory = newSubcategory?.parentId === subcategory.id;
+    const [isHovered, setIsHovered] = useState(false);
+    const [showAddButton, setShowAddButton] = useState(false);
 
     return (
       <div className={`${level > 0 ? 'ml-4' : ''}`}>
-        <div className={`flex items-center justify-between p-2 rounded text-sm ${
-          level === 0 ? 'bg-gray-50' : level === 1 ? 'bg-gray-100' : 'bg-gray-200'
-        }`}>
+        <div 
+          className={`flex items-center justify-between p-2 rounded text-sm ${
+            level === 0 ? 'bg-gray-50' : level === 1 ? 'bg-gray-100' : 'bg-gray-200'
+          }`}
+          onMouseEnter={() => setIsHovered(true)}
+          onMouseLeave={() => {
+            setIsHovered(false);
+            // Hide add button when mouse leaves unless we're adding a subcategory
+            if (!isAddingSubcategory) {
+              setShowAddButton(false);
+            }
+          }}
+        >
           <div className="flex items-center gap-2">
             {hasSubcategories ? (
               <Button
@@ -228,8 +240,18 @@ export default function CategoryManagerForProducts() {
                   <ChevronRight className="h-3 w-3 text-blue-600" />
                 )}
               </Button>
+            ) : isHovered ? (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => setShowAddButton(!showAddButton)}
+                className="h-5 w-5 p-0 hover:bg-blue-100"
+                title="Click to add subcategory"
+              >
+                <ChevronRight className="h-3 w-3 text-blue-400" />
+              </Button>
             ) : (
-              <div className="w-5 h-5" /> // Spacer to maintain alignment
+              <div className="w-5 h-5" />
             )}
             <span className={hasSubcategories ? 'font-medium' : ''}>{subcategory.name}</span>
             {hasSubcategories && (
@@ -242,19 +264,6 @@ export default function CategoryManagerForProducts() {
             <Button
               size="sm"
               variant="ghost"
-              onClick={() => setNewSubcategory({ 
-                categoryId, 
-                parentId: subcategory.id, 
-                name: '' 
-              })}
-              className="h-6 w-6 p-0 hover:bg-blue-100 hover:border-blue-200 border border-transparent"
-              title={`Add subcategory under "${subcategory.name}"`}
-            >
-              <Plus className="h-3 w-3 text-blue-600" />
-            </Button>
-            <Button
-              size="sm"
-              variant="ghost"
               onClick={() => deleteSubcategory(categoryId, subcategory.id)}
               className="h-6 w-6 p-0 hover:bg-red-100"
             >
@@ -262,6 +271,25 @@ export default function CategoryManagerForProducts() {
             </Button>
           </div>
         </div>
+
+        {/* Show Add Subcategory Button */}
+        {showAddButton && !hasSubcategories && !isAddingSubcategory && (
+          <div className={`mt-2 ${level > 0 ? 'ml-4' : ''}`}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setNewSubcategory({ 
+                categoryId, 
+                parentId: subcategory.id, 
+                name: '' 
+              })}
+              className="text-xs border-dashed border-blue-300 text-blue-600 hover:bg-blue-50"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              Add subcategory
+            </Button>
+          </div>
+        )}
 
         {/* Add Subcategory Input */}
         {isAddingSubcategory && (
