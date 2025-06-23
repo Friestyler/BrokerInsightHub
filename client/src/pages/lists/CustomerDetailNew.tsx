@@ -21,7 +21,7 @@ export default function CustomerDetailNew() {
   const { environment } = useEnvironment();
   const [location] = useLocation();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("okr-plans");
+  const [activeTab, setActiveTab] = useState("opportunities");
   const [backUrl, setBackUrl] = useState("/customers");
   const [backLabel, setBackLabel] = useState("Back to Customers");
   
