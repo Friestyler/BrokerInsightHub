@@ -7852,7 +7852,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
           u.name as created_by_name
         FROM ${envId}.campaigns c
         LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
-        WHERE c.is_template = true
+        WHERE c.is_template = true AND c.status != 'archived'
         ORDER BY c.created_at DESC
       `);
       
