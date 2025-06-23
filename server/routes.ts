@@ -7168,7 +7168,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
                   SELECT DISTINCT c.id
                   FROM ${envId}.campaigns c
                   LEFT JOIN ${envId}.campaign_shares cs ON c.id = cs.campaign_id
-                  WHERE c.is_template = false
+                  WHERE c.is_template = false AND c.status != 'archived'
                   AND (
                     (c.recipients::text LIKE '%"name": "' || $1 || '"%' 
                      OR c.recipients::text LIKE '%"id": ' || $2 || '%' 
