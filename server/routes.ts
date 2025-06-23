@@ -7977,7 +7977,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       
       // Insert template into campaigns table
       const templateResult = await pool.query(`
-        INSERT INTO campaigns (name, description, objective, icon, status, is_template, type, created_by_id, target_entity_type)
+        INSERT INTO degoudse.campaigns (name, description, objective, icon, status, is_template, type, created_by_id, target_entity_type)
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
         RETURNING id
       `, [name, description, objective, icon, status || 'draft', true, 'email', createdBy, entity]);
@@ -7991,7 +7991,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         
         // Update the template with email content
         await pool.query(`
-          UPDATE campaigns 
+          UPDATE degoudse.campaigns 
           SET subject = $1, email_body = $2, follow_up_emails = $3
           WHERE id = $4
         `, [
