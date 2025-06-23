@@ -223,7 +223,7 @@ export default function UploadProcessPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-bold">
-              {formatType ? `${capitalizeUploadType(formatType)} Format Upload` : `${capitalizeUploadType(entityType || '')} Upload`}
+              {formatType ? `${capitalizeUploadType(formatType)} Format Upload` : isEntityUpload ? 'Upload Entity Data' : `${capitalizeUploadType(entityType || '')} Upload`}
             </h1>
             <p className="text-gray-600">
               {formatType 
