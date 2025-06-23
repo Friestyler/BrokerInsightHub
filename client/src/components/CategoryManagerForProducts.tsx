@@ -335,6 +335,25 @@ export default function CategoryManagerForProducts() {
                     level={level + 1}
                   />
                 ))}
+                
+                {/* Add another subcategory to existing parent */}
+                {!isAddingSubcategory && (
+                  <div className={`${level > 0 ? 'ml-4' : ''}`}>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setNewSubcategory({ 
+                        categoryId, 
+                        parentId: subcategory.id, 
+                        name: '' 
+                      })}
+                      className="text-xs border-dashed border-blue-300 text-blue-600 hover:bg-blue-50"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
+                      Add another subcategory
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
           </CollapsibleContent>
