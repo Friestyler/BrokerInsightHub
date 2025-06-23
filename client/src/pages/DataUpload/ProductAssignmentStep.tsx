@@ -215,7 +215,7 @@ export default function ProductAssignmentStep({
                         </Badge>
                       )}
                       {!hasAutoMatch && !isAssigned && (
-                        <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200 font-medium px-2 py-0.5 rounded text-xs flex items-center gap-1">
+                        <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200 font-medium px-2 py-0.5 rounded text-xs flex items-center gap-1 hover:bg-yellow-50">
                           <AlertTriangle className="h-3 w-3" />
                           New
                         </Badge>
