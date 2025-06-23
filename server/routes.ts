@@ -3369,7 +3369,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
                  c.name as customer_name,
                  p.name as partner_name,
                  pr.name as product_name,
-                 am.full_name as account_manager_name
+                 am.name as account_manager_name
           FROM degoudse.opportunities o
           LEFT JOIN degoudse.customers c ON o."clientId" = c.id
           LEFT JOIN degoudse.partners p ON o."partnerId" = p.id
