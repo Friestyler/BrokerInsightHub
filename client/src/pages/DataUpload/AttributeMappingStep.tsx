@@ -616,7 +616,7 @@ export default function AttributeMappingStep({
                 {showCodeEditor[index] && mapping.csvColumn === 'CODE' && (
                   <div className="mt-4 bg-white border border-[#E6E7F1] rounded-2xl shadow-sm overflow-hidden">
                     {/* Clean Header */}
-                    <div className="px-6 py-4 bg-gradient-to-r from-purple-50 to-blue-50 border-b border-gray-100">
+                    <div className="px-6 py-4 bg-gradient-to-r from-purple-50 to-blue-50 border-b border-[#E6E7F1]">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center">
@@ -674,7 +674,7 @@ export default function AttributeMappingStep({
                               value={aiPrompt[index] || ''}
                               onChange={(e) => setAiPrompt(prev => ({ ...prev, [index]: e.target.value }))}
                               placeholder="Example: Combine first and last name with an underscore"
-                              className="w-full h-20 p-4 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                              className="w-full h-20 p-4 border border-[#E6E7F1] rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
                             />
                             
                             <div className="flex items-center justify-between">
