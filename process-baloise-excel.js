@@ -81,29 +81,29 @@ for (let i = 1; i < data.length; i++) {
 // Generate SQL statements
 console.log('-- Creating customers');
 for (const customer of customers) {
-  console.log(`INSERT INTO baloise.customers (name, created_at, updated_at, environment_id) 
-VALUES ('${customer.replace(/'/g, "''")}', NOW(), NOW(), 'baloise')
+  console.log(`INSERT INTO degoudse.customers (name, created_at, updated_at, environment_id) 
+VALUES ('${customer.replace(/'/g, "''")}', NOW(), NOW(), 'degoudse')
 ON CONFLICT (name) DO NOTHING;`);
 }
 
 console.log('\n-- Creating partners');
 for (const partner of partners) {
-  console.log(`INSERT INTO baloise.partners (name, created_at, updated_at, environment_id) 
-VALUES ('${partner.replace(/'/g, "''")}', NOW(), NOW(), 'baloise')
+  console.log(`INSERT INTO degoudse.partners (name, created_at, updated_at, environment_id) 
+VALUES ('${partner.replace(/'/g, "''")}', NOW(), NOW(), 'degoudse')
 ON CONFLICT (name) DO NOTHING;`);
 }
 
 console.log('\n-- Creating opportunities with relationships');
 for (const opp of opportunities) {
   const customerClause = opp.customer_name ? 
-    `(SELECT id FROM baloise.customers WHERE name = '${opp.customer_name.replace(/'/g, "''")}' LIMIT 1)` : 
+    `(SELECT id FROM degoudse.customers WHERE name = '${opp.customer_name.replace(/'/g, "''")}' LIMIT 1)` : 
     'NULL';
   
   const partnerClause = opp.partner_name ? 
-    `(SELECT id FROM baloise.partners WHERE name = '${opp.partner_name.replace(/'/g, "''")}' LIMIT 1)` : 
+    `(SELECT id FROM degoudse.partners WHERE name = '${opp.partner_name.replace(/'/g, "''")}' LIMIT 1)` : 
     'NULL';
   
-  console.log(`INSERT INTO baloise.opportunities (
+  console.log(`INSERT INTO degoudse.opportunities (
   title, customer_id, partner_id, stage, probability, 
   estimated_value, weighted_value, insurance_type, 
   created_at, updated_at, environment_id
@@ -118,7 +118,7 @@ for (const opp of opportunities) {
   '${opp.insurance_type}',
   NOW(),
   NOW(),
-  'baloise'
+  'degoudse'
 );`);
 }
 
