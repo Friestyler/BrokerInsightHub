@@ -397,35 +397,6 @@ export default function ProductAssignmentStep({
           </div>
         </CardContent>
       </Card>
-
-      {/* Navigation */}
-      <div className="flex justify-between pt-4">
-        <Button 
-          variant="outline" 
-          onClick={onBack}
-          className="flex items-center gap-2"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Previous
-        </Button>
-        
-        <Button 
-          onClick={handleNext}
-          disabled={!canProceed}
-          className="flex items-center gap-2"
-        >
-          Finish Mapping
-          <ArrowRight className="h-4 w-4" />
-        </Button>
-      </div>
-
-      {!canProceed && (
-        <div className="text-center p-4 bg-amber-50 border border-amber-200 rounded-lg">
-          <p className="text-amber-800 text-sm">
-            Assign at least one product to a category to continue to the next step.
-          </p>
-        </div>
-      )}
     </div>
   );
 }
