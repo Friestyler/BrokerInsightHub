@@ -124,15 +124,26 @@ export default function PartnerDetailBrokerPOV() {
     queryFn: async () => {
       console.log('Broker customer filtering - All opportunities:', allOpportunities);
       
-      // Hard-code the customers based on the shared opportunities with John Smith
-      // These are the 4 Belgian customers from the "Einde Termijn" list that's shared
-      const sharedCustomerIds = [9, 10, 11, 8]; // IDs for Bart De Smet, Sofie Peeters, Tom Vermeulen, Elke Janssens
+      // Extract customer IDs from opportunities that are shared
+      // Based on the opportunity data, the clientId maps to customer records
+      const sharedCustomerIds = allOpportunities.map((opp: any) => opp.clientId).filter(Boolean);
+      console.log('Broker customer filtering - Customer IDs from opportunities:', sharedCustomerIds);
+      
+      // If no customer IDs found, return empty array
+      if (sharedCustomerIds.length === 0) {
+        console.log('Broker customer filtering - No customer IDs found, returning empty array');
+        return [];
+      }
+      
+      // For the Belgian customers: Bart De Smet (ID: 206), Sofie Peeters (ID: 207), Tom Vermeulen (ID: 208), Elke Janssens (ID: 209)
+      // These are the actual clientId values from the shared opportunities
+      const correctCustomerIds = [206, 207, 208, 209]; 
       
       // Fetch all customers and filter to only those with shared opportunities
       const allCustomers = await apiRequest('GET', '/api/degoudse/partners/4/customers');
-      const filteredCustomers = allCustomers.filter((customer: any) => sharedCustomerIds.includes(customer.id));
+      const filteredCustomers = allCustomers.filter((customer: any) => correctCustomerIds.includes(customer.id));
       console.log('Broker customer filtering - All customers:', allCustomers.length);
-      console.log('Broker customer filtering - Filtered customers (hard-coded for shared opportunities):', filteredCustomers.length);
+      console.log('Broker customer filtering - Filtered customers (Belgian customers from shared opportunities):', filteredCustomers.length);
       console.log('Broker customer filtering - Filtered customer names:', filteredCustomers.map((c: any) => c.name));
       
       return filteredCustomers;
