@@ -7441,7 +7441,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
             createdAt: new Date().toISOString(),
             createdById: 2,
             sponsorId: null,
-            target_entity_type: 'customer',
+            target_entity_type: 'opportunities',
             followUpEmails: [],
             // Campaign steps data
             steps: [
