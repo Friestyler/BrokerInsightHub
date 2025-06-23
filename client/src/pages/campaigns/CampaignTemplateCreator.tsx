@@ -148,35 +148,39 @@ export default function CampaignTemplateCreator() {
     if (templateData && isEditMode) {
       console.log('Loading template data for editing:', templateData);
       
-      const emails = templateData.emails?.map((email: any, index: number) => ({
-        id: email.id || (index + 1).toString(),
-        subject: email.subject || '',
-        blocks: email.blocks || [],
-        followUpDays: email.followUpDays || 0,
-        leftLogo: email.leftLogo || null,
-        rightLogo: email.rightLogo || null,
-        condition: email.condition || (index > 0 ? { type: 'always' } : undefined)
-      })) || [{
+      // Parse email blocks from the stored JSON format
+      let emailBlocks = [];
+      try {
+        if (templateData.email_body) {
+          emailBlocks = JSON.parse(templateData.email_body);
+        }
+      } catch (error) {
+        console.error('Error parsing email blocks:', error);
+        emailBlocks = [];
+      }
+
+      // Create the email structure from template data
+      const emails = [{
         id: '1',
-        subject: '',
-        blocks: [],
+        subject: templateData.subject || '',
+        blocks: emailBlocks,
         followUpDays: 0,
         leftLogo: null,
         rightLogo: null
       }];
 
       setCampaignData({
-        entity: templateData.entity || '',
+        entity: templateData.target_entity_type || '',
         name: templateData.name || '',
         description: templateData.description || '',
-        objective: templateData.objective || '',
-        icon: templateData.icon || '',
+        objective: templateData.description || '',
+        icon: templateData.icon || 'mail',
         attachments: templateData.attachments || [],
         emails: emails
       });
       
       console.log('Campaign data set for editing:', { 
-        entity: templateData.entity,
+        entity: templateData.target_entity_type,
         name: templateData.name,
         emailCount: emails.length,
         firstEmailBlocks: emails[0]?.blocks?.length
