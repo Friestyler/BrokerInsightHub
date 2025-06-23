@@ -1173,7 +1173,7 @@ export default function MetricsPage() {
                 <label htmlFor="okr-tag" className="text-sm font-medium text-gray-900">
                   Tag {parentObjectiveId && <span className="text-blue-600">(inherited from objective)</span>}
                 </label>
-                <p className="text-xs text-gray-500 mb-2">
+                <p className="text-xs mb-2 text-[#4b5563]">
                   {parentObjectiveId 
                     ? "This activity will inherit the tag from its parent objective."
                     : "Add a tag if you want this key metric to be part of a plan."
