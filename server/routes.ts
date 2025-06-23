@@ -2122,7 +2122,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isNaN(customerId)) {
         return res.status(400).json({ error: 'Invalid customer ID' });
       }
-      console.log(`Fetching partners for customer ${customerId}`);
       const envPool = pool;
       const result = await envPool.query(`
         SELECT DISTINCT p.id, p.name, p.description, p.location, p.contact_email, p.primary_contact
@@ -2131,8 +2130,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         WHERE o.client_id = $1
         ORDER BY p.id
       `, [customerId]);
-      
-      console.log(`Found ${result.rows.length} partners for customer ${customerId}:`, result.rows);
       
       const partners = result.rows.map((partner: any) => ({
         id: partner.id,
