@@ -7,7 +7,7 @@ import { ArrowLeft, ArrowRight, FolderOpen, FileText, CheckCircle } from 'lucide
 import { useQuery } from '@tanstack/react-query';
 
 interface Product {
-  id: string;
+  id: number;
   name: string;
   recordCount: number;
 }
@@ -42,7 +42,7 @@ const useDetectedProducts = () => {
   return useQuery({
     queryKey: ['/api/products'],
     select: (data: any[]) => data.map(product => ({
-      id: product.id.toString(),
+      id: product.id,
       name: product.name,
       recordCount: Math.floor(Math.random() * 2000) + 100 // Random count for demonstration
     }))
