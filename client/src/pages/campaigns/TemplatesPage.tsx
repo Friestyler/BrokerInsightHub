@@ -34,18 +34,20 @@ export default function TemplatesPage() {
   const getCategoryFromName = (name: string): string => {
     const lowerName = name.toLowerCase();
     
-    if (lowerName.includes('motor + legal gap') || 
-        lowerName.includes('professional liability upgrade') || 
-        lowerName.includes('solar panel protection')) {
-      return 'coverage-gap';
+    if (lowerName.includes('einde termijn ipt')) {
+      return 'life-renewal';
     }
     
-    if (lowerName.includes('annual policy review')) {
-      return 'retention';
+    if (lowerName.includes('van pensioenverzekering naar lange termijnsparen')) {
+      return 'life-cross-sell';
     }
     
-    if (lowerName.includes('industry-specific proposition')) {
-      return 'segment-specific';
+    if (lowerName.includes('cyber upsell')) {
+      return 'non-life-cross-sell';
+    }
+    
+    if (lowerName.includes('auto + legal campaign')) {
+      return 'auto-legal';
     }
     
     return 'other';
