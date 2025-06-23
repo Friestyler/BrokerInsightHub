@@ -218,10 +218,6 @@ export default function CustomerDetailNew() {
       setEditedCustomer({
         name: customer.name || '',
         industry: customer.industry || '',
-        contactEmail: customer.contactEmail || '',
-        contactPhone: customer.contactPhone || '',
-        website: customer.website || '',
-        address: customer.address || '',
         description: customer.description || ''
       });
       
@@ -336,10 +332,6 @@ export default function CustomerDetailNew() {
                     setEditedCustomer({
                       name: customer.name || '',
                       industry: customer.industry || '',
-                      contactEmail: customer.contactEmail || '',
-                      contactPhone: customer.contactPhone || '',
-                      website: customer.website || '',
-                      address: customer.address || '',
                       description: customer.description || ''
                     });
                     setShowDetailsDialog(true);
