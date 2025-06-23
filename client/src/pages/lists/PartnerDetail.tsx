@@ -2799,11 +2799,17 @@ export default function PartnerDetail() {
                   return total + customerOpportunities.reduce((oppTotal: number, opp: any) => {
                     const value = Number(opp.estimated_value) || 0;
                     const probability = opp.stage === 'Closed (Won)' ? 1.0 : 
+                                      opp.stage === 'Negotiation' ? 0.7 :
                                       opp.stage === 'Proposal Sent to Client' ? 0.6 :
+                                      opp.stage === 'Proposal Sent' ? 0.6 :
+                                      opp.stage === 'proposal' ? 0.6 :
+                                      opp.stage === 'Qualified Lead' ? 0.4 :
+                                      opp.stage === 'qualification' ? 0.4 :
                                       opp.stage === 'Validated' ? 0.3 :
+                                      opp.stage === 'discovery' ? 0.2 :
                                       opp.stage === 'Lost' ? 0 :
                                       opp.stage === 'Rejected' ? 0 :
-                                      !opp.stage || opp.stage === '' ? 0 : 0;
+                                      !opp.stage || opp.stage === '' ? 0.1 : 0.1;
                     return oppTotal + (value * probability);
                   }, 0);
                 }, 0);
