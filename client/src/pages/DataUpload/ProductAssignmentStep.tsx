@@ -183,46 +183,59 @@ export default function ProductAssignmentStep({
         <CardHeader className="border-b border-gray-100 bg-gray-50/50">
           <CardTitle className="text-lg font-semibold text-gray-900">Detected Products</CardTitle>
         </CardHeader>
-        <CardContent className="space-y-3 p-6">
-          {products.map((product) => {
-            const mapping = productMappings[product.id];
-            const isAssigned = !!mapping;
-            const isExistingProduct = mapping?.productAction === 'existing';
-            const hasAutoMatch = isExistingProduct && mapping?.existingProductId;
-            
-            return (
-              <div key={product.id} className="p-6 bg-white border border-gray-100 rounded-xl hover:border-gray-200 hover:shadow-sm transition-all duration-200">
-                {/* Product Header with Status */}
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h4 className="font-semibold text-gray-900 text-base">{product.name}</h4>
+        <CardContent className="p-6">
+          {/* Column Headers */}
+          <div className="grid grid-cols-5 gap-4 pb-4 border-b border-gray-200 mb-4">
+            <div className="col-span-2">
+              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Product Information</h3>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Action</h3>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Target Category</h3>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Status</h3>
+            </div>
+          </div>
+
+          {/* Product Rows */}
+          <div className="space-y-3">
+            {products.map((product) => {
+              const mapping = productMappings[product.id];
+              const isAssigned = !!mapping;
+              const isExistingProduct = mapping?.productAction === 'existing';
+              const hasAutoMatch = isExistingProduct && mapping?.existingProductId;
+              
+              return (
+                <div key={product.id} className="grid grid-cols-5 gap-4 p-4 bg-white border border-gray-100 rounded-lg hover:border-gray-200 hover:shadow-sm transition-all duration-200 items-center">
+                  {/* Column 1-2: Product Information */}
+                  <div className="col-span-2">
+                    <div className="flex items-center gap-3 mb-1">
+                      <h4 className="font-semibold text-gray-900 text-sm">{product.name}</h4>
                       {hasAutoMatch && (
-                        <Badge className="bg-green-50 text-green-700 border-green-200 font-medium px-2 py-1 rounded-md text-xs flex items-center gap-1">
+                        <Badge className="bg-green-50 text-green-700 border-green-200 font-medium px-2 py-0.5 rounded text-xs flex items-center gap-1">
                           <Check className="h-3 w-3" />
-                          Match Found
+                          Match
                         </Badge>
                       )}
                       {!hasAutoMatch && !isAssigned && (
-                        <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200 font-medium px-2 py-1 rounded-md text-xs flex items-center gap-1">
+                        <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200 font-medium px-2 py-0.5 rounded text-xs flex items-center gap-1">
                           <AlertTriangle className="h-3 w-3" />
-                          New Product
+                          New
                         </Badge>
                       )}
                     </div>
-                    <div className="flex items-center gap-3 text-sm text-gray-500">
+                    <div className="flex items-center gap-3 text-xs text-gray-500">
                       <span className="font-medium">ID: {product.sku}</span>
                       <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
                       <span>{product.recordCount.toLocaleString()} records</span>
                     </div>
                   </div>
-                </div>
 
-                {/* Two-Column Selection Interface */}
-                <div className="grid grid-cols-2 gap-4">
-                  {/* Left Column: Product Selection */}
+                  {/* Column 3: Product Action */}
                   <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Product Action</label>
                     <Select
                       value={mapping?.productAction || ''}
                       onValueChange={(value: 'existing' | 'new') => {
@@ -255,8 +268,8 @@ export default function ProductAssignmentStep({
                         <SelectValue placeholder="Select action..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="existing">Map to Existing Product</SelectItem>
-                        <SelectItem value="new">Create New Product</SelectItem>
+                        <SelectItem value="existing">Map to Existing</SelectItem>
+                        <SelectItem value="new">Create New</SelectItem>
                       </SelectContent>
                     </Select>
                     
@@ -277,7 +290,7 @@ export default function ProductAssignmentStep({
                         }}
                       >
                         <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select existing product..." />
+                          <SelectValue placeholder="Select product..." />
                         </SelectTrigger>
                         <SelectContent>
                           {products.filter(p => p.id !== product.id).map((existingProduct) => (
@@ -290,11 +303,8 @@ export default function ProductAssignmentStep({
                     )}
                   </div>
 
-                  {/* Right Column: Category Selection */}
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">
-                      {mapping?.productAction === 'existing' ? 'Category (Auto-filled)' : 'Target Category'}
-                    </label>
+                  {/* Column 4: Category Selection */}
+                  <div>
                     <Select
                       value={isAssigned ? `${mapping.targetType}:${mapping.targetId}` : ''}
                       onValueChange={(value) => {
@@ -356,33 +366,31 @@ export default function ProductAssignmentStep({
                       </SelectContent>
                     </Select>
                   </div>
-                </div>
 
-                {/* Status Indicator */}
-                {isAssigned && (
-                  <div className="mt-4 p-3 bg-gray-50 rounded-lg border border-gray-100">
-                    <div className="flex items-center gap-2 text-sm">
-                      {mapping.productAction === 'existing' ? (
-                        <>
-                          <Check className="h-4 w-4 text-green-600" />
-                          <span className="text-green-700 font-medium">
-                            Mapped to existing product {mapping.existingProductId} in {getCategoryName(mapping, activeCategories as Category[])}
-                          </span>
-                        </>
-                      ) : (
-                        <>
-                          <AlertTriangle className="h-4 w-4 text-blue-600" />
-                          <span className="text-blue-700 font-medium">
-                            Will create new product in {getCategoryName(mapping, activeCategories as Category[])}
-                          </span>
-                        </>
-                      )}
-                    </div>
+                  {/* Column 5: Status */}
+                  <div className="flex items-center">
+                    {isAssigned ? (
+                      <div className="flex items-center gap-2 text-xs">
+                        {mapping.productAction === 'existing' ? (
+                          <>
+                            <Check className="h-4 w-4 text-green-600" />
+                            <span className="text-green-700 font-medium">Mapped</span>
+                          </>
+                        ) : (
+                          <>
+                            <AlertTriangle className="h-4 w-4 text-blue-600" />
+                            <span className="text-blue-700 font-medium">New Product</span>
+                          </>
+                        )}
+                      </div>
+                    ) : (
+                      <span className="text-gray-400 text-xs">Not assigned</span>
+                    )}
                   </div>
-                )}
-              </div>
-            );
-          })}
+                </div>
+              );
+            })}
+          </div>
         </CardContent>
       </Card>
 
