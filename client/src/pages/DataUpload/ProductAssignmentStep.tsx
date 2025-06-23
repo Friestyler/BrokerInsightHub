@@ -318,6 +318,7 @@ export default function ProductAssignmentStep({
                       value={mapping?.existingProductId || ''}
                       onValueChange={(existingProductId) => {
                         if (mapping?.targetId) {
+                          // Has category selected, update with existing product
                           handleProductMapping(
                             product.id.toString(),
                             mapping.targetId,
@@ -325,6 +326,17 @@ export default function ProductAssignmentStep({
                             'existing',
                             existingProductId
                           );
+                        } else {
+                          // No category yet, create/update preliminary mapping
+                          setProductMappings(prev => ({
+                            ...prev,
+                            [product.id.toString()]: {
+                              targetId: mapping?.targetId || '',
+                              targetType: mapping?.targetType || 'category',
+                              productAction: 'existing',
+                              existingProductId: existingProductId
+                            }
+                          }));
                         }
                       }}
                       disabled={mapping?.productAction !== 'existing'}
