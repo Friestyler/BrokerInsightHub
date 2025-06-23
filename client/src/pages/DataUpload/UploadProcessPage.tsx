@@ -62,7 +62,7 @@ const getSteps = (uploadType: string) => {
     return [
       { id: 1, name: 'Entity Selection', description: 'Choose the type of data you want to upload' },
       { id: 2, name: 'Upload', description: 'Upload your CSV file' },
-      { id: 3, name: 'Product Mapping', description: 'Map detected products to existing products or assign new products to categories in your portfolio' },
+      { id: 3, name: 'Product Mapping', description: 'Map products to categories' },
       { id: 4, name: 'Attribute Mapping', description: 'Map CSV columns to entity attributes' },
       { id: 5, name: 'Processing', description: 'Review and validate your data before processing' },
       { id: 6, name: 'Complete', description: 'Review results' }
