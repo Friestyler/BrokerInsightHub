@@ -3342,9 +3342,9 @@ Keep the tone clear and professional. Focus on what will help the account manage
             // When no specific list is requested, show all opportunities from all shared lists
             console.log('Broker requesting all opportunities from shared lists');
             
-            // Get all shared lists for John Smith
+            // Get all currently shared lists for John Smith (must be both shared AND have active collaborator)
             const sharedListsResult = await envPool.query(`
-              SELECT DISTINCT sl.id, sl.members 
+              SELECT DISTINCT sl.id, sl.name, sl.members 
               FROM degoudse.saved_lists sl
               JOIN degoudse.list_collaborators lc ON sl.id = lc.list_id
               WHERE lc.email = 'john.smith@partner.com' 
@@ -3353,6 +3353,11 @@ Keep the tone clear and professional. Focus on what will help the account manage
                 AND sl.is_shared = true
                 AND NOT (sl.members <@ ARRAY[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16])
             `);
+            
+            console.log(`Found ${sharedListsResult.rows.length} lists shared with John Smith or partners`);
+            sharedListsResult.rows.forEach(list => {
+              console.log(`Shared list: ${list.name} (ID: ${list.id}) with ${list.members ? list.members.length : 0} members`);
+            });
             
             if (sharedListsResult.rows.length > 0) {
               // Collect all opportunity IDs from all shared lists
