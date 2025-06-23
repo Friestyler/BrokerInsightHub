@@ -156,9 +156,10 @@ export default function CustomerDetailNew() {
     loadExistingLogo();
   }, [customerId, environment]);
 
-  // Fetch customer data from database
-  const { data: customersResponse, isLoading: customersLoading } = useQuery({
-    queryKey: ['/api/customers'],
+  // Fetch individual customer data from database
+  const { data: customer, isLoading: customersLoading } = useQuery({
+    queryKey: [`/api/customers/${customerId}`],
+    enabled: isValidId,
   });
 
   // Fetch related partners for this customer
@@ -211,10 +212,6 @@ export default function CustomerDetailNew() {
     queryKey: ['/api/products'],
   });
 
-  // Extract customers array from paginated response
-  const customers = customersResponse?.data || [];
-  const customer = customers?.find((c: any) => c.id === customerId);
-  
   // Initialize dialog data when it opens (after customer is declared)
   useEffect(() => {
     if (showDetailsDialog && customer) {
