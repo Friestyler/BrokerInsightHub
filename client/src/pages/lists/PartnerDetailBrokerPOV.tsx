@@ -125,8 +125,8 @@ export default function PartnerDetailBrokerPOV() {
       console.log('Broker customer filtering - All opportunities:', allOpportunities);
       
       // Hard-code the customers based on the shared opportunities with John Smith
-      // These are the 4 customers from the "Einde Termijn" list that's shared
-      const sharedCustomerIds = [5, 6, 7, 8]; // IDs for Elke Janssens, Maria Hendrikx, Jan Pieters, Peter van Dijk
+      // These are the 4 Belgian customers from the "Einde Termijn" list that's shared
+      const sharedCustomerIds = [9, 10, 11, 8]; // IDs for Bart De Smet, Sofie Peeters, Tom Vermeulen, Elke Janssens
       
       // Fetch all customers and filter to only those with shared opportunities
       const allCustomers = await apiRequest('GET', '/api/degoudse/partners/4/customers');
