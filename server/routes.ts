@@ -2122,14 +2122,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isNaN(customerId)) {
         return res.status(400).json({ error: 'Invalid customer ID' });
       }
+      console.log(`Fetching partners for customer ${customerId}`);
       const envPool = pool;
       const result = await envPool.query(`
-        SELECT p.*
+        SELECT DISTINCT p.id, p.name, p.description, p.location, p.contact_email, p.primary_contact
         FROM degoudse.partners p
-        INNER JOIN degoudse.partner_customers pc ON p.id = pc.partner_id
-        WHERE pc.customer_id = $1
+        INNER JOIN degoudse.opportunities o ON p.id = o.partner_id
+        WHERE o.client_id = $1
         ORDER BY p.id
       `, [customerId]);
+      
+      console.log(`Found ${result.rows.length} partners for customer ${customerId}:`, result.rows);
       
       const partners = result.rows.map((partner: any) => ({
         id: partner.id,
@@ -2153,7 +2156,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (isNaN(customerId)) {
         return res.status(400).json({ error: 'Invalid customer ID' });
       }
-      console.log(`Fetching opportunities for customer ${customerId}`);
       const envPool = pool;
       const result = await envPool.query(`
         SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, 
@@ -2163,8 +2165,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         WHERE o.client_id = $1
         ORDER BY o.id
       `, [customerId]);
-      
-      console.log(`Found ${result.rows.length} opportunities for customer ${customerId}`);
       
       const opportunities = result.rows.map((opp: any) => ({
         id: opp.id,
