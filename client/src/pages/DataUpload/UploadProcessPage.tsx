@@ -57,16 +57,14 @@ const capitalizeUploadType = (type: string) => {
 };
 
 const getSteps = (uploadType: string) => {
-  // For entity-upload flow, add product category creation at start and product mapping after upload
+  // For entity-upload flow, combine product categories and mapping into one step after upload
   if (uploadType === 'entity-upload') {
     return [
-      { id: 1, name: 'Product Categories', description: 'Create main categories and subcategories for your products' },
-      { id: 2, name: 'Entity Selection', description: 'Choose the type of data you want to upload' },
-      { id: 3, name: 'Upload', description: 'Upload your CSV file' },
-      { id: 4, name: 'Product Mapping', description: 'Map products to categories' },
-      { id: 5, name: 'Mapping', description: 'Map CSV columns to entity attributes' },
-      { id: 6, name: 'Processing', description: 'Review and validate your data before processing' },
-      { id: 7, name: 'Complete', description: 'Review results' }
+      { id: 1, name: 'Entity Selection', description: 'Choose the type of data you want to upload' },
+      { id: 2, name: 'Upload', description: 'Upload your CSV file' },
+      { id: 3, name: 'Product Mapping', description: 'Map detected products to categories and create new categories as needed' },
+      { id: 4, name: 'Attribute Mapping', description: 'Map CSV columns to entity attributes' },
+      { id: 5, name: 'Processing', description: 'Review and validate your data before processing' }
     ];
   }
   
@@ -247,7 +245,7 @@ export default function UploadProcessPage() {
         <CardContent className="p-8">
           <div className="mb-6">
             <div className="flex justify-between text-sm font-medium text-gray-700 mb-3">
-              <span>Step {currentStep} of {isEntityUpload ? 6 : isSpecialFormat ? 5 : 4}</span>
+              <span>Step {currentStep} of {isEntityUpload ? 5 : isSpecialFormat ? 5 : 4}</span>
               <span className="text-blue-600 font-semibold">{Math.round(progressPercentage)}% Complete</span>
             </div>
             <Progress value={progressPercentage} className="h-3 bg-gray-100" />
@@ -347,39 +345,8 @@ export default function UploadProcessPage() {
         </CardHeader>
         <CardContent className="pt-0">
 
-          {/* Product Categories Step (Entity Upload Only) - Step 1 */}
+          {/* Entity Selection Step (Entity Upload Only) - Step 1 */}
           {currentStep === 1 && isEntityUpload && (
-            <div className="space-y-6">
-              <div className="text-center mb-6">
-                <h3 className="text-lg font-medium mb-2">Product Categories</h3>
-                <p className="text-gray-600">Manage your product categories and subcategories</p>
-              </div>
-              
-              <CategoryManagerForProducts />
-              
-              <div className="flex justify-between pt-4">
-                <Button 
-                  variant="outline" 
-                  onClick={goToPreviousStep} 
-                  disabled={currentStep <= 1}
-                  className="rounded-xl px-6 py-3 border-gray-300 hover:bg-gray-50 disabled:opacity-50"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back
-                </Button>
-                <Button 
-                  onClick={goToNextStep}
-                  className="rounded-xl px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium"
-                >
-                  Continue to Entity Selection
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Entity Selection Step (Entity Upload Only) - Step 2 */}
-          {currentStep === 2 && isEntityUpload && (
             <div className="space-y-6">
               <div className="text-center mb-6">
                 <h3 className="text-lg font-medium mb-2">Choose Entity Type</h3>
@@ -483,7 +450,7 @@ export default function UploadProcessPage() {
           )}
 
           {/* Upload Step */}
-          {((currentStep === 2 && isSpecialFormat) || (currentStep === 3 && isEntityUpload) || (currentStep === 1 && !isSpecialFormat && !isEntityUpload)) && (
+          {((currentStep === 2 && isSpecialFormat) || (currentStep === 2 && isEntityUpload) || (currentStep === 1 && !isSpecialFormat && !isEntityUpload)) && (
             <div className="space-y-8">
               <div 
                 className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 ${
@@ -573,17 +540,59 @@ export default function UploadProcessPage() {
             </div>
           )}
 
-          {/* Product Mapping Step (Entity Upload Only) - Step 4 */}
-          {currentStep === 4 && isEntityUpload && (
-            <ProductAssignmentStep
-              onNext={(mappings) => {
-                setProductMappings(mappings);
-                goToNextStep();
-              }}
-              onBack={goToPreviousStep}
-              categories={productCategories}
-              uploadedFile={uploadedFile}
-            />
+          {/* Combined Product Mapping & Category Management Step (Entity Upload Only) - Step 3 */}
+          {currentStep === 3 && isEntityUpload && (
+            <div className="space-y-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                {/* Left side: Detected Products */}
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Detected Products</h3>
+                    <p className="text-gray-600 text-sm">Products found in your uploaded file that need to be mapped</p>
+                  </div>
+                  
+                  <ProductAssignmentStep
+                    onNext={(mappings) => {
+                      setProductMappings(mappings);
+                      goToNextStep();
+                    }}
+                    onBack={goToPreviousStep}
+                    categories={productCategories}
+                    uploadedFile={uploadedFile}
+                    isEmbedded={true}
+                  />
+                </div>
+                
+                {/* Right side: Category Management */}
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Product Categories</h3>
+                    <p className="text-gray-600 text-sm">Create and organize categories for your products</p>
+                  </div>
+                  
+                  <CategoryManagerForProducts />
+                </div>
+              </div>
+              
+              <div className="flex justify-between pt-6 border-t">
+                <Button 
+                  variant="outline" 
+                  onClick={goToPreviousStep} 
+                  disabled={currentStep <= 1}
+                  className="rounded-xl px-6 py-3 border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+                <Button 
+                  onClick={goToNextStep}
+                  className="rounded-xl px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                >
+                  Continue to Attribute Mapping
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
+            </div>
           )}
 
           {/* Mapping Step (Special Formats Only) - Apply transformation and extract headers */}
@@ -606,7 +615,7 @@ export default function UploadProcessPage() {
           )}
 
           {/* Attribute Mapping Step */}
-          {((currentStep === 3 && isSpecialFormat) || (currentStep === 5 && isEntityUpload) || (currentStep === 2 && !isSpecialFormat && !isEntityUpload)) && (
+          {((currentStep === 3 && isSpecialFormat) || (currentStep === 4 && isEntityUpload) || (currentStep === 2 && !isSpecialFormat && !isEntityUpload)) && (
             <AttributeMappingStep 
               uploadedFile={isSpecialFormat && transformedFile ? transformedFile : uploadedFile}
               csvHeaders={csvHeaders}
@@ -624,7 +633,7 @@ export default function UploadProcessPage() {
           )}
 
           {/* Processing Step */}
-          {((currentStep === 4 && isSpecialFormat) || (currentStep === 6 && isEntityUpload) || (currentStep === 3 && !isSpecialFormat && !isEntityUpload)) && (
+          {((currentStep === 4 && isSpecialFormat) || (currentStep === 5 && isEntityUpload) || (currentStep === 3 && !isSpecialFormat && !isEntityUpload)) && (
             <ProcessingStep 
               uploadedFile={isSpecialFormat && transformedFile ? transformedFile : uploadedFile}
               attributeMappings={attributeMappings}
