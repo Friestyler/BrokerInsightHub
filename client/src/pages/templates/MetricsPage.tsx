@@ -174,7 +174,7 @@ const TagBadge = ({ tag }: { tag: string }) => {
   };
 
   return (
-    <Badge className={`${tagColors[tag] || "bg-gray-100 text-gray-800"} text-xs px-2 py-1 rounded-full`}>
+    <Badge variant="outline" className={`${tagColors[tag] || "bg-gray-100 text-gray-800"} text-xs px-2 py-1 rounded-full border-0`}>
       {tag}
     </Badge>
   );
