@@ -56,74 +56,20 @@ const useDetectedProducts = () => {
 // Fetch authentic product categories from database
 const useProductCategories = () => {
   return useQuery({
-    queryKey: ['/api/product-categories'],
-    select: (data: any[]) => {
-      // Transform the hierarchical data structure from API
-      const categories = data.filter(item => !item.parent_id);
-      return categories.map(category => {
-        // Collect all subcategories (level 2) and sub-subcategories (level 3)
-        const allSubcategories: any[] = [];
-        
-        // Add direct subcategories (level 2)
-        if (category.subcategories) {
-          category.subcategories.forEach((sub: any) => {
-            allSubcategories.push({
-              id: sub.id.toString(),
-              name: sub.name,
-              categoryId: category.id.toString(),
-              color: sub.color || category.color
-            });
-            
-            // Add sub-subcategories (level 3) as flattened subcategories
-            if (sub.subSubcategories) {
-              sub.subSubcategories.forEach((subSub: any) => {
-                allSubcategories.push({
-                  id: subSub.id.toString(),
-                  name: `${sub.name} > ${subSub.name}`,
-                  categoryId: category.id.toString(),
-                  color: subSub.color || sub.color || category.color
-                });
-              });
-            }
-          });
-        }
-        
-        // Handle sub-subcategories that are directly under category (if any)
-        if (category.subSubcategories) {
-          category.subSubcategories.forEach((subSub: any) => {
-            allSubcategories.push({
-              id: subSub.id.toString(),
-              name: subSub.name,
-              categoryId: category.id.toString(),
-              color: subSub.color || category.color
-            });
-          });
-        }
-        
-        return {
-          id: category.id.toString(),
-          name: category.name,
-          color: category.color || '#3B82F6',
-          subcategories: allSubcategories
-        };
-      });
-    }
+    queryKey: ['/api/product-categories']
   });
 };
 
 const getCategoryName = (mapping: ProductMapping, categories: Category[]): string => {
   if (mapping.targetType === 'category') {
-    const category = categories.find(c => c.id === mapping.targetId);
-    return category ? category.name : 'Unknown';
+    const category = categories.find(cat => cat.id === mapping.targetId);
+    return category?.name || 'Unknown Category';
   } else {
-    // Find subcategory
-    for (const category of categories) {
-      const subcategory = category.subcategories.find(s => s.id === mapping.targetId);
-      if (subcategory) {
-        return `${category.name} > ${subcategory.name}`;
-      }
-    }
-    return 'Unknown';
+    const category = categories.find(cat => 
+      cat.subcategories.some(sub => sub.id === mapping.targetId)
+    );
+    const subcategory = category?.subcategories.find(sub => sub.id === mapping.targetId);
+    return subcategory ? `${category?.name} > ${subcategory.name}` : 'Unknown Subcategory';
   }
 };
 
@@ -138,7 +84,7 @@ export default function ProductAssignmentStep({
   const [productMappings, setProductMappings] = useState<Record<string, ProductMapping>>({});
 
   // Use database categories instead of props
-  const activeCategories = dbCategories.length > 0 ? dbCategories : categories;
+  const activeCategories = (dbCategories && Array.isArray(dbCategories) && dbCategories.length > 0) ? dbCategories as Category[] : categories;
 
   // Auto-detect existing products based on SKU matching
   const detectExistingProducts = () => {
@@ -150,8 +96,8 @@ export default function ProductAssignmentStep({
       
       if (existingProduct) {
         // Auto-map to existing product
-        const category = activeCategories.find(cat => 
-          cat.subcategories.some(sub => sub.name.toLowerCase().includes('property')) ||
+        const category = activeCategories.find((cat: Category) => 
+          cat.subcategories?.some((sub: Subcategory) => sub.name.toLowerCase().includes('property')) ||
           cat.name.toLowerCase().includes('property')
         );
         
@@ -209,37 +155,31 @@ export default function ProductAssignmentStep({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
+      {/* Progress Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Product Mapping</h2>
-          <p className="text-gray-600 mt-1">Assign each detected product to a category or subcategory</p>
+          <h2 className="text-2xl font-bold text-gray-900">Product Assignment</h2>
+          <p className="text-gray-600 mt-1">
+            Map detected products to existing products or assign them to categories
+          </p>
         </div>
         
-        {/* Progress Panel */}
-        <Card className="w-64">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <div className="text-sm font-medium text-gray-700">Mapping Status</div>
-                <div className="text-2xl font-bold text-blue-600">{assignedCount}/{totalProducts}</div>
-              </div>
-              <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
-                assignedCount === totalProducts ? 'bg-green-100' : 'bg-blue-100'
-              }`}>
-                {assignedCount === totalProducts ? (
-                  <CheckCircle className="h-6 w-6 text-green-600" />
-                ) : (
-                  <div className="text-blue-600 font-semibold">{Math.round((assignedCount / totalProducts) * 100)}%</div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="flex items-center gap-4">
+          <div className="text-sm text-gray-500">
+            <span className="font-medium text-blue-600">{assignedCount}</span> of{' '}
+            <span className="font-medium">{totalProducts}</span> products assigned
+          </div>
+          <div className="w-32 bg-gray-200 rounded-full h-2">
+            <div 
+              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              style={{ width: `${totalProducts > 0 ? (assignedCount / totalProducts) * 100 : 0}%` }}
+            />
+          </div>
+        </div>
       </div>
 
-      {/* Product List */}
-      <Card className="border-gray-200 shadow-sm">
+      {/* Detected Products */}
+      <Card className="border border-gray-200 shadow-sm">
         <CardHeader className="border-b border-gray-100 bg-gray-50/50">
           <CardTitle className="text-lg font-semibold text-gray-900">Detected Products</CardTitle>
         </CardHeader>
@@ -369,13 +309,13 @@ export default function ProductAssignmentStep({
                           );
                         }
                       }}
-                      disabled={mapping?.productAction === 'existing' && mapping?.existingProductId}
+                      disabled={mapping?.productAction === 'existing' && !!mapping?.existingProductId}
                     >
                       <SelectTrigger className="w-full border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-200">
                         <SelectValue placeholder="Select category..." />
                       </SelectTrigger>
                       <SelectContent className="max-h-80 overflow-y-auto border-gray-200 shadow-lg">
-                        {activeCategories.map((category) => (
+                        {activeCategories.map((category: Category) => (
                           <div key={category.id} className="space-y-1 py-1">
                             {/* Main Category Option */}
                             <SelectItem 
@@ -392,9 +332,9 @@ export default function ProductAssignmentStep({
                             </SelectItem>
                             
                             {/* Subcategory Options */}
-                            {category.subcategories.length > 0 && (
+                            {category.subcategories && category.subcategories.length > 0 && (
                               <div className="ml-4 space-y-0.5 border-l-2 pl-3" style={{ borderColor: `${category.color}20` }}>
-                                {category.subcategories.map((subcategory) => (
+                                {category.subcategories.map((subcategory: Subcategory) => (
                                   <SelectItem 
                                     key={subcategory.id}
                                     value={`subcategory:${subcategory.id}`}
@@ -426,14 +366,14 @@ export default function ProductAssignmentStep({
                         <>
                           <Check className="h-4 w-4 text-green-600" />
                           <span className="text-green-700 font-medium">
-                            Mapped to existing product {mapping.existingProductId} in {getCategoryName(mapping, activeCategories)}
+                            Mapped to existing product {mapping.existingProductId} in {getCategoryName(mapping, activeCategories as Category[])}
                           </span>
                         </>
                       ) : (
                         <>
                           <AlertTriangle className="h-4 w-4 text-blue-600" />
                           <span className="text-blue-700 font-medium">
-                            Will create new product in {getCategoryName(mapping, activeCategories)}
+                            Will create new product in {getCategoryName(mapping, activeCategories as Category[])}
                           </span>
                         </>
                       )}
