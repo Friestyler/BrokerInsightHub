@@ -228,9 +228,6 @@ export default function TemplatesPage() {
         <div className="flex flex-wrap gap-1">
           {[
             { id: 'all', label: 'All Templates', icon: Globe },
-            { id: 'coverage-gap', label: 'Coverage Gap Closers', icon: Shield },
-            { id: 'retention', label: 'Retention & Relationship Builders', icon: Heart },
-            { id: 'segment-specific', label: 'Segment-Specific Propositions', icon: Target },
             { id: 'life-renewal', label: 'Life renewal (end-term)', icon: Clock },
             { id: 'life-cross-sell', label: 'Life cross sell', icon: TrendingUp },
             { id: 'non-life-cross-sell', label: 'Non-life cross sell', icon: Zap },
