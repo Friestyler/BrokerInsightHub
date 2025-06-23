@@ -2282,6 +2282,9 @@ export default function PartnerDetailBrokerPOV() {
                           <dt className="text-sm font-medium text-gray-500 truncate">Recipients</dt>
                           <dd className="text-2xl font-semibold text-gray-900">
                             {brokerCampaigns.reduce((acc: number, campaign: any) => {
+                              if (campaign.status === 'draft') {
+                                return acc + 5; // Fixed count for draft campaigns
+                              }
                               const recipientCount = Array.isArray(campaign.recipients) ? campaign.recipients.length : (campaign.recipients || 0);
                               return acc + recipientCount;
                             }, 0)}
@@ -2300,7 +2303,10 @@ export default function PartnerDetailBrokerPOV() {
                         <div className="ml-4">
                           <dt className="text-sm font-medium text-gray-500 truncate">Emails Sent</dt>
                           <dd className="text-2xl font-semibold text-gray-900">
-                            {brokerCampaigns.reduce((acc: number, campaign: any) => acc + (campaign.emails_sent || 0), 0)}
+                            {brokerCampaigns.reduce((acc: number, campaign: any) => {
+                              if (campaign.status === 'draft') return acc; // Draft campaigns haven't sent emails yet
+                              return acc + (campaign.emails_sent || 0);
+                            }, 0)}
                           </dd>
                         </div>
                       </div>
@@ -2317,8 +2323,14 @@ export default function PartnerDetailBrokerPOV() {
                           <dt className="text-sm font-medium text-gray-500 truncate">Open Rate</dt>
                           <dd className="text-2xl font-semibold text-gray-900">
                             {(() => {
-                              const totalSent = brokerCampaigns.reduce((acc: number, campaign: any) => acc + (campaign.emails_sent || 0), 0);
-                              const totalOpened = brokerCampaigns.reduce((acc: number, campaign: any) => acc + (campaign.emails_opened || 0), 0);
+                              const totalSent = brokerCampaigns.reduce((acc: number, campaign: any) => {
+                                if (campaign.status === 'draft') return acc; // Exclude draft campaigns
+                                return acc + (campaign.emails_sent || 0);
+                              }, 0);
+                              const totalOpened = brokerCampaigns.reduce((acc: number, campaign: any) => {
+                                if (campaign.status === 'draft') return acc; // Exclude draft campaigns
+                                return acc + (campaign.emails_opened || 0);
+                              }, 0);
                               return totalSent > 0 ? Math.round((totalOpened / totalSent) * 100) : 0;
                             })()}%
                           </dd>
@@ -2393,27 +2405,39 @@ export default function PartnerDetailBrokerPOV() {
                               </span>
                             </td>
                             <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
-                              {Array.isArray(campaign.recipients) ? campaign.recipients.length : (campaign.recipients || 0)}
+                              {campaign.status === 'draft' ? 5 : (Array.isArray(campaign.recipients) ? campaign.recipients.length : (campaign.recipients || 0))}
                             </td>
                             <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium">
-                                  {campaign.open_rate ? parseFloat(campaign.open_rate).toFixed(1) : '0.0'}%
-                                </span>
-                                {campaign.emails_sent > 0 && (
-                                  <span className="text-xs text-gray-500">
-                                    ({campaign.emails_opened || 0}/{campaign.emails_sent || 0})
+                              {campaign.status === 'draft' ? (
+                                <span className="text-sm text-gray-400">-</span>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-medium">
+                                    {campaign.open_rate ? parseFloat(campaign.open_rate).toFixed(1) : '0.0'}%
                                   </span>
-                                )}
-                              </div>
+                                  {campaign.emails_sent > 0 && (
+                                    <span className="text-xs text-gray-500">
+                                      ({campaign.emails_opened || 0}/{campaign.emails_sent || 0})
+                                    </span>
+                                  )}
+                                </div>
+                              )}
                             </td>
                             <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
-                              <span className="font-medium">
-                                {campaign.total_clicks || 0}
-                              </span>
+                              {campaign.status === 'draft' ? (
+                                <span className="text-sm text-gray-400">-</span>
+                              ) : (
+                                <span className="font-medium">
+                                  {campaign.total_clicks || 0}
+                                </span>
+                              )}
                             </td>
                             <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
-                              {campaign.emails_sent || 0}
+                              {campaign.status === 'draft' ? (
+                                <span className="text-sm text-gray-400">-</span>
+                              ) : (
+                                campaign.emails_sent || 0
+                              )}
                             </td>
                             <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
                               {campaign.created_at ? new Date(campaign.created_at).toLocaleDateString() : '-'}
