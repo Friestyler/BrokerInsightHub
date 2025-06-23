@@ -2056,15 +2056,7 @@ export default function PartnerDetailBrokerPOV() {
                             </svg>
                           </div>
                         </th>
-                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C] pt-[12px] pb-[12px]">
-                          <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
-                            Partner
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                              <path d="M8 9l4-4 4 4"></path>
-                              <path d="M16 15l-4 4-4-4"></path>
-                            </svg>
-                          </div>
-                        </th>
+
                         <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C] pt-[12px] pb-[12px]">
                           <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
                             Industry
@@ -2143,17 +2135,7 @@ export default function PartnerDetailBrokerPOV() {
                                 </div>
                               </div>
                             </td>
-                            <td className="px-3 py-4 text-sm text-gray-500">
-                              <div className="flex items-center">
-                                <EntityAvatar 
-                                  entityType="partner" 
-                                  entityId={customer.partnerId || 4} 
-                                  fallbackText={(customer.partnerName || "De Goudse").charAt(0)}
-                                  size="sm"
-                                />
-                                <span className="ml-2">{customer.partnerName || "De Goudse"}</span>
-                              </div>
-                            </td>
+
                             <td className="px-3 py-4 text-sm text-gray-500">
                               {customer.industry || 'Insurance'}
                             </td>
