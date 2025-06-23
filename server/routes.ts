@@ -1896,7 +1896,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT p.id, p.name, p.description, p.status, p.location, p.contact_email, 
                p.primary_contact, p.region, p.assigned_user_ids, p.owner_id,
                p.linked_opportunity_ids, p.created_at, p.updated_at,
-               u.name as owner_name,
+               u.full_name as owner_name,
                COALESCE(rel.opportunity_count, 0) as opportunity_count,
                COALESCE(rel.customer_count, 0) as customer_count,
                COALESCE(rel.total_opportunity_value, 0) as total_opportunity_value,
@@ -1996,7 +1996,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                o."clientId", o."partnerId", o."productId", o."ownerId", o.type, o."createdAt", o."updatedAt",
                c.name as client_name,
                COUNT(DISTINCT contacts.id) as contact_count,
-               am.name as account_manager_name
+               am.full_name as account_manager_name
         FROM degoudse.opportunities o
         LEFT JOIN degoudse.customers c ON o."clientId" = c.id
         LEFT JOIN degoudse.contacts contacts ON contacts.linked_entity_id = c.id AND contacts.linked_entity_type = 'customer'
@@ -3287,7 +3287,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
                          c.name as customer_name,
                          p.name as partner_name,
                          pr.name as product_name,
-                         am.name as account_manager_name
+                         am.full_name as account_manager_name
                   FROM degoudse.opportunities o
                   LEFT JOIN degoudse.customers c ON o.clientId = c.id
                   LEFT JOIN degoudse.partners p ON o.partnerId = p.id
@@ -3342,7 +3342,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
                          c.name as customer_name,
                          p.name as partner_name,
                          pr.name as product_name,
-                         am.name as account_manager_name
+                         am.full_name as account_manager_name
                   FROM degoudse.opportunities o
                   LEFT JOIN degoudse.customers c ON o.clientId = c.id
                   LEFT JOIN degoudse.partners p ON o.partnerId = p.id
@@ -3369,7 +3369,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
                  c.name as customer_name,
                  p.name as partner_name,
                  pr.name as product_name,
-                 am.name as account_manager_name
+                 am.full_name as account_manager_name
           FROM degoudse.opportunities o
           LEFT JOIN degoudse.customers c ON o."clientId" = c.id
           LEFT JOIN degoudse.partners p ON o."partnerId" = p.id
@@ -3425,7 +3425,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
                STRING_AGG(DISTINCT c.name, ', ') as customer_names,
                STRING_AGG(DISTINCT p.name, ', ') as partner_names,
                STRING_AGG(DISTINCT pr.name, ', ') as product_names,
-               am.name as account_manager_name,
+               am.full_name as account_manager_name,
                COUNT(DISTINCT co.customer_id) as customer_count,
                COUNT(DISTINCT po.partnerId) as partner_count,
                COUNT(DISTINCT op.product_id) as product_count
