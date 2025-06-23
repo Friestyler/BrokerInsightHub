@@ -1962,14 +1962,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/partners/:id/customers', async (req, res) => {
     try {
       const partnerId = parseInt(req.params.id);
+      console.log(`Fetching customers for partner ${partnerId} from De Goudse database`);
       const envPool = pool;
       const result = await envPool.query(`
-        SELECT c.id, c.name, c.description
+        SELECT DISTINCT c.id, c.name, c.description
         FROM degoudse.customers c
-        INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
-        WHERE pc.partner_id = $1
+        INNER JOIN degoudse.opportunities o ON c.id = o.client_id
+        WHERE o.partner_id = $1
         ORDER BY c.id
       `, [partnerId]);
+      
+      console.log(`Found ${result.rows.length} customers for partner ${partnerId}`);
       
       const customers = result.rows.map((customer: any) => ({
         id: customer.id,
