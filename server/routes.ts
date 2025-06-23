@@ -3458,8 +3458,8 @@ Keep the tone clear and professional. Focus on what will help the account manage
         accountManagerName: opp.account_manager_name || '',
         probability: opp.probability,
         type: opp.type,
-        createdAt: opp.createdAt,
-        updatedAt: opp.updatedAt,
+        createdAt: opp.created_at,
+        updatedAt: opp.updated_at,
         customerCount: parseInt(opp.customer_count) || 0,
         partnerCount: parseInt(opp.partner_count) || 0,
         productCount: parseInt(opp.product_count) || 0
