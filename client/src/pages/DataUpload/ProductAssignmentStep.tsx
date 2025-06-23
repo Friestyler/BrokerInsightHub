@@ -245,17 +245,42 @@ export default function ProductAssignmentStep({
                         if (value === 'existing') {
                           // Auto-select first matching product if available
                           const matchingProduct = products.find(p => p.sku === product.sku && p.id !== product.id);
-                          if (matchingProduct && mapping?.targetId) {
-                            handleProductMapping(
-                              product.id.toString(), 
-                              mapping.targetId, 
-                              mapping.targetType, 
-                              'existing', 
-                              matchingProduct.id.toString()
-                            );
+                          if (matchingProduct) {
+                            if (mapping?.targetId) {
+                              // Has category selected, update with existing product
+                              handleProductMapping(
+                                product.id.toString(), 
+                                mapping.targetId, 
+                                mapping.targetType, 
+                                'existing', 
+                                matchingProduct.id.toString()
+                              );
+                            } else {
+                              // No category yet, create preliminary mapping
+                              setProductMappings(prev => ({
+                                ...prev,
+                                [product.id.toString()]: {
+                                  targetId: '',
+                                  targetType: 'category',
+                                  productAction: 'existing',
+                                  existingProductId: matchingProduct.id.toString()
+                                }
+                              }));
+                            }
+                          } else {
+                            // No matching product found, just set action
+                            setProductMappings(prev => ({
+                              ...prev,
+                              [product.id.toString()]: {
+                                targetId: mapping?.targetId || '',
+                                targetType: mapping?.targetType || 'category',
+                                productAction: 'existing',
+                                existingProductId: mapping?.existingProductId
+                              }
+                            }));
                           }
                         } else {
-                          // Create new product - keep existing category if set
+                          // Create new product
                           if (mapping?.targetId) {
                             handleProductMapping(
                               product.id.toString(), 
@@ -263,6 +288,16 @@ export default function ProductAssignmentStep({
                               mapping.targetType, 
                               'new'
                             );
+                          } else {
+                            // No category yet, create preliminary mapping
+                            setProductMappings(prev => ({
+                              ...prev,
+                              [product.id.toString()]: {
+                                targetId: '',
+                                targetType: 'category',
+                                productAction: 'new'
+                              }
+                            }));
                           }
                         }
                       }}
