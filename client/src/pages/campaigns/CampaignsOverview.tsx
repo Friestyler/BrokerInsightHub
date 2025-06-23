@@ -137,8 +137,8 @@ export default function CampaignsOverview() {
               variant="ghost" 
               className={`flex items-center gap-2 ${
                 activeTab === 'campaigns' 
-                  ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100' 
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
+                  : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
               }`}
               onClick={() => setActiveTab('campaigns')}
             >
@@ -149,8 +149,8 @@ export default function CampaignsOverview() {
               variant="ghost" 
               className={`flex items-center gap-2 ${
                 activeTab === 'templates' 
-                  ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100' 
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                  ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
+                  : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
               }`}
               onClick={() => setActiveTab('templates')}
             >

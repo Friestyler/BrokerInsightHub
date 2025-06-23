@@ -362,7 +362,7 @@ export default function PartnerPilot() {
       <div className="flex space-x-1 mb-10">
         <Button 
           variant="ghost" 
-          className={activeSection === 'copilot' ? "bg-indigo-50 text-indigo-700 hover:bg-indigo-100" : ""}
+          className={activeSection === 'copilot' ? "bg-[#E1E4FB] text-[#3E4DC4]" : "hover:bg-[#F5F6FE] hover:text-[#5567E5]"}
           onClick={() => setActiveSection('copilot')}
         >
           <MessageSquare className="h-4 w-4 mr-2" />
@@ -372,7 +372,7 @@ export default function PartnerPilot() {
 
         <Button 
           variant="ghost"
-          className={activeSection === 'data-upload-3' ? "bg-indigo-50 text-indigo-700 hover:bg-indigo-100" : ""}
+          className={activeSection === 'data-upload-3' ? "bg-[#E1E4FB] text-[#3E4DC4]" : "hover:bg-[#F5F6FE] hover:text-[#5567E5]"}
           onClick={() => setActiveSection('data-upload-3')}
         >
           <Upload className="h-4 w-4 mr-2" />

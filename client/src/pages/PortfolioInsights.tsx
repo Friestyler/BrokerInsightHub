@@ -1319,22 +1319,25 @@ export default function PortfolioInsights() {
           {/* Tabs */}
           <div className="flex space-x-1 border-b">
             <Button 
-              variant={activeTab === 'matrix' ? 'default' : 'ghost'}
+              variant="ghost"
               size="sm"
+              className={activeTab === 'matrix' ? "bg-[#E1E4FB] text-[#3E4DC4]" : "hover:bg-[#F5F6FE] hover:text-[#5567E5]"}
               onClick={() => setActiveTab('matrix')}
             >
               Klanten & Potentieel Matrix
             </Button>
             <Button 
-              variant={activeTab === 'opportunities' ? 'default' : 'ghost'}
+              variant="ghost"
               size="sm"
+              className={activeTab === 'opportunities' ? "bg-[#E1E4FB] text-[#3E4DC4]" : "hover:bg-[#F5F6FE] hover:text-[#5567E5]"}
               onClick={() => setActiveTab('opportunities')}
             >
               Top Kansen
             </Button>
             <Button 
-              variant={activeTab === 'insights' ? 'default' : 'ghost'}
+              variant="ghost"
               size="sm"
+              className={activeTab === 'insights' ? "bg-[#E1E4FB] text-[#3E4DC4]" : "hover:bg-[#F5F6FE] hover:text-[#5567E5]"}
               onClick={() => setActiveTab('insights')}
             >
               Segment Inzichten
