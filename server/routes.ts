@@ -7947,7 +7947,9 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         button_text: template.button_text,
         button_color: template.button_color,
         follow_up_emails: template.follow_up_emails || [],
-        scheduled_time: template.scheduled_time
+        scheduled_time: template.scheduled_time,
+        target_entity_type: template.target_entity_type,
+        icon: template.icon
       };
       
       res.json(templateData);
