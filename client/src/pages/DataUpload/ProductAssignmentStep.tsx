@@ -387,7 +387,11 @@ export default function ProductAssignmentStep({
                       disabled={mapping?.productAction === 'existing' && !!mapping?.existingProductId}
                     >
                       <SelectTrigger className="w-full border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-200">
-                        <SelectValue placeholder="Select category..." />
+                        <SelectValue placeholder={
+                          mapping?.productAction === 'new' 
+                            ? "Select category (recommended)..." 
+                            : "Select category..."
+                        } />
                       </SelectTrigger>
                       <SelectContent className="max-h-80 overflow-y-auto border-gray-200 shadow-lg">
                         {activeCategories.map((category: Category) => (
