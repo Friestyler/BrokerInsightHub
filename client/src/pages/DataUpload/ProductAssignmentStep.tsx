@@ -185,12 +185,15 @@ export default function ProductAssignmentStep({
         </CardHeader>
         <CardContent className="p-6">
           {/* Column Headers */}
-          <div className="grid grid-cols-5 gap-4 pb-4 border-b border-gray-200 mb-4">
+          <div className="grid grid-cols-6 gap-4 pb-4 border-b border-gray-200 mb-4">
             <div className="col-span-2">
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Product Information</h3>
             </div>
             <div>
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Action</h3>
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Existing Product</h3>
             </div>
             <div>
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Target Category</h3>
@@ -209,7 +212,7 @@ export default function ProductAssignmentStep({
               const hasAutoMatch = isExistingProduct && mapping?.existingProductId;
               
               return (
-                <div key={product.id} className="grid grid-cols-5 gap-4 p-4 bg-white border border-gray-100 rounded-lg hover:border-gray-200 hover:shadow-sm transition-all duration-200 items-center">
+                <div key={product.id} className="grid grid-cols-6 gap-4 p-4 bg-white border border-gray-100 rounded-lg hover:border-gray-200 hover:shadow-sm transition-all duration-200 items-center">
                   {/* Column 1-2: Product Information */}
                   <div className="col-span-2">
                     <div className="flex items-center gap-3 mb-1">
@@ -235,7 +238,7 @@ export default function ProductAssignmentStep({
                   </div>
 
                   {/* Column 3: Product Action */}
-                  <div className="space-y-2">
+                  <div>
                     <Select
                       value={mapping?.productAction || ''}
                       onValueChange={(value: 'existing' | 'new') => {
@@ -272,38 +275,39 @@ export default function ProductAssignmentStep({
                         <SelectItem value="new">Create New</SelectItem>
                       </SelectContent>
                     </Select>
-                    
-                    {/* Existing Product Dropdown (shown when 'existing' is selected) */}
-                    {mapping?.productAction === 'existing' && (
-                      <Select
-                        value={mapping?.existingProductId || ''}
-                        onValueChange={(existingProductId) => {
-                          if (mapping?.targetId) {
-                            handleProductMapping(
-                              product.id.toString(),
-                              mapping.targetId,
-                              mapping.targetType,
-                              'existing',
-                              existingProductId
-                            );
-                          }
-                        }}
-                      >
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select product..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {products.filter(p => p.id !== product.id).map((existingProduct) => (
-                            <SelectItem key={existingProduct.id} value={existingProduct.id.toString()}>
-                              {existingProduct.sku} - {existingProduct.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
                   </div>
 
-                  {/* Column 4: Category Selection */}
+                  {/* Column 4: Existing Product Selection */}
+                  <div>
+                    <Select
+                      value={mapping?.existingProductId || ''}
+                      onValueChange={(existingProductId) => {
+                        if (mapping?.targetId) {
+                          handleProductMapping(
+                            product.id.toString(),
+                            mapping.targetId,
+                            mapping.targetType,
+                            'existing',
+                            existingProductId
+                          );
+                        }
+                      }}
+                      disabled={mapping?.productAction !== 'existing'}
+                    >
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder={mapping?.productAction === 'existing' ? 'Select product...' : 'N/A'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {products.filter(p => p.id !== product.id).map((existingProduct) => (
+                          <SelectItem key={existingProduct.id} value={existingProduct.id.toString()}>
+                            {existingProduct.sku} - {existingProduct.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Column 5: Category Selection */}
                   <div>
                     <Select
                       value={isAssigned ? `${mapping.targetType}:${mapping.targetId}` : ''}
@@ -367,7 +371,7 @@ export default function ProductAssignmentStep({
                     </Select>
                   </div>
 
-                  {/* Column 5: Status */}
+                  {/* Column 6: Status */}
                   <div className="flex items-center">
                     {isAssigned ? (
                       <div className="flex items-center gap-2 text-xs">
