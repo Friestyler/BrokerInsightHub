@@ -544,34 +544,32 @@ export default function UploadProcessPage() {
           {/* Combined Product Mapping & Category Management Step (Entity Upload Only) - Step 3 */}
           {currentStep === 3 && isEntityUpload && (
             <div className="space-y-8">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                {/* Left side: Detected Products */}
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Detected Products</h3>
-                    <p className="text-gray-600 text-sm">Products found in your uploaded file that need to be mapped</p>
-                  </div>
-                  
-                  <ProductAssignmentStep
-                    onNext={(mappings) => {
-                      setProductMappings(mappings);
-                      goToNextStep();
-                    }}
-                    onBack={goToPreviousStep}
-                    categories={productCategories}
-                    uploadedFile={uploadedFile}
-                  />
+              {/* Product Assignment Section */}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Detected Products</h3>
+                  <p className="text-gray-600 text-sm">Products found in your uploaded file that need to be mapped</p>
                 </div>
                 
-                {/* Right side: Category Management */}
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Product Categories</h3>
-                    <p className="text-gray-600 text-sm">Create and organize categories for your products</p>
-                  </div>
-                  
-                  <CategoryManagerForProducts />
+                <ProductAssignmentStep
+                  onNext={(mappings) => {
+                    setProductMappings(mappings);
+                    goToNextStep();
+                  }}
+                  onBack={goToPreviousStep}
+                  categories={productCategories}
+                  uploadedFile={uploadedFile}
+                />
+              </div>
+              
+              {/* Category Management Section - Below Product Assignment */}
+              <div className="space-y-6 border-t pt-8">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Product Categories</h3>
+                  <p className="text-gray-600 text-sm">Create and organize categories for your products</p>
                 </div>
+                
+                <CategoryManagerForProducts />
               </div>
               
               <div className="flex justify-between pt-6 border-t">
