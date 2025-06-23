@@ -1584,8 +1584,8 @@ export default function PartnerDetail() {
                                               onClick={(e) => {
                                                 e.stopPropagation();
                                                 console.log('Opening broker view for list:', list.id);
-                                                // Redirect to the connected partner's detail page (De Goudse = partner ID 1) with the list opened
-                                                const connectedPartnerId = 1; // De Goudse is the connected partner
+                                                // Redirect to the connected partner's detail page (Baloise = partner ID 1) with the list opened
+                                                const connectedPartnerId = 1; // Baloise is the connected partner
                                                 window.open(`/broker-view/partner/${connectedPartnerId}?tab=opportunities&list=${list.id}`, '_blank');
                                                 setActiveDropdownId(null);
                                               }}

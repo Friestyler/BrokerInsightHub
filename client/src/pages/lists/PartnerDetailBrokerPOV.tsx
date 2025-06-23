@@ -17,7 +17,7 @@ import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import EntityAvatar from "@/components/EntityAvatar";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { BrokerLayout } from "@/components/layouts/BrokerLayout";
-import deGoudseLogo from "@assets/De_Goudse_logo_1749714740191.png";
+import baloiseLogo from "@assets/image_1750679195320.png";
 
 
 
@@ -89,13 +89,13 @@ export default function PartnerDetailBrokerPOV() {
     }
   }, [editingStageId, editStageDropdownRef]);
 
-  // For broker view, show De Goudse as the sharing partner
+  // For broker view, show Baloise as the sharing partner
   const partner = {
     id: 'degoudse',
-    name: 'De Goudse',
+    name: 'Baloise',
     description: 'Insurance company that shared this list with Regional Insurance Partners',
     primary_contact: 'Partnership Manager',
-    contact_email: 'partnerships@degoudse.nl',
+    contact_email: 'partnerships@baloise.nl',
     location: 'Netherlands',
     phone: '+31 20 123 4567'
   };
@@ -617,11 +617,11 @@ export default function PartnerDetailBrokerPOV() {
             </Link>
             {/* Company Logo */}
             <div className="flex-shrink-0 mr-4">
-              {partner.name === 'De Goudse' ? (
+              {partner.name === 'Baloise' ? (
                 <div className="w-16 h-16 rounded-lg overflow-hidden bg-white border border-gray-200 flex items-center justify-center">
                   <img 
-                    src={deGoudseLogo} 
-                    alt="De Goudse Logo"
+                    src={baloiseLogo} 
+                    alt="Baloise Logo"
                     className="w-full h-full object-contain p-1"
                   />
                 </div>
