@@ -215,7 +215,7 @@ export default function CategoryManagerForProducts() {
           level === 0 ? 'bg-gray-50' : level === 1 ? 'bg-gray-100' : 'bg-gray-200'
         }`}>
           <div className="flex items-center gap-2">
-            {hasSubcategories && (
+            {hasSubcategories ? (
               <Button
                 size="sm"
                 variant="ghost"
@@ -228,6 +228,8 @@ export default function CategoryManagerForProducts() {
                   <ChevronRight className="h-3 w-3 text-blue-600" />
                 )}
               </Button>
+            ) : (
+              <div className="w-5 h-5" /> // Spacer to maintain alignment
             )}
             <span className={hasSubcategories ? 'font-medium' : ''}>{subcategory.name}</span>
             {hasSubcategories && (
@@ -245,8 +247,8 @@ export default function CategoryManagerForProducts() {
                 parentId: subcategory.id, 
                 name: '' 
               })}
-              className="h-6 w-6 p-0 hover:bg-blue-100"
-              title="Add subcategory"
+              className="h-6 w-6 p-0 hover:bg-blue-100 hover:border-blue-200 border border-transparent"
+              title={`Add subcategory under "${subcategory.name}"`}
             >
               <Plus className="h-3 w-3 text-blue-600" />
             </Button>
