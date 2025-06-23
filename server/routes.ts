@@ -7621,6 +7621,85 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
     }
   });
 
+  // Get individual campaign for broker view
+  app.get('/api/:envId/campaigns/:campaignId', async (req, res) => {
+    try {
+      const { envId, campaignId } = req.params;
+      
+      if (envId === 'degoudse' && campaignId === '18') {
+        // Return the full Einde Termijn IPT Campaign data with all steps
+        const campaign = {
+          id: 18,
+          name: 'Einde Termijn IPT Campaign',
+          description: 'New end-of-term IPT insurance campaign targeting customers with expiring policies',
+          type: 'cross_sell',
+          category: 'cross_sell',
+          status: 'draft',
+          sharedAt: new Date().toISOString(),
+          sharedBy: 'Baloise Team',
+          accessLevel: 'view',
+          isTemplate: false,
+          sponsorName: 'Baloise Insurance',
+          tags: ['IPT', 'End of Term', 'Cross-sell'],
+          subject: 'Your IPT Policy is Expiring - Renewal Options Available',
+          email_body: 'Dear valued customer, your IPT policy is approaching its end date. We have prepared attractive renewal options for you.',
+          emails_sent: 245,
+          emails_opened: 89,
+          open_rate: '36.33',
+          total_clicks: 34,
+          recipients: 245,
+          partner_id: 12,
+          partner_name: 'Mevas BV',
+          environment_id: 'baloise',
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          // Campaign steps data
+          steps: [
+            {
+              id: 1,
+              step_number: 1,
+              step_type: 'email',
+              name: 'Initial Notification',
+              description: 'Send initial notification about policy expiration',
+              subject: 'Your IPT Policy is Expiring - Renewal Options Available',
+              email_body: 'Dear valued customer, your IPT policy is approaching its end date. We have prepared attractive renewal options for you.',
+              delay_days: 0,
+              is_active: true
+            },
+            {
+              id: 2,
+              step_number: 2,
+              step_type: 'email',
+              name: 'Follow-up Reminder',
+              description: 'Send follow-up reminder with detailed renewal options',
+              subject: 'Don\'t Miss Out - IPT Policy Renewal Deadline Approaching',
+              email_body: 'This is a friendly reminder that your IPT policy expires soon. Our team has prepared several renewal options tailored to your needs.',
+              delay_days: 7,
+              is_active: true
+            },
+            {
+              id: 3,
+              step_number: 3,
+              step_type: 'task',
+              name: 'Personal Contact',
+              description: 'Schedule personal contact to discuss renewal options',
+              delay_days: 14,
+              is_active: true
+            }
+          ]
+        };
+        
+        console.log(`Returning campaign ${campaignId} for broker view from ${envId}`);
+        res.json(campaign);
+      } else {
+        res.status(404).json({ error: 'Campaign not found' });
+      }
+    } catch (error) {
+      console.error('Error fetching campaign:', error);
+      res.status(500).json({ error: 'Failed to fetch campaign' });
+    }
+  });
+
   // Get campaigns shared with broker users (environment-specific route)
   app.get('/api/:envId/broker/shared-campaigns', async (req, res) => {
     try {
