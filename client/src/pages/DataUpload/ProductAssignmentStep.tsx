@@ -158,7 +158,7 @@ export default function ProductAssignmentStep({
       {/* Progress Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Product Assignment</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Detected Products</h2>
           <p className="text-gray-600 mt-1">
             Map detected products to existing products or assign them to categories
           </p>
@@ -177,7 +177,6 @@ export default function ProductAssignmentStep({
           </div>
         </div>
       </div>
-
       {/* Detected Products */}
       <Card className="border border-gray-200 shadow-sm">
         <CardHeader className="border-b border-gray-100 bg-gray-50/50">
