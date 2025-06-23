@@ -166,12 +166,12 @@ export default function ProductAssignmentStep({
         
         <div className="flex items-center gap-4">
           <div className="text-sm text-gray-500">
-            <span className="font-medium text-blue-600">{assignedCount}</span> of{' '}
+            <span className="font-medium text-primary">{assignedCount}</span> of{' '}
             <span className="font-medium">{totalProducts}</span> products assigned
           </div>
           <div className="w-32 bg-gray-200 rounded-full h-2">
             <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+              className="bg-primary h-2 rounded-full transition-all duration-300"
               style={{ width: `${totalProducts > 0 ? (assignedCount / totalProducts) * 100 : 0}%` }}
             />
           </div>

@@ -427,7 +427,7 @@ export default function UploadProcessPage() {
                 <Button 
                   onClick={goToNextStep}
                   disabled={!selectedEntityType}
-                  className="rounded-xl px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="rounded-xl px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Continue to Upload
                   <ArrowRight className="h-4 w-4 ml-2" />
@@ -510,7 +510,7 @@ export default function UploadProcessPage() {
                         };
                         input.click();
                       }}
-                      className="rounded-xl px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                      className="rounded-xl px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                     >
                       Choose File
                     </Button>
@@ -531,7 +531,7 @@ export default function UploadProcessPage() {
                   </Button>
                   <Button 
                     onClick={goToNextStep}
-                    className="rounded-xl px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                    className="rounded-xl px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                   >
                     Continue to Mapping
                     <ArrowRight className="h-4 w-4 ml-2" />
@@ -584,7 +584,7 @@ export default function UploadProcessPage() {
                 </Button>
                 <Button 
                   onClick={goToNextStep}
-                  className="rounded-xl px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                  className="rounded-xl px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                 >
                   Continue to Attribute Mapping
                   <ArrowRight className="h-4 w-4 ml-2" />
@@ -696,7 +696,7 @@ export default function UploadProcessPage() {
                 </Button>
                 <Button 
                   onClick={goBack}
-                  className="rounded-xl px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                  className="rounded-xl px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                 >
                   Back to Upload Options
                 </Button>
