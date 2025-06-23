@@ -7414,7 +7414,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
           const brokerCampaign = {
             id: 18,
             name: 'Einde Termijn IPT Campaign',
-            description: 'New end-of-term IPT insurance campaign targeting customers with expiring policies',
+            description: 'Term end renewal campaign for life insurance policies',
             type: 'cross_sell',
             category: 'cross_sell',
             status: 'draft',
