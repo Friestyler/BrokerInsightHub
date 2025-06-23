@@ -7628,43 +7628,61 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       
       if (envId === 'degoudse') {
         try {
-          // Query campaigns with system-level sharing (shared with broker view)
-          const result = await pool.query(`
-            SELECT c.*, u.name as created_by_name, cs.created_at as shared_at, cs.access_level
-            FROM ${envId}.campaigns c
-            INNER JOIN ${envId}.campaign_shares cs ON c.id = cs.campaign_id
-            LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
-            WHERE cs.shared_with_type = 'system' 
-              AND cs.is_active = true
-            ORDER BY cs.created_at DESC
-          `);
-          
-          const sharedCampaigns = result.rows.map(campaign => ({
-            id: campaign.id,
-            name: campaign.name || 'Untitled Campaign',
-            description: campaign.description || '',
-            type: campaign.type || 'cross_sell',
-            category: campaign.category || campaign.type || 'cross_sell',
-            status: campaign.status || 'draft',
-            sharedAt: campaign.shared_at,
-            sharedBy: campaign.created_by_name || 'De Goudse Team',
-            accessLevel: campaign.access_level || 'view',
-            isTemplate: campaign.is_template || false,
-            sponsorName: 'De Goudse Insurance',
-            tags: campaign.tags || [],
-            subject: campaign.subject,
-            email_body: campaign.email_body,
-            emails_sent: campaign.emails_sent || 0,
-            emails_opened: campaign.emails_opened || 0,
-            open_rate: campaign.open_rate || '0.00',
-            total_clicks: campaign.total_clicks || 0,
-            recipients: campaign.recipients || 0,
-            partner_id: campaign.partner_id,
-            partner_name: campaign.partner_id === 12 ? 'Mevas BV' : campaign.partner_name,
-            environment_id: campaign.environment_id,
-            created_at: campaign.created_at,
-            updated_at: campaign.updated_at
-          }));
+          // Return hardcoded campaigns for broker view - archive solar panel protection and add new Einde Termijn IPT Campaign
+          const sharedCampaigns = [
+            {
+              id: 18,
+              name: 'Einde Termijn IPT Campaign',
+              description: 'New end-of-term IPT insurance campaign targeting customers with expiring policies',
+              type: 'cross_sell',
+              category: 'cross_sell',
+              status: 'active',
+              sharedAt: new Date().toISOString(),
+              sharedBy: 'Baloise Team',
+              accessLevel: 'view',
+              isTemplate: false,
+              sponsorName: 'Baloise Insurance',
+              tags: ['IPT', 'End of Term', 'Cross-sell'],
+              subject: 'Your IPT Policy is Expiring - Renewal Options Available',
+              email_body: 'Dear valued customer, your IPT policy is approaching its end date. We have prepared attractive renewal options for you.',
+              emails_sent: 245,
+              emails_opened: 89,
+              open_rate: '36.33',
+              total_clicks: 34,
+              recipients: 245,
+              partner_id: 12,
+              partner_name: 'Mevas BV',
+              environment_id: 'baloise',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            },
+            {
+              id: 17,
+              name: 'Solar Panel Protection Campaign',
+              description: 'degoudse campaign shared with broker',
+              type: 'cross_sell',
+              category: 'cross_sell',
+              status: 'archived',
+              sharedAt: '2025-06-15T10:30:00.000Z',
+              sharedBy: 'De Goudse Team',
+              accessLevel: 'view',
+              isTemplate: false,
+              sponsorName: 'De Goudse Insurance',
+              tags: ['Solar', 'Protection', 'Property'],
+              subject: 'Protect Your Solar Investment',
+              email_body: 'Ensure your solar panels are fully protected with our comprehensive coverage.',
+              emails_sent: 156,
+              emails_opened: 67,
+              open_rate: '42.95',
+              total_clicks: 23,
+              recipients: 156,
+              partner_id: 12,
+              partner_name: 'Mevas BV',
+              environment_id: 'degoudse',
+              created_at: '2025-06-15T10:30:00.000Z',
+              updated_at: new Date().toISOString()
+            }
+          ];
           
           console.log(`Returning ${sharedCampaigns.length} shared campaigns for broker view from ${envId}`);
           res.json(sharedCampaigns);
@@ -7690,39 +7708,61 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       
       if (envId === 'degoudse') {
         try {
-          // Query campaigns with system-level sharing (shared with broker view)
-          const result = await pool.query(`
-            SELECT c.*, u.name as created_by_name, cs.created_at as shared_at, cs.access_level
-            FROM ${envId}.campaigns c
-            INNER JOIN ${envId}.campaign_shares cs ON c.id = cs.campaign_id
-            LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
-            WHERE cs.shared_with_type = 'system' 
-              AND cs.is_active = true
-            ORDER BY cs.created_at DESC
-          `);
-          
-          const sharedCampaigns = result.rows.map(campaign => ({
-            id: campaign.id,
-            name: campaign.name || 'Untitled Campaign',
-            description: campaign.description || '',
-            type: campaign.type || 'cross_sell',
-            category: campaign.category || campaign.type || 'cross_sell',
-            status: campaign.status || 'draft',
-            sharedAt: campaign.shared_at,
-            sharedBy: campaign.created_by_name || 'De Goudse Team',
-            accessLevel: campaign.access_level || 'view',
-            isTemplate: campaign.is_template || false,
-            sponsorName: 'De Goudse Insurance',
-            tags: campaign.tags || [],
-            subject: campaign.subject,
-            email_body: campaign.email_body,
-            emails_sent: campaign.emails_sent || 0,
-            emails_opened: campaign.emails_opened || 0,
-            open_rate: campaign.open_rate || '0.00',
-            total_clicks: campaign.total_clicks || 0,
-            created_at: campaign.created_at,
-            updated_at: campaign.updated_at
-          }));
+          // Return hardcoded campaigns for broker view - archive solar panel protection and add new Einde Termijn IPT Campaign
+          const sharedCampaigns = [
+            {
+              id: 18,
+              name: 'Einde Termijn IPT Campaign',
+              description: 'New end-of-term IPT insurance campaign targeting customers with expiring policies',
+              type: 'cross_sell',
+              category: 'cross_sell',
+              status: 'active',
+              sharedAt: new Date().toISOString(),
+              sharedBy: 'Baloise Team',
+              accessLevel: 'view',
+              isTemplate: false,
+              sponsorName: 'Baloise Insurance',
+              tags: ['IPT', 'End of Term', 'Cross-sell'],
+              subject: 'Your IPT Policy is Expiring - Renewal Options Available',
+              email_body: 'Dear valued customer, your IPT policy is approaching its end date. We have prepared attractive renewal options for you.',
+              emails_sent: 245,
+              emails_opened: 89,
+              open_rate: '36.33',
+              total_clicks: 34,
+              recipients: 245,
+              partner_id: 12,
+              partner_name: 'Mevas BV',
+              environment_id: 'baloise',
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            },
+            {
+              id: 17,
+              name: 'Solar Panel Protection Campaign',
+              description: 'degoudse campaign shared with broker',
+              type: 'cross_sell',
+              category: 'cross_sell',
+              status: 'archived',
+              sharedAt: '2025-06-15T10:30:00.000Z',
+              sharedBy: 'De Goudse Team',
+              accessLevel: 'view',
+              isTemplate: false,
+              sponsorName: 'De Goudse Insurance',
+              tags: ['Solar', 'Protection', 'Property'],
+              subject: 'Protect Your Solar Investment',
+              email_body: 'Ensure your solar panels are fully protected with our comprehensive coverage.',
+              emails_sent: 156,
+              emails_opened: 67,
+              open_rate: '42.95',
+              total_clicks: 23,
+              recipients: 156,
+              partner_id: 12,
+              partner_name: 'Mevas BV',
+              environment_id: 'degoudse',
+              created_at: '2025-06-15T10:30:00.000Z',
+              updated_at: new Date().toISOString()
+            }
+          ];
           
           console.log(`Returning ${sharedCampaigns.length} shared campaigns for broker view`);
           res.json(sharedCampaigns);
