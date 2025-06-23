@@ -7984,36 +7984,26 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       
       const templateId = templateResult.rows[0].id;
       
-      // Insert emails and blocks
-      for (let emailIndex = 0; emailIndex < emails.length; emailIndex++) {
-        const email = emails[emailIndex];
+      // Prepare email content and follow-ups
+      if (emails && emails.length > 0) {
+        const firstEmail = emails[0];
+        const followUpEmails = emails.slice(1);
         
-        const emailResult = await pool.query(`
-          INSERT INTO campaign_emails (template_id, subject, follow_up_days, left_logo, right_logo, email_order)
-          VALUES ($1, $2, $3, $4, $5, $6)
-          RETURNING id
-        `, [templateId, email.subject, email.followUpDays || 0, email.leftLogo || null, email.rightLogo || null, emailIndex]);
-        
-        const emailId = emailResult.rows[0].id;
-        
-        // Parse blocks from content string
-        let blocks = [];
-        try {
-          blocks = JSON.parse(email.content || '[]');
-        } catch (e) {
-          console.log('Failed to parse email content as JSON, treating as empty blocks array');
-          blocks = [];
-        }
-        
-        // Insert blocks
-        for (let blockIndex = 0; blockIndex < blocks.length; blockIndex++) {
-          const block = blocks[blockIndex];
-          
-          await pool.query(`
-            INSERT INTO email_blocks (email_id, type, content, properties, block_order)
-            VALUES ($1, $2, $3, $4, $5)
-          `, [emailId, block.type || 'text', block.content || '', JSON.stringify(block.properties || {}), blockIndex]);
-        }
+        // Update the template with email content
+        await pool.query(`
+          UPDATE campaigns 
+          SET subject = $1, email_body = $2, follow_up_emails = $3
+          WHERE id = $4
+        `, [
+          firstEmail.subject || '',
+          firstEmail.content || '',
+          JSON.stringify(followUpEmails.map(email => ({
+            subject: email.subject || '',
+            body: email.content || '',
+            send_after_days: email.followUpDays || 0
+          }))),
+          templateId
+        ]);
       }
       
       await pool.query('COMMIT');
