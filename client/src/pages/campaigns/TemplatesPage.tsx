@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, FileText, Mail, Settings, Eye, Target, Users, Send, Briefcase, Check, Heart, Star, Zap, Globe, Shield, Trophy, Clock, Calendar, Building2, Phone, MessageSquare, Gift, TrendingUp, Lightbulb, Settings as SettingsIcon, Rocket, Car, Sun, Building } from "lucide-react";
+import { Plus, FileText, Mail, Settings, Eye, Target, Users, Send, Briefcase, Check, Heart, Star, Zap, Globe, Shield, Trophy, Clock, Calendar, Building2, Phone, MessageSquare, Gift, TrendingUp, Lightbulb, Settings as SettingsIcon, Rocket, Car, Sun, Building, RefreshCw } from "lucide-react";
 import { useLocation } from 'wouter';
 
 interface EmailTemplate {
@@ -230,7 +230,11 @@ export default function TemplatesPage() {
             { id: 'all', label: 'All Templates', icon: Globe },
             { id: 'coverage-gap', label: 'Coverage Gap Closers', icon: Shield },
             { id: 'retention', label: 'Retention & Relationship Builders', icon: Heart },
-            { id: 'segment-specific', label: 'Segment-Specific Propositions', icon: Target }
+            { id: 'segment-specific', label: 'Segment-Specific Propositions', icon: Target },
+            { id: 'life-renewal', label: 'Life renewal (end-term)', icon: Clock },
+            { id: 'life-cross-sell', label: 'Life cross sell', icon: TrendingUp },
+            { id: 'non-life-cross-sell', label: 'Non-life cross sell', icon: Zap },
+            { id: 'auto-legal', label: 'Auto + legal', icon: Car }
           ].map((category) => {
             const isActive = selectedCategoryFilter === category.id;
             const IconComponent = category.icon;
