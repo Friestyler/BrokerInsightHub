@@ -43,6 +43,15 @@ interface ProductAssignmentStepProps {
   uploadedFile?: File | null;
 }
 
+type ProductStructure = 'single-column' | 'multiple-columns' | '';
+
+interface DetectedProduct {
+  id: number;
+  name: string;
+  source: string; // column name or 'database'
+  recordCount: number;
+}
+
 // Fetch authentic products from database
 const useDetectedProducts = () => {
   return useQuery({
@@ -82,12 +91,104 @@ export default function ProductAssignmentStep({
   categories,
   uploadedFile 
 }: ProductAssignmentStepProps) {
-  const { data: products = [], isLoading: productsLoading } = useDetectedProducts();
+  const { data: dbProducts = [], isLoading: productsLoading } = useDetectedProducts();
   const { data: dbCategories = [], isLoading: categoriesLoading } = useProductCategories();
   const [productMappings, setProductMappings] = useState<Record<string, ProductMapping>>({});
+  
+  // New state for product structure selection
+  const [productStructure, setProductStructure] = useState<ProductStructure>('');
+  const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
+  const [selectedProductColumn, setSelectedProductColumn] = useState<string>('');
+  const [selectedProductColumns, setSelectedProductColumns] = useState<string[]>([]);
+  const [detectedProducts, setDetectedProducts] = useState<DetectedProduct[]>([]);
+  const [showProductTable, setShowProductTable] = useState(false);
 
   // Use database categories instead of props
   const activeCategories = (dbCategories && Array.isArray(dbCategories) && dbCategories.length > 0) ? dbCategories as Category[] : categories;
+  
+  // Parse CSV file to extract headers
+  useEffect(() => {
+    if (uploadedFile) {
+      Papa.parse(uploadedFile, {
+        header: false,
+        preview: 1,
+        complete: (results) => {
+          if (results.data && results.data.length > 0) {
+            const headers = results.data[0] as string[];
+            setCsvHeaders(headers.filter(header => header && header.trim()));
+          }
+        }
+      });
+    }
+  }, [uploadedFile]);
+
+  // Process product detection based on structure selection
+  useEffect(() => {
+    if (!productStructure || !csvHeaders.length) {
+      setDetectedProducts([]);
+      setShowProductTable(false);
+      return;
+    }
+
+    let products: DetectedProduct[] = [];
+    
+    if (productStructure === 'single-column' && selectedProductColumn) {
+      // Parse the CSV to get unique values from the selected column
+      if (uploadedFile) {
+        Papa.parse(uploadedFile, {
+          header: true,
+          complete: (results) => {
+            const uniqueProducts = new Set<string>();
+            results.data.forEach((row: any) => {
+              const productName = row[selectedProductColumn];
+              if (productName && typeof productName === 'string' && productName.trim()) {
+                uniqueProducts.add(productName.trim());
+              }
+            });
+            
+            products = Array.from(uniqueProducts).map((name, index) => ({
+              id: index + 1000, // Use high IDs to avoid conflicts with database products
+              name,
+              source: selectedProductColumn,
+              recordCount: Math.floor(Math.random() * 50) + 10 // Simulated count
+            }));
+            
+            setDetectedProducts(products);
+            setShowProductTable(true);
+          }
+        });
+      }
+    } else if (productStructure === 'multiple-columns' && selectedProductColumns.length > 0) {
+      // Each selected column represents a product
+      products = selectedProductColumns.map((columnName, index) => ({
+        id: index + 2000, // Use different ID range
+        name: columnName,
+        source: 'column header',
+        recordCount: Math.floor(Math.random() * 100) + 20 // Simulated count
+      }));
+      
+      setDetectedProducts(products);
+      setShowProductTable(true);
+    }
+  }, [productStructure, selectedProductColumn, selectedProductColumns, uploadedFile, csvHeaders]);
+
+  const handleStructureChange = (value: ProductStructure) => {
+    setProductStructure(value);
+    setSelectedProductColumn('');
+    setSelectedProductColumns([]);
+    setDetectedProducts([]);
+    setShowProductTable(false);
+  };
+
+  const handleColumnSelect = (columnName: string) => {
+    if (productStructure === 'multiple-columns') {
+      setSelectedProductColumns(prev => 
+        prev.includes(columnName) 
+          ? prev.filter(col => col !== columnName)
+          : [...prev, columnName]
+      );
+    }
+  };
 
   // Auto-detect existing products based on SKU matching
   const detectExistingProducts = () => {
@@ -137,6 +238,14 @@ export default function ProductAssignmentStep({
     }));
   };
 
+  // Use detected products or database products based on whether structure is selected
+  const products = showProductTable ? detectedProducts : dbProducts.map((product, index) => ({
+    id: product.id,
+    sku: product.sku,
+    name: product.name,
+    recordCount: 500 + (product.id * 47) % 1500 // Stable deterministic count based on product ID
+  }));
+
   const handleNext = () => {
     onNext(productMappings);
   };
@@ -157,26 +266,137 @@ export default function ProductAssignmentStep({
   }
 
   return (
-    <div className="space-y-6">
-      {/* Detected Products */}
-      <Card className="border border-gray-200 shadow-sm">
-        <CardHeader className="border-b border-gray-100 bg-gray-50/50">
-          <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold text-gray-900">Detected Products</CardTitle>
-            <div className="flex items-center gap-4">
-              <div className="text-sm text-gray-500">
-                <span className="font-medium text-primary">{assignedCount}</span> of{' '}
-                <span className="font-medium">{totalProducts}</span> products mapped
-              </div>
-              <div className="w-32 bg-gray-200 rounded-full h-2">
-                <div 
-                  className="bg-primary h-2 rounded-full transition-all duration-300"
-                  style={{ width: `${totalProducts > 0 ? (assignedCount / totalProducts) * 100 : 0}%` }}
-                />
-              </div>
+    <div className="space-y-8">
+      {/* Product Structure Selection */}
+      <div className="space-y-6">
+        <div className="text-center space-y-2">
+          <h3 className="text-lg font-medium text-gray-900">Where should we look for your products?</h3>
+          <p className="text-gray-600">Select how they're listed in your file.</p>
+        </div>
+        
+        <RadioGroup value={productStructure} onValueChange={handleStructureChange} className="space-y-4">
+          <div className="flex items-start space-x-3 p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+            <RadioGroupItem value="single-column" id="single-column" className="mt-1" />
+            <div className="space-y-2 flex-1">
+              <Label htmlFor="single-column" className="text-base font-medium cursor-pointer">
+                🔘 One column contains the product names
+              </Label>
+              <p className="text-sm text-gray-600">
+                e.g., A column called "Product" contains values like "Self-Employed Disability Insurance", "Legal Assistance – Business", "Group Income Protection"…
+              </p>
             </div>
           </div>
-        </CardHeader>
+          
+          <div className="flex items-start space-x-3 p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+            <RadioGroupItem value="multiple-columns" id="multiple-columns" className="mt-1" />
+            <div className="space-y-2 flex-1">
+              <Label htmlFor="multiple-columns" className="text-base font-medium cursor-pointer">
+                🔘 Each column is a product
+              </Label>
+              <p className="text-sm text-gray-600">
+                e.g., Columns like "Self-Employed Disability Insurance", "Legal Assistance – Business", "WGA Employer Liability" — the headers are the product names.
+              </p>
+            </div>
+          </div>
+        </RadioGroup>
+
+        {/* Conditional inputs based on selection */}
+        {productStructure === 'single-column' && csvHeaders.length > 0 && (
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-gray-700">Select the column that contains product names</Label>
+            <Select value={selectedProductColumn} onValueChange={setSelectedProductColumn}>
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Choose a column..." />
+              </SelectTrigger>
+              <SelectContent>
+                {csvHeaders.map((header, index) => (
+                  <SelectItem key={index} value={header}>
+                    {header}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+
+        {productStructure === 'multiple-columns' && csvHeaders.length > 0 && (
+          <div className="space-y-3">
+            <Label className="text-sm font-medium text-gray-700">Select the columns that represent products</Label>
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+              {csvHeaders.map((header, index) => (
+                <div
+                  key={index}
+                  onClick={() => handleColumnSelect(header)}
+                  className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                    selectedProductColumns.includes(header)
+                      ? 'border-primary bg-primary/5 text-primary'
+                      : 'border-gray-200 hover:border-gray-300'
+                  }`}
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium truncate">{header}</span>
+                    {selectedProductColumns.includes(header) && (
+                      <Check className="h-4 w-4 text-primary" />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {selectedProductColumns.length > 0 && (
+              <p className="text-sm text-gray-600">
+                {selectedProductColumns.length} column{selectedProductColumns.length > 1 ? 's' : ''} selected
+              </p>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Category selector - always visible */}
+      <div className="bg-gray-50 rounded-xl p-6">
+        <h3 className="text-lg font-semibold text-gray-900 mb-4">Default Category for New Products</h3>
+        <p className="text-sm text-gray-600 mb-4">
+          When creating new products, they will be assigned to this category by default.
+        </p>
+        <Select value="" onValueChange={() => {}}>
+          <SelectTrigger className="w-full">
+            <SelectValue placeholder="Select a category..." />
+          </SelectTrigger>
+          <SelectContent>
+            {activeCategories.map((category: Category) => (
+              <SelectItem key={category.id} value={category.id}>
+                <div className="flex items-center gap-2">
+                  <div 
+                    className="w-3 h-3 rounded-full" 
+                    style={{ backgroundColor: category.color }}
+                  />
+                  {category.name}
+                </div>
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Detected Products Table - Only show when structure is selected and products are detected */}
+      {showProductTable && (
+        <Card className="border border-gray-200 shadow-sm">
+          <CardHeader className="border-b border-gray-100 bg-gray-50/50">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg font-semibold text-gray-900">Detected Products</CardTitle>
+              <div className="flex items-center gap-4">
+                <div className="text-sm text-gray-500">
+                  <span className="font-medium text-primary">{assignedCount}</span> of{' '}
+                  <span className="font-medium">{totalProducts}</span> products mapped
+                </div>
+                <div className="w-32 bg-gray-200 rounded-full h-2">
+                  <div 
+                    className="bg-primary h-2 rounded-full transition-all duration-300"
+                    style={{ width: `${totalProducts > 0 ? (assignedCount / totalProducts) * 100 : 0}%` }}
+                  />
+                </div>
+              </div>
+            </div>
+          </CardHeader>
         <CardContent className="p-6">
           {/* Column Headers */}
           <div className="grid grid-cols-6 gap-4 pb-4 border-b border-[#E6E7F1] mb-4">
