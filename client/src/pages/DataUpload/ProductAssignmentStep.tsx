@@ -744,19 +744,15 @@ export default function ProductAssignmentStep({
 
                   {/* Column 6: Status */}
                   <div className="flex items-center">
-                    {isAssigned && mapping?.targetId ? (
+                    {mapping?.productAction === 'existing' && mapping?.existingProductId ? (
                       <div className="flex items-center gap-2 text-xs">
-                        {mapping.productAction === 'existing' ? (
-                          <>
-                            <Check className="h-4 w-4 text-green-600" />
-                            <span className="text-green-700 font-medium">Mapped</span>
-                          </>
-                        ) : (
-                          <>
-                            <Check className="h-4 w-4 text-green-600" />
-                            <span className="text-green-700 font-medium">New Product</span>
-                          </>
-                        )}
+                        <Check className="h-4 w-4 text-green-600" />
+                        <span className="text-green-700 font-medium">Mapped</span>
+                      </div>
+                    ) : mapping?.productAction === 'new' && mapping?.targetId ? (
+                      <div className="flex items-center gap-2 text-xs">
+                        <Check className="h-4 w-4 text-green-600" />
+                        <span className="text-green-700 font-medium">New Product</span>
                       </div>
                     ) : (
                       <span className="text-gray-400 text-xs">Not mapped</span>
