@@ -150,31 +150,77 @@ export default function ProductAssignmentStep({
               }
             });
             
-            products = Array.from(uniqueProducts).map((name, index) => ({
-              id: index + 1000, // Use high IDs to avoid conflicts with database products
-              sku: `detected-${index + 1000}`, // Give detected products unique SKUs
-              name,
-              source: selectedProductColumn,
-              recordCount: Math.floor(Math.random() * 50) + 10 // Simulated count
-            }));
+            products = Array.from(uniqueProducts).map((name, index) => {
+              // Check if this product name matches any existing database product by name
+              const matchedDbProduct = dbProducts.find(dbProduct => 
+                dbProduct.name.toLowerCase().trim() === name.toLowerCase().trim()
+              );
+              
+              return {
+                id: index + 1000, // Use high IDs to avoid conflicts with database products
+                sku: `detected-${index + 1000}`, // Give detected products unique SKUs
+                name,
+                source: selectedProductColumn,
+                recordCount: Math.floor(Math.random() * 50) + 10, // Simulated count
+                matchedDbProductId: matchedDbProduct?.id || null,
+                matchedDbProduct: matchedDbProduct || null
+              };
+            });
             
             setDetectedProducts(products);
             setShowProductTable(true);
+            
+            // Auto-create mappings for matched products
+            const autoMappings: Record<string, ProductMapping> = {};
+            products.forEach(product => {
+              if (product.matchedDbProduct) {
+                autoMappings[product.id.toString()] = {
+                  targetId: '', // Will be filled when categories are loaded
+                  targetType: 'category',
+                  productAction: 'existing',
+                  existingProductId: product.matchedDbProduct.id.toString()
+                };
+              }
+            });
+            setProductMappings(autoMappings);
           }
         });
       }
     } else if (productStructure === 'multiple-columns' && selectedProductColumns.length > 0) {
       // Each selected column represents a product
-      products = selectedProductColumns.map((columnName, index) => ({
-        id: index + 2000, // Use different ID range
-        sku: `detected-${index + 2000}`, // Give detected products unique SKUs
-        name: columnName,
-        source: 'column header',
-        recordCount: Math.floor(Math.random() * 100) + 20 // Simulated count
-      }));
+      products = selectedProductColumns.map((columnName, index) => {
+        // Check if this column name matches any existing database product by name
+        const matchedDbProduct = dbProducts.find(dbProduct => 
+          dbProduct.name.toLowerCase().trim() === columnName.toLowerCase().trim()
+        );
+        
+        return {
+          id: index + 2000, // Use different ID range
+          sku: `detected-${index + 2000}`, // Give detected products unique SKUs
+          name: columnName,
+          source: 'column header',
+          recordCount: Math.floor(Math.random() * 100) + 20, // Simulated count
+          matchedDbProductId: matchedDbProduct?.id || null,
+          matchedDbProduct: matchedDbProduct || null
+        };
+      });
       
       setDetectedProducts(products);
       setShowProductTable(true);
+      
+      // Auto-create mappings for matched products
+      const autoMappings: Record<string, ProductMapping> = {};
+      products.forEach(product => {
+        if (product.matchedDbProduct) {
+          autoMappings[product.id.toString()] = {
+            targetId: '', // Will be filled when categories are loaded
+            targetType: 'category',
+            productAction: 'existing',
+            existingProductId: product.matchedDbProduct.id.toString()
+          };
+        }
+      });
+      setProductMappings(autoMappings);
     }
   }, [productStructure, selectedProductColumn, selectedProductColumns, uploadedFile, csvHeaders]);
 
@@ -472,7 +518,7 @@ export default function ProductAssignmentStep({
               const mapping = productMappings[product.id];
               const isAssigned = !!mapping;
               const isExistingProduct = mapping?.productAction === 'existing';
-              const hasAutoMatch = isExistingProduct && mapping?.existingProductId && mapping?.targetId;
+              const hasAutoMatch = !!product.matchedDbProductId;
               
               return (
                 <div key={product.id} className="grid grid-cols-6 gap-4 p-4 bg-white border border-[#E6E7F1] rounded-lg hover:border-gray-200 hover:shadow-sm transition-all duration-200 items-center">
@@ -498,7 +544,7 @@ export default function ProductAssignmentStep({
                   {/* Column 3: Product Action */}
                   <div>
                     <Select
-                      value={mapping?.productAction || ''}
+                      value={mapping?.productAction || (product.matchedDbProductId ? 'existing' : '')}
                       onValueChange={(value: 'existing' | 'new') => {
                         if (value === 'existing') {
                           // Just set action without auto-matching
@@ -547,7 +593,7 @@ export default function ProductAssignmentStep({
                   {/* Column 4: Existing Product Selection */}
                   <div>
                     <Select
-                      value={mapping?.existingProductId || ''}
+                      value={mapping?.existingProductId || (product.matchedDbProductId ? product.matchedDbProductId.toString() : '')}
                       onValueChange={(existingProductId) => {
                         if (mapping?.targetId) {
                           // Has category selected, update with existing product
@@ -571,7 +617,7 @@ export default function ProductAssignmentStep({
                           }));
                         }
                       }}
-                      disabled={mapping?.productAction !== 'existing'}
+                      disabled={mapping?.productAction !== 'existing' && !product.matchedDbProductId}
                     >
                       <SelectTrigger className="w-full">
                         <SelectValue placeholder={mapping?.productAction === 'existing' ? 'Select product...' : 'N/A'} />
@@ -616,7 +662,7 @@ export default function ProductAssignmentStep({
                           );
                         }
                       }}
-                      disabled={mapping?.productAction === 'existing' && !!mapping?.existingProductId}
+                      disabled={(mapping?.productAction === 'existing' && !!mapping?.existingProductId) || !!product.matchedDbProductId}
                     >
                       <SelectTrigger className="w-full border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-200">
                         <SelectValue placeholder={
