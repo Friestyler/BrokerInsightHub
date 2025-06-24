@@ -280,7 +280,7 @@ export default function ProductAssignmentStep({
             <RadioGroup value={productStructure} onValueChange={handleStructureChange} className="space-y-3">
               {/* Single Column Option */}
               <div 
-                className={`relative rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
+                className={`relative rounded-2xl border cursor-pointer transition-all duration-300 ${
                   productStructure === 'single-column' 
                     ? 'border-[#5567E5] bg-[#5567E5]/5 shadow-sm' 
                     : 'border-gray-200 hover:border-gray-300 hover:bg-gray-25'
@@ -327,7 +327,7 @@ export default function ProductAssignmentStep({
               
               {/* Multiple Columns Option */}
               <div 
-                className={`relative rounded-2xl border-2 cursor-pointer transition-all duration-300 ${
+                className={`relative rounded-2xl border cursor-pointer transition-all duration-300 ${
                   productStructure === 'multiple-columns' 
                     ? 'border-[#5567E5] bg-[#5567E5]/5 shadow-sm' 
                     : 'border-gray-200 hover:border-gray-300 hover:bg-gray-25'
