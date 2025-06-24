@@ -635,11 +635,11 @@ export default function PartnerPilot() {
             </Card>
 
             <Card 
-              className="hover:shadow-md transition-shadow cursor-pointer border-2 border-blue-100 flex flex-col"
+              className="hover:shadow-md transition-shadow cursor-pointer border-2 border-[#E6E7F1] flex flex-col"
             >
               <CardHeader className="flex-grow">
                 <div className="flex justify-between items-start">
-                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                  <div className="h-10 w-10 rounded-full bg-[#E6E7F1] flex items-center justify-center">
                     <Cloud className="h-5 w-5 text-blue-600" />
                   </div>
                 </div>

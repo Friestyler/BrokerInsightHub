@@ -799,7 +799,7 @@ export default function PortfolioInsights() {
           </div>
 
           {/* Controls */}
-          <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+          <div className="flex items-center justify-between bg-[#E6E7F1] p-4 rounded-lg">
             <div className="flex items-center space-x-6">
               {/* Segment Selector */}
               <div className="flex items-center space-x-2">

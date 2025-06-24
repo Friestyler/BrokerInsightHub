@@ -433,7 +433,7 @@ export default function ProductAssignmentStep({
                                   className={`flex items-center justify-between p-2 rounded-md cursor-pointer transition-all duration-150 ${
                                     selectedProductColumns.includes(header)
                                       ? 'bg-[#5567E5]/10 text-[#5567E5]'
-                                      : 'hover:bg-gray-50'
+                                      : 'hover:bg-[#E6E7F1]'
                                   }`}
                                 >
                                   <span className="text-sm font-medium truncate">{header}</span>
