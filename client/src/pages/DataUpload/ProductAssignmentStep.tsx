@@ -320,7 +320,7 @@ export default function ProductAssignmentStep({
           <div className="space-y-6">
             <div className="text-left space-y-2">
               <h3 className="text-lg font-medium text-gray-900">Where should we look for your products?</h3>
-              <p className="text-gray-600 text-sm">Select how they're listed in your file.</p>
+              <p className="text-gray-600 text-sm">Select how they're listed in the file your uploaded.</p>
             </div>
             
             <RadioGroup value={productStructure} onValueChange={handleStructureChange} className="space-y-3">
@@ -761,7 +761,6 @@ export default function ProductAssignmentStep({
         </CardContent>
         </Card>
       )}
-
       {/* Category Management Modal */}
       <Dialog open={showCategoryModal} onOpenChange={setShowCategoryModal}>
         <DialogContent className="max-w-4xl max-h-[85vh] bg-white border-0 shadow-xl overflow-hidden">
