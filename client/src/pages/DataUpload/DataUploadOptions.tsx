@@ -89,10 +89,8 @@ export default function DataUploadOptions() {
             </CardDescription>
           </CardHeader>
           <CardFooter>
-            <Button 
-              className="w-full bg-indigo-600 hover:bg-indigo-700"
-            >
-              Start Import
+            <Button className="w-full">
+              Start import
             </Button>
           </CardFooter>
         </Card>

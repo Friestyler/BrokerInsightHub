@@ -214,10 +214,9 @@ export default function CampaignsOverview() {
               
               <Button
                 onClick={() => window.location.href = '/campaigns/new'}
-                className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg flex items-center gap-2"
               >
                 <Plus className="h-4 w-4" />
-                Create New Campaign
+                Create new campaign
               </Button>
             </div>
 

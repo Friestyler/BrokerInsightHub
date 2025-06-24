@@ -744,8 +744,8 @@ export default function PartnerPilot() {
                 </CardDescription>
               </CardHeader>
               <CardFooter className="mt-auto">
-                <Button className="w-full bg-indigo-600 hover:bg-indigo-700">
-                  Upload Brio File
+                <Button className="w-full">
+                  Upload Brio file
                 </Button>
               </CardFooter>
             </Card>

@@ -526,7 +526,6 @@ export function CreateCampaign({ params }: CreateCampaignProps) {
                 <Button
                   onClick={handleSubmit}
                   disabled={!canProceed() || createCampaignMutation.isPending}
-                  className="bg-indigo-600 hover:bg-indigo-700"
                 >
                   {createCampaignMutation.isPending ? (
                     <>
@@ -534,14 +533,13 @@ export function CreateCampaign({ params }: CreateCampaignProps) {
                       Creating...
                     </>
                   ) : (
-                    'Create Campaign'
+                    'Create campaign'
                   )}
                 </Button>
               ) : (
                 <Button
                   onClick={handleNext}
                   disabled={!canProceed()}
-                  className="bg-indigo-600 hover:bg-indigo-700"
                 >
                   Next
                 </Button>
