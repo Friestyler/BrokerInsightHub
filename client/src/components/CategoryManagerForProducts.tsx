@@ -86,6 +86,7 @@ const colors = [
 
 export default function CategoryManagerForProducts() {
   const [categories, setCategories] = useState<Category[]>(defaultCategories);
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [editingCategoryName, setEditingCategoryName] = useState('');
@@ -104,6 +105,7 @@ export default function CategoryManagerForProducts() {
     
     setCategories([...categories, newCategory]);
     setNewCategoryName('');
+    setShowNewCategoryInput(false);
   };
 
   const deleteCategory = (categoryId: string) => {
@@ -365,16 +367,49 @@ export default function CategoryManagerForProducts() {
   return (
     <div className="space-y-4">
       {/* Add New Category */}
-      <div className="flex gap-2">
-        <Input
-          placeholder="New category name"
-          value={newCategoryName}
-          onChange={(e) => setNewCategoryName(e.target.value)}
-          onKeyPress={(e) => e.key === 'Enter' && addCategory()}
-        />
-        <Button onClick={addCategory} size="sm">
-          <Plus className="h-4 w-4" />
-        </Button>
+      <div>
+        {showNewCategoryInput ? (
+          <div className="flex gap-2">
+            <Input
+              placeholder="New category name"
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  addCategory();
+                }
+              }}
+              className="text-sm"
+            />
+            <Button
+              size="sm"
+              onClick={addCategory}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              <Plus className="h-3 w-3" />
+            </Button>
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={() => {
+                setShowNewCategoryInput(false);
+                setNewCategoryName('');
+              }}
+            >
+              <X className="h-3 w-3" />
+            </Button>
+          </div>
+        ) : (
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowNewCategoryInput(true)}
+            className="w-full text-sm border-dashed border-blue-300 text-blue-600 hover:bg-blue-50"
+          >
+            <Plus className="h-3 w-3 mr-1" />
+            Add Category
+          </Button>
+        )}
       </div>
 
       {/* Categories List */}
