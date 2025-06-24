@@ -169,44 +169,59 @@ export default function CampaignsOverview() {
 
             {/* Action Bar */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant={selectedFilter === 'all' ? 'default' : 'outline'}
-                  size="sm"
+              <div className="flex space-x-1">
+                <Button 
+                  variant="ghost" 
+                  className={`flex items-center gap-2 ${
+                    selectedFilter === 'all' 
+                      ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
+                      : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
+                  }`}
                   onClick={() => setSelectedFilter('all')}
-                  className={selectedFilter === 'all' ? 'bg-indigo-600 hover:bg-indigo-700' : ''}
                 >
-                  All Campaigns
+                  All campaigns
                 </Button>
-                <Button
-                  variant={selectedFilter === 'partners' ? 'default' : 'outline'}
-                  size="sm"
+                <Button 
+                  variant="ghost" 
+                  className={`flex items-center gap-2 ${
+                    selectedFilter === 'partners' 
+                      ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
+                      : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
+                  }`}
                   onClick={() => setSelectedFilter('partners')}
-                  className={selectedFilter === 'partners' ? 'bg-purple-600 hover:bg-purple-700' : ''}
                 >
                   Partners
                 </Button>
-                <Button
-                  variant={selectedFilter === 'customers' ? 'default' : 'outline'}
-                  size="sm"
+                <Button 
+                  variant="ghost" 
+                  className={`flex items-center gap-2 ${
+                    selectedFilter === 'customers' 
+                      ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
+                      : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
+                  }`}
                   onClick={() => setSelectedFilter('customers')}
-                  className={selectedFilter === 'customers' ? 'bg-blue-600 hover:bg-blue-700' : ''}
                 >
                   Customers
                 </Button>
-                <Button
-                  variant={selectedFilter === 'opportunities' ? 'default' : 'outline'}
-                  size="sm"
+                <Button 
+                  variant="ghost" 
+                  className={`flex items-center gap-2 ${
+                    selectedFilter === 'opportunities' 
+                      ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
+                      : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
+                  }`}
                   onClick={() => setSelectedFilter('opportunities')}
-                  className={selectedFilter === 'opportunities' ? 'bg-green-600 hover:bg-green-700' : ''}
                 >
                   Opportunities
                 </Button>
-                <Button
-                  variant={selectedFilter === 'internal' ? 'default' : 'outline'}
-                  size="sm"
+                <Button 
+                  variant="ghost" 
+                  className={`flex items-center gap-2 ${
+                    selectedFilter === 'internal' 
+                      ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
+                      : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
+                  }`}
                   onClick={() => setSelectedFilter('internal')}
-                  className={selectedFilter === 'internal' ? 'bg-orange-600 hover:bg-orange-700' : ''}
                 >
                   Internal
                 </Button>
