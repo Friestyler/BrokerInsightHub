@@ -622,8 +622,8 @@ export default function PartnerPilot() {
                     <Upload className="h-5 w-5 text-emerald-600" />
                   </div>
                 </div>
-                <CardTitle className="text-lg mt-2">Upload Entity Data</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-lg mt-2 text-foreground">Upload Entity Data</CardTitle>
+                <CardDescription className="text-muted-foreground">
                   General entity data upload with flexible mapping and validation
                 </CardDescription>
               </CardHeader>
@@ -643,8 +643,8 @@ export default function PartnerPilot() {
                     <Cloud className="h-5 w-5 text-blue-600" />
                   </div>
                 </div>
-                <CardTitle className="text-lg mt-2">Upload from Broker Cloud</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-lg mt-2 text-foreground">Upload from Broker Cloud</CardTitle>
+                <CardDescription className="text-muted-foreground">
                   Import data from your Broker Cloud account
                 </CardDescription>
               </CardHeader>
@@ -667,8 +667,8 @@ export default function PartnerPilot() {
                     <Database className="h-5 w-5 text-green-600" />
                   </div>
                 </div>
-                <CardTitle className="text-lg mt-2">Upload from other CRM or portal</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-lg mt-2 text-foreground">Upload from other CRM or portal</CardTitle>
+                <CardDescription className="text-muted-foreground">
                   Import from any other third-party system
                 </CardDescription>
               </CardHeader>
@@ -691,8 +691,8 @@ export default function PartnerPilot() {
                     <RefreshCw className="h-5 w-5 text-purple-600" />
                   </div>
                 </div>
-                <CardTitle className="text-lg mt-2">Sync with your CRM</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-lg mt-2 text-foreground">Sync with your CRM</CardTitle>
+                <CardDescription className="text-muted-foreground">
                   Set up automatic data synchronization
                 </CardDescription>
               </CardHeader>
@@ -716,8 +716,8 @@ export default function PartnerPilot() {
                     <Cloud className="h-5 w-5 text-blue-600" />
                   </div>
                 </div>
-                <CardTitle className="text-lg mt-2">Salesforce Import</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-lg mt-2 text-foreground">Salesforce Import</CardTitle>
+                <CardDescription className="text-muted-foreground">
                   Specialized CSV import for Salesforce CRM data export formats
                 </CardDescription>
               </CardHeader>
@@ -738,8 +738,8 @@ export default function PartnerPilot() {
                     <FileSpreadsheet className="h-5 w-5 text-indigo-600" />
                   </div>
                 </div>
-                <CardTitle className="text-lg mt-2">Brio Format</CardTitle>
-                <CardDescription>
+                <CardTitle className="text-lg mt-2 text-foreground">Brio Format</CardTitle>
+                <CardDescription className="text-muted-foreground">
                   Import data using Brio business intelligence export formats
                 </CardDescription>
               </CardHeader>
