@@ -785,7 +785,7 @@ function PartnersTable() {
               {/* Saved Lists dropdown - redesigned to match provided image */}
               <div className="relative">
                 <button 
-                  className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
+                  className="flex items-center space-x-2 px-4 py-2.5 border border-[#E6E7F1] rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
                   onClick={() => setShowListsDropdown(!showListsDropdown)}
                 >
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
@@ -812,7 +812,7 @@ function PartnersTable() {
                 
                 {/* Saved Lists dropdown menu - shadcn/ui style with Qollabi colors */}
                 {showListsDropdown && (
-                  <div className="absolute z-50 mt-1.5 w-80 rounded-md border border-slate-200 bg-white text-slate-950 shadow-md animate-in fade-in-80 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
+                  <div className="absolute z-50 mt-1.5 w-80 rounded-md border border-[#E6E7F1] bg-white text-slate-950 shadow-md animate-in fade-in-80 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
                     {/* No search section as per screenshot */}
                     
                     {/* Lists with edit options */}
@@ -1040,7 +1040,7 @@ function PartnersTable() {
               )}
               
               <button 
-                className={`hidden md:flex items-center px-4 h-8 text-[#696C8C] rounded-md border border-gray-300 hover:bg-[#F5F6FE] ${isEditingList ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`hidden md:flex items-center px-4 h-8 text-[#696C8C] rounded-md border border-[#E6E7F1] hover:bg-[#F5F6FE] ${isEditingList ? 'opacity-50 cursor-not-allowed' : ''}`}
                 disabled={isEditingList}
                 style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 500 }}
               >
@@ -1081,7 +1081,7 @@ function PartnersTable() {
                   placeholder="Search by name, industry..."
                   value={filterText}
                   onChange={(e) => setFilterText(e.target.value)}
-                  className="w-full pl-3 pr-10 h-8 border border-gray-300 rounded-md text-sm"
+                  className="w-full pl-3 pr-10 h-8 border border-[#E6E7F1] rounded-md text-sm"
                 />
                 <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
@@ -1095,7 +1095,7 @@ function PartnersTable() {
               <div className="relative">
                 <button 
                   ref={viewsButtonRef}
-                  className={`flex items-center space-x-2 px-3 h-8 border rounded-md text-sm font-medium bg-white ${isEditingList ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                  className={`flex items-center space-x-2 px-3 h-8 border border-[#E6E7F1] rounded-md text-sm font-medium bg-white ${isEditingList ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
                   onClick={() => {
                     if (!isEditingList) {
                       setShowViewsDropdown(!showViewsDropdown);
@@ -1125,7 +1125,7 @@ function PartnersTable() {
                 
                 {/* Saved Views dropdown menu */}
                 {showViewsDropdown && (
-                  <div ref={viewsDropdownRef} className="absolute z-50 mt-1 w-64 rounded-md border border-slate-200 bg-white shadow-md">
+                  <div ref={viewsDropdownRef} className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-md">
                     <div className="p-2 border-b">
                       {savedViews.map(view => (
                         <div 
@@ -1182,7 +1182,7 @@ function PartnersTable() {
               <div className="flex items-center gap-2 ml-3">
                 <div className="relative" ref={statusDropdownRef}>
                   <button 
-                    className={`flex items-center px-3 h-8 border rounded-md text-sm font-medium ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                    className={`flex items-center px-3 h-8 border rounded-md text-sm font-medium ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-[#E6E7F1] text-gray-700'}`}
                     onClick={() => setShowStatusDropdown(!showStatusDropdown)}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
@@ -1246,7 +1246,7 @@ function PartnersTable() {
                 
                 <div className="relative" ref={industryDropdownRef}>
                   <button 
-                    className={`flex items-center px-3 h-8 border rounded-md text-sm font-medium ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                    className={`flex items-center px-3 h-8 border rounded-md text-sm font-medium ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-[#E6E7F1] text-gray-700'}`}
                     onClick={() => setShowIndustryDropdown(!showIndustryDropdown)}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
