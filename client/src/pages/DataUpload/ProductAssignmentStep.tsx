@@ -214,12 +214,7 @@ export default function ProductAssignmentStep({
                           Match
                         </Badge>
                       )}
-                      {!hasAutoMatch && !isAssigned && !products.find(p => p.sku === product.sku && p.id !== product.id) && (
-                        <Badge className="bg-yellow-50 text-yellow-700 border-yellow-200 font-medium px-2 py-0.5 rounded text-xs flex items-center gap-1 hover:bg-yellow-50">
-                          <AlertTriangle className="h-3 w-3" />
-                          No match found
-                        </Badge>
-                      )}
+
                     </div>
                     <div className="flex items-center gap-3 text-xs text-gray-500">
                       <span className="font-medium">ID: {product.sku}</span>
