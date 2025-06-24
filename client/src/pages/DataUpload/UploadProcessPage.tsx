@@ -352,8 +352,8 @@ export default function UploadProcessPage() {
           {currentStep === 1 && isEntityUpload && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h3 className="text-lg font-medium mb-2">Choose Entity Type</h3>
-                <p className="text-gray-600">Select the type of data you want to upload</p>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Choose Entity Type</h3>
+                <p className="text-muted-foreground">Select the type of data you want to upload</p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
@@ -394,12 +394,12 @@ export default function UploadProcessPage() {
                         </div>
                         <div>
                           <h4 className={`font-semibold text-sm transition-colors ${
-                            isSelected ? `text-${entity.color}-900` : 'text-gray-900'
+                            isSelected ? `text-${entity.color}-900` : 'text-foreground'
                           }`}>
                             {entity.label}
                           </h4>
                           <p className={`text-xs mt-1 transition-colors ${
-                            isSelected ? `text-${entity.color}-700` : 'text-gray-500'
+                            isSelected ? `text-${entity.color}-700` : 'text-muted-foreground'
                           }`}>
                             {entity.description}
                           </p>
@@ -498,8 +498,8 @@ export default function UploadProcessPage() {
                       <Upload className="h-8 w-8 text-gray-400" strokeWidth={2} />
                     </div>
                     <div className="space-y-2">
-                      <h3 className="text-xl font-semibold text-gray-900">Upload your CSV file</h3>
-                      <p className="text-gray-500">Drag and drop your file here, or click to browse</p>
+                      <h3 className="text-xl font-semibold text-foreground">Upload your CSV file</h3>
+                      <p className="text-muted-foreground">Drag and drop your file here, or click to browse</p>
                     </div>
                     <Button 
                       onClick={() => {
@@ -565,8 +565,8 @@ export default function UploadProcessPage() {
                   <CardContent className="p-6">
                     <div className="space-y-6">
                       <div>
-                        <h3 className="text-lg font-medium text-gray-900 mb-2">Product Categories</h3>
-                        <p className="text-gray-600 text-sm">Create and organize categories for your products</p>
+                        <h3 className="text-lg font-medium text-foreground mb-2">Product Categories</h3>
+                        <p className="text-muted-foreground text-sm">Create and organize categories for your products</p>
                       </div>
                       
                       <CategoryManagerForProducts />
@@ -660,11 +660,11 @@ export default function UploadProcessPage() {
               <div className="mx-auto w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-lg mb-6">
                 <CheckCircle className="h-10 w-10 text-white" strokeWidth={2} />
               </div>
-              <h3 className="text-2xl font-semibold text-gray-900 mb-3">Processing Complete!</h3>
+              <h3 className="text-2xl font-semibold text-foreground mb-3">Processing Complete!</h3>
               
               {processingResults && (
                 <div className="mb-8">
-                  <p className="text-gray-600 mb-8 text-lg">
+                  <p className="text-muted-foreground mb-8 text-lg">
                     {processingResults.recordsCreated} {isEntityUpload ? selectedEntityType : uploadType} records have been successfully processed.
                   </p>
                   
@@ -686,7 +686,7 @@ export default function UploadProcessPage() {
               )}
               
               {!processingResults && (
-                <p className="text-gray-600 mb-8 text-lg">Your {isEntityUpload ? selectedEntityType : uploadType} data has been successfully processed and imported.</p>
+                <p className="text-muted-foreground mb-8 text-lg">Your {isEntityUpload ? selectedEntityType : uploadType} data has been successfully processed and imported.</p>
               )}
               
               <div className="flex justify-center gap-4">
