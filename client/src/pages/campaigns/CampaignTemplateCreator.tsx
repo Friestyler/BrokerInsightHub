@@ -556,7 +556,7 @@ export default function CampaignTemplateCreator() {
                         card: selected 
                           ? 'border-2 border-green-400 shadow-green-100 shadow-lg transform scale-105 bg-white' 
                           : 'border border-gray-200 hover:border-green-200 hover:shadow-md hover:shadow-green-50 bg-white',
-                        iconBg: selected ? 'bg-gradient-to-br from-green-500 to-emerald-600' : 'bg-gray-100',
+                        iconBg: selected ? 'bg-gradient-to-br from-green-500 to-emerald-600' : 'bg-[#E6E7F1]',
                         iconColor: selected ? 'text-white' : 'text-gray-400',
                         title: selected ? 'text-green-900' : 'text-gray-800',
                         subtitle: selected ? 'text-green-600' : 'text-gray-500',
@@ -568,7 +568,7 @@ export default function CampaignTemplateCreator() {
                         card: selected 
                           ? 'border-2 border-blue-400 shadow-blue-100 shadow-lg transform scale-105 bg-white' 
                           : 'border border-gray-200 hover:border-blue-200 hover:shadow-md hover:shadow-blue-50 bg-white',
-                        iconBg: selected ? 'bg-gradient-to-br from-blue-500 to-indigo-600' : 'bg-gray-100',
+                        iconBg: selected ? 'bg-gradient-to-br from-blue-500 to-indigo-600' : 'bg-[#E6E7F1]',
                         iconColor: selected ? 'text-white' : 'text-gray-400',
                         title: selected ? 'text-blue-900' : 'text-gray-800',
                         subtitle: selected ? 'text-blue-600' : 'text-gray-500',
@@ -580,7 +580,7 @@ export default function CampaignTemplateCreator() {
                         card: selected 
                           ? 'border-2 border-purple-400 shadow-purple-100 shadow-lg transform scale-105 bg-white' 
                           : 'border border-gray-200 hover:border-purple-200 hover:shadow-md hover:shadow-purple-50 bg-white',
-                        iconBg: selected ? 'bg-gradient-to-br from-purple-500 to-violet-600' : 'bg-gray-100',
+                        iconBg: selected ? 'bg-gradient-to-br from-purple-500 to-violet-600' : 'bg-[#E6E7F1]',
                         iconColor: selected ? 'text-white' : 'text-gray-400',
                         title: selected ? 'text-purple-900' : 'text-gray-800',
                         subtitle: selected ? 'text-purple-600' : 'text-gray-500',
@@ -592,7 +592,7 @@ export default function CampaignTemplateCreator() {
                         card: selected 
                           ? 'border-2 border-orange-400 shadow-orange-100 shadow-lg transform scale-105 bg-white' 
                           : 'border border-gray-200 hover:border-orange-200 hover:shadow-md hover:shadow-orange-50 bg-white',
-                        iconBg: selected ? 'bg-gradient-to-br from-orange-500 to-red-600' : 'bg-gray-100',
+                        iconBg: selected ? 'bg-gradient-to-br from-orange-500 to-red-600' : 'bg-[#E6E7F1]',
                         iconColor: selected ? 'text-white' : 'text-gray-400',
                         title: selected ? 'text-orange-900' : 'text-gray-800',
                         subtitle: selected ? 'text-orange-600' : 'text-gray-500',
@@ -604,7 +604,7 @@ export default function CampaignTemplateCreator() {
                         card: selected 
                           ? 'border-2 border-gray-400 shadow-gray-100 shadow-lg transform scale-105 bg-white' 
                           : 'border border-gray-200 hover:border-gray-300 hover:shadow-md bg-white',
-                        iconBg: selected ? 'bg-gradient-to-br from-gray-500 to-gray-600' : 'bg-gray-100',
+                        iconBg: selected ? 'bg-gradient-to-br from-gray-500 to-gray-600' : 'bg-[#E6E7F1]',
                         iconColor: selected ? 'text-white' : 'text-gray-400',
                         title: selected ? 'text-gray-900' : 'text-gray-800',
                         subtitle: selected ? 'text-gray-600' : 'text-gray-500',

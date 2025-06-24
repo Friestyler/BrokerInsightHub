@@ -160,10 +160,10 @@ export default function EntitySelectPage() {
           </CardFooter>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-gray-100 flex flex-col" onClick={() => setLocation('/data-upload-3/process/contacts')}>
+        <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-[#E6E7F1] flex flex-col" onClick={() => setLocation('/data-upload-3/process/contacts')}>
           <CardHeader className="flex-grow">
             <div className="flex justify-between items-start">
-              <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
+              <div className="h-10 w-10 rounded-full bg-[#E6E7F1] flex items-center justify-center">
                 <Phone className="h-5 w-5 text-gray-600" />
               </div>
             </div>
@@ -173,8 +173,8 @@ export default function EntitySelectPage() {
             </CardDescription>
           </CardHeader>
           <CardFooter className="mt-auto">
-            <Button className="w-full bg-gray-600 hover:bg-gray-700">
-              Upload Contacts
+            <Button className="w-full">
+              Upload contacts
             </Button>
           </CardFooter>
         </Card>
