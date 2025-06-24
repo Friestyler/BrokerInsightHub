@@ -1601,7 +1601,7 @@ export default function PartnerDetail() {
                                       
                                       {/* Dropdown menu */}
                                       {activeDropdownId === list.id && (
-                                        <div className="absolute right-0 top-full mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-md z-50">
+                                        <div className="absolute right-0 top-full mt-1 w-48 rounded-md border border-[#E6E7F1] bg-white shadow-md z-50">
                                           <div className="p-1">
                                             <button
                                               className="flex w-full items-center px-2 py-1.5 text-sm rounded-sm hover:bg-slate-100 text-left"
@@ -1816,7 +1816,7 @@ export default function PartnerDetail() {
                       
                       {/* Saved Views dropdown menu */}
                       {showViewsDropdown && (
-                        <div ref={viewsDropdownRef} className="absolute z-50 mt-1 w-64 rounded-md border border-slate-200 bg-white shadow-md">
+                        <div ref={viewsDropdownRef} className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-md">
                           <div className="p-2 border-b">
                             {savedViews.map(view => (
                               <div 
@@ -3885,7 +3885,7 @@ export default function PartnerDetail() {
                         </button>
                         
                         {showCustomerFilter && (
-                          <div className="absolute z-50 mt-1 w-64 rounded-md border border-slate-200 bg-white shadow-md max-h-60 overflow-auto">
+                          <div className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-md max-h-60 overflow-auto">
                             <div className="p-2">
                               <div className="space-y-1">
                                 {['Sales', 'Marketing', 'Operations', 'Management', 'Support'].map((dept) => (
@@ -3938,7 +3938,7 @@ export default function PartnerDetail() {
                         </button>
                         
                         {showStatusFilter && (
-                          <div className="absolute z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-md">
+                          <div className="absolute z-50 mt-1 w-48 rounded-md border border-[#E6E7F1] bg-white shadow-md">
                             <div className="p-2">
                               <div className="space-y-1">
                                 {['Active', 'Inactive', 'Primary', 'Secondary'].map((status) => (

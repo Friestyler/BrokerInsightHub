@@ -1336,7 +1336,7 @@ function PartnersTable() {
                   </button>
                   
                   {showActualIndustryDropdown && (
-                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-md">
+                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-[#E6E7F1] bg-white shadow-md">
                       <div className="p-1">
                         <div 
                           className="flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 text-slate-700"

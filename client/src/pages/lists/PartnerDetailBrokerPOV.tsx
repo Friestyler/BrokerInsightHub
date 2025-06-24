@@ -1274,7 +1274,7 @@ export default function PartnerDetailBrokerPOV() {
                           </button>
                           
                           {showStageDropdown && (
-                            <div className="absolute z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-lg">
+                            <div className="absolute z-50 mt-1 w-48 rounded-md border border-[#E6E7F1] bg-white shadow-lg">
                               <div className="py-1">
                                 <button
                                   className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -1331,7 +1331,7 @@ export default function PartnerDetailBrokerPOV() {
                           </button>
                           
                           {showCustomerDropdown && (
-                            <div className="absolute z-50 mt-1 w-64 rounded-md border border-slate-200 bg-white shadow-lg">
+                            <div className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-lg">
                               <div className="py-1">
                                 <button
                                   className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -1766,7 +1766,7 @@ export default function PartnerDetailBrokerPOV() {
                         
                         {/* Saved Views dropdown menu */}
                         {showCustomerViewsDropdown && (
-                          <div className="absolute z-50 mt-1 w-64 rounded-md border border-slate-200 bg-white shadow-md">
+                          <div className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-md">
                             <div className="p-2 border-b">
                               {customerSavedViews.map((view: any) => (
                                 <div 
