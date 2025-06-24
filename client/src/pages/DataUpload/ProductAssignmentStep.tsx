@@ -174,11 +174,16 @@ export default function ProductAssignmentStep({
             const autoMappings: Record<string, ProductMapping> = {};
             products.forEach(product => {
               if (product.matchedDbProduct) {
+                // Find the category for the matched product
+                const matchedProduct = product.matchedDbProduct;
+                const categoryId = matchedProduct.parentCategoryName ? 
+                  activeCategories.find(cat => cat.name === matchedProduct.parentCategoryName)?.id || '' : '';
+                
                 autoMappings[product.id.toString()] = {
-                  targetId: '', // Will be filled when categories are loaded
+                  targetId: categoryId,
                   targetType: 'category',
                   productAction: 'existing',
-                  existingProductId: product.matchedDbProduct.id.toString()
+                  existingProductId: matchedProduct.id.toString()
                 };
               }
             });
@@ -212,11 +217,16 @@ export default function ProductAssignmentStep({
       const autoMappings: Record<string, ProductMapping> = {};
       products.forEach(product => {
         if (product.matchedDbProduct) {
+          // Find the category for the matched product
+          const matchedProduct = product.matchedDbProduct;
+          const categoryId = matchedProduct.parentCategoryName ? 
+            activeCategories.find(cat => cat.name === matchedProduct.parentCategoryName)?.id || '' : '';
+          
           autoMappings[product.id.toString()] = {
-            targetId: '', // Will be filled when categories are loaded
+            targetId: categoryId,
             targetType: 'category',
             productAction: 'existing',
-            existingProductId: product.matchedDbProduct.id.toString()
+            existingProductId: matchedProduct.id.toString()
           };
         }
       });
