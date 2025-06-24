@@ -707,18 +707,18 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 <label className="block text-sm font-medium text-gray-700 mb-2">Choose an Icon</label>
                 <div className="grid grid-cols-6 gap-3">
                   {[
-                    { id: 'shield', icon: <Shield className="h-5 w-5" />, color: 'bg-blue-500' },
-                    { id: 'home', icon: <Home className="h-5 w-5" />, color: 'bg-green-500' },
-                    { id: 'car', icon: <Car className="h-5 w-5" />, color: 'bg-red-500' },
-                    { id: 'umbrella', icon: <Umbrella className="h-5 w-5" />, color: 'bg-purple-500' },
-                    { id: 'building', icon: <Building className="h-5 w-5" />, color: 'bg-gray-600' },
-                    { id: 'dollar-sign', icon: <DollarSign className="h-5 w-5" />, color: 'bg-emerald-500' },
-                    { id: 'plane', icon: <Plane className="h-5 w-5" />, color: 'bg-teal-500' },
-                    { id: 'user-check', icon: <UserCheck className="h-5 w-5" />, color: 'bg-indigo-500' },
-                    { id: 'target', icon: <Target className="h-5 w-5" />, color: 'bg-orange-500' },
-                    { id: 'award', icon: <Award className="h-5 w-5" />, color: 'bg-yellow-500' },
-                    { id: 'heart', icon: <Heart className="h-5 w-5" />, color: 'bg-pink-500' },
-                    { id: 'mail', icon: <Mail className="h-5 w-5" />, color: 'bg-cyan-500' }
+                    { id: 'shield', icon: <Shield className="h-5 w-5" />, color: 'bg-[#007AFF]' },
+                    { id: 'home', icon: <Home className="h-5 w-5" />, color: 'bg-[#34C759]' },
+                    { id: 'car', icon: <Car className="h-5 w-5" />, color: 'bg-[#FF3B30]' },
+                    { id: 'umbrella', icon: <Umbrella className="h-5 w-5" />, color: 'bg-[#AF52DE]' },
+                    { id: 'building', icon: <Building className="h-5 w-5" />, color: 'bg-[#8E8E93]' },
+                    { id: 'dollar-sign', icon: <DollarSign className="h-5 w-5" />, color: 'bg-[#30D158]' },
+                    { id: 'plane', icon: <Plane className="h-5 w-5" />, color: 'bg-[#64D2FF]' },
+                    { id: 'user-check', icon: <UserCheck className="h-5 w-5" />, color: 'bg-[#5856D6]' },
+                    { id: 'target', icon: <Target className="h-5 w-5" />, color: 'bg-[#FF9500]' },
+                    { id: 'award', icon: <Award className="h-5 w-5" />, color: 'bg-[#FFCC02]' },
+                    { id: 'heart', icon: <Heart className="h-5 w-5" />, color: 'bg-[#FF2D92]' },
+                    { id: 'mail', icon: <Mail className="h-5 w-5" />, color: 'bg-[#32D74B]' }
                   ].map((iconOption) => (
                     <button
                       key={iconOption.id}
@@ -726,11 +726,11 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                       onClick={() => setCampaignData({ ...campaignData, icon: iconOption.id })}
                       className={`p-3 rounded-lg border-2 transition-all ${
                         campaignData.icon === iconOption.id
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                          ? 'border-[#007AFF] bg-[#007AFF]/5'
+                          : 'border-[#E6E7F1] hover:border-gray-300 hover:bg-[#E6E7F1]'
                       }`}
                     >
-                      <div className={`${iconOption.color} text-white p-1 rounded`}>
+                      <div className={`${iconOption.color} text-white p-1.5 rounded-md shadow-sm`}>
                         {iconOption.icon}
                       </div>
                     </button>
