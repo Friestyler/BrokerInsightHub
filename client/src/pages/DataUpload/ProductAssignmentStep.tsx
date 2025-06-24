@@ -276,27 +276,43 @@ export default function ProductAssignmentStep({
               <p className="text-gray-600 text-sm">Select how they're listed in your file.</p>
             </div>
             
-            <RadioGroup value={productStructure} onValueChange={handleStructureChange} className="space-y-4">
-              <div className="flex items-start space-x-3 p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
-                <RadioGroupItem value="single-column" id="single-column" className="mt-1" />
-                <div className="space-y-2 flex-1">
-                  <Label htmlFor="single-column" className="text-base font-medium cursor-pointer">
-                    🔘 One column contains the product names
+            <RadioGroup value={productStructure} onValueChange={handleStructureChange} className="space-y-3">
+              <div className={`relative flex items-start space-x-4 p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${
+                productStructure === 'single-column' 
+                  ? 'border-[#5567E5] bg-[#5567E5]/5 shadow-sm' 
+                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-25'
+              }`}>
+                <RadioGroupItem 
+                  value="single-column" 
+                  id="single-column" 
+                  className={`mt-0.5 ${productStructure === 'single-column' ? 'border-[#5567E5] text-[#5567E5]' : ''}`}
+                />
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="single-column" className="text-base font-semibold cursor-pointer text-gray-900 leading-tight">
+                    One column contains the product names
                   </Label>
-                  <p className="text-sm text-gray-600">
-                    e.g., A column called "Product" contains values like "Self-Employed Disability Insurance", "Legal Assistance – Business", "Group Income Protection"…
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    A single column called "Product" contains values like "Self-Employed Disability Insurance", "Legal Assistance – Business", "Group Income Protection"
                   </p>
                 </div>
               </div>
               
-              <div className="flex items-start space-x-3 p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
-                <RadioGroupItem value="multiple-columns" id="multiple-columns" className="mt-1" />
-                <div className="space-y-2 flex-1">
-                  <Label htmlFor="multiple-columns" className="text-base font-medium cursor-pointer">
-                    🔘 Each column is a product
+              <div className={`relative flex items-start space-x-4 p-5 rounded-2xl border-2 cursor-pointer transition-all duration-200 ${
+                productStructure === 'multiple-columns' 
+                  ? 'border-[#5567E5] bg-[#5567E5]/5 shadow-sm' 
+                  : 'border-gray-200 hover:border-gray-300 hover:bg-gray-25'
+              }`}>
+                <RadioGroupItem 
+                  value="multiple-columns" 
+                  id="multiple-columns" 
+                  className={`mt-0.5 ${productStructure === 'multiple-columns' ? 'border-[#5567E5] text-[#5567E5]' : ''}`}
+                />
+                <div className="flex-1 space-y-2">
+                  <Label htmlFor="multiple-columns" className="text-base font-semibold cursor-pointer text-gray-900 leading-tight">
+                    Each column is a product
                   </Label>
-                  <p className="text-sm text-gray-600">
-                    e.g., Columns like "Self-Employed Disability Insurance", "Legal Assistance – Business", "WGA Employer Liability" — the headers are the product names.
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    Column headers like "Self-Employed Disability Insurance", "Legal Assistance – Business", "WGA Employer Liability" are the product names
                   </p>
                 </div>
               </div>
