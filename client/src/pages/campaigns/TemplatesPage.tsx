@@ -222,7 +222,7 @@ export default function TemplatesPage() {
         </div>
         <Button onClick={handleCreateTemplate} className="gap-2">
           <Plus className="h-4 w-4" />
-          Create New Template
+          Create new template
         </Button>
       </div>
       {/* Category Filters */}
@@ -270,7 +270,7 @@ export default function TemplatesPage() {
           </p>
           <Button onClick={handleCreateTemplate} className="gap-2">
             <Plus className="h-4 w-4" />
-            Create New Template
+            Create new template
           </Button>
         </div>
       ) : (
