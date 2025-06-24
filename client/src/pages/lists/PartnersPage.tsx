@@ -486,17 +486,10 @@ function PartnersTable() {
           viewsButtonRef.current && !viewsButtonRef.current.contains(event.target as Node)) {
         setShowViewsDropdown(false);
       }
-      if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target as Node)) {
-        setShowStatusDropdown(false);
-      }
-      if (industryDropdownRef.current && !industryDropdownRef.current.contains(event.target as Node)) {
-        setShowIndustryDropdown(false);
-      }
-      if (actualIndustryDropdownRef.current && !actualIndustryDropdownRef.current.contains(event.target as Node)) {
-        setShowActualIndustryDropdown(false);
-      }
-      if (sizeDropdownRef.current && !sizeDropdownRef.current.contains(event.target as Node)) {
-        setShowSizeDropdown(false);
+      // Close filter modal when clicking outside
+      const filterElement = event.target as Element;
+      if (showFilterModal && !filterElement.closest('.relative')) {
+        setShowFilterModal(false);
       }
     };
 
@@ -1181,15 +1174,15 @@ function PartnersTable() {
                 )}
               </div>
               
-              {/* Consolidated Filter Button */}
-              <div className="flex items-center gap-2 ml-3">
+              {/* Consolidated Filter Component */}
+              <div className="flex items-center gap-2 ml-3 relative">
                 <button 
                   className={`flex items-center px-3 h-8 border rounded-md text-sm font-medium transition-colors ${
-                    (selectedStatus || selectedIndustry || selectedActualIndustry || selectedSize) 
+                    (selectedStatus && selectedStatus !== 'all' || selectedIndustry && selectedIndustry !== 'all' || selectedActualIndustry && selectedActualIndustry !== 'all' || selectedSize && selectedSize !== 'all') 
                       ? 'border-[#5567E5] bg-[#5567E5]/10 text-[#5567E5]' 
                       : 'border-[#E6E7F1] text-gray-700 hover:bg-gray-50'
                   }`}
-                  onClick={() => setShowFilterModal(true)}
+                  onClick={() => setShowFilterModal(!showFilterModal)}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
@@ -1200,79 +1193,150 @@ function PartnersTable() {
                       : 'Filter'
                     }
                   </span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`ml-1 transition-transform ${showFilterModal ? 'rotate-180' : ''}`}>
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
                 </button>
                 
-                {/* Active filters preview */}
-                {(selectedStatus && selectedStatus !== 'all' || selectedIndustry && selectedIndustry !== 'all' || selectedActualIndustry && selectedActualIndustry !== 'all' || selectedSize && selectedSize !== 'all') && (
-                  <div className="flex items-center gap-1 max-w-96 overflow-hidden">
-                    {selectedStatus && selectedStatus !== 'all' && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[#5567E5]/10 text-[#5567E5] border border-[#5567E5]/20">
-                        Status: {selectedStatus}
+                {/* Inline Filter Dropdown */}
+                {showFilterModal && (
+                  <div className="absolute top-full left-0 mt-1 w-[520px] bg-white border border-[#E6E7F1] rounded-lg shadow-lg z-50 p-4">
+                    {/* Filter Rows */}
+                    <div className="space-y-3">
+                      {/* First Filter Row */}
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="text-gray-600 w-12 text-xs">Where</span>
+                        <Select value="status" disabled>
+                          <SelectTrigger className="w-20 h-8 text-xs border-[#E6E7F1]">
+                            <SelectValue>Status</SelectValue>
+                          </SelectTrigger>
+                        </Select>
+                        <Select value="equal_to" disabled>
+                          <SelectTrigger className="w-20 h-8 text-xs border-[#E6E7F1]">
+                            <SelectValue>equal to</SelectValue>
+                          </SelectTrigger>
+                        </Select>
+                        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                          <SelectTrigger className="flex-1 h-8 text-xs border-[#E6E7F1]">
+                            <SelectValue placeholder="Select..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All</SelectItem>
+                            {uniqueStatuses.map(status => (
+                              <SelectItem key={status} value={status}>{status}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {/* Second Filter Row */}
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="text-gray-600 w-12 text-xs">And</span>
+                        <Select value="region" disabled>
+                          <SelectTrigger className="w-20 h-8 text-xs border-[#E6E7F1]">
+                            <SelectValue>Region</SelectValue>
+                          </SelectTrigger>
+                        </Select>
+                        <Select value="equal_to" disabled>
+                          <SelectTrigger className="w-20 h-8 text-xs border-[#E6E7F1]">
+                            <SelectValue>equal to</SelectValue>
+                          </SelectTrigger>
+                        </Select>
+                        <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
+                          <SelectTrigger className="flex-1 h-8 text-xs border-[#E6E7F1]">
+                            <SelectValue placeholder="Select..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All</SelectItem>
+                            {uniqueRegions.map(region => (
+                              <SelectItem key={region} value={region}>{region}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {/* Third Filter Row */}
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="text-gray-600 w-12 text-xs">And</span>
+                        <Select value="location" disabled>
+                          <SelectTrigger className="w-20 h-8 text-xs border-[#E6E7F1]">
+                            <SelectValue>Location</SelectValue>
+                          </SelectTrigger>
+                        </Select>
+                        <Select value="equal_to" disabled>
+                          <SelectTrigger className="w-20 h-8 text-xs border-[#E6E7F1]">
+                            <SelectValue>equal to</SelectValue>
+                          </SelectTrigger>
+                        </Select>
+                        <Select value={selectedActualIndustry} onValueChange={setSelectedActualIndustry}>
+                          <SelectTrigger className="flex-1 h-8 text-xs border-[#E6E7F1]">
+                            <SelectValue placeholder="Select..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All</SelectItem>
+                            {uniqueLocations.map(location => (
+                              <SelectItem key={location} value={location}>{location}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {/* Fourth Filter Row */}
+                      <div className="flex items-center gap-2 text-sm">
+                        <span className="text-gray-600 w-12 text-xs">And</span>
+                        <Select value="size" disabled>
+                          <SelectTrigger className="w-20 h-8 text-xs border-[#E6E7F1]">
+                            <SelectValue>Size</SelectValue>
+                          </SelectTrigger>
+                        </Select>
+                        <Select value="equal_to" disabled>
+                          <SelectTrigger className="w-20 h-8 text-xs border-[#E6E7F1]">
+                            <SelectValue>equal to</SelectValue>
+                          </SelectTrigger>
+                        </Select>
+                        <Select value={selectedSize} onValueChange={setSelectedSize}>
+                          <SelectTrigger className="flex-1 h-8 text-xs border-[#E6E7F1]">
+                            <SelectValue placeholder="Select..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All</SelectItem>
+                            <SelectItem value="Small">Small</SelectItem>
+                            <SelectItem value="Medium">Medium</SelectItem>
+                            <SelectItem value="Large">Large</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                    
+                    {/* Filter Actions */}
+                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
+                      <div className="flex items-center gap-3">
                         <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
+                          className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1"
+                          onClick={() => {
                             setSelectedStatus('all');
-                          }}
-                          className="ml-1 hover:text-[#4556D4]"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                          </svg>
-                        </button>
-                      </span>
-                    )}
-                    {selectedIndustry && selectedIndustry !== 'all' && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[#5567E5]/10 text-[#5567E5] border border-[#5567E5]/20">
-                        Region: {selectedIndustry}
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
                             setSelectedIndustry('all');
-                          }}
-                          className="ml-1 hover:text-[#4556D4]"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                          </svg>
-                        </button>
-                      </span>
-                    )}
-                    {selectedActualIndustry && selectedActualIndustry !== 'all' && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[#5567E5]/10 text-[#5567E5] border border-[#5567E5]/20">
-                        Location: {selectedActualIndustry}
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
                             setSelectedActualIndustry('all');
-                          }}
-                          className="ml-1 hover:text-[#4556D4]"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                          </svg>
-                        </button>
-                      </span>
-                    )}
-                    {selectedSize && selectedSize !== 'all' && (
-                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[#5567E5]/10 text-[#5567E5] border border-[#5567E5]/20">
-                        Size: {selectedSize}
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
                             setSelectedSize('all');
                           }}
-                          className="ml-1 hover:text-[#4556D4]"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <line x1="18" y1="6" x2="6" y2="18"></line>
                             <line x1="6" y1="6" x2="18" y2="18"></line>
                           </svg>
+                          Clear
                         </button>
-                      </span>
-                    )}
+                        <button 
+                          className="text-xs text-green-600 hover:text-green-700 flex items-center gap-1"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                          </svg>
+                          Add filter
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 )}
               </div>
@@ -1845,131 +1909,7 @@ function PartnersTable() {
         </DialogContent>
       </Dialog>
       
-      {/* Comprehensive Filter Modal */}
-      <Dialog open={showFilterModal} onOpenChange={setShowFilterModal}>
-        <DialogContent className="sm:max-w-2xl bg-[#ffffff] text-[#282A3F]">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">Filter Partners</DialogTitle>
-            <DialogDescription className="text-sm text-gray-600">
-              Apply filters to find specific partners based on their attributes and characteristics.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-6 py-4">
-            {/* Filter Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {/* Status Filter */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">Status</Label>
-                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger className="h-10 border-[#E6E7F1]">
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Statuses</SelectItem>
-                    {uniqueStatuses.map(status => (
-                      <SelectItem key={status} value={status}>
-                        {status.charAt(0).toUpperCase() + status.slice(1)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
 
-              {/* Region Filter */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">Region</Label>
-                <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
-                  <SelectTrigger className="h-10 border-[#E6E7F1]">
-                    <SelectValue placeholder="Select region" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Regions</SelectItem>
-                    {uniqueRegions.map(region => (
-                      <SelectItem key={region} value={region}>
-                        {region}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Location Filter */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">Location</Label>
-                <Select value={selectedActualIndustry} onValueChange={setSelectedActualIndustry}>
-                  <SelectTrigger className="h-10 border-[#E6E7F1]">
-                    <SelectValue placeholder="Select location" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Locations</SelectItem>
-                    {uniqueLocations.map(location => (
-                      <SelectItem key={location} value={location}>
-                        {location}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Size Filter */}
-              <div className="space-y-2">
-                <Label className="text-sm font-medium text-gray-700">Company Size</Label>
-                <Select value={selectedSize} onValueChange={setSelectedSize}>
-                  <SelectTrigger className="h-10 border-[#E6E7F1]">
-                    <SelectValue placeholder="Select size" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Sizes</SelectItem>
-                    <SelectItem value="Small">Small</SelectItem>
-                    <SelectItem value="Medium">Medium</SelectItem>
-                    <SelectItem value="Large">Large</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Quick Filter Actions */}
-            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-gray-600">Quick actions:</span>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => {
-                    setSelectedStatus('all');
-                    setSelectedIndustry('all');
-                    setSelectedActualIndustry('all');
-                    setSelectedSize('all');
-                  }}
-                  className="h-8 text-xs"
-                >
-                  Clear all
-                </Button>
-              </div>
-              
-              <div className="text-sm text-gray-600">
-                {(() => {
-                  const activeFilters = [selectedStatus, selectedIndustry, selectedActualIndustry, selectedSize].filter(val => val && val !== 'all').length;
-                  return activeFilters > 0 ? `${activeFilters} filter${activeFilters !== 1 ? 's' : ''} active` : 'No filters active';
-                })()}
-              </div>
-            </div>
-          </div>
-          
-          <DialogFooter className="flex items-center justify-between">
-            <Button variant="outline" onClick={() => setShowFilterModal(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={() => setShowFilterModal(false)}
-              className="bg-[#5567E5] hover:bg-[#4556D4] text-white"
-            >
-              Apply filters
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
       {/* Save as new View Modal */}
       <Dialog 
         open={showSaveViewModal} 
