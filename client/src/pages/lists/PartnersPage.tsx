@@ -772,7 +772,7 @@ function PartnersTable() {
   return (
     <div className="space-y-1">
       {/* Unified toolbar with more emphasis on saved lists */}
-      <div className="bg-white p-2 rounded-lg shadow-sm">
+      <div className="bg-white p-2 rounded-lg shadow-sm mx-4">
         <div className="flex flex-col gap-4">
           {/* Top row with saved lists and action buttons */}
           <div className="flex flex-wrap items-center justify-between">
@@ -2437,7 +2437,7 @@ function PartnersTable() {
         </div>
       )}
       {/* Table section without a border */}
-      <div className="bg-white overflow-x-auto rounded-lg">
+      <div className="bg-white overflow-x-auto rounded-lg mx-4">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-white">
             <tr>
@@ -3029,7 +3029,7 @@ export default function PartnersPage() {
   
   return (
     <ListEditingContext.Provider value={{ isEditingList, setIsEditingList }}>
-      <div className="container mx-auto px-4 pb-6">
+      <div className="container mx-auto pb-6">
         <PartnersTable />
 
         {/* Create Partner Modal */}
