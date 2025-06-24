@@ -189,7 +189,7 @@ export function AdvancedTimeframeFilter({ value, onValueChange, className }: Adv
                         type="text"
                         value={customDateRange?.to ? format(customDateRange.to, "MMM dd, yyyy") : ''}
                         placeholder="Select date"
-                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-50"
+                        className="w-full px-3 py-2 border border-[#E6E7F1] rounded-md bg-gray-50"
                         readOnly
                       />
                       <button className="absolute right-2 top-2">

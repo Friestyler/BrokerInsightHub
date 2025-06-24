@@ -960,7 +960,7 @@ function OpportunitiesTable() {
                 
                 {/* Saved Lists dropdown menu - shadcn/ui style with Qollabi colors */}
                 {showListsDropdown && (
-                  <div className="absolute z-50 mt-1.5 w-80 rounded-md border border-slate-200 bg-white text-slate-950 shadow-md animate-in fade-in-80 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
+                  <div className="absolute z-50 mt-1.5 w-80 rounded-md border border-[#E6E7F1] bg-white text-slate-950 shadow-md animate-in fade-in-80 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
                     {/* No search section as per screenshot */}
                     
                     {/* Lists with edit options */}
@@ -1075,7 +1075,7 @@ function OpportunitiesTable() {
                                 
                                 {/* Dropdown menu */}
                                 {activeDropdownId === list.id && (
-                                  <div className="absolute right-0 top-full mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-md z-50">
+                                  <div className="absolute right-0 top-full mt-1 w-48 rounded-md border border-[#E6E7F1] bg-white shadow-md z-50">
                                     <div className="p-1">
                                       <button
                                         className="flex w-full items-center px-2 py-1.5 text-sm rounded-sm hover:bg-slate-100 text-left"
@@ -1282,7 +1282,7 @@ function OpportunitiesTable() {
                 
                 {/* Saved Views dropdown menu */}
                 {showViewsDropdown && (
-                  <div className="absolute z-50 mt-1 w-64 rounded-md border border-slate-200 bg-white shadow-md">
+                  <div className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-md">
                     <div className="p-2 border-b">
                       <div className="text-xs font-medium mb-2 text-gray-500">SAVED VIEWS</div>
                       {savedViewsData.map((view: any) => (

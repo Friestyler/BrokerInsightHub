@@ -221,7 +221,7 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
             <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
               {/* Priority Selector */}
               <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger className="w-32 h-9 text-sm bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+                <SelectTrigger className="w-32 h-9 text-sm bg-white border border-[#E6E7F1] rounded-lg hover:border-[#D6D7E4] transition-colors">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-gray-200 rounded-xl shadow-lg">

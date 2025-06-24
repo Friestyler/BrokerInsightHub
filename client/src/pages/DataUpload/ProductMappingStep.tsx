@@ -264,7 +264,7 @@ export default function ProductMappingStep({ onNext, onBack }: ProductMappingSte
                           ? 'border-green-500 bg-green-50' 
                           : isActiveSelection 
                           ? 'border-blue-500 bg-blue-50' 
-                          : 'border-gray-200 hover:border-gray-300'
+                          : 'border-[#E6E7F1] hover:border-[#D6D7E4]'
                       }`}
                       onClick={() => setSelectedProduct(product.id)}
                     >

@@ -66,7 +66,7 @@ export function TemplateCarousel({ templates, onSelectTemplate, entityType, envi
     return (
       <div className="mb-6">
         <h3 className="text-lg font-medium mb-4">Available Templates</h3>
-        <Card className="border-dashed border-2 border-gray-300">
+        <Card className="border-dashed border-2 border-[#E6E7F1]">
           <CardContent className="p-6 text-center">
             <FileSpreadsheet className="mx-auto h-8 w-8 text-gray-400 mb-2" />
             <p className="text-sm text-gray-600">
