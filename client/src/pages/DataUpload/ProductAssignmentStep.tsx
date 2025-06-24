@@ -478,8 +478,8 @@ export default function ProductAssignmentStep({
       </Card>
       {/* Detected Products Table - Only show when structure is selected and products are detected */}
       {showProductTable && (
-        <Card className="border border-gray-200 shadow-sm">
-          <CardHeader className="border-b border-gray-100 bg-gray-50/50">
+        <Card className="border border-[#E6E7F1] shadow-sm">
+          <CardHeader className="border-b border-[#E6E7F1] bg-[#E6E7F1]/50">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg font-semibold text-gray-900">Detected Products</CardTitle>
               <div className="flex items-center gap-4">

@@ -171,7 +171,7 @@ export default function SharedListView() {
                   Q
                 </div>
                 <span className="ml-2 text-xl font-bold text-gray-900">Qollabi</span>
-                <span className="ml-2 text-sm text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                <span className="ml-2 text-sm text-gray-500 bg-[#E6E7F1] px-2 py-1 rounded-full">
                   Shared View
                 </span>
               </div>

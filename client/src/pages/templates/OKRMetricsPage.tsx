@@ -620,7 +620,7 @@ export default function OKRMetricsPage() {
               
               <div className="space-y-2 max-h-64 overflow-y-auto">
                 {(tags as OKRTag[]).map((tag: OKRTag) => (
-                  <div key={tag.id} className="flex items-center justify-between p-2 border rounded">
+                  <div key={tag.id} className="flex items-center justify-between p-2 border-[#E6E7F1] border rounded">
                     <div className="flex items-center gap-3">
                       <div 
                         className="w-6 h-6 rounded"

@@ -538,7 +538,7 @@ export default function RecipientSelector({
             summaryStats.entitiesWithoutContacts > 0 ? 'cursor-pointer hover:shadow-md' : ''
           } ${
             selectedRecipients.length === 0 
-              ? 'bg-gray-50 border border-gray-200'
+              ? 'bg-[#E6E7F1] border border-[#E6E7F1]'
               : summaryStats.entitiesWithoutContacts > 0 
                 ? 'bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 hover:from-orange-100 hover:to-orange-150'
                 : 'bg-gradient-to-r from-green-50 to-green-100 border border-green-200'
