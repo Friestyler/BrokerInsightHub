@@ -351,31 +351,7 @@ export default function ProductAssignmentStep({
         )}
       </div>
 
-      {/* Category selector - always visible */}
-      <div className="bg-gray-50 rounded-xl p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Default Category for New Products</h3>
-        <p className="text-sm text-gray-600 mb-4">
-          When creating new products, they will be assigned to this category by default.
-        </p>
-        <Select value="" onValueChange={() => {}}>
-          <SelectTrigger className="w-full">
-            <SelectValue placeholder="Select a category..." />
-          </SelectTrigger>
-          <SelectContent>
-            {activeCategories.map((category: Category) => (
-              <SelectItem key={category.id} value={category.id}>
-                <div className="flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-full" 
-                    style={{ backgroundColor: category.color }}
-                  />
-                  {category.name}
-                </div>
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
+
 
       {/* Detected Products Table - Only show when structure is selected and products are detected */}
       {showProductTable && (
