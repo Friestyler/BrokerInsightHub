@@ -9,6 +9,7 @@ import { ArrowLeft, ArrowRight, FolderOpen, FileText, CheckCircle, AlertTriangle
 import { useQuery } from '@tanstack/react-query';
 import Papa from 'papaparse';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import CategoryManagerForProducts from "@/components/CategoryManagerForProducts";
 
 interface Product {
   id: number;
