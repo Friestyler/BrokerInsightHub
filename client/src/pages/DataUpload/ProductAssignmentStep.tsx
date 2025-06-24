@@ -546,8 +546,6 @@ export default function ProductAssignmentStep({
                     </div>
                     <div className="flex items-center gap-3 text-xs text-gray-500">
                       <span className="font-medium">ID: {product.sku}</span>
-                      <span className="w-1 h-1 bg-gray-300 rounded-full"></span>
-                      <span>{product.recordCount.toLocaleString()} records</span>
                     </div>
                   </div>
 
