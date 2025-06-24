@@ -674,48 +674,98 @@ export default function OpportunityDetail() {
                     <div className="flex flex-col mr-2">
                       <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
                     </div>
-                    {/* Saved Lists dropdown */}
+                    {/* Saved Lists dropdown - placeholder for contacts */}
                     <div className="relative">
                       <button 
                         className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
                       >
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
-                          <path d="M2 3h10v1H2V3zm0 3h10v1H2V6zm0 3h10v1H2V9z" fill="currentColor"/>
+                          <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
                         </svg>
-                        <span>All Contacts</span>
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                        </svg>
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Right side - Views */}
-                  <div className="flex items-center gap-3">
-                    <div className="flex flex-col mr-2">
-                      <span className="text-base font-semibold text-gray-800 mb-2">Views</span>
-                    </div>
-                    <div className="relative">
-                      <button 
-                        className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
-                      >
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-green-600">
-                          <path d="M7 2a5 5 0 100 10A5 5 0 007 2z" fill="currentColor" fillOpacity="0.2"/>
-                          <path d="M7 2a5 5 0 100 10A5 5 0 007 2z" stroke="currentColor" strokeWidth="1.5" fill="none"/>
-                        </svg>
-                        <span>Default View</span>
-                        <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                        <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                          All contacts
+                        </span>
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          width="14" 
+                          height="14" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round"
+                        >
+                          <polyline points="6 9 12 15 18 9" />
                         </svg>
                       </button>
                     </div>
                   </div>
                 </div>
+                
+                {/* Views and filters section */}
+                <div className="flex flex-wrap items-center justify-between">
+                  <div className="flex items-center gap-4">
+                    {/* Views heading */}
+                    <div className="flex flex-col mr-2">
+                      <span className="text-base font-semibold text-gray-800 mb-2">Views</span>
+                    </div>
+                    
+                    {/* Saved Views Dropdown - placeholder */}
+                    <div className="relative">
+                      <button 
+                        className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white hover:bg-gray-50"
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        <span className="text-gray-700">Default view</span>
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          width="14" 
+                          height="14" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round"
+                        >
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    {/* Filter buttons next to the views dropdown */}
+                    <div className="flex items-center gap-2 ml-3">
+                      {/* Department Filter */}
+                      <div className="relative">
+                        <button className="flex items-center px-3 py-2 border rounded-md text-sm font-medium border-gray-300 text-gray-700 hover:border-gray-400">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
+                            <circle cx="9" cy="7" r="4"/>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+                          </svg>
+                          <span>Department</span>
+                        </button>
+                      </div>
 
-                {/* Second row with filters */}
-                <div className="flex flex-wrap items-center gap-3">
-                  {/* Search */}
-                  <div className="relative flex-1 min-w-[250px]">
+                      {/* Status Filter */}
+                      <div className="relative">
+                        <button className="flex items-center px-3 py-2 border rounded-md text-sm font-medium border-gray-300 text-gray-700 hover:border-gray-400">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <circle cx="12" cy="12" r="3"/>
+                            <path d="M12 1v6m0 6v6"/>
+                          </svg>
+                          <span>Status</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Search box on the right */}
+                  <div className="relative flex-1 max-w-sm min-w-[250px]">
                     <svg className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                     </svg>
@@ -724,30 +774,6 @@ export default function OpportunityDetail() {
                       placeholder="Search contacts..."
                       className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
                     />
-                  </div>
-
-                  {/* Department Filter */}
-                  <div className="relative">
-                    <button className="flex items-center px-3 py-2 border rounded-md text-sm font-medium border-gray-300 text-gray-700 hover:border-gray-400">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
-                        <circle cx="9" cy="7" r="4"/>
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
-                      </svg>
-                      <span>Department</span>
-                    </button>
-                  </div>
-
-                  {/* Status Filter */}
-                  <div className="relative">
-                    <button className="flex items-center px-3 py-2 border rounded-md text-sm font-medium border-gray-300 text-gray-700 hover:border-gray-400">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <circle cx="12" cy="12" r="3"/>
-                        <path d="M12 1v6m0 6v6"/>
-                      </svg>
-                      <span>Status</span>
-                    </button>
                   </div>
                 </div>
               </div>
