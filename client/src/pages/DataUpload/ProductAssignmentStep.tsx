@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft, ArrowRight, FolderOpen, FileText, CheckCircle, AlertTriangle, Check, ChevronDown, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import Papa from 'papaparse';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Product {
   id: number;
@@ -94,6 +95,7 @@ export default function ProductAssignmentStep({
   const { data: dbProducts = [], isLoading: productsLoading } = useDetectedProducts();
   const { data: dbCategories = [], isLoading: categoriesLoading } = useProductCategories();
   const [productMappings, setProductMappings] = useState<Record<string, ProductMapping>>({});
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
   
   // New state for product structure selection
   const [productStructure, setProductStructure] = useState<ProductStructure>('');
@@ -721,11 +723,8 @@ export default function ProductAssignmentStep({
                             onClick={(e) => {
                               e.preventDefault();
                               e.stopPropagation();
-                              // Scroll to Product Categories section
-                              const categorySection = document.querySelector('[data-section="product-categories"]');
-                              if (categorySection) {
-                                categorySection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                              }
+                              // Open category management modal
+                              setShowCategoryModal(true);
                             }}
                           >
                             <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -761,6 +760,16 @@ export default function ProductAssignmentStep({
         </CardContent>
         </Card>
       )}
+
+      {/* Category Management Modal */}
+      <Dialog open={showCategoryModal} onOpenChange={setShowCategoryModal}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Manage Product Categories</DialogTitle>
+          </DialogHeader>
+          <CategoryManagerForProducts />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
