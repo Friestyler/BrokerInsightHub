@@ -608,7 +608,7 @@ export default function PartnerPilot() {
       {activeSection === 'data-upload-3' && (
         <div className="w-full">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold mb-2">Data Upload</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Data Upload</h1>
             <p className="text-gray-600">Upload your data using intelligent templates and entity mapping</p>
           </div>
           
@@ -628,8 +628,8 @@ export default function PartnerPilot() {
                 </CardDescription>
               </CardHeader>
               <CardFooter className="mt-auto">
-                <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
-                  Upload Entity Data
+                <Button className="w-full">
+                  Upload entity data
                 </Button>
               </CardFooter>
             </Card>
