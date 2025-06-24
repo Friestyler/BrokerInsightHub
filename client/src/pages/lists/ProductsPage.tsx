@@ -325,11 +325,10 @@ export default function ProductsPage() {
               </div>
             </div>
             <Button 
-              className="bg-indigo-600 hover:bg-indigo-700"
               onClick={() => setIsCreateModalOpen(true)}
             >
               <Plus className="mr-2 h-4 w-4" />
-              Add Product
+              Add product
             </Button>
           </div>
 
@@ -442,11 +441,10 @@ export default function ProductsPage() {
                   {!searchTerm && (
                     <div className="mt-6">
                       <Button 
-                        className="bg-indigo-600 hover:bg-indigo-700"
                         onClick={() => setIsCreateModalOpen(true)}
                       >
                         <Plus className="mr-2 h-4 w-4" />
-                        Add Product
+                        Add product
                       </Button>
                     </div>
                   )}
@@ -672,7 +670,7 @@ export default function ProductsPage() {
               onClick={handleCreateProduct}
               disabled={createProductMutation.isPending}
             >
-              {createProductMutation.isPending ? "Creating..." : "Create Product"}
+              {createProductMutation.isPending ? "Creating..." : "Create product"}
             </Button>
           </DialogFooter>
         </DialogContent>
