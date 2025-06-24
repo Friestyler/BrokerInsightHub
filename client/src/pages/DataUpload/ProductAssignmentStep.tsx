@@ -764,29 +764,31 @@ export default function ProductAssignmentStep({
 
       {/* Category Management Modal */}
       <Dialog open={showCategoryModal} onOpenChange={setShowCategoryModal}>
-        <DialogContent className="max-w-4xl max-h-[85vh] bg-white border-0 shadow-xl overflow-y-auto flex flex-col">
-          <DialogHeader className="pb-4 border-b border-gray-100">
-            <DialogTitle className="text-xl font-semibold" style={{ color: '#282A3F' }}>
-              Manage Product Categories
-            </DialogTitle>
-          </DialogHeader>
-          <div className="py-4 flex-1">
-            <CategoryManagerForProducts />
-          </div>
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-100">
-            <Button 
-              variant="outline" 
-              onClick={() => setShowCategoryModal(false)}
-              className="px-6"
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={() => setShowCategoryModal(false)}
-              className="px-6 bg-primary hover:bg-primary/90"
-            >
-              Save
-            </Button>
+        <DialogContent className="max-w-4xl max-h-[85vh] bg-white border-0 shadow-xl p-0">
+          <div className="flex flex-col h-full max-h-[85vh]">
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="mb-6">
+                <h2 className="text-xl font-semibold mb-2" style={{ color: '#282A3F' }}>
+                  Manage Product Categories
+                </h2>
+              </div>
+              <CategoryManagerForProducts />
+            </div>
+            <div className="flex justify-end gap-3 p-6 border-t border-gray-100 bg-white">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowCategoryModal(false)}
+                className="px-6"
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => setShowCategoryModal(false)}
+                className="px-6 bg-primary hover:bg-primary/90"
+              >
+                Save
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
