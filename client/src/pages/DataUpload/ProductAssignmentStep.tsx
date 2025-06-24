@@ -170,20 +170,15 @@ export default function ProductAssignmentStep({
             setDetectedProducts(products);
             setShowProductTable(true);
             
-            // Auto-create mappings for matched products
+            // Auto-create preliminary mappings for matched products (no category pre-fill)
             const autoMappings: Record<string, ProductMapping> = {};
             products.forEach(product => {
               if (product.matchedDbProduct) {
-                // Find the category for the matched product
-                const matchedProduct = product.matchedDbProduct;
-                const categoryId = matchedProduct.parentCategoryName ? 
-                  activeCategories.find(cat => cat.name === matchedProduct.parentCategoryName)?.id || '' : '';
-                
                 autoMappings[product.id.toString()] = {
-                  targetId: categoryId,
+                  targetId: '', // Don't pre-fill category
                   targetType: 'category',
                   productAction: 'existing',
-                  existingProductId: matchedProduct.id.toString()
+                  existingProductId: product.matchedDbProduct.id.toString()
                 };
               }
             });
@@ -213,20 +208,15 @@ export default function ProductAssignmentStep({
       setDetectedProducts(products);
       setShowProductTable(true);
       
-      // Auto-create mappings for matched products
+      // Auto-create preliminary mappings for matched products (no category pre-fill)
       const autoMappings: Record<string, ProductMapping> = {};
       products.forEach(product => {
         if (product.matchedDbProduct) {
-          // Find the category for the matched product
-          const matchedProduct = product.matchedDbProduct;
-          const categoryId = matchedProduct.parentCategoryName ? 
-            activeCategories.find(cat => cat.name === matchedProduct.parentCategoryName)?.id || '' : '';
-          
           autoMappings[product.id.toString()] = {
-            targetId: categoryId,
+            targetId: '', // Don't pre-fill category
             targetType: 'category',
             productAction: 'existing',
-            existingProductId: matchedProduct.id.toString()
+            existingProductId: product.matchedDbProduct.id.toString()
           };
         }
       });
@@ -603,26 +593,35 @@ export default function ProductAssignmentStep({
                     <Select
                       value={mapping?.existingProductId || (product.matchedDbProductId ? product.matchedDbProductId.toString() : '')}
                       onValueChange={(existingProductId) => {
-                        if (mapping?.targetId) {
-                          // Has category selected, update with existing product
-                          handleProductMapping(
-                            product.id.toString(),
-                            mapping.targetId,
-                            mapping.targetType,
-                            'existing',
-                            existingProductId
-                          );
-                        } else {
-                          // No category yet, create/update preliminary mapping
-                          setProductMappings(prev => ({
-                            ...prev,
-                            [product.id.toString()]: {
-                              targetId: mapping?.targetId || '',
-                              targetType: mapping?.targetType || 'category',
-                              productAction: 'existing',
-                              existingProductId: existingProductId
-                            }
-                          }));
+                        // Find the selected existing product
+                        const selectedProduct = dbProducts.find(p => p.id.toString() === existingProductId);
+                        
+                        if (selectedProduct) {
+                          // Auto-fill category based on selected product's category
+                          const categoryId = selectedProduct.parentCategoryName ? 
+                            activeCategories.find(cat => cat.name === selectedProduct.parentCategoryName)?.id || '' : '';
+                          
+                          if (categoryId) {
+                            // Product has a category, complete the mapping
+                            handleProductMapping(
+                              product.id.toString(),
+                              categoryId,
+                              'category',
+                              'existing',
+                              existingProductId
+                            );
+                          } else {
+                            // Product has no category, create preliminary mapping
+                            setProductMappings(prev => ({
+                              ...prev,
+                              [product.id.toString()]: {
+                                targetId: '',
+                                targetType: 'category',
+                                productAction: 'existing',
+                                existingProductId: existingProductId
+                              }
+                            }));
+                          }
                         }
                       }}
                       disabled={mapping?.productAction !== 'existing' && !product.matchedDbProductId}
@@ -670,7 +669,7 @@ export default function ProductAssignmentStep({
                           );
                         }
                       }}
-                      disabled={(mapping?.productAction === 'existing' && !!mapping?.existingProductId) || !!product.matchedDbProductId}
+                      disabled={mapping?.productAction === 'existing' && !!mapping?.existingProductId && !!mapping?.targetId}
                     >
                       <SelectTrigger className="w-full border-gray-200 hover:border-gray-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition-all duration-200">
                         <SelectValue placeholder={
@@ -745,7 +744,7 @@ export default function ProductAssignmentStep({
 
                   {/* Column 6: Status */}
                   <div className="flex items-center">
-                    {isAssigned ? (
+                    {isAssigned && mapping?.targetId ? (
                       <div className="flex items-center gap-2 text-xs">
                         {mapping.productAction === 'existing' ? (
                           <>
