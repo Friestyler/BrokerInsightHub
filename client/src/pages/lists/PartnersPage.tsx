@@ -780,7 +780,7 @@ function PartnersTable() {
             <div className="flex items-center gap-3">
               {/* Lists heading */}
               <div className="flex flex-col mr-2">
-                <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
+                <span className="text-base font-semibold text-gray-800 mb-2">Partner Lists</span>
               </div>
               {/* Saved Lists dropdown - redesigned to match provided image */}
               <div className="relative">
@@ -2086,7 +2086,6 @@ function PartnersTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Assign Template Modal */}
       <Dialog open={showAssignTemplateModal} onOpenChange={setShowAssignTemplateModal}>
         <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
@@ -2375,7 +2374,6 @@ function PartnersTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Edit Mode Indicator */}
       {isEditingList && (
         <div className="bg-indigo-50 border border-indigo-200 rounded-lg mb-4 p-4">
