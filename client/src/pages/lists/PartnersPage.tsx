@@ -1706,31 +1706,40 @@ function PartnersTable() {
       )}
       {/* Statistics overview */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mx-4 py-6">
-        <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold text-[#282A3F]">{stats.totalPartners}</div>
-          <div className="text-gray-500 font-medium text-[13px]">Total Partners</div>
-        </div>
+        <Card className="border-[#E6E7F1] bg-white/70 backdrop-blur-sm hover:bg-white hover:shadow-sm hover:border-[#D6D7E4] transition-all duration-200 cursor-pointer">
+          <CardContent className="p-4">
+            <div className="text-xl font-semibold text-[#282A3F]">{stats.totalPartners}</div>
+            <div className="text-gray-500 font-medium text-[13px]">Total Partners</div>
+          </CardContent>
+        </Card>
         
-
-        <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold text-[#282A3F]">{stats.totalOpportunities}</div>
-          <div className="text-sm text-gray-500">Total Opportunities</div>
-        </div>
+        <Card className="border-[#E6E7F1] bg-white/70 backdrop-blur-sm hover:bg-white hover:shadow-sm hover:border-[#D6D7E4] transition-all duration-200 cursor-pointer">
+          <CardContent className="p-4">
+            <div className="text-xl font-semibold text-[#282A3F]">{stats.totalOpportunities}</div>
+            <div className="text-sm text-gray-500">Total Opportunities</div>
+          </CardContent>
+        </Card>
         
-        <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold text-[#282A3F]">{stats.totalCustomers}</div>
-          <div className="text-sm text-gray-500">Total Customers</div>
-        </div>
+        <Card className="border-[#E6E7F1] bg-white/70 backdrop-blur-sm hover:bg-white hover:shadow-sm hover:border-[#D6D7E4] transition-all duration-200 cursor-pointer">
+          <CardContent className="p-4">
+            <div className="text-xl font-semibold text-[#282A3F]">{stats.totalCustomers}</div>
+            <div className="text-sm text-gray-500">Total Customers</div>
+          </CardContent>
+        </Card>
         
-        <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold text-[#282A3F]">{formatCurrency(stats.totalValue)}</div>
-          <div className="text-sm text-gray-500">Total Value Opportunities</div>
-        </div>
+        <Card className="border-[#E6E7F1] bg-white/70 backdrop-blur-sm hover:bg-white hover:shadow-sm hover:border-[#D6D7E4] transition-all duration-200 cursor-pointer">
+          <CardContent className="p-4">
+            <div className="text-xl font-semibold text-[#282A3F]">{formatCurrency(stats.totalValue)}</div>
+            <div className="text-sm text-gray-500">Total Value Opportunities</div>
+          </CardContent>
+        </Card>
         
-        <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold text-[#282A3F]">{formatCurrency(Math.round(stats.weightedValue))}</div>
-          <div className="text-sm text-gray-500">Weighted Value Opportunities</div>
-        </div>
+        <Card className="border-[#E6E7F1] bg-white/70 backdrop-blur-sm hover:bg-white hover:shadow-sm hover:border-[#D6D7E4] transition-all duration-200 cursor-pointer">
+          <CardContent className="p-4">
+            <div className="text-xl font-semibold text-[#282A3F]">{formatCurrency(Math.round(stats.weightedValue))}</div>
+            <div className="text-sm text-gray-500">Weighted Value Opportunities</div>
+          </CardContent>
+        </Card>
       </div>
       {/* Add to List Modal */}
       <Dialog 
