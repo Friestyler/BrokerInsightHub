@@ -268,88 +268,92 @@ export default function ProductAssignmentStep({
   return (
     <div className="space-y-8">
       {/* Product Structure Selection */}
-      <div className="space-y-6">
-        <div className="text-left space-y-2">
-          <h3 className="text-lg font-medium text-gray-900">Where should we look for your products?</h3>
-          <p className="text-gray-600 text-sm">Select how they're listed in your file.</p>
-        </div>
-        
-        <RadioGroup value={productStructure} onValueChange={handleStructureChange} className="space-y-4">
-          <div className="flex items-start space-x-3 p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
-            <RadioGroupItem value="single-column" id="single-column" className="mt-1" />
-            <div className="space-y-2 flex-1">
-              <Label htmlFor="single-column" className="text-base font-medium cursor-pointer">
-                🔘 One column contains the product names
-              </Label>
-              <p className="text-sm text-gray-600">
-                e.g., A column called "Product" contains values like "Self-Employed Disability Insurance", "Legal Assistance – Business", "Group Income Protection"…
-              </p>
+      <Card className="border border-[#E6E7F1] shadow-sm">
+        <CardContent className="p-6">
+          <div className="space-y-6">
+            <div className="text-left space-y-2">
+              <h3 className="text-lg font-medium text-gray-900">Where should we look for your products?</h3>
+              <p className="text-gray-600 text-sm">Select how they're listed in your file.</p>
             </div>
-          </div>
-          
-          <div className="flex items-start space-x-3 p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
-            <RadioGroupItem value="multiple-columns" id="multiple-columns" className="mt-1" />
-            <div className="space-y-2 flex-1">
-              <Label htmlFor="multiple-columns" className="text-base font-medium cursor-pointer">
-                🔘 Each column is a product
-              </Label>
-              <p className="text-sm text-gray-600">
-                e.g., Columns like "Self-Employed Disability Insurance", "Legal Assistance – Business", "WGA Employer Liability" — the headers are the product names.
-              </p>
-            </div>
-          </div>
-        </RadioGroup>
-
-        {/* Conditional inputs based on selection */}
-        {productStructure === 'single-column' && csvHeaders.length > 0 && (
-          <div className="space-y-3">
-            <Label className="text-sm font-medium text-gray-700">Select the column that contains product names</Label>
-            <Select value={selectedProductColumn} onValueChange={setSelectedProductColumn}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choose a column..." />
-              </SelectTrigger>
-              <SelectContent>
-                {csvHeaders.map((header, index) => (
-                  <SelectItem key={index} value={header}>
-                    {header}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-        )}
-
-        {productStructure === 'multiple-columns' && csvHeaders.length > 0 && (
-          <div className="space-y-3">
-            <Label className="text-sm font-medium text-gray-700">Select the columns that represent products</Label>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-              {csvHeaders.map((header, index) => (
-                <div
-                  key={index}
-                  onClick={() => handleColumnSelect(header)}
-                  className={`p-3 border rounded-lg cursor-pointer transition-all ${
-                    selectedProductColumns.includes(header)
-                      ? 'border-primary bg-primary/5 text-primary'
-                      : 'border-gray-200 hover:border-gray-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium truncate">{header}</span>
-                    {selectedProductColumns.includes(header) && (
-                      <Check className="h-4 w-4 text-primary" />
-                    )}
-                  </div>
+            
+            <RadioGroup value={productStructure} onValueChange={handleStructureChange} className="space-y-4">
+              <div className="flex items-start space-x-3 p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+                <RadioGroupItem value="single-column" id="single-column" className="mt-1" />
+                <div className="space-y-2 flex-1">
+                  <Label htmlFor="single-column" className="text-base font-medium cursor-pointer">
+                    🔘 One column contains the product names
+                  </Label>
+                  <p className="text-sm text-gray-600">
+                    e.g., A column called "Product" contains values like "Self-Employed Disability Insurance", "Legal Assistance – Business", "Group Income Protection"…
+                  </p>
                 </div>
-              ))}
-            </div>
-            {selectedProductColumns.length > 0 && (
-              <p className="text-sm text-gray-600">
-                {selectedProductColumns.length} column{selectedProductColumns.length > 1 ? 's' : ''} selected
-              </p>
+              </div>
+              
+              <div className="flex items-start space-x-3 p-4 border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+                <RadioGroupItem value="multiple-columns" id="multiple-columns" className="mt-1" />
+                <div className="space-y-2 flex-1">
+                  <Label htmlFor="multiple-columns" className="text-base font-medium cursor-pointer">
+                    🔘 Each column is a product
+                  </Label>
+                  <p className="text-sm text-gray-600">
+                    e.g., Columns like "Self-Employed Disability Insurance", "Legal Assistance – Business", "WGA Employer Liability" — the headers are the product names.
+                  </p>
+                </div>
+              </div>
+            </RadioGroup>
+
+            {/* Conditional inputs based on selection */}
+            {productStructure === 'single-column' && csvHeaders.length > 0 && (
+              <div className="space-y-3">
+                <Label className="text-sm font-medium text-gray-700">Select the column that contains product names</Label>
+                <Select value={selectedProductColumn} onValueChange={setSelectedProductColumn}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose a column..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {csvHeaders.map((header, index) => (
+                      <SelectItem key={index} value={header}>
+                        {header}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {productStructure === 'multiple-columns' && csvHeaders.length > 0 && (
+              <div className="space-y-3">
+                <Label className="text-sm font-medium text-gray-700">Select the columns that represent products</Label>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {csvHeaders.map((header, index) => (
+                    <div
+                      key={index}
+                      onClick={() => handleColumnSelect(header)}
+                      className={`p-3 border rounded-lg cursor-pointer transition-all ${
+                        selectedProductColumns.includes(header)
+                          ? 'border-primary bg-primary/5 text-primary'
+                          : 'border-gray-200 hover:border-gray-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium truncate">{header}</span>
+                        {selectedProductColumns.includes(header) && (
+                          <Check className="h-4 w-4 text-primary" />
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {selectedProductColumns.length > 0 && (
+                  <p className="text-sm text-gray-600">
+                    {selectedProductColumns.length} column{selectedProductColumns.length > 1 ? 's' : ''} selected
+                  </p>
+                )}
+              </div>
             )}
           </div>
-        )}
-      </div>
+        </CardContent>
+      </Card>
 
 
 

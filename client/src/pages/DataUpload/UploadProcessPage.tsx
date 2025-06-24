@@ -558,13 +558,19 @@ export default function UploadProcessPage() {
               </div>
               
               {/* Category Management Section - Below Product Assignment */}
-              <div className="space-y-6 border-t pt-8" data-section="product-categories">
-                <div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Product Categories</h3>
-                  <p className="text-gray-600 text-sm">Create and organize categories for your products</p>
-                </div>
-                
-                <CategoryManagerForProducts />
+              <div className="border-t pt-8" data-section="product-categories">
+                <Card className="border border-[#E6E7F1] shadow-sm">
+                  <CardContent className="p-6">
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Product Categories</h3>
+                        <p className="text-gray-600 text-sm">Create and organize categories for your products</p>
+                      </div>
+                      
+                      <CategoryManagerForProducts />
+                    </div>
+                  </CardContent>
+                </Card>
               </div>
               
               <div className="flex justify-between pt-6 border-t">
