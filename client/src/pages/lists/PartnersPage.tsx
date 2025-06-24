@@ -1040,7 +1040,7 @@ function PartnersTable() {
               )}
               
               <button 
-                className={`hidden md:flex items-center px-4 h-8 text-[#696C8C] rounded-md border border-[#E6E7F1] hover:bg-[#F5F6FE] ${isEditingList ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className="hidden md:flex items-center px-4 h-8 rounded-md border border-[#E6E7F1] hover:bg-[#F5F6FE] text-[#282A3F] bg-[#ffffff]"
                 disabled={isEditingList}
                 style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 500 }}
               >
