@@ -292,7 +292,7 @@ export default function ProductAssignmentStep({
                         <SelectValue placeholder="Select action..." />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="existing">Map to Existing</SelectItem>
+                        <SelectItem value="existing">Map to Existing Product</SelectItem>
                         <SelectItem value="new">Create New</SelectItem>
                       </SelectContent>
                     </Select>
