@@ -278,7 +278,7 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
                 variant="ghost" 
                 size="sm" 
                 onClick={handleCancel} 
-                className="h-9 px-4 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+                className="px-4 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
               >
                 Cancel
               </Button>
@@ -286,7 +286,7 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
                 size="sm"
                 onClick={handleSubmit}
                 disabled={isLoading || !content.trim()}
-                className={`h-9 px-6 text-sm font-medium rounded-lg transition-all duration-200 ${
+                className={`px-6 text-sm font-medium rounded-lg transition-all duration-200 ${
                   activeMode === 'task' 
                     ? 'bg-green-600 hover:bg-green-700 text-white' 
                     : 'bg-blue-600 hover:bg-blue-700 text-white'
