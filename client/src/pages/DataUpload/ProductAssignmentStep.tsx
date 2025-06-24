@@ -107,13 +107,8 @@ export default function ProductAssignmentStep({
   // Use database categories instead of props
   const activeCategories = (dbCategories && Array.isArray(dbCategories) && dbCategories.length > 0) ? dbCategories as Category[] : categories;
   
-  // Use detected products or database products based on whether structure is selected
-  const products = showProductTable ? detectedProducts : dbProducts.map((product, index) => ({
-    id: product.id,
-    sku: product.sku,
-    name: product.name,
-    recordCount: 500 + (product.id * 47) % 1500 // Stable deterministic count based on product ID
-  }));
+  // Only use detected products when they are available, otherwise show empty table
+  const products = detectedProducts;
   
   // Parse CSV file to extract headers
   useEffect(() => {
@@ -504,42 +499,16 @@ export default function ProductAssignmentStep({
                       value={mapping?.productAction || ''}
                       onValueChange={(value: 'existing' | 'new') => {
                         if (value === 'existing') {
-                          // Auto-select first matching product if available
-                          const matchingProduct = products.find(p => p.sku === product.sku && p.id !== product.id);
-                          if (matchingProduct) {
-                            if (mapping?.targetId) {
-                              // Has category selected, update with existing product
-                              handleProductMapping(
-                                product.id.toString(), 
-                                mapping.targetId, 
-                                mapping.targetType, 
-                                'existing', 
-                                matchingProduct.id.toString()
-                              );
-                            } else {
-                              // No category yet, create preliminary mapping
-                              setProductMappings(prev => ({
-                                ...prev,
-                                [product.id.toString()]: {
-                                  targetId: '',
-                                  targetType: 'category',
-                                  productAction: 'existing',
-                                  existingProductId: matchingProduct.id.toString()
-                                }
-                              }));
+                          // Just set action without auto-matching
+                          setProductMappings(prev => ({
+                            ...prev,
+                            [product.id.toString()]: {
+                              targetId: mapping?.targetId || '',
+                              targetType: mapping?.targetType || 'category',
+                              productAction: 'existing',
+                              existingProductId: mapping?.existingProductId || ''
                             }
-                          } else {
-                            // No matching product found, just set action
-                            setProductMappings(prev => ({
-                              ...prev,
-                              [product.id.toString()]: {
-                                targetId: mapping?.targetId || '',
-                                targetType: mapping?.targetType || 'category',
-                                productAction: 'existing',
-                                existingProductId: mapping?.existingProductId
-                              }
-                            }));
-                          }
+                          }));
                         } else {
                           // Create new product
                           if (mapping?.targetId) {
@@ -606,7 +575,7 @@ export default function ProductAssignmentStep({
                         <SelectValue placeholder={mapping?.productAction === 'existing' ? 'Select product...' : 'N/A'} />
                       </SelectTrigger>
                       <SelectContent>
-                        {products.filter(p => p.id !== product.id).map((existingProduct) => {
+                        {dbProducts.map((existingProduct) => {
                           // Check if this product is already selected by another row
                           const isAlreadySelected = Object.entries(productMappings).some(([otherProductId, otherMapping]) => 
                             otherProductId !== product.id.toString() && 
