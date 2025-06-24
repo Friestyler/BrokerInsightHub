@@ -320,7 +320,8 @@ export default function ProductAssignmentStep({
           <div className="space-y-6">
             <div className="text-left space-y-2">
               <h3 className="text-lg font-medium text-gray-900">How are your products organized?</h3>
-              <p className="text-gray-600 text-sm">Select how they're listed in the file your uploaded.</p>
+              <p className="text-gray-600 text-sm">Help us understand your file structure so we can correctly identify your products
+</p>
             </div>
             
             <RadioGroup value={productStructure} onValueChange={handleStructureChange} className="space-y-3">
