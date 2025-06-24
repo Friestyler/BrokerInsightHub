@@ -640,10 +640,10 @@ function PartnersTable() {
         (partner.partner_type && partner.partner_type.toLowerCase().includes(filterText.toLowerCase())) ||
         (partner.industry && partner.industry.toLowerCase().includes(filterText.toLowerCase()));
         
-      const matchesStatus = !selectedStatus || partner.status === selectedStatus;
-      const matchesIndustry = !selectedIndustry || partner.region === selectedIndustry;
-      const matchesActualIndustry = !selectedActualIndustry || partner.industry === selectedActualIndustry;
-      const matchesSize = !selectedSize || partner.size?.toLowerCase() === selectedSize.toLowerCase();
+      const matchesStatus = !selectedStatus || selectedStatus === 'all' || partner.status === selectedStatus;
+      const matchesIndustry = !selectedIndustry || selectedIndustry === 'all' || partner.region === selectedIndustry;
+      const matchesActualIndustry = !selectedActualIndustry || selectedActualIndustry === 'all' || partner.industry === selectedActualIndustry;
+      const matchesSize = !selectedSize || selectedSize === 'all' || partner.size?.toLowerCase() === selectedSize.toLowerCase();
       
       return matchesText && matchesStatus && matchesIndustry && matchesActualIndustry && matchesSize;
     })
@@ -677,9 +677,9 @@ function PartnersTable() {
     if (activeList && originalListFilters) {
       const currentFilters = {
         searchText: filterText || undefined,
-        status: selectedStatus || undefined,
-        industry: selectedIndustry || undefined,
-        size: selectedSize || undefined
+        status: selectedStatus && selectedStatus !== 'all' ? selectedStatus : undefined,
+        industry: selectedIndustry && selectedIndustry !== 'all' ? selectedIndustry : undefined,
+        size: selectedSize && selectedSize !== 'all' ? selectedSize : undefined
       };
       
       // Compare current filters with original list filters
@@ -699,9 +699,9 @@ function PartnersTable() {
   const revertChanges = () => {
     if (activeList && originalListFilters) {
       setFilterText(originalListFilters.searchText || '');
-      setSelectedStatus(originalListFilters.status || '');
-      setSelectedIndustry(originalListFilters.industry || '');
-      setSelectedSize(originalListFilters.size || '');
+      setSelectedStatus(originalListFilters.status || 'all');
+      setSelectedIndustry(originalListFilters.industry || 'all');
+      setSelectedSize(originalListFilters.size || 'all');
       setHasUnsavedChanges(false);
     }
   };
@@ -716,9 +716,9 @@ function PartnersTable() {
         ...activeList,
         filters: {
           searchText: filterText || undefined,
-          status: selectedStatus || undefined,
-          industry: selectedIndustry || undefined,
-          size: originalListFilters?.size // Preserve size filter if it exists
+          status: selectedStatus && selectedStatus !== 'all' ? selectedStatus : undefined,
+          industry: selectedIndustry && selectedIndustry !== 'all' ? selectedIndustry : undefined,
+          size: selectedSize && selectedSize !== 'all' ? selectedSize : undefined
         },
         createdAt: new Date() // Update the timestamp
       };
