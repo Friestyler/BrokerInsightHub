@@ -1040,7 +1040,7 @@ function PartnersTable() {
               )}
               
               <button 
-                className={`hidden md:flex items-center px-4 py-2 text-[#696C8C] rounded-md border border-gray-300 hover:bg-[#F5F6FE] ${isEditingList ? 'opacity-50 cursor-not-allowed' : ''}`}
+                className={`hidden md:flex items-center px-4 h-8 text-[#696C8C] rounded-md border border-gray-300 hover:bg-[#F5F6FE] ${isEditingList ? 'opacity-50 cursor-not-allowed' : ''}`}
                 disabled={isEditingList}
                 style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 500 }}
               >
@@ -1053,7 +1053,7 @@ function PartnersTable() {
               </button>
               
               <button 
-                className={`flex items-center gap-2 px-4 py-2 text-white rounded-md transition-colors font-medium text-[14px] pl-[12px] pr-[12px] ${isEditingList ? 'bg-[#8B98F9] cursor-not-allowed' : 'bg-[#5567E5] hover:bg-[#4556D4]'}`}
+                className={`flex items-center gap-2 px-4 h-8 text-white rounded-md transition-colors font-medium text-[14px] pl-[12px] pr-[12px] ${isEditingList ? 'bg-[#8B98F9] cursor-not-allowed' : 'bg-[#5567E5] hover:bg-[#4556D4]'}`}
                 onClick={() => {
                   if (!isEditingList) {
                     setShowCreateModal(true);
@@ -1081,7 +1081,7 @@ function PartnersTable() {
                   placeholder="Search by name, industry..."
                   value={filterText}
                   onChange={(e) => setFilterText(e.target.value)}
-                  className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+                  className="w-full pl-3 pr-10 h-8 border border-gray-300 rounded-md text-sm"
                 />
                 <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
@@ -1095,7 +1095,7 @@ function PartnersTable() {
               <div className="relative">
                 <button 
                   ref={viewsButtonRef}
-                  className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white ${isEditingList ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                  className={`flex items-center space-x-2 px-3 h-8 border rounded-md text-sm font-medium bg-white ${isEditingList ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
                   onClick={() => {
                     if (!isEditingList) {
                       setShowViewsDropdown(!showViewsDropdown);
@@ -1182,7 +1182,7 @@ function PartnersTable() {
               <div className="flex items-center gap-2 ml-3">
                 <div className="relative" ref={statusDropdownRef}>
                   <button 
-                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                    className={`flex items-center px-3 h-8 border rounded-md text-sm font-medium ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
                     onClick={() => setShowStatusDropdown(!showStatusDropdown)}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
@@ -1246,7 +1246,7 @@ function PartnersTable() {
                 
                 <div className="relative" ref={industryDropdownRef}>
                   <button 
-                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                    className={`flex items-center px-3 h-8 border rounded-md text-sm font-medium ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
                     onClick={() => setShowIndustryDropdown(!showIndustryDropdown)}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
@@ -1312,7 +1312,7 @@ function PartnersTable() {
                 
                 <div className="relative" ref={actualIndustryDropdownRef}>
                   <button 
-                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedActualIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                    className={`flex items-center px-3 h-8 border rounded-md text-sm font-medium ${selectedActualIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
                     onClick={() => setShowActualIndustryDropdown(!showActualIndustryDropdown)}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
@@ -1377,7 +1377,7 @@ function PartnersTable() {
                 {/* Size Filter */}
                 <div className="relative" ref={sizeDropdownRef}>
                   <button 
-                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedSize ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                    className={`flex items-center px-3 h-8 border rounded-md text-sm font-medium ${selectedSize ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
                     onClick={() => setShowSizeDropdown(!showSizeDropdown)}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
@@ -1447,7 +1447,7 @@ function PartnersTable() {
                       <>
                         {/* Revert changes button */}
                         <button 
-                          className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
+                          className="flex items-center rounded-md px-4 h-8 text-gray-600 hover:bg-gray-100"
                           onClick={() => {
                             // Revert to view's original filters
                             setFilterText(activeView.filters.searchText || '');
