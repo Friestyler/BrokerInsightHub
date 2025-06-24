@@ -454,8 +454,8 @@ export default function ProductAssignmentStep({
                           </>
                         ) : (
                           <>
-                            <AlertTriangle className="h-4 w-4 text-blue-600" />
-                            <span className="text-blue-700 font-medium">New Product</span>
+                            <Check className="h-4 w-4 text-green-600" />
+                            <span className="text-green-700 font-medium">New Product</span>
                           </>
                         )}
                       </div>
