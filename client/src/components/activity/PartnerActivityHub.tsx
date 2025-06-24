@@ -234,7 +234,7 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
 
               {/* Assignee Selector */}
               <Select value={assignedTo} onValueChange={setAssignedTo}>
-                <SelectTrigger className="w-40 h-9 text-sm bg-white border border-gray-200 rounded-lg hover:border-gray-300 transition-colors">
+                <SelectTrigger className="w-40 h-9 text-sm bg-white border border-[#E6E7F1] rounded-lg hover:border-[#D6D7E4] transition-colors">
                   <SelectValue placeholder="Assign to..." />
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-gray-200 rounded-xl shadow-lg">
@@ -751,7 +751,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
               {!showActivityInput ? (
                 <button
                   onClick={() => setShowActivityInput(true)}
-                  className="flex items-center gap-3 w-full text-left p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                  className="flex items-center gap-3 w-full text-left p-3 rounded-lg border border-[#E6E7F1] hover:border-[#D6D7E4] hover:bg-gray-50 transition-colors"
                 >
                   <Plus className="h-4 w-4 text-gray-400" />
                   <span className="text-sm text-gray-600">Add task...</span>
@@ -844,7 +844,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                       className={`w-4 h-4 border rounded-sm flex items-center justify-center transition-colors ${
                         task.completed 
                           ? 'bg-green-500 border-green-500 text-white' 
-                          : 'border-gray-300 hover:border-green-400'
+                          : 'border-[#E6E7F1] hover:border-green-400'
                       }`}
                     >
                       {task.completed && <Check className="h-3 w-3" />}

@@ -975,7 +975,7 @@ export default function RecipientSelector({
                                       variant="outline"
                                       size="sm"
                                       onClick={() => setShowInlineContactForm(`${entity.id}-${entityType}`)}
-                                      className="w-full mt-2 border-dashed border-gray-300 text-gray-600 hover:text-gray-800 hover:border-gray-400"
+                                      className="w-full mt-2 border-dashed border-[#E6E7F1] text-gray-600 hover:text-gray-800 hover:border-[#D6D7E4]"
                                     >
                                       <UserPlus className="h-4 w-4 mr-2" />
                                       Add Contact for {entity.name}
