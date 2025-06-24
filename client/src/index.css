@@ -4,19 +4,19 @@
 
 :root {
   --background: 220 33% 98%;
-  --foreground: 229 5% 43%; /* #62647C */
+  --foreground: 220 15% 25%; /* #282A3F */
   --muted: 220 10% 96%;
-  --muted-foreground: 229 5% 43%;
+  --muted-foreground: 220 15% 25%; /* #282A3F */
   --popover: 0 0% 100%;
-  --popover-foreground: 229 5% 43%;
+  --popover-foreground: 220 15% 25%; /* #282A3F */
   --card: 0 0% 100%;
-  --card-foreground: 229 5% 43%;
+  --card-foreground: 220 15% 25%; /* #282A3F */
   --border: 229 5% 80%;
   --input: 229 5% 80%;
   --primary: 231 73% 62%; /* #5567E5 */
   --primary-foreground: 210 100% 98%;
   --secondary: 220 10% 96%;
-  --secondary-foreground: 229 5% 43%;
+  --secondary-foreground: 220 15% 25%; /* #282A3F */
   --accent: 231 73% 62%;
   --accent-foreground: 210 100% 98%;
   --destructive: 0 84% 60%;
@@ -35,16 +35,16 @@
   --primary-800: 231 73% 40%;
   --primary-900: 231 73% 35%;
 
-  /* Neutral palette - Based on #62647C */
-  --neutral-100: 229 5% 95%;
-  --neutral-200: 229 5% 90%;
-  --neutral-300: 229 5% 80%;
-  --neutral-400: 229 5% 70%;
-  --neutral-500: 229 5% 60%;
-  --neutral-600: 229 5% 43%; /* #62647C */
-  --neutral-700: 229 5% 35%;
-  --neutral-800: 229 5% 25%;
-  --neutral-900: 229 5% 15%;
+  /* Neutral palette - Based on #282A3F */
+  --neutral-100: 220 15% 95%;
+  --neutral-200: 220 15% 90%;
+  --neutral-300: 220 15% 80%;
+  --neutral-400: 220 15% 70%;
+  --neutral-500: 220 15% 60%;
+  --neutral-600: 220 15% 43%;
+  --neutral-700: 220 15% 35%;
+  --neutral-800: 220 15% 25%; /* #282A3F */
+  --neutral-900: 220 15% 15%;
 
   /* Specific Qollabi brand colors for back button hover states */
   --qollabi-hover-bg: 231 73% 97%; /* #F5F6FE */
