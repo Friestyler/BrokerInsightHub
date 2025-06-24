@@ -275,9 +275,6 @@ export default function PartnerDetail() {
   }, [editingStageId, stageDropdownRef]);
   
   // Views functionality state
-  const [activeView, setActiveView] = useState<any>(null);
-  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
-  const [originalViewFilters, setOriginalViewFilters] = useState<any>(null);
   const [showSaveViewModal, setShowSaveViewModal] = useState(false);
   const [viewNameInput, setViewNameInput] = useState('');
 
