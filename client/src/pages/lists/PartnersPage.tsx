@@ -1052,7 +1052,22 @@ function PartnersTable() {
                 Export
               </button>
               
-{/* New button removed as requested */}
+              <button 
+                className={`flex items-center gap-2 px-4 py-2 text-white rounded-md transition-colors font-medium text-[14px] pl-[12px] pr-[12px] ${isEditingList ? 'bg-[#8B98F9] cursor-not-allowed' : 'bg-[#5567E5] hover:bg-[#4556D4]'}`}
+                onClick={() => {
+                  if (!isEditingList) {
+                    setShowCreateModal(true);
+                  }
+                }}
+                disabled={isEditingList}
+                style={{ fontFamily: 'Poppins, sans-serif' }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                Create new partner
+              </button>
             </div>
           </div>
           
@@ -3017,22 +3032,6 @@ export default function PartnersPage() {
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold tracking-tight text-black">Partners</h1>
-          <button 
-            className={`flex items-center gap-2 px-4 py-2 text-white rounded-md transition-colors font-medium text-[14px] pl-[12px] pr-[12px] ${isEditingList ? 'bg-[#8B98F9] cursor-not-allowed' : 'bg-[#5567E5] hover:bg-[#4556D4]'}`}
-            onClick={() => {
-              if (!isEditingList) {
-                setShowCreateModal(true);
-              }
-            }}
-            disabled={isEditingList}
-            style={{ fontFamily: 'Poppins, sans-serif' }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Create new partner
-          </button>
         </div>
         <PartnersTable />
 
