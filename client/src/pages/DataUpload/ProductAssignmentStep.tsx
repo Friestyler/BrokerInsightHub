@@ -269,7 +269,7 @@ export default function ProductAssignmentStep({
     <div className="space-y-8">
       {/* Product Structure Selection */}
       <div className="space-y-6">
-        <div className="text-center space-y-2">
+        <div className="text-left space-y-2">
           <h3 className="text-lg font-medium text-gray-900">Where should we look for your products?</h3>
           <p className="text-gray-600">Select how they're listed in your file.</p>
         </div>
