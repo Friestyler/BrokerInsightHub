@@ -795,10 +795,10 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 ].map((option) => (
                   <div
                     key={option.id}
-                    className={`relative group cursor-pointer rounded-lg border-2 p-6 transition-shadow ${
+                    className={`hover:shadow-md transition-shadow cursor-pointer border-2 border-[#E6E7F1] flex flex-col relative group rounded-lg p-6 ${
                       campaignData.entity === option.id
                         ? `border-${option.hoverColor}-200 bg-${option.hoverColor}-50 shadow-sm`
-                        : 'border-[#E6E7F1] hover:shadow-md'
+                        : ''
                     }`}
                     onClick={() => setCampaignData({ ...campaignData, entity: option.id })}
                   >
