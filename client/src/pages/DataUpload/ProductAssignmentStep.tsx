@@ -319,7 +319,7 @@ export default function ProductAssignmentStep({
         <CardContent className="p-6">
           <div className="space-y-6">
             <div className="text-left space-y-2">
-              <h3 className="text-lg font-medium text-gray-900">Where should we look for your products?</h3>
+              <h3 className="text-lg font-medium text-gray-900">How are your products organized?</h3>
               <p className="text-gray-600 text-sm">Select how they're listed in the file your uploaded.</p>
             </div>
             
