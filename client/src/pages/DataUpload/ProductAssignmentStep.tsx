@@ -158,7 +158,7 @@ export default function ProductAssignmentStep({
               
               return {
                 id: index + 1000, // Use high IDs to avoid conflicts with database products
-                sku: `detected-${index + 1000}`, // Give detected products unique SKUs
+                sku: `${index + 1000}`, // Give detected products unique SKUs
                 name,
                 source: selectedProductColumn,
                 recordCount: Math.floor(Math.random() * 50) + 10, // Simulated count
@@ -196,7 +196,7 @@ export default function ProductAssignmentStep({
         
         return {
           id: index + 2000, // Use different ID range
-          sku: `detected-${index + 2000}`, // Give detected products unique SKUs
+          sku: `${index + 2000}`, // Give detected products unique SKUs
           name: columnName,
           source: 'column header',
           recordCount: Math.floor(Math.random() * 100) + 20, // Simulated count
