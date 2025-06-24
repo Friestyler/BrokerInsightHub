@@ -3030,9 +3030,6 @@ export default function PartnersPage() {
   return (
     <ListEditingContext.Provider value={{ isEditingList, setIsEditingList }}>
       <div className="container mx-auto px-4 py-6">
-        <div className="flex justify-between items-center mb-6">
-          <h1 className="text-2xl font-bold tracking-tight text-black">Partners</h1>
-        </div>
         <PartnersTable />
 
         {/* Create Partner Modal */}
