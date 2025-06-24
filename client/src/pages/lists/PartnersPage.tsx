@@ -319,6 +319,9 @@ function PartnersTable() {
   const [showIndustryDropdown, setShowIndustryDropdown] = useState(false);
   const [showActualIndustryDropdown, setShowActualIndustryDropdown] = useState(false);
   const [showSizeDropdown, setShowSizeDropdown] = useState(false);
+  
+  // Consolidated filter modal state
+  const [showFilterModal, setShowFilterModal] = useState(false);
 
   
   // Refs for dropdown positioning
@@ -1178,242 +1181,100 @@ function PartnersTable() {
                 )}
               </div>
               
-              {/* Filter buttons next to the views dropdown */}
+              {/* Consolidated Filter Button */}
               <div className="flex items-center gap-2 ml-3">
-                <div className="relative" ref={statusDropdownRef}>
-                  <button 
-                    className={`flex items-center px-3 h-8 border rounded-md text-sm font-medium ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-[#E6E7F1] text-gray-700'}`}
-                    onClick={() => setShowStatusDropdown(!showStatusDropdown)}
-                  >
-                    <span className="text-[#282A3F] font-medium">{selectedStatus ? `Status: ${selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1)}` : 'Status'}</span>
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      width="14" 
-                      height="14" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      className={`ml-2 transition-transform ${showStatusDropdown ? 'rotate-180' : ''}`}
-                    >
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </button>
-                  
-                  {showStatusDropdown && (
-                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-[#E6E7F1] bg-white shadow-md">
-                      <div className="p-1">
-                        <div 
-                          className="flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 text-slate-700"
-                          onClick={() => {
+                <button 
+                  className={`flex items-center px-3 h-8 border rounded-md text-sm font-medium transition-colors ${
+                    (selectedStatus || selectedIndustry || selectedActualIndustry || selectedSize) 
+                      ? 'border-[#5567E5] bg-[#5567E5]/10 text-[#5567E5]' 
+                      : 'border-[#E6E7F1] text-gray-700 hover:bg-gray-50'
+                  }`}
+                  onClick={() => setShowFilterModal(true)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                  </svg>
+                  <span className="font-medium">
+                    {(selectedStatus || selectedIndustry || selectedActualIndustry || selectedSize) 
+                      ? `Filter (${[selectedStatus, selectedIndustry, selectedActualIndustry, selectedSize].filter(Boolean).length})` 
+                      : 'Filter'
+                    }
+                  </span>
+                </button>
+                
+                {/* Active filters preview */}
+                {(selectedStatus || selectedIndustry || selectedActualIndustry || selectedSize) && (
+                  <div className="flex items-center gap-1 max-w-96 overflow-hidden">
+                    {selectedStatus && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[#5567E5]/10 text-[#5567E5] border border-[#5567E5]/20">
+                        Status: {selectedStatus}
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setSelectedStatus('');
-                            setShowStatusDropdown(false);
                           }}
+                          className="ml-1 hover:text-[#4556D4]"
                         >
-                          <span>All Statuses</span>
-                          {!selectedStatus && (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
-                              <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                          )}
-                        </div>
-                        {uniqueStatuses.map(status => (
-                          <div 
-                            key={status}
-                            className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${selectedStatus === status ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
-                            onClick={() => {
-                              setSelectedStatus(status);
-                              setShowStatusDropdown(false);
-                            }}
-                          >
-                            <span>{status.charAt(0).toUpperCase() + status.slice(1)}</span>
-                            {selectedStatus === status && (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                              </svg>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                <div className="relative" ref={industryDropdownRef}>
-                  <button 
-                    className={`flex items-center px-3 h-8 border rounded-md text-sm font-medium ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-[#E6E7F1] text-gray-700'}`}
-                    onClick={() => setShowIndustryDropdown(!showIndustryDropdown)}
-                  >
-                    <span>{selectedIndustry ? `Region: ${selectedIndustry}` : 'Region'}</span>
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      width="14" 
-                      height="14" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      className={`ml-2 transition-transform ${showIndustryDropdown ? 'rotate-180' : ''}`}
-                    >
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </button>
-                  
-                  {showIndustryDropdown && (
-                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-[#E6E7F1] bg-white shadow-md">
-                      <div className="p-1">
-                        <div 
-                          className="flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 text-slate-700"
-                          onClick={() => {
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+                    {selectedIndustry && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[#5567E5]/10 text-[#5567E5] border border-[#5567E5]/20">
+                        Region: {selectedIndustry}
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setSelectedIndustry('');
-                            setShowIndustryDropdown(false);
                           }}
+                          className="ml-1 hover:text-[#4556D4]"
                         >
-                          <span>All Regions</span>
-                          {!selectedIndustry && (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
-                              <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                          )}
-                        </div>
-                        {uniqueRegions.map(region => (
-                          <div 
-                            key={region}
-                            className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${selectedIndustry === region ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
-                            onClick={() => {
-                              setSelectedIndustry(region);
-                              setShowIndustryDropdown(false);
-                            }}
-                          >
-                            <span>{region}</span>
-                            {selectedIndustry === region && (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                              </svg>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-
-                
-                <div className="relative" ref={actualIndustryDropdownRef}>
-                  <button 
-                    className={`flex items-center px-3 h-8 border rounded-md text-sm font-medium ${selectedActualIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-[#E6E7F1] text-gray-700'}`}
-                    onClick={() => setShowActualIndustryDropdown(!showActualIndustryDropdown)}
-                  >
-                    <span>{selectedActualIndustry ? `Location: ${selectedActualIndustry}` : 'Location'}</span>
-                    <svg 
-                      xmlns="http://www.w3.org/2000/svg" 
-                      width="14" 
-                      height="14" 
-                      viewBox="0 0 24 24" 
-                      fill="none" 
-                      stroke="currentColor" 
-                      strokeWidth="2" 
-                      strokeLinecap="round" 
-                      strokeLinejoin="round" 
-                      className={`ml-2 transition-transform ${showActualIndustryDropdown ? 'rotate-180' : ''}`}
-                    >
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </button>
-                  
-                  {showActualIndustryDropdown && (
-                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-[#E6E7F1] bg-white shadow-md">
-                      <div className="p-1">
-                        <div 
-                          className="flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 text-slate-700"
-                          onClick={() => {
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+                    {selectedActualIndustry && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[#5567E5]/10 text-[#5567E5] border border-[#5567E5]/20">
+                        Location: {selectedActualIndustry}
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setSelectedActualIndustry('');
-                            setShowActualIndustryDropdown(false);
                           }}
+                          className="ml-1 hover:text-[#4556D4]"
                         >
-                          <span>All Locations</span>
-                          {!selectedActualIndustry && (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
-                              <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                          )}
-                        </div>
-                        {uniqueLocations.map(location => (
-                          <div 
-                            key={location}
-                            className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${selectedActualIndustry === location ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
-                            onClick={() => {
-                              setSelectedActualIndustry(location);
-                              setShowActualIndustryDropdown(false);
-                            }}
-                          >
-                            <span>{location}</span>
-                            {selectedActualIndustry === location && (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                              </svg>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
-                
-                {/* Size Filter */}
-                <div className="relative" ref={sizeDropdownRef}>
-                  <button 
-                    className={`flex items-center px-3 h-8 border rounded-md text-sm font-medium ${selectedSize ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-[#E6E7F1] text-gray-700'}`}
-                    onClick={() => setShowSizeDropdown(!showSizeDropdown)}
-                  >
-                    <span>{selectedSize ? `Size: ${selectedSize}` : 'Size'}</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                  </button>
-                  {showSizeDropdown && (
-                    <div className="absolute z-50 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg">
-                      <div className="py-1">
-                        <div 
-                          className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${!selectedSize ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
-                          onClick={() => {
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+                    {selectedSize && (
+                      <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[#5567E5]/10 text-[#5567E5] border border-[#5567E5]/20">
+                        Size: {selectedSize}
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
                             setSelectedSize('');
-                            setShowSizeDropdown(false);
                           }}
+                          className="ml-1 hover:text-[#4556D4]"
                         >
-                          <span>All Sizes</span>
-                          {!selectedSize && (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
-                              <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                          )}
-                        </div>
-                        {['Small', 'Medium', 'Large'].map(size => (
-                          <div 
-                            key={size}
-                            className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${selectedSize === size ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
-                            onClick={() => {
-                              setSelectedSize(size);
-                              setShowSizeDropdown(false);
-                            }}
-                          >
-                            <span>{size}</span>
-                            {selectedSize === size && (
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
-                                <polyline points="20 6 9 17 4 12"></polyline>
-                              </svg>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-                </div>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                          </svg>
+                        </button>
+                      </span>
+                    )}
+                  </div>
+                )}
               </div>
               
               {/* Action buttons - only shown when filters have changed from an existing view or no view is selected */}
@@ -1979,6 +1840,132 @@ function PartnersTable() {
               }
             >
               {isCreatingNewList ? 'Create List' : 'Add to List'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Comprehensive Filter Modal */}
+      <Dialog open={showFilterModal} onOpenChange={setShowFilterModal}>
+        <DialogContent className="sm:max-w-2xl bg-[#ffffff] text-[#282A3F]">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold">Filter Partners</DialogTitle>
+            <DialogDescription className="text-sm text-gray-600">
+              Apply filters to find specific partners based on their attributes and characteristics.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-6 py-4">
+            {/* Filter Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Status Filter */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">Status</Label>
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <SelectTrigger className="h-10 border-[#E6E7F1]">
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Statuses</SelectItem>
+                    {uniqueStatuses.map(status => (
+                      <SelectItem key={status} value={status}>
+                        {status.charAt(0).toUpperCase() + status.slice(1)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Region Filter */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">Region</Label>
+                <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
+                  <SelectTrigger className="h-10 border-[#E6E7F1]">
+                    <SelectValue placeholder="Select region" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Regions</SelectItem>
+                    {uniqueRegions.map(region => (
+                      <SelectItem key={region} value={region}>
+                        {region}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Location Filter */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">Location</Label>
+                <Select value={selectedActualIndustry} onValueChange={setSelectedActualIndustry}>
+                  <SelectTrigger className="h-10 border-[#E6E7F1]">
+                    <SelectValue placeholder="Select location" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Locations</SelectItem>
+                    {uniqueLocations.map(location => (
+                      <SelectItem key={location} value={location}>
+                        {location}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Size Filter */}
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-gray-700">Company Size</Label>
+                <Select value={selectedSize} onValueChange={setSelectedSize}>
+                  <SelectTrigger className="h-10 border-[#E6E7F1]">
+                    <SelectValue placeholder="Select size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">All Sizes</SelectItem>
+                    <SelectItem value="Small">Small</SelectItem>
+                    <SelectItem value="Medium">Medium</SelectItem>
+                    <SelectItem value="Large">Large</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Quick Filter Actions */}
+            <div className="flex items-center justify-between pt-4 border-t border-gray-200">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-gray-600">Quick actions:</span>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => {
+                    setSelectedStatus('');
+                    setSelectedIndustry('');
+                    setSelectedActualIndustry('');
+                    setSelectedSize('');
+                  }}
+                  className="h-8 text-xs"
+                >
+                  Clear all
+                </Button>
+              </div>
+              
+              <div className="text-sm text-gray-600">
+                {(() => {
+                  const activeFilters = [selectedStatus, selectedIndustry, selectedActualIndustry, selectedSize].filter(Boolean).length;
+                  return activeFilters > 0 ? `${activeFilters} filter${activeFilters !== 1 ? 's' : ''} active` : 'No filters active';
+                })()}
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter className="flex items-center justify-between">
+            <Button variant="outline" onClick={() => setShowFilterModal(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => setShowFilterModal(false)}
+              className="bg-[#5567E5] hover:bg-[#4556D4] text-white"
+            >
+              Apply filters
             </Button>
           </DialogFooter>
         </DialogContent>
