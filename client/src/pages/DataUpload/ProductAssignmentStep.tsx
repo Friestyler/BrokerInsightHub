@@ -106,6 +106,14 @@ export default function ProductAssignmentStep({
   // Use database categories instead of props
   const activeCategories = (dbCategories && Array.isArray(dbCategories) && dbCategories.length > 0) ? dbCategories as Category[] : categories;
   
+  // Use detected products or database products based on whether structure is selected
+  const products = showProductTable ? detectedProducts : dbProducts.map((product, index) => ({
+    id: product.id,
+    sku: product.sku,
+    name: product.name,
+    recordCount: 500 + (product.id * 47) % 1500 // Stable deterministic count based on product ID
+  }));
+  
   // Parse CSV file to extract headers
   useEffect(() => {
     if (uploadedFile) {
@@ -237,14 +245,6 @@ export default function ProductAssignmentStep({
       }
     }));
   };
-
-  // Use detected products or database products based on whether structure is selected
-  const products = showProductTable ? detectedProducts : dbProducts.map((product, index) => ({
-    id: product.id,
-    sku: product.sku,
-    name: product.name,
-    recordCount: 500 + (product.id * 47) % 1500 // Stable deterministic count based on product ID
-  }));
 
   const handleNext = () => {
     onNext(productMappings);
