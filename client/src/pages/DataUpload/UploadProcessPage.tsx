@@ -131,6 +131,8 @@ export default function UploadProcessPage() {
   const [productMappings, setProductMappings] = useState<Record<string, {
     targetId: string;
     targetType: 'category' | 'subcategory';
+    productAction?: 'existing' | 'new';
+    existingProductId?: string;
   }>>({});
 
   // For entity-upload, show all steps. For special formats, show all steps. For regular entities, skip transformation.
