@@ -1,0 +1,37 @@
+Let users define where products are located in the uploaded file as part of the “Product Mapping” step.
+
+⸻
+
+As a user uploading a product file,
+I want to specify how products are structured in the file (either in one column or across multiple columns),
+so that Qollabi knows where to look and can display the correct products for mapping — all within the same step.
+
+⸻
+
+✅ Acceptance Criteria:
+	1.	Step 3 is titled “Product Mapping” and includes the following prompt at the top:
+Where should we look for your products?
+
+Select how they’re listed in your file.
+	2.	Two structure options are presented inline as radio buttons or card selectors:
+	•	🔘 One column contains the product names
+e.g., A column called “Product” contains values like “Self-Employed Disability Insurance”, “Legal Assistance – Business”, “Group Income Protection”…
+	•	🔘 Each column is a product
+e.g., Columns like “Self-Employed Disability Insurance”, “Legal Assistance – Business”, “WGA Employer Liability” — the headers are the product names.
+	3.	Conditional input appears based on the user’s selection:
+	•	If Option 1 is selected → show a dropdown of the file’s column headers:
+“Select the column that contains product names”
+	•	If Option 2 is selected → show a multi-select of column headers:
+“Select the columns that represent products”
+	4.	The Detected Products table remains hidden until a valid selection is made in this section.
+	5.	The Category selector (used when creating new products) is always visible and is not gated behind product structure selection.
+	6.	Once the Detected Products table is visible, users can:
+	•	Map each detected product to an existing product using a dropdown or similar control
+	•	Or choose to create a new product and assign it to a category directly in the table
+
+⸻
+
+🧠 Notes:
+	•	This flow is entirely embedded within Step 3: Product Mapping — no changes to the stepper.
+	•	The examples should reflect products familiar to insurance brokers and account managers in the Dutch market, but presented in English.
+	•	There is no auto-detection logic in this version — users must make a selection manually.
