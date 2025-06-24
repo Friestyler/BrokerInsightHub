@@ -691,7 +691,28 @@ export default function ProductAssignmentStep({
             })}
           </div>
         </CardContent>
-      </Card>
+        </Card>
+      )}
+
+      {/* Action Buttons */}
+      <div className="flex justify-between pt-6">
+        <Button 
+          variant="outline" 
+          onClick={onBack}
+          className="rounded-xl px-6 py-3 border-gray-300 hover:bg-gray-50"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+        <Button 
+          onClick={handleNext}
+          disabled={!canProceed}
+          className="rounded-xl px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          Continue to Attribute Mapping
+          <ArrowRight className="h-4 w-4 ml-2" />
+        </Button>
+      </div>
     </div>
   );
 }
