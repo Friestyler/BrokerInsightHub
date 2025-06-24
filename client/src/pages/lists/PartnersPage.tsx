@@ -1467,7 +1467,7 @@ function PartnersTable() {
                         
                         {/* Save button - updates the current view */}
                         <button 
-                          className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
+                          className="flex items-center rounded-md bg-[#EBEEFB] px-4 h-8 hover:bg-[#E3E6F7]"
                           onClick={() => {
                             if (activeView) {
                               const updatedFilters = {
@@ -1538,7 +1538,7 @@ function PartnersTable() {
                     {/* Show Save as new view button only when no view is active but filters are applied */}
                     {!activeView && (
                       <button 
-                        className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
+                        className="flex items-center rounded-md bg-[#EBEEFB] px-4 h-8 hover:bg-[#E3E6F7]"
                         onClick={() => setShowSaveViewModal(true)}
                         style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
                       >
