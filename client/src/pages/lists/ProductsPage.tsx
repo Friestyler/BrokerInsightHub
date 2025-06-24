@@ -41,7 +41,7 @@ import { Package2, Plus, Search, Tag } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useToast } from "@/hooks/use-toast";
 import CategoryManagerForProducts from "@/components/CategoryManagerForProducts";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+
 
 type Product = {
   id: number;
@@ -130,7 +130,7 @@ export default function ProductsPage() {
   const queryClient = useQueryClient();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<string>('campaigns');
+  const [activeTab, setActiveTab] = useState<'products' | 'categories'>('products');
   const [newProduct, setNewProduct] = useState({
     productId: "",
     name: "",
@@ -305,14 +305,42 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
-          <TabsTrigger value="templates">Templates</TabsTrigger>
-        </TabsList>
+      <div className="h-full flex flex-col">
+        <div className="bg-white">
+          <div className="px-6 py-4">
+            <div className="flex space-x-1">
+              <Button 
+                variant="ghost" 
+                className={`flex items-center gap-2 ${
+                  activeTab === 'products' 
+                    ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
+                    : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
+                }`}
+                onClick={() => setActiveTab('products')}
+              >
+                <Package2 className="h-4 w-4" />
+                Products
+              </Button>
+              <Button 
+                variant="ghost" 
+                className={`flex items-center gap-2 ${
+                  activeTab === 'categories' 
+                    ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
+                    : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
+                }`}
+                onClick={() => setActiveTab('categories')}
+              >
+                <Tag className="h-4 w-4" />
+                Categories
+              </Button>
+            </div>
+          </div>
+        </div>
 
-        <TabsContent value="campaigns" className="space-y-4">
-          <div className="flex justify-between items-center">
+        <div className="flex-1">
+          {activeTab === 'products' && (
+            <div className="p-6 space-y-4">
+              <div className="flex justify-between items-center">
             <div className="flex items-center space-x-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -452,12 +480,15 @@ export default function ProductsPage() {
               )}
             </CardContent>
           </Card>
-        </TabsContent>
-
-        <TabsContent value="templates" className="space-y-4">
-          <CategoryManagerForProducts />
-        </TabsContent>
-      </Tabs>
+            </div>
+          )}
+          {activeTab === 'categories' && (
+            <div className="p-6 space-y-4">
+              <CategoryManagerForProducts />
+            </div>
+          )}
+        </div>
+      </div>
 
       {/* Create Product Modal */}
       <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
