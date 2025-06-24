@@ -13,13 +13,24 @@ export default function Breadcrumbs() {
   
   // Parse current location to get entity type and ID
   const paths = location.split('/').filter(Boolean);
-  const isPartnerDetail = paths[0] === 'partners' && !!paths[1];
-  const partnerId = isPartnerDetail ? paths[1] : null;
+  const entityType = paths[0];
+  const entityId = paths[1];
+  const isDetailPage = !!entityId;
   
-  // Fetch partner data if we're on a partner detail page
+  // Fetch data for detail pages
   const { data: partners } = useQuery({
     queryKey: ['/api/partners'],
-    enabled: isPartnerDetail
+    enabled: entityType === 'partners' && isDetailPage
+  });
+  
+  const { data: customers } = useQuery({
+    queryKey: ['/api/customers'],
+    enabled: entityType === 'customers' && isDetailPage
+  });
+  
+  const { data: opportunities } = useQuery({
+    queryKey: ['/api/opportunities'],
+    enabled: entityType === 'opportunities' && isDetailPage
   });
   
   const breadcrumbs = useMemo(() => {
@@ -29,28 +40,61 @@ export default function Breadcrumbs() {
 
     const items: BreadcrumbItem[] = [];
 
-    // Handle partner detail pages
-    if (isPartnerDetail && partnerId) {
-      // First breadcrumb is Partners
+    // Define entity type mappings
+    const entityMappings: Record<string, { label: string; path: string }> = {
+      'partners': { label: 'Partners', path: '/partners' },
+      'customers': { label: 'Customers', path: '/customers' },
+      'opportunities': { label: 'Opportunities', path: '/opportunities' },
+      'products': { label: 'Products', path: '/products' },
+      'contacts': { label: 'Contacts', path: '/contacts' },
+      'campaigns': { label: 'Campaigns', path: '/campaigns' },
+      'templates': { label: 'Templates', path: '/templates' },
+      'okr': { label: 'Key Metrics', path: '/okr' },
+      'data-upload': { label: 'Data Upload', path: '/data-upload' },
+      'portfolio-insights': { label: 'Portfolio Insights', path: '/portfolio-insights' }
+    };
+
+    // Handle entity list pages (e.g., /partners, /customers, /opportunities)
+    if (entityMappings[entityType] && !isDetailPage) {
       items.push({
-        label: 'Partners',
-        path: '/partners',
+        label: entityMappings[entityType].label,
+        path: entityMappings[entityType].path,
+        isCurrent: true
+      });
+    }
+
+    // Handle entity detail pages (e.g., /partners/1, /customers/2, /opportunities/3)
+    if (entityMappings[entityType] && isDetailPage) {
+      // First breadcrumb is the entity type
+      items.push({
+        label: entityMappings[entityType].label,
+        path: entityMappings[entityType].path,
         isCurrent: false
       });
       
-      // Second breadcrumb is the partner name
-      const partner = partners?.find((p: any) => p.id.toString() === partnerId);
-      const partnerName = partner?.name || `Partner ${partnerId}`;
+      // Second breadcrumb is the specific entity name
+      let entityName = `${entityMappings[entityType].label.slice(0, -1)} ${entityId}`; // Remove 's' and add ID
+      
+      if (entityType === 'partners' && partners) {
+        const partner = partners.find((p: any) => p.id.toString() === entityId);
+        entityName = partner?.name || `Partner ${entityId}`;
+      } else if (entityType === 'customers' && customers) {
+        const customer = customers.find((c: any) => c.id.toString() === entityId);
+        entityName = customer?.name || `Customer ${entityId}`;
+      } else if (entityType === 'opportunities' && opportunities) {
+        const opportunity = opportunities.find((o: any) => o.id.toString() === entityId);
+        entityName = opportunity?.title || `Opportunity ${entityId}`;
+      }
       
       items.push({
-        label: partnerName,
-        path: `/partners/${partnerId}`,
+        label: entityName,
+        path: `/${entityType}/${entityId}`,
         isCurrent: true
       });
     }
 
     return items;
-  }, [location, partners, isPartnerDetail, partnerId]);
+  }, [location, partners, customers, opportunities, entityType, entityId, isDetailPage]);
   
   if (breadcrumbs.length === 0) {
     return null;
