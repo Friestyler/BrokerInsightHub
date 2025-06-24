@@ -3029,7 +3029,7 @@ export default function PartnersPage() {
   
   return (
     <ListEditingContext.Provider value={{ isEditingList, setIsEditingList }}>
-      <div className="container mx-auto px-4 pb-6">
+      <div className="container mx-auto px-8 pb-6">
         <PartnersTable />
 
         {/* Create Partner Modal */}
