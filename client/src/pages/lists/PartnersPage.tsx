@@ -1185,9 +1185,6 @@ function PartnersTable() {
                     className={`flex items-center px-3 h-8 border rounded-md text-sm font-medium ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-[#E6E7F1] text-gray-700'}`}
                     onClick={() => setShowStatusDropdown(!showStatusDropdown)}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                    </svg>
                     <span className="text-[#282A3F] font-medium">{selectedStatus ? `Status: ${selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1)}` : 'Status'}</span>
                     <svg 
                       xmlns="http://www.w3.org/2000/svg" 
@@ -1249,9 +1246,6 @@ function PartnersTable() {
                     className={`flex items-center px-3 h-8 border rounded-md text-sm font-medium ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-[#E6E7F1] text-gray-700'}`}
                     onClick={() => setShowIndustryDropdown(!showIndustryDropdown)}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                    </svg>
                     <span>{selectedIndustry ? `Region: ${selectedIndustry}` : 'Region'}</span>
                     <svg 
                       xmlns="http://www.w3.org/2000/svg" 
@@ -1312,12 +1306,9 @@ function PartnersTable() {
                 
                 <div className="relative" ref={actualIndustryDropdownRef}>
                   <button 
-                    className={`flex items-center px-3 h-8 border rounded-md text-sm font-medium ${selectedActualIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                    className={`flex items-center px-3 h-8 border rounded-md text-sm font-medium ${selectedActualIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-[#E6E7F1] text-gray-700'}`}
                     onClick={() => setShowActualIndustryDropdown(!showActualIndustryDropdown)}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                    </svg>
                     <span>{selectedActualIndustry ? `Location: ${selectedActualIndustry}` : 'Location'}</span>
                     <svg 
                       xmlns="http://www.w3.org/2000/svg" 
@@ -1377,12 +1368,9 @@ function PartnersTable() {
                 {/* Size Filter */}
                 <div className="relative" ref={sizeDropdownRef}>
                   <button 
-                    className={`flex items-center px-3 h-8 border rounded-md text-sm font-medium ${selectedSize ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                    className={`flex items-center px-3 h-8 border rounded-md text-sm font-medium ${selectedSize ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-[#E6E7F1] text-gray-700'}`}
                     onClick={() => setShowSizeDropdown(!showSizeDropdown)}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                    </svg>
                     <span>{selectedSize ? `Size: ${selectedSize}` : 'Size'}</span>
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
                       <polyline points="6 9 12 15 18 9"></polyline>
