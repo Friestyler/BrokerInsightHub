@@ -152,6 +152,7 @@ export default function ProductAssignmentStep({
             
             products = Array.from(uniqueProducts).map((name, index) => ({
               id: index + 1000, // Use high IDs to avoid conflicts with database products
+              sku: `detected-${index + 1000}`, // Give detected products unique SKUs
               name,
               source: selectedProductColumn,
               recordCount: Math.floor(Math.random() * 50) + 10 // Simulated count
@@ -166,6 +167,7 @@ export default function ProductAssignmentStep({
       // Each selected column represents a product
       products = selectedProductColumns.map((columnName, index) => ({
         id: index + 2000, // Use different ID range
+        sku: `detected-${index + 2000}`, // Give detected products unique SKUs
         name: columnName,
         source: 'column header',
         recordCount: Math.floor(Math.random() * 100) + 20 // Simulated count
@@ -470,7 +472,7 @@ export default function ProductAssignmentStep({
               const mapping = productMappings[product.id];
               const isAssigned = !!mapping;
               const isExistingProduct = mapping?.productAction === 'existing';
-              const hasAutoMatch = isExistingProduct && mapping?.existingProductId;
+              const hasAutoMatch = isExistingProduct && mapping?.existingProductId && mapping?.targetId;
               
               return (
                 <div key={product.id} className="grid grid-cols-6 gap-4 p-4 bg-white border border-[#E6E7F1] rounded-lg hover:border-gray-200 hover:shadow-sm transition-all duration-200 items-center">
