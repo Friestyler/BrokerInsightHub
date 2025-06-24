@@ -64,10 +64,8 @@ export default function DataUploadOptions() {
               </CardDescription>
             </CardHeader>
             <CardFooter>
-              <Button 
-                className="w-full bg-orange-600 hover:bg-orange-700"
-              >
-                Upload Excel File
+              <Button className="w-full">
+                Upload Excel file
               </Button>
             </CardFooter>
           </Card>

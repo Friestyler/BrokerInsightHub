@@ -722,8 +722,8 @@ export default function PartnerPilot() {
                 </CardDescription>
               </CardHeader>
               <CardFooter className="mt-auto">
-                <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                  Upload Salesforce File
+                <Button className="w-full">
+                  Upload Salesforce file
                 </Button>
               </CardFooter>
             </Card>
