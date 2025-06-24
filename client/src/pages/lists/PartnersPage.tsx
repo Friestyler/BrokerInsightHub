@@ -305,10 +305,10 @@ function PartnersTable() {
   });
   
   const [filterText, setFilterText] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
-  const [selectedIndustry, setSelectedIndustry] = useState('');
-  const [selectedActualIndustry, setSelectedActualIndustry] = useState('');
-  const [selectedSize, setSelectedSize] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [selectedIndustry, setSelectedIndustry] = useState('all');
+  const [selectedActualIndustry, setSelectedActualIndustry] = useState('all');
+  const [selectedSize, setSelectedSize] = useState('all');
 
   const [selectedPartners, setSelectedPartners] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -1195,23 +1195,23 @@ function PartnersTable() {
                     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                   </svg>
                   <span className="font-medium">
-                    {(selectedStatus || selectedIndustry || selectedActualIndustry || selectedSize) 
-                      ? `Filter (${[selectedStatus, selectedIndustry, selectedActualIndustry, selectedSize].filter(Boolean).length})` 
+                    {(selectedStatus && selectedStatus !== 'all' || selectedIndustry && selectedIndustry !== 'all' || selectedActualIndustry && selectedActualIndustry !== 'all' || selectedSize && selectedSize !== 'all') 
+                      ? `Filter (${[selectedStatus, selectedIndustry, selectedActualIndustry, selectedSize].filter(val => val && val !== 'all').length})` 
                       : 'Filter'
                     }
                   </span>
                 </button>
                 
                 {/* Active filters preview */}
-                {(selectedStatus || selectedIndustry || selectedActualIndustry || selectedSize) && (
+                {(selectedStatus && selectedStatus !== 'all' || selectedIndustry && selectedIndustry !== 'all' || selectedActualIndustry && selectedActualIndustry !== 'all' || selectedSize && selectedSize !== 'all') && (
                   <div className="flex items-center gap-1 max-w-96 overflow-hidden">
-                    {selectedStatus && (
+                    {selectedStatus && selectedStatus !== 'all' && (
                       <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[#5567E5]/10 text-[#5567E5] border border-[#5567E5]/20">
                         Status: {selectedStatus}
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
-                            setSelectedStatus('');
+                            setSelectedStatus('all');
                           }}
                           className="ml-1 hover:text-[#4556D4]"
                         >
@@ -1222,13 +1222,13 @@ function PartnersTable() {
                         </button>
                       </span>
                     )}
-                    {selectedIndustry && (
+                    {selectedIndustry && selectedIndustry !== 'all' && (
                       <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[#5567E5]/10 text-[#5567E5] border border-[#5567E5]/20">
                         Region: {selectedIndustry}
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
-                            setSelectedIndustry('');
+                            setSelectedIndustry('all');
                           }}
                           className="ml-1 hover:text-[#4556D4]"
                         >
@@ -1239,13 +1239,13 @@ function PartnersTable() {
                         </button>
                       </span>
                     )}
-                    {selectedActualIndustry && (
+                    {selectedActualIndustry && selectedActualIndustry !== 'all' && (
                       <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[#5567E5]/10 text-[#5567E5] border border-[#5567E5]/20">
                         Location: {selectedActualIndustry}
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
-                            setSelectedActualIndustry('');
+                            setSelectedActualIndustry('all');
                           }}
                           className="ml-1 hover:text-[#4556D4]"
                         >
@@ -1256,13 +1256,13 @@ function PartnersTable() {
                         </button>
                       </span>
                     )}
-                    {selectedSize && (
+                    {selectedSize && selectedSize !== 'all' && (
                       <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-[#5567E5]/10 text-[#5567E5] border border-[#5567E5]/20">
                         Size: {selectedSize}
                         <button 
                           onClick={(e) => {
                             e.stopPropagation();
-                            setSelectedSize('');
+                            setSelectedSize('all');
                           }}
                           className="ml-1 hover:text-[#4556D4]"
                         >
@@ -1866,7 +1866,7 @@ function PartnersTable() {
                     <SelectValue placeholder="Select status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Statuses</SelectItem>
+                    <SelectItem value="all">All Statuses</SelectItem>
                     {uniqueStatuses.map(status => (
                       <SelectItem key={status} value={status}>
                         {status.charAt(0).toUpperCase() + status.slice(1)}
@@ -1884,7 +1884,7 @@ function PartnersTable() {
                     <SelectValue placeholder="Select region" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Regions</SelectItem>
+                    <SelectItem value="all">All Regions</SelectItem>
                     {uniqueRegions.map(region => (
                       <SelectItem key={region} value={region}>
                         {region}
@@ -1902,7 +1902,7 @@ function PartnersTable() {
                     <SelectValue placeholder="Select location" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Locations</SelectItem>
+                    <SelectItem value="all">All Locations</SelectItem>
                     {uniqueLocations.map(location => (
                       <SelectItem key={location} value={location}>
                         {location}
@@ -1920,7 +1920,7 @@ function PartnersTable() {
                     <SelectValue placeholder="Select size" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All Sizes</SelectItem>
+                    <SelectItem value="all">All Sizes</SelectItem>
                     <SelectItem value="Small">Small</SelectItem>
                     <SelectItem value="Medium">Medium</SelectItem>
                     <SelectItem value="Large">Large</SelectItem>
@@ -1937,10 +1937,10 @@ function PartnersTable() {
                   variant="outline" 
                   size="sm"
                   onClick={() => {
-                    setSelectedStatus('');
-                    setSelectedIndustry('');
-                    setSelectedActualIndustry('');
-                    setSelectedSize('');
+                    setSelectedStatus('all');
+                    setSelectedIndustry('all');
+                    setSelectedActualIndustry('all');
+                    setSelectedSize('all');
                   }}
                   className="h-8 text-xs"
                 >
@@ -1950,7 +1950,7 @@ function PartnersTable() {
               
               <div className="text-sm text-gray-600">
                 {(() => {
-                  const activeFilters = [selectedStatus, selectedIndustry, selectedActualIndustry, selectedSize].filter(Boolean).length;
+                  const activeFilters = [selectedStatus, selectedIndustry, selectedActualIndustry, selectedSize].filter(val => val && val !== 'all').length;
                   return activeFilters > 0 ? `${activeFilters} filter${activeFilters !== 1 ? 's' : ''} active` : 'No filters active';
                 })()}
               </div>
