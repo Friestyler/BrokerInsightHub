@@ -764,11 +764,15 @@ export default function ProductAssignmentStep({
 
       {/* Category Management Modal */}
       <Dialog open={showCategoryModal} onOpenChange={setShowCategoryModal}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Manage Product Categories</DialogTitle>
+        <DialogContent className="max-w-4xl max-h-[85vh] bg-white border-0 shadow-xl">
+          <DialogHeader className="pb-4 border-b border-gray-100">
+            <DialogTitle className="text-xl font-semibold" style={{ color: '#282A3F' }}>
+              Manage Product Categories
+            </DialogTitle>
           </DialogHeader>
-          <CategoryManagerForProducts />
+          <div className="overflow-y-auto overflow-x-hidden max-h-[calc(85vh-8rem)] py-4 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-gray-100">
+            <CategoryManagerForProducts />
+          </div>
         </DialogContent>
       </Dialog>
     </div>
