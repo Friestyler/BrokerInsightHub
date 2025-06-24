@@ -1668,6 +1668,53 @@ function PartnersTable() {
               </svg>
               Assign Template
             </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="text-indigo-600"
+              onClick={() => {
+                // Export selected partners
+                const selectedPartnersData = partners.filter((p: any) => selectedPartners.includes(p.id));
+                const csvContent = "data:text/csv;charset=utf-8," 
+                  + "Name,Type,Location,Industry,Status,Contact Email\n"
+                  + selectedPartnersData.map((partner: any) => 
+                      `"${partner.name}","${partner.partner_type || 'N/A'}","${partner.location || 'N/A'}","${partner.industry || 'N/A'}","${partner.status || 'N/A'}","${partner.contact_email || 'N/A'}"`
+                    ).join("\n");
+                
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `partners_export_${new Date().toISOString().split('T')[0]}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7,10 12,15 17,10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Export
+            </Button>
+            
+            <button 
+              className={`flex items-center gap-2 px-4 py-2 text-white rounded-md transition-colors font-medium text-[14px] pl-[12px] pr-[12px] ${isEditingList ? 'bg-[#8B98F9] cursor-not-allowed' : 'bg-[#5567E5] hover:bg-[#4556D4]'}`}
+              onClick={() => {
+                if (!isEditingList) {
+                  setShowCreateModal(true);
+                }
+              }}
+              disabled={isEditingList}
+              style={{ fontFamily: 'Poppins, sans-serif' }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+              </svg>
+              Create new partner
+            </button>
           </div>
         </div>
       )}
@@ -2987,22 +3034,6 @@ export default function PartnersPage() {
       <div className="container mx-auto px-4 py-6">
         <div className="flex justify-between items-center mb-6">
           <h1 className="text-2xl font-bold tracking-tight text-black">Partners</h1>
-          <button 
-            className={`flex items-center gap-2 px-4 py-2 text-white rounded-md transition-colors font-medium text-[14px] pl-[12px] pr-[12px] ${isEditingList ? 'bg-[#8B98F9] cursor-not-allowed' : 'bg-[#5567E5] hover:bg-[#4556D4]'}`}
-            onClick={() => {
-              if (!isEditingList) {
-                setShowCreateModal(true);
-              }
-            }}
-            disabled={isEditingList}
-            style={{ fontFamily: 'Poppins, sans-serif' }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Create new partner
-          </button>
         </div>
         <PartnersTable />
 
