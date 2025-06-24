@@ -130,7 +130,7 @@ export default function ProductsPage() {
   const queryClient = useQueryClient();
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
-  const [activeTab, setActiveTab] = useState<string>('products');
+  const [activeTab, setActiveTab] = useState<string>('campaigns');
   const [newProduct, setNewProduct] = useState({
     productId: "",
     name: "",
@@ -307,11 +307,11 @@ export default function ProductsPage() {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="products">Products</TabsTrigger>
-          <TabsTrigger value="categories">Categories</TabsTrigger>
+          <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="products" className="space-y-4">
+        <TabsContent value="campaigns" className="space-y-4">
           <div className="flex justify-between items-center">
             <div className="flex items-center space-x-2">
               <div className="relative">
@@ -454,7 +454,7 @@ export default function ProductsPage() {
           </Card>
         </TabsContent>
 
-        <TabsContent value="categories" className="space-y-4">
+        <TabsContent value="templates" className="space-y-4">
           <CategoryManagerForProducts />
         </TabsContent>
       </Tabs>
