@@ -350,7 +350,7 @@ export default function CategoryManagerForProducts() {
                       className="text-xs border-dashed border-blue-300 text-blue-600 hover:bg-blue-50"
                     >
                       <Plus className="h-3 w-3 mr-1" />
-                      Add another subcategory
+                      Add subcategory
                     </Button>
                   </div>
                 )}
