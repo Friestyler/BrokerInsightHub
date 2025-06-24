@@ -770,9 +770,9 @@ function PartnersTable() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {/* Unified toolbar with more emphasis on saved lists */}
-      <div className="bg-white p-4 rounded-lg shadow-sm">
+      <div className="bg-white p-3 rounded-lg shadow-sm">
         <div className="flex flex-col gap-4">
           {/* Top row with saved lists and action buttons */}
           <div className="flex flex-wrap items-center justify-between">
