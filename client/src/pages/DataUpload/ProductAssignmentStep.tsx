@@ -294,12 +294,10 @@ export default function ProductAssignmentStep({
                     className={`mt-0.5 pointer-events-none ${productStructure === 'single-column' ? 'border-[#5567E5] text-[#5567E5]' : ''}`}
                   />
                   <div className="flex-1 space-y-2">
-                    <Label htmlFor="single-column" className="text-base font-semibold cursor-pointer text-gray-900 leading-tight">
+                    <Label htmlFor="single-column" className="peer-disabled:cursor-not-allowed peer-disabled:opacity-70 font-semibold cursor-pointer text-gray-900 text-[14px]">
                       One column contains the product names
                     </Label>
-                    <p className="text-sm text-gray-600 leading-relaxed">
-                      A single column called "Product" contains values like "Self-Employed Disability Insurance", "Legal Assistance – Business", "Group Income Protection"
-                    </p>
+                    <p className="text-sm text-gray-600 leading-relaxed">For example: A single column called "Product" contains values like "Self-Employed Disability Insurance", "Legal Assistance – Business", etc</p>
                   </div>
                 </div>
                 
@@ -341,7 +339,7 @@ export default function ProductAssignmentStep({
                     className={`mt-0.5 pointer-events-none ${productStructure === 'multiple-columns' ? 'border-[#5567E5] text-[#5567E5]' : ''}`}
                   />
                   <div className="flex-1 space-y-2">
-                    <Label htmlFor="multiple-columns" className="text-base font-semibold cursor-pointer text-gray-900 leading-tight">
+                    <Label htmlFor="multiple-columns" className="peer-disabled:cursor-not-allowed peer-disabled:opacity-70 font-semibold cursor-pointer text-gray-900 text-[14px]">
                       Each column is a product
                     </Label>
                     <p className="text-sm text-gray-600 leading-relaxed">
@@ -431,9 +429,6 @@ export default function ProductAssignmentStep({
           </div>
         </CardContent>
       </Card>
-
-
-
       {/* Detected Products Table - Only show when structure is selected and products are detected */}
       {showProductTable && (
         <Card className="border border-gray-200 shadow-sm">
@@ -750,8 +745,6 @@ export default function ProductAssignmentStep({
         </CardContent>
         </Card>
       )}
-
-
     </div>
   );
 }
