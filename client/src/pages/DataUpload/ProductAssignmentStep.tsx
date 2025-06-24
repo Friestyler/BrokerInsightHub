@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, ArrowRight, FolderOpen, FileText, CheckCircle, AlertTriangle, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, FolderOpen, FileText, CheckCircle, AlertTriangle, Check, ChevronDown, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import Papa from 'papaparse';
 
@@ -102,6 +102,7 @@ export default function ProductAssignmentStep({
   const [selectedProductColumns, setSelectedProductColumns] = useState<string[]>([]);
   const [detectedProducts, setDetectedProducts] = useState<DetectedProduct[]>([]);
   const [showProductTable, setShowProductTable] = useState(false);
+  const [showColumnDropdown, setShowColumnDropdown] = useState(false);
 
   // Use database categories instead of props
   const activeCategories = (dbCategories && Array.isArray(dbCategories) && dbCategories.length > 0) ? dbCategories as Category[] : categories;
@@ -354,33 +355,73 @@ export default function ProductAssignmentStep({
                   <div className="px-5 pb-5 pt-2 border-t border-[#5567E5]/20 bg-[#5567E5]/2">
                     <div className="space-y-3">
                       <Label className="text-sm font-medium text-gray-700">Select the columns that represent products</Label>
-                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {csvHeaders.map((header, index) => (
-                          <div
-                            key={index}
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleColumnSelect(header);
-                            }}
-                            className={`p-3 border rounded-lg cursor-pointer transition-all bg-white ${
-                              selectedProductColumns.includes(header)
-                                ? 'border-[#5567E5] bg-[#5567E5]/10 text-[#5567E5]'
-                                : 'border-gray-200 hover:border-gray-300'
-                            }`}
-                          >
-                            <div className="flex items-center justify-between">
-                              <span className="text-sm font-medium truncate">{header}</span>
-                              {selectedProductColumns.includes(header) && (
-                                <Check className="h-4 w-4 text-[#5567E5]" />
-                              )}
+                      <div className="relative">
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShowColumnDropdown(!showColumnDropdown);
+                          }}
+                          className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-left hover:border-gray-400 focus:border-[#5567E5] focus:ring-2 focus:ring-[#5567E5]/20 transition-all duration-200"
+                        >
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm text-gray-700">
+                              {selectedProductColumns.length === 0 
+                                ? 'Choose columns...'
+                                : `${selectedProductColumns.length} column${selectedProductColumns.length > 1 ? 's' : ''} selected`
+                              }
+                            </span>
+                            <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${showColumnDropdown ? 'rotate-180' : ''}`} />
+                          </div>
+                        </button>
+                        
+                        {showColumnDropdown && (
+                          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                            <div className="p-2">
+                              {csvHeaders.map((header, index) => (
+                                <div
+                                  key={index}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleColumnSelect(header);
+                                  }}
+                                  className={`flex items-center justify-between p-2 rounded-md cursor-pointer transition-all duration-150 ${
+                                    selectedProductColumns.includes(header)
+                                      ? 'bg-[#5567E5]/10 text-[#5567E5]'
+                                      : 'hover:bg-gray-50'
+                                  }`}
+                                >
+                                  <span className="text-sm font-medium truncate">{header}</span>
+                                  {selectedProductColumns.includes(header) && (
+                                    <Check className="h-4 w-4 text-[#5567E5] flex-shrink-0 ml-2" />
+                                  )}
+                                </div>
+                              ))}
                             </div>
                           </div>
-                        ))}
+                        )}
                       </div>
+                      
                       {selectedProductColumns.length > 0 && (
-                        <p className="text-sm text-gray-600">
-                          {selectedProductColumns.length} column{selectedProductColumns.length > 1 ? 's' : ''} selected
-                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {selectedProductColumns.map((column, index) => (
+                            <span
+                              key={index}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#5567E5]/10 text-[#5567E5] text-xs font-medium rounded-full"
+                            >
+                              {column}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleColumnSelect(column);
+                                }}
+                                className="hover:bg-[#5567E5]/20 rounded-full p-0.5"
+                              >
+                                <X className="h-3 w-3" />
+                              </button>
+                            </span>
+                          ))}
+                        </div>
                       )}
                     </div>
                   </div>
