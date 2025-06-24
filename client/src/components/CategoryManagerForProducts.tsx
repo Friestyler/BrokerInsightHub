@@ -366,54 +366,8 @@ export default function CategoryManagerForProducts() {
 
   return (
     <div className="space-y-4">
-      {/* Add New Category */}
-      <div>
-        {showNewCategoryInput ? (
-          <div className="flex gap-2">
-            <Input
-              placeholder="New category name"
-              value={newCategoryName}
-              onChange={(e) => setNewCategoryName(e.target.value)}
-              onKeyPress={(e) => {
-                if (e.key === 'Enter') {
-                  addCategory();
-                }
-              }}
-              className="text-sm"
-            />
-            <Button
-              size="sm"
-              onClick={addCategory}
-              className="bg-blue-600 hover:bg-blue-700"
-            >
-              <Plus className="h-3 w-3" />
-            </Button>
-            <Button
-              size="sm"
-              variant="outline"
-              onClick={() => {
-                setShowNewCategoryInput(false);
-                setNewCategoryName('');
-              }}
-            >
-              <X className="h-3 w-3" />
-            </Button>
-          </div>
-        ) : (
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setShowNewCategoryInput(true)}
-            className="w-full text-sm border-dashed border-blue-300 text-blue-600 hover:bg-blue-50"
-          >
-            <Plus className="h-3 w-3 mr-1" />
-            Add Category
-          </Button>
-        )}
-      </div>
-
       {/* Categories List */}
-      <div className="space-y-3 max-h-96 overflow-y-auto">
+      <div className="space-y-3">
         {categories.map((category) => (
           <Card key={category.id} className="shadow-sm">
             <CardContent className="p-4">
@@ -521,11 +475,57 @@ export default function CategoryManagerForProducts() {
             </CardContent>
           </Card>
         ))}
+        
+        {/* Add New Category */}
+        <div>
+          {showNewCategoryInput ? (
+            <div className="flex gap-2">
+              <Input
+                placeholder="New category name"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                onKeyPress={(e) => {
+                  if (e.key === 'Enter') {
+                    addCategory();
+                  }
+                }}
+                className="text-sm"
+              />
+              <Button
+                size="sm"
+                onClick={addCategory}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Plus className="h-3 w-3" />
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => {
+                  setShowNewCategoryInput(false);
+                  setNewCategoryName('');
+                }}
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+          ) : (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowNewCategoryInput(true)}
+              className="w-full text-sm border-dashed border-blue-300 text-blue-600 hover:bg-blue-50"
+            >
+              <Plus className="h-3 w-3 mr-1" />
+              Add Category
+            </Button>
+          )}
+        </div>
       </div>
 
       {categories.length === 0 && (
         <div className="text-center py-8 text-gray-500">
-          <p>No categories yet. Create your first category above.</p>
+          <p>No categories yet. Create your first category below.</p>
         </div>
       )}
     </div>
