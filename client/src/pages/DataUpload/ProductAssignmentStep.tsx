@@ -187,7 +187,7 @@ export default function ProductAssignmentStep({
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Existing Product</h3>
             </div>
             <div>
-              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Target Category</h3>
+              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Category</h3>
             </div>
             <div>
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Status</h3>
