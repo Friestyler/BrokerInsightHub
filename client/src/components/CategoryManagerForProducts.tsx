@@ -369,7 +369,7 @@ export default function CategoryManagerForProducts() {
       {/* Categories List */}
       <div className="space-y-3">
         {categories.map((category) => (
-          <Card key={category.id} className="shadow-sm">
+          <Card key={category.id} className="shadow-sm border-[hsl(var(--card-border))]">
             <CardContent className="p-4">
               {/* Category Header */}
               <div className="flex items-center justify-between mb-3">

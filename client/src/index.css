@@ -23,6 +23,7 @@
   --destructive-foreground: 210 10% 98%;
   --ring: 231 73% 62%;
   --radius: 0.5rem;
+  --card-border: 217 18% 90%; /* #E6E7F1 */
 
   /* Custom Qollabi color palette - Based on #5567E5 */
   --primary-100: 231 73% 95%;
