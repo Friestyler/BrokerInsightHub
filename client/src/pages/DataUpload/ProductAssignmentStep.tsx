@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { ArrowLeft, ArrowRight, FolderOpen, FileText, CheckCircle, AlertTriangle, Check, ChevronDown, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import Papa from 'papaparse';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import CategoryManagerForProducts from "@/components/CategoryManagerForProducts";
 
 interface Product {
@@ -764,32 +764,32 @@ export default function ProductAssignmentStep({
 
       {/* Category Management Modal */}
       <Dialog open={showCategoryModal} onOpenChange={setShowCategoryModal}>
-        <DialogContent className="max-w-4xl max-h-[85vh] bg-white border-0 shadow-xl p-0">
-          <div className="flex flex-col h-full max-h-[85vh]">
-            <div className="flex-1 overflow-y-auto p-6">
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold mb-2" style={{ color: '#282A3F' }}>
-                  Manage Product Categories
-                </h2>
-              </div>
-              <CategoryManagerForProducts />
-            </div>
-            <div className="flex justify-end gap-3 p-6 border-t border-gray-100 bg-white">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowCategoryModal(false)}
-                className="px-6"
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={() => setShowCategoryModal(false)}
-                className="px-6 bg-primary hover:bg-primary/90"
-              >
-                Save
-              </Button>
-            </div>
+        <DialogContent className="max-w-4xl max-h-[85vh] bg-white border-0 shadow-xl overflow-hidden">
+          <DialogHeader>
+            <DialogTitle className="text-xl font-semibold" style={{ color: '#282A3F' }}>
+              Manage Product Categories
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-y-auto py-4">
+            <CategoryManagerForProducts />
           </div>
+          
+          <DialogFooter className="border-t border-gray-100 pt-4">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowCategoryModal(false)}
+              className="px-6"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => setShowCategoryModal(false)}
+              className="px-6 bg-primary hover:bg-primary/90"
+            >
+              Save
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
