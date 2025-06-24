@@ -795,10 +795,10 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 ].map((option) => (
                   <div
                     key={option.id}
-                    className={`relative group cursor-pointer rounded-lg border p-6 transition-all duration-200 ${
+                    className={`relative group cursor-pointer rounded-lg border-2 p-6 transition-shadow ${
                       campaignData.entity === option.id
                         ? `border-${option.hoverColor}-200 bg-${option.hoverColor}-50 shadow-sm`
-                        : 'border-[#E6E7F1] hover:border-gray-300 hover:bg-[#E6E7F1] hover:shadow-sm'
+                        : 'border-[#E6E7F1] hover:shadow-md'
                     }`}
                     onClick={() => setCampaignData({ ...campaignData, entity: option.id })}
                   >
@@ -830,16 +830,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 ))}
               </div>
 
-              {campaignData.entity && (
-                <div className="mt-6 p-3 bg-green-50 rounded-lg border border-green-200 text-center">
-                  <p className="text-sm text-green-700 flex items-center justify-center gap-2">
-                    <Check className="h-4 w-4" />
-                    {['opportunities', 'customers', 'partners', 'internal'].find(id => id === campaignData.entity) === 'opportunities' ? 'Opportunities' :
-                     ['opportunities', 'customers', 'partners', 'internal'].find(id => id === campaignData.entity) === 'customers' ? 'Customers' :
-                     ['opportunities', 'customers', 'partners', 'internal'].find(id => id === campaignData.entity) === 'partners' ? 'Partners' : 'Internal Team'} selected
-                  </p>
-                </div>
-              )}
+
             </div>
           </div>
         );
