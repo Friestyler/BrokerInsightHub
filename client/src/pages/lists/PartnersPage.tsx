@@ -1717,7 +1717,7 @@ function PartnersTable() {
         </div>
       )}
       {/* Statistics overview */}
-      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mx-4 py-8">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mx-4 py-6">
         <div className="bg-white p-4 rounded-md border border-gray-200">
           <div className="text-xl font-semibold text-[#282A3F]">{stats.totalPartners}</div>
           <div className="text-sm text-gray-500">Total Partners</div>
