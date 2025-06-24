@@ -391,10 +391,6 @@ export default function CategoryManagerForProducts() {
                 ) : (
                   <>
                     <div className="flex items-center gap-2">
-                      <div 
-                        className="w-3 h-3 rounded-full"
-                        style={{ backgroundColor: category.color }}
-                      />
                       <span className="font-medium">{category.name}</span>
                       <Badge variant="secondary" className="text-xs">
                         {category.subcategories.length} subcategories
