@@ -656,7 +656,7 @@ export default function ProductAssignmentStep({
                   {/* Column 5: Category Selection */}
                   <div>
                     <Select
-                      value={isAssigned ? `${mapping.targetType}:${mapping.targetId}` : ''}
+                      value={isAssigned && mapping?.targetId ? `${mapping.targetType}:${mapping.targetId}` : ''}
                       onValueChange={(value) => {
                         if (value) {
                           const [targetType, targetId] = value.split(':');
