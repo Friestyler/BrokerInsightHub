@@ -178,7 +178,7 @@ export default function ProductAssignmentStep({
           {/* Column Headers */}
           <div className="grid grid-cols-6 gap-4 pb-4 border-b border-[#E6E7F1] mb-4">
             <div className="col-span-2">
-              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Product Information</h3>
+              <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">detected Product</h3>
             </div>
             <div>
               <h3 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">Action</h3>
