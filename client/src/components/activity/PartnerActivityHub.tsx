@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { 
   Plus, MessageSquare, CheckSquare, Paperclip, ChevronDown, ChevronRight, 
-  Sparkles, Clock, User, Send, Eye, EyeOff, Check, X, Calendar, Filter, Brain, UserPlus, Bot, Target
+  Sparkles, Clock, User, Send, Eye, EyeOff, Check, X, Calendar, Filter, Brain, UserPlus, Bot, Target, Flag
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -188,10 +188,10 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
 
   return (
     <div className="border-t border-[#E6E7F1] pt-4 mt-4">
-      {/* Modern Expanded Composer */}
-      <div className="bg-white rounded-2xl border border-gray-200 shadow-xl shadow-gray-100/50 overflow-hidden">
-        <div className="p-4 space-y-4">
-          {/* Input Field */}
+      {/* ClickUp-style Task Creator */}
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
+        {/* Main Input Area */}
+        <div className="p-4">
           <div className="relative">
             <Textarea
               placeholder={getPlaceholder()}
@@ -206,102 +206,122 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
                   handleCancel();
                 }
               }}
-              className="w-full min-h-[80px] resize-none border border-gray-200 bg-gray-50 text-gray-900 rounded-xl p-4 text-sm transition-all duration-200 focus:bg-white focus:border-blue-300 focus:ring-2 focus:ring-blue-100 placeholder:text-gray-500"
+              className="w-full min-h-[60px] max-h-32 resize-none border-0 bg-transparent text-gray-900 text-sm p-0 focus:ring-0 focus:outline-none placeholder:text-gray-400"
               autoFocus
             />
           </div>
+        </div>
 
-          {/* Task-specific Controls */}
-          {activeMode === 'task' && (
-            <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100">
+        {/* Task Properties Bar */}
+        {activeMode === 'task' && (
+          <div className="px-4 pb-3">
+            <div className="flex items-center gap-2 flex-wrap">
               {/* Priority Selector */}
-              <Select value={priority} onValueChange={setPriority}>
-                <SelectTrigger className="w-32 h-9 text-sm bg-white border border-[#E6E7F1] rounded-lg hover:border-[#D6D7E4] transition-colors">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-200 rounded-xl shadow-lg">
-                  <SelectItem value="low">Low</SelectItem>
-                  <SelectItem value="medium">Medium</SelectItem>
-                  <SelectItem value="high">High</SelectItem>
-                  <SelectItem value="urgent">Urgent</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex items-center gap-1">
+                <Flag className="h-3.5 w-3.5 text-gray-400" />
+                <Select value={priority} onValueChange={setPriority}>
+                  <SelectTrigger className="h-7 w-20 text-xs border-0 bg-gray-50 hover:bg-gray-100 rounded-md px-2 focus:ring-1 focus:ring-blue-200">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="w-24">
+                    <SelectItem value="low" className="text-xs">Low</SelectItem>
+                    <SelectItem value="medium" className="text-xs">Medium</SelectItem>
+                    <SelectItem value="high" className="text-xs">High</SelectItem>
+                    <SelectItem value="urgent" className="text-xs">Urgent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
               {/* Assignee Selector */}
-              <Select value={assignedTo} onValueChange={setAssignedTo}>
-                <SelectTrigger className="w-40 h-9 text-sm bg-white border border-[#E6E7F1] rounded-lg hover:border-[#D6D7E4] transition-colors">
-                  <SelectValue placeholder="Assign to..." />
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-200 rounded-xl shadow-lg">
-                  {teamMembers.map((member) => (
-                    <SelectItem key={member.id} value={member.id}>
+              <div className="flex items-center gap-1">
+                <User className="h-3.5 w-3.5 text-gray-400" />
+                <Select value={assignedTo} onValueChange={setAssignedTo}>
+                  <SelectTrigger className="h-7 w-32 text-xs border-0 bg-gray-50 hover:bg-gray-100 rounded-md px-2 focus:ring-1 focus:ring-blue-200">
+                    <SelectValue placeholder="Assign..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teamMembers.map((member) => (
+                      <SelectItem key={member.id} value={member.id} className="text-xs">
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 rounded-full bg-blue-100 flex items-center justify-center text-xs font-medium text-blue-700">
+                            {(member as any).initials || member.name.charAt(0)}
+                          </div>
+                          <span>{member.name}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                    <SelectItem value="ai-agent" disabled className="text-xs opacity-50">
                       <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-gray-500" />
-                        <span className="font-medium">{member.name}</span>
+                        <Bot className="h-3.5 w-3.5" />
+                        <span>AI Agent (soon)</span>
                       </div>
                     </SelectItem>
-                  ))}
-                  <SelectItem value="ai-agent" disabled>
-                    <div className="flex items-center gap-2 text-gray-400">
-                      <Bot className="h-4 w-4" />
-                      <span>AI Agent (coming later)</span>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          )}
+                  </SelectContent>
+                </Select>
+              </div>
 
-          {/* Footer */}
-          <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-            {/* Visibility Toggle */}
-            <div className="flex items-center gap-3">
+              {/* Visibility Toggle */}
+              <div className="flex items-center gap-1.5 ml-auto">
+                <Eye className="h-3.5 w-3.5 text-gray-400" />
+                <Switch
+                  checked={visibleToPartner}
+                  onCheckedChange={setVisibleToPartner}
+                  className="h-4 w-7 data-[state=checked]:bg-blue-500"
+                />
+                <span className="text-xs text-gray-500">Share</span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Comment Visibility for Comments */}
+        {activeMode === 'comment' && (
+          <div className="px-4 pb-3">
+            <div className="flex items-center gap-1.5">
+              <Eye className="h-3.5 w-3.5 text-gray-400" />
               <Switch
                 checked={visibleToPartner}
                 onCheckedChange={setVisibleToPartner}
-                className="data-[state=checked]:bg-blue-500"
+                className="h-4 w-7 data-[state=checked]:bg-blue-500"
               />
-              <span className="text-sm text-gray-600 flex items-center gap-2">
-                {visibleToPartner ? <Eye className="h-4 w-4 text-blue-500" /> : <EyeOff className="h-4 w-4 text-gray-400" />}
-                Visible to partner
-              </span>
+              <span className="text-xs text-gray-500">Share with partner</span>
             </div>
+          </div>
+        )}
 
-            {/* Action Buttons */}
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                onClick={handleCancel} 
-                className="px-4 text-sm text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                onClick={handleSubmit}
-                disabled={isLoading || !content.trim()}
-                className={`px-6 text-sm font-medium rounded-lg transition-all duration-200 ${
-                  activeMode === 'task' 
-                    ? 'bg-green-600 hover:bg-green-700 text-white' 
-                    : 'bg-blue-600 hover:bg-blue-700 text-white'
-                } disabled:opacity-50 disabled:cursor-not-allowed shadow-sm hover:shadow-md`}
-              >
-                {isLoading ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    <span>Sending...</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-2">
-                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
-                    </svg>
-                    {activeMode === 'task' ? 'Add Task' : 'Add Comment'}
-                  </div>
-                )}
-              </Button>
-            </div>
+        {/* Action Bar */}
+        <div className="flex items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-100">
+          <div className="flex items-center gap-2 text-xs text-gray-500">
+            <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-xs">⌘</kbd>
+            <span>+</span>
+            <kbd className="px-1.5 py-0.5 bg-white border border-gray-200 rounded text-xs">↵</kbd>
+            <span>to send</span>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={handleCancel} 
+              className="h-7 px-3 text-xs text-gray-500 hover:text-gray-700 hover:bg-white rounded-md"
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSubmit}
+              disabled={isLoading || !content.trim()}
+              className="h-7 px-4 text-xs font-medium bg-[#5567E5] hover:bg-[#4556D4] text-white rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isLoading ? (
+                <div className="flex items-center gap-1.5">
+                  <div className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />
+                  <span>Creating...</span>
+                </div>
+              ) : (
+                <span>{activeMode === 'task' ? 'Create task' : 'Add comment'}</span>
+              )}
+            </Button>
           </div>
         </div>
       </div>
@@ -366,23 +386,23 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
   });
 
   // Available team members for assignment (use real users from database)
-  const teamMembers = usersData ? usersData.map((user: any) => ({
+  const teamMembers = Array.isArray(usersData) ? usersData.map((user: any) => ({
     id: user.id.toString(),
     name: user.name,
-    role: user.role,
-    initials: user.initials
+    role: user.role || 'User',
+    initials: user.initials || user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2)
   })) : [];
 
   // Helper function to get user name from database
   const getUserName = (userId: number): string => {
     if (!userId) return 'Unknown User';
-    const user = usersData?.find((u: any) => u.id === userId);
+    const user = Array.isArray(usersData) ? usersData.find((u: any) => u.id === userId) : null;
     return user ? user.name : 'Unknown User';
   };
 
   // Helper function to get user initials for avatar fallback
   const getUserInitials = (userId: number): string => {
-    const user = usersData?.find((u: any) => u.id === userId);
+    const user = Array.isArray(usersData) ? usersData.find((u: any) => u.id === userId) : null;
     if (user && user.initials) {
       return user.initials;
     }
