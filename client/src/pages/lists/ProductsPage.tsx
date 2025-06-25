@@ -1175,7 +1175,7 @@ function ProductsTable() {
                     <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
                       Cancel
                     </Button>
-                    <Button onClick={handleUpdateProduct}>
+                    <Button onClick={handleEditSave}>
                       Save Changes
                     </Button>
                   </DialogFooter>
@@ -1195,7 +1195,7 @@ function ProductsTable() {
                     <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
                       Cancel
                     </Button>
-                    <Button variant="destructive" onClick={handleDeleteProduct}>
+                    <Button variant="destructive" onClick={handleDeleteConfirm}>
                       Delete
                     </Button>
                   </DialogFooter>
@@ -1325,7 +1325,7 @@ function ProductsTable() {
               <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button onClick={handleUpdateProduct}>
+              <Button onClick={handleEditSave}>
                 Save changes
               </Button>
             </DialogFooter>
@@ -1345,7 +1345,7 @@ function ProductsTable() {
               <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
                 Cancel
               </Button>
-              <Button variant="destructive" onClick={handleDeleteProduct}>
+              <Button variant="destructive" onClick={handleDeleteConfirm}>
                 Delete
               </Button>
             </DialogFooter>
