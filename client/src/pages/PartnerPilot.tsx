@@ -140,6 +140,12 @@ export default function PartnerPilot() {
     staleTime: 30000,
   });
 
+  // Fetch users for activity attribution
+  const { data: users } = useQuery({
+    queryKey: ['/api/users'],
+    staleTime: 30000,
+  });
+
   // Sample activities data for display
   const sampleActivities: ActivityItem[] = [
     {
