@@ -22,37 +22,41 @@ interface ActivityReactionsProps {
   onReactionClick: (emoji: string) => void;
 }
 
-const ActivityReactions = ({ activityType, activityId, onReactionClick }: ActivityReactionsProps) => {
+// Custom hook to check if there are reactions
+const useHasReactions = (activityType: string, activityId: number) => {
   const { data: reactions, isLoading } = useQuery<any[]>({
     queryKey: [`/api/activity-reactions/${activityType}/${activityId}`],
     staleTime: 30000, // 30 seconds
     enabled: !!activityType && !!activityId, // Only fetch if we have valid parameters
   });
 
+  const hasReactions = !isLoading && reactions && Array.isArray(reactions) && reactions.length > 0;
+  return { hasReactions, reactions, isLoading };
+};
 
+const ActivityReactions = ({ activityType, activityId, onReactionClick }: ActivityReactionsProps) => {
+  const { hasReactions, reactions, isLoading } = useHasReactions(activityType, activityId);
 
   // Handle cases where reactions is undefined, not an array, or empty
-  if (isLoading) {
-    return null; // Don't show anything while loading
-  }
-
-  if (!reactions || !Array.isArray(reactions) || reactions.length === 0) {
-    return null; // Don't show anything if no reactions
+  if (isLoading || !hasReactions) {
+    return null; // Don't show anything while loading or if no reactions
   }
 
   return (
-    <div className="flex items-center gap-2">
-      {reactions.map((reaction: any, index: number) => (
-        <button
-          key={`${reaction.emoji}-${index}`}
-          onClick={() => onReactionClick(reaction.emoji)}
-          className="flex items-center gap-1 px-2 py-1 bg-[#E6E7F1] hover:bg-gray-200 rounded-full transition-colors text-xs"
-          title={`${reaction.user_names?.join(', ') || 'Users'} reacted with ${reaction.emoji}`}
-        >
-          <span>{reaction.emoji}</span>
-          <span className="text-gray-600">{reaction.count}</span>
-        </button>
-      ))}
+    <div className="mt-2">
+      <div className="flex items-center gap-2">
+        {reactions!.map((reaction: any, index: number) => (
+          <button
+            key={`${reaction.emoji}-${index}`}
+            onClick={() => onReactionClick(reaction.emoji)}
+            className="flex items-center gap-1 px-2 py-1 bg-[#E6E7F1] hover:bg-gray-200 rounded-full transition-colors text-xs"
+            title={`${reaction.user_names?.join(', ') || 'Users'} reacted with ${reaction.emoji}`}
+          >
+            <span>{reaction.emoji}</span>
+            <span className="text-gray-600">{reaction.count}</span>
+          </button>
+        ))}
+      </div>
     </div>
   );
 };
@@ -1311,14 +1315,12 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                                 </div>
                               </div>
                               
-                              {/* Reactions Display */}
-                              <div className="mt-2">
-                                <ActivityReactions 
-                                  activityType={item.activity_type}
-                                  activityId={item.id}
-                                  onReactionClick={(emoji: string) => handleReactionToggle(item.activity_type, item.id, emoji)}
-                                />
-                              </div>
+                              {/* Reactions Display - ActivityReactions handles its own conditional rendering */}
+                              <ActivityReactions 
+                                activityType={item.activity_type}
+                                activityId={item.id}
+                                onReactionClick={(emoji: string) => handleReactionToggle(item.activity_type, item.id, emoji)}
+                              />
                             </div>
                           </div>
                         </div>
