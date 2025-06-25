@@ -444,12 +444,14 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
       });
       
       resetForm();
-      toast({ title: `${selectedActivityType.charAt(0).toUpperCase() + selectedActivityType.slice(1)} created successfully` });
+      const activityType = (data as any).activityType || selectedActivityType;
+      toast({ title: `${activityType.charAt(0).toUpperCase() + activityType.slice(1)} created successfully` });
     },
-    onError: (error) => {
-      console.error(`Failed to create ${selectedActivityType}:`, error);
+    onError: (error, variables) => {
+      const activityType = (variables as any).activityType || selectedActivityType;
+      console.error(`Failed to create ${activityType}:`, error);
       toast({ 
-        title: `Failed to create ${selectedActivityType}`, 
+        title: `Failed to create ${activityType}`, 
         description: 'Please try again',
         variant: 'destructive' 
       });
@@ -1161,25 +1163,11 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                   content: string;
                   visibleToPartner: boolean;
                 }) => {
-                  // Use existing comment creation logic
-                  const originalType = selectedActivityType;
-                  const originalContent = commentContent;
-                  const originalVisibility = visibleToPartner;
-
-                  // Set temporary values for comment creation
-                  setSelectedActivityType('comment');
-                  setCommentContent(commentData.content);
-                  setVisibleToPartner(commentData.visibleToPartner);
-
-                  // Create the comment
-                  handleCreateActivity();
-                  
-                  // Reset to original values after a brief delay
-                  setTimeout(() => {
-                    setSelectedActivityType(originalType);
-                    setCommentContent(originalContent);
-                    setVisibleToPartner(originalVisibility);
-                  }, 100);
+                  // Create comment directly with proper activity type
+                  createActivityMutation.mutate({
+                    ...commentData,
+                    activityType: 'comment'
+                  });
                 }}
                 teamMembers={teamMembers}
                 isLoading={createActivityMutation.isPending}
