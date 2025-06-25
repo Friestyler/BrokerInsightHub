@@ -274,6 +274,7 @@ Each environment maintains its own data isolation while sharing the same applica
 - June 25, 2025: Refined task input to single-line height (32px) - reduced textarea from 60px minimum height to compact 32px single-line input with overflow hidden, creating more streamlined ClickUp-style interface that matches other control heights throughout the platform.
 - June 25, 2025: Fine-tuned task input padding for optimal balance - adjusted container padding (px-4 pt-4 pb-2) and added textarea internal padding (pl-2 pt-1) to create proper breathing room while maintaining compact single-line appearance for polished ClickUp-style interface.
 - June 25, 2025: Enhanced Select dropdown spacing - increased viewport padding from p-1 to p-2 and item padding from py-1.5/pr-2 to py-2/pr-3 for better readability and touch targets throughout all dropdown components in the platform.
+- June 25, 2025: Removed eye icons from task interface and timeline - eliminated Eye/EyeOff icons from task creation forms, comment inputs, timeline display, and visibility indicators throughout activity hub for cleaner, more streamlined interface design while maintaining all "shared with partner" functionality through text labels only.
 
 ## User Preferences
 

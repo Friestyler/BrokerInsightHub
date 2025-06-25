@@ -262,7 +262,6 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
 
               {/* Visibility Toggle */}
               <div className="flex items-center gap-1.5 ml-auto">
-                <Eye className="h-3.5 w-3.5 text-gray-400" />
                 <Switch
                   checked={visibleToPartner}
                   onCheckedChange={setVisibleToPartner}
@@ -278,7 +277,6 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
         {activeMode === 'comment' && (
           <div className="px-4 pb-3">
             <div className="flex items-center gap-1.5">
-              <Eye className="h-3.5 w-3.5 text-gray-400" />
               <Switch
                 checked={visibleToPartner}
                 onCheckedChange={setVisibleToPartner}
@@ -852,8 +850,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                         onCheckedChange={setVisibleToPartner}
                         className="scale-75"
                       />
-                      <span className="text-xs text-gray-600 flex items-center gap-1">
-                        {visibleToPartner ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                      <span className="text-xs text-gray-600">
                         Visible to partner
                       </span>
                     </div>
@@ -906,7 +903,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                             <span>{teamMembers.find(m => m.id === task.assignedTo)?.name || task.assignedTo}</span>
                           </div>
                         )}
-                        {task.visible_to_partner && <Eye className="h-3 w-3 text-blue-500" />}
+
                         <span className="text-xs text-gray-500">
                           {new Date(task.created_at).toLocaleDateString()}
                         </span>
@@ -977,8 +974,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                         {comment.visible_to_partner && (
                           <div className="flex items-center gap-1">
                             <span className="text-xs text-gray-400">•</span>
-                            <Eye className="h-3 w-3 text-blue-500" />
-                            <span className="text-xs text-blue-600">visible</span>
+                            <span className="text-xs text-blue-600">visible to partner</span>
                           </div>
                         )}
                         {comment.is_okr_comment && (
@@ -1040,8 +1036,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                     onCheckedChange={setVisibleToPartner}
                     className="scale-75"
                   />
-                  <span className="text-xs text-gray-600 flex items-center gap-1">
-                    {visibleToPartner ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                  <span className="text-xs text-gray-600">
                     Visible to partner
                   </span>
                 </div>
@@ -1132,7 +1127,6 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                               <div className="flex items-center gap-2 text-xs text-gray-500">
                                 {item.visible_to_partner && (
                                   <div className="flex items-center gap-1">
-                                    <Eye className="h-3 w-3 text-blue-500" />
                                     <span className="text-blue-600">shared with partner</span>
                                   </div>
                                 )}
