@@ -12,6 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Building2, Users, Target, Search } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
+import OpportunityActivityHub from "@/components/activity/OpportunityActivityHub";
 
 interface Opportunity {
   id: number;
