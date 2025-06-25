@@ -403,9 +403,6 @@ function ProductsTable() {
 
         {/* Right-side action buttons */}
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" className="h-8">
-            Export
-          </Button>
           <Button size="sm" className="h-8">
             Create new product
           </Button>
@@ -598,11 +595,7 @@ export default function ProductsPage() {
 
   return (
     <ListEditingContext.Provider value={{ isEditingList, setIsEditingList }}>
-      <div className="flex-1 space-y-6 py-6">
-        <div className="flex items-center justify-between px-4">
-          <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-        </div>
-
+      <div className="flex-1">
         {/* Tab Navigation */}
         <div className="bg-white">
           <div className="px-6 py-4">
