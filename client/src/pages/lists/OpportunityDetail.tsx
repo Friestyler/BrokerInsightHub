@@ -12,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Building2, Users, Target, Search } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
-import OpportunityActivityHub from "@/components/activity/OpportunityActivityHub";
+import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 
 interface Opportunity {
   id: number;
@@ -323,7 +323,7 @@ export default function OpportunityDetail() {
 
       {/* Activity Hub */}
       <div className="mt-8">
-        <OpportunityActivityHub opportunityId={parseInt(id!)} opportunityTitle={opportunity.title} />
+        <PartnerActivityHub partnerId={parseInt(id!)} partnerName={opportunity.title} />
       </div>
 
       {/* Tabs */}
