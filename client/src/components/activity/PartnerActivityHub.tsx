@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useLayoutEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { 
@@ -612,15 +612,25 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
   }, [savedMeetingBriefing, meetingBriefing, selectedActivityType]);
 
   // Auto-scroll to bottom when timeline opens or new data arrives
+  useLayoutEffect(() => {
+    const timelineData = (timeline as any) || [];
+    if (selectedActivityType === 'timeline' && timelineScrollRef.current && timelineData.length > 0) {
+      const scrollContainer = timelineScrollRef.current;
+      // Force scroll to bottom after layout is complete
+      scrollContainer.scrollTop = scrollContainer.scrollHeight;
+    }
+  }, [selectedActivityType, timeline]);
+
+  // Additional scroll trigger after renders complete
   useEffect(() => {
     const timelineData = (timeline as any) || [];
     if (selectedActivityType === 'timeline' && timelineScrollRef.current && timelineData.length > 0) {
+      // Delayed scroll to ensure all async content is rendered
       setTimeout(() => {
-        timelineScrollRef.current?.scrollTo({
-          top: timelineScrollRef.current.scrollHeight,
-          behavior: 'smooth'
-        });
-      }, 100);
+        if (timelineScrollRef.current) {
+          timelineScrollRef.current.scrollTop = timelineScrollRef.current.scrollHeight;
+        }
+      }, 50);
     }
   }, [selectedActivityType, timeline]);
 
