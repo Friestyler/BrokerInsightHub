@@ -55,6 +55,8 @@ export const activityTasks = pgTable("activity_tasks", {
   assignedById: integer("assigned_by_id").references(() => users.id),
   entityType: text("entity_type").notNull(), // partner, customer, opportunity, okr
   entityId: integer("entity_id").notNull(),
+  relatedEntityType: text("related_entity_type"), // For cross-entity relationships
+  relatedEntityId: integer("related_entity_id"), // ID of related entity
   dueDate: timestamp("due_date"),
   completedAt: timestamp("completed_at"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -70,6 +72,8 @@ export const activityComments = pgTable("activity_comments", {
   entityId: integer("entity_id").notNull(),
   assignedToId: integer("assigned_to_id").references(() => users.id), // optional assignment
   parentCommentId: integer("parent_comment_id"), // for replies - removed self-reference
+  relatedEntityType: text("related_entity_type"), // For cross-entity relationships
+  relatedEntityId: integer("related_entity_id"), // ID of related entity
   isInternal: boolean("is_internal").notNull().default(false), // internal vs partner-visible
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -87,6 +91,8 @@ export const activityAttachments = pgTable("activity_attachments", {
   uploadedById: integer("uploaded_by_id").notNull().references(() => users.id),
   entityType: text("entity_type").notNull(), // partner, customer, opportunity, okr, task, comment
   entityId: integer("entity_id").notNull(),
+  relatedEntityType: text("related_entity_type"), // For cross-entity relationships
+  relatedEntityId: integer("related_entity_id"), // ID of related entity
   description: text("description"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });

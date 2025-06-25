@@ -323,7 +323,12 @@ export default function OpportunityDetail() {
 
       {/* Activity Hub */}
       <div className="mt-8">
-        <PartnerActivityHub partnerId={parseInt(id!)} partnerName={opportunity.title} />
+        <PartnerActivityHub 
+          partnerId={parseInt(id!)} 
+          partnerName={opportunity.title}
+          entityType="opportunity"
+          entityId={parseInt(id!)}
+        />
       </div>
 
       {/* Tabs */}

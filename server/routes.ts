@@ -1128,38 +1128,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get activities for a specific partner
+  // Get activities for a specific partner (including related opportunity activities)
   app.get('/api/:envId/partners/:id/activities', async (req, res) => {
     try {
       const envId = req.params.envId;
       const partnerId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool(envId);
       
-      // Fetch tasks
-      const tasksResult = await db.execute(sql`
-        SELECT t.*, u.name as assigned_to_name
-        FROM ${sql.identifier(envId)}.activity_tasks t
-        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id
-        WHERE t.partner_id = ${partnerId}
+      // Fetch tasks for this partner AND related opportunity tasks
+      const tasksResult = await envPool.query(`
+        SELECT t.*, u.name as assigned_to_name, 
+               CASE WHEN t.entity_type = 'opportunity' THEN o.title ELSE NULL END as opportunity_title
+        FROM ${envId}.activity_tasks t
+        LEFT JOIN ${envId}.users u ON t.assigned_to_id = u.id
+        LEFT JOIN ${envId}.opportunities o ON t.entity_id = o.id AND t.entity_type = 'opportunity'
+        WHERE (t.entity_type = 'partner' AND t.entity_id = $1)
+           OR (t.entity_type = 'opportunity' AND t.entity_id IN (
+               SELECT o2.id FROM ${envId}.opportunities o2 WHERE o2.partner_id = $1
+           ))
         ORDER BY t.created_at DESC
-      `);
+      `, [partnerId]);
       
-      // Fetch comments
-      const commentsResult = await db.execute(sql`
-        SELECT c.*, u.name as author_name
-        FROM ${sql.identifier(envId)}.activity_comments c
-        LEFT JOIN ${sql.identifier(envId)}.users u ON c.user_id = u.id
-        WHERE c.partner_id = ${partnerId}
+      // Fetch comments for this partner AND related opportunity comments
+      const commentsResult = await envPool.query(`
+        SELECT c.*, u.name as author_name,
+               CASE WHEN c.entity_type = 'opportunity' THEN o.title ELSE NULL END as opportunity_title
+        FROM ${envId}.activity_comments c
+        LEFT JOIN ${envId}.users u ON c.author_id = u.id
+        LEFT JOIN ${envId}.opportunities o ON c.entity_id = o.id AND c.entity_type = 'opportunity'
+        WHERE (c.entity_type = 'partner' AND c.entity_id = $1)
+           OR (c.entity_type = 'opportunity' AND c.entity_id IN (
+               SELECT o2.id FROM ${envId}.opportunities o2 WHERE o2.partner_id = $1
+           ))
         ORDER BY c.created_at DESC
-      `);
+      `, [partnerId]);
       
-      // Fetch attachments
-      const attachmentsResult = await db.execute(sql`
-        SELECT a.*, u.name as author_name
-        FROM ${sql.identifier(envId)}.activity_attachments a
-        LEFT JOIN ${sql.identifier(envId)}.users u ON a.uploaded_by_id = u.id
-        WHERE a.partner_id = ${partnerId}
+      // Fetch attachments for this partner AND related opportunity attachments
+      const attachmentsResult = await envPool.query(`
+        SELECT a.*, u.name as author_name,
+               CASE WHEN a.entity_type = 'opportunity' THEN o.title ELSE NULL END as opportunity_title
+        FROM ${envId}.activity_attachments a
+        LEFT JOIN ${envId}.users u ON a.uploaded_by_id = u.id
+        LEFT JOIN ${envId}.opportunities o ON a.entity_id = o.id AND a.entity_type = 'opportunity'
+        WHERE (a.entity_type = 'partner' AND a.entity_id = $1)
+           OR (a.entity_type = 'opportunity' AND a.entity_id IN (
+               SELECT o2.id FROM ${envId}.opportunities o2 WHERE o2.partner_id = $1
+           ))
         ORDER BY a.created_at DESC
-      `);
+      `, [partnerId]);
       
       res.json({
         tasks: tasksResult.rows,
@@ -4092,6 +4108,134 @@ Keep the tone clear and professional. Focus on what will help the account manage
     } catch (error) {
       console.error('Error updating OKR tag in De Goudse:', error);
       res.status(500).json({ message: 'Failed to update OKR tag for De Goudse environment' });
+    }
+  });
+
+  // Opportunity Activities Endpoints
+  app.get('/api/degoudse/opportunities/:id/activities', async (req, res) => {
+    try {
+      const envPool = pool;
+      res.json([]); // Return empty activities for now
+    } catch (error) {
+      console.error('Error fetching opportunity activities:', error);
+      res.status(500).json({ error: 'Failed to fetch opportunity activities' });
+    }
+  });
+
+  app.post('/api/degoudse/opportunities/:id/tasks', async (req, res) => {
+    try {
+      const opportunityId = parseInt(req.params.id);
+      const { title, description, priority, visible_to_partner, assigned_to } = req.body;
+      const envPool = pool;
+      
+      // Insert task with opportunity entity type
+      const result = await envPool.query(`
+        INSERT INTO degoudse.activity_tasks 
+        (entity_type, entity_id, title, description, priority, assigned_to_id, assigned_by_id, status)
+        VALUES ('opportunity', $1, $2, $3, $4, $5, 1, 'pending')
+        RETURNING *
+      `, [opportunityId, title, description || null, priority || 'medium', assigned_to || null]);
+      
+      // Get related partners for this opportunity to sync activities
+      const partnersResult = await envPool.query(`
+        SELECT p.id
+        FROM degoudse.partners p
+        INNER JOIN degoudse.opportunities o ON p.id = o.partner_id
+        WHERE o.id = $1
+      `, [opportunityId]);
+      
+      // Create cross-entity activity references for each related partner
+      for (const partner of partnersResult.rows) {
+        await envPool.query(`
+          INSERT INTO degoudse.activity_tasks 
+          (entity_type, entity_id, title, description, priority, assigned_to_id, assigned_by_id, status, related_entity_type, related_entity_id)
+          VALUES ('partner', $1, $2, $3, $4, $5, 1, 'pending', 'opportunity', $6)
+        `, [partner.id, title, description || null, priority || 'medium', assigned_to || null, opportunityId]);
+      }
+      
+      console.log(`Created opportunity task and synced to ${partnersResult.rows.length} related partners`);
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating opportunity task:', error);
+      res.status(500).json({ error: 'Failed to create opportunity task' });
+    }
+  });
+
+  app.post('/api/degoudse/opportunities/:id/comments', async (req, res) => {
+    try {
+      const opportunityId = parseInt(req.params.id);
+      const { content, visible_to_partner } = req.body;
+      const envPool = pool;
+      
+      // Insert comment with opportunity entity type
+      const result = await envPool.query(`
+        INSERT INTO degoudse.activity_comments 
+        (entity_type, entity_id, content, author_id, is_internal)
+        VALUES ('opportunity', $1, $2, 1, $3)
+        RETURNING *
+      `, [opportunityId, content, !visible_to_partner]);
+      
+      // Get related partners for this opportunity to sync activities
+      const partnersResult = await envPool.query(`
+        SELECT p.id
+        FROM degoudse.partners p
+        INNER JOIN degoudse.opportunities o ON p.id = o.partner_id
+        WHERE o.id = $1
+      `, [opportunityId]);
+      
+      // Create cross-entity activity references for each related partner
+      for (const partner of partnersResult.rows) {
+        await envPool.query(`
+          INSERT INTO degoudse.activity_comments 
+          (entity_type, entity_id, content, author_id, is_internal, related_entity_type, related_entity_id)
+          VALUES ('partner', $1, $2, 1, $3, 'opportunity', $4)
+        `, [partner.id, content, !visible_to_partner, opportunityId]);
+      }
+      
+      console.log(`Created opportunity comment and synced to ${partnersResult.rows.length} related partners`);
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating opportunity comment:', error);
+      res.status(500).json({ error: 'Failed to create opportunity comment' });
+    }
+  });
+
+  app.post('/api/degoudse/opportunities/:id/attachments', async (req, res) => {
+    try {
+      const opportunityId = parseInt(req.params.id);
+      const { filename, description, visible_to_partner } = req.body;
+      const envPool = pool;
+      
+      // Insert attachment with opportunity entity type
+      const result = await envPool.query(`
+        INSERT INTO degoudse.activity_attachments 
+        (entity_type, entity_id, filename, original_name, file_type, file_size, uploaded_by_id, description)
+        VALUES ('opportunity', $1, $2, $2, 'document', 0, 1, $3)
+        RETURNING *
+      `, [opportunityId, filename, description || null]);
+      
+      // Get related partners for this opportunity to sync activities
+      const partnersResult = await envPool.query(`
+        SELECT p.id
+        FROM degoudse.partners p
+        INNER JOIN degoudse.opportunities o ON p.id = o.partner_id
+        WHERE o.id = $1
+      `, [opportunityId]);
+      
+      // Create cross-entity activity references for each related partner
+      for (const partner of partnersResult.rows) {
+        await envPool.query(`
+          INSERT INTO degoudse.activity_attachments 
+          (entity_type, entity_id, filename, original_name, file_type, file_size, uploaded_by_id, description, related_entity_type, related_entity_id)
+          VALUES ('partner', $1, $2, $2, 'document', 0, 1, $3, 'opportunity', $4)
+        `, [partner.id, filename, description || null, opportunityId]);
+      }
+      
+      console.log(`Created opportunity attachment and synced to ${partnersResult.rows.length} related partners`);
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating opportunity attachment:', error);
+      res.status(500).json({ error: 'Failed to create opportunity attachment' });
     }
   });
 
