@@ -40,7 +40,7 @@ import CategoryManagerForProducts from "@/components/CategoryManagerForProducts"
 const useProductsData = () => {
   return useQuery({
     queryKey: ['/api/products'],
-    staleTime: 0, // Force fresh data to show updated relationship counts
+    staleTime: 0,
   });
 };
 
@@ -49,8 +49,8 @@ const useSavedLists = () => {
   return useQuery({
     queryKey: ['/api/saved-lists', 'products'],
     queryFn: () => apiRequest('GET', '/api/saved-lists?entity_type=products'),
-    staleTime: 0, // Always fetch fresh data for lists to see immediate updates
-    gcTime: 0, // No cache to ensure immediate updates
+    staleTime: 0,
+    gcTime: 0,
   });
 };
 
@@ -68,7 +68,6 @@ const useCreateSavedList = () => {
       return apiRequest('POST', '/api/saved-lists', data);
     },
     onSuccess: () => {
-      // Clear cache for immediate updates
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'products'] });
     }
@@ -218,8 +217,6 @@ interface SavedView {
 export default function ProductsPage() {
   const [activeTab, setActiveTab] = useState<'products' | 'categories'>('products');
   
-  // All state management consolidated in main component
-  
   // Fetch products from database
   const { data: products = [], isLoading, error } = useProductsData();
   
@@ -227,12 +224,9 @@ export default function ProductsPage() {
   const [selectedStatus, setSelectedStatus] = useState('all');
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [selectedProvider, setSelectedProvider] = useState('all');
-
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
-  
-  // Dropdown state for filters
   const [showFilterModal, setShowFilterModal] = useState(false);
 
   // Saved lists and views functionality
@@ -256,8 +250,6 @@ export default function ProductsPage() {
   // Refs for dropdowns to handle outside clicks
   const viewsDropdownRef = useRef<HTMLDivElement>(null);
   const viewsButtonRef = useRef<HTMLButtonElement>(null);
-  
-  // State for views dropdown
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
   
   // Edit/Delete dialog states
@@ -280,52 +272,7 @@ export default function ProductsPage() {
     direction: 'asc' as 'asc' | 'desc'
   });
   
-  // Track active view state like Partners page
   const [activeView, setActiveView] = useState<SavedView | null>(null);
-  
-  const [filterText, setFilterText] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('all');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedProvider, setSelectedProvider] = useState('all');
-
-  const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(12);
-  
-  // Dropdown state for filters
-  const [showFilterModal, setShowFilterModal] = useState(false);
-
-  // Saved lists and views functionality
-  const { data: savedListsData = [], isLoading: savedListsLoading } = useSavedLists();
-  const { data: savedViewsData = [], isLoading: savedViewsLoading } = useSavedViews();
-  const createSavedListMutation = useCreateSavedList();
-  const updateSavedListMutation = useUpdateSavedList();
-  const deleteSavedListMutation = useDeleteSavedList();
-  const createSavedViewMutation = useCreateSavedView();
-  const { toast } = useToast();
-  
-  // State for dropdowns and modals
-  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
-  const [viewNameInput, setViewNameInput] = useState('');
-  const [showSaveListModal, setShowSaveListModal] = useState(false);
-  const [isCreatingNewList, setIsCreatingNewList] = useState(true);
-  const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
-  const [listNameInput, setListNameInput] = useState('');
-  const [listDescriptionInput, setListDescriptionInput] = useState('');
-  
-  // Refs for dropdowns to handle outside clicks
-  const viewsDropdownRef = useRef<HTMLDivElement>(null);
-  const viewsButtonRef = useRef<HTMLButtonElement>(null);
-  
-  // State for views dropdown
-  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
-  
-  // Edit/Delete dialog states
-  const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
-  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
-  const [editFormData, setEditFormData] = useState<Partial<Product>>({});
 
   // Dialog handlers
   const openEditDialog = (product: Product) => {
@@ -454,7 +401,56 @@ export default function ProductsPage() {
       });
     }
   };
-  
+
+  // Select all products
+  const handleSelectAll = () => {
+    if (selectedProducts.length === displayedProducts.length) {
+      setSelectedProducts([]);
+    } else {
+      setSelectedProducts(displayedProducts.map(p => p.id));
+    }
+  };
+
+  // Clear selection
+  const handleClearSelection = () => {
+    setSelectedProducts([]);
+  };
+
+  // Export products
+  const handleExport = () => {
+    const dataToExport = selectedProducts.length > 0 
+      ? displayedProducts.filter(p => selectedProducts.includes(p.id))
+      : displayedProducts;
+    
+    const csvContent = [
+      ['Name', 'Category', 'Provider', 'Total Value', 'Premium Value', 'Status'].join(','),
+      ...dataToExport.map(product => [
+        product.name,
+        product.category,
+        product.provider || product.providername || '',
+        product.total_value || product.totalvalue || '',
+        product.premium_value || product.premiumvalue || '',
+        product.status || 'Active'
+      ].join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'products.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  // Handle table sorting
+  const handleSort = (key: string) => {
+    setTableSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
   // Handle outside clicks for all dropdowns
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -512,31 +508,6 @@ export default function ProductsPage() {
     createdAt: new Date(view.created_at)
   }));
 
-  const [activeList, setActiveList] = useState<SavedList | null>(null);
-  const [originalListFilters, setOriginalListFilters] = useState<SavedList['filters'] | null>(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [showListsDropdown, setShowListsDropdown] = useState(false);
-  
-  // Sorting state
-  const [tableSortConfig, setTableSortConfig] = useState({
-    key: '',
-    direction: 'asc' as 'asc' | 'desc'
-  });
-  
-  // Handle table sorting
-  const handleSort = (key: string) => {
-    setTableSortConfig(prev => ({
-      key,
-      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
-    }));
-  };
-  
-  // List editing state moved to main component
-  const [isEditingList, setIsEditingList] = useState(false);
-  
-  // Track active view state like Partners page
-  const [activeView, setActiveView] = useState<SavedView | null>(null);
-  
   // Filter products based on search and filters
   const filteredProducts = products.filter((product: Product) => {
     const matchesText = !filterText || 
@@ -564,56 +535,6 @@ export default function ProductsPage() {
         ? prev.filter(id => id !== productId)
         : [...prev, productId]
     );
-  };
-
-  // Select all products
-  const handleSelectAll = () => {
-    if (selectedProducts.length === displayedProducts.length) {
-      setSelectedProducts([]);
-    } else {
-      setSelectedProducts(displayedProducts.map(p => p.id));
-    }
-  };
-
-  // Clear selection
-  const handleClearSelection = () => {
-    setSelectedProducts([]);
-  };
-
-  // Export products
-  const handleExport = () => {
-    const dataToExport = selectedProducts.length > 0 
-      ? displayedProducts.filter(p => selectedProducts.includes(p.id))
-      : displayedProducts;
-    
-    const csvContent = [
-      ['Name', 'Category', 'Provider', 'Total Value', 'Premium Value', 'Status'].join(','),
-      ...dataToExport.map(product => [
-        product.name,
-        product.category,
-        product.provider || product.providername || '',
-        product.total_value || product.totalvalue || '',
-        product.premium_value || product.premiumvalue || '',
-        product.status || 'Active'
-      ].join(','))
-    ].join('\n');
-    
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'products.csv';
-    a.click();
-    window.URL.revokeObjectURL(url);
-  };
-
-  // Toggle select all
-  const toggleSelectAll = () => {
-    if (selectedProducts.length === displayedProducts.length) {
-      setSelectedProducts([]);
-    } else {
-      setSelectedProducts(displayedProducts.map(p => p.id));
-    }
   };
 
   // Handle list selection and changes
@@ -658,969 +579,71 @@ export default function ProductsPage() {
       description: '',
       entity_type: 'products',
       filters: {
-        searchText: filterText,
+        searchText: filterText || undefined,
         status: selectedStatus !== 'all' ? selectedStatus : undefined,
         category: selectedCategory !== 'all' ? selectedCategory : undefined,
         provider: selectedProvider !== 'all' ? selectedProvider : undefined,
-      },
-      created_by: 'Current User'
+      }
     };
-    
+
     try {
-      const newView = await createSavedViewMutation.mutateAsync(viewData);
-      setActiveView(newView);
-      toast({
-        title: "Success",
-        description: "View saved successfully",
-      });
+      await createSavedViewMutation.mutateAsync(viewData);
       setShowSaveViewModal(false);
       setViewNameInput('');
+      
+      toast({
+        title: "View saved",
+        description: `"${viewData.name}" has been saved successfully.`
+      });
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to save view",
-        variant: "destructive",
+        description: "Failed to save view. Please try again.",
+        variant: "destructive"
       });
     }
   };
 
-  const handleDeleteList = async (listId: string) => {
-    if (listId === 'all-products') return; // Can't delete default list
-    
-    try {
-      await deleteSavedListMutation.mutateAsync(parseInt(listId));
-      toast({
-        title: "Success",
-        description: "List deleted successfully",
-      });
-      if (activeList?.id === listId) {
-        setActiveList(null);
-      }
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete list",
-        variant: "destructive",
-      });
-    }
-  };
-
-  if (isLoading) {
+  if (activeTab === 'categories') {
     return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <div className="flex-1">
+        {/* Tab Navigation */}
+        <div className="bg-white">
+          <div className="px-6 py-4">
+            <div className="flex space-x-1">
+              <Button 
+                variant="ghost" 
+                className={`flex items-center gap-2 ${
+                  activeTab === 'products' 
+                    ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
+                    : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
+                }`}
+                onClick={() => setActiveTab('products')}
+              >
+                Products
+              </Button>
+              <Button 
+                variant="ghost" 
+                className={`flex items-center gap-2 ${
+                  activeTab === 'categories' 
+                    ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
+                    : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
+                }`}
+                onClick={() => setActiveTab('categories')}
+              >
+                Categories
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Categories Content */}
+        <div className="mx-4">
+          <CategoryManagerForProducts />
+        </div>
       </div>
     );
   }
-
-  if (error) {
-    return (
-      <div className="text-center p-8">
-        <p className="text-red-600">Error loading products</p>
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-1">
-      {/* Lists and Views Toolbar - matching Partners page structure */}
-      <div className="mx-4 py-6 space-y-2">
-        <div className="flex flex-wrap items-center justify-between">
-          {/* Left side - Lists dropdown and actions */}
-          <div className="flex items-center gap-3">
-            <div className="flex items-center mr-2">
-              <span className="text-base font-semibold text-gray-800">Product Lists</span>
-            </div>
-            
-            {/* Lists dropdown */}
-            <div className="relative">
-              <button 
-                className="flex items-center space-x-2 px-3 h-8 border border-[#E6E7F1] rounded-md text-sm font-medium bg-white hover:bg-gray-50"
-                onClick={() => setShowListsDropdown(!showListsDropdown)}
-                style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-              >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-[#3E4DC4]">
-                  <path d="M2 3.5H12M2 7H12M2 10.5H12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-                <span>{activeList ? activeList.name : 'All Products'}</span>
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
-                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-
-              {/* Lists Dropdown */}
-              {showListsDropdown && (
-                <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                  <div className="p-2">
-                    {savedLists.map((list) => (
-                      <div key={list.id} className="flex items-center justify-between group">
-                        <button
-                          className={`flex-1 text-left px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
-                            (activeList?.id === list.id || (!activeList && list.id === 'all-products')) 
-                              ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
-                              : 'text-gray-700'
-                          }`}
-                          onClick={() => handleListSelect(list)}
-                          style={{ fontFamily: 'Poppins, sans-serif' }}
-                        >
-                          <div className="flex items-center justify-between">
-                            <span>{list.name}</span>
-                            {list.isDefault && (
-                              <span className="text-xs text-[#282A3F] italic">Default</span>
-                            )}
-                          </div>
-                        </button>
-                        {!list.isDefault && (
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <button
-                                className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-gray-600"
-                                onClick={(e) => e.stopPropagation()}
-                              >
-                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
-                                  <circle cx="6" cy="2" r="1" fill="currentColor"/>
-                                  <circle cx="6" cy="6" r="1" fill="currentColor"/>
-                                  <circle cx="6" cy="10" r="1" fill="currentColor"/>
-                                </svg>
-                              </button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent 
-                              className="w-32" 
-                              align="end"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <DropdownMenuItem 
-                                className="py-1.5 font-medium text-red-600"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleDeleteList(list.id);
-                                }}
-                              >
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Right side - Action buttons */}
-          <div className="flex items-center gap-2">
-            <button 
-              className="flex items-center gap-2 px-4 h-8 text-white rounded-md bg-[#5567E5] hover:bg-[#4556D4] font-medium text-[14px]"
-              style={{ fontFamily: 'Poppins, sans-serif' }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-              </svg>
-              Create new product
-            </button>
-          </div>
-        </div>
-        
-        {/* Search, Views dropdown and filters row */}
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Search field */}
-            <div className="relative w-60">
-              <input
-                type="text"
-                placeholder="Search products..."
-                value={filterText}
-                onChange={(e) => setFilterText(e.target.value)}
-                className="w-full pl-3 pr-10 h-8 border border-[#E6E7F1] rounded-md text-sm"
-              />
-              <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-              </button>
-            </div>
-            
-            {/* Saved Views Dropdown - matching Partners page */}
-            <div className="relative" ref={viewsDropdownRef}>
-              <button 
-                ref={viewsButtonRef}
-                className={`flex items-center space-x-2 px-3 h-8 border border-[#E6E7F1] rounded-md text-sm font-medium bg-white ${isEditingList ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
-                onClick={() => {
-                  if (!isEditingList) {
-                    setShowViewsDropdown(!showViewsDropdown);
-                  }
-                }}
-                disabled={isEditingList}
-                style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-              >
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-600">
-                  <path d="M1 3C1 2.45 1.45 2 2 2H12C12.55 2 13 2.45 13 3V11C13 11.55 12.55 12 12 12H2C1.45 12 1 11.55 1 11V3Z" stroke="currentColor" strokeWidth="1.2" fill="none"/>
-                  <path d="M1 5H13" stroke="currentColor" strokeWidth="1.2"/>
-                </svg>
-                <span>Views ({savedViews.length})</span>
-                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
-                  <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </button>
-
-              {/* Views Dropdown */}
-              {showViewsDropdown && (
-                <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                  <div className="p-3">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="text-sm font-medium text-gray-900" style={{ fontFamily: 'Poppins, sans-serif' }}>Saved Views</h3>
-                      <button 
-                        className="text-xs text-blue-600 hover:text-blue-800"
-                        onClick={() => setShowSaveViewModal(true)}
-                        style={{ fontFamily: 'Poppins, sans-serif' }}
-                      >
-                        + New view
-                      </button>
-                    </div>
-                    
-                    <div className="max-h-48 overflow-y-auto">
-                      {savedViews.length === 0 ? (
-                        <div className="px-3 py-6 text-center">
-                          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                          </svg>
-                          <p className="mt-2 text-sm text-gray-500" style={{ fontFamily: 'Poppins, sans-serif' }}>No saved views</p>
-                          <p className="text-xs text-gray-400 mt-1" style={{ fontFamily: 'Poppins, sans-serif' }}>Create your first view to save filter combinations</p>
-                        </div>
-                      ) : (
-                        savedViews.map((view) => (
-                          <div key={view.id} className="group flex items-center justify-between py-2 px-3 rounded hover:bg-[#F5F6FA]">
-                            <button
-                              className="flex-1 text-left"
-                              onClick={() => {
-                                setActiveView(view);
-                                setFilterText(view.filters.searchText || '');
-                                setSelectedStatus(view.filters.status || 'all');
-                                setSelectedCategory(view.filters.category || 'all');
-                                setSelectedProvider(view.filters.provider || 'all');
-                                setShowViewsDropdown(false);
-                              }}
-                              style={{ fontFamily: 'Poppins, sans-serif' }}
-                            >
-                              <div className="text-sm font-medium text-gray-900">{view.name}</div>
-                              {view.description && (
-                                <div className="text-xs text-gray-500 mt-1">{view.description}</div>
-                              )}
-                            </button>
-                          </div>
-                        ))
-                      )}
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Filter buttons */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowFilterModal(!showFilterModal)}
-              className="h-8 flex items-center gap-2"
-            >
-              <Filter className="h-4 w-4" />
-              Filter
-              {(filterText || selectedStatus !== 'all' || selectedCategory !== 'all' || selectedProvider !== 'all') && (
-                <span className="ml-1 bg-blue-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                  {[filterText, selectedStatus !== 'all' ? 1 : 0, selectedCategory !== 'all' ? 1 : 0, selectedProvider !== 'all' ? 1 : 0].filter(Boolean).length}
-                </span>
-              )}
-            </Button>
-            
-            {/* Filter Dropdown */}
-            {showFilterModal && (
-              <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-[#E6E7F1] rounded-lg shadow-lg z-50 p-4">
-                <div className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label className="text-sm font-medium">Status</Label>
-                      <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                        <SelectTrigger className="h-8 mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Status</SelectItem>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="inactive">Inactive</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div>
-                      <Label className="text-sm font-medium">Category</Label>
-                      <Select value={selectedCategory} onValueChange={setSelectedCategory}>
-                        <SelectTrigger className="h-8 mt-1">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Categories</SelectItem>
-                          {Array.from(new Set(products.map(p => p.category))).map(category => (
-                            <SelectItem key={category} value={category}>{category}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label className="text-sm font-medium">Provider</Label>
-                    <Select value={selectedProvider} onValueChange={setSelectedProvider}>
-                      <SelectTrigger className="h-8 mt-1">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Providers</SelectItem>
-                        {Array.from(new Set(products.map(p => p.provider || p.providername || '').filter(Boolean))).map(provider => (
-                          <SelectItem key={provider} value={provider}>{provider}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="flex justify-between pt-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        setFilterText('');
-                        setSelectedStatus('all');
-                        setSelectedCategory('all');
-                        setSelectedProvider('all');
-                      }}
-                    >
-                      Clear all
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => setShowFilterModal(false)}
-                    >
-                      Apply filters
-                    </Button>
-                  </div>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Action buttons for views and save operations - matching Partners page logic */}
-          <div className="flex items-center gap-2">
-            {(() => {
-              // Calculate if filters have been modified from the active view
-              const filtersChanged = activeView && 
-                (filterText !== (activeView.filters.searchText || '') || 
-                 selectedStatus !== (activeView.filters.status || 'all') || 
-                 selectedCategory !== (activeView.filters.category || 'all') || 
-                 selectedProvider !== (activeView.filters.provider || 'all'));
-                 
-              // Only render buttons if there are filters applied or filters have changed
-              return (filterText || selectedStatus !== 'all' || selectedCategory !== 'all' || selectedProvider !== 'all') && (
-                <div className="flex items-center gap-2">
-                  {/* Show Revert and Save buttons only when a view is active AND filters have changed */}
-                  {filtersChanged && (
-                    <>
-                      {/* Revert changes button */}
-                      <button 
-                        className="flex items-center rounded-md px-4 h-8 text-gray-600 hover:bg-gray-100"
-                        onClick={() => {
-                          if (activeView) {
-                            // Revert to view's original filters
-                            setFilterText(activeView.filters.searchText || '');
-                            setSelectedStatus(activeView.filters.status || 'all');
-                            setSelectedCategory(activeView.filters.category || 'all');
-                            setSelectedProvider(activeView.filters.provider || 'all');
-                          }
-                        }}
-                        style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <path d="M3 7v6h6"></path>
-                          <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
-                        </svg>
-                        <span className="text-[#5F6585]">Revert changes</span>
-                      </button>
-                      
-                      {/* Save button - updates the current view */}
-                      <button 
-                        className="flex items-center rounded-md bg-[#EBEEFB] px-4 h-8 hover:bg-[#E3E6F7]"
-                        onClick={() => {
-                          if (activeView) {
-                            const updatedFilters = {
-                              searchText: filterText || undefined,
-                              status: selectedStatus !== 'all' ? selectedStatus : undefined,
-                              category: selectedCategory !== 'all' ? selectedCategory : undefined,
-                              provider: selectedProvider !== 'all' ? selectedProvider : undefined,
-                            };
-                            
-                            // Update the view (you'll need to add updateSavedViewMutation)
-                            toast({
-                              title: "View Updated",
-                              description: "Your changes have been saved to the current view"
-                            });
-                          }
-                        }}
-                        style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                          <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                          <polyline points="7 3 7 8 15 8"></polyline>
-                        </svg>
-                        <span className="text-[#3E4DC4] font-medium">Save</span>
-                      </button>
-                      
-                      {/* Save as new view button - only shown when filters have changed */}
-                      <button 
-                        className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
-                        onClick={() => setShowSaveViewModal(true)}
-                        style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                          <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                          <polyline points="7 3 7 8 15 8"></polyline>
-                        </svg>
-                        <span className="text-[#3E4DC4] font-medium">Save as new view</span>
-                      </button>
-                    </>
-                  )}
-                  
-                  {/* Show Save as new view button only when no view is active but filters are applied */}
-                  {!activeView && (
-                    <button 
-                      className="flex items-center rounded-md bg-[#EBEEFB] px-4 h-8 hover:bg-[#E3E6F7]"
-                      onClick={() => setShowSaveViewModal(true)}
-                      style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                        <polyline points="7 3 7 8 15 8"></polyline>
-                      </svg>
-                      <span className="text-[#3E4DC4] font-medium">Save as new view</span>
-                    </button>
-                  )}
-                </div>
-              );
-            })()}
-          </div>
-        </div>
-      </div>
-
-      {/* Bulk actions bar - only visible when products are selected */}
-      {selectedProducts.length > 0 && (
-        <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4 mx-4">
-          <div className="flex items-center">
-            <span className="text-indigo-700 font-medium mr-2 text-[14px]">{selectedProducts.length} products selected</span>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="text-gray-600"
-              onClick={() => setSelectedProducts([])}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M18 6 6 18"></path>
-                <path d="m6 6 12 12"></path>
-              </svg>
-              Clear selection
-            </Button>
-          </div>
-          
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="text-indigo-600"
-              onClick={() => setShowSaveListModal(true)}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                <polyline points="7 3 7 8 15 8"></polyline>
-              </svg>
-              Add to list
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="text-indigo-600"
-              onClick={() => {
-                // Export selected products
-                const selectedProductsData = displayedProducts.filter((p: Product) => selectedProducts.includes(p.id));
-                const csvContent = "data:text/csv;charset=utf-8," 
-                  + "Name,Category,Provider,Contract Start,Contract End,Premium Value,Premium %,Discount %,Status\n"
-                  + selectedProductsData.map((product: Product) => 
-                      `"${product.name}","${product.category}","${product.provider || product.providername || 'N/A'}","${product.contract_start_date || product.contractStartDate || 'N/A'}","${product.contract_end_date || product.contractEndDate || 'N/A'}","${product.premium_value || product.premiumValue || 'N/A'}","${product.premium_percentage || product.premiumPercentage || 'N/A'}","${product.discount_percentage || product.discountPercentage || 'N/A'}","${product.status || 'Active'}"`
-                    ).join("\n");
-                
-                const encodedUri = encodeURI(csvContent);
-                const link = document.createElement("a");
-                link.setAttribute("href", encodedUri);
-                link.setAttribute("download", `products_export_${new Date().toISOString().split('T')[0]}.csv`);
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
-              }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                <polyline points="7,10 12,15 17,10"></polyline>
-                <line x1="12" y1="15" x2="12" y2="3"></line>
-              </svg>
-              Export
-            </Button>
-          </div>
-        </div>
-      )}
-
-        {/* Products Content */}
-        <div>
-          <ProductsTable />
-              
-              {/* Edit Product Dialog */}
-              <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Edit Product</DialogTitle>
-                    <DialogDescription>
-                      Update the product information below.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="name" className="text-right">
-                        Name
-                      </Label>
-                      <Input
-                        id="name"
-                        value={editFormData.name || ''}
-                        onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
-                        className="col-span-3"
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="description" className="text-right">
-                        Description
-                      </Label>
-                      <Input
-                        id="description"
-                        value={editFormData.description || ''}
-                        onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
-                        className="col-span-3"
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="category" className="text-right">
-                        Category
-                      </Label>
-                      <Input
-                        id="category"
-                        value={editFormData.category || ''}
-                        onChange={(e) => setEditFormData({ ...editFormData, category: e.target.value })}
-                        className="col-span-3"
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="contractStartDate" className="text-right">
-                        Start Date
-                      </Label>
-                      <Input
-                        id="contractStartDate"
-                        type="date"
-                        value={editFormData.contractStartDate || ''}
-                        onChange={(e) => setEditFormData({ ...editFormData, contractStartDate: e.target.value })}
-                        className="col-span-3"
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="contractEndDate" className="text-right">
-                        End Date
-                      </Label>
-                      <Input
-                        id="contractEndDate"
-                        type="date"
-                        value={editFormData.contractEndDate || ''}
-                        onChange={(e) => setEditFormData({ ...editFormData, contractEndDate: e.target.value })}
-                        className="col-span-3"
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="totalValue" className="text-right">
-                        Total Value
-                      </Label>
-                      <Input
-                        id="totalValue"
-                        type="number"
-                        value={editFormData.totalValue || ''}
-                        onChange={(e) => setEditFormData({ ...editFormData, totalValue: e.target.value })}
-                        className="col-span-3"
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="premiumValue" className="text-right">
-                        Premium Value
-                      </Label>
-                      <Input
-                        id="premiumValue"
-                        type="number"
-                        value={editFormData.premiumValue || ''}
-                        onChange={(e) => setEditFormData({ ...editFormData, premiumValue: e.target.value })}
-                        className="col-span-3"
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="premiumPercentage" className="text-right">
-                        Premium %
-                      </Label>
-                      <Input
-                        id="premiumPercentage"
-                        type="number"
-                        step="0.01"
-                        value={editFormData.premiumPercentage || ''}
-                        onChange={(e) => setEditFormData({ ...editFormData, premiumPercentage: e.target.value })}
-                        className="col-span-3"
-                      />
-                    </div>
-                    <div className="grid grid-cols-4 items-center gap-4">
-                      <Label htmlFor="discountPercentage" className="text-right">
-                        Discount %
-                      </Label>
-                      <Input
-                        id="discountPercentage"
-                        type="number"
-                        step="0.01"
-                        value={editFormData.discountPercentage || ''}
-                        onChange={(e) => setEditFormData({ ...editFormData, discountPercentage: e.target.value })}
-                        className="col-span-3"
-                      />
-                    </div>
-                  </div>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button onClick={handleEditSave}>
-                      Save Changes
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-
-              {/* Delete Product Dialog */}
-              <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Delete Product</DialogTitle>
-                    <DialogDescription>
-                      Are you sure you want to delete "{productToDelete?.name}"? This action cannot be undone.
-                    </DialogDescription>
-                  </DialogHeader>
-                  <DialogFooter>
-                    <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-                      Cancel
-                    </Button>
-                    <Button variant="destructive" onClick={handleDeleteConfirm}>
-                      Delete
-                    </Button>
-                  </DialogFooter>
-                </DialogContent>
-              </Dialog>
-        </div>
-
-        {/* Edit Product Dialog */}
-        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
-          <DialogContent className="sm:max-w-lg">
-            <DialogHeader>
-              <DialogTitle>Edit Product</DialogTitle>
-              <DialogDescription>
-                Update product information and details.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-name" className="text-right">
-                  Name
-                </Label>
-                <Input
-                  id="edit-name"
-                  value={editFormData.name || ''}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-category" className="text-right">
-                  Category
-                </Label>
-                <Input
-                  id="edit-category"
-                  value={editFormData.category || ''}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, category: e.target.value }))}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-description" className="text-right">
-                  Description
-                </Label>
-                <Textarea
-                  id="edit-description"
-                  value={editFormData.description || ''}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-contract-start" className="text-right">
-                  Contract Start
-                </Label>
-                <Input
-                  id="edit-contract-start"
-                  type="date"
-                  value={editFormData.contractStartDate || ''}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, contractStartDate: e.target.value }))}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-contract-end" className="text-right">
-                  Contract End
-                </Label>
-                <Input
-                  id="edit-contract-end"
-                  type="date"
-                  value={editFormData.contractEndDate || ''}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, contractEndDate: e.target.value }))}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-total-value" className="text-right">
-                  Total Value
-                </Label>
-                <Input
-                  id="edit-total-value"
-                  type="number"
-                  value={editFormData.totalValue || ''}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, totalValue: parseFloat(e.target.value) }))}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-premium-value" className="text-right">
-                  Premium Value
-                </Label>
-                <Input
-                  id="edit-premium-value"
-                  type="number"
-                  value={editFormData.premiumValue || ''}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, premiumValue: parseFloat(e.target.value) }))}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-premium-percentage" className="text-right">
-                  Premium %
-                </Label>
-                <Input
-                  id="edit-premium-percentage"
-                  type="number"
-                  step="0.1"
-                  value={editFormData.premiumPercentage || ''}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, premiumPercentage: parseFloat(e.target.value) }))}
-                  className="col-span-3"
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-discount-percentage" className="text-right">
-                  Discount %
-                </Label>
-                <Input
-                  id="edit-discount-percentage"
-                  type="number"
-                  step="0.1"
-                  value={editFormData.discountPercentage || ''}
-                  onChange={(e) => setEditFormData(prev => ({ ...prev, discountPercentage: parseFloat(e.target.value) }))}
-                  className="col-span-3"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleEditSave}>
-                Save changes
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Delete Product Dialog */}
-        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Delete Product</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to delete "{productToDelete?.name}"? This action cannot be undone.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button variant="destructive" onClick={handleDeleteConfirm}>
-                Delete
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Add to List Modal */}
-        <Dialog 
-          open={showSaveListModal} 
-          onOpenChange={(open) => {
-            if (!open) {
-              setIsCreatingNewList(true);
-              setSelectedExistingList(null);
-            }
-            setShowSaveListModal(open);
-          }}
-        >
-          <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-[32px]">
-            <DialogHeader>
-              <DialogTitle>Add to list</DialogTitle>
-              <DialogDescription>
-                Add selected products to an existing list or create a new one.
-              </DialogDescription>
-            </DialogHeader>
-            
-            <div className="grid gap-4 py-4">
-              <div className="flex flex-col space-y-2">
-                <div className="flex items-center space-x-2">
-                  <input 
-                    type="radio" 
-                    id="option-existing" 
-                    name="list-option" 
-                    className="h-4 w-4 text-indigo-600"
-                    checked={!isCreatingNewList}
-                    onChange={() => setIsCreatingNewList(false)}
-                  />
-                  <Label htmlFor="option-existing" className="text-sm font-medium">
-                    Add to existing list
-                  </Label>
-                </div>
-                
-                {!isCreatingNewList && (
-                  <Select onValueChange={(value) => setSelectedExistingList(value)}>
-                    <SelectTrigger className="col-span-3">
-                      <SelectValue placeholder="Select a list" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {savedLists.map((list) => (
-                        <SelectItem key={list.id} value={list.id}>
-                          {list.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              </div>
-              
-              <div className="flex flex-col space-y-2">
-                <div className="flex items-center space-x-2">
-                  <input 
-                    type="radio" 
-                    id="option-new" 
-                    name="list-option" 
-                    className="h-4 w-4 text-indigo-600"
-                    checked={isCreatingNewList}
-                    onChange={() => setIsCreatingNewList(true)}
-                  />
-                  <Label htmlFor="option-new" className="text-sm font-medium">
-                    Create new list
-                  </Label>
-                </div>
-                
-                {isCreatingNewList && (
-                  <div className="space-y-2">
-                    <Input
-                      placeholder="List name"
-                      value={listNameInput}
-                      onChange={(e) => setListNameInput(e.target.value)}
-                    />
-                    <Input
-                      placeholder="Description (optional)"
-                      value={listDescriptionInput}
-                      onChange={(e) => setListDescriptionInput(e.target.value)}
-                    />
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            <DialogFooter>
-              <Button 
-                variant="outline" 
-                onClick={() => setShowSaveListModal(false)}
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleSaveToList}
-                disabled={
-                  (!isCreatingNewList && !selectedExistingList) || 
-                  (isCreatingNewList && !listNameInput.trim())
-                }
-              >
-                Add to List
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Save View Modal */}
-        <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Save as View</DialogTitle>
-              <DialogDescription>
-                Save your current filters as a reusable view.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="view-name">View Name</Label>
-                <Input
-                  id="view-name"
-                  value={viewNameInput}
-                  onChange={(e) => setViewNameInput(e.target.value)}
-                  placeholder="Enter view name"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowSaveViewModal(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleSaveView} disabled={!viewNameInput.trim()}>
-                Save View
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-      </div>
-    );
 
   return (
     <div className="flex-1">
@@ -1654,7 +677,373 @@ export default function ProductsPage() {
         </div>
       </div>
 
-      {/* Tab Content */}
+      {/* Products Content */}
       <div>
-        {activeTab === 'products' && (
-          <div> 
+        {/* Toolbar with search and filters */}
+        <div className="mx-4 py-2">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="absolute left-2 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
+                <Input
+                  placeholder="Search products..."
+                  value={filterText}
+                  onChange={(e) => setFilterText(e.target.value)}
+                  className="pl-8 h-8"
+                />
+              </div>
+              
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger className="w-32 h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="Active">Active</SelectItem>
+                  <SelectItem value="Inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+                <SelectTrigger className="w-40 h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {Array.from(new Set(products.map((p: Product) => p.category))).map(category => (
+                    <SelectItem key={category} value={category}>{category}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedProvider} onValueChange={setSelectedProvider}>
+                <SelectTrigger className="w-40 h-8">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Providers</SelectItem>
+                  {Array.from(new Set(products.map((p: Product) => p.provider || p.providername || '').filter(Boolean))).map(provider => (
+                    <SelectItem key={provider} value={provider}>{provider}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        {/* Products Table */}
+        <div className="mx-4">
+          <div className="bg-white rounded-lg border border-gray-200">
+            <table className="w-full">
+              <thead className="bg-gray-50 border-b border-gray-200">
+                <tr>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
+                    <Checkbox
+                      checked={selectedProducts.length === displayedProducts.length && displayedProducts.length > 0}
+                      onCheckedChange={handleSelectAll}
+                    />
+                  </th>
+                  <SortableTableHead
+                    label="Name"
+                    sortKey="name"
+                    currentSort={tableSortConfig}
+                    onSort={handleSort}
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  />
+                  <SortableTableHead
+                    label="Category"
+                    sortKey="category"
+                    currentSort={tableSortConfig}
+                    onSort={handleSort}
+                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                  />
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Provider</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Customers</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Partners</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Opportunities</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Value</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Premium Value</th>
+                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="bg-white divide-y divide-gray-200">
+                {displayedProducts.map((product: Product) => (
+                  <tr key={product.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-4 whitespace-nowrap w-8">
+                      <Checkbox
+                        checked={selectedProducts.includes(product.id)}
+                        onCheckedChange={() => toggleSelectProduct(product.id)}
+                      />
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                      {product.description && (
+                        <div className="text-sm text-gray-500">{product.description}</div>
+                      )}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                        {product.category}
+                      </span>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {product.provider || product.providername || '-'}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-center">
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                        {product.customerCount || product.customercount || 0}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-center">
+                      <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                        {product.partnerCount || product.partnercount || 0}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-center">
+                      <Badge variant="secondary" className="bg-green-100 text-green-800">
+                        {product.opportunityCount || product.opportunitycount || 0}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {product.total_value || product.totalvalue || '-'}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {product.premium_value || product.premiumvalue || '-'}
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap">
+                      <Badge variant={product.status === 'Active' ? 'default' : 'secondary'}>
+                        {product.status || 'Active'}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-4 whitespace-nowrap text-center">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => openEditDialog(product)}>
+                            <Edit2 className="mr-2 h-4 w-4" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openDeleteDialog(product)}>
+                            <Trash2 className="mr-2 h-4 w-4" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        {/* Bulk Actions Bar */}
+        {selectedProducts.length > 0 && (
+          <div className="mx-4 mt-4">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <span className="text-sm text-blue-700">
+                    {selectedProducts.length} product{selectedProducts.length !== 1 ? 's' : ''} selected
+                  </span>
+                  <Button variant="outline" size="sm" onClick={handleClearSelection}>
+                    Clear selection
+                  </Button>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowSaveListModal(true)}
+                  >
+                    Add to list
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={handleExport}>
+                    Export
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Edit Product Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Product</DialogTitle>
+            <DialogDescription>
+              Update the product information below.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-name" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="edit-name"
+                value={editFormData.name || ''}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-category" className="text-right">
+                Category
+              </Label>
+              <Input
+                id="edit-category"
+                value={editFormData.category || ''}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, category: e.target.value }))}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="edit-description" className="text-right">
+                Description
+              </Label>
+              <Textarea
+                id="edit-description"
+                value={editFormData.description || ''}
+                onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleEditSave}>
+              Save changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Product Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Product</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{productToDelete?.name}"? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteConfirm}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add to List Modal */}
+      <Dialog 
+        open={showSaveListModal} 
+        onOpenChange={(open) => {
+          if (!open) {
+            setIsCreatingNewList(true);
+            setSelectedExistingList(null);
+          }
+          setShowSaveListModal(open);
+        }}
+      >
+        <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-[32px]">
+          <DialogHeader>
+            <DialogTitle>Add to list</DialogTitle>
+            <DialogDescription>
+              Add selected products to an existing list or create a new one.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center space-x-2">
+                <input 
+                  type="radio" 
+                  id="option-existing" 
+                  name="list-option" 
+                  className="h-4 w-4 text-indigo-600"
+                  checked={!isCreatingNewList}
+                  onChange={() => setIsCreatingNewList(false)}
+                />
+                <Label htmlFor="option-existing" className="text-sm font-medium">
+                  Add to existing list
+                </Label>
+              </div>
+              
+              {!isCreatingNewList && (
+                <Select onValueChange={(value) => setSelectedExistingList(value)}>
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select a list" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {savedLists.map((list) => (
+                      <SelectItem key={list.id} value={list.id}>
+                        {list.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+            
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center space-x-2">
+                <input 
+                  type="radio" 
+                  id="option-new" 
+                  name="list-option" 
+                  className="h-4 w-4 text-indigo-600"
+                  checked={isCreatingNewList}
+                  onChange={() => setIsCreatingNewList(true)}
+                />
+                <Label htmlFor="option-new" className="text-sm font-medium">
+                  Create new list
+                </Label>
+              </div>
+              
+              {isCreatingNewList && (
+                <div className="grid gap-2">
+                  <Input
+                    placeholder="List name"
+                    value={listNameInput}
+                    onChange={(e) => setListNameInput(e.target.value)}
+                  />
+                  <Input
+                    placeholder="Description (optional)"
+                    value={listDescriptionInput}
+                    onChange={(e) => setListDescriptionInput(e.target.value)}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveListModal(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveToList}
+              disabled={isCreatingNewList ? !listNameInput.trim() : !selectedExistingList}
+            >
+              Add to list
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
