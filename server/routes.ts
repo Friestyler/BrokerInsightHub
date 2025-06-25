@@ -1332,22 +1332,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const partnerId = parseInt(req.params.id);
       const { content, visible_to_partner, user_id } = req.body;
       
-      const result = await db.execute(sql`
-        INSERT INTO ${sql.identifier(envId)}.activity_comments 
+      const envPool = getEnvironmentPool(envId);
+      const result = await envPool.query(`
+        INSERT INTO ${envId}.activity_comments 
         (partner_id, content, visible_to_partner, user_id)
-        VALUES (${partnerId}, ${content}, ${visible_to_partner || false}, ${user_id || 1})
+        VALUES ($1, $2, $3, $4)
         RETURNING *
-      `);
+      `, [partnerId, content, visible_to_partner || false, user_id || 1]);
       
       // Sync to linked partner if this is Mevas BV or De Goudse
       if (partnerId === 12 || partnerId === 4) {
         const syncPartnerId = partnerId === 12 ? 4 : 12;
         try {
-          await db.execute(sql`
-            INSERT INTO ${sql.identifier(envId)}.activity_comments 
+          await envPool.query(`
+            INSERT INTO ${envId}.activity_comments 
             (partner_id, content, visible_to_partner, user_id, synced_from_partner_id, is_synced)
-            VALUES (${syncPartnerId}, ${content}, ${visible_to_partner || false}, ${user_id || 1}, ${partnerId}, true)
-          `);
+            VALUES ($1, $2, $3, $4, $5, $6)
+          `, [syncPartnerId, content, visible_to_partner || false, user_id || 1, partnerId, true]);
           console.log(`Synced comment from partner ${partnerId} to partner ${syncPartnerId}`);
         } catch (syncError) {
           console.error('Error syncing comment:', syncError);
