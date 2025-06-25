@@ -1041,15 +1041,15 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                             )}
                             {isComment && (
                               <>
-                                {getUserAvatarUrl(item.user_id) ? (
+                                {getUserAvatarUrl(item.assigned_to) ? (
                                   <img 
-                                    src={getUserAvatarUrl(item.user_id)!} 
-                                    alt={getUserName(item.user_id)}
+                                    src={getUserAvatarUrl(item.assigned_to)!} 
+                                    alt={getUserName(item.assigned_to)}
                                     className="w-full h-full rounded-full object-cover"
                                   />
                                 ) : (
                                   <div className="w-full h-full rounded-full bg-blue-100 flex items-center justify-center text-xs font-medium text-blue-700">
-                                    {getUserInitials(item.user_id)}
+                                    {getUserInitials(item.assigned_to)}
                                   </div>
                                 )}
                               </>
@@ -1065,8 +1065,8 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                           <div className="flex-1 min-w-0">
                             <div className="bg-white rounded-lg p-3 border border-gray-200">
                               <div className="flex items-center justify-between mb-1">
-                                <span className="text-sm font-medium text-gray-900 capitalize">
-                                  {item.activity_type === 'comment' && item.user_id ? getUserName(item.user_id) : (item.activity_type || 'Activity')}
+                                <span className="text-sm font-medium text-gray-900">
+                                  {item.activity_type === 'comment' && item.assigned_to ? getUserName(item.assigned_to) : (item.activity_type || 'Activity')}
                                 </span>
                                 <span className="text-xs text-gray-500">
                                   {new Date(item.created_at).toLocaleString([], { 
