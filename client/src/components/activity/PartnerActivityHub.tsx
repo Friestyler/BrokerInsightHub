@@ -1015,7 +1015,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                               {(task.assigned_to || task.priority) && (
                                 <div className="flex items-center gap-2">
                                   {task.assigned_to && (
-                                    <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                                    <div className="inline-flex items-center gap-1 px-2 py-1 bg-white border border-gray-200 text-gray-700 rounded-full text-xs font-medium">
                                       <User className="h-3 w-3" />
                                       <span>{getUserName(task.assigned_to)}</span>
                                     </div>
@@ -1425,7 +1425,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                                 {isTask && (item.assigned_to || item.priority) && (
                                   <div className="flex items-center gap-2">
                                     {item.assigned_to && (
-                                      <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                                      <div className="inline-flex items-center gap-1 px-2 py-1 bg-white border border-gray-200 text-gray-700 rounded-full text-xs font-medium">
                                         <User className="h-3 w-3" />
                                         <span>{getUserName(item.assigned_to)}</span>
                                       </div>
