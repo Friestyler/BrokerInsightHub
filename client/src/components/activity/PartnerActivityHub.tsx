@@ -999,7 +999,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
               <div className="flex-1 space-y-4 max-h-64 overflow-y-auto mb-4">
                 {rawTimelineData && rawTimelineData.length > 0 ? (
                   rawTimelineData
-                    .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                    .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
                     .map((item: any, index: number) => {
                       const isTask = item.activity_type === 'task';
                       const isComment = item.activity_type === 'comment';
