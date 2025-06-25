@@ -117,15 +117,15 @@ export default function UploadProcessPage() {
   const entityType = isSpecialFormat ? undefined : uploadType;
   const formatType = isSpecialFormat ? uploadType : undefined;
   
-  // Get dynamic steps based on upload type and selected entities
-  const steps = getSteps(uploadType, selectedEntityTypes);
-  
   const [currentStep, setCurrentStep] = useState(1); // Always start at step 1
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [transformedFile, setTransformedFile] = useState<File | null>(null); // Store transformed CSV for special formats
   const [selectedEntityTypes, setSelectedEntityTypes] = useState<string[]>([]);
   const [selectedEntityType, setSelectedEntityType] = useState<string>(''); // Keep for backward compatibility
   const [entityMappings, setEntityMappings] = useState<{ [entityType: string]: any[] }>({});
+  
+  // Get dynamic steps based on upload type and selected entities
+  const steps = getSteps(uploadType, selectedEntityTypes);
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const [attributeMappings, setAttributeMappings] = useState<Array<{
