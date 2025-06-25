@@ -1295,22 +1295,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const partnerId = parseInt(req.params.id);
       const { title, description, priority, visible_to_partner, assigned_to } = req.body;
       
-      const result = await db.execute(sql`
-        INSERT INTO ${sql.identifier(envId)}.activity_tasks 
+      const envPool = getEnvironmentPool(envId);
+      const result = await envPool.query(`
+        INSERT INTO ${envId}.activity_tasks 
         (partner_id, title, description, priority, visible_to_partner, assigned_to, completed)
-        VALUES (${partnerId}, ${title}, ${description || null}, ${priority || 'medium'}, ${visible_to_partner || false}, ${assigned_to || null}, false)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
         RETURNING *
-      `);
+      `, [partnerId, title, description || null, priority || 'medium', visible_to_partner || false, assigned_to || null, false]);
       
       // Sync to linked partner if this is Mevas BV or De Goudse
       if (partnerId === 12 || partnerId === 4) {
         const syncPartnerId = partnerId === 12 ? 4 : 12;
         try {
-          await db.execute(sql`
-            INSERT INTO ${sql.identifier(envId)}.activity_tasks 
+          await envPool.query(`
+            INSERT INTO ${envId}.activity_tasks 
             (partner_id, title, description, priority, visible_to_partner, assigned_to, completed, synced_from_partner_id, is_synced)
-            VALUES (${syncPartnerId}, ${title}, ${description || null}, ${priority || 'medium'}, ${visible_to_partner || false}, ${assigned_to || null}, false, ${partnerId}, true)
-          `);
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+          `, [syncPartnerId, title, description || null, priority || 'medium', visible_to_partner || false, assigned_to || null, false, partnerId, true]);
           console.log(`Synced task from partner ${partnerId} to partner ${syncPartnerId}`);
         } catch (syncError) {
           console.error('Error syncing task:', syncError);
