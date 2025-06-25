@@ -1121,7 +1121,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                                 {item.visible_to_partner && (
                                   <div className="flex items-center gap-1">
                                     <Eye className="h-3 w-3 text-blue-500" />
-                                    <span className="text-blue-600">visible</span>
+                                    <span className="text-blue-600">shared with partner</span>
                                   </div>
                                 )}
                               </div>
