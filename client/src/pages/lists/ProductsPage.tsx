@@ -1572,16 +1572,12 @@ export default function ProductsPage() {
 
         {/* Tab Content */}
         <div>
-          {activeTab === 'products' && <ProductsTable />}
-          {activeTab === 'categories' && (
-            <div className="p-6 space-y-4">
-              <CategoryManagerForProducts />
-            </div>
-          )}
-        </div>
-
-        {/* Edit Product Dialog */}
-        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          {activeTab === 'products' && (
+            <>
+              <ProductsTable />
+              
+              {/* Edit Product Dialog */}
+              <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
               <DialogTitle>Edit Product</DialogTitle>
@@ -1747,6 +1743,14 @@ export default function ProductsPage() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+            </>
+          )}
+          {activeTab === 'categories' && (
+            <div className="p-6 space-y-4">
+              <CategoryManagerForProducts />
+            </div>
+          )}
+        </div>
       </div>
     </ListEditingContext.Provider>
   );
