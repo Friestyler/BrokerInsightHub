@@ -113,6 +113,11 @@ export default function CategoryManagerForProducts() {
   const [categoryToEdit, setCategoryToEdit] = useState<Category | null>(null);
   const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
   const [editDialogName, setEditDialogName] = useState('');
+  
+  // Subcategory dialog states
+  const [subcategoryToEdit, setSubcategoryToEdit] = useState<{ subcategory: Subcategory; categoryId: string } | null>(null);
+  const [subcategoryToDelete, setSubcategoryToDelete] = useState<{ subcategory: Subcategory; categoryId: string } | null>(null);
+  const [editSubcategoryDialogName, setEditSubcategoryDialogName] = useState('');
 
   const addCategory = () => {
     if (!newCategoryName.trim()) return;
@@ -186,6 +191,49 @@ export default function CategoryManagerForProducts() {
     deleteCategory(categoryToDelete.id);
     setDeleteDialogOpen(false);
     setCategoryToDelete(null);
+  };
+
+  // Subcategory dialog handlers
+  const openEditSubcategoryDialog = (subcategory: Subcategory, categoryId: string) => {
+    setSubcategoryToEdit({ subcategory, categoryId });
+    setEditSubcategoryDialogName(subcategory.name);
+    setEditDialogOpen(true);
+  };
+
+  const openDeleteSubcategoryDialog = (subcategory: Subcategory, categoryId: string) => {
+    setSubcategoryToDelete({ subcategory, categoryId });
+    setDeleteDialogOpen(true);
+  };
+
+  const handleEditSubcategoryDialogSave = () => {
+    if (!editSubcategoryDialogName.trim() || !subcategoryToEdit) return;
+    
+    setCategories(categories.map(cat => {
+      if (cat.id === subcategoryToEdit.categoryId) {
+        const updateSubcategories = (subs: Subcategory[]): Subcategory[] => {
+          return subs.map(sub => {
+            if (sub.id === subcategoryToEdit.subcategory.id) {
+              return { ...sub, name: editSubcategoryDialogName };
+            }
+            return { ...sub, subcategories: updateSubcategories(sub.subcategories || []) };
+          });
+        };
+        return { ...cat, subcategories: updateSubcategories(cat.subcategories) };
+      }
+      return cat;
+    }));
+    
+    setEditDialogOpen(false);
+    setSubcategoryToEdit(null);
+    setEditSubcategoryDialogName('');
+  };
+
+  const handleDeleteSubcategoryDialogConfirm = () => {
+    if (!subcategoryToDelete) return;
+    
+    deleteSubcategory(subcategoryToDelete.categoryId, subcategoryToDelete.subcategory.id);
+    setDeleteDialogOpen(false);
+    setSubcategoryToDelete(null);
   };
 
   const toggleSubcategoryExpansion = (subcategoryId: string) => {
@@ -316,16 +364,30 @@ export default function CategoryManagerForProducts() {
               </Badge>
             )}
           </div>
-          <div className="flex gap-1">
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={() => deleteSubcategory(categoryId, subcategory.id)}
-              className="h-6 w-6 p-0 hover:bg-red-100"
-            >
-              <X className="h-3 w-3 text-red-600" />
-            </Button>
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="sm"
+                variant="ghost"
+                className="h-6 w-6 p-0"
+              >
+                <MoreVertical className="h-3 w-3" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem onClick={() => openEditSubcategoryDialog(subcategory, categoryId)}>
+                <Edit2 className="h-3 w-3 mr-2" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuItem 
+                onClick={() => openDeleteSubcategoryDialog(subcategory, categoryId)}
+                className="text-red-600 focus:text-red-600"
+              >
+                <Trash2 className="h-3 w-3 mr-2" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Show Add Subcategory Button */}
@@ -587,48 +649,64 @@ export default function CategoryManagerForProducts() {
         </div>
       )}
 
-      {/* Edit Category Dialog */}
+      {/* Edit Dialog - Works for both categories and subcategories */}
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Category</DialogTitle>
+            <DialogTitle>
+              {categoryToEdit ? 'Edit Category' : 'Edit Subcategory'}
+            </DialogTitle>
             <DialogDescription>
-              Update the category name below.
+              Update the {categoryToEdit ? 'category' : 'subcategory'} name below.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
             <Input
-              value={editDialogName}
-              onChange={(e) => setEditDialogName(e.target.value)}
-              placeholder="Category name"
-              onKeyPress={(e) => e.key === 'Enter' && handleEditDialogSave()}
+              value={categoryToEdit ? editDialogName : editSubcategoryDialogName}
+              onChange={(e) => categoryToEdit ? setEditDialogName(e.target.value) : setEditSubcategoryDialogName(e.target.value)}
+              placeholder={`${categoryToEdit ? 'Category' : 'Subcategory'} name`}
+              onKeyPress={(e) => e.key === 'Enter' && (categoryToEdit ? handleEditDialogSave() : handleEditSubcategoryDialogSave())}
             />
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+            <Button variant="outline" onClick={() => {
+              setEditDialogOpen(false);
+              setCategoryToEdit(null);
+              setSubcategoryToEdit(null);
+              setEditDialogName('');
+              setEditSubcategoryDialogName('');
+            }}>
               Cancel
             </Button>
-            <Button onClick={handleEditDialogSave}>
+            <Button onClick={categoryToEdit ? handleEditDialogSave : handleEditSubcategoryDialogSave}>
               Save changes
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Delete Category Dialog */}
+      {/* Delete Dialog - Works for both categories and subcategories */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Delete Category</DialogTitle>
+            <DialogTitle>
+              {categoryToDelete ? 'Delete Category' : 'Delete Subcategory'}
+            </DialogTitle>
             <DialogDescription>
-              Are you sure you want to delete "{categoryToDelete?.name}"? This action cannot be undone and will also remove all subcategories.
+              Are you sure you want to delete "{categoryToDelete?.name || subcategoryToDelete?.subcategory.name}"? 
+              {categoryToDelete && ' This action cannot be undone and will also remove all subcategories.'}
+              {subcategoryToDelete && ' This action cannot be undone.'}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+            <Button variant="outline" onClick={() => {
+              setDeleteDialogOpen(false);
+              setCategoryToDelete(null);
+              setSubcategoryToDelete(null);
+            }}>
               Cancel
             </Button>
-            <Button variant="destructive" onClick={handleDeleteDialogConfirm}>
+            <Button variant="destructive" onClick={categoryToDelete ? handleDeleteDialogConfirm : handleDeleteSubcategoryDialogConfirm}>
               Delete
             </Button>
           </DialogFooter>
