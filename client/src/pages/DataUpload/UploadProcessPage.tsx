@@ -71,13 +71,12 @@ const getSteps = (uploadType: string, selectedEntityTypes: string[] = []) => {
       steps.push({ id: stepId++, name: 'Product Mapping', description: 'Map products to categories' });
     }
     
-    // Add mapping steps for each selected entity type
-    selectedEntityTypes.forEach(entityType => {
+    // Add mapping steps for each selected entity type (excluding products which has its own special step)
+    selectedEntityTypes.filter(entityType => entityType !== 'products').forEach(entityType => {
       const entityLabels: Record<string, string> = {
         'opportunities': 'Opportunity',
         'partners': 'Partner', 
         'customers': 'Customer',
-        'products': 'Product',
         'vendors': 'Vendor',
         'contacts': 'Contact'
       };
@@ -176,8 +175,8 @@ export default function UploadProcessPage() {
       stepCounter++;
     }
     
-    // Find which entity mapping step we're on
-    for (const entityType of selectedEntityTypes) {
+    // Find which entity mapping step we're on (excluding products which has its own special step)
+    for (const entityType of selectedEntityTypes.filter(type => type !== 'products')) {
       if (currentStep === stepCounter) {
         return entityType;
       }
@@ -208,8 +207,8 @@ export default function UploadProcessPage() {
       stepCounter++;
     }
     
-    // Skip entity mapping steps
-    stepCounter += selectedEntityTypes.length;
+    // Skip entity mapping steps (excluding products which has its own special step)
+    stepCounter += selectedEntityTypes.filter(entityType => entityType !== 'products').length;
     
     return currentStep === stepCounter;
   };
@@ -225,8 +224,8 @@ export default function UploadProcessPage() {
       stepCounter++;
     }
     
-    // Skip entity mapping steps
-    stepCounter += selectedEntityTypes.length;
+    // Skip entity mapping steps (excluding products which has its own special step)
+    stepCounter += selectedEntityTypes.filter(entityType => entityType !== 'products').length;
     
     // Skip processing step
     stepCounter++;
