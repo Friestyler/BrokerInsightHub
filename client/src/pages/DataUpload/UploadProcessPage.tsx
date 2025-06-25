@@ -123,6 +123,9 @@ export default function UploadProcessPage() {
   const [selectedEntityType, setSelectedEntityType] = useState<string>(''); // Keep for backward compatibility
   const [entityMappings, setEntityMappings] = useState<{ [entityType: string]: any[] }>({});
   const [productStructureSelected, setProductStructureSelected] = useState(false);
+  const [productStructureType, setProductStructureType] = useState<'single-column' | 'multiple-columns' | ''>('');
+  const [selectedProductColumn, setSelectedProductColumn] = useState<string>('');
+  const [selectedProductColumns, setSelectedProductColumns] = useState<string[]>([]);
   
   // Get dynamic steps based on upload type and selected entities
   const steps = getSteps(uploadType, selectedEntityTypes);
@@ -665,6 +668,11 @@ export default function UploadProcessPage() {
                   categories={productCategories}
                   uploadedFile={uploadedFile}
                   onStructureSelected={setProductStructureSelected}
+                  onStructureChange={(type, column, columns) => {
+                    setProductStructureType(type);
+                    setSelectedProductColumn(column || '');
+                    setSelectedProductColumns(columns || []);
+                  }}
                 />
               </div>
               
@@ -687,6 +695,9 @@ export default function UploadProcessPage() {
                           currentStep={currentStep}
                           selectedTransformationScript={selectedTransformationScript}
                           selectedEntityType="products"
+                          productStructureType={productStructureType}
+                          selectedProductColumn={selectedProductColumn}
+                          selectedProductColumns={selectedProductColumns}
                           onNext={(mappings) => {
                             setEntityMappings(prev => ({ ...prev, products: mappings }));
                             // Don't auto-advance, let the parent component handle navigation

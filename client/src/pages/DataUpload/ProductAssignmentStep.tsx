@@ -93,7 +93,8 @@ export default function ProductAssignmentStep({
   onBack, 
   categories,
   uploadedFile,
-  onStructureSelected 
+  onStructureSelected,
+  onStructureChange
 }: ProductAssignmentStepProps) {
   const { data: dbProducts = [], isLoading: productsLoading } = useDetectedProducts();
   const { data: dbCategories = [], isLoading: categoriesLoading } = useProductCategories();
@@ -236,6 +237,11 @@ export default function ProductAssignmentStep({
     setDetectedProducts([]);
     setShowProductTable(false);
     
+    // Notify parent component about structure change
+    if (onStructureChange) {
+      onStructureChange(value, '', []);
+    }
+    
     // Notify parent component when structure AND columns are ready
     if (onStructureSelected) {
       // Don't notify yet, wait for column selection
@@ -268,7 +274,10 @@ export default function ProductAssignmentStep({
     if (onStructureSelected) {
       onStructureSelected(isStructureAndColumnsReady());
     }
-  }, [productStructure, selectedProductColumn, selectedProductColumns, onStructureSelected]);
+    if (onStructureChange) {
+      onStructureChange(productStructure, selectedProductColumn, selectedProductColumns);
+    }
+  }, [productStructure, selectedProductColumn, selectedProductColumns, onStructureSelected, onStructureChange]);
 
   // Auto-detect existing products based on SKU matching
   const detectExistingProducts = () => {
