@@ -220,10 +220,10 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="bg-white border border-gray-200 rounded-xl shadow-lg">
-                  <SelectItem value="low">🟢 Low</SelectItem>
-                  <SelectItem value="medium">🟡 Medium</SelectItem>
-                  <SelectItem value="high">🟠 High</SelectItem>
-                  <SelectItem value="urgent">🔴 Urgent</SelectItem>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="urgent">Urgent</SelectItem>
                 </SelectContent>
               </Select>
 
