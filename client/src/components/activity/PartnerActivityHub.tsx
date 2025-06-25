@@ -15,6 +15,41 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useToast } from '@/hooks/use-toast';
 import userAvatar from "@/assets/user-avatar.png";
 
+// ActivityReactions component for displaying emoji reactions
+interface ActivityReactionsProps {
+  activityType: string;
+  activityId: number;
+  onReactionClick: (emoji: string) => void;
+}
+
+const ActivityReactions = ({ activityType, activityId, onReactionClick }: ActivityReactionsProps) => {
+  const { data: reactions } = useQuery({
+    queryKey: [`/api/degoudse/activity-reactions/${activityType}/${activityId}`],
+    staleTime: 30000, // 30 seconds
+  });
+
+  // Handle cases where reactions is undefined or not an array
+  if (!reactions || !Array.isArray(reactions) || reactions.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="flex items-center gap-2 mt-2">
+      {reactions.map((reaction: any) => (
+        <button
+          key={reaction.emoji}
+          onClick={() => onReactionClick(reaction.emoji)}
+          className="flex items-center gap-1 px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors text-xs"
+          title={`${reaction.user_names?.join(', ') || 'Users'} reacted with ${reaction.emoji}`}
+        >
+          <span>{reaction.emoji}</span>
+          <span className="text-gray-600">{reaction.count}</span>
+        </button>
+      ))}
+    </div>
+  );
+};
+
 interface PartnerActivityHubProps {
   partnerId: number;
   partnerName: string;
@@ -439,6 +474,41 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
     queryKey: [`/api/${currentEnv}/partners/${partnerId}/next-actions`],
     enabled: selectedActivityType === 'actions'
   });
+
+  // Reaction toggle mutation
+  const reactionMutation = useMutation({
+    mutationFn: async ({ activityType, activityId, emoji }: { activityType: string; activityId: number; emoji: string }) => {
+      const response = await fetch(`/api/${currentEnv}/activity-reactions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          activityType,
+          activityId,
+          userId: 1, // Current user ID
+          emoji
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to toggle reaction');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate queries to refresh reactions
+      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/activity-reactions`] });
+    },
+    onError: (error) => {
+      console.error('Error toggling reaction:', error);
+      toast({ title: 'Failed to update reaction', variant: 'destructive' });
+    }
+  });
+
+  // Handle reaction toggle
+  const handleReactionToggle = (activityType: string, activityId: number, emoji: string) => {
+    reactionMutation.mutate({ activityType, activityId, emoji });
+  };
 
   // Create activity mutation
   const createActivityMutation = useMutation({
@@ -1136,17 +1206,26 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                               <div className="absolute -top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20">
                                 <div className="bg-white border border-gray-200 rounded-full shadow-lg px-2 py-1 flex items-center gap-1">
                                   {/* Checkmark Emoji */}
-                                  <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors duration-150">
+                                  <button 
+                                    onClick={() => handleReactionToggle(item.activity_type, item.id, '✅')}
+                                    className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors duration-150"
+                                  >
                                     <span className="text-lg">✅</span>
                                   </button>
                                   
                                   {/* Thumbs Up Emoji */}
-                                  <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors duration-150">
+                                  <button 
+                                    onClick={() => handleReactionToggle(item.activity_type, item.id, '👍')}
+                                    className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors duration-150"
+                                  >
                                     <span className="text-lg">👍</span>
                                   </button>
                                   
                                   {/* Important/Priority Emoji */}
-                                  <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors duration-150">
+                                  <button 
+                                    onClick={() => handleReactionToggle(item.activity_type, item.id, '⭐')}
+                                    className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors duration-150"
+                                  >
                                     <span className="text-lg">⭐</span>
                                   </button>
                                   
@@ -1160,6 +1239,15 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                                     <Bookmark className="h-4 w-4 text-gray-600" />
                                   </button>
                                 </div>
+                              </div>
+                              
+                              {/* Reactions Display */}
+                              <div className="mt-2">
+                                <ActivityReactions 
+                                  activityType={item.activity_type}
+                                  activityId={item.id}
+                                  onReactionClick={(emoji: string) => handleReactionToggle(item.activity_type, item.id, emoji)}
+                                />
                               </div>
                             </div>
                           </div>

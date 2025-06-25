@@ -9295,6 +9295,93 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
     }
   });
 
+  // ===== ACTIVITY REACTIONS API =====
+
+  // Get reactions for an activity item
+  app.get('/api/:envId/activity-reactions/:activityType/:activityId', async (req, res) => {
+    try {
+      const { envId, activityType, activityId } = req.params;
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        SELECT 
+          ar.emoji,
+          COUNT(*) as count,
+          ARRAY_AGG(u.name) as user_names,
+          ARRAY_AGG(ar.user_id) as user_ids
+        FROM activity_reactions ar
+        JOIN users u ON ar.user_id = u.id
+        WHERE ar.activity_type = $1 AND ar.activity_id = $2
+        GROUP BY ar.emoji
+        ORDER BY count DESC
+      `, [activityType, parseInt(activityId)]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching activity reactions:', error);
+      res.status(500).json({ error: 'Failed to fetch reactions' });
+    }
+  });
+
+  // Toggle reaction for an activity item
+  app.post('/api/:envId/activity-reactions', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const { activityType, activityId, userId, emoji } = req.body;
+      
+      if (!activityType || !activityId || !userId || !emoji) {
+        return res.status(400).json({ error: 'Missing required fields' });
+      }
+      
+      const envPool = pool;
+      
+      // Check if user already reacted with this emoji
+      const existingReaction = await envPool.query(`
+        SELECT id FROM activity_reactions 
+        WHERE activity_type = $1 AND activity_id = $2 AND user_id = $3 AND emoji = $4
+      `, [activityType, activityId, userId, emoji]);
+      
+      if (existingReaction.rows.length > 0) {
+        // Remove existing reaction
+        await envPool.query(`
+          DELETE FROM activity_reactions 
+          WHERE activity_type = $1 AND activity_id = $2 AND user_id = $3 AND emoji = $4
+        `, [activityType, activityId, userId, emoji]);
+        
+        res.json({ action: 'removed', emoji });
+      } else {
+        // Add new reaction
+        await envPool.query(`
+          INSERT INTO activity_reactions (activity_type, activity_id, user_id, emoji, created_at)
+          VALUES ($1, $2, $3, $4, NOW())
+        `, [activityType, activityId, userId, emoji]);
+        
+        res.json({ action: 'added', emoji });
+      }
+    } catch (error) {
+      console.error('Error toggling activity reaction:', error);
+      res.status(500).json({ error: 'Failed to toggle reaction' });
+    }
+  });
+
+  // Get current user's reactions for an activity item
+  app.get('/api/:envId/activity-reactions/:activityType/:activityId/user/:userId', async (req, res) => {
+    try {
+      const { envId, activityType, activityId, userId } = req.params;
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        SELECT emoji FROM activity_reactions 
+        WHERE activity_type = $1 AND activity_id = $2 AND user_id = $3
+      `, [activityType, parseInt(activityId), parseInt(userId)]);
+      
+      res.json(result.rows.map(row => row.emoji));
+    } catch (error) {
+      console.error('Error fetching user reactions:', error);
+      res.status(500).json({ error: 'Failed to fetch user reactions' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
