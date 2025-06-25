@@ -1216,6 +1216,7 @@ function ProductsTable() {
     )
   }
 
+  // Main ProductsTable component
   function ProductsTable() {
     // Fetch products from database
     const { data: products = [], isLoading, error } = useProductsData();
@@ -1705,98 +1706,7 @@ function ProductsTable() {
         </DialogContent>
       </Dialog>
 
-      {/* Duplicate Add to List Modal - removing this */}
-        <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-[32px]">
-          <DialogHeader>
-            <DialogTitle>Add to list</DialogTitle>
-            <DialogDescription>
-              Add selected products to an existing list or create a new one.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="flex flex-col space-y-2">
-              <div className="flex items-center space-x-2">
-                <input 
-                  type="radio" 
-                  id="option-existing" 
-                  name="list-option" 
-                  className="h-4 w-4 text-indigo-600"
-                  checked={!isCreatingNewList}
-                  onChange={() => setIsCreatingNewList(false)}
-                />
-                <Label htmlFor="option-existing" className="text-sm font-medium">
-                  Add to existing list
-                </Label>
-              </div>
-              
-              {!isCreatingNewList && (
-                <Select onValueChange={(value) => setSelectedExistingList(value)}>
-                  <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select a list" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {savedLists.map((list) => (
-                      <SelectItem key={list.id} value={list.id}>
-                        {list.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            </div>
-            
-            <div className="flex flex-col space-y-2">
-              <div className="flex items-center space-x-2">
-                <input 
-                  type="radio" 
-                  id="option-new" 
-                  name="list-option" 
-                  className="h-4 w-4 text-indigo-600"
-                  checked={isCreatingNewList}
-                  onChange={() => setIsCreatingNewList(true)}
-                />
-                <Label htmlFor="option-new" className="text-sm font-medium">
-                  Create new list
-                </Label>
-              </div>
-              
-              {isCreatingNewList && (
-                <div className="space-y-2">
-                  <Input
-                    placeholder="List name"
-                    value={listNameInput}
-                    onChange={(e) => setListNameInput(e.target.value)}
-                  />
-                  <Input
-                    placeholder="Description (optional)"
-                    value={listDescriptionInput}
-                    onChange={(e) => setListDescriptionInput(e.target.value)}
-                  />
-                </div>
-              )}
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button 
-              variant="outline" 
-              onClick={() => setShowSaveListModal(false)}
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSaveToList}
-              disabled={
-                (!isCreatingNewList && !selectedExistingList) || 
-                (isCreatingNewList && !listNameInput.trim())
-              }
-            >
-              Add to List
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+
 
       {/* Save View Modal */}
       <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
@@ -1831,6 +1741,8 @@ function ProductsTable() {
     </div>
   );
 }
+
+export default ProductsPage;
 
 export default function ProductsPage() {
   const [activeTab, setActiveTab] = useState<'products' | 'categories'>('products');
