@@ -1018,9 +1018,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                               <CheckSquare className="h-4 w-4 text-green-600" />
                             )}
                             {isComment && (
-                              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-600" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M2 12h4l3-8 4 16 3-8h4"></path>
-                              </svg>
+                              <MessageSquare className="h-4 w-4 text-blue-600" />
                             )}
                             {isAttachment && (
                               <Paperclip className="h-4 w-4 text-purple-600" />
