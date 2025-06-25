@@ -197,6 +197,72 @@ function ProductsTable() {
   
   // Dropdown state for filters
   const [showFilterModal, setShowFilterModal] = useState(false);
+
+  // Saved lists and views functionality
+  const { data: savedListsData = [], isLoading: savedListsLoading } = useSavedLists();
+  const { data: savedViewsData = [], isLoading: savedViewsLoading } = useSavedViews();
+  const createSavedListMutation = useCreateSavedList();
+  const updateSavedListMutation = useUpdateSavedList();
+  const deleteSavedListMutation = useDeleteSavedList();
+  const createSavedViewMutation = useCreateSavedView();
+  const { toast } = useToast();
+
+  // Filter saved lists to only show product-related lists
+  const productSavedListsData = savedListsData.filter((list: any) => 
+    list.entity_type === 'products'
+  );
+
+  // Convert database records to local interface format
+  const savedLists: SavedList[] = [
+    // Default "All Products" list
+    {
+      id: 'all-products',
+      name: 'All Products',
+      type: 'filter',
+      filters: { },
+      isShared: false,
+      createdBy: 'System',
+      createdAt: new Date('2025-01-01'),
+      isDefault: true
+    },
+    // Add filtered database records (only product lists)
+    ...productSavedListsData.map((list: any) => ({
+      id: list.id.toString(),
+      name: list.name,
+      description: list.description,
+      type: list.type as 'filter' | 'selection',
+      filters: list.filters || {},
+      members: list.members || [],
+      isShared: list.is_shared,
+      createdBy: list.created_by,
+      createdAt: new Date(list.created_at),
+      isDefault: list.is_default
+    }))
+  ];
+
+  const savedViews: SavedView[] = savedViewsData.map((view: any) => ({
+    id: view.id.toString(),
+    name: view.name,
+    description: view.description,
+    filters: view.filters || {},
+    createdBy: view.created_by,
+    createdAt: new Date(view.created_at)
+  }));
+
+  const [activeList, setActiveList] = useState<SavedList | null>(null);
+  const [originalListFilters, setOriginalListFilters] = useState<SavedList['filters'] | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showSaveListModal, setShowSaveListModal] = useState(false);
+  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
+  const [showListsDropdown, setShowListsDropdown] = useState(false);
+  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
+  
+  // Form states for creating lists/views
+  const [newListName, setNewListName] = useState('');
+  const [newListDescription, setNewListDescription] = useState('');
+  const [newListType, setNewListType] = useState<'filter' | 'selection'>('filter');
+  const [newViewName, setNewViewName] = useState('');
+  const [newViewDescription, setNewViewDescription] = useState('');
   
   // Sorting state
   const [tableSortConfig, setTableSortConfig] = useState({
@@ -214,13 +280,6 @@ function ProductsTable() {
   
   // Use the shared context for list editing state
   const { isEditingList, setIsEditingList } = useListEditing();
-
-  // Lists and views
-  const { data: savedLists = [] } = useSavedLists();
-  const { data: savedViews = [] } = useSavedViews();
-  
-  const [activeList, setActiveList] = useState<SavedList | null>(null);
-  const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
   
   // Filter products based on search and filters
   const filteredProducts = products.filter((product: Product) => {
@@ -276,10 +335,284 @@ function ProductsTable() {
     );
   }
 
+  // Handle list selection and changes
+  const handleListSelect = (list: SavedList | null) => {
+    if (hasUnsavedChanges && originalListFilters) {
+      // Reset to original filters if there are unsaved changes
+      if (originalListFilters.searchText !== undefined) setFilterText(originalListFilters.searchText);
+      if (originalListFilters.status !== undefined) setSelectedStatus(originalListFilters.status);
+      if (originalListFilters.category !== undefined) setSelectedCategory(originalListFilters.category);
+      if (originalListFilters.provider !== undefined) setSelectedProvider(originalListFilters.provider);
+    }
+    
+    setActiveList(list);
+    setHasUnsavedChanges(false);
+    setOriginalListFilters(null);
+    
+    if (list && list.filters) {
+      // Store original filters for comparison
+      setOriginalListFilters(list.filters);
+      
+      // Apply the list's filters
+      setFilterText(list.filters.searchText || '');
+      setSelectedStatus(list.filters.status || 'all');
+      setSelectedCategory(list.filters.category || 'all');
+      setSelectedProvider(list.filters.provider || 'all');
+    } else {
+      // Reset all filters for "All Products"
+      setFilterText('');
+      setSelectedStatus('all');
+      setSelectedCategory('all');
+      setSelectedProvider('all');
+    }
+    
+    setShowListsDropdown(false);
+  };
+
+  const handleSaveList = async () => {
+    if (!newListName.trim()) return;
+    
+    const listData = {
+      name: newListName,
+      description: newListDescription,
+      entity_type: 'products',
+      type: newListType,
+      filters: {
+        searchText: filterText,
+        status: selectedStatus !== 'all' ? selectedStatus : undefined,
+        category: selectedCategory !== 'all' ? selectedCategory : undefined,
+        provider: selectedProvider !== 'all' ? selectedProvider : undefined,
+      },
+      members: newListType === 'selection' ? selectedProducts : undefined,
+      is_shared: false,
+      created_by: 'Current User'
+    };
+    
+    try {
+      await createSavedListMutation.mutateAsync(listData);
+      toast({
+        title: "Success",
+        description: "List saved successfully",
+      });
+      setShowSaveListModal(false);
+      setNewListName('');
+      setNewListDescription('');
+      setNewListType('filter');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save list",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleSaveView = async () => {
+    if (!newViewName.trim()) return;
+    
+    const viewData = {
+      name: newViewName,
+      description: newViewDescription,
+      entity_type: 'products',
+      filters: {
+        searchText: filterText,
+        status: selectedStatus !== 'all' ? selectedStatus : undefined,
+        category: selectedCategory !== 'all' ? selectedCategory : undefined,
+        provider: selectedProvider !== 'all' ? selectedProvider : undefined,
+      },
+      created_by: 'Current User'
+    };
+    
+    try {
+      await createSavedViewMutation.mutateAsync(viewData);
+      toast({
+        title: "Success",
+        description: "View saved successfully",
+      });
+      setShowSaveViewModal(false);
+      setNewViewName('');
+      setNewViewDescription('');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save view",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDeleteList = async (listId: string) => {
+    if (listId === 'all-products') return; // Can't delete default list
+    
+    try {
+      await deleteSavedListMutation.mutateAsync(parseInt(listId));
+      toast({
+        title: "Success",
+        description: "List deleted successfully",
+      });
+      if (activeList?.id === listId) {
+        setActiveList(null);
+      }
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete list",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="space-y-1">
+      {/* Unified toolbar with saved lists */}
+      <div className="bg-white p-2 rounded-lg mx-4">
+        <div className="flex flex-col gap-4">
+          {/* Top row with saved lists and action buttons */}
+          <div className="flex flex-wrap items-center justify-between">
+            {/* Left side - Saved Lists with actions */}
+            <div className="flex items-center gap-3">
+              {/* Lists heading */}
+              <div className="flex items-center mr-2">
+                <span className="text-base font-semibold text-gray-800">Product Lists</span>
+              </div>
+              {/* Saved Lists dropdown */}
+              <div className="relative">
+                <button 
+                  className="flex items-center space-x-2 px-4 py-2.5 border border-[#E6E7F1] rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
+                  onClick={() => setShowListsDropdown(!showListsDropdown)}
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
+                    <path d="M2 3.5H12M2 7H12M2 10.5H12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                  </svg>
+                  <span>{activeList ? activeList.name : 'All Products'}</span>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
+                    <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+
+                {/* Lists Dropdown */}
+                {showListsDropdown && (
+                  <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                    <div className="p-2">
+                      {savedLists.map((list) => (
+                        <div key={list.id} className="flex items-center justify-between group">
+                          <button
+                            className={`flex-1 text-left px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
+                              (activeList?.id === list.id || (!activeList && list.id === 'all-products')) 
+                                ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
+                                : 'text-gray-700'
+                            }`}
+                            onClick={() => handleListSelect(list)}
+                          >
+                            <div className="flex items-center space-x-2">
+                              <span>{list.name}</span>
+                              {list.isShared && (
+                                <svg width="12" height="12" viewBox="0 0 12 12" fill="none" className="text-blue-500">
+                                  <path d="M8 3V2C8 1.45 7.55 1 7 1H2C1.45 1 1 1.45 1 2V7C1 7.55 1.45 8 2 8H3M5 4H10C10.55 4 11 4.45 11 5V10C11 10.55 10.55 11 10 11H5C4.45 11 4 10.55 4 10V5C4 4.45 4.45 4 5 4Z" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round"/>
+                                </svg>
+                              )}
+                            </div>
+                          </button>
+                          {!list.isDefault && (
+                            <button
+                              className="opacity-0 group-hover:opacity-100 p-1 text-gray-400 hover:text-red-600"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteList(list.id);
+                              }}
+                            >
+                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+                                <path d="M3 3L9 9M9 3L3 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+                              </svg>
+                            </button>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Views dropdown */}
+              <div className="relative">
+                <button 
+                  className="flex items-center space-x-2 px-4 py-2.5 border border-[#E6E7F1] rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
+                  onClick={() => setShowViewsDropdown(!showViewsDropdown)}
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-600">
+                    <path d="M1 3C1 2.45 1.45 2 2 2H12C12.55 2 13 2.45 13 3V11C13 11.55 12.55 12 12 12H2C1.45 12 1 11.55 1 11V3Z" stroke="currentColor" strokeWidth="1.2" fill="none"/>
+                    <path d="M1 5H13" stroke="currentColor" strokeWidth="1.2"/>
+                  </svg>
+                  <span>Views ({savedViews.length})</span>
+                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
+                    <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </button>
+
+                {/* Views Dropdown */}
+                {showViewsDropdown && (
+                  <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                    <div className="p-2">
+                      {savedViews.length === 0 ? (
+                        <div className="px-3 py-2 text-sm text-gray-500">No saved views</div>
+                      ) : (
+                        savedViews.map((view) => (
+                          <button
+                            key={view.id}
+                            className="w-full text-left px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] text-gray-700"
+                            onClick={() => {
+                              // Apply view filters
+                              setFilterText(view.filters.searchText || '');
+                              setSelectedStatus(view.filters.status || 'all');
+                              setSelectedCategory(view.filters.category || 'all');
+                              setSelectedProvider(view.filters.provider || 'all');
+                              setShowViewsDropdown(false);
+                            }}
+                          >
+                            <div className="flex items-center space-x-2">
+                              <span>{view.name}</span>
+                            </div>
+                          </button>
+                        ))
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Save current filters as list/view */}
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={() => setShowSaveListModal(true)}
+                >
+                  Save as List
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="h-8 text-xs"
+                  onClick={() => setShowSaveViewModal(true)}
+                >
+                  Save as View
+                </Button>
+              </div>
+            </div>
+
+            {/* Right side - Action buttons */}
+            <div className="flex items-center gap-2">
+              <Button size="sm" className="h-8">
+                Create new product
+              </Button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Toolbar Section */}
-      <div className="flex items-center justify-between px-4 py-2">
+      <div className="flex items-center justify-between mx-4 py-2">
         <div className="flex items-center gap-4">
           {/* Search field */}
           <div className="relative w-60">
@@ -401,13 +734,7 @@ function ProductsTable() {
           </div>
         </div>
 
-        {/* Right-side action buttons */}
-        <div className="flex items-center gap-2">
-          <Button size="sm" className="h-8">
-            Create new product
-          </Button>
-        </div>
-      </div>
+
 
       {/* Table section */}
       <div className="bg-white overflow-x-auto rounded-lg mx-4">
@@ -585,6 +912,100 @@ function ProductsTable() {
           </tbody>
         </table>
       </div>
+
+      {/* Save List Modal */}
+      <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Save as List</DialogTitle>
+            <DialogDescription>
+              Save your current filters and selection as a reusable list.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="list-name">List Name</Label>
+              <Input
+                id="list-name"
+                value={newListName}
+                onChange={(e) => setNewListName(e.target.value)}
+                placeholder="Enter list name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="list-description">Description (optional)</Label>
+              <Textarea
+                id="list-description"
+                value={newListDescription}
+                onChange={(e) => setNewListDescription(e.target.value)}
+                placeholder="Enter description"
+                rows={3}
+              />
+            </div>
+            <div>
+              <Label htmlFor="list-type">List Type</Label>
+              <Select value={newListType} onValueChange={(value: 'filter' | 'selection') => setNewListType(value)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="filter">Filter-based</SelectItem>
+                  <SelectItem value="selection">Selection-based</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveListModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveList} disabled={!newListName.trim()}>
+              Save List
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Save View Modal */}
+      <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Save as View</DialogTitle>
+            <DialogDescription>
+              Save your current filters as a reusable view.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="view-name">View Name</Label>
+              <Input
+                id="view-name"
+                value={newViewName}
+                onChange={(e) => setNewViewName(e.target.value)}
+                placeholder="Enter view name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="view-description">Description (optional)</Label>
+              <Textarea
+                id="view-description"
+                value={newViewDescription}
+                onChange={(e) => setNewViewDescription(e.target.value)}
+                placeholder="Enter description"
+                rows={3}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveViewModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveView} disabled={!newViewName.trim()}>
+              Save View
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
