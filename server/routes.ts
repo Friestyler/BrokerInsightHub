@@ -4307,13 +4307,13 @@ Keep the tone clear and professional. Focus on what will help the account manage
       const partnerId = opportunityResult.rows[0].partner_id;
       const finalContent = content.trim();
       
-      // Insert comment using the correct partner_id
+      // Insert comment using the correct partner_id and entity linking
       const result = await envPool.query(`
         INSERT INTO degoudse.activity_comments 
-        (partner_id, content, user_id, visible_to_partner)
-        VALUES ($1, $2, 1, $3)
+        (partner_id, content, user_id, visible_to_partner, entity_type, entity_id)
+        VALUES ($1, $2, 1, $3, 'opportunity', $4)
         RETURNING *
-      `, [partnerId, finalContent, visible_to_partner || false]);
+      `, [partnerId, finalContent, visible_to_partner || false, opportunityId]);
       
       console.log(`Created opportunity comment for partner ${partnerId}`);
       res.json(result.rows[0]);
