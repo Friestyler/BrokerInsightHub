@@ -1892,6 +1892,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Users endpoint for fetching user information
+  app.get('/api/degoudse/users', async (req, res) => {
+    try {
+      const envPool = pool;
+      const result = await envPool.query(`
+        SELECT id, name, email, role, partner_id, created_at, updated_at
+        FROM degoudse.users
+        WHERE id IS NOT NULL
+        ORDER BY id
+      `);
+      
+      const users = result.rows.map((user: any) => ({
+        id: user.id,
+        name: user.name,
+        email: user.email,
+        role: user.role,
+        partner_id: user.partner_id,
+        initials: user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2),
+        created_at: user.created_at,
+        updated_at: user.updated_at
+      }));
+      
+      console.log(`Returning ${users.length} users from De Goudse database`);
+      res.json(users);
+    } catch (error) {
+      console.error('Error fetching De Goudse users:', error);
+      res.status(500).json({ error: 'Failed to fetch users' });
+    }
+  });
+
   // De Goudse environment API routes (using proper database isolation)
   app.get('/api/degoudse/partners', async (req, res) => {
     try {

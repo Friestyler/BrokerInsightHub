@@ -63,15 +63,8 @@ const priorityColors = {
   urgent: 'bg-red-100 text-red-800'
 };
 
-// User role mapping function
-const getUserRoleName = (userId: number): string => {
-  const roleMap: { [key: number]: string } = {
-    1: 'Broker',
-    2: 'Account Manager', 
-    3: 'Relationship Manager'
-  };
-  return roleMap[userId] || 'Unknown User';
-};
+
+
 
 interface TimelineComposerProps {
   onCreateTask: (taskData: {
