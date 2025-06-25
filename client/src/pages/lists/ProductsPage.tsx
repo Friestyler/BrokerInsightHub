@@ -507,10 +507,10 @@ function ProductsTable() {
                   </div>
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  <div className="flex items-center">
-                    <Tag className="h-3 w-3 mr-1 text-indigo-600" />
+                  <Badge variant="outline" className="flex items-center gap-1">
+                    <Tag className="h-3 w-3" />
                     {product.category}
-                  </div>
+                  </Badge>
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   <div className="text-sm">
