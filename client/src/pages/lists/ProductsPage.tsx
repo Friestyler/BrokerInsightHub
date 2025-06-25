@@ -993,22 +993,49 @@ function ProductsTable() {
                 Category
               </SortableTableHead>
               <SortableTableHead 
-                sortKey="provider" 
+                sortKey="contract_start_date" 
                 currentSortKey={tableSortConfig.key} 
                 currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
                 className="w-[120px]"
               >
-                Provider
+                Contract Start
               </SortableTableHead>
               <SortableTableHead 
-                sortKey="totalValue" 
+                sortKey="contract_end_date" 
                 currentSortKey={tableSortConfig.key} 
                 currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
                 className="w-[120px]"
               >
-                Total Value
+                Contract End
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="premium_value" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[120px]"
+              >
+                Premium Value
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="premium_percentage" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[100px]"
+              >
+                Premium %
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="discount_percentage" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[100px]"
+              >
+                Discount %
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="customers" 
