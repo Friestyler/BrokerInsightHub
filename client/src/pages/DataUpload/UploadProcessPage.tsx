@@ -56,17 +56,40 @@ const capitalizeUploadType = (type: string) => {
   return type.charAt(0).toUpperCase() + type.slice(1);
 };
 
-const getSteps = (uploadType: string) => {
-  // For entity-upload flow, combine product categories and mapping into one step after upload
+const getSteps = (uploadType: string, selectedEntityTypes: string[] = []) => {
+  // For entity-upload flow, create dynamic steps based on selected entities
   if (uploadType === 'entity-upload') {
-    return [
-      { id: 1, name: 'Entity Selection', description: 'Choose the type of data you want to upload' },
-      { id: 2, name: 'Upload', description: 'Upload your CSV file' },
-      { id: 3, name: 'Product Mapping', description: 'Map products to categories' },
-      { id: 4, name: 'Attribute Mapping', description: 'Map CSV columns to entity attributes' },
-      { id: 5, name: 'Processing', description: 'Review and validate your data before processing' },
-      { id: 6, name: 'Complete', description: 'Review results' }
+    const steps = [
+      { id: 1, name: 'Entity Selection', description: 'Choose the types of data you want to upload' },
+      { id: 2, name: 'Upload', description: 'Upload your CSV file' }
     ];
+    
+    let stepId = 3;
+    
+    // Add Product Mapping step if products are selected
+    if (selectedEntityTypes.includes('products')) {
+      steps.push({ id: stepId++, name: 'Product Mapping', description: 'Map products to categories' });
+    }
+    
+    // Add mapping steps for each selected entity type
+    selectedEntityTypes.forEach(entityType => {
+      const entityLabels: Record<string, string> = {
+        'opportunities': 'Opportunity',
+        'partners': 'Partner', 
+        'customers': 'Customer',
+        'products': 'Product',
+        'vendors': 'Vendor',
+        'contacts': 'Contact'
+      };
+      const entityLabel = entityLabels[entityType] || capitalizeUploadType(entityType);
+      steps.push({ id: stepId++, name: `${entityLabel} Mapping`, description: `Map CSV columns to ${entityLabel.toLowerCase()} attributes` });
+    });
+    
+    // Add final steps
+    steps.push({ id: stepId++, name: 'Processing', description: 'Review and validate your data before processing' });
+    steps.push({ id: stepId, name: 'Complete', description: 'Review results' });
+    
+    return steps;
   }
   
   // For special formats with transformation
@@ -94,8 +117,8 @@ export default function UploadProcessPage() {
   const entityType = isSpecialFormat ? undefined : uploadType;
   const formatType = isSpecialFormat ? uploadType : undefined;
   
-  // Get dynamic steps based on upload type
-  const steps = getSteps(uploadType);
+  // Get dynamic steps based on upload type and selected entities
+  const steps = getSteps(uploadType, selectedEntityTypes);
   
   const [currentStep, setCurrentStep] = useState(1); // Always start at step 1
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -266,7 +289,7 @@ export default function UploadProcessPage() {
                 
                 switch (step.id) {
                   case 1:
-                    if (isEntityUpload && selectedEntityType) {
+                    if (isEntityUpload && selectedEntityTypes.length > 0) {
                       const entityLabels: Record<string, string> = {
                         'opportunities': 'Opportunities',
                         'partners': 'Partners', 
@@ -275,7 +298,10 @@ export default function UploadProcessPage() {
                         'vendors': 'Vendors',
                         'contacts': 'Contacts'
                       };
-                      return entityLabels[selectedEntityType as keyof typeof entityLabels] || selectedEntityType;
+                      if (selectedEntityTypes.length === 1) {
+                        return entityLabels[selectedEntityTypes[0] as keyof typeof entityLabels] || selectedEntityTypes[0];
+                      }
+                      return `${selectedEntityTypes.length} entities selected`;
                     }
                     if (selectedTransformationScript) {
                       return selectedTransformationScript.name;
@@ -352,8 +378,8 @@ export default function UploadProcessPage() {
           {currentStep === 1 && isEntityUpload && (
             <div className="space-y-6">
               <div className="text-center mb-6">
-                <h3 className="text-lg font-medium mb-2 text-foreground">Choose Entity Type</h3>
-                <p className="text-muted-foreground">Select the type of data you want to upload</p>
+                <h3 className="text-lg font-medium mb-2 text-foreground">Choose Entity Types</h3>
+                <p className="text-muted-foreground">Select the types of data you want to upload (you can select multiple)</p>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
@@ -366,17 +392,27 @@ export default function UploadProcessPage() {
                   { value: 'contacts', label: 'Contacts', icon: Phone, color: 'gray', description: 'Contact details and communication' }
                 ].map((entity) => {
                   const IconComponent = entity.icon;
-                  const isSelected = selectedEntityType === entity.value;
+                  const isSelected = selectedEntityTypes.includes(entity.value);
                   
                   return (
                     <div
                       key={entity.value}
                       onClick={() => {
-                        setSelectedEntityType(entity.value);
-                        // Auto-advance to next step after selection
-                        setTimeout(() => {
-                          goToNextStep();
-                        }, 500);
+                        if (isSelected) {
+                          // Remove from selection
+                          setSelectedEntityTypes(prev => prev.filter(type => type !== entity.value));
+                          // Update backward compatibility
+                          if (selectedEntityType === entity.value) {
+                            setSelectedEntityType(selectedEntityTypes.filter(type => type !== entity.value)[0] || '');
+                          }
+                        } else {
+                          // Add to selection
+                          setSelectedEntityTypes(prev => [...prev, entity.value]);
+                          // Update backward compatibility - set first selected as primary
+                          if (!selectedEntityType) {
+                            setSelectedEntityType(entity.value);
+                          }
+                        }
                       }}
                       className={`group relative p-6 rounded-2xl cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
                         isSelected
@@ -416,6 +452,29 @@ export default function UploadProcessPage() {
                 })}
               </div>
               
+              {selectedEntityTypes.length > 0 && (
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground mb-2">Selected entities:</p>
+                  <div className="flex justify-center gap-2 flex-wrap">
+                    {selectedEntityTypes.map(entityType => {
+                      const entityLabels: Record<string, string> = {
+                        'opportunities': 'Opportunities',
+                        'partners': 'Partners', 
+                        'customers': 'Customers',
+                        'products': 'Products',
+                        'vendors': 'Vendors',
+                        'contacts': 'Contacts'
+                      };
+                      return (
+                        <Badge key={entityType} variant="secondary" className="text-xs">
+                          {entityLabels[entityType]}
+                        </Badge>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+              
               <div className="flex justify-between pt-4">
                 <Button 
                   variant="outline" 
@@ -428,7 +487,7 @@ export default function UploadProcessPage() {
                 </Button>
                 <Button 
                   onClick={goToNextStep}
-                  disabled={!selectedEntityType}
+                  disabled={selectedEntityTypes.length === 0}
                   className="rounded-xl px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Continue to Upload
@@ -543,8 +602,8 @@ export default function UploadProcessPage() {
             </div>
           )}
 
-          {/* Combined Product Mapping & Category Management Step (Entity Upload Only) - Step 3 */}
-          {currentStep === 3 && isEntityUpload && (
+          {/* Product Mapping Step (Entity Upload Only) - Only when products are selected */}
+          {isCurrentStepProductMapping() && (
             <div className="space-y-8">
               {/* Product Assignment Section */}
               <div className="space-y-6">
@@ -559,7 +618,36 @@ export default function UploadProcessPage() {
                 />
               </div>
               
-              {/* Category Management Section - Below Product Assignment */}
+              {/* Column Mapping Section for Products - Below Product Assignment */}
+              <div className="border-t pt-8">
+                <Card className="border border-[#E6E7F1] shadow-sm">
+                  <CardContent className="p-6">
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-lg font-medium text-foreground mb-2">Product Column Mapping</h3>
+                        <p className="text-muted-foreground text-sm">Map CSV columns to product attributes</p>
+                      </div>
+                      
+                      <AttributeMappingStep 
+                        uploadedFile={uploadedFile}
+                        csvHeaders={csvHeaders}
+                        uploadType="products"
+                        stepName="Product Column Mapping"
+                        currentStep={currentStep}
+                        selectedTransformationScript={selectedTransformationScript}
+                        selectedEntityType="products"
+                        onNext={(mappings) => {
+                          setEntityMappings(prev => ({ ...prev, products: mappings }));
+                          // Don't auto-advance, let the parent component handle navigation
+                        }}
+                        onBack={() => {}}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+              
+              {/* Category Management Section - Below Column Mapping */}
               <div className="border-t pt-8" data-section="product-categories">
                 <Card className="border border-[#E6E7F1] shadow-sm">
                   <CardContent className="p-6">
@@ -589,10 +677,48 @@ export default function UploadProcessPage() {
                   onClick={goToNextStep}
                   className="rounded-xl px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
                 >
-                  Continue to Attribute Mapping
+                  Continue to Next Entity
                   <ArrowRight className="h-4 w-4 ml-2" />
                 </Button>
               </div>
+            </div>
+          )}
+
+          {/* Entity Mapping Steps - For each selected entity */}
+          {isCurrentStepEntityMapping() && (
+            <div className="space-y-6">
+              {(() => {
+                const entityType = getCurrentMappingEntityType();
+                if (!entityType) return null;
+                
+                const entityLabels: Record<string, string> = {
+                  'opportunities': 'Opportunity',
+                  'partners': 'Partner', 
+                  'customers': 'Customer',
+                  'products': 'Product',
+                  'vendors': 'Vendor',
+                  'contacts': 'Contact'
+                };
+                
+                const entityLabel = entityLabels[entityType] || capitalizeUploadType(entityType);
+                
+                return (
+                  <AttributeMappingStep 
+                    uploadedFile={uploadedFile}
+                    csvHeaders={csvHeaders}
+                    uploadType={entityType}
+                    stepName={`${entityLabel} Mapping`}
+                    currentStep={currentStep}
+                    selectedTransformationScript={selectedTransformationScript}
+                    selectedEntityType={entityType}
+                    onNext={(mappings) => {
+                      setEntityMappings(prev => ({ ...prev, [entityType]: mappings }));
+                      goToNextStep();
+                    }}
+                    onBack={goToPreviousStep}
+                  />
+                );
+              })()}
             </div>
           )}
 
@@ -615,12 +741,12 @@ export default function UploadProcessPage() {
             />
           )}
 
-          {/* Attribute Mapping Step */}
-          {((currentStep === 3 && isSpecialFormat) || (currentStep === 4 && isEntityUpload) || (currentStep === 2 && !isSpecialFormat && !isEntityUpload)) && (
+          {/* Attribute Mapping Step - Only for non-entity uploads and special formats */}
+          {((currentStep === 3 && isSpecialFormat) || (currentStep === 2 && !isSpecialFormat && !isEntityUpload)) && (
             <AttributeMappingStep 
               uploadedFile={isSpecialFormat && transformedFile ? transformedFile : uploadedFile}
               csvHeaders={csvHeaders}
-              uploadType={isEntityUpload ? selectedEntityType : uploadType || ''}
+              uploadType={uploadType || ''}
               stepName={currentStepData?.name || 'Attribute Mapping'}
               currentStep={currentStep}
               selectedTransformationScript={selectedTransformationScript}
@@ -634,11 +760,11 @@ export default function UploadProcessPage() {
           )}
 
           {/* Processing Step */}
-          {((currentStep === 4 && isSpecialFormat) || (currentStep === 5 && isEntityUpload) || (currentStep === 3 && !isSpecialFormat && !isEntityUpload)) && (
+          {((currentStep === 4 && isSpecialFormat) || (isCurrentStepProcessing()) || (currentStep === 3 && !isSpecialFormat && !isEntityUpload)) && (
             <ProcessingStep 
               uploadedFile={isSpecialFormat && transformedFile ? transformedFile : uploadedFile}
-              attributeMappings={attributeMappings}
-              uploadType={isEntityUpload ? selectedEntityType : uploadType || ''}
+              attributeMappings={isEntityUpload ? Object.values(entityMappings).flat() : attributeMappings}
+              uploadType={isEntityUpload ? selectedEntityTypes.join(',') : uploadType || ''}
               stepName={currentStepData?.name || 'Processing'}
               currentStep={currentStep}
               onNext={goToNextStep}
@@ -655,7 +781,7 @@ export default function UploadProcessPage() {
           )}
 
           {/* Results Step */}
-          {((currentStep === 5 && isSpecialFormat) || (currentStep === 6 && isEntityUpload) || (currentStep === 4 && !isSpecialFormat && !isEntityUpload)) && (
+          {((currentStep === 5 && isSpecialFormat) || (isCurrentStepComplete()) || (currentStep === 4 && !isSpecialFormat && !isEntityUpload)) && (
             <div className="text-center py-16">
               <div className="mx-auto w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-lg mb-6">
                 <CheckCircle className="h-10 w-10 text-white" strokeWidth={2} />
@@ -665,7 +791,7 @@ export default function UploadProcessPage() {
               {processingResults && (
                 <div className="mb-8">
                   <p className="text-muted-foreground mb-8 text-lg">
-                    {processingResults.recordsCreated} {isEntityUpload ? selectedEntityType : uploadType} records have been successfully processed.
+                    {processingResults.recordsCreated} {isEntityUpload ? (selectedEntityTypes.length > 1 ? 'entity' : selectedEntityTypes[0]) : uploadType} records have been successfully processed.
                   </p>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-lg mx-auto mb-6">
@@ -686,7 +812,7 @@ export default function UploadProcessPage() {
               )}
               
               {!processingResults && (
-                <p className="text-muted-foreground mb-8 text-lg">Your {isEntityUpload ? selectedEntityType : uploadType} data has been successfully processed and imported.</p>
+                <p className="text-muted-foreground mb-8 text-lg">Your {isEntityUpload ? (selectedEntityTypes.length > 1 ? 'entity' : selectedEntityTypes[0]) : uploadType} data has been successfully processed and imported.</p>
               )}
               
               <div className="flex justify-center gap-4">
