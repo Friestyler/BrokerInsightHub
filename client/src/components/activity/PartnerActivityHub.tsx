@@ -506,11 +506,12 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
       
       return response.json();
     },
-    onSuccess: () => {
-      // Invalidate all reaction queries to refresh the display
-      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/activity-reactions`] });
-      // Also invalidate timeline to refresh the reaction displays
-      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`] });
+    onSuccess: (data, variables) => {
+      // Invalidate specific reaction query for immediate updates
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/activity-reactions/${variables.activityType}/${variables.activityId}`] 
+      });
+      // Do NOT invalidate timeline to prevent auto-scroll
     },
     onError: (error) => {
       console.error('Error toggling reaction:', error);
@@ -712,28 +713,42 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
     }
   }, [savedMeetingBriefing, meetingBriefing, selectedActivityType]);
 
-  // Auto-scroll to bottom when timeline opens or new data arrives
+  // Track timeline length to only scroll when new activities are added
+  const [previousTimelineLength, setPreviousTimelineLength] = useState(0);
+
+  // Auto-scroll to bottom when timeline opens or new activities are added
   useLayoutEffect(() => {
     const timelineData = (timeline as any) || [];
-    if (selectedActivityType === 'timeline' && timelineScrollRef.current && timelineData.length > 0) {
+    const currentLength = timelineData.length;
+    
+    // Only scroll if switching to timeline view OR if new activities were added
+    const shouldScroll = (
+      (selectedActivityType === 'timeline' && timelineScrollRef.current) && 
+      (previousTimelineLength === 0 || currentLength > previousTimelineLength)
+    );
+    
+    if (shouldScroll && currentLength > 0) {
       const scrollContainer = timelineScrollRef.current;
-      // Force scroll to bottom after layout is complete
       scrollContainer.scrollTop = scrollContainer.scrollHeight;
     }
-  }, [selectedActivityType, timeline]);
+    
+    setPreviousTimelineLength(currentLength);
+  }, [selectedActivityType, timeline, previousTimelineLength]);
 
-  // Additional scroll trigger after renders complete
+  // Additional scroll trigger only for new activities
   useEffect(() => {
     const timelineData = (timeline as any) || [];
-    if (selectedActivityType === 'timeline' && timelineScrollRef.current && timelineData.length > 0) {
-      // Delayed scroll to ensure all async content is rendered
+    const currentLength = timelineData.length;
+    
+    if (selectedActivityType === 'timeline' && timelineScrollRef.current && currentLength > previousTimelineLength && currentLength > 0) {
+      // Delayed scroll to ensure all async content is rendered for new activities only
       setTimeout(() => {
         if (timelineScrollRef.current) {
           timelineScrollRef.current.scrollTop = timelineScrollRef.current.scrollHeight;
         }
       }, 50);
     }
-  }, [selectedActivityType, timeline]);
+  }, [selectedActivityType, timeline, previousTimelineLength]);
 
   const resetForm = () => {
     setTaskTitle('');
