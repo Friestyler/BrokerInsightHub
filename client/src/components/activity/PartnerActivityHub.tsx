@@ -1113,11 +1113,6 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                               )}
                               
                               <div className="flex items-center gap-2 text-xs text-gray-500">
-                                {item.priority && (
-                                  <Badge className={`${priorityColors[item.priority as keyof typeof priorityColors]} text-xs`}>
-                                    {item.priority}
-                                  </Badge>
-                                )}
                                 {item.visible_to_partner && (
                                   <div className="flex items-center gap-1">
                                     <Eye className="h-3 w-3 text-blue-500" />
