@@ -1011,6 +1011,15 @@ function ProductsTable() {
                 Contract End Date
               </SortableTableHead>
               <SortableTableHead 
+                sortKey="total_value" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[120px]"
+              >
+                Total Value
+              </SortableTableHead>
+              <SortableTableHead 
                 sortKey="premium_value" 
                 currentSortKey={tableSortConfig.key} 
                 currentDirection={tableSortConfig.direction} 
@@ -1114,6 +1123,12 @@ function ProductsTable() {
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   <div className="text-sm">
+                    {(product.total_value || product.totalvalue || product.totalValue) ? 
+                      `€${parseFloat(product.total_value || product.totalvalue || product.totalValue).toLocaleString()}` : "—"}
+                  </div>
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  <div className="text-sm">
                     {(product.premium_value || product.premiumvalue || product.premiumValue) ? 
                       `€${parseFloat(product.premium_value || product.premiumvalue || product.premiumValue).toLocaleString()}` : "—"}
                   </div>
@@ -1144,7 +1159,7 @@ function ProductsTable() {
             
             {displayedProducts.length === 0 && (
               <tr>
-                <td colSpan={11} className="py-10 text-center">
+                <td colSpan={12} className="py-10 text-center">
                   <div className="flex flex-col items-center">
                     <Package2 className="h-12 w-12 text-gray-400 mb-3" />
                     <h3 className="text-base font-medium text-gray-900 mb-1">No products found</h3>
