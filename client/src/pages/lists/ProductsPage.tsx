@@ -262,6 +262,8 @@ function ProductsTable() {
   const [showSaveListModal, setShowSaveListModal] = useState(false);
   const [isCreatingNewList, setIsCreatingNewList] = useState(true);
   const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
+  const [listNameInput, setListNameInput] = useState('');
+  const [listDescriptionInput, setListDescriptionInput] = useState('');
   
   // Refs for dropdowns to handle outside clicks
   const viewsDropdownRef = useRef<HTMLDivElement>(null);
