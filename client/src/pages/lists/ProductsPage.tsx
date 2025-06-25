@@ -999,7 +999,7 @@ function ProductsTable() {
                 onSort={handleSort} 
                 className="w-[120px]"
               >
-                Contract Start
+                Contract Start Date
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="contract_end_date" 
@@ -1008,7 +1008,7 @@ function ProductsTable() {
                 onSort={handleSort} 
                 className="w-[120px]"
               >
-                Contract End
+                Contract End Date
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="premium_value" 
@@ -1113,7 +1113,7 @@ function ProductsTable() {
                   </div>
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  <div className="text-sm font-medium">
+                  <div className="text-sm">
                     {(product.premium_value || product.premiumvalue || product.premiumValue) ? 
                       `€${parseFloat(product.premium_value || product.premiumvalue || product.premiumValue).toLocaleString()}` : "—"}
                   </div>
@@ -1130,20 +1130,14 @@ function ProductsTable() {
                       `${parseFloat(product.discount_percentage || product.discountpercentage || product.discountPercentage).toFixed(1)}%` : "—"}
                   </div>
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded">
-                    {product.customercount || product.customerCount || 0}
-                  </span>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm text-center">
+                  {product.customercount || product.customerCount || 0}
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-purple-100 text-purple-800 rounded">
-                    {product.partnercount || product.partnerCount || 0}
-                  </span>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm text-center">
+                  {product.partnercount || product.partnerCount || 0}
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  <span className="inline-flex items-center px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded">
-                    {product.opportunitycount || product.opportunityCount || 0}
-                  </span>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm text-center">
+                  {product.opportunitycount || product.opportunityCount || 0}
                 </td>
               </tr>
             ))}
