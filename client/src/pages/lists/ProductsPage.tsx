@@ -732,114 +732,222 @@ export default function ProductsPage() {
         </div>
 
         {/* Products Table */}
-        <div className="mx-4">
-          <div className="bg-white rounded-lg border border-gray-200">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8">
-                    <Checkbox
+        <div className="bg-white overflow-x-auto rounded-lg mx-4">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-white">
+              <tr>
+                <th scope="col" className="relative px-3 py-3.5 w-10 pt-[12px] pb-[12px] group">
+                  <div className="flex items-center justify-center">
+                    <input
+                      type="checkbox"
+                      className={`h-4 w-4 rounded border-gray-300 ${
+                        selectedProducts.length > 0 ? 'visible' : 'invisible group-hover:visible'
+                      }`}
                       checked={selectedProducts.length === displayedProducts.length && displayedProducts.length > 0}
-                      onCheckedChange={handleSelectAll}
+                      onChange={handleSelectAll}
                     />
-                  </th>
-                  <SortableTableHead
-                    label="Name"
-                    sortKey="name"
-                    currentSort={tableSortConfig}
-                    onSort={handleSort}
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  />
-                  <SortableTableHead
-                    label="Category"
-                    sortKey="category"
-                    currentSort={tableSortConfig}
-                    onSort={handleSort}
-                    className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  />
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Provider</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Customers</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Partners</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">Opportunities</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total Value</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Premium Value</th>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Actions</th>
+                  </div>
+                </th>
+                <SortableTableHead 
+                  sortKey="name" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[250px]"
+                >
+                  Product
+                </SortableTableHead>
+                <SortableTableHead 
+                  sortKey="category" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[150px]"
+                >
+                  Category
+                </SortableTableHead>
+                <SortableTableHead 
+                  sortKey="provider" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[120px]"
+                >
+                  Provider
+                </SortableTableHead>
+                <SortableTableHead 
+                  sortKey="customers" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[120px]"
+                >
+                  Customers
+                </SortableTableHead>
+                <SortableTableHead 
+                  sortKey="partners" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[120px]"
+                >
+                  Partners
+                </SortableTableHead>
+                <SortableTableHead 
+                  sortKey="opportunities" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[120px]"
+                >
+                  Opportunities
+                </SortableTableHead>
+                <SortableTableHead 
+                  sortKey="total_value" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[120px]"
+                >
+                  Total Value
+                </SortableTableHead>
+                <SortableTableHead 
+                  sortKey="premium_value" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[120px]"
+                >
+                  Premium Value
+                </SortableTableHead>
+                <SortableTableHead 
+                  sortKey="status" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[120px]"
+                >
+                  Status
+                </SortableTableHead>
+                <th scope="col" className="relative px-3 py-3.5 w-[80px]">
+                  <span className="sr-only">Actions</span>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-100 bg-white">
+              {displayedProducts.map((product: Product) => (
+                <tr 
+                  key={product.id} 
+                  className={`hover:bg-gray-50 group ${
+                    selectedProducts.includes(product.id) ? 'bg-blue-50' : ''
+                  }`}
+                >
+                  <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm w-10">
+                    <input
+                      type="checkbox"
+                      className={`h-4 w-4 rounded border-gray-300 ${
+                        selectedProducts.includes(product.id) ? 'visible' : 'invisible group-hover:visible'
+                      }`}
+                      checked={selectedProducts.includes(product.id)}
+                      onChange={(e) => {
+                        e.stopPropagation();
+                        toggleSelectProduct(product.id);
+                      }}
+                    />
+                  </td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
+                    <div className="flex items-center">
+                      <div className="font-medium text-gray-900">{product.name}</div>
+                    </div>
+                    {product.description && (
+                      <div className="text-sm text-gray-500 mt-1">{product.description}</div>
+                    )}
+                  </td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {product.category}
+                    </span>
+                  </td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                    {product.provider || product.providername || '-'}
+                  </td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                    <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                      {product.customerCount || product.customercount || 0}
+                    </Badge>
+                  </td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                    <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+                      {product.partnerCount || product.partnercount || 0}
+                    </Badge>
+                  </td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                    <Badge variant="secondary" className="bg-green-100 text-green-800">
+                      {product.opportunityCount || product.opportunitycount || 0}
+                    </Badge>
+                  </td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                    {product.total_value || product.totalvalue || '-'}
+                  </td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                    {product.premium_value || product.premiumvalue || '-'}
+                  </td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                    <Badge variant={product.status === 'Active' ? 'outline' : 'secondary'} className="capitalize">
+                      {product.status || 'Active'}
+                    </Badge>
+                  </td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => openEditDialog(product)}>
+                          <Edit2 className="mr-2 h-4 w-4" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => openDeleteDialog(product)}>
+                          <Trash2 className="mr-2 h-4 w-4" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {displayedProducts.map((product: Product) => (
-                  <tr key={product.id} className="hover:bg-gray-50">
-                    <td className="px-4 py-4 whitespace-nowrap w-8">
-                      <Checkbox
-                        checked={selectedProducts.includes(product.id)}
-                        onCheckedChange={() => toggleSelectProduct(product.id)}
-                      />
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="text-sm font-medium text-gray-900">{product.name}</div>
-                      {product.description && (
-                        <div className="text-sm text-gray-500">{product.description}</div>
-                      )}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                        {product.category}
-                      </span>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {product.provider || product.providername || '-'}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-center">
-                      <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                        {product.customerCount || product.customercount || 0}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-center">
-                      <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-                        {product.partnerCount || product.partnercount || 0}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-center">
-                      <Badge variant="secondary" className="bg-green-100 text-green-800">
-                        {product.opportunityCount || product.opportunitycount || 0}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {product.total_value || product.totalvalue || '-'}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {product.premium_value || product.premiumvalue || '-'}
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <Badge variant={product.status === 'Active' ? 'default' : 'secondary'}>
-                        {product.status || 'Active'}
-                      </Badge>
-                    </td>
-                    <td className="px-4 py-4 whitespace-nowrap text-center">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => openEditDialog(product)}>
-                            <Edit2 className="mr-2 h-4 w-4" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => openDeleteDialog(product)}>
-                            <Trash2 className="mr-2 h-4 w-4" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+              
+              {displayedProducts.length === 0 && (
+                <tr>
+                  <td colSpan={11} className="py-10 text-center">
+                    <div className="flex flex-col items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                      </svg>
+                      <h3 className="text-base font-medium text-gray-900 mb-1">No products found</h3>
+                      <p className="text-sm text-gray-500 max-w-md mb-4">
+                        There are no products matching your filter criteria.
+                      </p>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => {
+                          setSearchTerm('');
+                          setSelectedCategory('all');
+                          setSelectedStatus('all');
+                          setSelectedProvider('all');
+                        }}
+                      >
+                        Clear Filters
+                      </Button>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
         {/* Bulk Actions Bar */}
