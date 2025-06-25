@@ -977,12 +977,11 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                                   Completed
                                 </span>
                               )}
-                              {/* Source indicator */}
-                              {task.source_type && task.source_name && (
+                              {/* Source indicator - hide when viewing in native context */}
+                              {task.source_type && task.source_name && task.source_type !== entityType && (
                                 <div className="flex items-center gap-1">
                                   <span className="text-xs text-gray-400">•</span>
                                   <div className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${
-                                    task.source_type === 'partner' ? 'bg-purple-100 text-purple-700' :
                                     task.source_type === 'opportunity' ? 'bg-green-100 text-green-700' :
                                     task.source_type === 'customer' ? 'bg-blue-100 text-blue-700' :
                                     'bg-gray-100 text-gray-700'
@@ -1197,8 +1196,8 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                                   minute: '2-digit' 
                                 })}
                               </span>
-                              {/* Cross-entity source indicator */}
-                              {comment.source_type && comment.source_name && comment.source_type !== 'partner' && (
+                              {/* Cross-entity source indicator - hide when viewing in native context */}
+                              {comment.source_type && comment.source_name && comment.source_type !== entityType && (
                                 <div className="flex items-center gap-1">
                                   <span className="text-xs text-gray-400">•</span>
                                   <div className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${
