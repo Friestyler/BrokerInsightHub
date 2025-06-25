@@ -1049,11 +1049,9 @@ function ProductsTable() {
         </div>
       )}
 
-        {/* Tab Content */}
+        {/* Products Content */}
         <div>
-          {activeTab === 'products' && (
-            <>
-              <ProductsTable />
+          <ProductsTable />
               
               {/* Edit Product Dialog */}
               <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
@@ -1203,8 +1201,6 @@ function ProductsTable() {
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
-            </>
-          )}
         </div>
 
         {/* Edit Product Dialog */}
