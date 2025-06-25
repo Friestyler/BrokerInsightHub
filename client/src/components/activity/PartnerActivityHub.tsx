@@ -767,10 +767,10 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
   // Task completion mutation
   const completeTaskMutation = useMutation({
     mutationFn: async (taskId: number) => {
-      const response = await fetch(`/api/${currentEnv}/tasks/${taskId}/complete`, {
+      const response = await fetch(`/api/${currentEnv}/tasks/${taskId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ completed: true, completedAt: new Date().toISOString() }),
+        body: JSON.stringify({ completed: true }),
       });
       if (!response.ok) throw new Error('Failed to complete task');
       return response.json();
@@ -1282,10 +1282,15 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                                   {isTask && (
                                     <button 
                                       onClick={() => handleTaskCompletion(item.id)}
-                                      className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-md transition-colors duration-150"
+                                      className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-md transition-colors duration-150 relative group/tooltip"
                                       title="Mark task as complete"
                                     >
                                       <CheckSquare className="h-4 w-4 text-gray-600" />
+                                      {/* Custom tooltip */}
+                                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded whitespace-nowrap opacity-0 group-hover/tooltip:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                                        Mark task as complete
+                                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                                      </div>
                                     </button>
                                   )}
                                 </div>
