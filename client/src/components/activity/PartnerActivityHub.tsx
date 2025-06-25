@@ -206,7 +206,7 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
                   handleCancel();
                 }
               }}
-              className="w-full min-h-[60px] max-h-32 resize-none border-0 bg-transparent text-gray-900 text-sm p-0 focus:ring-0 focus:outline-none placeholder:text-gray-400"
+              className="w-full h-8 min-h-[32px] max-h-8 resize-none border-0 bg-transparent text-gray-900 text-sm p-0 focus:ring-0 focus:outline-none placeholder:text-gray-400 overflow-hidden"
               autoFocus
             />
           </div>
