@@ -1003,23 +1003,35 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                               {task.title}
                             </p>
                             
-                            <div className="flex items-center gap-2 text-xs text-gray-500">
-                              {task.priority && (
-                                <div className="flex items-center gap-1">
-                                  <Badge className={priorityColors[task.priority as keyof typeof priorityColors]}>
-                                    {task.priority}
-                                  </Badge>
-                                </div>
-                              )}
-                              {task.assigned_to && (
-                                <div className="flex items-center gap-1">
-                                  <User className="h-3 w-3" />
-                                  <span>{getUserName(task.assigned_to)}</span>
-                                </div>
-                              )}
-                              {task.visible_to_partner && (
-                                <div className="flex items-center gap-1">
-                                  <span className="text-blue-600">shared with partner</span>
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2 text-xs text-gray-500">
+                                {task.visible_to_partner && (
+                                  <div className="flex items-center gap-1">
+                                    <span className="text-blue-600">shared with partner</span>
+                                  </div>
+                                )}
+                              </div>
+                              
+                              {/* Task badges for assignee and priority */}
+                              {(task.assigned_to || task.priority) && (
+                                <div className="flex items-center gap-2">
+                                  {task.assigned_to && (
+                                    <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                                      <User className="h-3 w-3" />
+                                      <span>{getUserName(task.assigned_to)}</span>
+                                    </div>
+                                  )}
+                                  {task.priority && (
+                                    <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                                      task.priority === 'urgent' ? 'bg-red-100 text-red-700' :
+                                      task.priority === 'high' ? 'bg-orange-100 text-orange-700' :
+                                      task.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                      'bg-gray-100 text-gray-700'
+                                    }`}>
+                                      <Flag className="h-3 w-3" />
+                                      <span className="capitalize">{task.priority}</span>
+                                    </div>
+                                  )}
                                 </div>
                               )}
                             </div>
@@ -1401,10 +1413,35 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                                 <p className="text-xs text-gray-500 mb-2">{item.details}</p>
                               )}
                               
-                              <div className="flex items-center gap-2 text-xs text-gray-500">
-                                {item.visible_to_partner && (
-                                  <div className="flex items-center gap-1">
-                                    <span className="text-blue-600">shared with partner</span>
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-2 text-xs text-gray-500">
+                                  {item.visible_to_partner && (
+                                    <div className="flex items-center gap-1">
+                                      <span className="text-blue-600">shared with partner</span>
+                                    </div>
+                                  )}
+                                </div>
+                                
+                                {/* Task badges for assignee and priority */}
+                                {isTask && (item.assigned_to || item.priority) && (
+                                  <div className="flex items-center gap-2">
+                                    {item.assigned_to && (
+                                      <div className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                                        <User className="h-3 w-3" />
+                                        <span>{getUserName(item.assigned_to)}</span>
+                                      </div>
+                                    )}
+                                    {item.priority && (
+                                      <div className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
+                                        item.priority === 'urgent' ? 'bg-red-100 text-red-700' :
+                                        item.priority === 'high' ? 'bg-orange-100 text-orange-700' :
+                                        item.priority === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                                        'bg-gray-100 text-gray-700'
+                                      }`}>
+                                        <Flag className="h-3 w-3" />
+                                        <span className="capitalize">{item.priority}</span>
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </div>
