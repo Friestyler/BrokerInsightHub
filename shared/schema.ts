@@ -692,8 +692,6 @@ export const products = pgTable("products", {
   discountPercentage: numeric("discount_percentage", { precision: 5, scale: 2 }),
   
   // Legacy fields for backward compatibility
-  sku: text("sku"),
-  price: integer("price"),
   vendorId: integer("vendor_id").references(() => vendors.id),
   
   // Linking fields
@@ -786,8 +784,6 @@ export const insertProductSchema = createInsertSchema(products).pick({
   customerId: true,
   opportunityId: true,
   partnerId: true,
-  sku: true,
-  price: true,
   vendorId: true,
   isActive: true,
   status: true,
