@@ -364,24 +364,34 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
   const queryClient = useQueryClient();
   const currentEnv = localStorage.getItem('selectedEnvironment') || 'degoudse';
 
-  // Available team members for assignment
-  const teamMembers = [
-    { id: 'john-doe', name: 'John Doe', role: 'Account Manager' },
-    { id: 'sarah-johnson', name: 'Sarah Johnson', role: 'Senior Analyst' },
-    { id: 'mike-chen', name: 'Mike Chen', role: 'Business Developer' },
-    { id: 'emma-wilson', name: 'Emma Wilson', role: 'Partnership Lead' },
-    { id: 'alex-rodriguez', name: 'Alex Rodriguez', role: 'Strategy Consultant' }
-  ];
+  // Fetch users from database
+  const { data: usersData } = useQuery({
+    queryKey: [`/api/${currentEnv}/users`],
+  });
+
+  // Available team members for assignment (use real users from database)
+  const teamMembers = usersData ? usersData.map((user: any) => ({
+    id: user.id.toString(),
+    name: user.name,
+    role: user.role,
+    initials: user.initials
+  })) : [];
+
+  // Helper function to get user name from database
+  const getUserName = (userId: number): string => {
+    const user = usersData?.find((u: any) => u.id === userId);
+    return user ? user.name : `User ${userId}`;
+  };
 
   // Helper function to get user initials for avatar fallback
   const getUserInitials = (userId: number): string => {
-    const roleMap: { [key: number]: string } = {
-      1: 'Broker',
-      2: 'Account Manager', 
-      3: 'Relationship Manager'
-    };
-    const roleName = roleMap[userId] || `User ${userId}`;
-    return roleName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+    const user = usersData?.find((u: any) => u.id === userId);
+    if (user && user.initials) {
+      return user.initials;
+    }
+    // Fallback: generate initials from name
+    const userName = getUserName(userId);
+    return userName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   };
 
   // Helper function to get user avatar URL (placeholder for now)
@@ -1040,7 +1050,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                                 {getUserAvatarUrl(item.user_id) ? (
                                   <img 
                                     src={getUserAvatarUrl(item.user_id)!} 
-                                    alt={getUserRoleName(item.user_id)}
+                                    alt={getUserName(item.user_id)}
                                     className="w-full h-full rounded-full object-cover"
                                   />
                                 ) : (
@@ -1062,7 +1072,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                             <div className="bg-white rounded-lg p-3 border border-gray-200">
                               <div className="flex items-center justify-between mb-1">
                                 <span className="text-sm font-medium text-gray-900 capitalize">
-                                  {item.activity_type === 'comment' ? getUserRoleName(item.user_id) : (item.activity_type || 'Activity')}
+                                  {item.activity_type === 'comment' ? getUserName(item.user_id) : (item.activity_type || 'Activity')}
                                 </span>
                                 <span className="text-xs text-gray-500">
                                   {new Date(item.created_at).toLocaleString([], { 
@@ -1086,7 +1096,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                                 {(item.user_id || item.assigned_to) && (
                                   <div className="flex items-center gap-1">
                                     <User className="h-3 w-3" />
-                                    <span>{getUserRoleName(item.user_id || item.assigned_to)}</span>
+                                    <span>{getUserName(item.user_id || item.assigned_to)}</span>
                                   </div>
                                 )}
                                 {item.priority && (
