@@ -885,6 +885,15 @@ export default function CustomersPageClean() {
                     </svg>
                   </div>
                 </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
+                    Product
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                      <path d="M8 9l4-4 4 4"></path>
+                      <path d="M16 15l-4 4-4-4"></path>
+                    </svg>
+                  </div>
+                </th>
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C] pt-[12px] pb-[12px]">
                   <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
                     Partner
@@ -915,15 +924,6 @@ export default function CustomersPageClean() {
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                   <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
                     Status
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                      <path d="M8 9l4-4 4 4"></path>
-                      <path d="M16 15l-4 4-4-4"></path>
-                    </svg>
-                  </div>
-                </th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                  <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
-                    Product
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
                       <path d="M8 9l4-4 4 4"></path>
                       <path d="M16 15l-4 4-4-4"></path>
@@ -972,6 +972,9 @@ export default function CustomersPageClean() {
                       <Link href={`/lists/customers/${customer.id}`} className="font-medium text-gray-900 hover:text-indigo-700">{customer.name}</Link>
                     </div>
                   </td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm text-gray-900">
+                    {customer.productCount || 0}
+                  </td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                     <div className="flex flex-col space-y-1">
                       {customer.partnerNames ? (
@@ -1003,9 +1006,6 @@ export default function CustomersPageClean() {
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Insurance</td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">Customer</td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Active</td>
-                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm text-gray-900">
-                    {customer.productCount || 0}
-                  </td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                     €{customer.totalOpportunityValue ? Number(customer.totalOpportunityValue).toLocaleString() : '0'}
                   </td>
