@@ -443,6 +443,11 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
         type: 'active'
       });
       
+      // Also refetch timeline directly
+      setTimeout(() => {
+        refetchTimeline();
+      }, 100);
+      
       resetForm();
       const activityType = (data as any).activityType || selectedActivityType;
       toast({ title: `${activityType.charAt(0).toUpperCase() + activityType.slice(1)} created successfully` });
@@ -1035,8 +1040,8 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
             <div className="flex flex-col h-full">
               {/* Timeline Content */}
               <div className="flex-1 space-y-4 max-h-64 overflow-y-auto mb-4">
-                {timelineData && timelineData.length > 0 ? (
-                  timelineData
+                {rawTimelineData && rawTimelineData.length > 0 ? (
+                  rawTimelineData
                     .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                     .map((item: any, index: number) => {
                       const isTask = item.activity_type === 'task';
@@ -1046,7 +1051,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                       return (
                         <div key={`timeline-${item.activity_type}-${item.id}-${index}-${item.created_at.replace(/[^\w]/g, '')}`} className="flex items-start gap-3 relative">
                           {/* Timeline line */}
-                          {index < timelineData.length - 1 && (
+                          {index < rawTimelineData.length - 1 && (
                             <div className="absolute left-4 top-10 w-px h-8 bg-gray-200"></div>
                           )}
                           
