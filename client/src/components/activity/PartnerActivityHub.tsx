@@ -764,6 +764,36 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
     }
   };
 
+  // Task completion mutation
+  const completeTaskMutation = useMutation({
+    mutationFn: async (taskId: number) => {
+      const response = await fetch(`/api/${currentEnv}/tasks/${taskId}/complete`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ completed: true, completedAt: new Date().toISOString() }),
+      });
+      if (!response.ok) throw new Error('Failed to complete task');
+      return response.json();
+    },
+    onSuccess: () => {
+      // Invalidate queries to refresh the timeline and activities
+      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/${entityType}s/${entityType === 'partner' ? partnerId : entityId}/timeline`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/${entityType}s/${entityType === 'partner' ? partnerId : entityId}/activities`] });
+      toast({ title: 'Task marked as complete' });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: 'Failed to complete task', 
+        description: 'Please try again',
+        variant: 'destructive' 
+      });
+    }
+  });
+
+  const handleTaskCompletion = (taskId: number) => {
+    completeTaskMutation.mutate(taskId);
+  };
+
   if (activitiesLoading) {
     return (
       <div className="mb-4 border border-gray-200 rounded-xl bg-white shadow-sm">
@@ -1214,16 +1244,6 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                               {/* Hover Toolbar */}
                               <div className="absolute -top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20">
                                 <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-1.5 py-1 flex items-center gap-0.5">
-                                  {/* Task completion checkbox for tasks only */}
-                                  {isTask && (
-                                    <button 
-                                      className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-md transition-colors duration-150"
-                                      title="Mark task as complete"
-                                    >
-                                      <CheckSquare className="h-4 w-4 text-gray-600" />
-                                    </button>
-                                  )}
-                                  
                                   {/* Muscle Emoji */}
                                   <button 
                                     onClick={() => handleReactionToggle(item.activity_type, item.id, '💪')}
@@ -1257,6 +1277,17 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                                   <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-md transition-colors duration-150">
                                     <Bookmark className="h-4 w-4 text-gray-600" />
                                   </button>
+                                  
+                                  {/* Task completion checkbox for tasks only - moved to last position */}
+                                  {isTask && (
+                                    <button 
+                                      onClick={() => handleTaskCompletion(item.id)}
+                                      className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-md transition-colors duration-150"
+                                      title="Mark task as complete"
+                                    >
+                                      <CheckSquare className="h-4 w-4 text-gray-600" />
+                                    </button>
+                                  )}
                                 </div>
                               </div>
                               
