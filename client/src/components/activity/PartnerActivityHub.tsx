@@ -23,22 +23,29 @@ interface ActivityReactionsProps {
 }
 
 const ActivityReactions = ({ activityType, activityId, onReactionClick }: ActivityReactionsProps) => {
-  const { data: reactions } = useQuery<any[]>({
+  const { data: reactions, isLoading } = useQuery<any[]>({
     queryKey: [`/api/activity-reactions/${activityType}/${activityId}`],
     staleTime: 30000, // 30 seconds
     enabled: !!activityType && !!activityId, // Only fetch if we have valid parameters
   });
 
-  // Handle cases where reactions is undefined or not an array
+  // Debug logging
+  console.log('ActivityReactions debug:', { activityType, activityId, reactions, isLoading });
+
+  // Handle cases where reactions is undefined, not an array, or empty
+  if (isLoading) {
+    return null; // Don't show anything while loading
+  }
+
   if (!reactions || !Array.isArray(reactions) || reactions.length === 0) {
-    return null;
+    return null; // Don't show anything if no reactions
   }
 
   return (
     <div className="flex items-center gap-2">
-      {reactions.map((reaction: any) => (
+      {reactions.map((reaction: any, index: number) => (
         <button
-          key={reaction.emoji}
+          key={`${reaction.emoji}-${index}`}
           onClick={() => onReactionClick(reaction.emoji)}
           className="flex items-center gap-1 px-2 py-1 bg-[#E6E7F1] hover:bg-gray-200 rounded-full transition-colors text-xs"
           title={`${reaction.user_names?.join(', ') || 'Users'} reacted with ${reaction.emoji}`}
