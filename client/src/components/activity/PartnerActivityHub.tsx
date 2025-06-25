@@ -24,7 +24,7 @@ interface ActivityReactionsProps {
 
 const ActivityReactions = ({ activityType, activityId, onReactionClick }: ActivityReactionsProps) => {
   const { data: reactions } = useQuery<any[]>({
-    queryKey: [`/api/degoudse/activity-reactions/${activityType}/${activityId}`],
+    queryKey: [`/api/activity-reactions/${activityType}/${activityId}`],
     staleTime: 30000, // 30 seconds
     enabled: !!activityType && !!activityId, // Only fetch if we have valid parameters
   });
