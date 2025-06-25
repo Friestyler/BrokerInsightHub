@@ -9371,7 +9371,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       const envPool = pool;
       
       const result = await envPool.query(`
-        SELECT emoji FROM activity_reactions 
+        SELECT emoji FROM ${envId}.activity_reactions 
         WHERE activity_type = $1 AND activity_id = $2 AND user_id = $3
       `, [activityType, parseInt(activityId), parseInt(userId)]);
       
