@@ -281,6 +281,23 @@ function ProductsTable() {
       {/* Toolbar Section */}
       <div className="flex items-center justify-between px-4 py-2">
         <div className="flex items-center gap-4">
+          {/* Search field */}
+          <div className="relative w-60">
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={filterText}
+              onChange={(e) => setFilterText(e.target.value)}
+              className="w-full pl-3 pr-10 h-8 border border-[#E6E7F1] rounded-md text-sm"
+            />
+            <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </button>
+          </div>
+
           {/* Filter Button */}
           <div className="relative">
             <Button
