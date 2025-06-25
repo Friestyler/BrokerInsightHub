@@ -373,9 +373,9 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
     { id: 'alex-rodriguez', name: 'Alex Rodriguez', role: 'Strategy Consultant' }
   ];
 
-  // Fetch activities
-  const { data: activities, isLoading } = useQuery({
-    queryKey: [`/api/${currentEnv}/partners/${partnerId}/activities`],
+  // Fetch activities using the dynamic endpoint
+  const { data: activities, isLoading: activitiesLoading } = useQuery({
+    queryKey: [apiEndpoint],
   });
 
   // Fetch timeline
@@ -397,7 +397,11 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
       const endpoint = selectedActivityType === 'task' ? 'tasks' : 
                      selectedActivityType === 'comment' ? 'comments' : 'attachments';
       
-      return fetch(`/api/${currentEnv}/partners/${partnerId}/${endpoint}`, {
+      const baseUrl = entityType === 'opportunity' 
+        ? `/api/degoudse/opportunities/${actualEntityId}`
+        : `/api/${currentEnv}/partners/${partnerId}`;
+      
+      return fetch(`${baseUrl}/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -419,19 +423,15 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
       });
     },
     onSuccess: (data) => {
-      console.log('Task created successfully:', data);
+      console.log('Activity created successfully:', data);
       // Invalidate all related queries
-      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/activities`] });
+      queryClient.invalidateQueries({ queryKey: [apiEndpoint] });
       queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`] });
       queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners`] });
       
       // Force immediate refetch with no cache
       queryClient.refetchQueries({ 
-        queryKey: [`/api/${currentEnv}/partners/${partnerId}/activities`],
-        type: 'active'
-      });
-      queryClient.refetchQueries({ 
-        queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`],
+        queryKey: [apiEndpoint],
         type: 'active'
       });
       

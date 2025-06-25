@@ -1142,7 +1142,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM ${envId}.activity_tasks t
         LEFT JOIN ${envId}.users u ON t.assigned_to = u.id
         LEFT JOIN ${envId}.opportunities o ON t.entity_id = o.id AND t.entity_type = 'opportunity'
-        WHERE (t.entity_type = 'partner' AND t.entity_id = $1)
+        WHERE (t.entity_type = 'partner' AND t.partner_id = $1)
            OR (t.entity_type = 'opportunity' AND t.entity_id IN (
                SELECT o2.id FROM ${envId}.opportunities o2 WHERE o2.partner_id = $1
            ))
@@ -1151,29 +1151,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Fetch comments for this partner AND related opportunity comments
       const commentsResult = await envPool.query(`
-        SELECT c.*, u.name as author_name,
-               CASE WHEN c.entity_type = 'opportunity' THEN o.title ELSE NULL END as opportunity_title
+        SELECT c.*, u.name as author_name
         FROM ${envId}.activity_comments c
         LEFT JOIN ${envId}.users u ON c.user_id = u.id
-        LEFT JOIN ${envId}.opportunities o ON c.entity_id = o.id AND c.entity_type = 'opportunity'
-        WHERE (c.entity_type = 'partner' AND c.entity_id = $1)
-           OR (c.entity_type = 'opportunity' AND c.entity_id IN (
-               SELECT o2.id FROM ${envId}.opportunities o2 WHERE o2.partner_id = $1
-           ))
+        WHERE c.partner_id = $1
         ORDER BY c.created_at DESC
       `, [partnerId]);
       
-      // Fetch attachments for this partner AND related opportunity attachments
+      // Fetch attachments for this partner
       const attachmentsResult = await envPool.query(`
-        SELECT a.*, u.name as author_name,
-               CASE WHEN a.entity_type = 'opportunity' THEN o.title ELSE NULL END as opportunity_title
+        SELECT a.*, u.name as author_name
         FROM ${envId}.activity_attachments a
         LEFT JOIN ${envId}.users u ON a.uploaded_by_id = u.id
-        LEFT JOIN ${envId}.opportunities o ON a.entity_id = o.id AND a.entity_type = 'opportunity'
-        WHERE (a.entity_type = 'partner' AND a.entity_id = $1)
-           OR (a.entity_type = 'opportunity' AND a.entity_id IN (
-               SELECT o2.id FROM ${envId}.opportunities o2 WHERE o2.partner_id = $1
-           ))
+        WHERE a.partner_id = $1
         ORDER BY a.created_at DESC
       `, [partnerId]);
       
@@ -4131,8 +4121,8 @@ Keep the tone clear and professional. Focus on what will help the account manage
       // Insert task with opportunity entity type
       const result = await envPool.query(`
         INSERT INTO degoudse.activity_tasks 
-        (entity_type, entity_id, title, description, priority, assigned_to, user_id, status)
-        VALUES ('opportunity', $1, $2, $3, $4, $5, 1, 'pending')
+        (entity_type, entity_id, title, description, priority, assigned_to, status)
+        VALUES ('opportunity', $1, $2, $3, $4, $5, 'pending')
         RETURNING *
       `, [opportunityId, title, description || null, priority || 'medium', assigned_to || null]);
       
@@ -4148,9 +4138,9 @@ Keep the tone clear and professional. Focus on what will help the account manage
       for (const partner of partnersResult.rows) {
         await envPool.query(`
           INSERT INTO degoudse.activity_tasks 
-          (entity_type, entity_id, title, description, priority, assigned_to, user_id, status)
-          VALUES ('partner', $1, $2, $3, $4, $5, 1, 'pending')
-        `, [partner.id, title, description || null, priority || 'medium', assigned_to || null]);
+          (partner_id, title, description, priority, assigned_to, status, entity_type, entity_id)
+          VALUES ($1, $2, $3, $4, $5, 'pending', 'opportunity', $6)
+        `, [partner.id, title, description || null, priority || 'medium', assigned_to || null, opportunityId]);
       }
       
       console.log(`Created opportunity task and synced to ${partnersResult.rows.length} related partners`);
@@ -4167,11 +4157,11 @@ Keep the tone clear and professional. Focus on what will help the account manage
       const { content, visible_to_partner } = req.body;
       const envPool = pool;
       
-      // Insert comment with opportunity entity type
+      // Insert comment with opportunity entity type (using partner_id column for now)
       const result = await envPool.query(`
         INSERT INTO degoudse.activity_comments 
-        (entity_type, entity_id, content, user_id, visible_to_partner)
-        VALUES ('opportunity', $1, $2, 1, $3)
+        (partner_id, content, user_id, visible_to_partner)
+        VALUES ($1, $2, 1, $3)
         RETURNING *
       `, [opportunityId, content, visible_to_partner]);
       
@@ -4187,8 +4177,8 @@ Keep the tone clear and professional. Focus on what will help the account manage
       for (const partner of partnersResult.rows) {
         await envPool.query(`
           INSERT INTO degoudse.activity_comments 
-          (entity_type, entity_id, content, user_id, visible_to_partner)
-          VALUES ('partner', $1, $2, 1, $3)
+          (partner_id, content, user_id, visible_to_partner)
+          VALUES ($1, $2, 1, $3)
         `, [partner.id, content, visible_to_partner]);
       }
       
