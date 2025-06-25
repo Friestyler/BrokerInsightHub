@@ -373,6 +373,24 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
     { id: 'alex-rodriguez', name: 'Alex Rodriguez', role: 'Strategy Consultant' }
   ];
 
+  // Helper function to get user initials for avatar fallback
+  const getUserInitials = (userId: number): string => {
+    const roleMap: { [key: number]: string } = {
+      1: 'Broker',
+      2: 'Account Manager', 
+      3: 'Relationship Manager'
+    };
+    const roleName = roleMap[userId] || `User ${userId}`;
+    return roleName.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
+  // Helper function to get user avatar URL (placeholder for now)
+  const getUserAvatarUrl = (userId: number): string | null => {
+    // In a real app, this would fetch from user profile data
+    // For now, return null to show initials fallback
+    return null;
+  };
+
   // Use entityId and entityType to determine the correct API endpoint
   const actualEntityId = entityId || partnerId;
   const apiEndpoint = entityType === 'opportunity' 
@@ -1018,7 +1036,19 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                               <CheckSquare className="h-4 w-4 text-green-600" />
                             )}
                             {isComment && (
-                              <MessageSquare className="h-4 w-4 text-blue-600" />
+                              <>
+                                {getUserAvatarUrl(item.user_id) ? (
+                                  <img 
+                                    src={getUserAvatarUrl(item.user_id)!} 
+                                    alt={getUserRoleName(item.user_id)}
+                                    className="w-full h-full rounded-full object-cover"
+                                  />
+                                ) : (
+                                  <div className="w-full h-full rounded-full bg-blue-100 flex items-center justify-center text-xs font-medium text-blue-700">
+                                    {getUserInitials(item.user_id)}
+                                  </div>
+                                )}
+                              </>
                             )}
                             {isAttachment && (
                               <Paperclip className="h-4 w-4 text-purple-600" />
