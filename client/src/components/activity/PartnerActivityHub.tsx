@@ -443,10 +443,11 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
         type: 'active'
       });
       
-      // Also refetch timeline directly
-      setTimeout(() => {
-        refetchTimeline();
-      }, 100);
+      // Force timeline query refresh
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`],
+        exact: true
+      });
       
       resetForm();
       const activityType = (data as any).activityType || selectedActivityType;
@@ -639,52 +640,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
   const actions = (nextActions as any) || [];
   const rawTimelineData = (timeline as any) || [];
   
-  // Merge tasks with timeline data, avoiding duplicates
-  const allTimelineItems = [
-    ...rawTimelineData,
-    ...tasks.filter((task: any) => !rawTimelineData.some((item: any) => 
-      item.activity_type === 'task' && item.id === task.id
-    )).map((task: any) => ({
-      ...task,
-      activity_type: 'task',
-      title: task.title,
-      content: task.title,
-      description: task.description || '',
-      priority: task.priority,
-      completed: task.completed,
-      visible_to_partner: task.visible_to_partner,
-      assigned_to_name: task.assignedTo ? teamMembers.find(m => m.id === task.assignedTo)?.name || task.assignedTo : null,
-      author_name: 'System'
-    })),
-    ...comments.filter((comment: any) => !rawTimelineData.some((item: any) => 
-      item.activity_type === 'comment' && item.id === comment.id
-    )).map((comment: any) => ({
-      ...comment,
-      activity_type: 'comment',
-      title: 'Comment',
-      content: comment.content,
-      visible_to_partner: comment.visible_to_partner,
-      author_name: comment.author_name || 'User'
-    })),
-    ...attachments.filter((attachment: any) => !rawTimelineData.some((item: any) => 
-      item.activity_type === 'attachment' && item.id === attachment.id
-    )).map((attachment: any) => ({
-      ...attachment,
-      activity_type: 'attachment',
-      title: 'Document',
-      content: attachment.filename || 'File attachment',
-      visible_to_partner: attachment.visible_to_partner,
-      author_name: attachment.author_name || 'User'
-    }))
-  ];
-
-  // Remove any remaining duplicates based on unique combination of activity_type, id, and created_at
-  const timelineData = allTimelineItems.filter((item: any, index: number, arr: any[]) => {
-    const uniqueKey = `${item.activity_type}-${item.id}-${item.created_at}`;
-    return arr.findIndex((other: any) => 
-      `${other.activity_type}-${other.id}-${other.created_at}` === uniqueKey
-    ) === index;
-  });
+  // Timeline data comes directly from the API - no client-side merging needed
 
   const completedTasks = tasks.filter((t: any) => t.completed).length;
   const pendingTasks = tasks.filter((t: any) => !t.completed).length;
