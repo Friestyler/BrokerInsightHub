@@ -2181,6 +2181,15 @@ function OpportunitiesTable() {
                 Customer
               </SortableTableHead>
               <SortableTableHead 
+                sortKey="productCount" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[80px]"
+              >
+                Product
+              </SortableTableHead>
+              <SortableTableHead 
                 sortKey="partnerName" 
                 currentSortKey={tableSortConfig.key} 
                 currentDirection={tableSortConfig.direction} 
@@ -2322,6 +2331,32 @@ function OpportunitiesTable() {
                   ) : (
                     <span className="text-gray-400">-</span>
                   )}
+                </td>
+                <td className="px-3 py-4 text-sm w-[80px]">
+                  <a 
+                    href={`/lists/opportunities/${opportunity.id}?tab=products`}
+                    className="text-gray-900 hover:text-indigo-600 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Store current location in session storage for back navigation
+                      sessionStorage.setItem('previousLocation', window.location.pathname + window.location.search);
+                    }}
+                  >
+                    {opportunity.productCount || 0}
+                  </a>
+                </td>
+                <td className="px-3 py-4 text-sm w-[80px]">
+                  <a 
+                    href={`/lists/opportunities/${opportunity.id}?tab=products`}
+                    className="text-gray-900 hover:text-indigo-600 cursor-pointer"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      // Store current location in session storage for back navigation
+                      sessionStorage.setItem('previousLocation', window.location.pathname + window.location.search);
+                    }}
+                  >
+                    {opportunity.productCount || 0}
+                  </a>
                 </td>
                 <td className="px-3 py-4 text-sm w-[120px] truncate">
                   {opportunity.partnerName ? (
