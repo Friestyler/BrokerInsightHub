@@ -23,9 +23,10 @@ interface ActivityReactionsProps {
 }
 
 const ActivityReactions = ({ activityType, activityId, onReactionClick }: ActivityReactionsProps) => {
-  const { data: reactions } = useQuery({
+  const { data: reactions } = useQuery<any[]>({
     queryKey: [`/api/degoudse/activity-reactions/${activityType}/${activityId}`],
     staleTime: 30000, // 30 seconds
+    enabled: !!activityType && !!activityId, // Only fetch if we have valid parameters
   });
 
   // Handle cases where reactions is undefined or not an array
@@ -34,7 +35,7 @@ const ActivityReactions = ({ activityType, activityId, onReactionClick }: Activi
   }
 
   return (
-    <div className="flex items-center gap-2 mt-2">
+    <div className="flex items-center gap-2">
       {reactions.map((reaction: any) => (
         <button
           key={reaction.emoji}
