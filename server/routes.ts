@@ -4118,32 +4118,26 @@ Keep the tone clear and professional. Focus on what will help the account manage
       const { title, description, priority, visible_to_partner, assigned_to } = req.body;
       const envPool = pool;
       
-      // Insert task with opportunity entity type
-      const result = await envPool.query(`
-        INSERT INTO degoudse.activity_tasks 
-        (entity_type, entity_id, title, description, priority, assigned_to, status)
-        VALUES ('opportunity', $1, $2, $3, $4, $5, 'pending')
-        RETURNING *
-      `, [opportunityId, title, description || null, priority || 'medium', assigned_to || null]);
-      
-      // Get related partners for this opportunity to sync activities
-      const partnersResult = await envPool.query(`
-        SELECT p.id
-        FROM degoudse.partners p
-        INNER JOIN degoudse.opportunities o ON p.id = o.partner_id
-        WHERE o.id = $1
+      // Get the actual partner_id for this opportunity
+      const opportunityResult = await envPool.query(`
+        SELECT partner_id FROM degoudse.opportunities WHERE id = $1
       `, [opportunityId]);
       
-      // Create cross-entity activity references for each related partner
-      for (const partner of partnersResult.rows) {
-        await envPool.query(`
-          INSERT INTO degoudse.activity_tasks 
-          (partner_id, title, description, priority, assigned_to, status, entity_type, entity_id)
-          VALUES ($1, $2, $3, $4, $5, 'pending', 'opportunity', $6)
-        `, [partner.id, title, description || null, priority || 'medium', assigned_to || null, opportunityId]);
+      if (opportunityResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Opportunity not found' });
       }
       
-      console.log(`Created opportunity task and synced to ${partnersResult.rows.length} related partners`);
+      const partnerId = opportunityResult.rows[0].partner_id;
+      
+      // Insert task using the correct partner_id
+      const result = await envPool.query(`
+        INSERT INTO degoudse.activity_tasks 
+        (partner_id, title, description, priority, assigned_to, status)
+        VALUES ($1, $2, $3, $4, $5, 'pending')
+        RETURNING *
+      `, [partnerId, title, description || null, priority || 'medium', assigned_to || null]);
+      
+      console.log(`Created opportunity task for partner ${partnerId}`);
       res.json(result.rows[0]);
     } catch (error) {
       console.error('Error creating opportunity task:', error);
@@ -4157,38 +4151,31 @@ Keep the tone clear and professional. Focus on what will help the account manage
       const { content, visible_to_partner } = req.body;
       const envPool = pool;
       
-      console.log('Creating opportunity comment:', { opportunityId, content, visible_to_partner, body: req.body });
-      
-      if (!content || content.trim() === '') {
-        return res.status(400).json({ error: 'Comment content is required' });
+      if (!content || typeof content !== 'string' || content.trim() === '') {
+        return res.status(400).json({ error: 'Comment content is required and must be a non-empty string' });
       }
       
-      // Insert comment with opportunity entity type (using partner_id column for now)
+      // Get the actual partner_id for this opportunity
+      const opportunityResult = await envPool.query(`
+        SELECT partner_id FROM degoudse.opportunities WHERE id = $1
+      `, [opportunityId]);
+      
+      if (opportunityResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Opportunity not found' });
+      }
+      
+      const partnerId = opportunityResult.rows[0].partner_id;
+      const finalContent = content.trim();
+      
+      // Insert comment using the correct partner_id
       const result = await envPool.query(`
         INSERT INTO degoudse.activity_comments 
         (partner_id, content, user_id, visible_to_partner)
         VALUES ($1, $2, 1, $3)
         RETURNING *
-      `, [opportunityId, content.trim(), visible_to_partner || false]);
+      `, [partnerId, finalContent, visible_to_partner || false]);
       
-      // Get related partners for this opportunity to sync activities
-      const partnersResult = await envPool.query(`
-        SELECT p.id
-        FROM degoudse.partners p
-        INNER JOIN degoudse.opportunities o ON p.id = o.partner_id
-        WHERE o.id = $1
-      `, [opportunityId]);
-      
-      // Create cross-entity activity references for each related partner
-      for (const partner of partnersResult.rows) {
-        await envPool.query(`
-          INSERT INTO degoudse.activity_comments 
-          (partner_id, content, user_id, visible_to_partner)
-          VALUES ($1, $2, 1, $3)
-        `, [partner.id, content, visible_to_partner]);
-      }
-      
-      console.log(`Created opportunity comment and synced to ${partnersResult.rows.length} related partners`);
+      console.log(`Created opportunity comment for partner ${partnerId}`);
       res.json(result.rows[0]);
     } catch (error) {
       console.error('Error creating opportunity comment:', error);

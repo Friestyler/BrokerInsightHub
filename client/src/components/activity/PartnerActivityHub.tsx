@@ -407,6 +407,8 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
         ? `/api/degoudse/opportunities/${actualEntityId}`
         : `/api/${currentEnv}/partners/${partnerId}`;
       
+      console.log('Sending activity request:', { baseUrl, endpoint, activityData });
+      
       return fetch(`${baseUrl}/${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
