@@ -524,29 +524,6 @@ export default function UploadProcessPage() {
                 })}
               </div>
               
-              {selectedEntityTypes.length > 0 && (
-                <div className="text-center">
-                  <p className="text-sm text-muted-foreground mb-2">Selected entities:</p>
-                  <div className="flex justify-center gap-2 flex-wrap">
-                    {selectedEntityTypes.map(entityType => {
-                      const entityLabels: Record<string, string> = {
-                        'opportunities': 'Opportunities',
-                        'partners': 'Partners', 
-                        'customers': 'Customers',
-                        'products': 'Products',
-                        'vendors': 'Vendors',
-                        'contacts': 'Contacts'
-                      };
-                      return (
-                        <Badge key={entityType} variant="secondary" className="text-xs">
-                          {entityLabels[entityType]}
-                        </Badge>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-              
               <div className="flex justify-between pt-4">
                 <Button 
                   variant="outline" 
