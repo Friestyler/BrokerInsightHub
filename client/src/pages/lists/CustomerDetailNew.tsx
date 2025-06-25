@@ -677,9 +677,6 @@ export default function CustomerDetailNew() {
                       <span className="font-medium text-gray-900">
                         {product.name}
                       </span>
-                      {product.description && (
-                        <div className="text-sm text-gray-500">{product.description}</div>
-                      )}
                     </TableCell>
                     <TableCell>
                       <span className="text-gray-900">
