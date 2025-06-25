@@ -282,9 +282,6 @@ function ProductsTable() {
     };
   }, [showViewsDropdown, showFilterModal]);
 
-  // State for filter modal
-  const [showFilterModal, setShowFilterModal] = useState(false);
-
   // Filter saved lists to only show product-related lists
   const productSavedListsData = savedListsData.filter((list: any) => 
     list.entity_type === 'products'
@@ -331,7 +328,6 @@ function ProductsTable() {
   const [originalListFilters, setOriginalListFilters] = useState<SavedList['filters'] | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
-  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
   
   // Sorting state
   const [tableSortConfig, setTableSortConfig] = useState({
@@ -442,7 +438,8 @@ function ProductsTable() {
     };
     
     try {
-      await createSavedViewMutation.mutateAsync(viewData);
+      const newView = await createSavedViewMutation.mutateAsync(viewData);
+      setActiveView(newView);
       toast({
         title: "Success",
         description: "View saved successfully",
