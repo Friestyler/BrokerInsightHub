@@ -261,7 +261,7 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
               </div>
 
               {/* Visibility Toggle */}
-              <div className="flex items-center gap-1.5 ml-auto">
+              <div className="flex items-center gap-3 ml-auto">
                 <Switch
                   checked={visibleToPartner}
                   onCheckedChange={setVisibleToPartner}
@@ -276,7 +276,7 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
         {/* Comment Visibility for Comments */}
         {activeMode === 'comment' && (
           <div className="px-4 pb-3">
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-3">
               <Switch
                 checked={visibleToPartner}
                 onCheckedChange={setVisibleToPartner}
