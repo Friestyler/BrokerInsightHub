@@ -494,7 +494,21 @@ export default function AttributeMappingStep({
         <CardContent>
           {/* Column Headers */}
           <div className="grid grid-cols-2 gap-8 mb-3">
-            <h4 className="font-medium text-sm text-muted-foreground">Entity Attributes</h4>
+            <h4 className="font-medium text-sm text-muted-foreground">
+              {(() => {
+                const entityType = selectedEntityType || uploadType || '';
+                const entityLabels: Record<string, string> = {
+                  'opportunities': 'Opportunity',
+                  'partners': 'Partner',
+                  'customers': 'Customer',
+                  'products': 'Product',
+                  'vendors': 'Vendor',
+                  'contacts': 'Contact'
+                };
+                const entityLabel = entityLabels[entityType] || (entityType.charAt(0).toUpperCase() + entityType.slice(1));
+                return `${entityLabel} Entity Attributes`;
+              })()}
+            </h4>
             <h4 className="font-medium text-sm text-muted-foreground">CSV Column Mapping</h4>
           </div>
           
