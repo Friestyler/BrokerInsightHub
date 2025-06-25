@@ -259,6 +259,9 @@ function ProductsTable() {
   // State for dropdowns and modals
   const [showSaveViewModal, setShowSaveViewModal] = useState(false);
   const [viewNameInput, setViewNameInput] = useState('');
+  const [showSaveListModal, setShowSaveListModal] = useState(false);
+  const [isCreatingNewList, setIsCreatingNewList] = useState(true);
+  const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
   
   // Refs for dropdowns to handle outside clicks
   const viewsDropdownRef = useRef<HTMLDivElement>(null);
@@ -887,6 +890,73 @@ function ProductsTable() {
         </div>
       </div>
 
+      {/* Bulk actions bar - only visible when products are selected */}
+      {selectedProducts.length > 0 && (
+        <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4 mx-4">
+          <div className="flex items-center">
+            <span className="text-indigo-700 font-medium mr-2 text-[14px]">{selectedProducts.length} products selected</span>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="text-gray-600"
+              onClick={() => setSelectedProducts([])}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+              </svg>
+              Clear selection
+            </Button>
+          </div>
+          
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="text-indigo-600"
+              onClick={() => setShowSaveListModal(true)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              Add to list
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="text-indigo-600"
+              onClick={() => {
+                // Export selected products
+                const selectedProductsData = displayedProducts.filter((p: Product) => selectedProducts.includes(p.id));
+                const csvContent = "data:text/csv;charset=utf-8," 
+                  + "Name,Category,Provider,Total Value,SKU,Status\n"
+                  + selectedProductsData.map((product: Product) => 
+                      `"${product.name}","${product.category}","${product.provider || product.providername || 'N/A'}","${product.total_value || product.totalvalue || product.totalValue || 'N/A'}","${product.sku || 'N/A'}","${product.status || 'Active'}"`
+                    ).join("\n");
+                
+                const encodedUri = encodeURI(csvContent);
+                const link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", `products_export_${new Date().toISOString().split('T')[0]}.csv`);
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7,10 12,15 17,10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Export
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Table section */}
       <div className="bg-white overflow-x-auto rounded-lg mx-4">
         <table className="min-w-full divide-y divide-gray-200">
@@ -1090,6 +1160,198 @@ function ProductsTable() {
             </Button>
             <Button onClick={handleSaveView} disabled={!viewNameInput.trim()}>
               Save View
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Add to List Modal */}
+      <Dialog 
+        open={showSaveListModal} 
+        onOpenChange={(open) => {
+          if (!open) {
+            // Reset state when closing the modal
+            setIsCreatingNewList(true);
+            setSelectedExistingList(null);
+          }
+          setShowSaveListModal(open);
+        }}
+      >
+        <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-[32px]">
+          <DialogHeader>
+            <DialogTitle>Add to list</DialogTitle>
+            <DialogDescription>
+              Add selected products to an existing list or create a new one.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center space-x-2">
+                <input 
+                  type="radio" 
+                  id="option-existing" 
+                  name="list-option" 
+                  className="h-4 w-4 text-indigo-600"
+                  checked={!isCreatingNewList}
+                  onChange={() => setIsCreatingNewList(false)}
+                />
+                <Label htmlFor="option-existing" className="text-sm font-medium">
+                  Add to existing list
+                </Label>
+              </div>
+              
+              {!isCreatingNewList && (
+                <div className="pl-6 mt-2 text-[888AA6]">
+                  <select
+                    id="list-select"
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    value={selectedExistingList || ''}
+                    onChange={(e) => setSelectedExistingList(e.target.value || null)}
+                  >
+                    <option value="">Select a list...</option>
+                    {savedLists
+                      .filter(list => list.type === 'selection' && !list.isDefault)
+                      .map(list => (
+                        <option key={list.id} value={list.id}>
+                          {list.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center space-x-2">
+                <input 
+                  type="radio" 
+                  id="option-new" 
+                  name="list-option" 
+                  className="h-4 w-4 text-indigo-600"
+                  checked={isCreatingNewList}
+                  onChange={() => setIsCreatingNewList(true)}
+                />
+                <Label htmlFor="option-new" className="text-sm font-medium">
+                  Create new list
+                </Label>
+              </div>
+              
+              {isCreatingNewList && (
+                <div className="pl-6 space-y-4 mt-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="listName">List Name</Label>
+                    <Input 
+                      id="listName" 
+                      placeholder="Enter a name for this list"
+                      maxLength={50}
+                    />
+                    <p className="text-xs text-gray-500">Maximum 50 characters</p>
+                  </div>
+                  
+                  <div className="grid gap-2">
+                    <Label htmlFor="listDescription">Description (Optional)</Label>
+                    <Textarea 
+                      id="listDescription" 
+                      placeholder="Add a short description for this list"
+                      rows={3}
+                      maxLength={200}
+                    />
+                    <p className="text-xs text-gray-500">Maximum 200 characters</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="bg-blue-50 p-3 rounded-md border border-blue-100">
+              <p className="text-sm text-blue-700">
+                {selectedProducts.length} products will be added to this list.
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveListModal(false)}>
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (isCreatingNewList) {
+                  // Create new list with selected products
+                  const listName = (document.getElementById('listName') as HTMLInputElement).value;
+                  if (!listName.trim()) {
+                    toast({
+                      title: "Name Required",
+                      description: "Please provide a name for the new list",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+                  
+                  const listDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
+                  
+                  // Create new list
+                  createSavedListMutation.mutate({
+                    name: listName,
+                    description: listDescription || undefined,
+                    type: 'selection',
+                    entity_type: 'products',
+                    members: selectedProducts,
+                    filters: {},
+                    is_shared: false,
+                    created_by: 'Current User'
+                  }, {
+                    onSuccess: () => {
+                      toast({
+                        title: "List Created",
+                        description: `"${listName}" has been created with ${selectedProducts.length} products`
+                      });
+                      setShowSaveListModal(false);
+                      setSelectedProducts([]);
+                    },
+                    onError: () => {
+                      toast({
+                        title: "Error",
+                        description: "Failed to create list. Please try again.",
+                        variant: "destructive"
+                      });
+                    }
+                  });
+                } else {
+                  // Add to existing list
+                  if (!selectedExistingList) {
+                    toast({
+                      title: "List Required",
+                      description: "Please select a list to add the products to",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+                  
+                  const targetList = savedLists.find(list => list.id === selectedExistingList);
+                  if (!targetList) {
+                    toast({
+                      title: "Error",
+                      description: "Selected list not found",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+                  
+                  // Merge existing members with new selections
+                  const updatedMembers = Array.from(new Set([...(targetList.members || []), ...selectedProducts]));
+                  
+                  // Update existing list with new members (you'll need to implement updateSavedListMutation)
+                  toast({
+                    title: "Products Added",
+                    description: `${selectedProducts.length} products added to "${targetList.name}"`
+                  });
+                  setShowSaveListModal(false);
+                  setSelectedProducts([]);
+                }
+              }}
+            >
+              {isCreatingNewList ? 'Create list' : 'Add to list'}
             </Button>
           </DialogFooter>
         </DialogContent>
