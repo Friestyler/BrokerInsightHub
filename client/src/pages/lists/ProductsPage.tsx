@@ -1212,10 +1212,342 @@ function ProductsTable() {
             </div>
           )}
         </div>
-      </div>
-    )
-  }
 
+        {/* Edit Product Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <DialogTitle>Edit Product</DialogTitle>
+              <DialogDescription>
+                Update product information and details.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-name" className="text-right">
+                  Name
+                </Label>
+                <Input
+                  id="edit-name"
+                  value={editFormData.name || ''}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, name: e.target.value }))}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-category" className="text-right">
+                  Category
+                </Label>
+                <Input
+                  id="edit-category"
+                  value={editFormData.category || ''}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, category: e.target.value }))}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-description" className="text-right">
+                  Description
+                </Label>
+                <Textarea
+                  id="edit-description"
+                  value={editFormData.description || ''}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, description: e.target.value }))}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-contract-start" className="text-right">
+                  Contract Start
+                </Label>
+                <Input
+                  id="edit-contract-start"
+                  type="date"
+                  value={editFormData.contractStartDate || ''}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, contractStartDate: e.target.value }))}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-contract-end" className="text-right">
+                  Contract End
+                </Label>
+                <Input
+                  id="edit-contract-end"
+                  type="date"
+                  value={editFormData.contractEndDate || ''}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, contractEndDate: e.target.value }))}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-total-value" className="text-right">
+                  Total Value
+                </Label>
+                <Input
+                  id="edit-total-value"
+                  type="number"
+                  value={editFormData.totalValue || ''}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, totalValue: parseFloat(e.target.value) }))}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-premium-value" className="text-right">
+                  Premium Value
+                </Label>
+                <Input
+                  id="edit-premium-value"
+                  type="number"
+                  value={editFormData.premiumValue || ''}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, premiumValue: parseFloat(e.target.value) }))}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-premium-percentage" className="text-right">
+                  Premium %
+                </Label>
+                <Input
+                  id="edit-premium-percentage"
+                  type="number"
+                  step="0.1"
+                  value={editFormData.premiumPercentage || ''}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, premiumPercentage: parseFloat(e.target.value) }))}
+                  className="col-span-3"
+                />
+              </div>
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="edit-discount-percentage" className="text-right">
+                  Discount %
+                </Label>
+                <Input
+                  id="edit-discount-percentage"
+                  type="number"
+                  step="0.1"
+                  value={editFormData.discountPercentage || ''}
+                  onChange={(e) => setEditFormData(prev => ({ ...prev, discountPercentage: parseFloat(e.target.value) }))}
+                  className="col-span-3"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateProduct}>
+                Save changes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Product Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Product</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete "{productToDelete?.name}"? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleDeleteProduct}>
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Add to List Modal */}
+        <Dialog 
+          open={showSaveListModal} 
+          onOpenChange={(open) => {
+            if (!open) {
+              setIsCreatingNewList(true);
+              setSelectedExistingList(null);
+            }
+            setShowSaveListModal(open);
+          }}
+        >
+          <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-[32px]">
+            <DialogHeader>
+              <DialogTitle>Add to list</DialogTitle>
+              <DialogDescription>
+                Add selected products to an existing list or create a new one.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="grid gap-4 py-4">
+              <div className="flex flex-col space-y-2">
+                <div className="flex items-center space-x-2">
+                  <input 
+                    type="radio" 
+                    id="option-existing" 
+                    name="list-option" 
+                    className="h-4 w-4 text-indigo-600"
+                    checked={!isCreatingNewList}
+                    onChange={() => setIsCreatingNewList(false)}
+                  />
+                  <Label htmlFor="option-existing" className="text-sm font-medium">
+                    Add to existing list
+                  </Label>
+                </div>
+                
+                {!isCreatingNewList && (
+                  <Select onValueChange={(value) => setSelectedExistingList(value)}>
+                    <SelectTrigger className="col-span-3">
+                      <SelectValue placeholder="Select a list" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {savedLists.map((list) => (
+                        <SelectItem key={list.id} value={list.id}>
+                          {list.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
+              
+              <div className="flex flex-col space-y-2">
+                <div className="flex items-center space-x-2">
+                  <input 
+                    type="radio" 
+                    id="option-new" 
+                    name="list-option" 
+                    className="h-4 w-4 text-indigo-600"
+                    checked={isCreatingNewList}
+                    onChange={() => setIsCreatingNewList(true)}
+                  />
+                  <Label htmlFor="option-new" className="text-sm font-medium">
+                    Create new list
+                  </Label>
+                </div>
+                
+                {isCreatingNewList && (
+                  <div className="space-y-2">
+                    <Input
+                      placeholder="List name"
+                      value={listNameInput}
+                      onChange={(e) => setListNameInput(e.target.value)}
+                    />
+                    <Input
+                      placeholder="Description (optional)"
+                      value={listDescriptionInput}
+                      onChange={(e) => setListDescriptionInput(e.target.value)}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <DialogFooter>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowSaveListModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleSaveToList}
+                disabled={
+                  (!isCreatingNewList && !selectedExistingList) || 
+                  (isCreatingNewList && !listNameInput.trim())
+                }
+              >
+                Add to List
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Save View Modal */}
+        <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Save as View</DialogTitle>
+              <DialogDescription>
+                Save your current filters as a reusable view.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="view-name">View Name</Label>
+                <Input
+                  id="view-name"
+                  value={viewNameInput}
+                  onChange={(e) => setViewNameInput(e.target.value)}
+                  placeholder="Enter view name"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowSaveViewModal(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveView} disabled={!viewNameInput.trim()}>
+                Save View
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </div>
+    </ListEditingContext.Provider>
+  );
 }
 
-export default ProductsPage; 
+export default function ProductsPage() {
+  const [activeTab, setActiveTab] = useState<'products' | 'categories'>('products');
+  const [isEditingList, setIsEditingList] = useState(false);
+
+  return (
+    <ListEditingContext.Provider value={{ isEditingList, setIsEditingList }}>
+      <div className="flex-1">
+        {/* Tab Navigation */}
+        <div className="bg-white">
+          <div className="px-6 py-4">
+            <div className="flex space-x-1">
+              <Button 
+                variant="ghost" 
+                className={`flex items-center gap-2 ${
+                  activeTab === 'products' 
+                    ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
+                    : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
+                }`}
+                onClick={() => setActiveTab('products')}
+              >
+                Products
+              </Button>
+              <Button 
+                variant="ghost" 
+                className={`flex items-center gap-2 ${
+                  activeTab === 'categories' 
+                    ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
+                    : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
+                }`}
+                onClick={() => setActiveTab('categories')}
+              >
+                Categories
+              </Button>
+            </div>
+          </div>
+        </div>
+
+        {/* Tab Content */}
+        <div>
+          {activeTab === 'products' && <ProductsTable />}
+          
+          {activeTab === 'categories' && (
+            <div className="mx-4">
+              <CategoryManagerForProducts />
+            </div>
+          )}
+        </div>
+      </div>
+    </ListEditingContext.Provider>
+  );
+} 
