@@ -1286,10 +1286,10 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                                       title="Mark task as complete"
                                     >
                                       <CheckSquare className="h-4 w-4 text-gray-600" />
-                                      {/* Custom tooltip */}
-                                      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded whitespace-nowrap opacity-0 group-hover/tooltip:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                                      {/* Custom tooltip aligned from right */}
+                                      <div className="absolute bottom-full right-0 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded whitespace-nowrap opacity-0 group-hover/tooltip:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
                                         Mark task as complete
-                                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                                        <div className="absolute top-full right-2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
                                       </div>
                                     </button>
                                   )}
