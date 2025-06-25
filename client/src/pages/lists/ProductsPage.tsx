@@ -73,6 +73,55 @@ const useSavedViews = () => {
   });
 };
 
+const useCreateSavedList = () => {
+  return useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest('POST', '/api/saved-lists', data);
+    },
+    onSuccess: () => {
+      // Clear cache for immediate updates
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'products'] });
+    }
+  });
+};
+
+const useUpdateSavedList = () => {
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number, data: any }) => {
+      return apiRequest('PUT', `/api/saved-lists/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+    }
+  });
+};
+
+const useDeleteSavedList = () => {
+  return useMutation({
+    mutationFn: async (listId: number) => {
+      return apiRequest('DELETE', `/api/saved-lists/${listId}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'products'] });
+    }
+  });
+};
+
+const useCreateSavedView = () => {
+  return useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest('POST', '/api/saved-views', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-views', 'products'] });
+    }
+  });
+};
+
+// Product type interface
 type Product = {
   id: number;
   productId?: string;
@@ -319,22 +368,6 @@ function ProductsTable() {
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center p-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="text-center p-8">
-        <p className="text-red-600">Error loading products</p>
-      </div>
-    );
-  }
-
   // Handle list selection and changes
   const handleListSelect = (list: SavedList | null) => {
     if (hasUnsavedChanges && originalListFilters) {
@@ -461,6 +494,22 @@ function ProductsTable() {
       });
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center p-8">
+        <p className="text-red-600">Error loading products</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-1">
@@ -733,8 +782,7 @@ function ProductsTable() {
             )}
           </div>
         </div>
-
-
+      </div>
 
       {/* Table section */}
       <div className="bg-white overflow-x-auto rounded-lg mx-4">
