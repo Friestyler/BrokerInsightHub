@@ -9309,8 +9309,8 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
           COUNT(*) as count,
           ARRAY_AGG(u.name) as user_names,
           ARRAY_AGG(ar.user_id) as user_ids
-        FROM activity_reactions ar
-        JOIN users u ON ar.user_id = u.id
+        FROM ${envId}.activity_reactions ar
+        JOIN ${envId}.users u ON ar.user_id = u.id
         WHERE ar.activity_type = $1 AND ar.activity_id = $2
         GROUP BY ar.emoji
         ORDER BY count DESC
@@ -9337,14 +9337,14 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       
       // Check if user already reacted with this emoji
       const existingReaction = await envPool.query(`
-        SELECT id FROM activity_reactions 
+        SELECT id FROM ${envId}.activity_reactions 
         WHERE activity_type = $1 AND activity_id = $2 AND user_id = $3 AND emoji = $4
       `, [activityType, activityId, userId, emoji]);
       
       if (existingReaction.rows.length > 0) {
         // Remove existing reaction
         await envPool.query(`
-          DELETE FROM activity_reactions 
+          DELETE FROM ${envId}.activity_reactions 
           WHERE activity_type = $1 AND activity_id = $2 AND user_id = $3 AND emoji = $4
         `, [activityType, activityId, userId, emoji]);
         
@@ -9352,7 +9352,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       } else {
         // Add new reaction
         await envPool.query(`
-          INSERT INTO activity_reactions (activity_type, activity_id, user_id, emoji, created_at)
+          INSERT INTO ${envId}.activity_reactions (activity_type, activity_id, user_id, emoji, created_at)
           VALUES ($1, $2, $3, $4, NOW())
         `, [activityType, activityId, userId, emoji]);
         

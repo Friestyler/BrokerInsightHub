@@ -497,8 +497,10 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
       return response.json();
     },
     onSuccess: () => {
-      // Invalidate queries to refresh reactions
+      // Invalidate all reaction queries to refresh the display
       queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/activity-reactions`] });
+      // Also invalidate timeline to refresh the reaction displays
+      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`] });
     },
     onError: (error) => {
       console.error('Error toggling reaction:', error);
@@ -1205,38 +1207,45 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
 
                               {/* Hover Toolbar */}
                               <div className="absolute -top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20">
-                                <div className="bg-white border border-gray-200 rounded-full shadow-lg px-2 py-1 flex items-center gap-1">
-                                  {/* Checkmark Emoji */}
+                                <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-1.5 py-1 flex items-center gap-0.5">
+                                  {/* Task completion checkbox for tasks only */}
+                                  {isTask && (
+                                    <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-md transition-colors duration-150">
+                                      <Check className="h-4 w-4 text-gray-600" />
+                                    </button>
+                                  )}
+                                  
+                                  {/* Muscle Emoji */}
                                   <button 
-                                    onClick={() => handleReactionToggle(item.activity_type, item.id, '✅')}
-                                    className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors duration-150"
+                                    onClick={() => handleReactionToggle(item.activity_type, item.id, '💪')}
+                                    className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-md transition-colors duration-150"
                                   >
-                                    <span className="text-lg">✅</span>
+                                    <span className="text-lg">💪</span>
                                   </button>
                                   
                                   {/* Thumbs Up Emoji */}
                                   <button 
                                     onClick={() => handleReactionToggle(item.activity_type, item.id, '👍')}
-                                    className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors duration-150"
+                                    className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-md transition-colors duration-150"
                                   >
                                     <span className="text-lg">👍</span>
                                   </button>
                                   
-                                  {/* Important/Priority Emoji */}
+                                  {/* Boom Emoji */}
                                   <button 
-                                    onClick={() => handleReactionToggle(item.activity_type, item.id, '⭐')}
-                                    className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors duration-150"
+                                    onClick={() => handleReactionToggle(item.activity_type, item.id, '💥')}
+                                    className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-md transition-colors duration-150"
                                   >
-                                    <span className="text-lg">⭐</span>
+                                    <span className="text-lg">💥</span>
                                   </button>
                                   
                                   {/* Comments Icon */}
-                                  <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors duration-150">
+                                  <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-md transition-colors duration-150">
                                     <MessageSquare className="h-4 w-4 text-gray-600" />
                                   </button>
                                   
                                   {/* Pin Icon */}
-                                  <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors duration-150">
+                                  <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-md transition-colors duration-150">
                                     <Bookmark className="h-4 w-4 text-gray-600" />
                                   </button>
                                 </div>
