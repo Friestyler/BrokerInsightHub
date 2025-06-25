@@ -376,7 +376,7 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
 export default function PartnerActivityHub({ partnerId, partnerName, entityType = 'partner', entityId }: PartnerActivityHubProps) {
   const [location] = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const [selectedActivityType, setSelectedActivityType] = useState<'task' | 'comment' | 'attachment' | 'timeline' | 'actions' | 'meeting'>('timeline');
+  const [selectedActivityType, setSelectedActivityType] = useState<'task' | 'comment' | 'attachment' | 'timeline' | 'actions' | 'meeting'>('task');
   const [highlightActions, setHighlightActions] = useState(false);
   const [showActivityInput, setShowActivityInput] = useState(false);
 
@@ -391,7 +391,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
   // Reset selected activity type if it's not available in broker view
   useEffect(() => {
     if (isBrokerView && (selectedActivityType === 'actions' || selectedActivityType === 'meeting')) {
-      setSelectedActivityType('timeline');
+      setSelectedActivityType('task');
     }
   }, [isBrokerView, selectedActivityType]);
 
