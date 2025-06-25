@@ -16,9 +16,6 @@ const ListEditingContext = createContext<ListEditingContextType>({
 import {
   Card,
   CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -47,15 +44,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { Users } from "lucide-react";
+
 
 // Fetch partners from database
 const usePartnersData = () => {
@@ -2372,84 +2361,145 @@ function PartnersTable() {
           </div>
         </div>
       )}
-      {/* Partners Table Section */}
-      <div className="mx-4">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center">
-              <Users className="mr-2 h-5 w-5" />
-              All Partners
-            </CardTitle>
-            <CardDescription>
-              View and manage all partners in your network
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-10">
-                      <div className="flex items-center justify-center">
-                        <input
-                          type="checkbox"
-                          className={`h-4 w-4 rounded border-gray-300 ${
-                            isEditingList 
-                              ? 'visible' 
-                              : (selectedPartners.length > 0 ? 'visible' : 'invisible group-hover:visible')
-                          }`}
-                        checked={isEditingList 
-                          ? editedListMembers.length === (activeList ? partners.length : displayedPartners.length) && (activeList ? partners.length : displayedPartners.length) > 0
-                          : selectedPartners.length === displayedPartners.length && displayedPartners.length > 0
+      {/* Table section without a border */}
+      <div className="bg-white overflow-x-auto rounded-lg mx-4">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-white">
+            <tr>
+              <th scope="col" className="relative px-3 py-3.5 w-10 pt-[12px] pb-[12px] group">
+                <div className="flex items-center justify-center">
+                  <input
+                    type="checkbox"
+                    className={`h-4 w-4 rounded border-gray-300 ${
+                      isEditingList 
+                        ? 'visible' 
+                        : (selectedPartners.length > 0 ? 'visible' : 'invisible group-hover:visible')
+                    }`}
+                  checked={isEditingList 
+                    ? editedListMembers.length === (activeList ? partners.length : displayedPartners.length) && (activeList ? partners.length : displayedPartners.length) > 0
+                    : selectedPartners.length === displayedPartners.length && displayedPartners.length > 0
+                  }
+                  onChange={isEditingList 
+                    ? () => {
+                        if (editedListMembers.length === (activeList ? partners.length : displayedPartners.length)) {
+                          setEditedListMembers([]);
+                        } else {
+                          setEditedListMembers(partners.map(p => p.id));
                         }
-                        onChange={isEditingList 
-                          ? () => {
-                              if (editedListMembers.length === (activeList ? partners.length : displayedPartners.length)) {
-                                setEditedListMembers([]);
-                              } else {
-                                setEditedListMembers(partners.map(p => p.id));
-                              }
-                            }
-                          : toggleSelectAll
-                        }
-                        />
-                      </div>
-                    </TableHead>
-                    <TableHead>Partner</TableHead>
-                    <TableHead>Industry</TableHead>
-                    <TableHead>Size</TableHead>
-                    <TableHead>Region</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Customers</TableHead>
-                    <TableHead>Opportunities</TableHead>
-                    <TableHead>Contacts</TableHead>
-                    <TableHead>Template</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {(isEditingList ? partners : displayedPartners).map((partner) => (
-                    <TableRow 
-                      key={partner.id} 
-                      className={`${
-                        isEditingList 
-                          ? editedListMembers.includes(partner.id) ? 'bg-indigo-50' : '' 
-                          : selectedPartners.includes(partner.id) ? 'bg-blue-50' : ''
-                      }`}
-                    >
-                      <TableCell className="w-10">
-                        <input
-                          type="checkbox"
-                          className={`h-4 w-4 rounded border-gray-300 ${
-                            isEditingList 
-                              ? 'visible' 
-                              : selectedPartners.includes(partner.id) ? 'visible' : 'invisible group-hover:visible'
-                          }`}
-                          checked={
-                            isEditingList
-                              ? editedListMembers.includes(partner.id)
-                              : selectedPartners.includes(partner.id)
-                          }
-                    onChange={() => {
+                      }
+                    : toggleSelectAll
+                  }
+                  />
+                </div>
+              </th>
+              <SortableTableHead 
+                sortKey="name" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[250px]"
+              >
+                Partner
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="industry" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[120px]"
+              >
+                Industry
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="size" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[120px]"
+              >
+                Size
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="region" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[120px]"
+              >
+                Region
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="status" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[120px]"
+              >
+                Status
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="customers" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[120px]"
+              >
+                Customers
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="opportunities" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[120px]"
+              >
+                Opportunities
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="contacts" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[120px]"
+              >
+                Contacts
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="template" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[120px]"
+              >
+                Template
+              </SortableTableHead>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 bg-white">
+            {(isEditingList ? partners : displayedPartners).map((partner) => (
+              <tr 
+                key={partner.id} 
+                className={`hover:bg-gray-50 group ${
+                  isEditingList 
+                    ? editedListMembers.includes(partner.id) ? 'bg-indigo-50' : '' 
+                    : selectedPartners.includes(partner.id) ? 'bg-blue-50' : ''
+                }`}
+              >
+                <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm w-10">
+                  <input
+                    type="checkbox"
+                    className={`h-4 w-4 rounded border-gray-300 ${
+                      isEditingList 
+                        ? 'visible' 
+                        : selectedPartners.includes(partner.id) ? 'visible' : 'invisible group-hover:visible'
+                    }`}
+                    checked={
+                      isEditingList
+                        ? editedListMembers.includes(partner.id)
+                        : selectedPartners.includes(partner.id)
+                    }
+                    onChange={(e) => {
+                      e.stopPropagation();
                       if (isEditingList) {
                         if (editedListMembers.includes(partner.id)) {
                           setEditedListMembers(editedListMembers.filter(id => id !== partner.id));
@@ -2461,98 +2511,100 @@ function PartnersTable() {
                       }
                     }}
                   />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <EntityAvatar
-                            entityType="partner"
-                            entityId={partner.id}
-                            fallbackText={partner.initials}
-                            className="mr-3"
-                            size="md"
-                          />
-                          <Link href={`/lists/partners/${partner.id}`} className="font-medium text-gray-900 hover:text-indigo-700">{partner.name}</Link>
-                        </div>
-                      </TableCell>
-                      <TableCell>{partner.industry}</TableCell>
-                      <TableCell className="capitalize">{partner.size}</TableCell>
-                      <TableCell className="capitalize">{partner.region}</TableCell>
-                      <TableCell>
-                        <Badge variant={partner.status === 'active' ? 'outline' : 'secondary'} className="capitalize">
-                          {partner.status}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <Link 
-                          href={`/lists/partners/${partner.id}?tab=customers`} 
-                          className="text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer"
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
+                  <div className="flex items-center">
+                    <EntityAvatar
+                      entityType="partner"
+                      entityId={partner.id}
+                      fallbackText={partner.initials}
+                      className="mr-3"
+                      size="md"
+                    />
+                    <Link href={`/lists/partners/${partner.id}`} className="font-medium text-gray-900 hover:text-indigo-700">{partner.name}</Link>
+                  </div>
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.industry}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">{partner.size}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">{partner.region}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  <Badge variant={partner.status === 'active' ? 'outline' : 'secondary'} className="capitalize">
+                    {partner.status}
+                  </Badge>
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  <Link 
+                    href={`/lists/partners/${partner.id}?tab=customers`} 
+                    className="text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer"
+                  >
+                    {partner.customers || 0}
+                  </Link>
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  <Link 
+                    href={`/lists/partners/${partner.id}?tab=opportunities`} 
+                    className="text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer"
+                  >
+                    {partner.opportunities || 0}
+                  </Link>
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  {partner.contacts || 0}
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  <TemplateBadges partnerId={partner.id} templateAssignments={templateAssignments} okrTags={okrTags} />
+                </td>
+              </tr>
+            ))}
+            
+            {displayedPartners.length === 0 && !isEditingList && (
+              <tr>
+                <td colSpan={10} className="py-10 text-center">
+                  <div className="flex flex-col items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="9" cy="7" r="4"></circle>
+                      <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <h3 className="text-base font-medium text-gray-900 mb-1">No partners found</h3>
+                    {activeList && activeList.id !== 'all-partners' ? (
+                      <>
+                        <p className="text-sm text-gray-500 max-w-md mb-4">
+                          This list doesn't have any partners yet. Add some partners to get started.
+                        </p>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setIsEditingList(true)}
                         >
-                          {partner.customers || 0}
-                        </Link>
-                      </TableCell>
-                      <TableCell>
-                        <Link 
-                          href={`/lists/partners/${partner.id}?tab=opportunities`} 
-                          className="text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer"
+                          Edit List
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm text-gray-500 max-w-md mb-4">
+                          There are no partners matching your filter criteria.
+                        </p>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => {
+                            setFilterText('');
+                            setSelectedStatus('');
+                            setSelectedIndustry('');
+                          }}
                         >
-                          {partner.opportunities || 0}
-                        </Link>
-                      </TableCell>
-                      <TableCell>
-                        {partner.contacts || 0}
-                      </TableCell>
-                      <TableCell>
-                        <TemplateBadges partnerId={partner.id} templateAssignments={templateAssignments} okrTags={okrTags} />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                  
-                  {displayedPartners.length === 0 && !isEditingList && (
-                    <TableRow>
-                      <TableCell colSpan={10} className="py-10 text-center">
-                        <div className="flex flex-col items-center">
-                          <Users className="h-12 w-12 text-gray-400 mb-3" />
-                          <h3 className="text-base font-medium text-gray-900 mb-1">No partners found</h3>
-                          {activeList && activeList.id !== 'all-partners' ? (
-                            <>
-                              <p className="text-sm text-gray-500 max-w-md mb-4">
-                                This list doesn't have any partners yet. Add some partners to get started.
-                              </p>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => setIsEditingList(true)}
-                              >
-                                Edit List
-                              </Button>
-                            </>
-                          ) : (
-                            <>
-                              <p className="text-sm text-gray-500 max-w-md mb-4">
-                                There are no partners matching your filter criteria.
-                              </p>
-                              <Button 
-                                variant="outline" 
-                                size="sm" 
-                                onClick={() => {
-                                  setFilterText('');
-                                  setSelectedStatus('');
-                                  setSelectedIndustry('');
-                                }}
-                              >
-                                Clear Filters
-                              </Button>
-                            </>
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  )}
-                </TableBody>
-              </Table>
-            </div>
-          </CardContent>
-        </Card>
+                          Clear Filters
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
       {/* Rename List Dialog */}
       <Dialog open={showRenameListModal} onOpenChange={setShowRenameListModal}>
