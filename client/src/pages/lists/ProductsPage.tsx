@@ -363,6 +363,49 @@ function ProductsTable() {
       });
     }
   };
+
+  const handleSaveToList = async () => {
+    try {
+      if (isCreatingNewList) {
+        await createSavedListMutation.mutateAsync({
+          name: listNameInput,
+          description: listDescriptionInput,
+          entity_type: 'products',
+          entity_ids: selectedProducts
+        });
+        
+        toast({
+          title: "List created",
+          description: `Products added to "${listNameInput}"`
+        });
+      } else if (selectedExistingList) {
+        await updateSavedListMutation.mutateAsync({
+          id: selectedExistingList,
+          entity_ids: selectedProducts
+        });
+        
+        const listName = savedListsData.find((list: any) => list.id === selectedExistingList)?.name || 'list';
+        toast({
+          title: "Products added",
+          description: `Products added to "${listName}"`
+        });
+      }
+      
+      setShowSaveListModal(false);
+      setSelectedProducts([]);
+      setListNameInput('');
+      setListDescriptionInput('');
+      setIsCreatingNewList(true);
+      setSelectedExistingList(null);
+      
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save products to list. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
   
   // Handle outside clicks for all dropdowns
   useEffect(() => {
@@ -473,6 +516,47 @@ function ProductsTable() {
         ? prev.filter(id => id !== productId)
         : [...prev, productId]
     );
+  };
+
+  // Select all products
+  const handleSelectAll = () => {
+    if (selectedProducts.length === displayedProducts.length) {
+      setSelectedProducts([]);
+    } else {
+      setSelectedProducts(displayedProducts.map(p => p.id));
+    }
+  };
+
+  // Clear selection
+  const handleClearSelection = () => {
+    setSelectedProducts([]);
+  };
+
+  // Export products
+  const handleExport = () => {
+    const dataToExport = selectedProducts.length > 0 
+      ? displayedProducts.filter(p => selectedProducts.includes(p.id))
+      : displayedProducts;
+    
+    const csvContent = [
+      ['Name', 'Category', 'Provider', 'Total Value', 'Premium Value', 'Status'].join(','),
+      ...dataToExport.map(product => [
+        product.name,
+        product.category,
+        product.provider || product.providername || '',
+        product.total_value || product.totalvalue || '',
+        product.premium_value || product.premiumvalue || '',
+        product.status || 'Active'
+      ].join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'products.csv';
+    a.click();
+    window.URL.revokeObjectURL(url);
   };
 
   // Toggle select all
