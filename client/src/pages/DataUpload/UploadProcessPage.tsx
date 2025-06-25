@@ -657,8 +657,40 @@ export default function UploadProcessPage() {
           {/* Product Mapping Step (Entity Upload Only) - Only when products are selected */}
           {isCurrentStepProductMapping() && (
             <div className="space-y-8">
+              {/* Column Mapping Section for Products - First section */}
+              <div>
+                <Card className="border border-[#E6E7F1] shadow-sm">
+                  <CardContent className="p-6">
+                    <div className="space-y-6">
+                      <div>
+                        <h3 className="text-lg font-medium text-foreground mb-2">Product Column Mapping</h3>
+                        <p className="text-muted-foreground text-sm">Map CSV columns to product attributes</p>
+                      </div>
+                      
+                      <AttributeMappingStep 
+                        uploadedFile={uploadedFile}
+                        csvHeaders={csvHeaders}
+                        uploadType="products"
+                        stepName="Product Column Mapping"
+                        currentStep={currentStep}
+                        selectedTransformationScript={selectedTransformationScript}
+                        selectedEntityType="products"
+                        productStructureType={productStructureType}
+                        selectedProductColumn={selectedProductColumn}
+                        selectedProductColumns={selectedProductColumns}
+                        onNext={(mappings) => {
+                          setEntityMappings(prev => ({ ...prev, products: mappings }));
+                          // Don't auto-advance, let the parent component handle navigation
+                        }}
+                        onBack={() => {}}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
               {/* Product Assignment Section */}
-              <div className="space-y-6">
+              <div className="space-y-6 border-t pt-8">
                 <ProductAssignmentStep
                   onNext={(mappings) => {
                     setProductMappings(mappings);
@@ -676,41 +708,7 @@ export default function UploadProcessPage() {
                 />
               </div>
               
-              {/* Column Mapping Section for Products - Only show after structure selection */}
-              {productStructureSelected && (
-                <div className="border-t pt-8">
-                  <Card className="border border-[#E6E7F1] shadow-sm">
-                    <CardContent className="p-6">
-                      <div className="space-y-6">
-                        <div>
-                          <h3 className="text-lg font-medium text-foreground mb-2">Product Column Mapping</h3>
-                          <p className="text-muted-foreground text-sm">Map CSV columns to product attributes</p>
-                        </div>
-                        
-                        <AttributeMappingStep 
-                          uploadedFile={uploadedFile}
-                          csvHeaders={csvHeaders}
-                          uploadType="products"
-                          stepName="Product Column Mapping"
-                          currentStep={currentStep}
-                          selectedTransformationScript={selectedTransformationScript}
-                          selectedEntityType="products"
-                          productStructureType={productStructureType}
-                          selectedProductColumn={selectedProductColumn}
-                          selectedProductColumns={selectedProductColumns}
-                          onNext={(mappings) => {
-                            setEntityMappings(prev => ({ ...prev, products: mappings }));
-                            // Don't auto-advance, let the parent component handle navigation
-                          }}
-                          onBack={() => {}}
-                        />
-                      </div>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-              
-              {/* Category Management Section - Below Column Mapping */}
+              {/* Category Management Section - Below Product Assignment */}
               <div className="border-t pt-8" data-section="product-categories">
                 <Card className="border border-[#E6E7F1] shadow-sm">
                   <CardContent className="p-6">
