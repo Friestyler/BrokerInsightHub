@@ -2929,10 +2929,12 @@ Keep the tone clear and professional. Focus on what will help the account manage
         SELECT c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt",
                COUNT(DISTINCT pc.partner_id) as partner_count,
                COUNT(DISTINCT co.opportunity_id) as opportunity_count,
+               COUNT(DISTINCT prod_c.product_id) as product_count,
                COALESCE(opp_values.total_opportunity_value, 0) as total_opportunity_value
         FROM degoudse.customers c
         LEFT JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
         LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
+        LEFT JOIN degoudse.product_customers prod_c ON c.id = prod_c.customer_id
         LEFT JOIN (
           SELECT co2.customer_id, SUM(o2."estimatedValue") as total_opportunity_value
           FROM degoudse.customer_opportunities co2
@@ -2972,6 +2974,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
           updatedAt: customer.updatedAt,
           partnerCount: parseInt(customer.partner_count) || 0,
           opportunityCount: parseInt(customer.opportunity_count) || 0,
+          productCount: parseInt(customer.product_count) || 0,
           totalOpportunityValue: parseFloat(customer.total_opportunity_value) || 0,
           partnerNames: partnerNames,
           partnerIds: partnerIds

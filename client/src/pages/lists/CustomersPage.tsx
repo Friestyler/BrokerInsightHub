@@ -219,7 +219,8 @@ export default function CustomersPageClean() {
         ...customer,
         opportunityCount: Number(customer.opportunityCount) || 0,
         totalOpportunityValue: Number(customer.totalOpportunityValue) || 0,
-        partnerCount: Number(customer.partnerCount) || 0
+        partnerCount: Number(customer.partnerCount) || 0,
+        productCount: Number(customer.productCount) || 0
       };
     });
     
@@ -922,6 +923,15 @@ export default function CustomersPageClean() {
                 </th>
                 <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                   <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
+                    Products
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                      <path d="M8 9l4-4 4 4"></path>
+                      <path d="M16 15l-4 4-4-4"></path>
+                    </svg>
+                  </div>
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
                     Value
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
                       <path d="M8 9l4-4 4 4"></path>
@@ -993,6 +1003,11 @@ export default function CustomersPageClean() {
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Insurance</td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">Customer</td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Active</td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm text-gray-900">
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                      {customer.productCount || 0}
+                    </span>
+                  </td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                     €{customer.totalOpportunityValue ? Number(customer.totalOpportunityValue).toLocaleString() : '0'}
                   </td>
