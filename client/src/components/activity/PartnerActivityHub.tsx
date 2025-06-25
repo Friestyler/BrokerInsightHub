@@ -1140,130 +1140,167 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
 
           {/* Comments */}
           {selectedActivityType === 'comment' && (
-            <div className="space-y-4">
-              {/* Comments Timeline */}
-              <div className="space-y-3 max-h-64 overflow-y-auto">
-                {comments
-                  .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-                  .map((comment: any, index: number) => (
-                  <div key={comment.id} className="flex items-start gap-3">
-                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
-                      comment.is_okr_comment ? 'bg-purple-100' : 'bg-blue-100'
-                    }`}>
-                      {comment.user_id === 2 ? (
-                        <img 
-                          src={userAvatar} 
-                          alt="User Avatar" 
-                          className="w-full h-full object-cover rounded-full"
-                        />
-                      ) : (
-                        <span className={`text-xs font-medium ${
-                          comment.is_okr_comment ? 'text-purple-600' : 'text-blue-600'
-                        }`}>
-                          {comment.author_name ? comment.author_name.charAt(0).toUpperCase() : 'U'}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className={`rounded-lg px-3 py-2 ${
-                        comment.is_okr_comment ? 'bg-purple-50 border border-purple-200' : 'bg-gray-50'
-                      }`}>
-                        {comment.is_okr_comment && comment.okr_metric_name && (
-                          <div className="flex items-center gap-1 mb-1">
-                            <Target className="h-3 w-3 text-purple-600" />
-                            <span className="text-xs font-medium text-purple-700">
-                              OKR: {comment.okr_metric_name}
-                            </span>
-                          </div>
+            <div className="flex flex-col h-full">
+              {/* Comments Timeline with Cross-Entity Display */}
+              <div className="flex-1 space-y-4 max-h-64 overflow-y-auto mb-4">
+                {rawTimelineData && rawTimelineData.length > 0 ? (
+                  rawTimelineData
+                    .filter((item: any) => item.activity_type === 'comment')
+                    .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+                    .map((comment: any, index: number) => (
+                      <div key={`comment-${comment.id}-${index}`} className="flex items-start gap-3 relative group">
+                        {/* Timeline line */}
+                        {index < rawTimelineData.filter((item: any) => item.activity_type === 'comment').length - 1 && (
+                          <div className="absolute left-4 top-10 w-px h-8 bg-gray-200"></div>
                         )}
-                        <p className="text-sm text-gray-900">{comment.content}</p>
+                        
+                        {/* User Avatar */}
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center relative z-10 bg-white border-2 border-gray-200">
+                          {getUserAvatarUrl(comment.assigned_to) ? (
+                            <img 
+                              src={getUserAvatarUrl(comment.assigned_to)!} 
+                              alt={getUserName(comment.assigned_to)}
+                              className="w-full h-full rounded-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full rounded-full bg-blue-100 flex items-center justify-center text-xs font-medium text-blue-700">
+                              {getUserInitials(comment.assigned_to)}
+                            </div>
+                          )}
+                        </div>
+                        
+                        <div className="flex-1 min-w-0 relative">
+                          <div className="bg-white rounded-lg p-3 border border-gray-200 hover:bg-[#F5F6FA] hover:border-[#E6E7F1] transition-all duration-200 relative">
+                            <div className="flex items-center gap-2 mb-1">
+                              <span className="text-sm font-medium text-gray-900">
+                                {comment.assigned_to ? getUserName(comment.assigned_to) : 'Unknown User'}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {new Date(comment.created_at).toLocaleString([], { 
+                                  month: 'short', 
+                                  day: 'numeric', 
+                                  hour: '2-digit', 
+                                  minute: '2-digit' 
+                                })}
+                              </span>
+                              {/* Cross-entity source indicator */}
+                              {comment.source_type && comment.source_name && comment.source_type !== 'partner' && (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs text-gray-400">•</span>
+                                  <div className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${
+                                    comment.source_type === 'opportunity' ? 'bg-green-100 text-green-700' :
+                                    comment.source_type === 'customer' ? 'bg-blue-100 text-blue-700' :
+                                    'bg-gray-100 text-gray-700'
+                                  }`}>
+                                    {comment.source_type === 'opportunity' && <Target className="h-3 w-3" />}
+                                    {comment.source_type === 'customer' && <User className="h-3 w-3" />}
+                                    <span>from {comment.source_name}</span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
+                            
+                            <p className="text-sm text-gray-700 mb-2">
+                              {comment.content}
+                            </p>
+                            
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              {comment.visible_to_partner && (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-blue-600">shared with partner</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Hover Toolbar */}
+                            <div className="absolute -top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20">
+                              <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-1.5 py-1 flex items-center gap-0.5">
+                                {/* Checkmark Emoji */}
+                                <button 
+                                  onClick={() => handleReactionToggle('comment', comment.id, '✅')}
+                                  className="w-8 h-8 flex items-center justify-center hover:bg-[#E6E7F1] rounded-md transition-colors duration-150"
+                                >
+                                  <span className="text-lg">✅</span>
+                                </button>
+                                
+                                {/* Thumbs Up Emoji */}
+                                <button 
+                                  onClick={() => handleReactionToggle('comment', comment.id, '👍')}
+                                  className="w-8 h-8 flex items-center justify-center hover:bg-[#E6E7F1] rounded-md transition-colors duration-150"
+                                >
+                                  <span className="text-lg">👍</span>
+                                </button>
+                                
+                                {/* Star Emoji */}
+                                <button 
+                                  onClick={() => handleReactionToggle('comment', comment.id, '⭐')}
+                                  className="w-8 h-8 flex items-center justify-center hover:bg-[#E6E7F1] rounded-md transition-colors duration-150"
+                                >
+                                  <span className="text-lg">⭐</span>
+                                </button>
+                                
+                                {/* Reply Icon */}
+                                <button className="w-8 h-8 flex items-center justify-center hover:bg-[#E6E7F1] rounded-md transition-colors duration-150">
+                                  <MessageSquare className="h-4 w-4 text-gray-600" />
+                                </button>
+                                
+                                {/* Pin Icon */}
+                                <button className="w-8 h-8 flex items-center justify-center hover:bg-[#E6E7F1] rounded-md transition-colors duration-150">
+                                  <Bookmark className="h-4 w-4 text-gray-600" />
+                                </button>
+                              </div>
+                            </div>
+                            
+                            {/* Reactions Display */}
+                            <ActivityReactions 
+                              activityType="comment"
+                              activityId={comment.id}
+                              onReactionClick={(emoji: string) => handleReactionToggle('comment', comment.id, emoji)}
+                            />
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 mt-1">
-                        <span className="text-xs text-gray-500">
-                          {new Date(comment.created_at).toLocaleString([], { 
-                            month: 'short', 
-                            day: 'numeric', 
-                            hour: '2-digit', 
-                            minute: '2-digit' 
-                          })}
-                        </span>
-                        {comment.assigned_to_name && (
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs text-gray-400">•</span>
-                            <User className="h-3 w-3 text-gray-400" />
-                            <span className="text-xs text-gray-500">{comment.assigned_to_name}</span>
-                          </div>
-                        )}
-                        {comment.visible_to_partner && (
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs text-gray-400">•</span>
-                            <span className="text-xs text-blue-600">visible to partner</span>
-                          </div>
-                        )}
-                        {comment.is_okr_comment && (
-                          <div className="flex items-center gap-1">
-                            <span className="text-xs text-gray-400">•</span>
-                            <Target className="h-3 w-3 text-purple-500" />
-                            <span className="text-xs text-purple-600">OKR comment</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-                {comments.length === 0 && (
+                    ))
+                ) : (
                   <div className="text-center py-8 text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 mx-auto mb-2 text-gray-400" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M2 12h4l3-8 4 16 3-8h4"></path>
-                    </svg>
+                    <MessageSquare className="h-8 w-8 mx-auto mb-2 text-gray-400" />
                     <p className="text-sm">No comments yet</p>
-                    <p className="text-xs text-gray-400 mt-1">Start a conversation</p>
+                    <p className="text-xs text-gray-400 mt-1">Start a conversation below</p>
                   </div>
                 )}
               </div>
 
-              {/* Quick Comment Input - Chat Style */}
-              <div className="border-t border-gray-100 pt-3">
-                <div className="flex items-center gap-3">
-                  <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                    <span className="text-xs font-medium text-green-600">Y</span>
-                  </div>
-                  <div className="flex-1 relative">
-                    <Input
-                      placeholder="Type a comment and press Enter..."
-                      value={commentContent}
-                      onChange={(e) => setCommentContent(e.target.value)}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          if (commentContent.trim()) {
-                            handleCreateActivity();
-                          }
-                        }
-                      }}
-                      className="pr-12 border-gray-200 rounded-full bg-gray-50 focus:bg-white transition-colors"
-                    />
-                    <Button
-                      size="sm"
-                      onClick={handleCreateActivity}
-                      disabled={createActivityMutation.isPending || !commentContent.trim()}
-                      className="absolute right-1 top-1 h-7 w-7 p-0 rounded-full"
-                    >
-                      <Send className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 mt-2 ml-11">
-                  <Switch
-                    checked={visibleToPartner}
-                    onCheckedChange={setVisibleToPartner}
-                    className="scale-75"
-                  />
-                  <span className="text-xs text-gray-600">
-                    Visible to partner
-                  </span>
-                </div>
-              </div>
+              {/* Comment Creation Composer */}
+              <TimelineComposer
+                onCreateComment={(commentData: {
+                  content: string;
+                  visibleToPartner: boolean;
+                }) => {
+                  // Use existing comment creation logic
+                  const originalType = selectedActivityType;
+                  const originalContent = commentContent;
+                  const originalVisibility = visibleToPartner;
+
+                  // Set temporary values for comment creation
+                  setSelectedActivityType('comment');
+                  setCommentContent(commentData.content);
+                  setVisibleToPartner(commentData.visibleToPartner);
+
+                  // Create the comment
+                  handleCreateActivity();
+                  
+                  // Reset to original values after a brief delay
+                  setTimeout(() => {
+                    setSelectedActivityType(originalType);
+                    setCommentContent(originalContent);
+                    setVisibleToPartner(originalVisibility);
+                  }, 100);
+                }}
+                onCreateTask={() => {}} // Not used in comment tab
+                teamMembers={teamMembers}
+                isLoading={createActivityMutation.isPending}
+                defaultMode="comment"
+              />
             </div>
           )}
 
