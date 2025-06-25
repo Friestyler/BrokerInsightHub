@@ -125,11 +125,12 @@ interface TimelineComposerProps {
   }) => void;
   teamMembers: Array<{ id: string; name: string }>;
   isLoading: boolean;
+  defaultMode?: 'task' | 'comment';
 }
 
-const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoading }: TimelineComposerProps) => {
+const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoading, defaultMode = 'comment' }: TimelineComposerProps) => {
   const [isExpanded, setIsExpanded] = useState(false);
-  const [activeMode, setActiveMode] = useState<'task' | 'comment'>('comment');
+  const [activeMode, setActiveMode] = useState<'task' | 'comment'>(defaultMode);
   const [content, setContent] = useState('');
   const [priority, setPriority] = useState('medium');
   const [assignedTo, setAssignedTo] = useState('');
@@ -187,9 +188,15 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
         <div className="relative">
           <div className="bg-white rounded-full border border-gray-200 shadow-lg hover:shadow-xl transition-all duration-200 p-1">
             <div className="flex items-center gap-2">
-              {/* Comment Icon (Always visible) */}
-              <div className="flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center bg-blue-100 text-blue-600">
-                <MessageSquare className="h-4 w-4" />
+              {/* Dynamic Icon based on mode */}
+              <div className={`flex-shrink-0 w-9 h-9 rounded-full flex items-center justify-center ${
+                activeMode === 'task' ? 'bg-green-100 text-green-600' : 'bg-blue-100 text-blue-600'
+              }`}>
+                {activeMode === 'task' ? (
+                  <CheckSquare className="h-4 w-4" />
+                ) : (
+                  <MessageSquare className="h-4 w-4" />
+                )}
               </div>
 
               {/* Input Area */}
@@ -197,7 +204,7 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
                 onClick={() => setIsExpanded(true)}
                 className="flex-1 text-left px-3 py-2 text-gray-500 hover:text-gray-700 transition-colors duration-200"
               >
-                Add a note or task...
+                {activeMode === 'task' ? 'What needs to be done?' : 'Add a note or task...'}
               </button>
 
               {/* Right Actions */}
@@ -1124,6 +1131,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                 onCreateComment={() => {}} // Not used in task tab
                 teamMembers={teamMembers}
                 isLoading={createActivityMutation.isPending}
+                defaultMode="task"
               />
             </div>
           )}
