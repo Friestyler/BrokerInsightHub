@@ -373,6 +373,12 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
     { id: 'alex-rodriguez', name: 'Alex Rodriguez', role: 'Strategy Consultant' }
   ];
 
+  // Use entityId and entityType to determine the correct API endpoint
+  const actualEntityId = entityId || partnerId;
+  const apiEndpoint = entityType === 'opportunity' 
+    ? `/api/degoudse/opportunities/${actualEntityId}/activities`
+    : `/api/degoudse/partners/${actualEntityId}/activities`;
+
   // Fetch activities using the dynamic endpoint
   const { data: activities, isLoading: activitiesLoading } = useQuery({
     queryKey: [apiEndpoint],
@@ -457,7 +463,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
         body: JSON.stringify({ completed, completedAt: completed ? new Date().toISOString() : null })
       }).then(res => res.json()),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/activities`] });
+      queryClient.invalidateQueries({ queryKey: [apiEndpoint] });
       queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`] });
     }
   });
