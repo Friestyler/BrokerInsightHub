@@ -611,6 +611,19 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
     }
   }, [savedMeetingBriefing, meetingBriefing, selectedActivityType]);
 
+  // Auto-scroll to bottom when timeline opens or new data arrives
+  useEffect(() => {
+    const timelineData = (timeline as any) || [];
+    if (selectedActivityType === 'timeline' && timelineScrollRef.current && timelineData.length > 0) {
+      setTimeout(() => {
+        timelineScrollRef.current?.scrollTo({
+          top: timelineScrollRef.current.scrollHeight,
+          behavior: 'smooth'
+        });
+      }, 100);
+    }
+  }, [selectedActivityType, timeline]);
+
   const resetForm = () => {
     setTaskTitle('');
     setCommentContent('');
@@ -667,18 +680,6 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
   const rawTimelineData = (timeline as any) || [];
   
   // Timeline data comes directly from the API - no client-side merging needed
-
-  // Auto-scroll to bottom when timeline opens or new data arrives
-  useEffect(() => {
-    if (selectedActivityType === 'timeline' && timelineScrollRef.current && rawTimelineData?.length > 0) {
-      setTimeout(() => {
-        timelineScrollRef.current?.scrollTo({
-          top: timelineScrollRef.current.scrollHeight,
-          behavior: 'smooth'
-        });
-      }, 100);
-    }
-  }, [selectedActivityType, rawTimelineData]);
 
   const completedTasks = tasks.filter((t: any) => t.completed).length;
   const pendingTasks = tasks.filter((t: any) => !t.completed).length;
