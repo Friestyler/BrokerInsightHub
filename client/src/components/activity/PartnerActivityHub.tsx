@@ -191,7 +191,7 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
       {/* ClickUp-style Task Creator */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm overflow-hidden">
         {/* Main Input Area */}
-        <div className="p-4">
+        <div className="px-4 pt-4 pb-2">
           <div className="relative">
             <Textarea
               placeholder={getPlaceholder()}
@@ -206,7 +206,7 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
                   handleCancel();
                 }
               }}
-              className="w-full h-8 min-h-[32px] max-h-8 resize-none border-0 bg-transparent text-gray-900 text-sm p-0 focus:ring-0 focus:outline-none placeholder:text-gray-400 overflow-hidden"
+              className="w-full h-8 min-h-[32px] max-h-8 resize-none border-0 bg-transparent text-gray-900 text-sm pl-2 pt-1 pr-0 pb-0 focus:ring-0 focus:outline-none placeholder:text-gray-400 overflow-hidden"
               autoFocus
             />
           </div>
