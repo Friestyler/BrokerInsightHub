@@ -129,7 +129,7 @@ interface TimelineComposerProps {
 }
 
 const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoading, defaultMode = 'comment' }: TimelineComposerProps) => {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(defaultMode === 'task');
   const [activeMode, setActiveMode] = useState<'task' | 'comment'>(defaultMode);
   const [content, setContent] = useState('');
   const [priority, setPriority] = useState('medium');
