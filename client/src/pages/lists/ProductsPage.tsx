@@ -1,18 +1,7 @@
-import { useState, useEffect, createContext, useContext, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-
-// Create a context for list editing state
-interface ListEditingContextType {
-  isEditingList: boolean;
-  setIsEditingList: (value: boolean) => void;
-}
-
-const ListEditingContext = createContext<ListEditingContextType>({
-  isEditingList: false,
-  setIsEditingList: () => {},
-});
 
 import {
   Card,
@@ -226,14 +215,73 @@ interface SavedView {
   createdAt: Date;
 }
 
-// Hook to use list editing context
-function useListEditing() {
-  return useContext(ListEditingContext);
-}
-
-function ProductsTable() {
+export default function ProductsPage() {
+  const [activeTab, setActiveTab] = useState<'products' | 'categories'>('products');
+  
+  // All state management consolidated in main component
+  
   // Fetch products from database
   const { data: products = [], isLoading, error } = useProductsData();
+  
+  const [filterText, setFilterText] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('all');
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedProvider, setSelectedProvider] = useState('all');
+
+  const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
+  
+  // Dropdown state for filters
+  const [showFilterModal, setShowFilterModal] = useState(false);
+
+  // Saved lists and views functionality
+  const { data: savedListsData = [], isLoading: savedListsLoading } = useSavedLists();
+  const { data: savedViewsData = [], isLoading: savedViewsLoading } = useSavedViews();
+  const createSavedListMutation = useCreateSavedList();
+  const updateSavedListMutation = useUpdateSavedList();
+  const deleteSavedListMutation = useDeleteSavedList();
+  const createSavedViewMutation = useCreateSavedView();
+  const { toast } = useToast();
+  
+  // State for dropdowns and modals
+  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
+  const [viewNameInput, setViewNameInput] = useState('');
+  const [showSaveListModal, setShowSaveListModal] = useState(false);
+  const [isCreatingNewList, setIsCreatingNewList] = useState(true);
+  const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
+  const [listNameInput, setListNameInput] = useState('');
+  const [listDescriptionInput, setListDescriptionInput] = useState('');
+  
+  // Refs for dropdowns to handle outside clicks
+  const viewsDropdownRef = useRef<HTMLDivElement>(null);
+  const viewsButtonRef = useRef<HTMLButtonElement>(null);
+  
+  // State for views dropdown
+  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
+  
+  // Edit/Delete dialog states
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [editFormData, setEditFormData] = useState<Partial<Product>>({});
+
+  // List editing state
+  const [isEditingList, setIsEditingList] = useState(false);
+  const [activeList, setActiveList] = useState<SavedList | null>(null);
+  const [originalListFilters, setOriginalListFilters] = useState<SavedList['filters'] | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showListsDropdown, setShowListsDropdown] = useState(false);
+  
+  // Sorting state
+  const [tableSortConfig, setTableSortConfig] = useState({
+    key: '',
+    direction: 'asc' as 'asc' | 'desc'
+  });
+  
+  // Track active view state like Partners page
+  const [activeView, setActiveView] = useState<SavedView | null>(null);
   
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
@@ -483,8 +531,8 @@ function ProductsTable() {
     }));
   };
   
-  // Use the shared context for list editing state
-  const { isEditingList, setIsEditingList } = useListEditing();
+  // List editing state moved to main component
+  const [isEditingList, setIsEditingList] = useState(false);
   
   // Track active view state like Partners page
   const [activeView, setActiveView] = useState<SavedView | null>(null);
@@ -1573,56 +1621,40 @@ function ProductsTable() {
         </Dialog>
       </div>
     );
-  }
-
-export default function ProductsPage() {
-  const [activeTab, setActiveTab] = useState<'products' | 'categories'>('products');
-  const [isEditingList, setIsEditingList] = useState(false);
 
   return (
-    <ListEditingContext.Provider value={{ isEditingList, setIsEditingList }}>
-      <div className="flex-1">
-        {/* Tab Navigation */}
-        <div className="bg-white">
-          <div className="px-6 py-4">
-            <div className="flex space-x-1">
-              <Button 
-                variant="ghost" 
-                className={`flex items-center gap-2 ${
-                  activeTab === 'products' 
-                    ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
-                    : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
-                }`}
-                onClick={() => setActiveTab('products')}
-              >
-                Products
-              </Button>
-              <Button 
-                variant="ghost" 
-                className={`flex items-center gap-2 ${
-                  activeTab === 'categories' 
-                    ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
-                    : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
-                }`}
-                onClick={() => setActiveTab('categories')}
-              >
-                Categories
-              </Button>
-            </div>
+    <div className="flex-1">
+      {/* Tab Navigation */}
+      <div className="bg-white">
+        <div className="px-6 py-4">
+          <div className="flex space-x-1">
+            <Button 
+              variant="ghost" 
+              className={`flex items-center gap-2 ${
+                activeTab === 'products' 
+                  ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
+                  : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
+              }`}
+              onClick={() => setActiveTab('products')}
+            >
+              Products
+            </Button>
+            <Button 
+              variant="ghost" 
+              className={`flex items-center gap-2 ${
+                activeTab === 'categories' 
+                  ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
+                  : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
+              }`}
+              onClick={() => setActiveTab('categories')}
+            >
+              Categories
+            </Button>
           </div>
         </div>
-
-        {/* Tab Content */}
-        <div>
-          {activeTab === 'products' && <ProductsTable />}
-          
-          {activeTab === 'categories' && (
-            <div className="mx-4">
-              <CategoryManagerForProducts />
-            </div>
-          )}
-        </div>
       </div>
-    </ListEditingContext.Provider>
-  );
-} 
+
+      {/* Tab Content */}
+      <div>
+        {activeTab === 'products' && (
+          <div> 
