@@ -236,9 +236,10 @@ export default function ProductAssignmentStep({
     setDetectedProducts([]);
     setShowProductTable(false);
     
-    // Notify parent component when structure is selected
+    // Notify parent component when structure AND columns are ready
     if (onStructureSelected) {
-      onStructureSelected(value !== '');
+      // Don't notify yet, wait for column selection
+      onStructureSelected(false);
     }
   };
 
@@ -251,6 +252,23 @@ export default function ProductAssignmentStep({
       );
     }
   };
+
+  // Check if structure and columns are ready to show column mapping
+  const isStructureAndColumnsReady = () => {
+    if (productStructure === 'single-column') {
+      return selectedProductColumn !== '';
+    } else if (productStructure === 'multiple-columns') {
+      return selectedProductColumns.length > 0;
+    }
+    return false;
+  };
+
+  // Effect to notify parent when structure and columns are ready
+  useEffect(() => {
+    if (onStructureSelected) {
+      onStructureSelected(isStructureAndColumnsReady());
+    }
+  }, [productStructure, selectedProductColumn, selectedProductColumns, onStructureSelected]);
 
   // Auto-detect existing products based on SKU matching
   const detectExistingProducts = () => {
@@ -360,7 +378,9 @@ export default function ProductAssignmentStep({
                   <div className="px-5 pb-5 pt-2 border-t border-[#5567E5]/20 bg-[#5567E5]/2">
                     <div className="space-y-3">
                       <Label className="text-sm font-medium text-gray-700">Select the column that contains product names</Label>
-                      <Select value={selectedProductColumn} onValueChange={setSelectedProductColumn}>
+                      <Select value={selectedProductColumn} onValueChange={(value) => {
+                        setSelectedProductColumn(value);
+                      }}>
                         <SelectTrigger className="w-full bg-white">
                           <SelectValue placeholder="Choose a column..." />
                         </SelectTrigger>
