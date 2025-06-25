@@ -5,7 +5,21 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Plus, Edit2, Trash2, Check, X, ChevronDown, ChevronRight } from 'lucide-react';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Plus, Edit2, Trash2, Check, X, ChevronDown, ChevronRight, MoreVertical } from 'lucide-react';
 
 interface Category {
   id: string;
@@ -92,6 +106,13 @@ export default function CategoryManagerForProducts() {
   const [editingCategoryName, setEditingCategoryName] = useState('');
   const [newSubcategory, setNewSubcategory] = useState<{ categoryId: string; parentId?: string; name: string } | null>(null);
   const [expandedSubcategories, setExpandedSubcategories] = useState<Set<string>>(new Set());
+  
+  // Dialog states
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [categoryToEdit, setCategoryToEdit] = useState<Category | null>(null);
+  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  const [editDialogName, setEditDialogName] = useState('');
 
   const addCategory = () => {
     if (!newCategoryName.trim()) return;
@@ -132,6 +153,39 @@ export default function CategoryManagerForProducts() {
   const cancelEditCategory = () => {
     setEditingCategory(null);
     setEditingCategoryName('');
+  };
+
+  // Dialog handlers
+  const openEditDialog = (category: Category) => {
+    setCategoryToEdit(category);
+    setEditDialogName(category.name);
+    setEditDialogOpen(true);
+  };
+
+  const openDeleteDialog = (category: Category) => {
+    setCategoryToDelete(category);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleEditDialogSave = () => {
+    if (!editDialogName.trim() || !categoryToEdit) return;
+    
+    setCategories(categories.map(cat => 
+      cat.id === categoryToEdit.id 
+        ? { ...cat, name: editDialogName }
+        : cat
+    ));
+    setEditDialogOpen(false);
+    setCategoryToEdit(null);
+    setEditDialogName('');
+  };
+
+  const handleDeleteDialogConfirm = () => {
+    if (!categoryToDelete) return;
+    
+    deleteCategory(categoryToDelete.id);
+    setDeleteDialogOpen(false);
+    setCategoryToDelete(null);
   };
 
   const toggleSubcategoryExpansion = (subcategoryId: string) => {
@@ -396,22 +450,30 @@ export default function CategoryManagerForProducts() {
                         {category.subcategories.length} subcategories
                       </Badge>
                     </div>
-                    <div className="flex gap-1">
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        onClick={() => startEditCategory(category)}
-                      >
-                        <Edit2 className="h-4 w-4" />
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        onClick={() => deleteCategory(category.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-8 w-8 p-0"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem onClick={() => openEditDialog(category)}>
+                          <Edit2 className="h-4 w-4 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem 
+                          onClick={() => openDeleteDialog(category)}
+                          className="text-red-600 focus:text-red-600"
+                        >
+                          <Trash2 className="h-4 w-4 mr-2" />
+                          Delete
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </>
                 )}
               </div>
@@ -524,6 +586,54 @@ export default function CategoryManagerForProducts() {
           <p>No categories yet. Create your first category below.</p>
         </div>
       )}
+
+      {/* Edit Category Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Category</DialogTitle>
+            <DialogDescription>
+              Update the category name below.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Input
+              value={editDialogName}
+              onChange={(e) => setEditDialogName(e.target.value)}
+              placeholder="Category name"
+              onKeyPress={(e) => e.key === 'Enter' && handleEditDialogSave()}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleEditDialogSave}>
+              Save changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Category Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Category</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{categoryToDelete?.name}"? This action cannot be undone and will also remove all subcategories.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDeleteDialogConfirm}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
