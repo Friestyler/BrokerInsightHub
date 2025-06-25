@@ -1279,9 +1279,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envId = req.params.envId;
       const partnerId = parseInt(req.params.id);
       
-      // Fetch all tasks related to the partner and its connected entities using correct schema
-      const allTasksQuery = sql`
-        -- Direct partner tasks
+      console.log(`Fetching all tasks for partner ${partnerId} in environment ${envId}`);
+      
+      // Use simple parameterized SQL queries instead of complex Drizzle templates
+      const envPool = pool;
+      
+      // Query 1: Direct partner tasks
+      const partnerTasksQuery = `
         SELECT 
           t.id, 
           t.title, 
@@ -1295,15 +1299,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           u.name as author_name,
           'partner' as source_type,
           p.name as source_name,
-          ${partnerId} as source_id
-        FROM ${sql.identifier(envId)}.activity_tasks t
-        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id
-        LEFT JOIN ${sql.identifier(envId)}.partners p ON t.entity_id = p.id
-        WHERE t.partner_id = ${partnerId}
-        
-        UNION ALL
-        
-        -- Tasks from opportunities connected to this partner
+          $1 as source_id
+        FROM ${envId}.activity_tasks t
+        LEFT JOIN ${envId}.users u ON t.assigned_to = u.id
+        LEFT JOIN ${envId}.partners p ON p.id = $1
+        WHERE t.partner_id = $1
+      `;
+      
+      // Query 2: Tasks from opportunities connected to this partner
+      const opportunityTasksQuery = `
         SELECT 
           t.id, 
           t.title, 
@@ -1318,14 +1322,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'opportunity' as source_type,
           o.title as source_name,
           o.id as source_id
-        FROM ${sql.identifier(envId)}.activity_tasks t
-        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id
-        LEFT JOIN ${sql.identifier(envId)}.opportunities o ON t.entity_id = o.id
-        WHERE t.entity_type = 'opportunity' AND o.partner_id = ${partnerId}
-        
-        UNION ALL
-        
-        -- Tasks from customers connected to this partner through opportunities
+        FROM ${envId}.activity_tasks t
+        LEFT JOIN ${envId}.users u ON t.assigned_to = u.id
+        LEFT JOIN ${envId}.opportunities o ON t.entity_id = o.id
+        WHERE t.entity_type = 'opportunity' AND o.partner_id = $1
+      `;
+      
+      // Query 3: Tasks from customers connected to this partner through opportunities
+      const customerTasksQuery = `
         SELECT 
           t.id, 
           t.title, 
@@ -1340,17 +1344,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
           'customer' as source_type,
           c.name as source_name,
           c.id as source_id
-        FROM ${sql.identifier(envId)}.activity_tasks t
-        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id
-        LEFT JOIN ${sql.identifier(envId)}.customers c ON t.entity_id = c.id
-        LEFT JOIN ${sql.identifier(envId)}.opportunities o ON o.client_id = c.id
-        WHERE t.entity_type = 'customer' AND o.partner_id = ${partnerId}
-        
-        ORDER BY created_at DESC
+        FROM ${envId}.activity_tasks t
+        LEFT JOIN ${envId}.users u ON t.assigned_to = u.id
+        LEFT JOIN ${envId}.customers c ON t.entity_id = c.id
+        LEFT JOIN ${envId}.opportunities o ON o.customer_id = c.id
+        WHERE t.entity_type = 'customer' AND o.partner_id = $1
       `;
       
-      const allTasksData = await db.execute(allTasksQuery);
-      res.json(allTasksData.rows);
+      // Execute all queries
+      const [partnerTasks, opportunityTasks, customerTasks] = await Promise.all([
+        envPool.query(partnerTasksQuery, [partnerId]),
+        envPool.query(opportunityTasksQuery, [partnerId]),
+        envPool.query(customerTasksQuery, [partnerId])
+      ]);
+      
+      // Combine and sort all results
+      const allTasks = [
+        ...partnerTasks.rows,
+        ...opportunityTasks.rows,
+        ...customerTasks.rows
+      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      
+      console.log(`Found ${allTasks.length} total tasks for partner ${partnerId}`);
+      console.log(`- Partner tasks: ${partnerTasks.rows.length}`);
+      console.log(`- Opportunity tasks: ${opportunityTasks.rows.length}`);
+      console.log(`- Customer tasks: ${customerTasks.rows.length}`);
+      
+      res.json(allTasks);
     } catch (error) {
       console.error('Error fetching all partner tasks:', error);
       res.status(500).json({ message: 'Failed to fetch tasks' });
