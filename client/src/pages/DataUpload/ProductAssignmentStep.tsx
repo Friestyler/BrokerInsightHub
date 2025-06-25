@@ -44,6 +44,11 @@ interface ProductAssignmentStepProps {
   categories: Category[];
   uploadedFile?: File | null;
   onStructureSelected?: (hasStructure: boolean) => void;
+  onStructureChange?: (
+    type: 'single-column' | 'multiple-columns' | '', 
+    selectedColumn?: string, 
+    selectedColumns?: string[]
+  ) => void;
 }
 
 type ProductStructure = 'single-column' | 'multiple-columns' | '';

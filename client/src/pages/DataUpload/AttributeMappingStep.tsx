@@ -18,6 +18,9 @@ interface AttributeMappingStepProps {
   currentStep: number;
   selectedTransformationScript?: { id: number; name: string } | null;
   selectedEntityType?: string;
+  productStructureType?: 'single-column' | 'multiple-columns' | '';
+  selectedProductColumn?: string;
+  selectedProductColumns?: string[];
   onNext: (mappings: AttributeMapping[]) => void;
   onBack: () => void;
 }
@@ -49,6 +52,9 @@ export default function AttributeMappingStep({
   currentStep,
   selectedTransformationScript,
   selectedEntityType: propSelectedEntityType,
+  productStructureType,
+  selectedProductColumn,
+  selectedProductColumns,
   onNext, 
   onBack 
 }: AttributeMappingStepProps) {
@@ -149,6 +155,30 @@ export default function AttributeMappingStep({
       console.log('Created attribute mappings:', mappings);
     }
   }, [uploadSettings, attributeMappings.length, selectedTemplateId]);
+
+  // Prefill product 'name' attribute based on structure selection
+  useEffect(() => {
+    if (uploadType === 'products' && productStructureType && attributeMappings.length > 0) {
+      const nameMapping = attributeMappings.find(m => m.attribute === 'name');
+      if (nameMapping && !nameMapping.csvColumn) {
+        let prefillValue = '';
+        
+        if (productStructureType === 'single-column' && selectedProductColumn) {
+          prefillValue = selectedProductColumn;
+        } else if (productStructureType === 'multiple-columns' && selectedProductColumns && selectedProductColumns.length > 0) {
+          prefillValue = 'USE_COLUMN_HEADERS';
+        }
+        
+        if (prefillValue) {
+          setAttributeMappings(prev => prev.map(mapping => 
+            mapping.attribute === 'name' 
+              ? { ...mapping, csvColumn: prefillValue }
+              : mapping
+          ));
+        }
+      }
+    }
+  }, [uploadType, productStructureType, selectedProductColumn, selectedProductColumns, attributeMappings]);
 
   // Auto-load templates for entity uploads
   useEffect(() => {
@@ -578,9 +608,27 @@ export default function AttributeMappingStep({
                             }
                             setAttributeMappings(newMappings);
                           }}
-                          placeholder="Select CSV column"
+                          placeholder={mapping.attribute === 'name' && uploadType === 'products' ? "Select product name source" : "Select CSV column"}
                           searchPlaceholder="Search columns..."
                           options={[
+                            ...(uploadType === 'products' && mapping.attribute === 'name' && productStructureType === 'multiple-columns' ? [
+                              {
+                                value: 'USE_COLUMN_HEADERS',
+                                label: 'Use column headers as product names',
+                                description: 'Each column header will be treated as a product name',
+                                customContent: (
+                                  <div className="flex items-center justify-between w-full">
+                                    <div className="flex items-center gap-2">
+                                      <span className="text-blue-500">📋</span>
+                                      <div>
+                                        <div className="text-blue-700 font-medium">Use column headers as product names</div>
+                                        <div className="text-xs text-blue-600">Each column header will be treated as a product name</div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )
+                              }
+                            ] : []),
                             {
                               value: 'CODE',
                               label: 'Code (Custom Logic)',
