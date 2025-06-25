@@ -3197,6 +3197,9 @@ Keep the tone clear and professional. Focus on what will help the account manage
       } else if (entityType === 'opportunities') {
         const result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC', ['opportunities']);
         return res.json(result.rows);
+      } else if (entityType === 'products') {
+        const result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC', ['products']);
+        return res.json(result.rows);
       } else {
         const result = await envPool.query('SELECT * FROM degoudse.saved_lists ORDER BY created_at DESC');
         return res.json(result.rows);
