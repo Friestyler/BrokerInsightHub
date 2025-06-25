@@ -29,8 +29,7 @@ const ActivityReactions = ({ activityType, activityId, onReactionClick }: Activi
     enabled: !!activityType && !!activityId, // Only fetch if we have valid parameters
   });
 
-  // Debug logging
-  console.log('ActivityReactions debug:', { activityType, activityId, reactions, isLoading });
+
 
   // Handle cases where reactions is undefined, not an array, or empty
   if (isLoading) {
@@ -1217,8 +1216,11 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                                 <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-1.5 py-1 flex items-center gap-0.5">
                                   {/* Task completion checkbox for tasks only */}
                                   {isTask && (
-                                    <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-md transition-colors duration-150">
-                                      <Check className="h-4 w-4 text-gray-600" />
+                                    <button 
+                                      className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-md transition-colors duration-150"
+                                      title="Mark task as complete"
+                                    >
+                                      <CheckSquare className="h-4 w-4 text-gray-600" />
                                     </button>
                                   )}
                                   
