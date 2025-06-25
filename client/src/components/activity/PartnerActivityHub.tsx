@@ -1077,6 +1077,147 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
             </div>
           )}
 
+          {/* Tasks */}
+          {selectedActivityType === 'task' && (
+            <div className="space-y-4">
+              {/* Tasks List */}
+              <div className="space-y-3 max-h-64 overflow-y-auto">
+                {allTasks && allTasks.length > 0 ? (
+                  allTasks
+                    .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                    .map((task: any, index: number) => (
+                      <div key={`task-${task.id}-${index}`} className={`border rounded-lg p-3 transition-all duration-200 ${
+                        task.completed 
+                          ? 'border-green-200 bg-green-50/30' 
+                          : 'border-gray-200 hover:bg-[#F5F6FA] hover:border-[#E6E7F1]'
+                      }`}>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex items-start gap-3 flex-1">
+                            <button 
+                              onClick={() => toggleTaskMutation.mutate({ taskId: task.id, completed: !task.completed })}
+                              className="flex-shrink-0 mt-0.5"
+                            >
+                              <CheckSquare className={`h-5 w-5 ${
+                                task.completed ? 'text-green-600' : 'text-gray-400 hover:text-gray-600'
+                              }`} />
+                            </button>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 mb-1">
+                                <h4 className={`font-medium ${
+                                  task.completed ? 'text-gray-500 line-through' : 'text-gray-900'
+                                }`}>
+                                  {task.title}
+                                </h4>
+                                {task.completed && (
+                                  <span className="text-xs text-green-600 font-medium bg-green-100 px-2 py-0.5 rounded-full">
+                                    Completed
+                                  </span>
+                                )}
+                              </div>
+                              
+                              {task.description && (
+                                <p className={`text-sm mb-2 ${
+                                  task.completed ? 'text-gray-500' : 'text-gray-600'
+                                }`}>
+                                  {task.description}
+                                </p>
+                              )}
+                              
+                              <div className="flex items-center gap-2 text-xs">
+                                {task.priority && (
+                                  <span className={`px-2 py-1 rounded-full font-medium ${
+                                    priorityColors[task.priority as keyof typeof priorityColors] || 'bg-gray-100 text-gray-700'
+                                  }`}>
+                                    {task.priority}
+                                  </span>
+                                )}
+                                
+                                {task.source_type && task.source_name && (
+                                  <span className={`px-2 py-1 rounded-full font-medium ${
+                                    task.source_type === 'partner' ? 'bg-purple-100 text-purple-700' :
+                                    task.source_type === 'opportunity' ? 'bg-green-100 text-green-700' :
+                                    task.source_type === 'customer' ? 'bg-blue-100 text-blue-700' :
+                                    'bg-gray-100 text-gray-700'
+                                  }`}>
+                                    {task.source_type}: {task.source_name}
+                                  </span>
+                                )}
+                                
+                                {task.author_name && (
+                                  <div className="flex items-center gap-1">
+                                    <User className="h-3 w-3 text-gray-400" />
+                                    <span className="text-gray-500">{task.author_name}</span>
+                                  </div>
+                                )}
+                                
+                                <span className="text-gray-500">
+                                  {new Date(task.created_at).toLocaleString([], { 
+                                    month: 'short', 
+                                    day: 'numeric', 
+                                    hour: '2-digit', 
+                                    minute: '2-digit' 
+                                  })}
+                                </span>
+                                
+                                {task.visible_to_partner && (
+                                  <span className="text-blue-600">shared with partner</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                ) : (
+                  <div className="text-center py-8 text-gray-500">
+                    <CheckSquare className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                    <p className="text-sm">No tasks yet</p>
+                    <p className="text-xs text-gray-400 mt-1">Create your first task below</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Task Creation - ClickUp Style */}
+              <TimelineComposer
+                onCreateTask={(taskData: {
+                  title: string;
+                  priority: string;
+                  assignedTo: string;
+                  visibleToPartner: boolean;
+                }) => {
+                  // Use existing task creation logic
+                  const originalType = selectedActivityType;
+                  const originalTitle = taskTitle;
+                  const originalPriority = taskPriority;
+                  const originalAssignedTo = assignedTo;
+                  const originalVisibility = visibleToPartner;
+
+                  // Set temporary values for task creation
+                  setSelectedActivityType('task');
+                  setTaskTitle(taskData.title);
+                  setTaskPriority(taskData.priority);
+                  setAssignedTo(taskData.assignedTo);
+                  setVisibleToPartner(taskData.visibleToPartner);
+
+                  // Create the task
+                  handleCreateActivity();
+                  
+                  // Reset to original values after a brief delay
+                  setTimeout(() => {
+                    setSelectedActivityType(originalType);
+                    setTaskTitle(originalTitle);
+                    setTaskPriority(originalPriority);
+                    setAssignedTo(originalAssignedTo);
+                    setVisibleToPartner(originalVisibility);
+                  }, 100);
+                }}
+                onCreateComment={() => {}} // Not used in task tab
+                teamMembers={teamMembers}
+                isLoading={createActivityMutation.isPending}
+              />
+            </div>
+          )}
+
           {/* Comments */}
           {selectedActivityType === 'comment' && (
             <div className="space-y-4">
