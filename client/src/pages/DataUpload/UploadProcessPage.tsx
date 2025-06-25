@@ -123,6 +123,9 @@ export default function UploadProcessPage() {
   const [currentStep, setCurrentStep] = useState(1); // Always start at step 1
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [transformedFile, setTransformedFile] = useState<File | null>(null); // Store transformed CSV for special formats
+  const [selectedEntityTypes, setSelectedEntityTypes] = useState<string[]>([]);
+  const [selectedEntityType, setSelectedEntityType] = useState<string>(''); // Keep for backward compatibility
+  const [entityMappings, setEntityMappings] = useState<{ [entityType: string]: any[] }>({});
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [dragOver, setDragOver] = useState(false);
   const [attributeMappings, setAttributeMappings] = useState<Array<{
@@ -134,7 +137,6 @@ export default function UploadProcessPage() {
     id: number;
     name: string;
   } | null>(null);
-  const [selectedEntityType, setSelectedEntityType] = useState<string>('');
   const [processingResults, setProcessingResults] = useState<{
     recordsCreated: number;
     recordsSkipped: number;
@@ -161,6 +163,76 @@ export default function UploadProcessPage() {
   // For entity-upload, show all steps. For special formats, show all steps. For regular entities, skip transformation.
   const visibleSteps = isEntityUpload || isSpecialFormat ? steps : steps.slice(1);
   const totalSteps = visibleSteps.length;
+  
+  // Helper function to get entity type for current mapping step
+  const getCurrentMappingEntityType = () => {
+    if (!isEntityUpload || currentStep <= 2) return null;
+    
+    let stepCounter = 3;
+    
+    // Skip product mapping step if products are selected
+    if (selectedEntityTypes.includes('products')) {
+      if (currentStep === stepCounter) return null; // This is the product mapping step
+      stepCounter++;
+    }
+    
+    // Find which entity mapping step we're on
+    for (const entityType of selectedEntityTypes) {
+      if (currentStep === stepCounter) {
+        return entityType;
+      }
+      stepCounter++;
+    }
+    
+    return null;
+  };
+  
+  // Helper function to check if current step is product mapping
+  const isCurrentStepProductMapping = () => {
+    return isEntityUpload && selectedEntityTypes.includes('products') && currentStep === 3;
+  };
+  
+  // Helper function to check if current step is entity mapping
+  const isCurrentStepEntityMapping = () => {
+    return getCurrentMappingEntityType() !== null;
+  };
+  
+  // Helper function to check if current step is processing
+  const isCurrentStepProcessing = () => {
+    if (!isEntityUpload) return false;
+    
+    let stepCounter = 3;
+    
+    // Skip product mapping step if products are selected
+    if (selectedEntityTypes.includes('products')) {
+      stepCounter++;
+    }
+    
+    // Skip entity mapping steps
+    stepCounter += selectedEntityTypes.length;
+    
+    return currentStep === stepCounter;
+  };
+  
+  // Helper function to check if current step is complete
+  const isCurrentStepComplete = () => {
+    if (!isEntityUpload) return false;
+    
+    let stepCounter = 3;
+    
+    // Skip product mapping step if products are selected
+    if (selectedEntityTypes.includes('products')) {
+      stepCounter++;
+    }
+    
+    // Skip entity mapping steps
+    stepCounter += selectedEntityTypes.length;
+    
+    // Skip processing step
+    stepCounter++;
+    
+    return currentStep === stepCounter;
+  };
   
   const currentStepData = (isEntityUpload || isSpecialFormat) ? steps[currentStep - 1] : visibleSteps[currentStep - 1];
   const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
