@@ -1073,6 +1073,9 @@ function ProductsTable() {
               >
                 Opportunities
               </SortableTableHead>
+              <th className="w-[80px] text-center py-3 pl-3 pr-4 text-left text-sm font-medium text-gray-900 uppercase tracking-wider">
+                Actions
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
@@ -1154,12 +1157,38 @@ function ProductsTable() {
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm text-center">
                   {product.opportunitycount || product.opportunityCount || 0}
                 </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-4 text-sm text-center">
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="h-8 w-8 p-0"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={() => openEditDialog(product)}>
+                        <Edit2 className="h-4 w-4 mr-2" />
+                        Edit
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => openDeleteDialog(product)}
+                        className="text-red-600 focus:text-red-600"
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </td>
               </tr>
             ))}
             
             {displayedProducts.length === 0 && (
               <tr>
-                <td colSpan={12} className="py-10 text-center">
+                <td colSpan={13} className="py-10 text-center">
                   <div className="flex flex-col items-center">
                     <Package2 className="h-12 w-12 text-gray-400 mb-3" />
                     <h3 className="text-base font-medium text-gray-900 mb-1">No products found</h3>
