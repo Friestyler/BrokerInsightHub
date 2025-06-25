@@ -1205,12 +1205,6 @@ function ProductsTable() {
               </Dialog>
             </>
           )}
-
-          {activeTab === 'categories' && (
-            <div className="mx-4">
-              <CategoryManagerForProducts />
-            </div>
-          )}
         </div>
 
         {/* Edit Product Dialog */}
@@ -1496,9 +1490,8 @@ function ProductsTable() {
           </DialogContent>
         </Dialog>
       </div>
-    </ListEditingContext.Provider>
-  );
-}
+    );
+  }
 
 export default function ProductsPage() {
   const [activeTab, setActiveTab] = useState<'products' | 'categories'>('products');
