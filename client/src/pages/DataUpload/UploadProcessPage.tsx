@@ -122,6 +122,7 @@ export default function UploadProcessPage() {
   const [selectedEntityTypes, setSelectedEntityTypes] = useState<string[]>([]);
   const [selectedEntityType, setSelectedEntityType] = useState<string>(''); // Keep for backward compatibility
   const [entityMappings, setEntityMappings] = useState<{ [entityType: string]: any[] }>({});
+  const [productStructureSelected, setProductStructureSelected] = useState(false);
   
   // Get dynamic steps based on upload type and selected entities
   const steps = getSteps(uploadType, selectedEntityTypes);
@@ -686,37 +687,40 @@ export default function UploadProcessPage() {
                   onBack={goToPreviousStep}
                   categories={productCategories}
                   uploadedFile={uploadedFile}
+                  onStructureSelected={setProductStructureSelected}
                 />
               </div>
               
-              {/* Column Mapping Section for Products - Below Product Assignment */}
-              <div className="border-t pt-8">
-                <Card className="border border-[#E6E7F1] shadow-sm">
-                  <CardContent className="p-6">
-                    <div className="space-y-6">
-                      <div>
-                        <h3 className="text-lg font-medium text-foreground mb-2">Product Column Mapping</h3>
-                        <p className="text-muted-foreground text-sm">Map CSV columns to product attributes</p>
+              {/* Column Mapping Section for Products - Only show after structure selection */}
+              {productStructureSelected && (
+                <div className="border-t pt-8">
+                  <Card className="border border-[#E6E7F1] shadow-sm">
+                    <CardContent className="p-6">
+                      <div className="space-y-6">
+                        <div>
+                          <h3 className="text-lg font-medium text-foreground mb-2">Product Column Mapping</h3>
+                          <p className="text-muted-foreground text-sm">Map CSV columns to product attributes</p>
+                        </div>
+                        
+                        <AttributeMappingStep 
+                          uploadedFile={uploadedFile}
+                          csvHeaders={csvHeaders}
+                          uploadType="products"
+                          stepName="Product Column Mapping"
+                          currentStep={currentStep}
+                          selectedTransformationScript={selectedTransformationScript}
+                          selectedEntityType="products"
+                          onNext={(mappings) => {
+                            setEntityMappings(prev => ({ ...prev, products: mappings }));
+                            // Don't auto-advance, let the parent component handle navigation
+                          }}
+                          onBack={() => {}}
+                        />
                       </div>
-                      
-                      <AttributeMappingStep 
-                        uploadedFile={uploadedFile}
-                        csvHeaders={csvHeaders}
-                        uploadType="products"
-                        stepName="Product Column Mapping"
-                        currentStep={currentStep}
-                        selectedTransformationScript={selectedTransformationScript}
-                        selectedEntityType="products"
-                        onNext={(mappings) => {
-                          setEntityMappings(prev => ({ ...prev, products: mappings }));
-                          // Don't auto-advance, let the parent component handle navigation
-                        }}
-                        onBack={() => {}}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
               
               {/* Category Management Section - Below Column Mapping */}
               <div className="border-t pt-8" data-section="product-categories">

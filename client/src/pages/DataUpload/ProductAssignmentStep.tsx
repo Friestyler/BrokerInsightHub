@@ -43,6 +43,7 @@ interface ProductAssignmentStepProps {
   onBack: () => void;
   categories: Category[];
   uploadedFile?: File | null;
+  onStructureSelected?: (hasStructure: boolean) => void;
 }
 
 type ProductStructure = 'single-column' | 'multiple-columns' | '';
@@ -91,7 +92,8 @@ export default function ProductAssignmentStep({
   onNext, 
   onBack, 
   categories,
-  uploadedFile 
+  uploadedFile,
+  onStructureSelected 
 }: ProductAssignmentStepProps) {
   const { data: dbProducts = [], isLoading: productsLoading } = useDetectedProducts();
   const { data: dbCategories = [], isLoading: categoriesLoading } = useProductCategories();
@@ -233,6 +235,11 @@ export default function ProductAssignmentStep({
     setSelectedProductColumns([]);
     setDetectedProducts([]);
     setShowProductTable(false);
+    
+    // Notify parent component when structure is selected
+    if (onStructureSelected) {
+      onStructureSelected(value !== '');
+    }
   };
 
   const handleColumnSelect = (columnName: string) => {
