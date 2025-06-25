@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { 
   Plus, MessageSquare, CheckSquare, Paperclip, ChevronDown, ChevronRight, 
-  Sparkles, Clock, User, Send, Eye, EyeOff, Check, X, Calendar, Filter, Brain, UserPlus, Bot, Target, Flag
+  Sparkles, Clock, User, Send, Eye, EyeOff, Check, X, Calendar, Filter, Brain, UserPlus, Bot, Target, Flag, Bookmark
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -1068,7 +1068,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                       const isAttachment = item.activity_type === 'attachment';
 
                       return (
-                        <div key={`timeline-${item.activity_type}-${item.id}-${index}-${item.created_at.replace(/[^\w]/g, '')}`} className="flex items-start gap-3 relative">
+                        <div key={`timeline-${item.activity_type}-${item.id}-${index}-${item.created_at.replace(/[^\w]/g, '')}`} className="flex items-start gap-3 relative group">
                           {/* Timeline line */}
                           {index < rawTimelineData.length - 1 && (
                             <div className="absolute left-4 top-10 w-px h-8 bg-gray-200"></div>
@@ -1100,8 +1100,8 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                               <Clock className="h-4 w-4 text-gray-600" />
                             )}
                           </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="bg-white rounded-lg p-3 border border-gray-200">
+                          <div className="flex-1 min-w-0 relative">
+                            <div className="bg-white rounded-lg p-3 border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all duration-200 relative">
                               <div className="flex items-center gap-2 mb-1">
                                 <span className="text-sm font-medium text-gray-900">
                                   {item.activity_type === 'comment' && item.assigned_to ? getUserName(item.assigned_to) : (item.activity_type || 'Activity')}
@@ -1130,6 +1130,36 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                                     <span className="text-blue-600">shared with partner</span>
                                   </div>
                                 )}
+                              </div>
+
+                              {/* Hover Toolbar */}
+                              <div className="absolute -top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20">
+                                <div className="bg-white border border-gray-200 rounded-full shadow-lg px-2 py-1 flex items-center gap-1">
+                                  {/* Heart Emoji */}
+                                  <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors duration-150">
+                                    <span className="text-lg">💙</span>
+                                  </button>
+                                  
+                                  {/* Thumbs Up Emoji */}
+                                  <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors duration-150">
+                                    <span className="text-lg">👍</span>
+                                  </button>
+                                  
+                                  {/* Laugh Emoji */}
+                                  <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors duration-150">
+                                    <span className="text-lg">😂</span>
+                                  </button>
+                                  
+                                  {/* Comments Icon */}
+                                  <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors duration-150">
+                                    <MessageSquare className="h-4 w-4 text-gray-600" />
+                                  </button>
+                                  
+                                  {/* Pin Icon */}
+                                  <button className="w-8 h-8 flex items-center justify-center hover:bg-gray-100 rounded-full transition-colors duration-150">
+                                    <Bookmark className="h-4 w-4 text-gray-600" />
+                                  </button>
+                                </div>
                               </div>
                             </div>
                           </div>
