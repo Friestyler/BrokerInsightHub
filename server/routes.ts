@@ -1140,7 +1140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT t.*, u.name as assigned_to_name, 
                CASE WHEN t.entity_type = 'opportunity' THEN o.title ELSE NULL END as opportunity_title
         FROM ${envId}.activity_tasks t
-        LEFT JOIN ${envId}.users u ON t.assigned_to_id = u.id
+        LEFT JOIN ${envId}.users u ON t.assigned_to = u.id
         LEFT JOIN ${envId}.opportunities o ON t.entity_id = o.id AND t.entity_type = 'opportunity'
         WHERE (t.entity_type = 'partner' AND t.entity_id = $1)
            OR (t.entity_type = 'opportunity' AND t.entity_id IN (
@@ -1154,7 +1154,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT c.*, u.name as author_name,
                CASE WHEN c.entity_type = 'opportunity' THEN o.title ELSE NULL END as opportunity_title
         FROM ${envId}.activity_comments c
-        LEFT JOIN ${envId}.users u ON c.author_id = u.id
+        LEFT JOIN ${envId}.users u ON c.user_id = u.id
         LEFT JOIN ${envId}.opportunities o ON c.entity_id = o.id AND c.entity_type = 'opportunity'
         WHERE (c.entity_type = 'partner' AND c.entity_id = $1)
            OR (c.entity_type = 'opportunity' AND c.entity_id IN (
@@ -4131,7 +4131,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
       // Insert task with opportunity entity type
       const result = await envPool.query(`
         INSERT INTO degoudse.activity_tasks 
-        (entity_type, entity_id, title, description, priority, assigned_to_id, assigned_by_id, status)
+        (entity_type, entity_id, title, description, priority, assigned_to, user_id, status)
         VALUES ('opportunity', $1, $2, $3, $4, $5, 1, 'pending')
         RETURNING *
       `, [opportunityId, title, description || null, priority || 'medium', assigned_to || null]);
@@ -4148,9 +4148,9 @@ Keep the tone clear and professional. Focus on what will help the account manage
       for (const partner of partnersResult.rows) {
         await envPool.query(`
           INSERT INTO degoudse.activity_tasks 
-          (entity_type, entity_id, title, description, priority, assigned_to_id, assigned_by_id, status, related_entity_type, related_entity_id)
-          VALUES ('partner', $1, $2, $3, $4, $5, 1, 'pending', 'opportunity', $6)
-        `, [partner.id, title, description || null, priority || 'medium', assigned_to || null, opportunityId]);
+          (entity_type, entity_id, title, description, priority, assigned_to, user_id, status)
+          VALUES ('partner', $1, $2, $3, $4, $5, 1, 'pending')
+        `, [partner.id, title, description || null, priority || 'medium', assigned_to || null]);
       }
       
       console.log(`Created opportunity task and synced to ${partnersResult.rows.length} related partners`);
@@ -4170,10 +4170,10 @@ Keep the tone clear and professional. Focus on what will help the account manage
       // Insert comment with opportunity entity type
       const result = await envPool.query(`
         INSERT INTO degoudse.activity_comments 
-        (entity_type, entity_id, content, author_id, is_internal)
+        (entity_type, entity_id, content, user_id, visible_to_partner)
         VALUES ('opportunity', $1, $2, 1, $3)
         RETURNING *
-      `, [opportunityId, content, !visible_to_partner]);
+      `, [opportunityId, content, visible_to_partner]);
       
       // Get related partners for this opportunity to sync activities
       const partnersResult = await envPool.query(`
@@ -4187,9 +4187,9 @@ Keep the tone clear and professional. Focus on what will help the account manage
       for (const partner of partnersResult.rows) {
         await envPool.query(`
           INSERT INTO degoudse.activity_comments 
-          (entity_type, entity_id, content, author_id, is_internal, related_entity_type, related_entity_id)
-          VALUES ('partner', $1, $2, 1, $3, 'opportunity', $4)
-        `, [partner.id, content, !visible_to_partner, opportunityId]);
+          (entity_type, entity_id, content, user_id, visible_to_partner)
+          VALUES ('partner', $1, $2, 1, $3)
+        `, [partner.id, content, visible_to_partner]);
       }
       
       console.log(`Created opportunity comment and synced to ${partnersResult.rows.length} related partners`);

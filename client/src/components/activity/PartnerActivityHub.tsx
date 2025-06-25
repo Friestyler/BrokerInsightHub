@@ -18,6 +18,8 @@ import userAvatar from "@/assets/user-avatar.png";
 interface PartnerActivityHubProps {
   partnerId: number;
   partnerName: string;
+  entityType?: 'partner' | 'opportunity';
+  entityId?: number;
 }
 
 interface ActivityItem {
@@ -314,7 +316,7 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
   );
 };
 
-export default function PartnerActivityHub({ partnerId, partnerName }: PartnerActivityHubProps) {
+export default function PartnerActivityHub({ partnerId, partnerName, entityType = 'partner', entityId }: PartnerActivityHubProps) {
   const [location] = useLocation();
   const [isCollapsed, setIsCollapsed] = useState(true);
   const [selectedActivityType, setSelectedActivityType] = useState<'task' | 'comment' | 'attachment' | 'timeline' | 'actions' | 'meeting'>('timeline');
