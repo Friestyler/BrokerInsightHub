@@ -97,6 +97,16 @@ export const activityAttachments = pgTable("activity_attachments", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Activity Reactions model
+export const activityReactions = pgTable("activity_reactions", {
+  id: serial("id").primaryKey(),
+  activityType: text("activity_type").notNull(), // 'task', 'comment', 'attachment'
+  activityId: integer("activity_id").notNull(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  emoji: text("emoji").notNull(), // '✅', '👍', '⭐'
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
 // AI Next Best Actions model
 export const nextBestActions = pgTable("next_best_actions", {
   id: serial("id").primaryKey(),
@@ -863,6 +873,17 @@ export const insertEntityLogoSchema = createInsertSchema(entityLogos).pick({
 
 export type InsertEntityLogo = z.infer<typeof insertEntityLogoSchema>;
 export type EntityLogo = typeof entityLogos.$inferSelect;
+
+// Activity Reactions types
+export const insertActivityReactionSchema = createInsertSchema(activityReactions).pick({
+  activityType: true,
+  activityId: true,
+  userId: true,
+  emoji: true,
+});
+
+export type InsertActivityReaction = z.infer<typeof insertActivityReactionSchema>;
+export type ActivityReaction = typeof activityReactions.$inferSelect;
 
 // Partner types
 export type InsertPartner = z.infer<typeof insertPartnerSchema>;

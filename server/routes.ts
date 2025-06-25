@@ -28,9 +28,13 @@ import {
   vendors,
   insertProductCategorySchema,
   insertProductSchema,
+  activityReactions,
+  insertActivityReactionSchema,
   type ProductCategory,
   type Product,
-  type Vendor
+  type Vendor,
+  type ActivityReaction,
+  type InsertActivityReaction
 } from '@shared/schema';
 import { eq, sql } from 'drizzle-orm';
 import { db, pool, getEnvironmentPool, getEnvironmentDb } from './db';
