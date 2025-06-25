@@ -1102,7 +1102,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                           </div>
                           <div className="flex-1 min-w-0">
                             <div className="bg-white rounded-lg p-3 border border-gray-200">
-                              <div className="flex items-center justify-between mb-1">
+                              <div className="flex items-center gap-2 mb-1">
                                 <span className="text-sm font-medium text-gray-900">
                                   {item.activity_type === 'comment' && item.assigned_to ? getUserName(item.assigned_to) : (item.activity_type || 'Activity')}
                                 </span>

@@ -276,6 +276,7 @@ Each environment maintains its own data isolation while sharing the same applica
 - June 25, 2025: Enhanced Select dropdown spacing - increased viewport padding from p-1 to p-2 and item padding from py-1.5/pr-2 to py-2/pr-3 for better readability and touch targets throughout all dropdown components in the platform.
 - June 25, 2025: Removed eye icons from task interface and timeline - eliminated Eye/EyeOff icons from task creation forms, comment inputs, timeline display, and visibility indicators throughout activity hub for cleaner, more streamlined interface design while maintaining all "shared with partner" functionality through text labels only.
 - June 25, 2025: Improved switch button spacing in TimelineComposer - increased gap between switch toggles and text labels from gap-1.5 to gap-3 for better visual separation and touch accessibility in visibility controls throughout the task and comment creation interface.
+- June 25, 2025: Repositioned timeline timestamps to left alignment - moved timestamps from right-aligned position to left-aligned next to user names using gap-2 instead of justify-between for better visual flow in activity timeline interface.
 
 ## User Preferences
 
