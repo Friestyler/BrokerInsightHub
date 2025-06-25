@@ -273,6 +273,7 @@ Each environment maintains its own data isolation while sharing the same applica
 - June 25, 2025: Modernized task creation component with ClickUp-style interface - redesigned TimelineComposer with clean borderless textarea, compact property controls with icons (Flag for priority, User for assignee), modern action bar with keyboard shortcuts, user avatars with initials in team selection, and streamlined UX using Qollabi brand colors. Replaced old-school heavy borders and padding with contemporary minimal design patterns for improved user experience.
 - June 25, 2025: Refined task input to single-line height (32px) - reduced textarea from 60px minimum height to compact 32px single-line input with overflow hidden, creating more streamlined ClickUp-style interface that matches other control heights throughout the platform.
 - June 25, 2025: Fine-tuned task input padding for optimal balance - adjusted container padding (px-4 pt-4 pb-2) and added textarea internal padding (pl-2 pt-1) to create proper breathing room while maintaining compact single-line appearance for polished ClickUp-style interface.
+- June 25, 2025: Enhanced Select dropdown spacing - increased viewport padding from p-1 to p-2 and item padding from py-1.5/pr-2 to py-2/pr-3 for better readability and touch targets throughout all dropdown components in the platform.
 
 ## User Preferences
 
