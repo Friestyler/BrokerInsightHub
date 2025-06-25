@@ -1068,7 +1068,6 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                 onCreateComment={() => {}} // Not used in task tab
                 teamMembers={teamMembers}
                 isLoading={createActivityMutation.isPending}
-                taskOnly={true} // Only show task creation interface
               />
             </div>
           )}

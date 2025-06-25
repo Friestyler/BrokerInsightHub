@@ -1273,6 +1273,89 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get all related tasks for a specific partner (from partner, opportunities, and customers)
+  app.get('/api/:envId/partners/:id/all-tasks', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const partnerId = parseInt(req.params.id);
+      
+      // Fetch all tasks related to the partner and its connected entities
+      const allTasksQuery = sql`
+        -- Direct partner tasks
+        SELECT 
+          t.id, 
+          t.title, 
+          t.description,
+          t.priority,
+          t.completed,
+          t.visible_to_partner,
+          t.assigned_to,
+          t.created_at,
+          t.updated_at,
+          u.name as author_name,
+          'partner' as source_type,
+          p.name as source_name,
+          ${partnerId} as source_id
+        FROM ${sql.identifier(envId)}.activity_tasks t
+        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id
+        LEFT JOIN ${sql.identifier(envId)}.partners p ON t.partner_id = p.id
+        WHERE t.partner_id = ${partnerId}
+        
+        UNION ALL
+        
+        -- Tasks from opportunities connected to this partner
+        SELECT 
+          t.id, 
+          t.title, 
+          t.description,
+          t.priority,
+          t.completed,
+          t.visible_to_partner,
+          t.assigned_to,
+          t.created_at,
+          t.updated_at,
+          u.name as author_name,
+          'opportunity' as source_type,
+          o.title as source_name,
+          o.id as source_id
+        FROM ${sql.identifier(envId)}.activity_tasks t
+        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id
+        LEFT JOIN ${sql.identifier(envId)}.opportunities o ON t.opportunity_id = o.id
+        WHERE o.partner_id = ${partnerId} AND t.opportunity_id IS NOT NULL
+        
+        UNION ALL
+        
+        -- Tasks from customers connected to this partner
+        SELECT 
+          t.id, 
+          t.title, 
+          t.description,
+          t.priority,
+          t.completed,
+          t.visible_to_partner,
+          t.assigned_to,
+          t.created_at,
+          t.updated_at,
+          u.name as author_name,
+          'customer' as source_type,
+          c.name as source_name,
+          c.id as source_id
+        FROM ${sql.identifier(envId)}.activity_tasks t
+        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id
+        LEFT JOIN ${sql.identifier(envId)}.customers c ON t.customer_id = c.id
+        WHERE c.partner_id = ${partnerId} AND t.customer_id IS NOT NULL
+        
+        ORDER BY created_at DESC
+      `;
+      
+      const allTasksData = await db.execute(allTasksQuery);
+      res.json(allTasksData.rows);
+    } catch (error) {
+      console.error('Error fetching all partner tasks:', error);
+      res.status(500).json({ message: 'Failed to fetch tasks' });
+    }
+  });
+
   // Get next best actions for a specific partner
   app.get('/api/:envId/partners/:id/next-actions', async (req, res) => {
     try {
