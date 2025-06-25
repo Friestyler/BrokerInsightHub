@@ -372,8 +372,9 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
 
   // Helper function to get user name from database
   const getUserName = (userId: number): string => {
+    if (!userId) return 'Unknown User';
     const user = usersData?.find((u: any) => u.id === userId);
-    return user ? user.name : `User ${userId}`;
+    return user ? user.name : 'Unknown User';
   };
 
   // Helper function to get user initials for avatar fallback
@@ -1065,7 +1066,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                             <div className="bg-white rounded-lg p-3 border border-gray-200">
                               <div className="flex items-center justify-between mb-1">
                                 <span className="text-sm font-medium text-gray-900 capitalize">
-                                  {item.activity_type === 'comment' ? getUserName(item.user_id) : (item.activity_type || 'Activity')}
+                                  {item.activity_type === 'comment' && item.user_id ? getUserName(item.user_id) : (item.activity_type || 'Activity')}
                                 </span>
                                 <span className="text-xs text-gray-500">
                                   {new Date(item.created_at).toLocaleString([], { 
