@@ -40,7 +40,7 @@ const ActivityReactions = ({ activityType, activityId, onReactionClick }: Activi
         <button
           key={reaction.emoji}
           onClick={() => onReactionClick(reaction.emoji)}
-          className="flex items-center gap-1 px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors text-xs"
+          className="flex items-center gap-1 px-2 py-1 bg-[#E6E7F1] hover:bg-gray-200 rounded-full transition-colors text-xs"
           title={`${reaction.user_names?.join(', ') || 'Users'} reacted with ${reaction.emoji}`}
         >
           <span>{reaction.emoji}</span>
