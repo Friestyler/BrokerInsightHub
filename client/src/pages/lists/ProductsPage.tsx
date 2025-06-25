@@ -932,9 +932,9 @@ function ProductsTable() {
                 // Export selected products
                 const selectedProductsData = displayedProducts.filter((p: Product) => selectedProducts.includes(p.id));
                 const csvContent = "data:text/csv;charset=utf-8," 
-                  + "Name,Category,Provider,Total Value,SKU,Status\n"
+                  + "Name,Category,Provider,Contract Start,Contract End,Premium Value,Premium %,Discount %,Status\n"
                   + selectedProductsData.map((product: Product) => 
-                      `"${product.name}","${product.category}","${product.provider || product.providername || 'N/A'}","${product.total_value || product.totalvalue || product.totalValue || 'N/A'}","${product.sku || 'N/A'}","${product.status || 'Active'}"`
+                      `"${product.name}","${product.category}","${product.provider || product.providername || 'N/A'}","${product.contract_start_date || product.contractStartDate || 'N/A'}","${product.contract_end_date || product.contractEndDate || 'N/A'}","${product.premium_value || product.premiumValue || 'N/A'}","${product.premium_percentage || product.premiumPercentage || 'N/A'}","${product.discount_percentage || product.discountPercentage || 'N/A'}","${product.status || 'Active'}"`
                     ).join("\n");
                 
                 const encodedUri = encodeURI(csvContent);
