@@ -1347,7 +1347,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         FROM ${envId}.activity_tasks t
         LEFT JOIN ${envId}.users u ON t.assigned_to = u.id
         LEFT JOIN ${envId}.customers c ON t.entity_id = c.id
-        LEFT JOIN ${envId}.opportunities o ON o.customer_id = c.id
+        LEFT JOIN ${envId}.opportunities o ON o.client_id = c.id
         WHERE t.entity_type = 'customer' AND o.partner_id = $1
       `;
       
@@ -4269,13 +4269,13 @@ Keep the tone clear and professional. Focus on what will help the account manage
       
       const partnerId = opportunityResult.rows[0].partner_id;
       
-      // Insert task using the correct partner_id
+      // Insert task using the correct partner_id and entity linking
       const result = await envPool.query(`
         INSERT INTO degoudse.activity_tasks 
-        (partner_id, title, description, priority, assigned_to, status)
-        VALUES ($1, $2, $3, $4, $5, 'pending')
+        (partner_id, title, description, priority, assigned_to, status, entity_type, entity_id, visible_to_partner)
+        VALUES ($1, $2, $3, $4, $5, 'pending', 'opportunity', $6, $7)
         RETURNING *
-      `, [partnerId, title, description || null, priority || 'medium', assigned_to || null]);
+      `, [partnerId, title, description || null, priority || 'medium', assigned_to || null, opportunityId, visible_to_partner || false]);
       
       console.log(`Created opportunity task for partner ${partnerId}`);
       res.json(result.rows[0]);
