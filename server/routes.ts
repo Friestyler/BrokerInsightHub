@@ -1279,7 +1279,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envId = req.params.envId;
       const partnerId = parseInt(req.params.id);
       
-      // Fetch all tasks related to the partner and its connected entities
+      // Fetch all tasks related to the partner and its connected entities using correct schema
       const allTasksQuery = sql`
         -- Direct partner tasks
         SELECT 
@@ -1287,8 +1287,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           t.title, 
           t.description,
           t.priority,
-          t.completed,
-          t.visible_to_partner,
+          COALESCE(t.completed, false) as completed,
+          COALESCE(t.visible_to_partner, false) as visible_to_partner,
           t.assigned_to,
           t.created_at,
           t.updated_at,
@@ -1298,7 +1298,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ${partnerId} as source_id
         FROM ${sql.identifier(envId)}.activity_tasks t
         LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id
-        LEFT JOIN ${sql.identifier(envId)}.partners p ON t.partner_id = p.id
+        LEFT JOIN ${sql.identifier(envId)}.partners p ON t.entity_id = p.id
         WHERE t.partner_id = ${partnerId}
         
         UNION ALL
@@ -1309,8 +1309,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           t.title, 
           t.description,
           t.priority,
-          t.completed,
-          t.visible_to_partner,
+          COALESCE(t.completed, false) as completed,
+          COALESCE(t.visible_to_partner, false) as visible_to_partner,
           t.assigned_to,
           t.created_at,
           t.updated_at,
@@ -1320,19 +1320,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           o.id as source_id
         FROM ${sql.identifier(envId)}.activity_tasks t
         LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id
-        LEFT JOIN ${sql.identifier(envId)}.opportunities o ON t.opportunity_id = o.id
-        WHERE o.partner_id = ${partnerId} AND t.opportunity_id IS NOT NULL
+        LEFT JOIN ${sql.identifier(envId)}.opportunities o ON t.entity_id = o.id
+        WHERE t.entity_type = 'opportunity' AND o.partner_id = ${partnerId}
         
         UNION ALL
         
-        -- Tasks from customers connected to this partner
+        -- Tasks from customers connected to this partner through opportunities
         SELECT 
           t.id, 
           t.title, 
           t.description,
           t.priority,
-          t.completed,
-          t.visible_to_partner,
+          COALESCE(t.completed, false) as completed,
+          COALESCE(t.visible_to_partner, false) as visible_to_partner,
           t.assigned_to,
           t.created_at,
           t.updated_at,
@@ -1342,8 +1342,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
           c.id as source_id
         FROM ${sql.identifier(envId)}.activity_tasks t
         LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id
-        LEFT JOIN ${sql.identifier(envId)}.customers c ON t.customer_id = c.id
-        WHERE c.partner_id = ${partnerId} AND t.customer_id IS NOT NULL
+        LEFT JOIN ${sql.identifier(envId)}.customers c ON t.entity_id = c.id
+        LEFT JOIN ${sql.identifier(envId)}.opportunities o ON o.client_id = c.id
+        WHERE t.entity_type = 'customer' AND o.partner_id = ${partnerId}
         
         ORDER BY created_at DESC
       `;

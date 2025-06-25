@@ -577,9 +577,13 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
         type: 'active'
       });
       
-      // Force timeline query refresh
+      // Force timeline and all-tasks query refresh for bidirectional sync
       queryClient.invalidateQueries({ 
         queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`],
+        exact: true
+      });
+      queryClient.invalidateQueries({ 
+        queryKey: [`/api/${currentEnv}/partners/${partnerId}/all-tasks`],
         exact: true
       });
       
@@ -609,6 +613,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [apiEndpoint] });
       queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/all-tasks`] });
     }
   });
 
