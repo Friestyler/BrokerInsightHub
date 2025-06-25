@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
 import { 
@@ -353,6 +353,9 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
   const [meetingBriefing, setMeetingBriefing] = useState<any>(null);
   const [isPreparingMeeting, setIsPreparingMeeting] = useState(false);
 
+  // Timeline scroll ref for auto-scrolling to bottom
+  const timelineScrollRef = useRef<HTMLDivElement>(null);
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const currentEnv = localStorage.getItem('selectedEnvironment') || 'degoudse';
@@ -664,6 +667,18 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
   const rawTimelineData = (timeline as any) || [];
   
   // Timeline data comes directly from the API - no client-side merging needed
+
+  // Auto-scroll to bottom when timeline opens or new data arrives
+  useEffect(() => {
+    if (selectedActivityType === 'timeline' && timelineScrollRef.current && rawTimelineData?.length > 0) {
+      setTimeout(() => {
+        timelineScrollRef.current?.scrollTo({
+          top: timelineScrollRef.current.scrollHeight,
+          behavior: 'smooth'
+        });
+      }, 100);
+    }
+  }, [selectedActivityType, rawTimelineData]);
 
   const completedTasks = tasks.filter((t: any) => t.completed).length;
   const pendingTasks = tasks.filter((t: any) => !t.completed).length;
@@ -1018,7 +1033,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
           {selectedActivityType === 'timeline' && (
             <div className="flex flex-col h-full">
               {/* Timeline Content */}
-              <div className="flex-1 space-y-4 max-h-64 overflow-y-auto mb-4">
+              <div ref={timelineScrollRef} className="flex-1 space-y-4 max-h-64 overflow-y-auto mb-4">
                 {rawTimelineData && rawTimelineData.length > 0 ? (
                   rawTimelineData
                     .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
