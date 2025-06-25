@@ -320,6 +320,11 @@ export default function OpportunityDetail() {
         </div>
       </div>
 
+      {/* Activity Hub */}
+      <div className="mt-8">
+        <OpportunityActivityHub opportunityId={parseInt(id!)} opportunityTitle={opportunity.title} />
+      </div>
+
       {/* Tabs */}
       <div className="bg-white border-b border-gray-200 mt-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
