@@ -1101,7 +1101,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                             )}
                           </div>
                           <div className="flex-1 min-w-0 relative">
-                            <div className="bg-white rounded-lg p-3 border border-gray-200 hover:border-gray-300 hover:shadow-sm transition-all duration-200 relative">
+                            <div className="bg-white rounded-lg p-3 border border-gray-200 hover:bg-[#F5F6FA] hover:border-[#E6E7F1] transition-all duration-200 relative">
                               <div className="flex items-center gap-2 mb-1">
                                 <span className="text-sm font-medium text-gray-900">
                                   {item.activity_type === 'comment' && item.assigned_to ? getUserName(item.assigned_to) : (item.activity_type || 'Activity')}
