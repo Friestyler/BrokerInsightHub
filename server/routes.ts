@@ -4157,13 +4157,19 @@ Keep the tone clear and professional. Focus on what will help the account manage
       const { content, visible_to_partner } = req.body;
       const envPool = pool;
       
+      console.log('Creating opportunity comment:', { opportunityId, content, visible_to_partner, body: req.body });
+      
+      if (!content || content.trim() === '') {
+        return res.status(400).json({ error: 'Comment content is required' });
+      }
+      
       // Insert comment with opportunity entity type (using partner_id column for now)
       const result = await envPool.query(`
         INSERT INTO degoudse.activity_comments 
         (partner_id, content, user_id, visible_to_partner)
         VALUES ($1, $2, 1, $3)
         RETURNING *
-      `, [opportunityId, content, visible_to_partner]);
+      `, [opportunityId, content.trim(), visible_to_partner || false]);
       
       // Get related partners for this opportunity to sync activities
       const partnersResult = await envPool.query(`
@@ -4186,7 +4192,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
       res.json(result.rows[0]);
     } catch (error) {
       console.error('Error creating opportunity comment:', error);
-      res.status(500).json({ error: 'Failed to create opportunity comment' });
+      res.status(500).json({ error: 'Failed to create opportunity comment', details: error.message });
     }
   });
 

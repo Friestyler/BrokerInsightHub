@@ -585,11 +585,11 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
   };
 
   const handleCreateActivity = () => {
-    let activityData: any = { visibleToPartner };
+    let activityData: any = { visible_to_partner: visibleToPartner };
 
     if (selectedActivityType === 'task') {
       if (!taskTitle.trim()) return;
-      activityData = { ...activityData, title: taskTitle, priority: taskPriority, assignedTo };
+      activityData = { ...activityData, title: taskTitle, priority: taskPriority, assigned_to: assignedTo };
     } else if (selectedActivityType === 'comment') {
       if (!commentContent.trim()) return;
       activityData = { ...activityData, content: commentContent };
