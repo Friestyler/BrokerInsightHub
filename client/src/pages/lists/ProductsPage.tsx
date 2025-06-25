@@ -587,24 +587,32 @@ export default function ProductsPage() {
         </div>
 
         {/* Tab Navigation */}
-        <div className="px-4">
-          <div className="flex space-x-1">
-            <Button
-              variant={activeTab === 'products' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveTab('products')}
-              className="h-8"
-            >
-              Products
-            </Button>
-            <Button
-              variant={activeTab === 'categories' ? 'default' : 'ghost'}
-              size="sm"
-              onClick={() => setActiveTab('categories')}
-              className="h-8"
-            >
-              Categories
-            </Button>
+        <div className="bg-white">
+          <div className="px-6 py-4">
+            <div className="flex space-x-1">
+              <Button 
+                variant="ghost" 
+                className={`flex items-center gap-2 ${
+                  activeTab === 'products' 
+                    ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
+                    : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
+                }`}
+                onClick={() => setActiveTab('products')}
+              >
+                Products
+              </Button>
+              <Button 
+                variant="ghost" 
+                className={`flex items-center gap-2 ${
+                  activeTab === 'categories' 
+                    ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
+                    : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
+                }`}
+                onClick={() => setActiveTab('categories')}
+              >
+                Categories
+              </Button>
+            </div>
           </div>
         </div>
 
