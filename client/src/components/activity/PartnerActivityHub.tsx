@@ -268,7 +268,7 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
                   onCheckedChange={setVisibleToPartner}
                   className="h-4 w-7 data-[state=checked]:bg-blue-500"
                 />
-                <span className="text-xs text-gray-500">Share</span>
+                <span className="text-xs text-gray-500">Share with partner</span>
               </div>
             </div>
           </div>
@@ -754,7 +754,6 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
           )}
         </div>
       </div>
-
       {/* Collapsible Content */}
       {!isCollapsed && (
         <div className="p-4 space-y-4">
@@ -1079,7 +1078,6 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                           {index < rawTimelineData.length - 1 && (
                             <div className="absolute left-4 top-10 w-px h-8 bg-gray-200"></div>
                           )}
-                          
                           {/* Avatar/Icon */}
                           <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center relative z-10 bg-white border-2 border-gray-200">
                             {isTask && (
@@ -1107,7 +1105,6 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                               <Clock className="h-4 w-4 text-gray-600" />
                             )}
                           </div>
-                          
                           <div className="flex-1 min-w-0">
                             <div className="bg-white rounded-lg p-3 border border-gray-200">
                               <div className="flex items-center justify-between mb-1">
