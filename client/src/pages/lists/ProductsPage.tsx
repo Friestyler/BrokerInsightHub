@@ -1049,7 +1049,231 @@ function ProductsTable() {
         </div>
       )}
 
-      {/* Table section */}
+      <div className="flex-1 overflow-auto">
+        <ProductsTable />
+      </div>
+
+        {/* Tab Content */}
+        <div>
+          {activeTab === 'products' && (
+            <>
+              {/* Edit Product Dialog */}
+              <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Edit Product</DialogTitle>
+                    <DialogDescription>
+                      Update the product information below.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="grid gap-4 py-4">
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="name" className="text-right">
+                        Name
+                      </Label>
+                      <Input
+                        id="name"
+                        value={editFormData.name || ''}
+                        onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="description" className="text-right">
+                        Description
+                      </Label>
+                      <Input
+                        id="description"
+                        value={editFormData.description || ''}
+                        onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="category" className="text-right">
+                        Category
+                      </Label>
+                      <Input
+                        id="category"
+                        value={editFormData.category || ''}
+                        onChange={(e) => setEditFormData({ ...editFormData, category: e.target.value })}
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="contractStartDate" className="text-right">
+                        Start Date
+                      </Label>
+                      <Input
+                        id="contractStartDate"
+                        type="date"
+                        value={editFormData.contractStartDate || ''}
+                        onChange={(e) => setEditFormData({ ...editFormData, contractStartDate: e.target.value })}
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="contractEndDate" className="text-right">
+                        End Date
+                      </Label>
+                      <Input
+                        id="contractEndDate"
+                        type="date"
+                        value={editFormData.contractEndDate || ''}
+                        onChange={(e) => setEditFormData({ ...editFormData, contractEndDate: e.target.value })}
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="totalValue" className="text-right">
+                        Total Value
+                      </Label>
+                      <Input
+                        id="totalValue"
+                        type="number"
+                        value={editFormData.totalValue || ''}
+                        onChange={(e) => setEditFormData({ ...editFormData, totalValue: e.target.value })}
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="premiumValue" className="text-right">
+                        Premium Value
+                      </Label>
+                      <Input
+                        id="premiumValue"
+                        type="number"
+                        value={editFormData.premiumValue || ''}
+                        onChange={(e) => setEditFormData({ ...editFormData, premiumValue: e.target.value })}
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="premiumPercentage" className="text-right">
+                        Premium %
+                      </Label>
+                      <Input
+                        id="premiumPercentage"
+                        type="number"
+                        step="0.01"
+                        value={editFormData.premiumPercentage || ''}
+                        onChange={(e) => setEditFormData({ ...editFormData, premiumPercentage: e.target.value })}
+                        className="col-span-3"
+                      />
+                    </div>
+                    <div className="grid grid-cols-4 items-center gap-4">
+                      <Label htmlFor="discountPercentage" className="text-right">
+                        Discount %
+                      </Label>
+                      <Input
+                        id="discountPercentage"
+                        type="number"
+                        step="0.01"
+                        value={editFormData.discountPercentage || ''}
+                        onChange={(e) => setEditFormData({ ...editFormData, discountPercentage: e.target.value })}
+                        className="col-span-3"
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={handleUpdateProduct}>
+                      Save Changes
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Delete Product Dialog */}
+              <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Delete Product</DialogTitle>
+                    <DialogDescription>
+                      Are you sure you want to delete "{productToDelete?.name}"? This action cannot be undone.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button variant="destructive" onClick={handleDeleteProduct}>
+                      Delete
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </>
+          )}
+
+          {activeTab === 'categories' && (
+            <div className="mx-4">
+              <CategoryManagerForProducts />
+            </div>
+          )}
+        </div>
+      </div>
+    )
+  }
+
+  function ProductsTable() {
+    // Fetch products from database
+    const { data: products = [], isLoading, error } = useProductsData();
+    
+    const [filterText, setFilterText] = useState('');
+    const [selectedStatus, setSelectedStatus] = useState('all');
+    const [selectedCategory, setSelectedCategory] = useState('all');
+    const [selectedProvider, setSelectedProvider] = useState('all');
+
+    const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(12);
+    
+    // Dropdown state for filters
+    const [showFilterModal, setShowFilterModal] = useState(false);
+
+    const filteredProducts = products.filter((product: Product) => {
+      const searchMatch = !filterText || 
+        product.name.toLowerCase().includes(filterText.toLowerCase()) ||
+        (product.description && product.description.toLowerCase().includes(filterText.toLowerCase()));
+      
+      const statusMatch = selectedStatus === 'all' || 
+        (selectedStatus === 'active' && product.isActive !== false) ||
+        (selectedStatus === 'inactive' && product.isActive === false);
+      
+      const categoryMatch = selectedCategory === 'all' || 
+        (product.category && product.category.toLowerCase().includes(selectedCategory.toLowerCase()));
+        
+      const providerMatch = selectedProvider === 'all' || 
+        (product.provider && product.provider.toLowerCase().includes(selectedProvider.toLowerCase()));
+      
+      return searchMatch && statusMatch && categoryMatch && providerMatch;
+    });
+
+    // Pagination
+    const totalPages = Math.ceil(filteredProducts.length / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const displayedProducts = filteredProducts.slice(startIndex, startIndex + itemsPerPage);
+
+    const toggleSelectProduct = (productId: number) => {
+      setSelectedProducts(prev => 
+        prev.includes(productId) 
+          ? prev.filter(id => id !== productId)
+          : [...prev, productId]
+      );
+    };
+
+    const toggleSelectAll = () => {
+      if (selectedProducts.length === displayedProducts.length) {
+        setSelectedProducts([]);
+      } else {
+        setSelectedProducts(displayedProducts.map(p => p.id));
+      }
+    };
+
+    return (
       <div className="bg-white overflow-x-auto rounded-lg mx-4">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-white">
@@ -1091,7 +1315,7 @@ function ProductsTable() {
                 onSort={handleSort} 
                 className="w-[120px]"
               >
-                Contract Start Date
+                Start Date
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="contract_end_date" 
@@ -1100,7 +1324,7 @@ function ProductsTable() {
                 onSort={handleSort} 
                 className="w-[120px]"
               >
-                Contract End Date
+                End Date
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="total_value" 
@@ -1119,24 +1343,6 @@ function ProductsTable() {
                 className="w-[120px]"
               >
                 Premium Value
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="premium_percentage" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[100px]"
-              >
-                Premium %
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="discount_percentage" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[100px]"
-              >
-                Discount %
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="customers" 
@@ -1170,8 +1376,8 @@ function ProductsTable() {
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 bg-white">
-            {displayedProducts.map((product) => (
+          <tbody className="bg-white divide-y divide-gray-200">
+            {displayedProducts.map((product: Product, index: number) => (
               <tr 
                 key={product.id} 
                 className={`hover:bg-gray-50 group ${
@@ -1574,7 +1780,239 @@ export default function ProductsPage() {
         <div>
           {activeTab === 'products' && (
             <>
-              <ProductsTable />
+              {/* Table section */}
+              <div className="bg-white overflow-x-auto rounded-lg mx-4">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-white">
+                    <tr>
+                      <th scope="col" className="relative px-3 py-3.5 w-10 pt-[12px] pb-[12px] group">
+                        <div className="flex items-center justify-center">
+                          <input
+                            type="checkbox"
+                            className={`h-4 w-4 rounded border-gray-300 ${
+                              selectedProducts.length > 0 ? 'visible' : 'invisible group-hover:visible'
+                            }`}
+                            checked={selectedProducts.length === displayedProducts.length && displayedProducts.length > 0}
+                            onChange={toggleSelectAll}
+                          />
+                        </div>
+                      </th>
+                      <SortableTableHead 
+                        sortKey="name" 
+                        currentSortKey={tableSortConfig.key} 
+                        currentDirection={tableSortConfig.direction} 
+                        onSort={handleSort} 
+                        className="w-[250px]"
+                      >
+                        Product
+                      </SortableTableHead>
+                      <SortableTableHead 
+                        sortKey="category" 
+                        currentSortKey={tableSortConfig.key} 
+                        currentDirection={tableSortConfig.direction} 
+                        onSort={handleSort} 
+                        className="w-[120px]"
+                      >
+                        Category
+                      </SortableTableHead>
+                      <SortableTableHead 
+                        sortKey="contract_start_date" 
+                        currentSortKey={tableSortConfig.key} 
+                        currentDirection={tableSortConfig.direction} 
+                        onSort={handleSort} 
+                        className="w-[120px]"
+                      >
+                        Start Date
+                      </SortableTableHead>
+                      <SortableTableHead 
+                        sortKey="contract_end_date" 
+                        currentSortKey={tableSortConfig.key} 
+                        currentDirection={tableSortConfig.direction} 
+                        onSort={handleSort} 
+                        className="w-[120px]"
+                      >
+                        End Date
+                      </SortableTableHead>
+                      <SortableTableHead 
+                        sortKey="total_value" 
+                        currentSortKey={tableSortConfig.key} 
+                        currentDirection={tableSortConfig.direction} 
+                        onSort={handleSort} 
+                        className="w-[120px]"
+                      >
+                        Total Value
+                      </SortableTableHead>
+                      <SortableTableHead 
+                        sortKey="premium_value" 
+                        currentSortKey={tableSortConfig.key} 
+                        currentDirection={tableSortConfig.direction} 
+                        onSort={handleSort} 
+                        className="w-[120px]"
+                      >
+                        Premium Value
+                      </SortableTableHead>
+                      <SortableTableHead 
+                        sortKey="customers" 
+                        currentSortKey={tableSortConfig.key} 
+                        currentDirection={tableSortConfig.direction} 
+                        onSort={handleSort} 
+                        className="w-[120px]"
+                      >
+                        Customers
+                      </SortableTableHead>
+                      <SortableTableHead 
+                        sortKey="partners" 
+                        currentSortKey={tableSortConfig.key} 
+                        currentDirection={tableSortConfig.direction} 
+                        onSort={handleSort} 
+                        className="w-[120px]"
+                      >
+                        Partners
+                      </SortableTableHead>
+                      <SortableTableHead 
+                        sortKey="opportunities" 
+                        currentSortKey={tableSortConfig.key} 
+                        currentDirection={tableSortConfig.direction} 
+                        onSort={handleSort} 
+                        className="w-[120px]"
+                      >
+                        Opportunities
+                      </SortableTableHead>
+                      <th className="w-[80px] text-center py-3 pl-3 pr-4 text-left text-sm font-medium text-gray-900 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {displayedProducts.map((product: Product, index: number) => (
+                      <tr
+                        key={product.id}
+                        className={`group hover:bg-gray-50 ${
+                          selectedProducts.includes(product.id) ? 'bg-blue-50' : ''
+                        }`}
+                      >
+                        <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm w-10">
+                          <input
+                            type="checkbox"
+                            className={`h-4 w-4 rounded border-gray-300 ${
+                              selectedProducts.includes(product.id) ? 'visible' : 'invisible group-hover:visible'
+                            }`}
+                            checked={selectedProducts.includes(product.id)}
+                            onChange={(e) => {
+                              e.stopPropagation();
+                              toggleSelectProduct(product.id);
+                            }}
+                          />
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
+                          <div className="flex items-center">
+                            <Package2 className="mr-3 h-5 w-5 text-gray-400" />
+                            <Link href={`/lists/products/${product.id}`} className="font-medium text-gray-900 hover:text-indigo-700">
+                              {product.name}
+                            </Link>
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                          <Badge variant="outline">
+                            {product.category}
+                          </Badge>
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                          <div className="text-sm">
+                            {product.contract_start_date || product.contractstartdate ? 
+                              new Date(product.contract_start_date || product.contractstartdate).toLocaleDateString() : "—"}
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                          <div className="text-sm">
+                            {product.contract_end_date || product.contractenddate ? 
+                              new Date(product.contract_end_date || product.contractenddate).toLocaleDateString() : "—"}
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                          <div className="text-sm">
+                            {product.total_value || product.totalValue ? 
+                              `€${(product.total_value || product.totalValue).toLocaleString()}` : "—"}
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                          <div className="text-sm">
+                            {product.premium_value || product.premiumValue ? 
+                              `€${(product.premium_value || product.premiumValue).toLocaleString()}` : "—"}
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm text-center">
+                          <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                            {product.customercount || product.customerCount || 0}
+                          </Badge>
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm text-center">
+                          <Badge variant="outline" className="bg-purple-50 text-purple-700 border-purple-200">
+                            {product.partnercount || product.partnerCount || 0}
+                          </Badge>
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm text-center">
+                          <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                            {product.opportunitycount || product.opportunityCount || 0}
+                          </Badge>
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-3 pr-4 text-sm text-center">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 w-8 p-0"
+                              >
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => openEditDialog(product)}>
+                                <Edit2 className="h-4 w-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                onClick={() => openDeleteDialog(product)}
+                                className="text-red-600 focus:text-red-600"
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </td>
+                      </tr>
+                    ))}
+                    
+                    {displayedProducts.length === 0 && (
+                      <tr>
+                        <td colSpan={11} className="py-10 text-center">
+                          <div className="flex flex-col items-center">
+                            <Package2 className="h-12 w-12 text-gray-400 mb-3" />
+                            <h3 className="text-base font-medium text-gray-900 mb-1">No products found</h3>
+                            <p className="text-sm text-gray-500 max-w-md mb-4">
+                              There are no products matching your filter criteria.
+                            </p>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => {
+                                setFilterText('');
+                                setSelectedStatus('all');
+                                setSelectedCategory('all');
+                                setSelectedProvider('all');
+                              }}
+                            >
+                              Clear Filters
+                            </Button>
+                          </div>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
               
               {/* Edit Product Dialog */}
               <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
