@@ -400,8 +400,9 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
   // Create activity mutation
   const createActivityMutation = useMutation({
     mutationFn: (activityData: any) => {
-      const endpoint = selectedActivityType === 'task' ? 'tasks' : 
-                     selectedActivityType === 'comment' ? 'comments' : 'attachments';
+      const activityType = activityData.activityType || selectedActivityType;
+      const endpoint = activityType === 'task' ? 'tasks' : 
+                     activityType === 'comment' ? 'comments' : 'attachments';
       
       const baseUrl = entityType === 'opportunity' 
         ? `/api/degoudse/opportunities/${actualEntityId}`
