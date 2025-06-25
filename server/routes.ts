@@ -8573,6 +8573,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
             { name: 'category', type: 'string', isRequired: false },
             { name: 'contract_start_date', type: 'date', isRequired: false },
             { name: 'contract_end_date', type: 'date', isRequired: false },
+            { name: 'total_value', type: 'number', isRequired: false },
             { name: 'premium_value', type: 'number', isRequired: false },
             { name: 'premium_percentage', type: 'number', isRequired: false },
             { name: 'discount_percentage', type: 'number', isRequired: false },
