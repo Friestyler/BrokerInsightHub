@@ -43,7 +43,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
-import { Package2, Plus, Search, Tag, ChevronDown, Filter, X, Edit3, Trash2, Share, Archive, MoreHorizontal, Building2, Briefcase, Users } from "lucide-react";
+import { Package2, Plus, Search, Tag, ChevronDown, Filter, X, Edit3, Trash2, Share, Archive, MoreHorizontal, Building2, Briefcase, Users, MoreVertical, Edit2 } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import CategoryManagerForProducts from "@/components/CategoryManagerForProducts";
 
@@ -269,6 +269,13 @@ function ProductsTable() {
   
   // State for views dropdown
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
+  
+  // Edit/Delete dialog states
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [productToEdit, setProductToEdit] = useState<Product | null>(null);
+  const [productToDelete, setProductToDelete] = useState<Product | null>(null);
+  const [editFormData, setEditFormData] = useState<Partial<Product>>({});
   
   // Handle outside clicks for all dropdowns
   useEffect(() => {
@@ -1487,6 +1494,174 @@ export default function ProductsPage() {
             </div>
           )}
         </div>
+
+        {/* Edit Product Dialog */}
+        <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>Edit Product</DialogTitle>
+              <DialogDescription>
+                Update the product information below.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name">Product Name</Label>
+                  <Input
+                    id="edit-name"
+                    value={editFormData.name || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, name: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-category">Category</Label>
+                  <Input
+                    id="edit-category"
+                    value={editFormData.category || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, category: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-description">Description</Label>
+                <Textarea
+                  id="edit-description"
+                  value={editFormData.description || ''}
+                  onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                  rows={3}
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-provider">Provider Name</Label>
+                  <Input
+                    id="edit-provider"
+                    value={editFormData.providerName || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, providerName: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-status">Status</Label>
+                  <Select 
+                    value={editFormData.status || ''} 
+                    onValueChange={(value) => setEditFormData({ ...editFormData, status: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                      <SelectItem value="discontinued">Discontinued</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-contract-start">Contract Start Date</Label>
+                  <Input
+                    id="edit-contract-start"
+                    type="date"
+                    value={editFormData.contractStartDate || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, contractStartDate: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-contract-end">Contract End Date</Label>
+                  <Input
+                    id="edit-contract-end"
+                    type="date"
+                    value={editFormData.contractEndDate || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, contractEndDate: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-total-value">Total Value (€)</Label>
+                  <Input
+                    id="edit-total-value"
+                    type="number"
+                    step="0.01"
+                    value={editFormData.totalValue || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, totalValue: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-premium-value">Premium Value (€)</Label>
+                  <Input
+                    id="edit-premium-value"
+                    type="number"
+                    step="0.01"
+                    value={editFormData.premiumValue || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, premiumValue: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-premium-percentage">Premium Percentage (%)</Label>
+                  <Input
+                    id="edit-premium-percentage"
+                    type="number"
+                    step="0.01"
+                    value={editFormData.premiumPercentage || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, premiumPercentage: e.target.value })}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="edit-discount-percentage">Discount Percentage (%)</Label>
+                  <Input
+                    id="edit-discount-percentage"
+                    type="number"
+                    step="0.01"
+                    value={editFormData.discountPercentage || ''}
+                    onChange={(e) => setEditFormData({ ...editFormData, discountPercentage: e.target.value })}
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-notes">Notes</Label>
+                <Textarea
+                  id="edit-notes"
+                  value={editFormData.notes || ''}
+                  onChange={(e) => setEditFormData({ ...editFormData, notes: e.target.value })}
+                  rows={2}
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleEditSave}>
+                Save changes
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Delete Product Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Product</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete "{productToDelete?.name}"? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleDeleteConfirm}>
+                Delete
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </ListEditingContext.Provider>
   );
