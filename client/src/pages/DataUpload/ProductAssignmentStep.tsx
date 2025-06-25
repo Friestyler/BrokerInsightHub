@@ -369,7 +369,7 @@ export default function ProductAssignmentStep({
                     <Label htmlFor="single-column" className="peer-disabled:cursor-not-allowed peer-disabled:opacity-70 font-semibold cursor-pointer text-gray-900 text-[14px]">
                       One column contains the product names
                     </Label>
-                    <p className="text-sm text-gray-600 leading-relaxed">For example, a single column called "Product" contains values like "Self-Employed Disability Insurance", "Legal Assistance – Business", etc</p>
+                    <p className="text-sm text-gray-600 leading-relaxed">e.g., a column called “Product Name” lists values like “Legal Assistance”, “Disability Insurance”…</p>
                   </div>
                 </div>
                 
