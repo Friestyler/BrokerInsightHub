@@ -447,9 +447,9 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
       toast({ title: `${selectedActivityType.charAt(0).toUpperCase() + selectedActivityType.slice(1)} created successfully` });
     },
     onError: (error) => {
-      console.error('Failed to create task:', error);
+      console.error(`Failed to create ${selectedActivityType}:`, error);
       toast({ 
-        title: 'Failed to create task', 
+        title: `Failed to create ${selectedActivityType}`, 
         description: 'Please try again',
         variant: 'destructive' 
       });
