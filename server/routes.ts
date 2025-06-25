@@ -4244,11 +4244,62 @@ Keep the tone clear and professional. Focus on what will help the account manage
   // Opportunity Activities Endpoints
   app.get('/api/degoudse/opportunities/:id/activities', async (req, res) => {
     try {
+      const opportunityId = parseInt(req.params.id);
       const envPool = pool;
-      res.json([]); // Return empty activities for now
+      
+      // Fetch activities for this opportunity
+      const activitiesResult = await envPool.query(`
+        SELECT a.*, u.name as user_name
+        FROM degoudse.activities a
+        LEFT JOIN degoudse.users u ON a.assigned_to = u.id::text
+        WHERE a.entity_type = 'opportunity' AND a.entity_id = $1
+        ORDER BY a.created_at DESC
+      `, [opportunityId]);
+      
+      console.log(`Fetched ${activitiesResult.rows.length} activities for opportunity ${opportunityId}`);
+      res.json({ tasks: activitiesResult.rows.filter(a => a.activity_type === 'task') });
     } catch (error) {
       console.error('Error fetching opportunity activities:', error);
       res.status(500).json({ error: 'Failed to fetch opportunity activities' });
+    }
+  });
+
+  app.post('/api/degoudse/opportunities/:id/activities', async (req, res) => {
+    try {
+      const opportunityId = parseInt(req.params.id);
+      const { activity_type, title, content, priority, visible_to_partner, assigned_to } = req.body;
+      const envPool = pool;
+      
+      console.log(`Creating ${activity_type} for opportunity ${opportunityId}:`, { title, content, priority, assigned_to });
+      
+      if (activity_type === 'task') {
+        // Insert task into activities table
+        const result = await envPool.query(`
+          INSERT INTO degoudse.activities 
+          (activity_type, title, content, priority, completed, visible_to_partner, entity_type, entity_id, assigned_to, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, false, $5, 'opportunity', $6, $7, NOW(), NOW())
+          RETURNING *
+        `, [activity_type, title, content || '', priority || 'medium', visible_to_partner || false, opportunityId, assigned_to || null]);
+        
+        console.log(`Successfully created opportunity task with ID: ${result.rows[0].id}`);
+        res.json(result.rows[0]);
+      } else if (activity_type === 'comment') {
+        // Insert comment into activities table
+        const result = await envPool.query(`
+          INSERT INTO degoudse.activities 
+          (activity_type, content, visible_to_partner, entity_type, entity_id, assigned_to, created_at, updated_at)
+          VALUES ($1, $2, $3, 'opportunity', $4, $5, NOW(), NOW())
+          RETURNING *
+        `, [activity_type, content || '', visible_to_partner || false, opportunityId, assigned_to || null]);
+        
+        console.log(`Successfully created opportunity comment with ID: ${result.rows[0].id}`);
+        res.json(result.rows[0]);
+      } else {
+        return res.status(400).json({ error: 'Invalid activity type' });
+      }
+    } catch (error) {
+      console.error('Error creating opportunity activity:', error);
+      res.status(500).json({ error: `Failed to create ${req.body.activity_type || 'activity'}` });
     }
   });
 
