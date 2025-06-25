@@ -1075,16 +1075,32 @@ function ProductsTable() {
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   <div className="text-sm">
-                    <div className="font-medium">{product.provider || product.providername || "—"}</div>
-                    {product.providertype && product.providertype !== (product.provider || product.providername) && (
-                      <div className="text-gray-500 capitalize">{product.providertype}</div>
-                    )}
+                    {product.contract_start_date || product.contractstartdate ? 
+                      new Date(product.contract_start_date || product.contractstartdate).toLocaleDateString() : "—"}
+                  </div>
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  <div className="text-sm">
+                    {product.contract_end_date || product.contractenddate ? 
+                      new Date(product.contract_end_date || product.contractenddate).toLocaleDateString() : "—"}
                   </div>
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   <div className="text-sm font-medium">
-                    {(product.total_value || product.totalvalue || product.totalValue) ? 
-                      `€${parseFloat(product.total_value || product.totalvalue || product.totalValue).toLocaleString()}` : "—"}
+                    {(product.premium_value || product.premiumvalue || product.premiumValue) ? 
+                      `€${parseFloat(product.premium_value || product.premiumvalue || product.premiumValue).toLocaleString()}` : "—"}
+                  </div>
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  <div className="text-sm">
+                    {(product.premium_percentage || product.premiumpercentage || product.premiumPercentage) ? 
+                      `${parseFloat(product.premium_percentage || product.premiumpercentage || product.premiumPercentage).toFixed(1)}%` : "—"}
+                  </div>
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  <div className="text-sm">
+                    {(product.discount_percentage || product.discountpercentage || product.discountPercentage) ? 
+                      `${parseFloat(product.discount_percentage || product.discountpercentage || product.discountPercentage).toFixed(1)}%` : "—"}
                   </div>
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
@@ -1107,7 +1123,7 @@ function ProductsTable() {
             
             {displayedProducts.length === 0 && (
               <tr>
-                <td colSpan={8} className="py-10 text-center">
+                <td colSpan={11} className="py-10 text-center">
                   <div className="flex flex-col items-center">
                     <Package2 className="h-12 w-12 text-gray-400 mb-3" />
                     <h3 className="text-base font-medium text-gray-900 mb-1">No products found</h3>
