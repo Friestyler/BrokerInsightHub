@@ -925,69 +925,37 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
           {/* Activity Content Based on Selected Type */}
           {/* Tasks */}
           {selectedActivityType === 'task' && (
-            <div className="space-y-4">
-              {/* Tasks List - Compact Style */}
-              <div className="space-y-2 max-h-64 overflow-y-auto">
+            <div className="flex flex-col h-full">
+              {/* Task List with timeline styling */}
+              <div className="flex-1 space-y-4 max-h-64 overflow-y-auto mb-4">
                 {Array.isArray(allTasks) && allTasks.length > 0 ? (
                   allTasks
                     .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                     .map((task: any, index: number) => (
-                      <div key={`task-${task.id}-${index}`} className={`border rounded-lg p-3 transition-all duration-200 ${
-                        task.completed 
-                          ? 'border-green-200 bg-green-50/30' 
-                          : 'border-gray-200 hover:bg-[#F5F6FA] hover:border-[#E6E7F1]'
-                      }`}>
-                        <div className="flex items-start gap-3">
-                          <button 
-                            onClick={() => toggleTaskMutation.mutate({ taskId: task.id, completed: !task.completed })}
-                            className="flex-shrink-0 mt-0.5"
-                          >
-                            <CheckSquare className={`h-4 w-4 ${
-                              task.completed ? 'text-green-600' : 'text-gray-400 hover:text-gray-600'
-                            }`} />
-                          </button>
-                          <div className="flex-1 min-w-0">
+                      <div key={`task-${task.id}-${index}`} className="flex items-start gap-3 relative group">
+                        {/* Timeline line */}
+                        {index < allTasks.length - 1 && (
+                          <div className="absolute left-4 top-10 w-px h-8 bg-gray-200"></div>
+                        )}
+                        
+                        {/* Checkbox/Icon */}
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center relative z-10 bg-white border-2 border-gray-200">
+                          <CheckSquare className={`h-4 w-4 ${task.completed ? 'text-green-600' : 'text-gray-600'}`} />
+                        </div>
+                        
+                        <div className="flex-1 min-w-0 relative">
+                          <div className={`bg-white rounded-lg p-3 border transition-all duration-200 relative ${
+                            task.completed 
+                              ? 'border-green-200 bg-green-50/30' 
+                              : 'border-gray-200 hover:bg-[#F5F6FA] hover:border-[#E6E7F1]'
+                          }`}>
                             <div className="flex items-center gap-2 mb-1">
-                              <h4 className={`text-sm font-medium ${
-                                task.completed ? 'text-gray-500 line-through' : 'text-gray-900'
+                              <span className={`text-sm font-medium ${
+                                task.completed ? 'text-gray-500' : 'text-gray-900'
                               }`}>
-                                {task.title}
-                              </h4>
-                              {task.completed && (
-                                <span className="text-xs text-green-600 font-medium bg-green-100 px-2 py-0.5 rounded-full">
-                                  Completed
-                                </span>
-                              )}
-                            </div>
-                            
-                            <div className="flex items-center gap-2 text-xs flex-wrap">
-                              {task.priority && (
-                                <span className={`px-2 py-0.5 rounded-full font-medium ${
-                                  priorityColors[task.priority as keyof typeof priorityColors] || 'bg-gray-100 text-gray-700'
-                                }`}>
-                                  {task.priority}
-                                </span>
-                              )}
-                              
-                              {task.source_type && task.source_name && (
-                                <span className={`px-2 py-0.5 rounded-full font-medium ${
-                                  task.source_type === 'partner' ? 'bg-purple-100 text-purple-700' :
-                                  task.source_type === 'opportunity' ? 'bg-green-100 text-green-700' :
-                                  task.source_type === 'customer' ? 'bg-blue-100 text-blue-700' :
-                                  'bg-gray-100 text-gray-700'
-                                }`}>
-                                  {task.source_type}: {task.source_name}
-                                </span>
-                              )}
-                              
-                              {task.author_name && (
-                                <div className="flex items-center gap-1">
-                                  <User className="h-3 w-3 text-gray-400" />
-                                  <span className="text-gray-500">{task.author_name}</span>
-                                </div>
-                              )}
-                              
-                              <span className="text-gray-500">
+                                Task
+                              </span>
+                              <span className="text-xs text-gray-500">
                                 {new Date(task.created_at).toLocaleString([], { 
                                   month: 'short', 
                                   day: 'numeric', 
@@ -995,11 +963,117 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                                   minute: '2-digit' 
                                 })}
                               </span>
-                              
-                              {task.visible_to_partner && (
-                                <span className="text-blue-600">shared with partner</span>
+                              {task.completed && (
+                                <span className="text-xs text-green-600 font-medium bg-green-100 px-2 py-0.5 rounded-full">
+                                  Completed
+                                </span>
+                              )}
+                              {/* Source indicator */}
+                              {task.source_type && task.source_name && (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-xs text-gray-400">•</span>
+                                  <div className={`flex items-center gap-1 text-xs px-2 py-0.5 rounded-full ${
+                                    task.source_type === 'partner' ? 'bg-purple-100 text-purple-700' :
+                                    task.source_type === 'opportunity' ? 'bg-green-100 text-green-700' :
+                                    task.source_type === 'customer' ? 'bg-blue-100 text-blue-700' :
+                                    'bg-gray-100 text-gray-700'
+                                  }`}>
+                                    {task.source_type === 'opportunity' && <Target className="h-3 w-3" />}
+                                    {task.source_type === 'customer' && <User className="h-3 w-3" />}
+                                    <span>from {task.source_name}</span>
+                                  </div>
+                                </div>
                               )}
                             </div>
+                            
+                            <p className={`text-sm mb-2 ${
+                              task.completed 
+                                ? 'text-gray-500 line-through' 
+                                : 'text-gray-700'
+                            }`}>
+                              {task.title}
+                            </p>
+                            
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              {task.priority && (
+                                <div className="flex items-center gap-1">
+                                  <Badge className={priorityColors[task.priority as keyof typeof priorityColors]}>
+                                    {task.priority}
+                                  </Badge>
+                                </div>
+                              )}
+                              {task.assigned_to && (
+                                <div className="flex items-center gap-1">
+                                  <User className="h-3 w-3" />
+                                  <span>{getUserName(task.assigned_to)}</span>
+                                </div>
+                              )}
+                              {task.visible_to_partner && (
+                                <div className="flex items-center gap-1">
+                                  <span className="text-blue-600">shared with partner</span>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Hover Toolbar */}
+                            <div className="absolute -top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20">
+                              <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-1.5 py-1 flex items-center gap-0.5">
+                                {/* Muscle Emoji */}
+                                <button 
+                                  onClick={() => handleReactionToggle('task', task.id, '💪')}
+                                  className="w-8 h-8 flex items-center justify-center hover:bg-[#E6E7F1] rounded-md transition-colors duration-150"
+                                >
+                                  <span className="text-lg">💪</span>
+                                </button>
+                                
+                                {/* Thumbs Up Emoji */}
+                                <button 
+                                  onClick={() => handleReactionToggle('task', task.id, '👍')}
+                                  className="w-8 h-8 flex items-center justify-center hover:bg-[#E6E7F1] rounded-md transition-colors duration-150"
+                                >
+                                  <span className="text-lg">👍</span>
+                                </button>
+                                
+                                {/* Boom Emoji */}
+                                <button 
+                                  onClick={() => handleReactionToggle('task', task.id, '💥')}
+                                  className="w-8 h-8 flex items-center justify-center hover:bg-[#E6E7F1] rounded-md transition-colors duration-150"
+                                >
+                                  <span className="text-lg">💥</span>
+                                </button>
+                                
+                                {/* Comments Icon */}
+                                <button className="w-8 h-8 flex items-center justify-center hover:bg-[#E6E7F1] rounded-md transition-colors duration-150">
+                                  <MessageSquare className="h-4 w-4 text-gray-600" />
+                                </button>
+                                
+                                {/* Pin Icon */}
+                                <button className="w-8 h-8 flex items-center justify-center hover:bg-[#E6E7F1] rounded-md transition-colors duration-150">
+                                  <Bookmark className="h-4 w-4 text-gray-600" />
+                                </button>
+                                
+                                {/* Task completion checkbox */}
+                                <button 
+                                  onClick={() => handleTaskCompletion(task.id)}
+                                  className="w-8 h-8 flex items-center justify-center hover:bg-[#E6E7F1] rounded-md transition-colors duration-150 relative group/tooltip"
+                                  title="Mark task as complete"
+                                >
+                                  <CheckSquare className="h-4 w-4 text-gray-600" />
+                                  {/* Custom tooltip aligned from right */}
+                                  <div className="absolute bottom-full right-0 mb-2 px-2 py-1 text-xs text-white bg-gray-900 rounded whitespace-nowrap opacity-0 group-hover/tooltip:opacity-100 transition-opacity duration-200 pointer-events-none z-50">
+                                    Mark task as complete
+                                    <div className="absolute top-full right-2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+                                  </div>
+                                </button>
+                              </div>
+                            </div>
+                            
+                            {/* Reactions Display */}
+                            <ActivityReactions 
+                              activityType="task"
+                              activityId={task.id}
+                              onReactionClick={(emoji: string) => handleReactionToggle('task', task.id, emoji)}
+                            />
                           </div>
                         </div>
                       </div>
@@ -1013,7 +1087,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                 )}
               </div>
 
-              {/* Task Creation - ClickUp Style */}
+              {/* Task Creation Composer */}
               <TimelineComposer
                 onCreateTask={(taskData: {
                   title: string;
