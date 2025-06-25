@@ -414,9 +414,7 @@ export default function ProductAssignmentStep({
                   />
                   <div className="flex-1 space-y-2">
                     <Label htmlFor="multiple-columns" className="peer-disabled:cursor-not-allowed peer-disabled:opacity-70 font-semibold cursor-pointer text-gray-900 text-[14px]">Each column represents a product</Label>
-                    <p className="text-sm text-gray-600 leading-relaxed">
-                      Column headers like "Self-Employed Disability Insurance", "Legal Assistance – Business", "WGA Employer Liability" are the product names
-                    </p>
+                    <p className="text-sm text-gray-600 leading-relaxed">Column headers like "Self-Employed Disability Insurance", "Legal Assistance – Business" — one product per column.</p>
                   </div>
                 </div>
                 
