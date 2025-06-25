@@ -276,6 +276,91 @@ function ProductsTable() {
   const [productToEdit, setProductToEdit] = useState<Product | null>(null);
   const [productToDelete, setProductToDelete] = useState<Product | null>(null);
   const [editFormData, setEditFormData] = useState<Partial<Product>>({});
+
+  // Dialog handlers
+  const openEditDialog = (product: Product) => {
+    setProductToEdit(product);
+    setEditFormData({
+      name: product.name,
+      description: product.description,
+      category: product.category,
+      contractStartDate: product.contract_start_date || product.contractstartdate,
+      contractEndDate: product.contract_end_date || product.contractenddate,
+      totalValue: product.total_value || product.totalvalue || product.totalValue,
+      premiumValue: product.premium_value || product.premiumvalue || product.premiumValue,
+      premiumPercentage: product.premium_percentage || product.premiumpercentage || product.premiumPercentage,
+      discountPercentage: product.discount_percentage || product.discountpercentage || product.discountPercentage,
+      providerName: product.provider || product.providername || product.providerName,
+      status: product.status,
+      notes: product.notes
+    });
+    setEditDialogOpen(true);
+  };
+
+  const openDeleteDialog = (product: Product) => {
+    setProductToDelete(product);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleEditSave = async () => {
+    if (!productToEdit) return;
+
+    try {
+      await apiRequest('PUT', `/api/products/${productToEdit.id}`, {
+        name: editFormData.name,
+        description: editFormData.description,
+        category: editFormData.category,
+        contract_start_date: editFormData.contractStartDate,
+        contract_end_date: editFormData.contractEndDate,
+        total_value: editFormData.totalValue ? parseFloat(editFormData.totalValue.toString()) : null,
+        premium_value: editFormData.premiumValue ? parseFloat(editFormData.premiumValue.toString()) : null,
+        premium_percentage: editFormData.premiumPercentage ? parseFloat(editFormData.premiumPercentage.toString()) : null,
+        discount_percentage: editFormData.discountPercentage ? parseFloat(editFormData.discountPercentage.toString()) : null,
+        provider_name: editFormData.providerName,
+        status: editFormData.status,
+        notes: editFormData.notes
+      });
+
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      setEditDialogOpen(false);
+      setProductToEdit(null);
+      setEditFormData({});
+      
+      toast({
+        title: "Product updated",
+        description: "Product has been successfully updated."
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update product. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!productToDelete) return;
+
+    try {
+      await apiRequest('DELETE', `/api/products/${productToDelete.id}`);
+
+      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      setDeleteDialogOpen(false);
+      setProductToDelete(null);
+      
+      toast({
+        title: "Product deleted",
+        description: "Product has been successfully deleted."
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete product. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
   
   // Handle outside clicks for all dropdowns
   useEffect(() => {
