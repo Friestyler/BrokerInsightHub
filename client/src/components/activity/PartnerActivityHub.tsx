@@ -1185,7 +1185,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                           {/* Avatar/Icon */}
                           <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center relative z-10 bg-white border-2 border-gray-200">
                             {isTask && (
-                              <CheckSquare className="h-4 w-4 text-green-600" />
+                              <CheckSquare className={`h-4 w-4 ${item.completed ? 'text-green-600' : 'text-gray-600'}`} />
                             )}
                             {isComment && (
                               <>
@@ -1210,9 +1210,15 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                             )}
                           </div>
                           <div className="flex-1 min-w-0 relative">
-                            <div className="bg-white rounded-lg p-3 border border-gray-200 hover:bg-[#F5F6FA] hover:border-[#E6E7F1] transition-all duration-200 relative">
+                            <div className={`bg-white rounded-lg p-3 border transition-all duration-200 relative ${
+                              isTask && item.completed 
+                                ? 'border-green-200 bg-green-50/30' 
+                                : 'border-gray-200 hover:bg-[#F5F6FA] hover:border-[#E6E7F1]'
+                            }`}>
                               <div className="flex items-center gap-2 mb-1">
-                                <span className="text-sm font-medium text-gray-900">
+                                <span className={`text-sm font-medium ${
+                                  isTask && item.completed ? 'text-gray-500' : 'text-gray-900'
+                                }`}>
                                   {item.activity_type === 'comment' && item.assigned_to ? getUserName(item.assigned_to) : (item.activity_type || 'Activity')}
                                 </span>
                                 <span className="text-xs text-gray-500">
@@ -1223,9 +1229,18 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                                     minute: '2-digit' 
                                   })}
                                 </span>
+                                {isTask && item.completed && (
+                                  <span className="text-xs text-green-600 font-medium bg-green-100 px-2 py-0.5 rounded-full">
+                                    Completed
+                                  </span>
+                                )}
                               </div>
                               
-                              <p className="text-sm text-gray-700 mb-2">
+                              <p className={`text-sm mb-2 ${
+                                isTask && item.completed 
+                                  ? 'text-gray-500 line-through' 
+                                  : 'text-gray-700'
+                              }`}>
                                 {item.activity_type === 'comment' ? item.content : (item.title || item.content || item.description || 'No description available')}
                               </p>
                               
