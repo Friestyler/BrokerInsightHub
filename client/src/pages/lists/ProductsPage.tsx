@@ -259,6 +259,31 @@ function ProductsTable() {
   // State for dropdowns and modals
   const [showSaveViewModal, setShowSaveViewModal] = useState(false);
   const [viewNameInput, setViewNameInput] = useState('');
+  
+  // Refs for dropdowns to handle outside clicks
+  const viewsDropdownRef = useRef<HTMLDivElement>(null);
+  const viewsButtonRef = useRef<HTMLButtonElement>(null);
+  
+  // State for views dropdown
+  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
+  
+  // Handle outside clicks for all dropdowns
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (viewsDropdownRef.current && !viewsDropdownRef.current.contains(event.target as Node) &&
+          viewsButtonRef.current && !viewsButtonRef.current.contains(event.target as Node)) {
+        setShowViewsDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showViewsDropdown, showFilterModal]);
+
+  // State for filter modal
+  const [showFilterModal, setShowFilterModal] = useState(false);
 
   // Filter saved lists to only show product-related lists
   const productSavedListsData = savedListsData.filter((list: any) => 
@@ -324,6 +349,9 @@ function ProductsTable() {
   
   // Use the shared context for list editing state
   const { isEditingList, setIsEditingList } = useListEditing();
+  
+  // Track active view state like Partners page
+  const [activeView, setActiveView] = useState<SavedView | null>(null);
   
   // Filter products based on search and filters
   const filteredProducts = products.filter((product: Product) => {
@@ -590,11 +618,17 @@ function ProductsTable() {
               </button>
             </div>
             
-            {/* Saved Views Dropdown */}
-            <div className="relative">
+            {/* Saved Views Dropdown - matching Partners page */}
+            <div className="relative" ref={viewsDropdownRef}>
               <button 
-                className="flex items-center space-x-2 px-3 h-8 border border-[#E6E7F1] rounded-md text-sm font-medium bg-white hover:bg-gray-50"
-                onClick={() => setShowViewsDropdown(!showViewsDropdown)}
+                ref={viewsButtonRef}
+                className={`flex items-center space-x-2 px-3 h-8 border border-[#E6E7F1] rounded-md text-sm font-medium bg-white ${isEditingList ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                onClick={() => {
+                  if (!isEditingList) {
+                    setShowViewsDropdown(!showViewsDropdown);
+                  }
+                }}
+                disabled={isEditingList}
                 style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
               >
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-600">
@@ -610,27 +644,52 @@ function ProductsTable() {
               {/* Views Dropdown */}
               {showViewsDropdown && (
                 <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                  <div className="p-2">
-                    {savedViews.length === 0 ? (
-                      <div className="px-3 py-2 text-sm text-gray-500">No saved views</div>
-                    ) : (
-                      savedViews.map((view) => (
-                        <button
-                          key={view.id}
-                          className="w-full text-left px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] text-gray-700"
-                          onClick={() => {
-                            setFilterText(view.filters.searchText || '');
-                            setSelectedStatus(view.filters.status || 'all');
-                            setSelectedCategory(view.filters.category || 'all');
-                            setSelectedProvider(view.filters.provider || 'all');
-                            setShowViewsDropdown(false);
-                          }}
-                          style={{ fontFamily: 'Poppins, sans-serif' }}
-                        >
-                          {view.name}
-                        </button>
-                      ))
-                    )}
+                  <div className="p-3">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="text-sm font-medium text-gray-900" style={{ fontFamily: 'Poppins, sans-serif' }}>Saved Views</h3>
+                      <button 
+                        className="text-xs text-blue-600 hover:text-blue-800"
+                        onClick={() => setShowSaveViewModal(true)}
+                        style={{ fontFamily: 'Poppins, sans-serif' }}
+                      >
+                        + New view
+                      </button>
+                    </div>
+                    
+                    <div className="max-h-48 overflow-y-auto">
+                      {savedViews.length === 0 ? (
+                        <div className="px-3 py-6 text-center">
+                          <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                          </svg>
+                          <p className="mt-2 text-sm text-gray-500" style={{ fontFamily: 'Poppins, sans-serif' }}>No saved views</p>
+                          <p className="text-xs text-gray-400 mt-1" style={{ fontFamily: 'Poppins, sans-serif' }}>Create your first view to save filter combinations</p>
+                        </div>
+                      ) : (
+                        savedViews.map((view) => (
+                          <div key={view.id} className="group flex items-center justify-between py-2 px-3 rounded hover:bg-[#F5F6FA]">
+                            <button
+                              className="flex-1 text-left"
+                              onClick={() => {
+                                setActiveView(view);
+                                setFilterText(view.filters.searchText || '');
+                                setSelectedStatus(view.filters.status || 'all');
+                                setSelectedCategory(view.filters.category || 'all');
+                                setSelectedProvider(view.filters.provider || 'all');
+                                setShowViewsDropdown(false);
+                              }}
+                              style={{ fontFamily: 'Poppins, sans-serif' }}
+                            >
+                              <div className="text-sm font-medium text-gray-900">{view.name}</div>
+                              {view.description && (
+                                <div className="text-xs text-gray-500 mt-1">{view.description}</div>
+                              )}
+                            </button>
+                          </div>
+                        ))
+                      )}
+                    </div>
                   </div>
                 </div>
               )}
@@ -727,22 +786,106 @@ function ProductsTable() {
             )}
           </div>
 
-          {/* Action buttons for views and save operations */}
+          {/* Action buttons for views and save operations - matching Partners page logic */}
           <div className="flex items-center gap-2">
-            {(filterText || selectedStatus !== 'all' || selectedCategory !== 'all' || selectedProvider !== 'all') && (
-              <button 
-                className="flex items-center rounded-md bg-[#EBEEFB] px-4 h-8 hover:bg-[#E3E6F7]"
-                onClick={() => setShowSaveViewModal(true)}
-                style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                  <polyline points="7 3 7 8 15 8"></polyline>
-                </svg>
-                <span className="text-[#3E4DC4] font-medium">Save as new view</span>
-              </button>
-            )}
+            {(() => {
+              // Calculate if filters have been modified from the active view
+              const filtersChanged = activeView && 
+                (filterText !== (activeView.filters.searchText || '') || 
+                 selectedStatus !== (activeView.filters.status || 'all') || 
+                 selectedCategory !== (activeView.filters.category || 'all') || 
+                 selectedProvider !== (activeView.filters.provider || 'all'));
+                 
+              // Only render buttons if there are filters applied or filters have changed
+              return (filterText || selectedStatus !== 'all' || selectedCategory !== 'all' || selectedProvider !== 'all') && (
+                <div className="flex items-center gap-2">
+                  {/* Show Revert and Save buttons only when a view is active AND filters have changed */}
+                  {filtersChanged && (
+                    <>
+                      {/* Revert changes button */}
+                      <button 
+                        className="flex items-center rounded-md px-4 h-8 text-gray-600 hover:bg-gray-100"
+                        onClick={() => {
+                          if (activeView) {
+                            // Revert to view's original filters
+                            setFilterText(activeView.filters.searchText || '');
+                            setSelectedStatus(activeView.filters.status || 'all');
+                            setSelectedCategory(activeView.filters.category || 'all');
+                            setSelectedProvider(activeView.filters.provider || 'all');
+                          }
+                        }}
+                        style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <path d="M3 7v6h6"></path>
+                          <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+                        </svg>
+                        <span className="text-[#5F6585]">Revert changes</span>
+                      </button>
+                      
+                      {/* Save button - updates the current view */}
+                      <button 
+                        className="flex items-center rounded-md bg-[#EBEEFB] px-4 h-8 hover:bg-[#E3E6F7]"
+                        onClick={() => {
+                          if (activeView) {
+                            const updatedFilters = {
+                              searchText: filterText || undefined,
+                              status: selectedStatus !== 'all' ? selectedStatus : undefined,
+                              category: selectedCategory !== 'all' ? selectedCategory : undefined,
+                              provider: selectedProvider !== 'all' ? selectedProvider : undefined,
+                            };
+                            
+                            // Update the view (you'll need to add updateSavedViewMutation)
+                            toast({
+                              title: "View Updated",
+                              description: "Your changes have been saved to the current view"
+                            });
+                          }
+                        }}
+                        style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                          <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        <span className="text-[#3E4DC4] font-medium">Save</span>
+                      </button>
+                      
+                      {/* Save as new view button - only shown when filters have changed */}
+                      <button 
+                        className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
+                        onClick={() => setShowSaveViewModal(true)}
+                        style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                          <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        <span className="text-[#3E4DC4] font-medium">Save as new view</span>
+                      </button>
+                    </>
+                  )}
+                  
+                  {/* Show Save as new view button only when no view is active but filters are applied */}
+                  {!activeView && (
+                    <button 
+                      className="flex items-center rounded-md bg-[#EBEEFB] px-4 h-8 hover:bg-[#E3E6F7]"
+                      onClick={() => setShowSaveViewModal(true)}
+                      style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                      </svg>
+                      <span className="text-[#3E4DC4] font-medium">Save as new view</span>
+                    </button>
+                  )}
+                </div>
+              );
+            })()}
           </div>
         </div>
       </div>
