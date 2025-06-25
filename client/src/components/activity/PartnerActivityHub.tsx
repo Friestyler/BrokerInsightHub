@@ -1409,7 +1409,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                           
                           // Look for OKR section in the AI response
                           const lines = meetingBriefing.briefing.split('\n');
-                          const okrSectionStart = lines.findIndex(line => 
+                          const okrSectionStart = lines.findIndex((line: string) => 
                             line.toLowerCase().includes('okr') && line.includes('**')
                           );
                           
@@ -1470,7 +1470,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                           const lines = meetingBriefing.briefing.split('\n');
                           
                           // Find recommendations section and extract bullet points
-                          const recommendationsStart = lines.findIndex(line => 
+                          const recommendationsStart = lines.findIndex((line: string) => 
                             line.toLowerCase().includes('recommendation') || 
                             line.toLowerCase().includes('meeting recommendation')
                           );
