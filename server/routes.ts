@@ -3335,13 +3335,16 @@ Keep the tone clear and professional. Focus on what will help the account manage
                          c.name as customer_name,
                          p.name as partner_name,
                          pr.name as product_name,
-                         am.name as account_manager_name
+                         am.name as account_manager_name,
+                         COUNT(DISTINCT op.product_id) as product_count
                   FROM degoudse.opportunities o
                   LEFT JOIN degoudse.customers c ON o.client_id = c.id
                   LEFT JOIN degoudse.partners p ON o.partner_id = p.id
                   LEFT JOIN degoudse.products pr ON o.product_id = pr.id
                   LEFT JOIN degoudse.users am ON o.owner_id = am.id
+                  LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
                   WHERE o.id = ANY($1) AND o.id > 16
+                  GROUP BY o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, c.name, p.name, pr.name, am.name
                   ORDER BY o.id
                 `, [members]);
               } else {
@@ -3395,13 +3398,16 @@ Keep the tone clear and professional. Focus on what will help the account manage
                          c.name as customer_name,
                          p.name as partner_name,
                          pr.name as product_name,
-                         am.name as account_manager_name
+                         am.name as account_manager_name,
+                         COUNT(DISTINCT op.product_id) as product_count
                   FROM degoudse.opportunities o
                   LEFT JOIN degoudse.customers c ON o.client_id = c.id
                   LEFT JOIN degoudse.partners p ON o.partner_id = p.id
                   LEFT JOIN degoudse.products pr ON o.product_id = pr.id
                   LEFT JOIN degoudse.users am ON o.owner_id = am.id
+                  LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
                   WHERE o.id = ANY($1)
+                  GROUP BY o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, c.name, p.name, pr.name, am.name
                   ORDER BY o.id
                 `, [opportunityIdsArray]);
               } else {
@@ -3422,13 +3428,16 @@ Keep the tone clear and professional. Focus on what will help the account manage
                  c.name as customer_name,
                  p.name as partner_name,
                  pr.name as product_name,
-                 am.name as account_manager_name
+                 am.name as account_manager_name,
+                 COUNT(DISTINCT op.product_id) as product_count
           FROM degoudse.opportunities o
           LEFT JOIN degoudse.customers c ON o.client_id = c.id
           LEFT JOIN degoudse.partners p ON o.partner_id = p.id
           LEFT JOIN degoudse.products pr ON o.product_id = pr.id
           LEFT JOIN degoudse.users am ON o.owner_id = am.id
+          LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
           WHERE o.id > 16
+          GROUP BY o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, c.name, p.name, pr.name, am.name
           ORDER BY o.id
         `);
       }
@@ -3450,6 +3459,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
         partnerName: opp.partner_name || '',
         productId: opp.product_id,
         productNames: opp.product_name || '',
+        productCount: parseInt(opp.product_count) || 0,
         ownerId: opp.owner_id,
         accountManagerId: opp.account_manager_id,
         accountManagerName: opp.account_manager_name || '',
