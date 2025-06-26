@@ -746,120 +746,78 @@ export default function CustomerDetailNew() {
               </Button>
             </div>
             
-            {/* Products Table with exact Partners page styling */}
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-white">
-                    <tr>
-                      <th className="w-12 group relative px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                        <div className="transition-opacity opacity-0 group-hover:opacity-100">
-                          <Checkbox />
+            {/* Products Table */}
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12"><Checkbox /></TableHead>
+                  <TableHead>Product Name</TableHead>
+                  <TableHead>Provider</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Premium Value</TableHead>
+                  <TableHead>Premium %</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {(assignedProducts || []).map((assignment: any) => (
+                  <TableRow key={assignment.id}>
+                    <TableCell><Checkbox /></TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <div className="h-10 w-10 flex-shrink-0">
+                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                            <Package className="h-5 w-5 text-blue-600" />
+                          </div>
                         </div>
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider w-[250px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                        Product
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider w-[120px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                        Provider
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider w-[120px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                        Category
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider w-[120px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                        Premium Value
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider w-[120px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                        Premium %
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider w-[120px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                        Status
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 bg-white">
-                    {(relatedProducts || []).map((product: any) => {
-                      if (!product || typeof product !== 'object') return null;
-                      
-                      try {
-                        // Safe property access with error handling using actual product entity attributes
-                        const productId = product.id || 0;
-                        const name = product.name || 'Unnamed Product';
-                        const providerName = product.providerName || product.provider_name || 'No provider';
-                        const category = product.category || 'General';
-                        const premiumValue = product.premiumValue || product.premium_value;
-                        const premiumPercentage = product.premiumPercentage || product.premium_percentage;
-                        const status = product.status || 'Active';
-                        
-                        return (
-                          <tr key={productId} className="hover:bg-gray-50 group">
-                            <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm w-10">
-                              <input
-                                type="checkbox"
-                                className="h-4 w-4 rounded border-gray-300 invisible group-hover:visible"
-                              />
-                            </td>
-                            <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
-                              <div className="flex items-center">
-                                <div className="h-10 w-10 flex-shrink-0">
-                                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                                    <Package className="h-5 w-5 text-blue-600" />
-                                  </div>
-                                </div>
-                                <div className="ml-4">
-                                  <div className="font-medium text-gray-900">
-                                    {name}
-                                  </div>
-                                  {product.description && (
-                                    <div className="text-sm text-gray-500">
-                                      {product.description}
-                                    </div>
-                                  )}
-                                </div>
-                              </div>
-                            </td>
-                            <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                              {providerName}
-                            </td>
-                            <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                              {category}
-                            </td>
-                            <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                              {premiumValue ? `€${Number(premiumValue).toLocaleString()}` : '-'}
-                            </td>
-                            <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                              {premiumPercentage ? `${Number(premiumPercentage)}%` : '-'}
-                            </td>
-                            <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                              <Badge 
-                                variant={status === 'Active' ? 'outline' : 'secondary'}
-                                className="capitalize"
-                              >
-                                {status}
-                              </Badge>
-                            </td>
-                          </tr>
-                        );
-                      } catch (error) {
-                        console.error('Error rendering product:', error, product);
-                        return null;
+                        <div className="ml-4">
+                          <div className="font-medium text-gray-900">
+                            {assignment.productTemplate?.name || 'Unknown Product'}
+                          </div>
+                          {assignment.productTemplate?.description && (
+                            <div className="text-sm text-gray-500">
+                              {assignment.productTemplate.description}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>{assignment.productTemplate?.provider || 'Not specified'}</TableCell>
+                    <TableCell>{assignment.productTemplate?.category || 'Not categorized'}</TableCell>
+                    <TableCell>
+                      {assignment.customPrice 
+                        ? `€${Number(assignment.customPrice).toLocaleString()}`
+                        : assignment.productTemplate?.averagePrice 
+                        ? `€${Number(assignment.productTemplate.averagePrice).toLocaleString()}`
+                        : 'Not set'
                       }
-                    }).filter(Boolean)}
-                  </tbody>
-                </table>
+                    </TableCell>
+                    <TableCell>
+                      {assignment.customPremiumPercentage 
+                        ? `${assignment.customPremiumPercentage}%`
+                        : assignment.productTemplate?.premiumPercentage 
+                        ? `${assignment.productTemplate.premiumPercentage}%`
+                        : 'Not set'
+                      }
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant="outline" className="capitalize">
+                        Active
+                      </Badge>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {(!assignedProducts || assignedProducts.length === 0) && (
+              <div className="text-center py-12">
+                <Package className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No product assignments</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  No products have been assigned to this customer yet.
+                </p>
               </div>
-
-              {/* Empty state */}
-              {(!relatedProducts || relatedProducts.length === 0) && (
-                <div className="text-center py-12">
-                  <Package className="mx-auto h-12 w-12 text-gray-400" />
-                  <h3 className="mt-2 text-sm font-medium text-gray-900">No products found</h3>
-                  <p className="mt-1 text-sm text-gray-500">
-                    No products are associated with this customer.
-                  </p>
-                </div>
-              )}
-            </div>
+            )}
           </div>
         )}
 
