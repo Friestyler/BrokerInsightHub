@@ -1,516 +1,214 @@
-import { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
-import { ArrowLeft, ArrowRight, FolderOpen, FileText, CheckCircle, AlertTriangle, Check, ChevronDown, X } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Check, ChevronDown, X } from 'lucide-react';
 import Papa from 'papaparse';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import CategoryManagerForProducts from "@/components/CategoryManagerForProducts";
+import { useQuery } from '@tanstack/react-query';
+import CategoryManagerForProducts from '@/components/CategoryManagerForProducts';
 
-interface Product {
-  id: number;
-  sku: string;
+interface DetectedProduct {
+  id: string;
   name: string;
   recordCount: number;
+  matchedDbProductId?: string;
+}
+
+interface ProductMapping {
+  targetId: string;
+  targetType: 'category' | 'subcategory';
+  productAction?: 'existing' | 'new';
+  existingProductId?: string;
 }
 
 interface Category {
   id: string;
   name: string;
   color: string;
-  subcategories: Subcategory[];
+  subcategories?: Subcategory[];
 }
 
 interface Subcategory {
   id: string;
   name: string;
-  categoryId: string;
-}
-
-interface ProductMapping {
-  targetId: string;
-  targetType: 'category' | 'subcategory';
-  productAction: 'existing' | 'new';
-  existingProductId?: string;
 }
 
 interface ProductAssignmentStepProps {
-  onNext: (mappings: Record<string, ProductMapping>) => void;
-  onBack: () => void;
-  categories: Category[];
-  uploadedFile?: File | null;
-  onStructureSelected?: (hasStructure: boolean) => void;
-  onStructureChange?: (
-    type: 'single-column' | 'multiple-columns' | '', 
-    selectedColumn?: string, 
-    selectedColumns?: string[]
-  ) => void;
+  csvData: string;
+  onProductMappingsChange: (mappings: Record<string, ProductMapping>) => void;
+  productMappings: Record<string, ProductMapping>;
+  onContinue: () => void;
 }
-
-type ProductStructure = 'single-column' | 'multiple-columns' | '';
-
-interface DetectedProduct {
-  id: number;
-  name: string;
-  source: string; // column name or 'database'
-  recordCount: number;
-}
-
-// Fetch authentic products from database
-const useDetectedProducts = () => {
-  return useQuery({
-    queryKey: ['/api/products'],
-    select: (data: any[]) => data.map((product, index) => ({
-      id: product.id,
-      sku: product.sku,
-      name: product.name,
-      recordCount: 500 + (product.id * 47) % 1500 // Stable deterministic count based on product ID
-    }))
-  });
-};
-
-// Fetch authentic product categories from database
-const useProductCategories = () => {
-  return useQuery({
-    queryKey: ['/api/product-categories']
-  });
-};
-
-const getCategoryName = (mapping: ProductMapping, categories: Category[]): string => {
-  if (mapping.targetType === 'category') {
-    const category = categories.find(cat => cat.id === mapping.targetId);
-    return category?.name || 'Unknown Category';
-  } else {
-    const category = categories.find(cat => 
-      cat.subcategories.some(sub => sub.id === mapping.targetId)
-    );
-    const subcategory = category?.subcategories.find(sub => sub.id === mapping.targetId);
-    return subcategory ? `${category?.name} > ${subcategory.name}` : 'Unknown Subcategory';
-  }
-};
 
 export default function ProductAssignmentStep({ 
-  onNext, 
-  onBack, 
-  categories,
-  uploadedFile,
-  onStructureSelected,
-  onStructureChange
+  csvData, 
+  onProductMappingsChange, 
+  productMappings, 
+  onContinue 
 }: ProductAssignmentStepProps) {
-  const { data: dbProducts = [], isLoading: productsLoading } = useDetectedProducts();
-  const { data: dbCategories = [], isLoading: categoriesLoading } = useProductCategories();
-  const [productMappings, setProductMappings] = useState<Record<string, ProductMapping>>({});
-  const [showCategoryModal, setShowCategoryModal] = useState(false);
-  
-  // New state for product structure selection
-  const [productStructure, setProductStructure] = useState<ProductStructure>('');
+  const [products, setProducts] = useState<DetectedProduct[]>([]);
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
+  const [productStructure, setProductStructure] = useState<'single-column' | 'multiple-columns'>('single-column');
   const [selectedProductColumn, setSelectedProductColumn] = useState<string>('');
   const [selectedProductColumns, setSelectedProductColumns] = useState<string[]>([]);
-  const [detectedProducts, setDetectedProducts] = useState<DetectedProduct[]>([]);
-  const [showProductTable, setShowProductTable] = useState(false);
   const [showColumnDropdown, setShowColumnDropdown] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
 
-  // Use database categories instead of props
-  const activeCategories = (dbCategories && Array.isArray(dbCategories) && dbCategories.length > 0) ? dbCategories as Category[] : categories;
-  
-  // Only use detected products when they are available, otherwise show empty table
-  const products = detectedProducts;
-  
-  // Parse CSV file to extract headers
+  // Fetch product categories
+  const { data: activeCategories = [] } = useQuery({
+    queryKey: ['/api/product-categories']
+  });
+
+  // Fetch existing products from database
+  const { data: dbProducts = [] } = useQuery({
+    queryKey: ['/api/products']
+  });
+
+  // Parse CSV headers on mount
   useEffect(() => {
-    if (uploadedFile) {
-      Papa.parse(uploadedFile, {
-        header: false,
+    if (csvData) {
+      Papa.parse(csvData, {
+        header: true,
         preview: 1,
-        complete: (results) => {
-          if (results.data && results.data.length > 0) {
-            const headers = results.data[0] as string[];
-            setCsvHeaders(headers.filter(header => header && header.trim()));
+        complete: (results: any) => {
+          if (results.meta && results.meta.fields) {
+            setCsvHeaders(results.meta.fields);
           }
         }
       });
     }
-  }, [uploadedFile]);
+  }, [csvData]);
 
-  // Process product detection based on structure selection
+  // Process products when column selection changes
   useEffect(() => {
-    if (!productStructure || !csvHeaders.length) {
-      setDetectedProducts([]);
-      setShowProductTable(false);
-      return;
-    }
+    if (csvData && selectedProductColumn) {
+      Papa.parse(csvData, {
+        header: true,
+        complete: (results: any) => {
+          const detectedProducts: DetectedProduct[] = [];
+          const productCounts: Record<string, number> = {};
 
-    let products: DetectedProduct[] = [];
-    
-    if (productStructure === 'single-column' && selectedProductColumn) {
-      // Parse the CSV to get unique values from the selected column
-      if (uploadedFile) {
-        Papa.parse(uploadedFile, {
-          header: true,
-          complete: (results) => {
-            const uniqueProducts = new Set<string>();
-            results.data.forEach((row: any) => {
-              const productName = row[selectedProductColumn];
-              if (productName && typeof productName === 'string' && productName.trim()) {
-                uniqueProducts.add(productName.trim());
-              }
-            });
+          results.data.forEach((row: any) => {
+            const productName = row[selectedProductColumn];
+            if (productName && productName.trim()) {
+              productCounts[productName] = (productCounts[productName] || 0) + 1;
+            }
+          });
+
+          Object.entries(productCounts).forEach(([name, count], index) => {
+            // Check if this product name matches any existing database product
+            const matchedDbProduct = dbProducts.find((dbProduct: any) => 
+              dbProduct.name.toLowerCase().trim() === name.toLowerCase().trim()
+            );
             
-            products = Array.from(uniqueProducts).map((name, index) => {
-              // Check if this product name matches any existing database product by name
-              const matchedDbProduct = dbProducts.find(dbProduct => 
-                dbProduct.name.toLowerCase().trim() === name.toLowerCase().trim()
-              );
-              
-              return {
-                id: index + 1000, // Use high IDs to avoid conflicts with database products
-                sku: `${index + 1000}`, // Give detected products unique SKUs
-                name,
-                source: selectedProductColumn,
-                recordCount: Math.floor(Math.random() * 50) + 10, // Simulated count
-                matchedDbProductId: matchedDbProduct?.id || null,
-                matchedDbProduct: matchedDbProduct || null
-              };
+            detectedProducts.push({
+              id: (index + 1000).toString(),
+              name: name.trim(),
+              recordCount: count,
+              matchedDbProductId: matchedDbProduct?.id
             });
-            
-            setDetectedProducts(products);
-            setShowProductTable(true);
-            
-            // Auto-create preliminary mappings for matched products (no category pre-fill)
-            const autoMappings: Record<string, ProductMapping> = {};
-            products.forEach(product => {
-              if (product.matchedDbProduct) {
-                autoMappings[product.id.toString()] = {
-                  targetId: '', // Don't pre-fill category
-                  targetType: 'category',
-                  productAction: 'existing',
-                  existingProductId: product.matchedDbProduct.id.toString()
-                };
-              }
-            });
-            setProductMappings(autoMappings);
-          }
-        });
-      }
-    } else if (productStructure === 'multiple-columns' && selectedProductColumns.length > 0) {
-      // Each selected column represents a product
-      products = selectedProductColumns.map((columnName, index) => {
-        // Check if this column name matches any existing database product by name
-        const matchedDbProduct = dbProducts.find(dbProduct => 
-          dbProduct.name.toLowerCase().trim() === columnName.toLowerCase().trim()
-        );
-        
-        return {
-          id: index + 2000, // Use different ID range
-          sku: `${index + 2000}`, // Give detected products unique SKUs
-          name: columnName,
-          source: 'column header',
-          recordCount: Math.floor(Math.random() * 100) + 20, // Simulated count
-          matchedDbProductId: matchedDbProduct?.id || null,
-          matchedDbProduct: matchedDbProduct || null
-        };
-      });
-      
-      setDetectedProducts(products);
-      setShowProductTable(true);
-      
-      // Auto-create preliminary mappings for matched products (no category pre-fill)
-      const autoMappings: Record<string, ProductMapping> = {};
-      products.forEach(product => {
-        if (product.matchedDbProduct) {
-          autoMappings[product.id.toString()] = {
-            targetId: '', // Don't pre-fill category
-            targetType: 'category',
-            productAction: 'existing',
-            existingProductId: product.matchedDbProduct.id.toString()
-          };
+          });
+
+          setProducts(detectedProducts);
         }
       });
-      setProductMappings(autoMappings);
-    }
-  }, [productStructure, selectedProductColumn, selectedProductColumns, uploadedFile, csvHeaders]);
+    } else if (csvData && selectedProductColumns.length > 0) {
+      // Handle multiple columns case
+      Papa.parse(csvData, {
+        header: true,
+        complete: (results: any) => {
+          const detectedProducts: DetectedProduct[] = [];
+          
+          selectedProductColumns.forEach((columnName, index) => {
+            // Check if this product name matches any existing database product
+            const matchedDbProduct = dbProducts.find((dbProduct: any) => 
+              dbProduct.name.toLowerCase().trim() === columnName.toLowerCase().trim()
+            );
+            
+            detectedProducts.push({
+              id: (index + 2000).toString(),
+              name: columnName,
+              recordCount: results.data.length,
+              matchedDbProductId: matchedDbProduct?.id
+            });
+          });
 
-  const handleStructureChange = (value: ProductStructure) => {
+          setProducts(detectedProducts);
+        }
+      });
+    }
+  }, [csvData, selectedProductColumn, selectedProductColumns, dbProducts]);
+
+  const handleStructureChange = (value: 'single-column' | 'multiple-columns') => {
     setProductStructure(value);
     setSelectedProductColumn('');
     setSelectedProductColumns([]);
-    setDetectedProducts([]);
-    setShowProductTable(false);
-    
-    // Notify parent component about structure change
-    if (onStructureChange) {
-      onStructureChange(value, '', []);
-    }
-    
-    // Notify parent component when structure AND columns are ready
-    if (onStructureSelected) {
-      // Don't notify yet, wait for column selection
-      onStructureSelected(false);
-    }
+    setProducts([]);
   };
 
-  const handleColumnSelect = (columnName: string) => {
-    if (productStructure === 'multiple-columns') {
-      setSelectedProductColumns(prev => 
-        prev.includes(columnName) 
-          ? prev.filter(col => col !== columnName)
-          : [...prev, columnName]
-      );
-    }
+  const handleColumnSelect = (column: string) => {
+    setSelectedProductColumns(prev => 
+      prev.includes(column) 
+        ? prev.filter(col => col !== column)
+        : [...prev, column]
+    );
   };
 
-  // Check if structure and columns are ready to show column mapping
-  const isStructureAndColumnsReady = () => {
-    if (productStructure === 'single-column') {
-      return selectedProductColumn !== '';
-    } else if (productStructure === 'multiple-columns') {
-      return selectedProductColumns.length > 0;
-    }
-    return false;
-  };
-
-  // Effect to notify parent when structure and columns are ready
-  useEffect(() => {
-    if (onStructureSelected) {
-      onStructureSelected(isStructureAndColumnsReady());
-    }
-    if (onStructureChange) {
-      onStructureChange(productStructure, selectedProductColumn, selectedProductColumns);
-    }
-  }, [productStructure, selectedProductColumn, selectedProductColumns, onStructureSelected, onStructureChange]);
-
-  // Auto-detect existing products based on SKU matching
-  const detectExistingProducts = () => {
-    const detectedMappings: Record<string, ProductMapping> = {};
-    
-    products.forEach(detectedProduct => {
-      // Find matching existing product by SKU
-      const existingProduct = products.find(p => p.sku === detectedProduct.sku && p.id !== detectedProduct.id);
-      
-      if (existingProduct) {
-        // Auto-map to existing product
-        const category = activeCategories.find((cat: Category) => 
-          cat.subcategories?.some((sub: Subcategory) => sub.name.toLowerCase().includes('property')) ||
-          cat.name.toLowerCase().includes('property')
-        );
-        
-        if (category) {
-          detectedMappings[detectedProduct.id] = {
-            targetId: category.id,
-            targetType: 'category',
-            productAction: 'existing',
-            existingProductId: existingProduct.id.toString()
-          };
-        }
+  const handleProductMapping = (
+    productId: string, 
+    targetId: string, 
+    targetType: 'category' | 'subcategory',
+    productAction: 'existing' | 'new' = 'new',
+    existingProductId?: string
+  ) => {
+    const newMappings = {
+      ...productMappings,
+      [productId]: {
+        targetId,
+        targetType,
+        productAction,
+        existingProductId
       }
-    });
+    };
     
-    setProductMappings(detectedMappings);
+    onProductMappingsChange(newMappings);
   };
 
-  // Run auto-detection when products load
-  useEffect(() => {
-    if (products.length > 0 && activeCategories.length > 0) {
-      detectExistingProducts();
-    }
-  }, [products, activeCategories]);
-
-  const handleProductMapping = (productId: string, targetId: string, targetType: 'category' | 'subcategory', productAction: 'existing' | 'new' = 'new', existingProductId?: string) => {
-    setProductMappings(prev => ({
-      ...prev,
-      [productId]: { 
-        targetId, 
-        targetType, 
-        productAction, 
-        existingProductId 
-      }
-    }));
-  };
-
-  const handleNext = () => {
-    onNext(productMappings);
-  };
-
-  const assignedCount = Object.keys(productMappings).length;
+  // Calculate progress
   const totalProducts = products.length;
-  const canProceed = assignedCount > 0;
+  const assignedCount = Object.keys(productMappings).filter(productId => {
+    const mapping = productMappings[productId];
+    return mapping && (
+      (mapping.productAction === 'existing' && mapping.existingProductId) ||
+      (mapping.productAction === 'new' && mapping.targetId)
+    );
+  }).length;
 
-  if (productsLoading || categoriesLoading) {
+  const canContinue = totalProducts > 0 && assignedCount === totalProducts;
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = () => setShowColumnDropdown(false);
+    if (showColumnDropdown) {
+      document.addEventListener('click', handleClickOutside);
+      return () => document.removeEventListener('click', handleClickOutside);
+    }
+  }, [showColumnDropdown]);
+
+  if (!csvData) {
     return (
-      <div className="space-y-6">
-        <div className="text-center py-16">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="text-gray-600 mt-4">Loading products and categories from database...</p>
-        </div>
+      <div className="text-center py-12">
+        <p className="text-gray-500">No CSV data available. Please upload a file first.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-8">
-      {/* Product Structure Selection */}
-      <Card className="border border-[#E6E7F1] shadow-sm">
-        <CardContent className="p-6">
-          <div className="space-y-6">
-            <div className="text-left space-y-2">
-              <h3 className="text-lg font-medium text-gray-900">How are your products organized?</h3>
-              <p className="text-gray-600 text-sm">Help us understand your file structure so we can correctly identify your products
-</p>
-            </div>
-            
-            <RadioGroup value={productStructure} onValueChange={handleStructureChange} className="space-y-3">
-              {/* Single Column Option */}
-              <div 
-                className={`relative rounded-2xl border cursor-pointer transition-all duration-300 ${
-                  productStructure === 'single-column' 
-                    ? 'border-[#5567E5] bg-[#5567E5]/5 shadow-sm' 
-                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-25'
-                }`}
-                onClick={() => handleStructureChange('single-column')}
-              >
-                <div className="flex items-start space-x-4 p-5">
-                  <RadioGroupItem 
-                    value="single-column" 
-                    id="single-column" 
-                    className={`mt-0.5 pointer-events-none ${productStructure === 'single-column' ? 'border-[#5567E5] text-[#5567E5]' : ''}`}
-                  />
-                  <div className="flex-1 space-y-2">
-                    <Label htmlFor="single-column" className="peer-disabled:cursor-not-allowed peer-disabled:opacity-70 font-semibold cursor-pointer text-gray-900 text-[14px]">One column contains the products</Label>
-                    <p className="text-sm text-gray-600 leading-relaxed">e.g., a column called “Product Name” lists values like “Legal Assistance”, “Disability Insurance”…</p>
-                  </div>
-                </div>
-                
-                {/* Inline configuration for single column */}
-                {productStructure === 'single-column' && csvHeaders.length > 0 && (
-                  <div className="px-5 pb-5 pt-2 border-t border-[#5567E5]/20 bg-[#5567E5]/2">
-                    <div className="space-y-3">
-                      <Label className="text-sm font-medium text-gray-700">Select the column that contains product names</Label>
-                      <Select value={selectedProductColumn} onValueChange={(value) => {
-                        setSelectedProductColumn(value);
-                      }}>
-                        <SelectTrigger className="w-full bg-white">
-                          <SelectValue placeholder="Choose a column..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {csvHeaders.map((header, index) => (
-                            <SelectItem key={index} value={header}>
-                              {header}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {/* Multiple Columns Option */}
-              <div 
-                className={`relative rounded-2xl border cursor-pointer transition-all duration-300 ${
-                  productStructure === 'multiple-columns' 
-                    ? 'border-[#5567E5] bg-[#5567E5]/5 shadow-sm' 
-                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-25'
-                }`}
-                onClick={() => handleStructureChange('multiple-columns')}
-              >
-                <div className="flex items-start space-x-4 p-5">
-                  <RadioGroupItem 
-                    value="multiple-columns" 
-                    id="multiple-columns" 
-                    className={`mt-0.5 pointer-events-none ${productStructure === 'multiple-columns' ? 'border-[#5567E5] text-[#5567E5]' : ''}`}
-                  />
-                  <div className="flex-1 space-y-2">
-                    <Label htmlFor="multiple-columns" className="peer-disabled:cursor-not-allowed peer-disabled:opacity-70 font-semibold cursor-pointer text-gray-900 text-[14px]">Each column represents a product</Label>
-                    <p className="text-sm text-gray-600 leading-relaxed">e.g., columns like "Self-Employed Disability Insurance", "Legal Assistance – Business" — one product per column.</p>
-                  </div>
-                </div>
-                
-                {/* Inline configuration for multiple columns */}
-                {productStructure === 'multiple-columns' && csvHeaders.length > 0 && (
-                  <div className="px-5 pb-5 pt-2 border-t border-[#5567E5]/20 bg-[#5567E5]/2">
-                    <div className="space-y-3">
-                      <Label className="text-sm font-medium text-gray-700">Select the columns that represent products</Label>
-                      <div className="relative">
-                        <button
-                          type="button"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setShowColumnDropdown(!showColumnDropdown);
-                          }}
-                          className="w-full bg-white border border-gray-300 rounded-lg px-3 py-2.5 text-left hover:border-gray-400 focus:border-[#5567E5] focus:ring-2 focus:ring-[#5567E5]/20 transition-all duration-200"
-                        >
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm text-gray-700">
-                              {selectedProductColumns.length === 0 
-                                ? 'Choose columns...'
-                                : `${selectedProductColumns.length} column${selectedProductColumns.length > 1 ? 's' : ''} selected`
-                              }
-                            </span>
-                            <ChevronDown className={`h-4 w-4 text-gray-400 transition-transform duration-200 ${showColumnDropdown ? 'rotate-180' : ''}`} />
-                          </div>
-                        </button>
-                        
-                        {showColumnDropdown && (
-                          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-                            <div className="p-2">
-                              {csvHeaders.map((header, index) => (
-                                <div
-                                  key={index}
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    handleColumnSelect(header);
-                                  }}
-                                  className={`flex items-center justify-between p-2 rounded-md cursor-pointer transition-all duration-150 ${
-                                    selectedProductColumns.includes(header)
-                                      ? 'bg-[#5567E5]/10 text-[#5567E5]'
-                                      : 'hover:bg-[#E6E7F1]'
-                                  }`}
-                                >
-                                  <span className="text-sm font-medium truncate">{header}</span>
-                                  {selectedProductColumns.includes(header) && (
-                                    <Check className="h-4 w-4 text-[#5567E5] flex-shrink-0 ml-2" />
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {selectedProductColumns.length > 0 && (
-                        <div className="flex flex-wrap gap-2">
-                          {selectedProductColumns.map((column, index) => (
-                            <span
-                              key={index}
-                              className="inline-flex items-center gap-1 px-2.5 py-1 bg-[#5567E5]/10 text-[#5567E5] text-xs font-medium rounded-full"
-                            >
-                              {column}
-                              <button
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  handleColumnSelect(column);
-                                }}
-                                className="hover:bg-[#5567E5]/20 rounded-full p-0.5"
-                              >
-                                <X className="h-3 w-3" />
-                              </button>
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </RadioGroup>
-          </div>
-        </CardContent>
-      </Card>
       {/* Detected Products Table - Always shown, populates when product name column is selected */}
       <Card className="border border-[#E6E7F1] shadow-sm">
           <CardHeader className="border-b border-[#E6E7F1] bg-[#E6E7F1]/50">
@@ -586,7 +284,7 @@ export default function ProductAssignmentStep({
 
                     </div>
                     <div className="flex items-center gap-3 text-xs text-gray-500">
-                      <span className="font-medium">ID: {product.sku}</span>
+                      <span className="font-medium">ID: {product.id}</span>
                     </div>
                   </div>
 
@@ -597,15 +295,16 @@ export default function ProductAssignmentStep({
                       onValueChange={(value: 'existing' | 'new') => {
                         if (value === 'existing') {
                           // Just set action without auto-matching
-                          setProductMappings(prev => ({
-                            ...prev,
+                          const newMappings = {
+                            ...productMappings,
                             [product.id.toString()]: {
                               targetId: mapping?.targetId || '',
                               targetType: mapping?.targetType || 'category',
                               productAction: 'existing',
                               existingProductId: mapping?.existingProductId || ''
                             }
-                          }));
+                          };
+                          onProductMappingsChange(newMappings);
                         } else {
                           // Create new product
                           if (mapping?.targetId) {
@@ -617,14 +316,15 @@ export default function ProductAssignmentStep({
                             );
                           } else {
                             // No category yet, create preliminary mapping
-                            setProductMappings(prev => ({
-                              ...prev,
+                            const newMappings = {
+                              ...productMappings,
                               [product.id.toString()]: {
                                 targetId: '',
                                 targetType: 'category',
                                 productAction: 'new'
                               }
-                            }));
+                            };
+                            onProductMappingsChange(newMappings);
                           }
                         }
                       }}
@@ -645,12 +345,12 @@ export default function ProductAssignmentStep({
                       value={mapping?.existingProductId || (product.matchedDbProductId ? product.matchedDbProductId.toString() : '')}
                       onValueChange={(existingProductId) => {
                         // Find the selected existing product
-                        const selectedProduct = dbProducts.find(p => p.id.toString() === existingProductId);
+                        const selectedProduct = dbProducts.find((p: any) => p.id.toString() === existingProductId);
                         
                         if (selectedProduct) {
                           // Auto-fill category based on selected product's category
                           const categoryId = selectedProduct.parentCategoryName ? 
-                            activeCategories.find(cat => cat.name === selectedProduct.parentCategoryName)?.id || '' : '';
+                            activeCategories.find((cat: any) => cat.name === selectedProduct.parentCategoryName)?.id || '' : '';
                           
                           if (categoryId) {
                             // Product has a category, complete the mapping
@@ -663,15 +363,16 @@ export default function ProductAssignmentStep({
                             );
                           } else {
                             // Product has no category, create preliminary mapping
-                            setProductMappings(prev => ({
-                              ...prev,
+                            const newMappings = {
+                              ...productMappings,
                               [product.id.toString()]: {
                                 targetId: '',
                                 targetType: 'category',
                                 productAction: 'existing',
                                 existingProductId: existingProductId
                               }
-                            }));
+                            };
+                            onProductMappingsChange(newMappings);
                           }
                         }
                       }}
@@ -681,7 +382,7 @@ export default function ProductAssignmentStep({
                         <SelectValue placeholder={mapping?.productAction === 'existing' ? 'Select product...' : 'N/A'} />
                       </SelectTrigger>
                       <SelectContent>
-                        {dbProducts.map((existingProduct) => {
+                        {dbProducts.map((existingProduct: any) => {
                           // Check if this product is already selected by another row
                           const isAlreadySelected = Object.entries(productMappings).some(([otherProductId, otherMapping]) => 
                             otherProductId !== product.id.toString() && 
@@ -695,7 +396,7 @@ export default function ProductAssignmentStep({
                               disabled={isAlreadySelected}
                               className={isAlreadySelected ? 'opacity-50 cursor-not-allowed' : ''}
                             >
-                              {existingProduct.sku} - {existingProduct.name}
+                              {existingProduct.name}
                               {isAlreadySelected && ' (Already mapped)'}
                             </SelectItem>
                           );
