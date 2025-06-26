@@ -84,9 +84,20 @@ export default function ProductAssignmentStep({
     }
   }, [csvData]);
 
-  // Process products when column selection changes
+  // Process products when column selection changes or auto-detect from suitable columns
   useEffect(() => {
-    if (csvData && selectedProductColumn) {
+    if (!csvData) return;
+
+    // If no column selected, try to auto-detect from suitable columns
+    const columnToUse = selectedProductColumn || 
+      csvHeaders.find(header => 
+        header.toLowerCase().includes('product') ||
+        header.toLowerCase().includes('company') ||
+        header.toLowerCase().includes('name')
+      ) || 
+      csvHeaders[0]; // Fallback to first column
+
+    if (columnToUse) {
       Papa.parse(csvData, {
         header: true,
         complete: (results: any) => {
@@ -94,7 +105,7 @@ export default function ProductAssignmentStep({
           const productCounts: Record<string, number> = {};
 
           results.data.forEach((row: any) => {
-            const productName = row[selectedProductColumn];
+            const productName = row[columnToUse];
             if (productName && productName.trim()) {
               productCounts[productName] = (productCounts[productName] || 0) + 1;
             }
