@@ -165,8 +165,8 @@ export default function PlatformActivityHub() {
     }
   }, [unifiedActivities, activeTab]);
 
-  // Get entity name
-  const getEntityName = (activity: ActivityItem): string | null => {
+  // Get entity name - returns empty string for unlinked activities to avoid showing source badges
+  const getEntityName = (activity: ActivityItem): string => {
     // Return entity_name if it exists and is not null/undefined
     if (activity.entity_name && activity.entity_name !== 'null' && activity.entity_name !== 'undefined') {
       return activity.entity_name;
@@ -174,7 +174,7 @@ export default function PlatformActivityHub() {
     
     // If no entity_type or entity_id, this is a general platform activity
     if (!activity.entity_type || activity.entity_id == null) {
-      return null; // Don't show source badge for general activities
+      return ''; // Return empty string for general activities (no source badge)
     }
     
     switch (activity.entity_type) {
@@ -185,7 +185,7 @@ export default function PlatformActivityHub() {
       case 'customer':
         return Array.isArray(customers) ? customers.find((c: any) => c.id === activity.entity_id)?.name || `Customer #${activity.entity_id}` : `Customer #${activity.entity_id}`;
       default:
-        return activity.entity_type ? `${activity.entity_type} #${activity.entity_id}` : null;
+        return activity.entity_type ? `${activity.entity_type} #${activity.entity_id}` : '';
     }
   };
 
@@ -275,7 +275,7 @@ export default function PlatformActivityHub() {
         // Record names filter
         if (filters.recordNames.length > 0) {
           const entityName = getEntityName(activity);
-          if (!entityName || !filters.recordNames.some(name => entityName.toLowerCase().includes(name.toLowerCase()))) {
+          if (!entityName || entityName.trim() === '' || !filters.recordNames.some(name => entityName.toLowerCase().includes(name.toLowerCase()))) {
             return false;
           }
         }
@@ -416,7 +416,7 @@ export default function PlatformActivityHub() {
               )}
               
               {/* Source badge - only show for activities linked to specific entities */}
-              {entityName && (
+              {entityName && entityName.trim() !== '' && (
                 <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border bg-white text-gray-700 border-gray-200`}>
                   {getEntityIcon(activity.entity_type)}
                   <span className="font-medium">{entityName}</span>
@@ -635,7 +635,7 @@ export default function PlatformActivityHub() {
                   {Array.isArray(unifiedActivities) && 
                     unifiedActivities
                       .map(activity => getEntityName(activity))
-                      .filter((name): name is string => name !== null && name !== undefined)
+                      .filter((name): name is string => name !== null && name !== undefined && name.trim() !== '')
                       .filter((name, index, arr) => arr.indexOf(name) === index)
                       .sort()
                       .map((name, index) => (
