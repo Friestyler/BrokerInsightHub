@@ -12,6 +12,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Plus, MoreVertical, Edit, Trash2, Search, ChevronDown, ChevronRight } from "lucide-react";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -622,197 +623,136 @@ export default function ProductTemplates() {
             </Dialog>
           </div>
 
-          {/* Modern Category Tree */}
-          <div className="space-y-4">
+          {/* Category Tree with shadcn/ui Collapsible */}
+          <div className="space-y-2">
             {getRootCategories().map((category: any) => (
-              <div key={category.id} className="bg-white rounded-lg border border-[#E6E7F1] shadow-sm overflow-hidden">
-                {/* Category Header */}
-                <div className="py-4 pl-0 pr-4 hover:bg-gray-50 transition-colors min-h-[72px]">
-                  <div className="flex items-center justify-between h-full">
-                    <div className="flex items-center">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleCategoryExpansion(category.id)}
-                        className="p-1 h-auto mr-2"
-                      >
-                        {expandedCategories.has(category.id) ? (
-                          <ChevronDown className="h-4 w-4 text-gray-500" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4 text-gray-500" />
-                        )}
-                      </Button>
-                      <div className="min-h-[40px] flex flex-col justify-center">
-                        <h3 className="text-base font-medium text-[#282A3F]">{category.name}</h3>
-                        <div className="min-h-[20px]">
-                          {category.description && (
-                            <p className="text-sm text-gray-500">{category.description}</p>
+              <Card key={category.id} className="border-[#E6E7F1]">
+                <Collapsible 
+                  open={expandedCategories.has(category.id)}
+                  onOpenChange={(open) => {
+                    const newExpanded = new Set(expandedCategories);
+                    if (open) {
+                      newExpanded.add(category.id);
+                    } else {
+                      newExpanded.delete(category.id);
+                    }
+                    setExpandedCategories(newExpanded);
+                  }}
+                >
+                  <CollapsibleTrigger asChild>
+                    <div className="p-4 hover:bg-gray-50/50 cursor-pointer">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <ChevronRight className={`h-4 w-4 text-gray-500 transition-transform ${
+                            expandedCategories.has(category.id) ? 'rotate-90' : ''
+                          }`} />
+                          <div>
+                            <h3 className="text-base font-medium text-[#282A3F]">{category.name}</h3>
+                            {category.description && (
+                              <p className="text-sm text-gray-500 mt-1">{category.description}</p>
+                            )}
+                          </div>
+                          {getSubcategoryCount(category.id) > 0 && (
+                            <Badge variant="outline" className="text-xs">
+                              {getSubcategoryCount(category.id)} subcategories
+                            </Badge>
                           )}
                         </div>
-                      </div>
-                      {getSubcategoryCount(category.id) > 0 && (
-                        <Badge variant="outline" className="text-xs">
-                          {getSubcategoryCount(category.id)} subcategories
-                        </Badge>
-                      )}
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          setSelectedParentCategory(category);
-                          setCreateSubcategoryDialogOpen(true);
-                        }}
-                        className="text-[#5567E5] hover:text-[#4451c7] hover:bg-[#5567E5]/10"
-                      >
-                        <Plus className="h-4 w-4 mr-1" />
-                        Add subcategory
-                      </Button>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end" className="bg-white">
-                          <DropdownMenuItem onClick={() => {
-                            setSelectedCategory(category);
-                            setEditCategoryDialogOpen(true);
-                          }}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem 
-                            className="text-red-600"
+                        <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
+                          <Button
+                            variant="ghost"
+                            size="sm"
                             onClick={() => {
-                              setSelectedCategory(category);
-                              setDeleteCategoryDialogOpen(true);
+                              setSelectedParentCategory(category);
+                              setCreateSubcategoryDialogOpen(true);
                             }}
+                            className="text-[#5567E5] hover:text-[#4451c7] hover:bg-[#5567E5]/10"
                           >
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Subcategories */}
-                {expandedCategories.has(category.id) && (
-                  <div className="border-t border-[#E6E7F1] bg-white">
-                    {getSubcategories(category.id).map((subcategory: any) => (
-                      <div key={subcategory.id} className="group/subcategory">
-                        <div className="py-2 pl-4 pr-4 border-b border-[#E6E7F1] bg-white hover:bg-gray-50/50 transition-colors min-h-[56px]">
-                          <div className="flex items-center justify-between h-full">
-                            <div className="flex items-center">
-                              {getSubcategoryCount(subcategory.id) > 0 ? (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => toggleCategoryExpansion(subcategory.id)}
-                                  className="p-0 h-auto hover:bg-transparent mr-2"
-                                >
-                                  {expandedCategories.has(subcategory.id) ? (
-                                    <ChevronDown className="h-3 w-3 text-gray-400" />
-                                  ) : (
-                                    <ChevronRight className="h-3 w-3 text-gray-400" />
-                                  )}
-                                </Button>
-                              ) : (
-                                <div className="w-3 h-3 mr-2"></div>
-                              )}
-                              <div className="min-h-[32px] flex flex-col justify-center">
-                                <h4 className="text-sm font-medium text-[#282A3F]">{subcategory.name}</h4>
-                                <div className="min-h-[16px]">
-                                  {subcategory.description && (
-                                    <p className="text-xs text-gray-500">{subcategory.description}</p>
-                                  )}
-                                </div>
-                              </div>
-                              {getSubcategoryCount(subcategory.id) > 0 && (
-                                <Badge variant="outline" className="text-xs">
-                                  {getSubcategoryCount(subcategory.id)} subcategories
-                                </Badge>
-                              )}
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="opacity-0 group-hover/subcategory:opacity-100 transition-opacity text-[#5567E5] hover:text-[#4451c7] hover:bg-[#5567E5]/10 h-6"
+                            <Plus className="h-4 w-4 mr-1" />
+                            Add subcategory
+                          </Button>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem onClick={() => {
+                                setSelectedCategory(category);
+                                setEditCategoryDialogOpen(true);
+                              }}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="text-red-600"
                                 onClick={() => {
-                                  setSelectedParentCategory(subcategory);
-                                  setCreateSubcategoryDialogOpen(true);
+                                  setSelectedCategory(category);
+                                  setDeleteCategoryDialogOpen(true);
                                 }}
                               >
-                                <Plus className="h-3 w-3 mr-1" />
-                                Add subcategory
-                              </Button>
-                              <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                    <MoreVertical className="h-3 w-3" />
-                                  </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end" className="bg-white">
-                                  <DropdownMenuItem onClick={() => {
-                                    setSelectedCategory(subcategory);
-                                    setEditCategoryDialogOpen(true);
-                                  }}>
-                                    <Edit className="h-3 w-3 mr-2" />
-                                    Edit
-                                  </DropdownMenuItem>
-                                  <DropdownMenuItem 
-                                    className="text-red-600"
-                                    onClick={() => {
-                                      setSelectedCategory(subcategory);
-                                      setDeleteCategoryDialogOpen(true);
-                                    }}
-                                  >
-                                    <Trash2 className="h-3 w-3 mr-2" />
-                                    Delete
-                                  </DropdownMenuItem>
-                                </DropdownMenuContent>
-                              </DropdownMenu>
-                            </div>
-                          </div>
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
-
-                        {/* Nested Subcategories */}
-                        {expandedCategories.has(subcategory.id) && getSubcategories(subcategory.id).length > 0 && (
-                          <div className="bg-white border-t border-[#E6E7F1]">
-                            {getSubcategories(subcategory.id).map((nestedSubcategory: any) => (
-                              <div key={nestedSubcategory.id} className="group/nested py-2 pl-8 pr-4 border-b border-[#E6E7F1] bg-white hover:bg-gray-50/50 transition-colors min-h-[56px]">
-                                <div className="flex items-center justify-between h-full">
-                                  <div className="flex items-center">
-                                    <div className="w-3 h-3 mr-2"></div>
-                                    <div className="min-h-[32px] flex flex-col justify-center">
-                                      <h5 className="text-sm font-medium text-[#282A3F]">{nestedSubcategory.name}</h5>
-                                      <div className="min-h-[16px]">
-                                        {nestedSubcategory.description && (
-                                          <p className="text-xs text-gray-500">{nestedSubcategory.description}</p>
-                                        )}
-                                      </div>
+                      </div>
+                    </div>
+                  </CollapsibleTrigger>
+                  
+                  <CollapsibleContent>
+                    <div className="border-t border-[#E6E7F1] bg-gray-50/30">
+                      {getSubcategories(category.id).map((subcategory: any) => (
+                        <div key={subcategory.id} className="border-b border-[#E6E7F1] last:border-b-0">
+                          <Collapsible 
+                            open={expandedCategories.has(subcategory.id)}
+                            onOpenChange={(open) => {
+                              const newExpanded = new Set(expandedCategories);
+                              if (open) {
+                                newExpanded.add(subcategory.id);
+                              } else {
+                                newExpanded.delete(subcategory.id);
+                              }
+                              setExpandedCategories(newExpanded);
+                            }}
+                          >
+                            <CollapsibleTrigger asChild>
+                              <div className="pl-8 pr-4 py-3 hover:bg-gray-50 cursor-pointer">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-3">
+                                    {getSubcategoryCount(subcategory.id) > 0 ? (
+                                      <ChevronRight className={`h-3 w-3 text-gray-400 transition-transform ${
+                                        expandedCategories.has(subcategory.id) ? 'rotate-90' : ''
+                                      }`} />
+                                    ) : (
+                                      <div className="w-3 h-3" />
+                                    )}
+                                    <div>
+                                      <h4 className="text-sm font-medium text-[#282A3F]">{subcategory.name}</h4>
+                                      {subcategory.description && (
+                                        <p className="text-xs text-gray-500 mt-0.5">{subcategory.description}</p>
+                                      )}
                                     </div>
-                                    {getSubcategoryCount(nestedSubcategory.id) > 0 && (
+                                    {getSubcategoryCount(subcategory.id) > 0 && (
                                       <Badge variant="outline" className="text-xs">
-                                        {getSubcategoryCount(nestedSubcategory.id)} subcategories
+                                        {getSubcategoryCount(subcategory.id)} subcategories
                                       </Badge>
                                     )}
                                   </div>
-                                  <div className="flex items-center space-x-1">
+                                  <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      className="opacity-0 group-hover/nested:opacity-100 transition-opacity text-[#5567E5] hover:text-[#4451c7] hover:bg-[#5567E5]/10 h-6 w-6 p-0"
+                                      className="opacity-0 group-hover:opacity-100 transition-opacity text-[#5567E5] hover:text-[#4451c7] hover:bg-[#5567E5]/10 h-6"
                                       onClick={() => {
-                                        setSelectedParentCategory(nestedSubcategory);
+                                        setSelectedParentCategory(subcategory);
                                         setCreateSubcategoryDialogOpen(true);
                                       }}
                                     >
-                                      <ChevronRight className="h-3 w-3" />
+                                      <Plus className="h-3 w-3 mr-1" />
+                                      Add subcategory
                                     </Button>
                                     <DropdownMenu>
                                       <DropdownMenuTrigger asChild>
@@ -820,9 +760,9 @@ export default function ProductTemplates() {
                                           <MoreVertical className="h-3 w-3" />
                                         </Button>
                                       </DropdownMenuTrigger>
-                                      <DropdownMenuContent align="end" className="bg-white">
+                                      <DropdownMenuContent align="end">
                                         <DropdownMenuItem onClick={() => {
-                                          setSelectedCategory(nestedSubcategory);
+                                          setSelectedCategory(subcategory);
                                           setEditCategoryDialogOpen(true);
                                         }}>
                                           <Edit className="h-3 w-3 mr-2" />
@@ -831,7 +771,7 @@ export default function ProductTemplates() {
                                         <DropdownMenuItem 
                                           className="text-red-600"
                                           onClick={() => {
-                                            setSelectedCategory(nestedSubcategory);
+                                            setSelectedCategory(subcategory);
                                             setDeleteCategoryDialogOpen(true);
                                           }}
                                         >
@@ -843,14 +783,60 @@ export default function ProductTemplates() {
                                   </div>
                                 </div>
                               </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
+                            </CollapsibleTrigger>
+
+                            <CollapsibleContent>
+                              <div className="bg-gray-50/50">
+                                {getSubcategories(subcategory.id).map((nestedSubcategory: any) => (
+                                  <div key={nestedSubcategory.id} className="pl-12 pr-4 py-2 border-b border-[#E6E7F1] last:border-b-0 hover:bg-gray-50">
+                                    <div className="flex items-center justify-between">
+                                      <div className="flex items-center space-x-3">
+                                        <div className="w-3 h-3" />
+                                        <div>
+                                          <h5 className="text-sm font-medium text-[#282A3F]">{nestedSubcategory.name}</h5>
+                                          {nestedSubcategory.description && (
+                                            <p className="text-xs text-gray-500 mt-0.5">{nestedSubcategory.description}</p>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                            <MoreVertical className="h-3 w-3" />
+                                          </Button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end">
+                                          <DropdownMenuItem onClick={() => {
+                                            setSelectedCategory(nestedSubcategory);
+                                            setEditCategoryDialogOpen(true);
+                                          }}>
+                                            <Edit className="h-3 w-3 mr-2" />
+                                            Edit
+                                          </DropdownMenuItem>
+                                          <DropdownMenuItem 
+                                            className="text-red-600"
+                                            onClick={() => {
+                                              setSelectedCategory(nestedSubcategory);
+                                              setDeleteCategoryDialogOpen(true);
+                                            }}
+                                          >
+                                            <Trash2 className="h-3 w-3 mr-2" />
+                                            Delete
+                                          </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                      </DropdownMenu>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </CollapsibleContent>
+                          </Collapsible>
+                        </div>
+                      ))}
+                    </div>
+                  </CollapsibleContent>
+                </Collapsible>
+              </Card>
             ))}
           </div>
         </div>
