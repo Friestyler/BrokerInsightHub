@@ -71,10 +71,7 @@ export default function ProductTemplates() {
   // Create product template mutation
   const createMutation = useMutation({
     mutationFn: async (data: ProductTemplateFormData) => {
-      return apiRequest('/api/product-templates', {
-        method: 'POST',
-        body: data,
-      });
+      return apiRequest('/api/product-templates', 'POST', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/product-templates'] });
@@ -96,10 +93,7 @@ export default function ProductTemplates() {
   // Update product template mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: ProductTemplateFormData }) => {
-      return apiRequest(`/api/product-templates/${id}`, {
-        method: 'PUT',
-        body: data,
-      });
+      return apiRequest(`/api/product-templates/${id}`, 'PUT', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/product-templates'] });
@@ -122,9 +116,7 @@ export default function ProductTemplates() {
   // Delete product template mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/product-templates/${id}`, {
-        method: 'DELETE',
-      });
+      return apiRequest(`/api/product-templates/${id}`, 'DELETE');
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/product-templates'] });
@@ -159,7 +151,7 @@ export default function ProductTemplates() {
   });
 
   // Filter templates based on search
-  const filteredTemplates = productTemplates.filter((template: ProductTemplate) =>
+  const filteredTemplates = (productTemplates as ProductTemplate[]).filter((template: ProductTemplate) =>
     template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     template.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     template.category?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -272,7 +264,7 @@ export default function ProductTemplates() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {categories.map((category: any) => (
+                    {(categories as any[]).map((category: any) => (
                       <SelectItem key={category.id} value={category.id.toString()}>
                         {category.name}
                       </SelectItem>
@@ -526,10 +518,10 @@ export default function ProductTemplates() {
                     <p className="text-sm text-gray-600 line-clamp-2">{template.description}</p>
                   )}
                   
-                  {template.parent_category_name && (
+                  {template.category && (
                     <div className="flex items-center">
                       <Badge variant="outline" className="text-xs">
-                        {template.parent_category_name}
+                        {template.category}
                       </Badge>
                     </div>
                   )}
