@@ -67,6 +67,8 @@ interface FilterState {
   status: string;
   dateRange: string;
   mentions: boolean;
+  from: string;
+  recordNames: string[];
 }
 
 const defaultFilters: FilterState = {
@@ -76,7 +78,9 @@ const defaultFilters: FilterState = {
   assignee: 'all',
   status: 'all',
   dateRange: 'all',
-  mentions: false
+  mentions: false,
+  from: 'all',
+  recordNames: []
 };
 
 export default function PlatformActivityHub() {
@@ -231,12 +235,40 @@ export default function PlatformActivityHub() {
           case 'today':
             if (daysDiff > 0) return false;
             break;
-          case 'week':
+          case 'yesterday':
+            if (daysDiff !== 1) return false;
+            break;
+          case 'last7days':
             if (daysDiff > 7) return false;
             break;
-          case 'month':
+          case 'last30days':
             if (daysDiff > 30) return false;
             break;
+          case 'last3months':
+            if (daysDiff > 90) return false;
+            break;
+          case 'last12months':
+            if (daysDiff > 365) return false;
+            break;
+        }
+      }
+
+      // Comments-specific filters
+      if (activeTab === 'comments') {
+        // 'From' filter (who wrote comments)
+        if (filters.from !== 'all') {
+          const fromId = parseInt(filters.from);
+          if (activity.user_id !== fromId && activity.author_id !== fromId) {
+            return false;
+          }
+        }
+
+        // Record names filter
+        if (filters.recordNames.length > 0) {
+          const entityName = getEntityName(activity);
+          if (!filters.recordNames.some(name => entityName.toLowerCase().includes(name.toLowerCase()))) {
+            return false;
+          }
         }
       }
 
@@ -575,10 +607,13 @@ export default function PlatformActivityHub() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All time</SelectItem>
+              <SelectItem value="all">Any time</SelectItem>
               <SelectItem value="today">Today</SelectItem>
-              <SelectItem value="week">This week</SelectItem>
-              <SelectItem value="month">This month</SelectItem>
+              <SelectItem value="yesterday">Yesterday</SelectItem>
+              <SelectItem value="last7days">Last 7 days</SelectItem>
+              <SelectItem value="last30days">Last 30 days</SelectItem>
+              <SelectItem value="last3months">Last 3 months</SelectItem>
+              <SelectItem value="last12months">Last 12 months</SelectItem>
             </SelectContent>
           </Select>
         </div>
