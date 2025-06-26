@@ -805,7 +805,10 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
   };
 
   const handleCreateActivity = () => {
-    let activityData: any = { visible_to_partner: visibleToPartner };
+    let activityData: any = { 
+      visible_to_partner: visibleToPartner,
+      activityType: selectedActivityType 
+    };
 
     if (selectedActivityType === 'task') {
       if (!taskTitle.trim()) return;
@@ -815,6 +818,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
       activityData = { ...activityData, content: commentContent };
     }
 
+    console.log('handleCreateActivity called with:', activityData);
     createActivityMutation.mutate(activityData);
   };
 
