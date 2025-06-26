@@ -11,6 +11,71 @@ import Papa from 'papaparse';
 import { useQuery } from '@tanstack/react-query';
 import CategoryManagerForProducts from '@/components/CategoryManagerForProducts';
 
+// Simple MultiSelect component
+const MultiSelect = ({ options, value, onChange, placeholder }: {
+  options: { value: string; label: string }[];
+  value: string[];
+  onChange: (value: string[]) => void;
+  placeholder?: string;
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const toggleOption = (optionValue: string) => {
+    const newValue = value.includes(optionValue)
+      ? value.filter(v => v !== optionValue)
+      : [...value, optionValue];
+    onChange(newValue);
+  };
+
+  return (
+    <div className="relative">
+      <div
+        className="min-h-[32px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background cursor-pointer flex items-center justify-between"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <div className="flex flex-wrap gap-1">
+          {value.length === 0 ? (
+            <span className="text-muted-foreground">{placeholder}</span>
+          ) : (
+            value.map(v => (
+              <span key={v} className="bg-primary/10 text-primary px-2 py-1 rounded text-xs">
+                {options.find(opt => opt.value === v)?.label || v}
+                <button
+                  className="ml-1 hover:text-destructive"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleOption(v);
+                  }}
+                >
+                  ×
+                </button>
+              </span>
+            ))
+          )}
+        </div>
+        <ChevronDown className="h-4 w-4 opacity-50" />
+      </div>
+      
+      {isOpen && (
+        <div className="absolute top-full left-0 right-0 z-50 mt-1 max-h-60 overflow-auto rounded-md border bg-popover p-1 shadow-md">
+          {options.map(option => (
+            <div
+              key={option.value}
+              className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none hover:bg-accent hover:text-accent-foreground"
+              onClick={() => toggleOption(option.value)}
+            >
+              <Check
+                className={`mr-2 h-4 w-4 ${value.includes(option.value) ? 'opacity-100' : 'opacity-0'}`}
+              />
+              {option.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
 interface DetectedProduct {
   id: string;
   name: string;
@@ -58,6 +123,10 @@ export default function ProductAssignmentStep({
   const [showColumnDropdown, setShowColumnDropdown] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showProductStructureSection] = useState(false); // Hidden as requested
+  
+  // Add missing state variables that are referenced in the component
+  const [selectedColumns, setSelectedColumns] = useState<string[]>([]);
+  const [specificValue, setSpecificValue] = useState<string>('');
 
   // Fetch product categories
   const { data: activeCategories = [] } = useQuery({
@@ -231,10 +300,10 @@ export default function ProductAssignmentStep({
             {/* Single Column Option */}
             <div 
               className={`p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                productStructure === 'single' ? 'border-[#5567E5] bg-[#5567E5]/5' : 'border-[#E6E7F1] hover:border-gray-300'
+                productStructure === 'single-column' ? 'border-[#5567E5] bg-[#5567E5]/5' : 'border-[#E6E7F1] hover:border-gray-300'
               }`}
               onClick={() => {
-                setProductStructure('single');
+                setProductStructure('single-column');
                 setSelectedColumns([]);
                 setSpecificValue('');
               }}
@@ -242,7 +311,7 @@ export default function ProductAssignmentStep({
               <div className="flex items-start gap-3">
                 <input
                   type="radio"
-                  checked={productStructure === 'single'}
+                  checked={productStructure === 'single-column'}
                   onChange={() => {}}
                   className="mt-1 text-[#5567E5] focus:ring-[#5567E5]"
                 />
@@ -250,7 +319,7 @@ export default function ProductAssignmentStep({
                   <h3 className="font-medium text-gray-900 mb-1">Single column contains product names</h3>
                   <p className="text-sm text-gray-600">One column in your file contains all the product names</p>
                   
-                  {productStructure === 'single' && (
+                  {productStructure === 'single-column' && (
                     <div className="mt-4 space-y-3">
                       <label className="block text-sm font-medium text-gray-700">
                         Select the column containing product names:
@@ -260,7 +329,6 @@ export default function ProductAssignmentStep({
                         value={selectedColumns}
                         onChange={setSelectedColumns}
                         placeholder="Select product column..."
-                        maxSelections={1}
                       />
                     </div>
                   )}
@@ -271,10 +339,10 @@ export default function ProductAssignmentStep({
             {/* Multiple Columns Option */}
             <div 
               className={`p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
-                productStructure === 'multiple' ? 'border-[#5567E5] bg-[#5567E5]/5' : 'border-[#E6E7F1] hover:border-gray-300'
+                productStructure === 'multiple-columns' ? 'border-[#5567E5] bg-[#5567E5]/5' : 'border-[#E6E7F1] hover:border-gray-300'
               }`}
               onClick={() => {
-                setProductStructure('multiple');
+                setProductStructure('multiple-columns');
                 setSelectedColumns([]);
                 setSpecificValue('');
               }}
@@ -282,7 +350,7 @@ export default function ProductAssignmentStep({
               <div className="flex items-start gap-3">
                 <input
                   type="radio"
-                  checked={productStructure === 'multiple'}
+                  checked={productStructure === 'multiple-columns'}
                   onChange={() => {}}
                   className="mt-1 text-[#5567E5] focus:ring-[#5567E5]"
                 />
@@ -290,7 +358,7 @@ export default function ProductAssignmentStep({
                   <h3 className="font-medium text-gray-900 mb-1">Multiple columns contain product information</h3>
                   <p className="text-sm text-gray-600">Product names are spread across several columns that need to be combined</p>
                   
-                  {productStructure === 'multiple' && (
+                  {productStructure === 'multiple-columns' && (
                     <div className="mt-4 space-y-3">
                       <label className="block text-sm font-medium text-gray-700">
                         Select columns to combine for product names:
