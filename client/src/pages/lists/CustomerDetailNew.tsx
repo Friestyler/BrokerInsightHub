@@ -1520,36 +1520,7 @@ export default function CustomerDetailNew() {
             </div>
           </div>
 
-            {/* Template Details */}
-            {selectedProductTemplate && (
-              <div className="bg-muted/30 rounded-lg p-4">
-                <h4 className="font-medium mb-2">Template Details</h4>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Provider:</span>
-                    <span className="ml-2">{selectedProductTemplate.providerName}</span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Category:</span>
-                    <span className="ml-2">{selectedProductTemplate.category || 'Not specified'}</span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Default Price:</span>
-                    <span className="ml-2">€{selectedProductTemplate.averagePrice}</span>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Premium %:</span>
-                    <span className="ml-2">{selectedProductTemplate.premiumPercentage || 0}%</span>
-                  </div>
-                </div>
-                {selectedProductTemplate.description && (
-                  <div className="mt-2">
-                    <span className="text-muted-foreground">Description:</span>
-                    <p className="mt-1 text-sm">{selectedProductTemplate.description}</p>
-                  </div>
-                )}
-              </div>
-            )}
+
 
             {/* Custom Attributes */}
             {selectedProductTemplate && (
