@@ -76,20 +76,11 @@ export async function apiRequest<T = any>(
   url: string,
   data?: unknown | undefined,
 ): Promise<T> {
-  // Add a timeout to detect hanging requests
-  const controller = new AbortController();
-  let timeoutId: NodeJS.Timeout | undefined;
+  // Apply environment to URL
+  const envUrl = getEnvironmentUrl(url);
+  console.log('apiRequest - Fetching from URL:', envUrl);
   
   try {
-    // Apply environment to URL
-    const envUrl = getEnvironmentUrl(url);
-console.log('apiRequest - Fetching from URL:', envUrl);
-
-timeoutId = setTimeout(() => {
-  controller.abort();
-}, 5000); // 5 second timeout
-
-    
     const res = await fetch(envUrl, {
       method,
       headers: {
@@ -101,20 +92,13 @@ timeoutId = setTimeout(() => {
       },
       body: data ? JSON.stringify(data) : undefined,
       credentials: "include",
-      signal: controller.signal,
     });
 
-    if (timeoutId) clearTimeout(timeoutId);
     await throwIfResNotOk(res);
     return res.json();
   } catch (error: any) {
-    // Clear timeout in case of error
-    if (timeoutId) {
-      clearTimeout(timeoutId);
-    }
-    
-    // Handle AbortError and network errors gracefully
-    if (error?.name === 'AbortError' || error?.message === 'Failed to fetch') {
+    // Handle network errors gracefully
+    if (error?.name === 'AbortError' || error?.message === 'Failed to fetch' || error?.message?.includes('signal')) {
       console.warn(`Network error for ${url} - returning empty data instead of throwing`);
       return [] as T; // Return empty array/data instead of throwing
     }

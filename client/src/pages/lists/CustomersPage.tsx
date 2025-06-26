@@ -370,11 +370,6 @@ export default function CustomersPageClean() {
   return (
     <ListEditingContext.Provider value={{ isEditingList, setIsEditingList }}>
       <div className="p-6 space-y-6">
-        {/* Header - streamlined without button */}
-        <div className="px-4">
-          <h1 className="text-2xl font-bold text-gray-900">Customer Lists</h1>
-        </div>
-
         {/* Unified toolbar - exact copy from Opportunities */}
         <div className="bg-white p-4 rounded-lg shadow-sm">
           <div className="flex flex-col gap-4">
