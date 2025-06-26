@@ -663,11 +663,17 @@ export default function ProductTemplates() {
                       />
                     </div>
                   </TableHead>
+                  <TableHead className="min-w-[80px]">ID</TableHead>
+                  <TableHead className="min-w-[100px]">Product ID</TableHead>
                   <TableHead className="min-w-[200px]">Name</TableHead>
+                  <TableHead className="min-w-[250px]">Description</TableHead>
                   <TableHead className="min-w-[150px]">Category</TableHead>
                   <TableHead className="min-w-[120px]">Provider</TableHead>
-                  <TableHead className="min-w-[100px]">Price</TableHead>
-                  <TableHead className="min-w-[100px]">Premium</TableHead>
+                  <TableHead className="min-w-[100px]">Average Price</TableHead>
+                  <TableHead className="min-w-[100px]">Premium %</TableHead>
+                  <TableHead className="min-w-[100px]">Discount %</TableHead>
+                  <TableHead className="min-w-[120px]">Contract Start</TableHead>
+                  <TableHead className="min-w-[120px]">Contract End</TableHead>
                   <TableHead className="min-w-[80px]">Status</TableHead>
                   <TableHead className="w-12">Actions</TableHead>
                 </TableRow>
