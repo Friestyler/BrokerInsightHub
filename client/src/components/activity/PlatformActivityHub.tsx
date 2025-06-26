@@ -806,14 +806,14 @@ export default function PlatformActivityHub() {
   );
 
   return (
-    <Card className="border border-[#E6E7F1] bg-white">
-      <CardHeader className="pb-4">
+    <Card className="border-0 bg-white">
+      <CardHeader className="pb-4 border-0">
         <CardTitle className="text-xl font-semibold text-[#282A3F]">Platform Activity Hub</CardTitle>
       </CardHeader>
       
       <CardContent className="p-0">
         <Tabs value={activeTab} onValueChange={(value: any) => setActiveTab(value)} className="w-full">
-          <div className="px-6 border-b border-gray-200">
+          <div className="px-6">
             <TabsList className="grid w-full grid-cols-3 bg-transparent p-0 h-auto">
               <TabsTrigger 
                 value="timeline" 
