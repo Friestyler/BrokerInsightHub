@@ -326,7 +326,7 @@ export default function PlatformActivityHub() {
     const isCompleted = activity.activity_type === 'task' && activity.completed;
 
     return (
-      <div key={activity.id} className="relative group">
+      <div key={`${activity.activity_type}-${activity.id}`} className="relative group">
         {/* Connecting line */}
         {index < filteredActivities.length - 1 && (
           <div className="absolute left-6 top-12 bottom-0 w-px bg-gray-200" />
