@@ -932,18 +932,18 @@ export default function ProductTemplates() {
                       />
                     </div>
                   </TableHead>
-                  <TableHead className="min-w-[100px] text-muted-foreground">Product ID</TableHead>
-                  <TableHead className="min-w-[200px] text-muted-foreground">Name</TableHead>
-                  <TableHead className="min-w-[250px] text-muted-foreground">Description</TableHead>
-                  <TableHead className="min-w-[150px] text-muted-foreground">Category</TableHead>
-                  <TableHead className="min-w-[120px] text-muted-foreground">Provider</TableHead>
-                  <TableHead className="min-w-[100px] text-muted-foreground">Average Price</TableHead>
-                  <TableHead className="min-w-[100px] text-muted-foreground">Premium %</TableHead>
-                  <TableHead className="min-w-[100px] text-muted-foreground">Discount %</TableHead>
-                  <TableHead className="min-w-[120px] text-muted-foreground">Contract Start Date</TableHead>
-                  <TableHead className="min-w-[120px] text-muted-foreground">Contract End</TableHead>
+                  <TableHead className="min-w-[100px] text-[#696C8C]">Product ID</TableHead>
+                  <TableHead className="min-w-[200px] text-[#696C8C]">Name</TableHead>
+                  <TableHead className="min-w-[250px] text-[#696C8C]">Description</TableHead>
+                  <TableHead className="min-w-[150px] text-[#696C8C]">Category</TableHead>
+                  <TableHead className="min-w-[120px] text-[#696C8C]">Provider</TableHead>
+                  <TableHead className="min-w-[100px] text-[#696C8C]">Average Price</TableHead>
+                  <TableHead className="min-w-[100px] text-[#696C8C]">Premium %</TableHead>
+                  <TableHead className="min-w-[100px] text-[#696C8C]">Discount %</TableHead>
+                  <TableHead className="min-w-[120px] text-[#696C8C]">Contract Start Date</TableHead>
+                  <TableHead className="min-w-[120px] text-[#696C8C]">Contract End</TableHead>
 
-                  <TableHead className="w-12 text-muted-foreground">Actions</TableHead>
+                  <TableHead className="w-12 text-[#696C8C]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
