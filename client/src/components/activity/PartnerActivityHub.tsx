@@ -984,7 +984,14 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
           {selectedActivityType === 'task' && (
             <div className="flex flex-col h-full">
               {/* Task List with timeline styling */}
-              <div className="flex-1 space-y-4 max-h-64 overflow-y-auto mb-4">
+              <div 
+                ref={(el) => {
+                  if (el && allTasks?.length > 0) {
+                    el.scrollTop = el.scrollHeight;
+                  }
+                }}
+                className="flex-1 space-y-4 max-h-64 overflow-y-auto mb-4"
+              >
                 {Array.isArray(allTasks) && allTasks.length > 0 ? (
                   allTasks
                     .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
@@ -1191,7 +1198,14 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
           {selectedActivityType === 'comment' && (
             <div className="flex flex-col h-full">
               {/* Comments Timeline with Cross-Entity Display */}
-              <div className="flex-1 space-y-4 max-h-64 overflow-y-auto mb-4">
+              <div 
+                ref={(el) => {
+                  if (el && rawTimelineData?.length > 0) {
+                    el.scrollTop = el.scrollHeight;
+                  }
+                }}
+                className="flex-1 space-y-4 max-h-64 overflow-y-auto mb-4"
+              >
                 {rawTimelineData && rawTimelineData.length > 0 ? (
                   rawTimelineData
                     .filter((item: any) => item.activity_type === 'comment')

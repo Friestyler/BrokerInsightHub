@@ -93,6 +93,33 @@ export default function PlatformActivityHub() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const timelineRef = useRef<HTMLDivElement>(null);
+  const tasksRef = useRef<HTMLDivElement>(null);
+  const commentsRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when tab changes or data updates
+  useEffect(() => {
+    const scrollToBottom = (ref: React.RefObject<HTMLDivElement>) => {
+      if (ref.current) {
+        const scrollArea = ref.current.querySelector('[data-radix-scroll-area-viewport]');
+        if (scrollArea) {
+          scrollArea.scrollTop = scrollArea.scrollHeight;
+        }
+      }
+    };
+
+    // Small delay to ensure content is rendered
+    const timer = setTimeout(() => {
+      if (activeTab === 'timeline' && filteredActivities.length > 0) {
+        scrollToBottom(timelineRef);
+      } else if (activeTab === 'tasks' && filteredActivities.length > 0) {
+        scrollToBottom(tasksRef);
+      } else if (activeTab === 'comments' && filteredActivities.length > 0) {
+        scrollToBottom(commentsRef);
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [activeTab, filteredActivities]);
 
   // Fetch unified activities from all entities
   const { data: unifiedActivities, isLoading } = useQuery({
