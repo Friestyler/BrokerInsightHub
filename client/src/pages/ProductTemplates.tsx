@@ -627,8 +627,8 @@ export default function ProductTemplates() {
             {getRootCategories().map((category: any) => (
               <div key={category.id} className="bg-white rounded-lg border border-[#E6E7F1] shadow-sm overflow-hidden">
                 {/* Category Header */}
-                <div className="p-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center justify-between">
+                <div className="p-4 hover:bg-gray-50 transition-colors min-h-[72px]">
+                  <div className="flex items-center justify-between h-full">
                     <div className="flex items-center space-x-3">
                       <Button
                         variant="ghost"
@@ -642,11 +642,13 @@ export default function ProductTemplates() {
                           <ChevronRight className="h-4 w-4 text-gray-500" />
                         )}
                       </Button>
-                      <div>
+                      <div className="min-h-[40px] flex flex-col justify-center">
                         <h3 className="text-base font-medium text-[#282A3F]">{category.name}</h3>
-                        {category.description && (
-                          <p className="text-sm text-gray-500">{category.description}</p>
-                        )}
+                        <div className="min-h-[20px]">
+                          {category.description && (
+                            <p className="text-sm text-gray-500">{category.description}</p>
+                          )}
+                        </div>
                       </div>
                       {getSubcategoryCount(category.id) > 0 && (
                         <Badge variant="outline" className="text-xs">
@@ -702,10 +704,10 @@ export default function ProductTemplates() {
                   <div className="border-t border-[#E6E7F1] bg-white">
                     {getSubcategories(category.id).map((subcategory: any) => (
                       <div key={subcategory.id} className="group/subcategory">
-                        <div className="py-2 pl-8 pr-4 border-b border-[#E6E7F1] bg-white hover:bg-gray-50/50 transition-colors">
-                          <div className="flex items-center justify-between">
+                        <div className="py-2 pl-8 pr-4 border-b border-[#E6E7F1] bg-white hover:bg-gray-50/50 transition-colors min-h-[56px]">
+                          <div className="flex items-center justify-between h-full">
                             <div className="flex items-center space-x-3">
-                              {getSubcategoryCount(subcategory.id) > 0 && (
+                              {getSubcategoryCount(subcategory.id) > 0 ? (
                                 <Button
                                   variant="ghost"
                                   size="sm"
@@ -718,12 +720,16 @@ export default function ProductTemplates() {
                                     <ChevronRight className="h-3 w-3 text-gray-400" />
                                   )}
                                 </Button>
+                              ) : (
+                                <div className="w-3 h-3"></div>
                               )}
-                              <div>
+                              <div className="min-h-[32px] flex flex-col justify-center">
                                 <h4 className="text-sm font-medium text-[#282A3F]">{subcategory.name}</h4>
-                                {subcategory.description && (
-                                  <p className="text-xs text-gray-500">{subcategory.description}</p>
-                                )}
+                                <div className="min-h-[16px]">
+                                  {subcategory.description && (
+                                    <p className="text-xs text-gray-500">{subcategory.description}</p>
+                                  )}
+                                </div>
                               </div>
                               {getSubcategoryCount(subcategory.id) > 0 && (
                                 <Badge variant="outline" className="text-xs">
@@ -778,14 +784,16 @@ export default function ProductTemplates() {
                         {expandedCategories.has(subcategory.id) && getSubcategories(subcategory.id).length > 0 && (
                           <div className="bg-white border-t border-[#E6E7F1]">
                             {getSubcategories(subcategory.id).map((nestedSubcategory: any) => (
-                              <div key={nestedSubcategory.id} className="group/nested py-2 pl-12 pr-4 border-b border-[#E6E7F1] bg-white hover:bg-gray-50/50 transition-colors">
-                                <div className="flex items-center justify-between">
+                              <div key={nestedSubcategory.id} className="group/nested py-2 pl-12 pr-4 border-b border-[#E6E7F1] bg-white hover:bg-gray-50/50 transition-colors min-h-[56px]">
+                                <div className="flex items-center justify-between h-full">
                                   <div className="flex items-center space-x-2">
-                                    <div>
+                                    <div className="min-h-[32px] flex flex-col justify-center">
                                       <h5 className="text-sm font-medium text-[#282A3F]">{nestedSubcategory.name}</h5>
-                                      {nestedSubcategory.description && (
-                                        <p className="text-xs text-gray-500">{nestedSubcategory.description}</p>
-                                      )}
+                                      <div className="min-h-[16px]">
+                                        {nestedSubcategory.description && (
+                                          <p className="text-xs text-gray-500">{nestedSubcategory.description}</p>
+                                        )}
+                                      </div>
                                     </div>
                                     {getSubcategoryCount(nestedSubcategory.id) > 0 && (
                                       <Badge variant="outline" className="text-xs">
