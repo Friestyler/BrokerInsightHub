@@ -725,6 +725,46 @@ export const products = pgTable("products", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Product Template model - master templates for products (independent of entity attachments)
+export const productTemplates = pgTable("product_templates", {
+  id: serial("id").primaryKey(),
+  productId: text("product_id").notNull().unique(), // Unique product identifier
+  name: text("name").notNull(),
+  description: text("description"),
+  categoryId: integer("category_id").references(() => productCategories.id),
+  category: text("category"), // Legacy field - will be phased out
+  
+  // Provider information - can be vendor, broker/partner, or other
+  providerId: integer("provider_id"), // References vendors.id, partners.id, or other entities
+  providerType: text("provider_type"), // 'vendor', 'partner', 'other'
+  providerName: text("provider_name"), // Direct provider name storage
+  
+  // Contract information
+  contractStartDate: date("contract_start_date"),
+  contractEndDate: date("contract_end_date"),
+  
+  // Financial information (excluding totalValue, adding averagePrice)
+  averagePrice: numeric("average_price", { precision: 12, scale: 2 }), // New currency field in euros
+  premiumValue: numeric("premium_value", { precision: 12, scale: 2 }),
+  premiumPercentage: numeric("premium_percentage", { precision: 5, scale: 2 }), // e.g., 15.25%
+  discount: numeric("discount", { precision: 12, scale: 2 }),
+  discountPercentage: numeric("discount_percentage", { precision: 5, scale: 2 }),
+  
+  // Legacy fields for backward compatibility
+  vendorId: integer("vendor_id").references(() => vendors.id),
+  
+  // No linking fields - templates are independent
+  
+  // Metadata
+  isActive: boolean("is_active").notNull().default(true),
+  status: text("status").notNull().default("active"), // active, inactive, expired
+  notes: text("notes"),
+  tags: text("tags").array(),
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Define relationships
 export const vendorsRelations = relations(vendors, ({ one, many }) => ({
   owner: one(users, {
@@ -761,7 +801,16 @@ export const productsRelations = relations(products, ({ one, many }) => ({
   catalogueProducts: many(catalogueProducts),
 }));
 
-
+export const productTemplatesRelations = relations(productTemplates, ({ one }) => ({
+  vendor: one(vendors, {
+    fields: [productTemplates.vendorId],
+    references: [vendors.id],
+  }),
+  category: one(productCategories, {
+    fields: [productTemplates.categoryId],
+    references: [productCategories.id],
+  }),
+}));
 
 // Insert schemas
 export const insertVendorSchema = createInsertSchema(vendors).pick({
@@ -800,6 +849,29 @@ export const insertProductSchema = createInsertSchema(products).pick({
   customerId: true,
   opportunityId: true,
   partnerId: true,
+  vendorId: true,
+  isActive: true,
+  status: true,
+  notes: true,
+  tags: true,
+});
+
+export const insertProductTemplateSchema = createInsertSchema(productTemplates).pick({
+  productId: true,
+  name: true,
+  description: true,
+  categoryId: true,
+  category: true,
+  providerId: true,
+  providerType: true,
+  providerName: true,
+  contractStartDate: true,
+  contractEndDate: true,
+  averagePrice: true,
+  premiumValue: true,
+  premiumPercentage: true,
+  discount: true,
+  discountPercentage: true,
   vendorId: true,
   isActive: true,
   status: true,
