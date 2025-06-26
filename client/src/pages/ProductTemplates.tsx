@@ -209,6 +209,16 @@ export default function ProductTemplates() {
     return `${num}%`;
   };
 
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-GB', {
+      day: '2-digit',
+      month: '2-digit', 
+      year: 'numeric'
+    });
+  };
+
   const renderProductTemplateForm = (form: any, onSubmit: (data: ProductTemplateFormData) => void) => (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -460,7 +470,6 @@ export default function ProductTemplates() {
           </div>
         </div>
       </div>
-
       {/* Tab Content */}
       {activeTab === 'categories' && (
         <div className="container mx-auto px-4 py-6">
@@ -583,7 +592,6 @@ export default function ProductTemplates() {
           </div>
         </div>
       )}
-
       {activeTab === 'templates' && (
         <div className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
@@ -671,7 +679,7 @@ export default function ProductTemplates() {
                   <TableHead className="min-w-[100px]">Average Price</TableHead>
                   <TableHead className="min-w-[100px]">Premium %</TableHead>
                   <TableHead className="min-w-[100px]">Discount %</TableHead>
-                  <TableHead className="min-w-[120px]">Contract Start</TableHead>
+                  <TableHead className="min-w-[120px]">Contract Start Date</TableHead>
                   <TableHead className="min-w-[120px]">Contract End</TableHead>
 
                   <TableHead className="w-12">Actions</TableHead>
@@ -747,12 +755,12 @@ export default function ProductTemplates() {
                     </TableCell>
                     <TableCell>
                       <div className="text-sm text-gray-900">
-                        {template.contractStartDate || '-'}
+                        {formatDate(template.contractStartDate)}
                       </div>
                     </TableCell>
                     <TableCell>
                       <div className="text-sm text-gray-900">
-                        {template.contractEndDate || '-'}
+                        {formatDate(template.contractEndDate)}
                       </div>
                     </TableCell>
 
