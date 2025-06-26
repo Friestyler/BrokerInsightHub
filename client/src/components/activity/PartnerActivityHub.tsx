@@ -597,6 +597,12 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
         exact: true
       });
       
+      // Force immediate refetch of all-tasks for Tasks tab
+      queryClient.refetchQueries({
+        queryKey: [`/api/${currentEnv}/partners/${partnerId}/all-tasks`],
+        exact: true
+      });
+      
       resetForm();
       const activityType = (data as any).activityType || selectedActivityType;
       toast({ title: `${activityType.charAt(0).toUpperCase() + activityType.slice(1)} created successfully` });
