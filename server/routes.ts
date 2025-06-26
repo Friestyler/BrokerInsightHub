@@ -6417,6 +6417,119 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
     }
   });
 
+  // ===== CATEGORIES API =====
+
+  // Get all categories
+  app.get('/api/:envId/categories', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const envPool = pool;
+      
+      console.log(`Returning categories from ${envId} database`);
+      
+      const result = await envPool.query(`
+        SELECT * FROM ${envId}.categories 
+        WHERE is_active = true
+        ORDER BY level ASC, sort_order ASC, name ASC
+      `);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      res.status(500).json({ error: 'Failed to fetch categories' });
+    }
+  });
+
+  // Create category
+  app.post('/api/:envId/categories', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const { name, color, description, parentId, level, sortOrder, isActive } = req.body;
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        INSERT INTO ${envId}.categories (name, color, description, parent_id, level, sort_order, is_active)
+        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        RETURNING *
+      `, [name, color || '#3B82F6', description, parentId, level || 1, sortOrder || 0, isActive !== false]);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating category:', error);
+      res.status(500).json({ error: 'Failed to create category' });
+    }
+  });
+
+  // Update category
+  app.put('/api/:envId/categories/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const categoryId = parseInt(req.params.id);
+      const { name, color, description, parentId, level, sortOrder, isActive } = req.body;
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        UPDATE ${envId}.categories 
+        SET name = $1, color = $2, description = $3, parent_id = $4, level = $5, sort_order = $6, is_active = $7, updated_at = NOW()
+        WHERE id = $8
+        RETURNING *
+      `, [name, color, description, parentId, level, sortOrder, isActive, categoryId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Category not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating category:', error);
+      res.status(500).json({ error: 'Failed to update category' });
+    }
+  });
+
+  // Delete category
+  app.delete('/api/:envId/categories/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const categoryId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      // Check if category has children
+      const childrenCount = await envPool.query(`
+        SELECT COUNT(*) as count FROM ${envId}.categories WHERE parent_id = $1 AND is_active = true
+      `, [categoryId]);
+      
+      if (childrenCount.rows[0].count > 0) {
+        return res.status(400).json({ 
+          error: `Cannot delete category - it has ${childrenCount.rows[0].count} subcategories. Please remove the subcategories first.` 
+        });
+      }
+      
+      // Check if category is used by product templates
+      const templateCount = await envPool.query(`
+        SELECT COUNT(*) as count FROM ${envId}.product_templates WHERE category_id = $1 AND is_active = true
+      `, [categoryId]);
+      
+      if (templateCount.rows[0].count > 0) {
+        return res.status(400).json({ 
+          error: `Cannot delete category - it is used by ${templateCount.rows[0].count} product templates. Please reassign the templates first.` 
+        });
+      }
+      
+      const result = await envPool.query(`
+        DELETE FROM ${envId}.categories WHERE id = $1 RETURNING *
+      `, [categoryId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Category not found' });
+      }
+      
+      res.json({ message: 'Category deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting category:', error);
+      res.status(500).json({ error: 'Failed to delete category' });
+    }
+  });
+
   // ===== PRODUCT TEMPLATES API =====
 
   // Get all product templates
@@ -6430,10 +6543,11 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       const result = await envPool.query(`
         SELECT 
           pt.*,
-          pc.name as parent_category_name,
+          c.name as category_name,
+          c.color as category_color,
           v.name as vendor_name
         FROM ${envId}.product_templates pt
-        LEFT JOIN ${envId}.product_categories pc ON pt.category_id = pc.id
+        LEFT JOIN ${envId}.categories c ON pt.category_id = c.id
         LEFT JOIN ${envId}.vendors v ON pt.vendor_id = v.id
         WHERE pt.is_active = true
         ORDER BY pt.name ASC

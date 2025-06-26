@@ -60,9 +60,9 @@ export default function ProductTemplates() {
     queryKey: ['/api/product-templates'],
   });
 
-  // Fetch product categories for dropdown
+  // Fetch categories for dropdown
   const { data: categories = [] } = useQuery({
-    queryKey: ['/api/product-categories'],
+    queryKey: ['/api/categories'],
   });
 
   // Fetch vendors for dropdown
