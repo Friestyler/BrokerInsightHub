@@ -62,6 +62,18 @@ export default function CustomerDetailNew() {
   const [editedCustomer, setEditedCustomer] = useState<any>({});
   const [selectedOpportunityIds, setSelectedOpportunityIds] = useState<number[]>([]);
   const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
+  
+  // Add Product dialog state
+  const [showAddProductDialog, setShowAddProductDialog] = useState(false);
+  const [selectedProductTemplate, setSelectedProductTemplate] = useState<any>(null);
+  const [customAttributes, setCustomAttributes] = useState({
+    customPrice: '',
+    customDiscountPercentage: '',
+    customPremiumPercentage: '',
+    customerContractStartDate: '',
+    customerContractEndDate: '',
+    notes: ''
+  });
 
   // Handle tab parameter from URL or sessionStorage
   useEffect(() => {
@@ -686,6 +698,17 @@ export default function CustomerDetailNew() {
 
         {activeTab === "products" && (
           <div>
+            {/* Add Product Button */}
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">Assigned Products</h3>
+              <Button 
+                onClick={() => setShowAddProductDialog(true)}
+                className="bg-[#5567E5] text-white hover:bg-[#4556D4] h-8"
+              >
+                Add product
+              </Button>
+            </div>
+            
             <Table>
               <TableHeader>
                 <TableRow>

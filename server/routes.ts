@@ -3354,6 +3354,231 @@ Keep the tone clear and professional. Focus on what will help the account manage
     }
   });
 
+  // Customer Product Assignments API endpoints
+  
+  // Get Product Templates (for selection dialog)
+  app.get('/api/degoudse/product-templates', async (req, res) => {
+    try {
+      const envPool = pool;
+      const result = await envPool.query(`
+        SELECT 
+          pt.id,
+          pt.product_id as productId,
+          pt.name,
+          pt.description,
+          c.name as category,
+          c.color as categoryColor,
+          pt.provider_name as providerName,
+          pt.average_price as averagePrice,
+          pt.premium_value as premiumValue,
+          pt.premium_percentage as premiumPercentage,
+          pt.discount,
+          pt.discount_percentage as discountPercentage,
+          pt.contract_start_date as contractStartDate,
+          pt.contract_end_date as contractEndDate,
+          pt.notes,
+          pt.is_active as isActive
+        FROM degoudse.product_templates pt
+        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
+        WHERE pt.is_active = true
+        ORDER BY c.name, pt.name
+      `);
+      
+      console.log(`Returning ${result.rows.length} product templates`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching product templates:', error);
+      res.status(500).json({ error: 'Failed to fetch product templates' });
+    }
+  });
+
+  // Get Customer Product Assignments
+  app.get('/api/degoudse/customers/:id/product-assignments', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        SELECT 
+          cpa.id,
+          cpa.customer_id as customerId,
+          cpa.product_template_id as productTemplateId,
+          cpa.custom_price as customPrice,
+          cpa.custom_discount as customDiscount,
+          cpa.custom_discount_percentage as customDiscountPercentage,
+          cpa.custom_premium_percentage as customPremiumPercentage,
+          cpa.customer_contract_start_date as customerContractStartDate,
+          cpa.customer_contract_end_date as customerContractEndDate,
+          cpa.notes,
+          cpa.assigned_at as assignedAt,
+          cpa.is_active as isActive,
+          -- Product Template info
+          pt.name as productName,
+          pt.description as productDescription,
+          pt.average_price as templateAveragePrice,
+          pt.discount as templateDiscount,
+          pt.discount_percentage as templateDiscountPercentage,
+          pt.premium_percentage as templatePremiumPercentage,
+          pt.provider_name as providerName,
+          -- Category info
+          c.name as category,
+          c.color as categoryColor,
+          -- User info
+          u.full_name as assignedByName
+        FROM degoudse.customer_product_assignments cpa
+        INNER JOIN degoudse.product_templates pt ON cpa.product_template_id = pt.id
+        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
+        LEFT JOIN degoudse.users u ON cpa.assigned_by = u.id
+        WHERE cpa.customer_id = $1 AND cpa.is_active = true
+        ORDER BY cpa.assigned_at DESC
+      `, [customerId]);
+      
+      console.log(`Returning ${result.rows.length} product assignments for customer ${customerId}`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching customer product assignments:', error);
+      res.status(500).json({ error: 'Failed to fetch customer product assignments' });
+    }
+  });
+
+  // Create Customer Product Assignment
+  app.post('/api/degoudse/customers/:id/product-assignments', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const {
+        productTemplateId,
+        customPrice,
+        customDiscount,
+        customDiscountPercentage,
+        customPremiumPercentage,
+        customerContractStartDate,
+        customerContractEndDate,
+        notes,
+        assignedBy
+      } = req.body;
+      
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        INSERT INTO degoudse.customer_product_assignments (
+          customer_id,
+          product_template_id,
+          custom_price,
+          custom_discount,
+          custom_discount_percentage,
+          custom_premium_percentage,
+          customer_contract_start_date,
+          customer_contract_end_date,
+          notes,
+          assigned_by,
+          is_active
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, true)
+        RETURNING *
+      `, [
+        customerId,
+        productTemplateId,
+        customPrice || null,
+        customDiscount || null,
+        customDiscountPercentage || null,
+        customPremiumPercentage || null,
+        customerContractStartDate || null,
+        customerContractEndDate || null,
+        notes || null,
+        assignedBy || 1 // Default to user 1 if not provided
+      ]);
+      
+      console.log(`Created product assignment for customer ${customerId}, template ${productTemplateId}`);
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating customer product assignment:', error);
+      res.status(500).json({ error: 'Failed to create product assignment' });
+    }
+  });
+
+  // Update Customer Product Assignment
+  app.put('/api/degoudse/customers/:customerId/product-assignments/:assignmentId', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.customerId);
+      const assignmentId = parseInt(req.params.assignmentId);
+      const {
+        customPrice,
+        customDiscount,
+        customDiscountPercentage,
+        customPremiumPercentage,
+        customerContractStartDate,
+        customerContractEndDate,
+        notes,
+        isActive
+      } = req.body;
+      
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        UPDATE degoudse.customer_product_assignments 
+        SET 
+          custom_price = $3,
+          custom_discount = $4,
+          custom_discount_percentage = $5,
+          custom_premium_percentage = $6,
+          customer_contract_start_date = $7,
+          customer_contract_end_date = $8,
+          notes = $9,
+          is_active = $10,
+          updated_at = NOW()
+        WHERE id = $1 AND customer_id = $2
+        RETURNING *
+      `, [
+        assignmentId,
+        customerId,
+        customPrice || null,
+        customDiscount || null,
+        customDiscountPercentage || null,
+        customPremiumPercentage || null,
+        customerContractStartDate || null,
+        customerContractEndDate || null,
+        notes || null,
+        isActive !== undefined ? isActive : true
+      ]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Product assignment not found' });
+      }
+      
+      console.log(`Updated product assignment ${assignmentId} for customer ${customerId}`);
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating customer product assignment:', error);
+      res.status(500).json({ error: 'Failed to update product assignment' });
+    }
+  });
+
+  // Delete Customer Product Assignment (soft delete)
+  app.delete('/api/degoudse/customers/:customerId/product-assignments/:assignmentId', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.customerId);
+      const assignmentId = parseInt(req.params.assignmentId);
+      
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        UPDATE degoudse.customer_product_assignments 
+        SET is_active = false, updated_at = NOW()
+        WHERE id = $1 AND customer_id = $2
+        RETURNING *
+      `, [assignmentId, customerId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Product assignment not found' });
+      }
+      
+      console.log(`Soft deleted product assignment ${assignmentId} for customer ${customerId}`);
+      res.json({ message: 'Product assignment removed successfully' });
+    } catch (error) {
+      console.error('Error deleting customer product assignment:', error);
+      res.status(500).json({ error: 'Failed to delete product assignment' });
+    }
+  });
+
   // Cache clearing endpoint
   app.post('/api/admin/clear-cache', (req, res) => {
     clearCache();

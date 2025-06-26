@@ -373,6 +373,20 @@ export const insertClientProductSchema = createInsertSchema(clientProducts).pick
   productId: true,
 });
 
+export const insertCustomerProductAssignmentSchema = createInsertSchema(customerProductAssignments).pick({
+  customerId: true,
+  productTemplateId: true,
+  customPrice: true,
+  customDiscount: true,
+  customDiscountPercentage: true,
+  customPremiumPercentage: true,
+  customerContractStartDate: true,
+  customerContractEndDate: true,
+  assignedBy: true,
+  isActive: true,
+  notes: true,
+});
+
 export const insertOpportunitySchema = createInsertSchema(opportunities).pick({
   title: true,
   clientId: true,
@@ -651,6 +665,8 @@ export type InsuranceProduct = typeof insuranceProducts.$inferSelect;
 
 export type InsertClientProduct = z.infer<typeof insertClientProductSchema>;
 export type ClientProduct = typeof clientProducts.$inferSelect;
+export type CustomerProductAssignment = typeof customerProductAssignments.$inferSelect;
+export type InsertCustomerProductAssignment = z.infer<typeof insertCustomerProductAssignmentSchema>;
 
 export type InsertOpportunity = z.infer<typeof insertOpportunitySchema>;
 export type Opportunity = typeof opportunities.$inferSelect;
