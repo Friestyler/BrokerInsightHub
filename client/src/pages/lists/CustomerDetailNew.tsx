@@ -1243,14 +1243,36 @@ export default function CustomerDetailNew() {
                         return searchMatch && categoryMatch;
                       }) || [];
 
-                      // Group templates by category
+                      // Group templates by hierarchy - show root categories (level 1)
                       const groupedTemplates: Record<string, any[]> = {};
+                      
                       filteredTemplates.forEach((template: any) => {
-                        const categoryName = template.category || 'Uncategorized';
-                        if (!groupedTemplates[categoryName]) {
-                          groupedTemplates[categoryName] = [];
+                        // Find the category for this template
+                        const templateCategory = categories?.find((c: any) => c.name === template.category);
+                        
+                        // Determine the root category (level 1)
+                        let rootCategoryName = 'Uncategorized';
+                        if (templateCategory) {
+                          // If it's level 1, use it directly
+                          if (templateCategory.level === 1) {
+                            rootCategoryName = templateCategory.name;
+                          } else {
+                            // Find the root parent for this category
+                            const rootCategory = categories?.find((c: any) => 
+                              c.level === 1 && 
+                              (c.id === templateCategory.parentId || 
+                               categories?.some((parent: any) => 
+                                 parent.parentId === c.id && parent.id === templateCategory.parentId
+                               ))
+                            );
+                            rootCategoryName = rootCategory?.name || template.category || 'Uncategorized';
+                          }
                         }
-                        groupedTemplates[categoryName].push(template);
+                        
+                        if (!groupedTemplates[rootCategoryName]) {
+                          groupedTemplates[rootCategoryName] = [];
+                        }
+                        groupedTemplates[rootCategoryName].push(template);
                       });
 
                       if (Object.keys(groupedTemplates).length === 0) {
@@ -1269,7 +1291,7 @@ export default function CustomerDetailNew() {
                         <div key={categoryName} className="border-b border-border last:border-b-0">
                           {/* Category Header */}
                           <div 
-                            className="px-4 py-3 bg-muted/30 border-b border-border cursor-pointer flex items-center justify-between hover:bg-muted/50 transition-colors"
+                            className="px-4 py-2 bg-muted/30 border-b border-border cursor-pointer flex items-center justify-between hover:bg-muted/50 transition-colors"
                             onClick={() => {
                               const categoryId = categories?.find((c: any) => c.name === categoryName)?.id;
                               if (categoryId) {
@@ -1286,10 +1308,7 @@ export default function CustomerDetailNew() {
                             }}
                           >
                             <div className="flex items-center">
-                              <div className="w-2.5 h-2.5 rounded-full mr-3" 
-                                   style={{ backgroundColor: categories?.find((c: any) => c.name === categoryName)?.color || '#6366f1' }}>
-                              </div>
-                              <span className="font-medium text-foreground">{categoryName}</span>
+                              <span className="text-sm font-medium text-foreground">{categoryName}</span>
                               <span className="ml-2 text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
                                 {templates.length}
                               </span>
@@ -1315,7 +1334,7 @@ export default function CustomerDetailNew() {
                                 {templates.map((template: any) => (
                                   <div 
                                     key={template.id}
-                                    className={`p-4 cursor-pointer hover:bg-accent transition-colors ${
+                                    className={`p-3 cursor-pointer hover:bg-accent transition-colors ${
                                       selectedProductTemplate?.id === template.id ? 
                                         'bg-primary/5 border-l-2 border-l-primary' : ''
                                     }`}
@@ -1323,20 +1342,14 @@ export default function CustomerDetailNew() {
                                   >
                                     <div className="flex justify-between items-start">
                                       <div className="flex-1 min-w-0">
-                                        <div className="font-medium text-foreground truncate">{template.name}</div>
-                                        <div className="text-sm text-muted-foreground mt-0.5">
-                                          {template.providerName} • ID: {template.productId}
+                                        <div className="text-sm font-medium text-foreground truncate">{template.name}</div>
+                                        <div className="text-xs text-muted-foreground mt-0.5">
+                                          {template.providerName} • Product ID: {template.productId}
                                         </div>
                                         {template.description && (
-                                          <div className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                                          <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
                                             {template.description}
                                           </div>
-                                        )}
-                                      </div>
-                                      <div className="text-right ml-4 flex-shrink-0">
-                                        <div className="font-semibold text-foreground">€{template.averagePrice}</div>
-                                        {template.premiumPercentage && (
-                                          <div className="text-xs text-muted-foreground">{template.premiumPercentage}% premium</div>
                                         )}
                                       </div>
                                     </div>
@@ -1392,7 +1405,7 @@ export default function CustomerDetailNew() {
                           <span className="text-foreground font-medium">{selectedProductTemplate.category || 'Not specified'}</span>
                         </div>
                         <div className="flex justify-between">
-                          <span className="text-muted-foreground">Default Price:</span>
+                          <span className="text-muted-foreground">Average Price:</span>
                           <span className="text-foreground font-medium">€{selectedProductTemplate.averagePrice}</span>
                         </div>
                         <div className="flex justify-between">
@@ -1491,20 +1504,6 @@ export default function CustomerDetailNew() {
                             className="h-9"
                           />
                         </div>
-                        
-                        <div className="space-y-2">
-                          <Label htmlFor="notes" className="text-sm">Notes</Label>
-                          <Textarea
-                            id="notes"
-                            placeholder="Add any special notes about this product assignment..."
-                            value={customAttributes.notes}
-                            onChange={(e) => setCustomAttributes(prev => ({
-                              ...prev,
-                              notes: e.target.value
-                            }))}
-                            className="min-h-[80px] resize-none"
-                          />
-                        </div>
                       </div>
                     </div>
                   </div>
@@ -1523,7 +1522,7 @@ export default function CustomerDetailNew() {
 
 
 
-          <DialogFooter className="flex-shrink-0 border-t border-border pt-4">
+          <DialogFooter className="flex-shrink-0 border-t border-border pt-4 justify-between">
             <Button 
               variant="outline" 
               onClick={() => {
@@ -1540,29 +1539,82 @@ export default function CustomerDetailNew() {
               }}
               className="h-9"
             >
-              Cancel
+              Close
             </Button>
-            <Button 
-              onClick={() => {
-                if (!selectedProductTemplate) return;
-                
-                const assignmentData = {
-                  productTemplateId: selectedProductTemplate.id,
-                  customPrice: customAttributes.customPrice ? parseFloat(customAttributes.customPrice) : null,
-                  customDiscountPercentage: customAttributes.customDiscountPercentage ? parseFloat(customAttributes.customDiscountPercentage) : null,
-                  customPremiumPercentage: customAttributes.customPremiumPercentage ? parseFloat(customAttributes.customPremiumPercentage) : null,
-                  customerContractStartDate: customAttributes.customerContractStartDate || null,
-                  customerContractEndDate: customAttributes.customerContractEndDate || null,
-                  notes: customAttributes.notes || null
-                };
-                
-                addProductMutation.mutate(assignmentData);
-              }}
-              disabled={!selectedProductTemplate || addProductMutation.isPending}
-              className="bg-[#5567E5] text-white hover:bg-[#4556D4] h-9"
-            >
-              {addProductMutation.isPending ? 'Adding...' : 'Add product'}
-            </Button>
+            
+            <div className="flex space-x-2">
+              <Button 
+                variant="outline"
+                onClick={() => {
+                  if (!selectedProductTemplate) return;
+                  
+                  const assignmentData = {
+                    productTemplateId: selectedProductTemplate.id,
+                    customPrice: customAttributes.customPrice ? parseFloat(customAttributes.customPrice) : null,
+                    customDiscountPercentage: customAttributes.customDiscountPercentage ? parseFloat(customAttributes.customDiscountPercentage) : null,
+                    customPremiumPercentage: customAttributes.customPremiumPercentage ? parseFloat(customAttributes.customPremiumPercentage) : null,
+                    customerContractStartDate: customAttributes.customerContractStartDate || null,
+                    customerContractEndDate: customAttributes.customerContractEndDate || null,
+                    notes: ''
+                  };
+                  
+                  addProductMutation.mutate(assignmentData, {
+                    onSuccess: () => {
+                      // Reset form but keep dialog open
+                      setSelectedProductTemplate(null);
+                      setCustomAttributes({
+                        customPrice: '',
+                        customDiscountPercentage: '',
+                        customPremiumPercentage: '',
+                        customerContractStartDate: '',
+                        customerContractEndDate: '',
+                        notes: ''
+                      });
+                    }
+                  });
+                }}
+                disabled={!selectedProductTemplate || addProductMutation.isPending}
+                className="h-9"
+              >
+                {addProductMutation.isPending ? 'Adding...' : 'Add & continue'}
+              </Button>
+              
+              <Button 
+                onClick={() => {
+                  if (!selectedProductTemplate) return;
+                  
+                  const assignmentData = {
+                    productTemplateId: selectedProductTemplate.id,
+                    customPrice: customAttributes.customPrice ? parseFloat(customAttributes.customPrice) : null,
+                    customDiscountPercentage: customAttributes.customDiscountPercentage ? parseFloat(customAttributes.customDiscountPercentage) : null,
+                    customPremiumPercentage: customAttributes.customPremiumPercentage ? parseFloat(customAttributes.customPremiumPercentage) : null,
+                    customerContractStartDate: customAttributes.customerContractStartDate || null,
+                    customerContractEndDate: customAttributes.customerContractEndDate || null,
+                    notes: ''
+                  };
+                  
+                  addProductMutation.mutate(assignmentData, {
+                    onSuccess: () => {
+                      // Close dialog after adding
+                      setShowAddProductDialog(false);
+                      setSelectedProductTemplate(null);
+                      setCustomAttributes({
+                        customPrice: '',
+                        customDiscountPercentage: '',
+                        customPremiumPercentage: '',
+                        customerContractStartDate: '',
+                        customerContractEndDate: '',
+                        notes: ''
+                      });
+                    }
+                  });
+                }}
+                disabled={!selectedProductTemplate || addProductMutation.isPending}
+                className="bg-[#5567E5] text-white hover:bg-[#4556D4] h-9"
+              >
+                {addProductMutation.isPending ? 'Adding...' : 'Add & close'}
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
