@@ -564,15 +564,6 @@ export default function PlatformActivityHub() {
                 <button className="w-8 h-8 flex items-center justify-center hover:bg-[#E6E7F1] rounded-md transition-colors duration-150">
                   <Pin className="h-4 w-4 text-gray-600" />
                 </button>
-                
-                {/* Delete Icon */}
-                <button 
-                  onClick={() => handleDeleteActivity(activity.id)}
-                  className="w-8 h-8 flex items-center justify-center hover:bg-red-50 rounded-md transition-colors duration-150"
-                  title="Delete activity"
-                >
-                  <Trash2 className="h-4 w-4 text-red-600" />
-                </button>
               </div>
             </div>
           </div>
