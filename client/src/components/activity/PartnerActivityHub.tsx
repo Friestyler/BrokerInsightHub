@@ -574,10 +574,15 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
           user_id: 1
         })
       }).then(res => {
+        console.log('Activity response status:', res.status);
         if (!res.ok) {
-          throw new Error(`HTTP error! status: ${res.status}`);
+          return res.text().then(errorText => {
+            console.error('Activity creation failed:', { status: res.status, errorText });
+            throw new Error(`HTTP error! status: ${res.status}, response: ${errorText}`);
+          });
         }
         return res.text().then(text => {
+          console.log('Activity response text:', text);
           try {
             return text ? JSON.parse(text) : { success: true };
           } catch (e) {
