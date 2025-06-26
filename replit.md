@@ -317,6 +317,7 @@ Each environment maintains its own data isolation while sharing the same applica
 - June 26, 2025: Enhanced subcategory visual hierarchy with white backgrounds, consistent border colors (#E6E7F1), and increased left padding (pl-8 for level 2, pl-12 for level 3) to accommodate chevron arrows for unlimited nesting levels. Improved visual separation between category levels with proper spacing and hover states.
 - June 26, 2025: Implemented hierarchical Select dropdown component - enhanced shadcn/ui Select component with level prop for proper indentation, created renderCategoriesHierarchy utility function for recursive category display, updated ProductAssignmentStep to show categories in nested tree structure with visual color indicators and progressive left padding (8px + level * 16px). Category dropdowns now display full hierarchy with parent-child relationships clearly visible through indentation.
 - June 26, 2025: Updated Product Templates table headers to use consistent design system colors - applied text-muted-foreground class from shadcn/ui library to all TableHead components for proper header styling consistency across the application.
+- June 26, 2025: Fixed critical subcategory creation bug - corrected field mapping from parent_id to parentId in both frontend form submission and mutation type definition to match backend API expectations. Subcategories now properly nest under their parent categories with correct database persistence and hierarchical display in the categories management interface.
 
 ## User Preferences
 
