@@ -626,7 +626,7 @@ export default function ProductTemplates() {
           {/* Category Tree with shadcn/ui Collapsible */}
           <div className="space-y-2">
             {getRootCategories().map((category: any) => (
-              <Card key={category.id} className="border-none">
+              <Card key={category.id} className="border-[#E6E7F1]">
                 <Collapsible 
                   open={expandedCategories.has(category.id)}
                   onOpenChange={(open) => {
