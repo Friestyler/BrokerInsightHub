@@ -365,7 +365,7 @@ export default function ProductAssignmentStep({
                           } else {
                             // Product has no category, create preliminary mapping
                             const newMappings = {
-                              ...productMappings,
+                              ...(productMappings || {}),
                               [product.id.toString()]: {
                                 targetId: '',
                                 targetType: 'category',
