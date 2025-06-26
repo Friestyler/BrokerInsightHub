@@ -746,7 +746,7 @@ export default function CustomerDetailNew() {
               </Button>
             </div>
             
-            {/* Products Table with Partners page styling */}
+            {/* Products Table with exact Partners page styling */}
             <div className="bg-white rounded-lg shadow-sm overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
@@ -757,22 +757,22 @@ export default function CustomerDetailNew() {
                           <Checkbox />
                         </div>
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider min-w-[200px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider w-[250px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
                         Product
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider min-w-[150px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider w-[120px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
                         Provider
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider min-w-[120px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider w-[120px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
                         Category
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider min-w-[120px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider w-[120px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
                         Premium Value
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider min-w-[100px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider w-[120px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
                         Premium %
                       </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider min-w-[100px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider w-[120px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
                         Status
                       </th>
                     </tr>
@@ -792,13 +792,14 @@ export default function CustomerDetailNew() {
                         const status = product.status || 'Active';
                         
                         return (
-                          <tr key={productId} className="group hover:bg-gray-50">
-                            <td className="whitespace-nowrap py-4 pl-6 pr-3 text-sm">
-                              <div className="transition-opacity opacity-0 group-hover:opacity-100">
-                                <Checkbox />
-                              </div>
+                          <tr key={productId} className="hover:bg-gray-50 group">
+                            <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm w-10">
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 rounded border-gray-300 invisible group-hover:visible"
+                              />
                             </td>
-                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm">
+                            <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
                               <div className="flex items-center">
                                 <div className="h-10 w-10 flex-shrink-0">
                                   <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
@@ -817,22 +818,22 @@ export default function CustomerDetailNew() {
                                 </div>
                               </div>
                             </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                               {providerName}
                             </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                               {category}
                             </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                               {premiumValue ? `€${Number(premiumValue).toLocaleString()}` : '-'}
                             </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                            <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                               {premiumPercentage ? `${Number(premiumPercentage)}%` : '-'}
                             </td>
-                            <td className="whitespace-nowrap px-3 py-4 text-sm">
+                            <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                               <Badge 
-                                variant={status === 'Active' ? 'default' : 'secondary'}
-                                className={status === 'Active' ? 'bg-green-100 text-green-800' : ''}
+                                variant={status === 'Active' ? 'outline' : 'secondary'}
+                                className="capitalize"
                               >
                                 {status}
                               </Badge>
