@@ -14,10 +14,10 @@ import { z } from "zod";
 import { Plus, MoreVertical, Edit, Trash2, Search } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import CategoryManagerForProducts from "@/components/CategoryManagerForProducts";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { ProductTemplate, InsertProductTemplate } from "@shared/schema";
-import CategoryManagerForProducts from "@/components/CategoryManagerForProducts";
 
 const productTemplateSchema = z.object({
   productId: z.string().min(1, "Product ID is required"),
