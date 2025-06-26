@@ -138,9 +138,21 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
   const [visibleToPartner, setVisibleToPartner] = useState(true);
 
   const handleSubmit = () => {
+    console.log('TimelineComposer handleSubmit called:', { 
+      content: content.trim(), 
+      activeMode, 
+      hasContent: !!content.trim() 
+    });
+    
     if (!content.trim()) return;
     
     if (activeMode === 'task') {
+      console.log('Calling onCreateTask with:', {
+        title: content.trim(),
+        priority,
+        assignedTo,
+        visibleToPartner
+      });
       onCreateTask({
         title: content.trim(),
         priority,
@@ -148,6 +160,10 @@ const TimelineComposer = ({ onCreateTask, onCreateComment, teamMembers, isLoadin
         visibleToPartner
       });
     } else {
+      console.log('Calling onCreateComment with:', {
+        content: content.trim(),
+        visibleToPartner
+      });
       onCreateComment({
         content: content.trim(),
         visibleToPartner
@@ -1147,6 +1163,8 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                   assignedTo: string;
                   visibleToPartner: boolean;
                 }) => {
+                  console.log('Tasks tab onCreateTask callback triggered with:', taskData);
+                  
                   // Use existing task creation logic
                   const originalType = selectedActivityType;
                   const originalTitle = taskTitle;
