@@ -629,12 +629,12 @@ export default function ProductTemplates() {
                 {/* Category Header */}
                 <div className="p-4 hover:bg-gray-50 transition-colors min-h-[72px]">
                   <div className="flex items-center justify-between h-full">
-                    <div className="flex items-center space-x-3">
+                    <div className="flex items-center">
                       <Button
                         variant="ghost"
                         size="sm"
                         onClick={() => toggleCategoryExpansion(category.id)}
-                        className="p-1 h-auto"
+                        className="p-1 h-auto mr-2"
                       >
                         {expandedCategories.has(category.id) ? (
                           <ChevronDown className="h-4 w-4 text-gray-500" />
@@ -704,15 +704,15 @@ export default function ProductTemplates() {
                   <div className="border-t border-[#E6E7F1] bg-white">
                     {getSubcategories(category.id).map((subcategory: any) => (
                       <div key={subcategory.id} className="group/subcategory">
-                        <div className="py-2 pl-8 pr-4 border-b border-[#E6E7F1] bg-white hover:bg-gray-50/50 transition-colors min-h-[56px]">
+                        <div className="py-2 pl-4 pr-4 border-b border-[#E6E7F1] bg-white hover:bg-gray-50/50 transition-colors min-h-[56px]">
                           <div className="flex items-center justify-between h-full">
-                            <div className="flex items-center space-x-3">
+                            <div className="flex items-center">
                               {getSubcategoryCount(subcategory.id) > 0 ? (
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => toggleCategoryExpansion(subcategory.id)}
-                                  className="p-0 h-auto hover:bg-transparent"
+                                  className="p-0 h-auto hover:bg-transparent mr-2"
                                 >
                                   {expandedCategories.has(subcategory.id) ? (
                                     <ChevronDown className="h-3 w-3 text-gray-400" />
@@ -721,7 +721,7 @@ export default function ProductTemplates() {
                                   )}
                                 </Button>
                               ) : (
-                                <div className="w-3 h-3"></div>
+                                <div className="w-3 h-3 mr-2"></div>
                               )}
                               <div className="min-h-[32px] flex flex-col justify-center">
                                 <h4 className="text-sm font-medium text-[#282A3F]">{subcategory.name}</h4>
@@ -784,9 +784,10 @@ export default function ProductTemplates() {
                         {expandedCategories.has(subcategory.id) && getSubcategories(subcategory.id).length > 0 && (
                           <div className="bg-white border-t border-[#E6E7F1]">
                             {getSubcategories(subcategory.id).map((nestedSubcategory: any) => (
-                              <div key={nestedSubcategory.id} className="group/nested py-2 pl-12 pr-4 border-b border-[#E6E7F1] bg-white hover:bg-gray-50/50 transition-colors min-h-[56px]">
+                              <div key={nestedSubcategory.id} className="group/nested py-2 pl-8 pr-4 border-b border-[#E6E7F1] bg-white hover:bg-gray-50/50 transition-colors min-h-[56px]">
                                 <div className="flex items-center justify-between h-full">
-                                  <div className="flex items-center space-x-2">
+                                  <div className="flex items-center">
+                                    <div className="w-3 h-3 mr-2"></div>
                                     <div className="min-h-[32px] flex flex-col justify-center">
                                       <h5 className="text-sm font-medium text-[#282A3F]">{nestedSubcategory.name}</h5>
                                       <div className="min-h-[16px]">
