@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Copy, Users, Trash2, MoreHorizontal, MessageSquare, ArrowLeft, Plus, Mail, Calendar, Clock, Play, Pause, AlertCircle, CheckCircle, Eye } from "lucide-react";
+import { Search, Copy, Users, Trash2, MoreHorizontal, MoreVertical, MessageSquare, ArrowLeft, Plus, Mail, Calendar, Clock, Play, Pause, AlertCircle, CheckCircle, Eye, Edit } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
@@ -43,6 +43,14 @@ export default function PartnerDetail() {
   const [selectedMetricForComment, setSelectedMetricForComment] = useState<any>(null);
   const [visibleToPartner, setVisibleToPartner] = useState(false);
   const [assignedTo, setAssignedTo] = useState("");
+  
+  // Comment dialog state for customers and opportunities
+  const [isCustomerCommentDialogOpen, setIsCustomerCommentDialogOpen] = useState(false);
+  const [isOpportunityCommentDialogOpen, setIsOpportunityCommentDialogOpen] = useState(false);
+  const [selectedCustomerForComment, setSelectedCustomerForComment] = useState<any>(null);
+  const [selectedOpportunityForComment, setSelectedOpportunityForComment] = useState<any>(null);
+  const [customerComment, setCustomerComment] = useState("");
+  const [opportunityComment, setOpportunityComment] = useState("");
 
   // Back navigation state
   const [backUrl, setBackUrl] = useState("/partners");
@@ -576,6 +584,108 @@ export default function PartnerDetail() {
       setIsSavingList(false);
     }
   });
+
+  // Mutation for creating cross-entity comments
+  const createCrossEntityCommentMutation = useMutation({
+    mutationFn: async ({ entityType, entityId, comment, entityName }: { 
+      entityType: 'customer' | 'opportunity', 
+      entityId: number, 
+      comment: string,
+      entityName: string 
+    }) => {
+      // Create activity in both partner and entity hubs
+      const partnerActivityData = {
+        type: 'comment',
+        content: comment,
+        source_entity_type: entityType,
+        source_entity_id: entityId,
+        source_entity_name: entityName,
+        visible_to_partner: true,
+        assigned_to: 'current_user'
+      };
+
+      const entityActivityData = {
+        type: 'comment',
+        content: comment,
+        source_entity_type: 'partner',
+        source_entity_id: parseInt(id),
+        source_entity_name: partner?.data?.name || 'Partner',
+        visible_to_partner: true,
+        assigned_to: 'current_user'
+      };
+
+      // Create activity in partner hub
+      await apiRequest('POST', `/api/partners/${id}/activities`, partnerActivityData);
+      
+      // Create activity in entity hub (opportunity or customer)
+      const entityEndpoint = entityType === 'opportunity' 
+        ? `/api/opportunities/${entityId}/activities`
+        : `/api/customers/${entityId}/activities`;
+      
+      await apiRequest('POST', entityEndpoint, entityActivityData);
+      
+      return { success: true };
+    },
+    onSuccess: () => {
+      // Invalidate activity queries for both hubs
+      queryClient.invalidateQueries({ queryKey: [`/api/partners/${id}/activities`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/activities'] });
+      
+      toast({
+        title: "Comment added",
+        description: "Your comment has been added to both partner and entity activity feeds.",
+      });
+      
+      // Reset comment dialog state
+      setIsCustomerCommentDialogOpen(false);
+      setIsOpportunityCommentDialogOpen(false);
+      setCustomerComment("");
+      setOpportunityComment("");
+      setSelectedCustomerForComment(null);
+      setSelectedOpportunityForComment(null);
+    },
+    onError: (error) => {
+      console.error('Error creating cross-entity comment:', error);
+      toast({
+        title: "Error creating comment",
+        description: "Failed to create comment. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Comment handler functions
+  const handleCustomerComment = (customer: any) => {
+    setSelectedCustomerForComment(customer);
+    setIsCustomerCommentDialogOpen(true);
+  };
+
+  const handleOpportunityComment = (opportunity: any) => {
+    setSelectedOpportunityForComment(opportunity);
+    setIsOpportunityCommentDialogOpen(true);
+  };
+
+  const handleSubmitCustomerComment = () => {
+    if (!customerComment.trim() || !selectedCustomerForComment) return;
+    
+    createCrossEntityCommentMutation.mutate({
+      entityType: 'customer',
+      entityId: selectedCustomerForComment.id,
+      comment: customerComment,
+      entityName: selectedCustomerForComment.name
+    });
+  };
+
+  const handleSubmitOpportunityComment = () => {
+    if (!opportunityComment.trim() || !selectedOpportunityForComment) return;
+    
+    createCrossEntityCommentMutation.mutate({
+      entityType: 'opportunity',
+      entityId: selectedOpportunityForComment.id,
+      comment: opportunityComment,
+      entityName: selectedOpportunityForComment.title
+    });
+  };
 
   // Enhanced delete list mutation with comprehensive cache invalidation
   const deleteSavedListMutation = useMutation({
@@ -2234,6 +2344,7 @@ export default function PartnerDetail() {
                     <TableHead className="w-[180px]">Stage</TableHead>
                     <TableHead>Value</TableHead>
                     <TableHead>Close Date</TableHead>
+                    <TableHead className="w-12">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -2326,6 +2437,29 @@ export default function PartnerDetail() {
                       </TableCell>
                       <TableCell>
                         {opportunity.expected_close_date ? new Date(opportunity.expected_close_date).toLocaleDateString() : 'Not set'}
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem onClick={() => handleOpportunityComment(opportunity)}>
+                              <MessageSquare className="mr-2 h-4 w-4" />
+                              Comment
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Edit className="mr-2 h-4 w-4" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600">
+                              <Trash2 className="mr-2 h-4 w-4" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -2911,6 +3045,7 @@ export default function PartnerDetail() {
                     <TableHead>Status</TableHead>
                     <TableHead>Opportunities</TableHead>
                     <TableHead>Total Value</TableHead>
+                    <TableHead className="w-12">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -2989,6 +3124,29 @@ export default function PartnerDetail() {
                           </TableCell>
                           <TableCell>
                             €{totalValue ? Number(totalValue).toLocaleString() : '0'}
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleCustomerComment(customer)}>
+                                  <MessageSquare className="mr-2 h-4 w-4" />
+                                  Comment
+                                </DropdownMenuItem>
+                                <DropdownMenuItem>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-red-600">
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
                           </TableCell>
                         </TableRow>
                       );
