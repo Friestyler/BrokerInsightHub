@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { ColorPicker } from "@/components/ui/color-picker";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -62,6 +63,9 @@ export default function ProductTemplates() {
   const [editCategoryDialogOpen, setEditCategoryDialogOpen] = useState(false);
   const [deleteCategoryDialogOpen, setDeleteCategoryDialogOpen] = useState(false);
   const [selectedCategory, setSelectedCategory] = useState<any>(null);
+  const [newCategoryColor, setNewCategoryColor] = useState("#3B82F6");
+  const [newSubcategoryColor, setNewSubcategoryColor] = useState("#3B82F6");
+  const [editCategoryColor, setEditCategoryColor] = useState("#3B82F6");
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -1105,7 +1109,7 @@ export default function ProductTemplates() {
             const formData = new FormData(e.target as HTMLFormElement);
             createCategoryMutation.mutate({
               name: formData.get('name') as string,
-              color: formData.get('color') as string,
+              color: newSubcategoryColor,
               description: formData.get('description') as string || undefined,
               parentId: selectedParentCategory?.id,
             });
@@ -1117,7 +1121,12 @@ export default function ProductTemplates() {
               </div>
               <div>
                 <label className="text-sm font-medium text-[#282A3F]">Color</label>
-                <Input name="color" type="color" defaultValue={selectedParentCategory?.color || "#3B82F6"} className="mt-1" />
+                <div className="mt-1">
+                  <ColorPicker 
+                    value={newSubcategoryColor} 
+                    onChange={setNewSubcategoryColor}
+                  />
+                </div>
               </div>
               <div>
                 <label className="text-sm font-medium text-[#282A3F]">Description</label>
