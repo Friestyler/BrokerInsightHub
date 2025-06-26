@@ -1315,22 +1315,35 @@ export default function CustomerDetailNew() {
                               }
                             </div>
 
-                            {/* Subcategories and Products */}
+                            {/* Level 2 and Level 3 Subcategories with Products */}
                             {isRootExpanded && (
                               <div>
                                 {subcategories.map((subcategory: any) => {
                                   const subcategoryId = subcategory.id;
                                   const isSubExpanded = expandedCategories.has(subcategoryId);
                                   
-                                  // Get products for this subcategory
-                                  const subcategoryTemplates = filteredTemplates.filter((template: any) => {
+                                  // Get Level 3 subcategories (sub-subcategories) under this Level 2 category
+                                  const subSubcategories = categories?.filter((c: any) => c.parentId === subcategoryId && c.level === 3) || [];
+                                  
+                                  // Get products directly assigned to this Level 2 subcategory
+                                  const directSubcategoryTemplates = filteredTemplates.filter((template: any) => {
                                     const templateCategory = categories?.find((c: any) => c.name === template.category);
-                                    return templateCategory?.id === subcategoryId || templateCategory?.parentId === subcategoryId;
+                                    return templateCategory?.id === subcategoryId;
                                   });
+                                  
+                                  // Count total products (direct + from sub-subcategories)
+                                  const totalSubcategoryProducts = directSubcategoryTemplates.length + 
+                                    subSubcategories.reduce((count: number, subSub: any) => {
+                                      const subSubProducts = filteredTemplates.filter((template: any) => {
+                                        const templateCategory = categories?.find((c: any) => c.name === template.category);
+                                        return templateCategory?.id === subSub.id;
+                                      });
+                                      return count + subSubProducts.length;
+                                    }, 0);
                                   
                                   return (
                                     <div key={subcategory.name} className="border-b border-border/50 last:border-b-0">
-                                      {/* Subcategory Header */}
+                                      {/* Level 2 Subcategory Header */}
                                       <div 
                                         className="px-6 py-2 bg-muted/20 cursor-pointer flex items-center justify-between hover:bg-muted/30 transition-colors"
                                         onClick={() => {
@@ -1346,9 +1359,9 @@ export default function CustomerDetailNew() {
                                         }}
                                       >
                                         <div className="flex items-center">
-                                          <span className="text-sm font-medium text-foreground">{subcategory.name}</span>
+                                          <span className="text-sm font-medium text-foreground">→ {subcategory.name}</span>
                                           <span className="ml-2 text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
-                                            {subcategoryTemplates.length}
+                                            {totalSubcategoryProducts}
                                           </span>
                                         </div>
                                         {isSubExpanded ? 
@@ -1357,33 +1370,111 @@ export default function CustomerDetailNew() {
                                         }
                                       </div>
 
-                                      {/* Products under subcategory */}
+                                      {/* Level 3 Sub-subcategories and Products */}
                                       {isSubExpanded && (
-                                        <div className="divide-y divide-border/30">
-                                          {subcategoryTemplates.map((template: any) => (
-                                            <div 
-                                              key={template.id}
-                                              className={`px-8 py-3 cursor-pointer hover:bg-accent transition-colors ${
-                                                selectedProductTemplate?.id === template.id ? 
-                                                  'bg-primary/5 border-l-2 border-l-primary' : ''
-                                              }`}
-                                              onClick={() => setSelectedProductTemplate(template)}
-                                            >
-                                              <div className="flex justify-between items-start">
-                                                <div className="flex-1 min-w-0">
-                                                  <div className="text-sm font-medium text-foreground truncate">{template.name}</div>
-                                                  <div className="text-xs text-muted-foreground mt-0.5">
-                                                    {template.providerName} • Product ID: {template.productId}
+                                        <div>
+                                          {/* Level 3 sub-subcategories */}
+                                          {subSubcategories.map((subSubcategory: any) => {
+                                            const subSubId = subSubcategory.id;
+                                            const isSubSubExpanded = expandedCategories.has(subSubId);
+                                            
+                                            // Get products for this Level 3 sub-subcategory
+                                            const subSubTemplates = filteredTemplates.filter((template: any) => {
+                                              const templateCategory = categories?.find((c: any) => c.name === template.category);
+                                              return templateCategory?.id === subSubId;
+                                            });
+                                            
+                                            return (
+                                              <div key={subSubcategory.name} className="border-b border-border/30 last:border-b-0">
+                                                {/* Level 3 Sub-subcategory Header */}
+                                                <div 
+                                                  className="px-8 py-2 bg-muted/10 cursor-pointer flex items-center justify-between hover:bg-muted/20 transition-colors"
+                                                  onClick={() => {
+                                                    setExpandedCategories(prev => {
+                                                      const newSet = new Set(prev);
+                                                      if (newSet.has(subSubId)) {
+                                                        newSet.delete(subSubId);
+                                                      } else {
+                                                        newSet.add(subSubId);
+                                                      }
+                                                      return newSet;
+                                                    });
+                                                  }}
+                                                >
+                                                  <div className="flex items-center">
+                                                    <span className="text-sm font-medium text-foreground">---→ {subSubcategory.name}</span>
+                                                    <span className="ml-2 text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+                                                      {subSubTemplates.length}
+                                                    </span>
                                                   </div>
-                                                  {template.description && (
-                                                    <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                                      {template.description}
-                                                    </div>
-                                                  )}
+                                                  {isSubSubExpanded ? 
+                                                    <ChevronDown className="h-3 w-3 text-muted-foreground" /> : 
+                                                    <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                                                  }
                                                 </div>
+
+                                                {/* Products under Level 3 sub-subcategory */}
+                                                {isSubSubExpanded && (
+                                                  <div className="divide-y divide-border/20">
+                                                    {subSubTemplates.map((template: any) => (
+                                                      <div 
+                                                        key={template.id}
+                                                        className={`px-10 py-3 cursor-pointer hover:bg-accent transition-colors ${
+                                                          selectedProductTemplate?.id === template.id ? 
+                                                            'bg-primary/5 border-l-2 border-l-primary' : ''
+                                                        }`}
+                                                        onClick={() => setSelectedProductTemplate(template)}
+                                                      >
+                                                        <div className="flex justify-between items-start">
+                                                          <div className="flex-1 min-w-0">
+                                                            <div className="text-sm font-medium text-foreground truncate">-----→ {template.name}</div>
+                                                            <div className="text-xs text-muted-foreground mt-0.5">
+                                                              {template.providerName} • Product ID: {template.productId}
+                                                            </div>
+                                                            {template.description && (
+                                                              <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                                                {template.description}
+                                                              </div>
+                                                            )}
+                                                          </div>
+                                                        </div>
+                                                      </div>
+                                                    ))}
+                                                  </div>
+                                                )}
                                               </div>
+                                            );
+                                          })}
+                                          
+                                          {/* Products directly under Level 2 subcategory (if any) */}
+                                          {directSubcategoryTemplates.length > 0 && (
+                                            <div className="divide-y divide-border/30">
+                                              {directSubcategoryTemplates.map((template: any) => (
+                                                <div 
+                                                  key={template.id}
+                                                  className={`px-8 py-3 cursor-pointer hover:bg-accent transition-colors ${
+                                                    selectedProductTemplate?.id === template.id ? 
+                                                      'bg-primary/5 border-l-2 border-l-primary' : ''
+                                                  }`}
+                                                  onClick={() => setSelectedProductTemplate(template)}
+                                                >
+                                                  <div className="flex justify-between items-start">
+                                                    <div className="flex-1 min-w-0">
+                                                      <div className="text-sm font-medium text-foreground truncate">---→ {template.name}</div>
+                                                      <div className="text-xs text-muted-foreground mt-0.5">
+                                                        {template.providerName} • Product ID: {template.productId}
+                                                      </div>
+                                                      {template.description && (
+                                                        <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                                          {template.description}
+                                                        </div>
+                                                      )}
+                                                    </div>
+                                                  </div>
+                                                </div>
+                                              ))}
                                             </div>
-                                          ))}
+                                          )}
                                         </div>
                                       )}
                                     </div>
