@@ -6553,7 +6553,36 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         ORDER BY pt.name ASC
       `);
       
-      res.json(result.rows);
+      // Transform snake_case to camelCase for frontend
+      const transformedRows = result.rows.map(row => ({
+        id: row.id,
+        productId: row.product_id,
+        name: row.name,
+        description: row.description,
+        categoryId: row.category_id,
+        category: row.category,
+        providerId: row.provider_id,
+        providerType: row.provider_type,
+        providerName: row.provider_name,
+        contractStartDate: row.contract_start_date,
+        contractEndDate: row.contract_end_date,
+        averagePrice: row.average_price,
+        premiumValue: row.premium_value,
+        premiumPercentage: row.premium_percentage,
+        discount: row.discount,
+        discountPercentage: row.discount_percentage,
+        vendorId: row.vendor_id,
+        isActive: row.is_active,
+        notes: row.notes,
+        tags: row.tags,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        categoryName: row.category_name,
+        categoryColor: row.category_color,
+        vendorName: row.vendor_name
+      }));
+      
+      res.json(transformedRows);
     } catch (error) {
       console.error('Error fetching product templates:', error);
       res.status(500).json({ error: 'Failed to fetch product templates' });
@@ -6595,7 +6624,33 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         isActive ?? true, status ?? 'active', notes, JSON.stringify(tags || [])
       ]);
       
-      res.status(201).json(result.rows[0]);
+      // Transform response to camelCase
+      const transformedRow = {
+        id: result.rows[0].id,
+        productId: result.rows[0].product_id,
+        name: result.rows[0].name,
+        description: result.rows[0].description,
+        categoryId: result.rows[0].category_id,
+        category: result.rows[0].category,
+        providerId: result.rows[0].provider_id,
+        providerType: result.rows[0].provider_type,
+        providerName: result.rows[0].provider_name,
+        contractStartDate: result.rows[0].contract_start_date,
+        contractEndDate: result.rows[0].contract_end_date,
+        averagePrice: result.rows[0].average_price,
+        premiumValue: result.rows[0].premium_value,
+        premiumPercentage: result.rows[0].premium_percentage,
+        discount: result.rows[0].discount,
+        discountPercentage: result.rows[0].discount_percentage,
+        vendorId: result.rows[0].vendor_id,
+        isActive: result.rows[0].is_active,
+        notes: result.rows[0].notes,
+        tags: result.rows[0].tags,
+        createdAt: result.rows[0].created_at,
+        updatedAt: result.rows[0].updated_at
+      };
+      
+      res.status(201).json(transformedRow);
     } catch (error) {
       console.error('Error creating product template:', error);
       res.status(500).json({ error: 'Failed to create product template' });
@@ -6643,7 +6698,33 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         return res.status(404).json({ error: 'Product template not found' });
       }
       
-      res.json(result.rows[0]);
+      // Transform response to camelCase
+      const transformedRow = {
+        id: result.rows[0].id,
+        productId: result.rows[0].product_id,
+        name: result.rows[0].name,
+        description: result.rows[0].description,
+        categoryId: result.rows[0].category_id,
+        category: result.rows[0].category,
+        providerId: result.rows[0].provider_id,
+        providerType: result.rows[0].provider_type,
+        providerName: result.rows[0].provider_name,
+        contractStartDate: result.rows[0].contract_start_date,
+        contractEndDate: result.rows[0].contract_end_date,
+        averagePrice: result.rows[0].average_price,
+        premiumValue: result.rows[0].premium_value,
+        premiumPercentage: result.rows[0].premium_percentage,
+        discount: result.rows[0].discount,
+        discountPercentage: result.rows[0].discount_percentage,
+        vendorId: result.rows[0].vendor_id,
+        isActive: result.rows[0].is_active,
+        notes: result.rows[0].notes,
+        tags: result.rows[0].tags,
+        createdAt: result.rows[0].created_at,
+        updatedAt: result.rows[0].updated_at
+      };
+      
+      res.json(transformedRow);
     } catch (error) {
       console.error('Error updating product template:', error);
       res.status(500).json({ error: 'Failed to update product template' });
