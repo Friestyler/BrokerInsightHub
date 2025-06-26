@@ -1343,7 +1343,7 @@ function PartnersTable() {
                    selectedSize !== '');
                    
                 // Only render buttons if there are filters applied or filters have changed
-                return (filterText || selectedStatus || selectedIndustry || selectedActualIndustry || selectedSize) && (
+                return (filterText || (selectedStatus && selectedStatus !== 'all') || (selectedIndustry && selectedIndustry !== 'all') || (selectedActualIndustry && selectedActualIndustry !== 'all') || (selectedSize && selectedSize !== 'all')) && (
                   <div className="flex items-center gap-2">
                     {/* Show Revert and Save buttons only when a view is active AND filters have changed */}
                     {filtersChanged && (
@@ -1459,7 +1459,7 @@ function PartnersTable() {
             </div>
             
             {/* Clear filters button - shown when any filters are applied */}
-            {(filterText || selectedStatus || selectedIndustry || selectedActualIndustry) && (
+            {(filterText || (selectedStatus && selectedStatus !== 'all') || (selectedIndustry && selectedIndustry !== 'all') || (selectedActualIndustry && selectedActualIndustry !== 'all')) && (
               <div className="mt-2">
                 <button 
                   className="flex items-center text-sm text-gray-500 hover:text-gray-700"
