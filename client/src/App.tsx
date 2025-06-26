@@ -27,6 +27,7 @@ import PartnersViewforPartner from "@/pages/PartnersViewforPartner";
 import VendorsPage from "@/pages/lists/VendorsPage";
 import ProductsPage from "@/pages/lists/ProductsPage";
 import ProductDetail from "@/pages/lists/ProductDetail";
+import ProductTemplates from "@/pages/ProductTemplates";
 
 import OKRTemplatesPage from "@/pages/templates/OKRMetricsPage";
 import GroupDetail from "@/pages/templates/GroupDetail";

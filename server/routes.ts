@@ -25,13 +25,17 @@ import {
   insertCampaignShareSchema,
   productCategories,
   products,
+  productTemplates,
   vendors,
   insertProductCategorySchema,
   insertProductSchema,
+  insertProductTemplateSchema,
   activityReactions,
   insertActivityReactionSchema,
   type ProductCategory,
   type Product,
+  type ProductTemplate,
+  type InsertProductTemplate,
   type Vendor,
   type ActivityReaction,
   type InsertActivityReaction
@@ -6410,6 +6414,147 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
     } catch (error) {
       console.error('Error deleting product catalogue:', error);
       res.status(500).json({ error: 'Failed to delete product catalogue' });
+    }
+  });
+
+  // ===== PRODUCT TEMPLATES API =====
+
+  // Get all product templates
+  app.get('/api/:envId/product-templates', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const envPool = pool;
+      
+      console.log(`Returning product templates from ${envId} database`);
+      
+      const result = await envPool.query(`
+        SELECT 
+          pt.*,
+          pc.name as parent_category_name,
+          v.name as vendor_name
+        FROM ${envId}.product_templates pt
+        LEFT JOIN ${envId}.product_categories pc ON pt.category_id = pc.id
+        LEFT JOIN ${envId}.vendors v ON pt.vendor_id = v.id
+        WHERE pt.is_active = true
+        ORDER BY pt.name ASC
+      `);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching product templates:', error);
+      res.status(500).json({ error: 'Failed to fetch product templates' });
+    }
+  });
+
+  // Create product template
+  app.post('/api/:envId/product-templates', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const { 
+        productId, name, description, categoryId, category, 
+        providerId, providerType, providerName,
+        contractStartDate, contractEndDate,
+        averagePrice, premiumValue, premiumPercentage,
+        discount, discountPercentage, vendorId,
+        isActive, status, notes, tags 
+      } = req.body;
+      
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        INSERT INTO ${envId}.product_templates (
+          product_id, name, description, category_id, category,
+          provider_id, provider_type, provider_name,
+          contract_start_date, contract_end_date,
+          average_price, premium_value, premium_percentage,
+          discount, discount_percentage, vendor_id,
+          is_active, status, notes, tags
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+        RETURNING *
+      `, [
+        productId, name, description, categoryId, category,
+        providerId, providerType, providerName,
+        contractStartDate, contractEndDate,
+        averagePrice, premiumValue, premiumPercentage,
+        discount, discountPercentage, vendorId,
+        isActive ?? true, status ?? 'active', notes, JSON.stringify(tags || [])
+      ]);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating product template:', error);
+      res.status(500).json({ error: 'Failed to create product template' });
+    }
+  });
+
+  // Update product template
+  app.put('/api/:envId/product-templates/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const templateId = parseInt(req.params.id);
+      const { 
+        productId, name, description, categoryId, category, 
+        providerId, providerType, providerName,
+        contractStartDate, contractEndDate,
+        averagePrice, premiumValue, premiumPercentage,
+        discount, discountPercentage, vendorId,
+        isActive, status, notes, tags 
+      } = req.body;
+      
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        UPDATE ${envId}.product_templates SET
+          product_id = $1, name = $2, description = $3, category_id = $4, category = $5,
+          provider_id = $6, provider_type = $7, provider_name = $8,
+          contract_start_date = $9, contract_end_date = $10,
+          average_price = $11, premium_value = $12, premium_percentage = $13,
+          discount = $14, discount_percentage = $15, vendor_id = $16,
+          is_active = $17, status = $18, notes = $19, tags = $20,
+          updated_at = NOW()
+        WHERE id = $21
+        RETURNING *
+      `, [
+        productId, name, description, categoryId, category,
+        providerId, providerType, providerName,
+        contractStartDate, contractEndDate,
+        averagePrice, premiumValue, premiumPercentage,
+        discount, discountPercentage, vendorId,
+        isActive, status, notes, JSON.stringify(tags || []),
+        templateId
+      ]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Product template not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating product template:', error);
+      res.status(500).json({ error: 'Failed to update product template' });
+    }
+  });
+
+  // Delete product template
+  app.delete('/api/:envId/product-templates/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const templateId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        DELETE FROM ${envId}.product_templates WHERE id = $1 RETURNING *
+      `, [templateId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Product template not found' });
+      }
+      
+      res.json({ message: 'Product template deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting product template:', error);
+      res.status(500).json({ error: 'Failed to delete product template' });
     }
   });
 

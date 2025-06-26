@@ -1581,6 +1581,10 @@ export type InsertActivityAttachment = z.infer<typeof insertActivityAttachmentSc
 export type NextBestAction = typeof nextBestActions.$inferSelect;
 export type InsertNextBestAction = z.infer<typeof insertNextBestActionSchema>;
 
+// Product Template types
+export type ProductTemplate = typeof productTemplates.$inferSelect;
+export type InsertProductTemplate = z.infer<typeof insertProductTemplateSchema>;
+
 // Product and Category types
 export type Vendor = typeof vendors.$inferSelect;
 export type InsertVendor = z.infer<typeof insertVendorSchema>;
