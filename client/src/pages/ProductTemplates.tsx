@@ -735,18 +735,19 @@ export default function ProductTemplates() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="opacity-0 group-hover/subcategory:opacity-100 transition-opacity text-[#5567E5] hover:text-[#4451c7] hover:bg-[#5567E5]/10"
+                                className="opacity-0 group-hover/subcategory:opacity-100 transition-opacity text-[#5567E5] hover:text-[#4451c7] hover:bg-[#5567E5]/10 h-6"
                                 onClick={() => {
                                   setSelectedParentCategory(subcategory);
                                   setCreateSubcategoryDialogOpen(true);
                                 }}
                               >
-                                <ChevronRight className="h-3 w-3" />
+                                <Plus className="h-3 w-3 mr-1" />
+                                Add
                               </Button>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <Button variant="ghost" size="sm">
-                                    <MoreVertical className="h-4 w-4" />
+                                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                    <MoreVertical className="h-3 w-3" />
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end" className="bg-white">
@@ -754,7 +755,7 @@ export default function ProductTemplates() {
                                     setSelectedCategory(subcategory);
                                     setEditCategoryDialogOpen(true);
                                   }}>
-                                    <Edit className="h-4 w-4 mr-2" />
+                                    <Edit className="h-3 w-3 mr-2" />
                                     Edit
                                   </DropdownMenuItem>
                                   <DropdownMenuItem 
@@ -764,29 +765,13 @@ export default function ProductTemplates() {
                                       setDeleteCategoryDialogOpen(true);
                                     }}
                                   >
-                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    <Trash2 className="h-3 w-3 mr-2" />
                                     Delete
                                   </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </div>
                           </div>
-                        </div>
-                        
-                        {/* Add Subcategory Button - Appears on Hover */}
-                        <div className="opacity-0 group-hover/subcategory:opacity-100 transition-opacity px-4 py-1 bg-gray-50/50">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="text-xs text-[#5567E5] border-[#5567E5] hover:bg-[#5567E5] hover:text-white h-6"
-                            onClick={() => {
-                              setSelectedParentCategory(subcategory);
-                              setCreateSubcategoryDialogOpen(true);
-                            }}
-                          >
-                            <Plus className="h-3 w-3 mr-1" />
-                            Add subcategory
-                          </Button>
                         </div>
 
                         {/* Nested Subcategories */}
