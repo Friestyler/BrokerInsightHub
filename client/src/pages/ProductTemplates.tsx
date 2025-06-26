@@ -582,7 +582,7 @@ export default function ProductTemplates() {
                 <DialogHeader>
                   <DialogTitle className="text-[#282A3F]">Create New Category</DialogTitle>
                 </DialogHeader>
-                <Form onSubmit={(e) => {
+                <form onSubmit={(e) => {
                   e.preventDefault();
                   const formData = new FormData(e.target as HTMLFormElement);
                   createCategoryMutation.mutate({
@@ -613,7 +613,7 @@ export default function ProductTemplates() {
                       {createCategoryMutation.isPending ? "Creating..." : "Create category"}
                     </Button>
                   </DialogFooter>
-                </Form>
+                </form>
               </DialogContent>
             </Dialog>
           </div>
@@ -997,7 +997,7 @@ export default function ProductTemplates() {
               Create Subcategory for "{selectedParentCategory?.name}"
             </DialogTitle>
           </DialogHeader>
-          <Form onSubmit={(e) => {
+          <form onSubmit={(e) => {
             e.preventDefault();
             const formData = new FormData(e.target as HTMLFormElement);
             createCategoryMutation.mutate({
@@ -1032,7 +1032,7 @@ export default function ProductTemplates() {
                 {createCategoryMutation.isPending ? "Creating..." : "Create subcategory"}
               </Button>
             </DialogFooter>
-          </Form>
+          </form>
         </DialogContent>
       </Dialog>
 
@@ -1042,7 +1042,7 @@ export default function ProductTemplates() {
           <DialogHeader>
             <DialogTitle className="text-[#282A3F]">Edit Category</DialogTitle>
           </DialogHeader>
-          <Form onSubmit={(e) => {
+          <form onSubmit={(e) => {
             e.preventDefault();
             const formData = new FormData(e.target as HTMLFormElement);
             if (selectedCategory) {
@@ -1097,7 +1097,7 @@ export default function ProductTemplates() {
                 {updateCategoryMutation.isPending ? "Updating..." : "Update category"}
               </Button>
             </DialogFooter>
-          </Form>
+          </form>
         </DialogContent>
       </Dialog>
 
