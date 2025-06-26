@@ -851,7 +851,7 @@ export default function PlatformActivityHub() {
           <TabsContent value="timeline" className="mt-0">
             {renderFilters()}
             <ScrollArea className="h-[600px]" ref={timelineRef}>
-              <div className="p-6">
+              <div className="p-6 border border-gray-200">
                 {isLoading ? (
                   <div className="text-center py-8 text-gray-500">
                     <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-300" />
@@ -875,7 +875,7 @@ export default function PlatformActivityHub() {
           <TabsContent value="tasks" className="mt-0">
             {renderFilters()}
             <ScrollArea className="h-[600px]">
-              <div className="p-6">
+              <div className="p-6 border border-gray-200">
                 {isLoading ? (
                   <div className="text-center py-8 text-gray-500">
                     <CheckSquare className="h-12 w-12 mx-auto mb-4 text-gray-300" />
@@ -899,7 +899,7 @@ export default function PlatformActivityHub() {
           <TabsContent value="comments" className="mt-0">
             {renderFilters()}
             <ScrollArea className="h-[600px]">
-              <div className="p-6">
+              <div className="p-6 border border-gray-200">
                 {isLoading ? (
                   <div className="text-center py-8 text-gray-500">
                     <MessageSquare className="h-12 w-12 mx-auto mb-4 text-gray-300" />
