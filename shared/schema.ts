@@ -772,7 +772,6 @@ export const productTemplates = pgTable("product_templates", {
   
   // Metadata
   isActive: boolean("is_active").notNull().default(true),
-  status: text("status").notNull().default("active"), // active, inactive, expired
   notes: text("notes"),
   tags: text("tags").array(),
   
@@ -900,7 +899,6 @@ export const insertProductTemplateSchema = createInsertSchema(productTemplates).
   discountPercentage: true,
   vendorId: true,
   isActive: true,
-  status: true,
   notes: true,
   tags: true,
 });
