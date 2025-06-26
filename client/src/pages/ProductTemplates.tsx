@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, MoreVertical, Edit, Trash2, Search } from "lucide-react";
+import { Plus, MoreVertical, Edit, Trash2, Search, ChevronDown, ChevronRight } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -54,6 +54,13 @@ export default function ProductTemplates() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<ProductTemplate | null>(null);
   const [selectedTemplates, setSelectedTemplates] = useState<number[]>([]);
+  const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set());
+  const [createCategoryDialogOpen, setCreateCategoryDialogOpen] = useState(false);
+  const [createSubcategoryDialogOpen, setCreateSubcategoryDialogOpen] = useState(false);
+  const [selectedParentCategory, setSelectedParentCategory] = useState<any>(null);
+  const [editCategoryDialogOpen, setEditCategoryDialogOpen] = useState(false);
+  const [deleteCategoryDialogOpen, setDeleteCategoryDialogOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState<any>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -141,6 +148,74 @@ export default function ProductTemplates() {
     },
   });
 
+  // Category mutations
+  const createCategoryMutation = useMutation({
+    mutationFn: async (data: { name: string; color: string; description?: string; parent_id?: number }) => {
+      return apiRequest('POST', '/api/categories', data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+      setCreateCategoryDialogOpen(false);
+      setCreateSubcategoryDialogOpen(false);
+      setSelectedParentCategory(null);
+      toast({
+        title: "Success",
+        description: "Category created successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to create category",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const updateCategoryMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      return apiRequest('PUT', `/api/categories/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+      setEditCategoryDialogOpen(false);
+      setSelectedCategory(null);
+      toast({
+        title: "Success",
+        description: "Category updated successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update category",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteCategoryMutation = useMutation({
+    mutationFn: async (id: number) => {
+      return apiRequest('DELETE', `/api/categories/${id}`);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+      setDeleteCategoryDialogOpen(false);
+      setSelectedCategory(null);
+      toast({
+        title: "Success",
+        description: "Category deleted successfully",
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete category",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Form setup
   const createForm = useForm<ProductTemplateFormData>({
     resolver: zodResolver(productTemplateSchema),
@@ -217,6 +292,27 @@ export default function ProductTemplates() {
       month: '2-digit', 
       year: 'numeric'
     });
+  };
+
+  // Helper functions for categories
+  const toggleCategoryExpansion = (categoryId: number) => {
+    setExpandedCategories(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(categoryId)) {
+        newSet.delete(categoryId);
+      } else {
+        newSet.add(categoryId);
+      }
+      return newSet;
+    });
+  };
+
+  const getSubcategories = (parentId: number) => {
+    return categories.filter((cat: any) => cat.parent_id === parentId);
+  };
+
+  const getRootCategories = () => {
+    return categories.filter((cat: any) => !cat.parent_id);
   };
 
   const renderProductTemplateForm = (form: any, onSubmit: (data: ProductTemplateFormData) => void) => (
@@ -475,120 +571,184 @@ export default function ProductTemplates() {
         <div className="container mx-auto px-4 py-6">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-gray-900">Product Categories</h1>
-            <Dialog>
+            <Dialog open={createCategoryDialogOpen} onOpenChange={setCreateCategoryDialogOpen}>
               <DialogTrigger asChild>
-                <Button>
+                <Button className="bg-[#5567E5] hover:bg-[#4451c7]">
                   <Plus className="h-4 w-4 mr-2" />
                   Create category
                 </Button>
               </DialogTrigger>
-              <DialogContent className="max-w-md">
+              <DialogContent className="max-w-md bg-white">
                 <DialogHeader>
-                  <DialogTitle>Create New Category</DialogTitle>
+                  <DialogTitle className="text-[#282A3F]">Create New Category</DialogTitle>
                 </DialogHeader>
-                <div className="space-y-4">
-                  <div>
-                    <label className="text-sm font-medium">Category Name</label>
-                    <Input placeholder="Enter category name" />
+                <Form onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.target as HTMLFormElement);
+                  createCategoryMutation.mutate({
+                    name: formData.get('name') as string,
+                    color: formData.get('color') as string,
+                    description: formData.get('description') as string || undefined,
+                  });
+                }}>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="text-sm font-medium text-[#282A3F]">Category Name</label>
+                      <Input name="name" placeholder="Enter category name" required className="mt-1" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-[#282A3F]">Color</label>
+                      <Input name="color" type="color" defaultValue="#3B82F6" className="mt-1" />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-[#282A3F]">Description</label>
+                      <Textarea name="description" placeholder="Enter description (optional)" className="mt-1" />
+                    </div>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium">Color</label>
-                    <Input type="color" defaultValue="#3B82F6" />
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium">Description</label>
-                    <Textarea placeholder="Enter description (optional)" />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button variant="outline">Cancel</Button>
-                  <Button>Create category</Button>
-                </DialogFooter>
+                  <DialogFooter className="mt-6">
+                    <Button type="button" variant="outline" onClick={() => setCreateCategoryDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button type="submit" className="bg-[#5567E5] hover:bg-[#4451c7]" disabled={createCategoryMutation.isPending}>
+                      {createCategoryMutation.isPending ? "Creating..." : "Create category"}
+                    </Button>
+                  </DialogFooter>
+                </Form>
               </DialogContent>
             </Dialog>
           </div>
 
-          {/* Categories Table */}
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-            <div className="overflow-x-auto">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="min-w-[200px]">Category Name</TableHead>
-                    <TableHead className="min-w-[100px]">Color</TableHead>
-                    <TableHead className="min-w-[150px]">Description</TableHead>
-                    <TableHead className="min-w-[100px]">Level</TableHead>
-                    <TableHead className="min-w-[120px]">Subcategories</TableHead>
-                    <TableHead className="w-12">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {categories.map((category: any) => (
-                    <TableRow key={category.id} className="hover:bg-gray-50">
-                      <TableCell>
-                        <div className="flex items-center gap-3">
-                          <div 
-                            className="w-4 h-4 rounded-full border border-gray-200"
-                            style={{ backgroundColor: category.color }}
-                          />
-                          <div>
-                            <div className="font-medium text-gray-900">{category.name}</div>
-                            {category.parent_id && (
-                              <div className="text-sm text-gray-500">
-                                Child of: {categories.find((c: any) => c.id === category.parent_id)?.name}
-                              </div>
-                            )}
+          {/* Modern Category Tree */}
+          <div className="space-y-4">
+            {getRootCategories().map((category: any) => (
+              <div key={category.id} className="bg-white rounded-lg border border-[#E6E7F1] shadow-sm overflow-hidden">
+                {/* Category Header */}
+                <div className="p-4 hover:bg-gray-50 transition-colors">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleCategoryExpansion(category.id)}
+                        className="p-1 h-auto"
+                      >
+                        {expandedCategories.has(category.id) ? (
+                          <ChevronDown className="h-4 w-4 text-gray-500" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4 text-gray-500" />
+                        )}
+                      </Button>
+                      <div 
+                        className="w-4 h-4 rounded-full border border-gray-200"
+                        style={{ backgroundColor: category.color }}
+                      />
+                      <div>
+                        <h3 className="text-base font-medium text-[#282A3F]">{category.name}</h3>
+                        {category.description && (
+                          <p className="text-sm text-gray-500">{category.description}</p>
+                        )}
+                      </div>
+                      <Badge variant="outline" className="text-xs">
+                        Level {category.level || 1}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedParentCategory(category);
+                          setCreateSubcategoryDialogOpen(true);
+                        }}
+                        className="text-[#5567E5] hover:text-[#4451c7] hover:bg-[#5567E5]/10"
+                      >
+                        <Plus className="h-4 w-4 mr-1" />
+                        Add subcategory
+                      </Button>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end" className="bg-white">
+                          <DropdownMenuItem onClick={() => {
+                            setSelectedCategory(category);
+                            setEditCategoryDialogOpen(true);
+                          }}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            className="text-red-600"
+                            onClick={() => {
+                              setSelectedCategory(category);
+                              setDeleteCategoryDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Subcategories */}
+                {expandedCategories.has(category.id) && (
+                  <div className="border-t border-[#E6E7F1] bg-gray-50/50">
+                    {getSubcategories(category.id).map((subcategory: any) => (
+                      <div key={subcategory.id} className="p-4 pl-12 border-b border-[#E6E7F1] last:border-b-0 hover:bg-white transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            <div 
+                              className="w-3 h-3 rounded-full border border-gray-200"
+                              style={{ backgroundColor: subcategory.color }}
+                            />
+                            <div>
+                              <h4 className="text-sm font-medium text-[#282A3F]">{subcategory.name}</h4>
+                              {subcategory.description && (
+                                <p className="text-xs text-gray-500">{subcategory.description}</p>
+                              )}
+                            </div>
+                            <Badge variant="outline" className="text-xs">
+                              Level {subcategory.level || 2}
+                            </Badge>
                           </div>
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm">
+                                <MoreVertical className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end" className="bg-white">
+                              <DropdownMenuItem onClick={() => {
+                                setSelectedCategory(subcategory);
+                                setEditCategoryDialogOpen(true);
+                              }}>
+                                <Edit className="h-4 w-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem 
+                                className="text-red-600"
+                                onClick={() => {
+                                  setSelectedCategory(subcategory);
+                                  setDeleteCategoryDialogOpen(true);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4 mr-2" />
+                                Delete
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-6 h-6 rounded border border-gray-200"
-                            style={{ backgroundColor: category.color }}
-                          />
-                          <span className="text-sm text-gray-600">{category.color}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm text-gray-900">
-                          {category.description || '-'}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant="outline">
-                          Level {category.level || 1}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="text-sm text-gray-900">
-                          {categories.filter((c: any) => c.parent_id === category.id).length} subcategories
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm">
-                              <MoreVertical className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>
-                              <Edit className="h-4 w-4 mr-2" />
-                              Edit
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">
-                              <Trash2 className="h-4 w-4 mr-2" />
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -828,6 +988,149 @@ export default function ProductTemplates() {
       </AlertDialog>
       </div>
       )}
+
+      {/* Create Subcategory Dialog */}
+      <Dialog open={createSubcategoryDialogOpen} onOpenChange={setCreateSubcategoryDialogOpen}>
+        <DialogContent className="max-w-md bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-[#282A3F]">
+              Create Subcategory for "{selectedParentCategory?.name}"
+            </DialogTitle>
+          </DialogHeader>
+          <Form onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target as HTMLFormElement);
+            createCategoryMutation.mutate({
+              name: formData.get('name') as string,
+              color: formData.get('color') as string,
+              description: formData.get('description') as string || undefined,
+              parent_id: selectedParentCategory?.id,
+            });
+          }}>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-[#282A3F]">Subcategory Name</label>
+                <Input name="name" placeholder="Enter subcategory name" required className="mt-1" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#282A3F]">Color</label>
+                <Input name="color" type="color" defaultValue={selectedParentCategory?.color || "#3B82F6"} className="mt-1" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#282A3F]">Description</label>
+                <Textarea name="description" placeholder="Enter description (optional)" className="mt-1" />
+              </div>
+            </div>
+            <DialogFooter className="mt-6">
+              <Button type="button" variant="outline" onClick={() => {
+                setCreateSubcategoryDialogOpen(false);
+                setSelectedParentCategory(null);
+              }}>
+                Cancel
+              </Button>
+              <Button type="submit" className="bg-[#5567E5] hover:bg-[#4451c7]" disabled={createCategoryMutation.isPending}>
+                {createCategoryMutation.isPending ? "Creating..." : "Create subcategory"}
+              </Button>
+            </DialogFooter>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Category Dialog */}
+      <Dialog open={editCategoryDialogOpen} onOpenChange={setEditCategoryDialogOpen}>
+        <DialogContent className="max-w-md bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-[#282A3F]">Edit Category</DialogTitle>
+          </DialogHeader>
+          <Form onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target as HTMLFormElement);
+            if (selectedCategory) {
+              updateCategoryMutation.mutate({
+                id: selectedCategory.id,
+                data: {
+                  name: formData.get('name') as string,
+                  color: formData.get('color') as string,
+                  description: formData.get('description') as string || undefined,
+                }
+              });
+            }
+          }}>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-[#282A3F]">Category Name</label>
+                <Input 
+                  name="name" 
+                  placeholder="Enter category name" 
+                  defaultValue={selectedCategory?.name || ""} 
+                  required 
+                  className="mt-1" 
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#282A3F]">Color</label>
+                <Input 
+                  name="color" 
+                  type="color" 
+                  defaultValue={selectedCategory?.color || "#3B82F6"} 
+                  className="mt-1" 
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#282A3F]">Description</label>
+                <Textarea 
+                  name="description" 
+                  placeholder="Enter description (optional)" 
+                  defaultValue={selectedCategory?.description || ""} 
+                  className="mt-1" 
+                />
+              </div>
+            </div>
+            <DialogFooter className="mt-6">
+              <Button type="button" variant="outline" onClick={() => {
+                setEditCategoryDialogOpen(false);
+                setSelectedCategory(null);
+              }}>
+                Cancel
+              </Button>
+              <Button type="submit" className="bg-[#5567E5] hover:bg-[#4451c7]" disabled={updateCategoryMutation.isPending}>
+                {updateCategoryMutation.isPending ? "Updating..." : "Update category"}
+              </Button>
+            </DialogFooter>
+          </Form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Category Dialog */}
+      <AlertDialog open={deleteCategoryDialogOpen} onOpenChange={setDeleteCategoryDialogOpen}>
+        <AlertDialogContent className="bg-white">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-[#282A3F]">Delete Category</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{selectedCategory?.name}"? This action cannot be undone and will also delete all subcategories.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => {
+              setDeleteCategoryDialogOpen(false);
+              setSelectedCategory(null);
+            }}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (selectedCategory) {
+                  deleteCategoryMutation.mutate(selectedCategory.id);
+                }
+              }}
+              className="bg-red-600 hover:bg-red-700"
+              disabled={deleteCategoryMutation.isPending}
+            >
+              {deleteCategoryMutation.isPending ? "Deleting..." : "Delete"}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
