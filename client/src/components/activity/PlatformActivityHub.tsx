@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useEnvironment } from '@/contexts/EnvironmentContext';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -276,6 +277,15 @@ export default function PlatformActivityHub() {
         if (filters.recordNames.length > 0) {
           const entityName = getEntityName(activity);
           if (!entityName || entityName.trim() === '' || !filters.recordNames.some(name => entityName.toLowerCase().includes(name.toLowerCase()))) {
+            return false;
+          }
+        }
+
+        // Mentions filter - check if comment mentions the current user
+        if (filters.mentions) {
+          // For now, we'll simulate "mentioned me" by checking if the content contains "@" 
+          // In a real implementation, this would check for actual user mentions
+          if (!activity.content?.includes('@')) {
             return false;
           }
         }
@@ -657,6 +667,26 @@ export default function PlatformActivityHub() {
                 </SelectContent>
               </Select>
             </div>
+
+            {/* Mentioned me filter */}
+            <div>
+              <Label className="text-sm font-medium text-gray-700">Filters</Label>
+              <div className="flex items-center space-x-2 mt-1 h-8">
+                <Checkbox
+                  id="mentioned-me"
+                  checked={filters.mentions}
+                  onCheckedChange={(checked) => 
+                    setFilters(prev => ({ ...prev, mentions: !!checked }))
+                  }
+                />
+                <Label
+                  htmlFor="mentioned-me"
+                  className="text-sm font-normal text-gray-700 cursor-pointer"
+                >
+                  Mentioned me
+                </Label>
+              </div>
+            </div>
           </>
         ) : (
           /* Assignee filter for non-comments tabs */
@@ -745,9 +775,6 @@ export default function PlatformActivityHub() {
     <Card className="border border-[#E6E7F1] bg-white">
       <CardHeader className="pb-4">
         <CardTitle className="text-xl font-semibold text-[#282A3F]">Platform Activity Hub</CardTitle>
-        <p className="text-sm text-gray-600 mt-1">
-          Comprehensive view of all activities across partners, opportunities, and customers
-        </p>
       </CardHeader>
       
       <CardContent className="p-0">
