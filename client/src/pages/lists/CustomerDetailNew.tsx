@@ -1150,6 +1150,220 @@ export default function CustomerDetailNew() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Add Product Dialog */}
+      <Dialog open={showAddProductDialog} onOpenChange={setShowAddProductDialog}>
+        <DialogContent className="max-w-2xl bg-white text-foreground">
+          <DialogHeader>
+            <DialogTitle>Add Product Template</DialogTitle>
+            <DialogDescription>
+              Assign a product template to {customer?.name} with custom attributes
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Product Template Selection */}
+            <div className="space-y-2">
+              <Label htmlFor="product-template">Product Template</Label>
+              {templatesLoading ? (
+                <div className="text-sm text-muted-foreground">Loading templates...</div>
+              ) : (
+                <Select 
+                  value={selectedProductTemplate?.id?.toString() || ""} 
+                  onValueChange={(value) => {
+                    const template = productTemplates?.find((t: any) => t.id.toString() === value);
+                    setSelectedProductTemplate(template);
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a product template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {productTemplates?.map((template: any) => (
+                      <SelectItem key={template.id} value={template.id.toString()}>
+                        <div className="flex items-center space-x-3">
+                          <div className="flex-1">
+                            <div className="font-medium">{template.name}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {template.providerName} • €{template.averagePrice}
+                            </div>
+                          </div>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+
+            {/* Template Details */}
+            {selectedProductTemplate && (
+              <div className="bg-muted/30 rounded-lg p-4">
+                <h4 className="font-medium mb-2">Template Details</h4>
+                <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-muted-foreground">Provider:</span>
+                    <span className="ml-2">{selectedProductTemplate.providerName}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Category:</span>
+                    <span className="ml-2">{selectedProductTemplate.category || 'Not specified'}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Default Price:</span>
+                    <span className="ml-2">€{selectedProductTemplate.averagePrice}</span>
+                  </div>
+                  <div>
+                    <span className="text-muted-foreground">Premium %:</span>
+                    <span className="ml-2">{selectedProductTemplate.premiumPercentage || 0}%</span>
+                  </div>
+                </div>
+                {selectedProductTemplate.description && (
+                  <div className="mt-2">
+                    <span className="text-muted-foreground">Description:</span>
+                    <p className="mt-1 text-sm">{selectedProductTemplate.description}</p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Custom Attributes */}
+            {selectedProductTemplate && (
+              <div className="space-y-4">
+                <h4 className="font-medium">Custom Attributes for {customer?.name}</h4>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="custom-price">Custom Price (€)</Label>
+                    <Input
+                      id="custom-price"
+                      type="number"
+                      step="0.01"
+                      placeholder={`Default: €${selectedProductTemplate.averagePrice}`}
+                      value={customAttributes.customPrice}
+                      onChange={(e) => setCustomAttributes(prev => ({
+                        ...prev,
+                        customPrice: e.target.value
+                      }))}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="custom-discount-percentage">Discount (%)</Label>
+                    <Input
+                      id="custom-discount-percentage"
+                      type="number"
+                      step="0.01"
+                      max="100"
+                      placeholder={`Default: ${selectedProductTemplate.discountPercentage || 0}%`}
+                      value={customAttributes.customDiscountPercentage}
+                      onChange={(e) => setCustomAttributes(prev => ({
+                        ...prev,
+                        customDiscountPercentage: e.target.value
+                      }))}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="custom-premium-percentage">Premium (%)</Label>
+                    <Input
+                      id="custom-premium-percentage"
+                      type="number"
+                      step="0.01"
+                      placeholder={`Default: ${selectedProductTemplate.premiumPercentage || 0}%`}
+                      value={customAttributes.customPremiumPercentage}
+                      onChange={(e) => setCustomAttributes(prev => ({
+                        ...prev,
+                        customPremiumPercentage: e.target.value
+                      }))}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="contract-start">Contract Start Date</Label>
+                    <Input
+                      id="contract-start"
+                      type="date"
+                      value={customAttributes.customerContractStartDate}
+                      onChange={(e) => setCustomAttributes(prev => ({
+                        ...prev,
+                        customerContractStartDate: e.target.value
+                      }))}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="contract-end">Contract End Date</Label>
+                    <Input
+                      id="contract-end"
+                      type="date"
+                      value={customAttributes.customerContractEndDate}
+                      onChange={(e) => setCustomAttributes(prev => ({
+                        ...prev,
+                        customerContractEndDate: e.target.value
+                      }))}
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Notes</Label>
+                  <Textarea
+                    id="notes"
+                    placeholder="Add any special notes about this product assignment..."
+                    value={customAttributes.notes}
+                    onChange={(e) => setCustomAttributes(prev => ({
+                      ...prev,
+                      notes: e.target.value
+                    }))}
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowAddProductDialog(false);
+                setSelectedProductTemplate(null);
+                setCustomAttributes({
+                  customPrice: '',
+                  customDiscountPercentage: '',
+                  customPremiumPercentage: '',
+                  customerContractStartDate: '',
+                  customerContractEndDate: '',
+                  notes: ''
+                });
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (!selectedProductTemplate) return;
+                
+                const assignmentData = {
+                  productTemplateId: selectedProductTemplate.id,
+                  customPrice: customAttributes.customPrice ? parseFloat(customAttributes.customPrice) : null,
+                  customDiscountPercentage: customAttributes.customDiscountPercentage ? parseFloat(customAttributes.customDiscountPercentage) : null,
+                  customPremiumPercentage: customAttributes.customPremiumPercentage ? parseFloat(customAttributes.customPremiumPercentage) : null,
+                  customerContractStartDate: customAttributes.customerContractStartDate || null,
+                  customerContractEndDate: customAttributes.customerContractEndDate || null,
+                  notes: customAttributes.notes || null
+                };
+                
+                addProductMutation.mutate(assignmentData);
+              }}
+              disabled={!selectedProductTemplate || addProductMutation.isPending}
+              className="bg-[#5567E5] text-white hover:bg-[#4556D4]"
+            >
+              {addProductMutation.isPending ? 'Adding...' : 'Add Product'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
