@@ -614,7 +614,7 @@ export default function ProductTemplates() {
                   const formData = new FormData(e.target as HTMLFormElement);
                   createCategoryMutation.mutate({
                     name: formData.get('name') as string,
-                    color: formData.get('color') as string,
+                    color: newCategoryColor,
                     description: formData.get('description') as string || undefined,
                   });
                 }}>
@@ -625,7 +625,9 @@ export default function ProductTemplates() {
                     </div>
                     <div>
                       <label className="text-sm font-medium text-[#282A3F]">Color</label>
-                      <Input name="color" type="color" defaultValue="#3B82F6" className="mt-1" />
+                      <div className="mt-1">
+                        <ColorPicker value={newCategoryColor} onChange={setNewCategoryColor} />
+                      </div>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-[#282A3F]">Description</label>
