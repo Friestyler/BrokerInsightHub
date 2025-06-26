@@ -702,7 +702,7 @@ export default function ProductTemplates() {
                   <div className="border-t border-[#E6E7F1] bg-gray-50/50">
                     {getSubcategories(category.id).map((subcategory: any) => (
                       <div key={subcategory.id} className="group/subcategory">
-                        <div className="p-4 pl-12 border-b border-[#E6E7F1] last:border-b-0 hover:bg-white transition-colors">
+                        <div className="py-2 px-4 border-b border-[#E6E7F1] last:border-b-0 hover:bg-white transition-colors">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-3">
                               {getSubcategoryCount(subcategory.id) > 0 && (
@@ -774,11 +774,11 @@ export default function ProductTemplates() {
                         </div>
                         
                         {/* Add Subcategory Button - Appears on Hover */}
-                        <div className="opacity-0 group-hover/subcategory:opacity-100 transition-opacity pl-16 pr-4 pb-2 bg-gray-50/50">
+                        <div className="opacity-0 group-hover/subcategory:opacity-100 transition-opacity px-4 py-1 bg-gray-50/50">
                           <Button
                             variant="outline"
                             size="sm"
-                            className="text-xs text-[#5567E5] border-[#5567E5] hover:bg-[#5567E5] hover:text-white"
+                            className="text-xs text-[#5567E5] border-[#5567E5] hover:bg-[#5567E5] hover:text-white h-6"
                             onClick={() => {
                               setSelectedParentCategory(subcategory);
                               setCreateSubcategoryDialogOpen(true);
@@ -791,15 +791,15 @@ export default function ProductTemplates() {
 
                         {/* Nested Subcategories */}
                         {expandedCategories.has(subcategory.id) && getSubcategories(subcategory.id).length > 0 && (
-                          <div className="pl-8 border-l-2 border-gray-200 ml-16">
+                          <div className="ml-6 pl-2 border-l border-gray-200">
                             {getSubcategories(subcategory.id).map((nestedSubcategory: any) => (
-                              <div key={nestedSubcategory.id} className="group/nested p-3 pl-8 border-b border-gray-100 last:border-b-0 hover:bg-white transition-colors">
+                              <div key={nestedSubcategory.id} className="group/nested py-2 px-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center space-x-2">
                                     <div>
-                                      <h5 className="text-xs font-medium text-[#282A3F]">{nestedSubcategory.name}</h5>
+                                      <h5 className="text-sm font-medium text-[#282A3F]">{nestedSubcategory.name}</h5>
                                       {nestedSubcategory.description && (
-                                        <p className="text-xs text-gray-400">{nestedSubcategory.description}</p>
+                                        <p className="text-xs text-gray-500">{nestedSubcategory.description}</p>
                                       )}
                                     </div>
                                     {getSubcategoryCount(nestedSubcategory.id) > 0 && (
@@ -812,7 +812,7 @@ export default function ProductTemplates() {
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      className="opacity-0 group-hover/nested:opacity-100 transition-opacity text-[#5567E5] hover:text-[#4451c7] hover:bg-[#5567E5]/10"
+                                      className="opacity-0 group-hover/nested:opacity-100 transition-opacity text-[#5567E5] hover:text-[#4451c7] hover:bg-[#5567E5]/10 h-6 w-6 p-0"
                                       onClick={() => {
                                         setSelectedParentCategory(nestedSubcategory);
                                         setCreateSubcategoryDialogOpen(true);
