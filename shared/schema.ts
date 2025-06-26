@@ -228,12 +228,27 @@ export const customerPartners = pgTable("customer_partners", {
   partnerId: integer("partner_id").notNull(),
 });
 
+// Categories entity - replaces tag-based system
+export const categories = pgTable("categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  color: text("color").notNull().default("#3B82F6"),
+  description: text("description"),
+  parentId: integer("parent_id").references(() => categories.id),
+  level: integer("level").notNull().default(1), // 1, 2, or 3 for hierarchy
+  sortOrder: integer("sort_order").notNull().default(0),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Products catalog for De Goudse environment
 export const productCatalog = pgTable("product_catalog", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description").notNull().default(""),
   category: text("category").notNull(),
+  categoryId: integer("category_id").references(() => categories.id),
   colorCode: text("color_code").notNull().default("#3B82F6"),
   aiContext: text("ai_context").notNull().default(""),
   createdAt: timestamp("created_at").defaultNow().notNull(),

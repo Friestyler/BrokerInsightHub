@@ -215,7 +215,7 @@ interface SavedView {
 }
 
 export default function ProductsPage() {
-  const [activeTab, setActiveTab] = useState<'products' | 'categories'>('products');
+  // Remove categories tab - categories are now managed through Product Templates
   
   // Fetch products from database
   const { data: products = [], isLoading, error } = useProductsData();
@@ -604,80 +604,17 @@ export default function ProductsPage() {
     }
   };
 
-  if (activeTab === 'categories') {
-    return (
-      <div className="flex-1">
-        {/* Tab Navigation */}
-        <div className="bg-white">
-          <div className="px-6 py-4">
-            <div className="flex space-x-1">
-              <Button 
-                variant="ghost" 
-                className={`flex items-center gap-2 ${
-                  activeTab === 'products' 
-                    ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
-                    : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
-                }`}
-                onClick={() => setActiveTab('products')}
-              >
-                Products
-              </Button>
-              <Button 
-                variant="ghost" 
-                className={`flex items-center gap-2 ${
-                  activeTab === 'categories' 
-                    ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
-                    : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
-                }`}
-                onClick={() => setActiveTab('categories')}
-              >
-                Categories
-              </Button>
-            </div>
-          </div>
-        </div>
 
-        {/* Categories Content */}
-        <div className="mx-4">
-          <CategoryManagerForProducts />
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex-1">
-      {/* Tab Navigation */}
+      {/* Products Content */}
       <div className="bg-white">
         <div className="px-6 py-4">
-          <div className="flex space-x-1">
-            <Button 
-              variant="ghost" 
-              className={`flex items-center gap-2 ${
-                activeTab === 'products' 
-                  ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
-                  : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
-              }`}
-              onClick={() => setActiveTab('products')}
-            >
-              Products
-            </Button>
-            <Button 
-              variant="ghost" 
-              className={`flex items-center gap-2 ${
-                activeTab === 'categories' 
-                  ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
-                  : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
-              }`}
-              onClick={() => setActiveTab('categories')}
-            >
-              Categories
-            </Button>
-          </div>
+          <h1 className="text-2xl font-bold text-gray-900">Products</h1>
         </div>
       </div>
-
-      {/* Products Content */}
+      
       <div>
         {/* Toolbar with search and filters */}
         <div className="mx-4 py-2">
@@ -934,7 +871,7 @@ export default function ProductsPage() {
                         variant="outline" 
                         size="sm" 
                         onClick={() => {
-                          setSearchTerm('');
+                          setFilterText('');
                           setSelectedCategory('all');
                           setSelectedStatus('all');
                           setSelectedProvider('all');
