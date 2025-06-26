@@ -777,19 +777,13 @@ export default function ProductTemplates() {
                                         </Button>
                                       </DropdownMenuTrigger>
                                       <DropdownMenuContent align="end">
-                                        <DropdownMenuItem onClick={() => {
-                                          setSelectedCategory(subcategory);
-                                          setEditCategoryDialogOpen(true);
-                                        }}>
+                                        <DropdownMenuItem onClick={() => handleEditCategory(subcategory)}>
                                           <Edit className="h-3 w-3 mr-2" />
                                           Edit
                                         </DropdownMenuItem>
                                         <DropdownMenuItem 
                                           className="text-red-600"
-                                          onClick={() => {
-                                            setSelectedCategory(subcategory);
-                                            setDeleteCategoryDialogOpen(true);
-                                          }}
+                                          onClick={() => handleDeleteCategory(subcategory)}
                                         >
                                           <Trash2 className="h-3 w-3 mr-2" />
                                           Delete
@@ -835,19 +829,13 @@ export default function ProductTemplates() {
                                             </Button>
                                           </DropdownMenuTrigger>
                                           <DropdownMenuContent align="end">
-                                            <DropdownMenuItem onClick={() => {
-                                              setSelectedCategory(nestedSubcategory);
-                                              setEditCategoryDialogOpen(true);
-                                            }}>
+                                            <DropdownMenuItem onClick={() => handleEditCategory(nestedSubcategory)}>
                                               <Edit className="h-3 w-3 mr-2" />
                                               Edit
                                             </DropdownMenuItem>
                                             <DropdownMenuItem 
                                               className="text-red-600"
-                                              onClick={() => {
-                                                setSelectedCategory(nestedSubcategory);
-                                                setDeleteCategoryDialogOpen(true);
-                                              }}
+                                              onClick={() => handleDeleteCategory(nestedSubcategory)}
                                             >
                                               <Trash2 className="h-3 w-3 mr-2" />
                                               Delete
