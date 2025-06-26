@@ -134,7 +134,7 @@ export default function PartnerPilot() {
     queryKey: ['/api/customers'],
     staleTime: 30000,
   });
-  const customers = customersResponse?.data || [];
+  const customers = Array.isArray(customersResponse?.data) ? customersResponse.data : (Array.isArray(customersResponse) ? customersResponse : []);
 
   const { data: unifiedActivities } = useQuery({
     queryKey: ['/api/unified-activities'],

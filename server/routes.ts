@@ -1182,6 +1182,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get unified activities from all entities (for platform activity hub)
+  app.get('/api/:envId/unified-activities', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const envPool = getEnvironmentPool(envId);
+      
+      // Fetch all activities from activities table with entity names
+      const activitiesResult = await envPool.query(`
+        SELECT 
+          a.*,
+          CASE 
+            WHEN a.entity_type = 'partner' THEN p.name
+            WHEN a.entity_type = 'opportunity' THEN o.title  
+            WHEN a.entity_type = 'customer' THEN c.name
+            ELSE NULL
+          END as entity_name,
+          u.name as user_name,
+          u.email as user_email
+        FROM ${envId}.activities a
+        LEFT JOIN ${envId}.partners p ON a.entity_type = 'partner' AND a.entity_id = p.id
+        LEFT JOIN ${envId}.opportunities o ON a.entity_type = 'opportunity' AND a.entity_id = o.id  
+        LEFT JOIN ${envId}.customers c ON a.entity_type = 'customer' AND a.entity_id = c.id
+        LEFT JOIN ${envId}.users u ON (a.assigned_to = u.id OR a.user_id = u.id OR a.author_id = u.id)
+        ORDER BY a.created_at DESC
+        LIMIT 200
+      `);
+      
+      const activities = activitiesResult.rows.map((activity: any) => ({
+        id: activity.id,
+        activity_type: activity.activity_type,
+        title: activity.title,
+        content: activity.content,
+        priority: activity.priority,
+        completed: activity.completed,
+        visible_to_partner: activity.visible_to_partner,
+        entity_type: activity.entity_type,
+        entity_id: activity.entity_id,
+        entity_name: activity.entity_name,
+        assigned_to: activity.assigned_to,
+        user_id: activity.user_id,
+        author_id: activity.author_id,
+        created_at: activity.created_at,
+        updated_at: activity.updated_at,
+        source_entity_type: activity.source_entity_type,
+        source_entity_id: activity.source_entity_id,
+        source_entity_name: activity.source_entity_name,
+        reactions: []
+      }));
+      
+      res.json(activities);
+    } catch (error) {
+      console.error('Error fetching unified activities:', error);
+      res.status(500).json({ error: 'Failed to fetch unified activities' });
+    }
+  });
+
   // Create a new activity for a partner (comments, tasks)
   app.post('/api/:envId/partners/:id/activities', async (req, res) => {
     try {

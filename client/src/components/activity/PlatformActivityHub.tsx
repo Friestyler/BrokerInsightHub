@@ -83,42 +83,42 @@ export default function PlatformActivityHub() {
   const [activeTab, setActiveTab] = useState<'timeline' | 'tasks' | 'comments'>('timeline');
   const [filters, setFilters] = useState<FilterState>(defaultFilters);
   const { environment } = useEnvironment();
-  const currentEnv = environment;
+  const currentEnv = environment || 'degoudse';
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const timelineRef = useRef<HTMLDivElement>(null);
 
   // Fetch unified activities from all entities
   const { data: unifiedActivities, isLoading } = useQuery({
-    queryKey: [`/api/${currentEnv}/unified-activities`],
+    queryKey: ['/api/unified-activities'],
     staleTime: 0,
     gcTime: 0
   });
 
   // Fetch users for name resolution
   const { data: users } = useQuery({
-    queryKey: [`/api/${currentEnv}/users`],
+    queryKey: ['/api/users'],
   });
 
   // Fetch partners for filter options
   const { data: partners } = useQuery({
-    queryKey: [`/api/${currentEnv}/partners`],
+    queryKey: ['/api/partners'],
   });
 
   // Fetch opportunities for entity name resolution
   const { data: opportunities } = useQuery({
-    queryKey: [`/api/${currentEnv}/opportunities`],
+    queryKey: ['/api/opportunities'],
   });
 
   // Fetch customers for entity name resolution
   const { data: customers } = useQuery({
-    queryKey: [`/api/${currentEnv}/customers`],
+    queryKey: ['/api/customers'],
   });
 
   // Task completion mutation
   const completeTaskMutation = useMutation({
     mutationFn: async ({ taskId, completed }: { taskId: number; completed: boolean }) => {
-      const response = await fetch(`/api/${currentEnv}/tasks/${taskId}`, {
+      const response = await fetch(`/api/tasks/${taskId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ completed })
@@ -127,7 +127,7 @@ export default function PlatformActivityHub() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/unified-activities`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/unified-activities'] });
       toast({
         title: "Task updated",
         description: "Task completion status has been updated.",
@@ -138,7 +138,7 @@ export default function PlatformActivityHub() {
   // Reaction mutation
   const addReactionMutation = useMutation({
     mutationFn: async ({ activityId, emoji }: { activityId: number; emoji: string }) => {
-      const response = await fetch(`/api/${currentEnv}/activities/${activityId}/reactions`, {
+      const response = await fetch(`/api/activities/${activityId}/reactions`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ emoji, user_id: 1 })
@@ -148,7 +148,7 @@ export default function PlatformActivityHub() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ 
-        queryKey: [`/api/${currentEnv}/unified-activities`],
+        queryKey: ['/api/unified-activities'],
         exact: false 
       });
     }
@@ -256,7 +256,7 @@ export default function PlatformActivityHub() {
 
   // Get filtered and sorted activities
   const getActivitiesForTab = (): ActivityItem[] => {
-    if (!unifiedActivities) return [];
+    if (!Array.isArray(unifiedActivities)) return [];
     
     let activities = [...unifiedActivities];
     
@@ -535,7 +535,7 @@ export default function PlatformActivityHub() {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All assignees</SelectItem>
-              {users?.map((user: any) => (
+              {Array.isArray(users) && users.map((user: any) => (
                 <SelectItem key={user.id} value={user.id.toString()}>
                   {user.name}
                 </SelectItem>
@@ -621,7 +621,7 @@ export default function PlatformActivityHub() {
                 <Calendar className="h-4 w-4" />
                 Timeline
                 <Badge variant="secondary" className="bg-white text-gray-700 border-0 text-xs">
-                  {unifiedActivities?.length || 0}
+                  {Array.isArray(unifiedActivities) ? unifiedActivities.length : 0}
                 </Badge>
               </TabsTrigger>
               <TabsTrigger 
@@ -631,7 +631,7 @@ export default function PlatformActivityHub() {
                 <CheckSquare className="h-4 w-4" />
                 Tasks
                 <Badge variant="secondary" className="bg-white text-gray-700 border-0 text-xs">
-                  {unifiedActivities?.filter((a: any) => a.activity_type === 'task').length || 0}
+                  {Array.isArray(unifiedActivities) ? unifiedActivities.filter((a: any) => a.activity_type === 'task').length : 0}
                 </Badge>
               </TabsTrigger>
               <TabsTrigger 
@@ -641,7 +641,7 @@ export default function PlatformActivityHub() {
                 <MessageSquare className="h-4 w-4" />
                 Comments
                 <Badge variant="secondary" className="bg-white text-gray-700 border-0 text-xs">
-                  {unifiedActivities?.filter((a: any) => a.activity_type === 'comment').length || 0}
+                  {Array.isArray(unifiedActivities) ? unifiedActivities.filter((a: any) => a.activity_type === 'comment').length : 0}
                 </Badge>
               </TabsTrigger>
             </TabsList>
