@@ -1113,20 +1113,7 @@ Examples:
         </CardContent>
       </Card>
 
-      {/* Actions */}
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onBack}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
-        </Button>
-        <Button 
-          onClick={() => onNext(attributeMappings)} 
-          disabled={attributeMappings.length === 0}
-        >
-          Continue to Processing
-          <ArrowRight className="h-4 w-4 ml-2" />
-        </Button>
-      </div>
+
     </div>
   );
 }

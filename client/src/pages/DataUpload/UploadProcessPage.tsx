@@ -118,6 +118,7 @@ export default function UploadProcessPage() {
   
   const [currentStep, setCurrentStep] = useState(1); // Always start at step 1
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [csvData, setCsvData] = useState<string>(''); // Add CSV data state
   const [transformedFile, setTransformedFile] = useState<File | null>(null); // Store transformed CSV for special formats
   const [selectedEntityTypes, setSelectedEntityTypes] = useState<string[]>([]);
   const [selectedEntityType, setSelectedEntityType] = useState<string>(''); // Keep for backward compatibility
@@ -249,11 +250,12 @@ export default function UploadProcessPage() {
     if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
       setUploadedFile(file);
       
-      // Extract CSV headers
+      // Extract CSV headers and store CSV data
       const reader = new FileReader();
       reader.onload = (e) => {
         const text = e.target?.result as string;
         if (text) {
+          setCsvData(text); // Store the full CSV content
           const lines = text.split('\n');
           if (lines.length > 0) {
             const headers = lines[0].split(',').map(header => 
@@ -692,19 +694,10 @@ export default function UploadProcessPage() {
               {/* Product Assignment Section */}
               <div className="space-y-6 border-t pt-8">
                 <ProductAssignmentStep
-                  onNext={(mappings) => {
-                    setProductMappings(mappings);
-                    goToNextStep();
-                  }}
-                  onBack={goToPreviousStep}
-                  categories={productCategories}
-                  uploadedFile={uploadedFile}
-                  onStructureSelected={setProductStructureSelected}
-                  onStructureChange={(type, column, columns) => {
-                    setProductStructureType(type);
-                    setSelectedProductColumn(column || '');
-                    setSelectedProductColumns(columns || []);
-                  }}
+                  csvData={csvData}
+                  onProductMappingsChange={setProductMappings}
+                  productMappings={productMappings}
+                  onContinue={goToNextStep}
                 />
               </div>
               
