@@ -6430,7 +6430,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       const result = await envPool.query(`
         SELECT * FROM ${envId}.categories 
         WHERE is_active = true
-        ORDER BY level ASC, sort_order ASC, name ASC
+        ORDER BY level ASC, created_at DESC, name ASC
       `);
       
       res.json(result.rows);
