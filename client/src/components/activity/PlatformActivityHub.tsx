@@ -167,7 +167,15 @@ export default function PlatformActivityHub() {
 
   // Get entity name
   const getEntityName = (activity: ActivityItem): string => {
-    if (activity.entity_name) return activity.entity_name;
+    // Return entity_name if it exists and is not null/undefined
+    if (activity.entity_name && activity.entity_name !== 'null' && activity.entity_name !== 'undefined') {
+      return activity.entity_name;
+    }
+    
+    // Ensure we have valid entity_type and entity_id
+    if (!activity.entity_type || activity.entity_id == null) {
+      return 'Unknown Entity';
+    }
     
     switch (activity.entity_type) {
       case 'partner':
@@ -177,7 +185,7 @@ export default function PlatformActivityHub() {
       case 'customer':
         return Array.isArray(customers) ? customers.find((c: any) => c.id === activity.entity_id)?.name || `Customer #${activity.entity_id}` : `Customer #${activity.entity_id}`;
       default:
-        return `${activity.entity_type} #${activity.entity_id}`;
+        return activity.entity_type ? `${activity.entity_type} #${activity.entity_id}` : 'Unknown Entity';
     }
   };
 
@@ -407,10 +415,12 @@ export default function PlatformActivityHub() {
               )}
               
               {/* Source badge */}
-              <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border bg-white text-gray-700 border-gray-200`}>
-                {getEntityIcon(activity.entity_type)}
-                <span className="font-medium">{entityName}</span>
-              </div>
+              {entityName && entityName !== 'null' && (
+                <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border bg-white text-gray-700 border-gray-200`}>
+                  {getEntityIcon(activity.entity_type)}
+                  <span className="font-medium">{entityName}</span>
+                </div>
+              )}
             </div>
             
             {/* Task title */}
