@@ -805,7 +805,7 @@ export default function ProductAssignmentStep({
                 </div>
               );
             })
-            )}
+          )}
           </div>
         </CardContent>
       </Card>
