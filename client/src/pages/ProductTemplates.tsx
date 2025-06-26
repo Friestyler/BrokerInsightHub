@@ -71,7 +71,7 @@ export default function ProductTemplates() {
   // Create product template mutation
   const createMutation = useMutation({
     mutationFn: async (data: ProductTemplateFormData) => {
-      return apiRequest('/api/product-templates', 'POST', data);
+      return apiRequest('POST', '/api/product-templates', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/product-templates'] });
@@ -93,7 +93,7 @@ export default function ProductTemplates() {
   // Update product template mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: ProductTemplateFormData }) => {
-      return apiRequest(`/api/product-templates/${id}`, 'PUT', data);
+      return apiRequest('PUT', `/api/product-templates/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/product-templates'] });
@@ -116,7 +116,7 @@ export default function ProductTemplates() {
   // Delete product template mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/product-templates/${id}`, 'DELETE');
+      return apiRequest('DELETE', `/api/product-templates/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/product-templates'] });
