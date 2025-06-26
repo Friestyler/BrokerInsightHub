@@ -808,7 +808,7 @@ export default function PlatformActivityHub() {
   return (
     <Card className="border-0 bg-white">
       <CardHeader className="pb-4 border-0">
-        <CardTitle className="text-xl font-semibold text-[#282A3F]">Platform Activity Hub</CardTitle>
+        <CardTitle className="text-xl font-semibold text-[#282A3F]">Activity Hub</CardTitle>
       </CardHeader>
       
       <CardContent className="p-0">
