@@ -57,6 +57,7 @@ export default function ProductAssignmentStep({
   const [selectedProductColumns, setSelectedProductColumns] = useState<string[]>([]);
   const [showColumnDropdown, setShowColumnDropdown] = useState(false);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showProductStructureSection] = useState(false); // Hidden as requested
 
   // Fetch product categories
   const { data: activeCategories = [] } = useQuery({
