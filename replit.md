@@ -313,6 +313,7 @@ Each environment maintains its own data isolation while sharing the same applica
 - June 26, 2025: Fixed padding and overlap issues in category management interface - reduced excessive padding from p-4 pl-12 to py-2 px-4 for subcategory rows, optimized "Add subcategory" button spacing from pl-16 pr-4 pb-2 to px-4 py-1, simplified nested layout margins, and standardized all action button heights to h-6 for clean, compact visual hierarchy without overlap issues.
 - June 26, 2025: Fixed category interface button positioning - removed duplicate "Add subcategory" buttons that were appearing in weird positions, kept single hover-activated "Add subcategory" button inline with subcategory names for clear, intuitive UX without positioning confusion.
 - June 26, 2025: Fixed critical subcategory parent-child relationship bug - corrected frontend field mapping from `parent_id` to `parentId` to match backend API expectations. Subcategories now properly nest under their parent categories with correct hierarchical display. Verified with API testing that categories with parent relationships are correctly stored and retrieved in hierarchical structure.
+- June 26, 2025: Updated Product Templates primary action button text from "Create template" to "Add product" for clearer user intent and improved interface clarity.
 
 ## User Preferences
 

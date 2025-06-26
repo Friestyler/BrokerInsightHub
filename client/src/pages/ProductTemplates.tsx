@@ -854,7 +854,7 @@ export default function ProductTemplates() {
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
-              Create template
+              Add product
             </Button>
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
@@ -1098,7 +1098,7 @@ export default function ProductTemplates() {
               name: formData.get('name') as string,
               color: formData.get('color') as string,
               description: formData.get('description') as string || undefined,
-              parentId: selectedParentCategory?.id,
+              parent_id: selectedParentCategory?.id,
             });
           }}>
             <div className="space-y-4">
