@@ -181,8 +181,8 @@ export default function ProductAssignmentStep({
 
   // Calculate progress
   const totalProducts = products.length;
-  const assignedCount = Object.keys(productMappings).filter(productId => {
-    const mapping = productMappings[productId];
+  const assignedCount = Object.keys(productMappings || {}).filter(productId => {
+    const mapping = (productMappings || {})[productId];
     return mapping && (
       (mapping.productAction === 'existing' && mapping.existingProductId) ||
       (mapping.productAction === 'new' && mapping.targetId)
@@ -265,7 +265,7 @@ export default function ProductAssignmentStep({
               </div>
             ) : (
               products.map((product) => {
-                const mapping = productMappings[product.id];
+                const mapping = (productMappings || {})[product.id];
                 const isAssigned = !!mapping;
                 const isExistingProduct = mapping?.productAction === 'existing';
                 const hasAutoMatch = !!product.matchedDbProductId;
@@ -297,7 +297,7 @@ export default function ProductAssignmentStep({
                         if (value === 'existing') {
                           // Just set action without auto-matching
                           const newMappings = {
-                            ...productMappings,
+                            ...(productMappings || {}),
                             [product.id.toString()]: {
                               targetId: mapping?.targetId || '',
                               targetType: mapping?.targetType || 'category',
@@ -318,7 +318,7 @@ export default function ProductAssignmentStep({
                           } else {
                             // No category yet, create preliminary mapping
                             const newMappings = {
-                              ...productMappings,
+                              ...(productMappings || {}),
                               [product.id.toString()]: {
                                 targetId: '',
                                 targetType: 'category',
@@ -385,7 +385,7 @@ export default function ProductAssignmentStep({
                       <SelectContent>
                         {dbProducts.map((existingProduct: any) => {
                           // Check if this product is already selected by another row
-                          const isAlreadySelected = Object.entries(productMappings).some(([otherProductId, otherMapping]) => 
+                          const isAlreadySelected = Object.entries(productMappings || {}).some(([otherProductId, otherMapping]) => 
                             otherProductId !== product.id.toString() && 
                             otherMapping.existingProductId === existingProduct.id.toString()
                           );
