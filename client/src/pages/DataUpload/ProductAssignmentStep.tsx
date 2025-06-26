@@ -511,9 +511,8 @@ export default function ProductAssignmentStep({
           </div>
         </CardContent>
       </Card>
-      {/* Detected Products Table - Only show when structure is selected and products are detected */}
-      {showProductTable && (
-        <Card className="border border-[#E6E7F1] shadow-sm">
+      {/* Detected Products Table - Always shown, populates when product name column is selected */}
+      <Card className="border border-[#E6E7F1] shadow-sm">
           <CardHeader className="border-b border-[#E6E7F1] bg-[#E6E7F1]/50">
             <div className="flex items-center justify-between">
               <CardTitle className="text-lg font-semibold text-gray-900">Detected Products</CardTitle>
@@ -551,13 +550,26 @@ export default function ProductAssignmentStep({
             </div>
           </div>
 
-          {/* Product Rows */}
+          {/* Product Rows or Empty State */}
           <div className="space-y-3">
-            {products.map((product) => {
-              const mapping = productMappings[product.id];
-              const isAssigned = !!mapping;
-              const isExistingProduct = mapping?.productAction === 'existing';
-              const hasAutoMatch = !!product.matchedDbProductId;
+            {products.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <svg className="h-8 w-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">No products detected</h3>
+                <p className="text-gray-500 max-w-md mx-auto">
+                  Select which column contains product names in the "Product Column Mapping" section above to detect products from your file.
+                </p>
+              </div>
+            ) : (
+              products.map((product) => {
+                const mapping = productMappings[product.id];
+                const isAssigned = !!mapping;
+                const isExistingProduct = mapping?.productAction === 'existing';
+                const hasAutoMatch = !!product.matchedDbProductId;
               
               return (
                 <div key={product.id} className="grid grid-cols-6 gap-4 p-4 bg-white border border-[#E6E7F1] rounded-lg hover:border-gray-200 hover:shadow-sm transition-all duration-200 items-center">
@@ -792,11 +804,12 @@ export default function ProductAssignmentStep({
                   </div>
                 </div>
               );
-            })}
+            })
+            )}
           </div>
         </CardContent>
-        </Card>
-      )}
+      </Card>
+      
       {/* Category Management Modal */}
       <Dialog open={showCategoryModal} onOpenChange={setShowCategoryModal}>
         <DialogContent className="max-w-4xl max-h-[85vh] bg-white border-0 shadow-xl flex flex-col p-0">
