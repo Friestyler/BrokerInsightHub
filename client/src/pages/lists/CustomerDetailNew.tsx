@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package } from "lucide-react";
+import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, ChevronDown, ChevronRight } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import LogoUploadModal from "@/components/LogoUploadModal";
 import EntityAvatar from "@/components/EntityAvatar";
@@ -76,6 +76,11 @@ export default function CustomerDetailNew() {
     customerContractEndDate: '',
     notes: ''
   });
+
+  // Product selection states
+  const [productSearchTerm, setProductSearchTerm] = useState('');
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<number | null>(null);
+  const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set());
 
   // Handle tab parameter from URL or sessionStorage
   useEffect(() => {
@@ -229,6 +234,12 @@ export default function CustomerDetailNew() {
   // Product Templates for selection
   const { data: productTemplates, isLoading: templatesLoading } = useQuery({
     queryKey: ['/api/product-templates'],
+    enabled: showAddProductDialog
+  });
+
+  // Categories for hierarchical display
+  const { data: categories } = useQuery({
+    queryKey: ['/api/categories'],
     enabled: showAddProductDialog
   });
 
@@ -736,8 +747,7 @@ export default function CustomerDetailNew() {
         {activeTab === "products" && (
           <div>
             {/* Add Product Button */}
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Products</h3>
+            <div className="flex justify-end items-center mb-4">
               <Button 
                 onClick={() => setShowAddProductDialog(true)}
                 className="bg-[#5567E5] text-white hover:bg-[#4556D4] h-8"
@@ -752,8 +762,10 @@ export default function CustomerDetailNew() {
                 <TableRow>
                   <TableHead className="w-12"><Checkbox /></TableHead>
                   <TableHead>Product Name</TableHead>
+                  <TableHead>Product ID</TableHead>
                   <TableHead>Provider</TableHead>
                   <TableHead>Category</TableHead>
+                  <TableHead>Contract Period</TableHead>
                   <TableHead>Premium Value</TableHead>
                   <TableHead>Premium %</TableHead>
                   <TableHead>Status</TableHead>
@@ -782,13 +794,22 @@ export default function CustomerDetailNew() {
                         </div>
                       </div>
                     </TableCell>
-                    <TableCell>{assignment.productTemplate?.provider || 'Not specified'}</TableCell>
+                    <TableCell className="text-sm text-gray-600">
+                      {assignment.productTemplate?.productId || 'N/A'}
+                    </TableCell>
+                    <TableCell>{assignment.productTemplate?.providerName || 'Not specified'}</TableCell>
                     <TableCell>{assignment.productTemplate?.category || 'Not categorized'}</TableCell>
+                    <TableCell className="text-sm text-gray-600">
+                      {assignment.productTemplate?.contractStartDate && assignment.productTemplate?.contractEndDate
+                        ? `${new Date(assignment.productTemplate.contractStartDate).toLocaleDateString()} - ${new Date(assignment.productTemplate.contractEndDate).toLocaleDateString()}`
+                        : 'Not specified'
+                      }
+                    </TableCell>
                     <TableCell>
                       {assignment.customPrice 
                         ? `€${Number(assignment.customPrice).toLocaleString()}`
-                        : assignment.productTemplate?.averagePrice 
-                        ? `€${Number(assignment.productTemplate.averagePrice).toLocaleString()}`
+                        : assignment.productTemplate?.premiumValue 
+                        ? `€${Number(assignment.productTemplate.premiumValue).toLocaleString()}`
                         : 'Not set'
                       }
                     </TableCell>
@@ -802,7 +823,7 @@ export default function CustomerDetailNew() {
                     </TableCell>
                     <TableCell>
                       <Badge variant="outline" className="capitalize">
-                        Active
+                        {assignment.isActive ? 'Active' : 'Inactive'}
                       </Badge>
                     </TableCell>
                   </TableRow>
