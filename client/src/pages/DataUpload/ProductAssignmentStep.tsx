@@ -210,6 +210,135 @@ export default function ProductAssignmentStep({
 
   return (
     <div className="space-y-8">
+      {/* Product Structure Selection */}
+      <Card className="border border-[#E6E7F1] shadow-sm">
+        <CardHeader className="border-b border-[#E6E7F1] bg-[#E6E7F1]/50">
+          <CardTitle className="text-lg font-semibold text-gray-900">Where should we look for your products?</CardTitle>
+        </CardHeader>
+        <CardContent className="p-6 space-y-6">
+          <div className="space-y-4">
+            {/* Single Column Option */}
+            <div 
+              className={`p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                productStructure === 'single' ? 'border-[#5567E5] bg-[#5567E5]/5' : 'border-[#E6E7F1] hover:border-gray-300'
+              }`}
+              onClick={() => {
+                setProductStructure('single');
+                setSelectedColumns([]);
+                setSpecificValue('');
+              }}
+            >
+              <div className="flex items-start gap-3">
+                <input
+                  type="radio"
+                  checked={productStructure === 'single'}
+                  onChange={() => {}}
+                  className="mt-1 text-[#5567E5] focus:ring-[#5567E5]"
+                />
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-900 mb-1">Single column contains product names</h3>
+                  <p className="text-sm text-gray-600">One column in your file contains all the product names</p>
+                  
+                  {productStructure === 'single' && (
+                    <div className="mt-4 space-y-3">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Select the column containing product names:
+                      </label>
+                      <MultiSelect
+                        options={csvHeaders.map(header => ({ value: header, label: header }))}
+                        value={selectedColumns}
+                        onChange={setSelectedColumns}
+                        placeholder="Select product column..."
+                        maxSelections={1}
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Multiple Columns Option */}
+            <div 
+              className={`p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                productStructure === 'multiple' ? 'border-[#5567E5] bg-[#5567E5]/5' : 'border-[#E6E7F1] hover:border-gray-300'
+              }`}
+              onClick={() => {
+                setProductStructure('multiple');
+                setSelectedColumns([]);
+                setSpecificValue('');
+              }}
+            >
+              <div className="flex items-start gap-3">
+                <input
+                  type="radio"
+                  checked={productStructure === 'multiple'}
+                  onChange={() => {}}
+                  className="mt-1 text-[#5567E5] focus:ring-[#5567E5]"
+                />
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-900 mb-1">Multiple columns contain product information</h3>
+                  <p className="text-sm text-gray-600">Product names are spread across several columns that need to be combined</p>
+                  
+                  {productStructure === 'multiple' && (
+                    <div className="mt-4 space-y-3">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Select columns to combine for product names:
+                      </label>
+                      <MultiSelect
+                        options={csvHeaders.map(header => ({ value: header, label: header }))}
+                        value={selectedColumns}
+                        onChange={setSelectedColumns}
+                        placeholder="Select columns to combine..."
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Specific Value Option */}
+            <div 
+              className={`p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 ${
+                productStructure === 'value' ? 'border-[#5567E5] bg-[#5567E5]/5' : 'border-[#E6E7F1] hover:border-gray-300'
+              }`}
+              onClick={() => {
+                setProductStructure('value');
+                setSelectedColumns([]);
+                setSpecificValue('');
+              }}
+            >
+              <div className="flex items-start gap-3">
+                <input
+                  type="radio"
+                  checked={productStructure === 'value'}
+                  onChange={() => {}}
+                  className="mt-1 text-[#5567E5] focus:ring-[#5567E5]"
+                />
+                <div className="flex-1">
+                  <h3 className="font-medium text-gray-900 mb-1">All rows represent the same product</h3>
+                  <p className="text-sm text-gray-600">Every row in your file represents the same product with different attributes</p>
+                  
+                  {productStructure === 'value' && (
+                    <div className="mt-4 space-y-3">
+                      <label className="block text-sm font-medium text-gray-700">
+                        Enter the product name:
+                      </label>
+                      <input
+                        type="text"
+                        value={specificValue}
+                        onChange={(e) => setSpecificValue(e.target.value)}
+                        placeholder="Enter product name..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-[#5567E5] focus:border-transparent"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Detected Products Table - Always shown, populates when product name column is selected */}
       <Card className="border border-[#E6E7F1] shadow-sm">
           <CardHeader className="border-b border-[#E6E7F1] bg-[#E6E7F1]/50">
