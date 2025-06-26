@@ -141,9 +141,9 @@ export default function OKRMetricsPage() {
     const matchesUnit = selectedUnit === 'all' || metric.measure_unit === selectedUnit;
     
     const matchesRange = selectedRange === 'all' || 
-      (selectedRange === '0-50' && metric?.target_value !== null && metric?.target_value !== undefined && metric?.target_value <= 50) ||
-      (selectedRange === '50-100' && metric?.target_value !== null && metric?.target_value !== undefined && metric?.target_value > 50 && metric?.target_value <= 100) ||
-      (selectedRange === '100+' && metric?.target_value !== null && metric?.target_value !== undefined && metric?.target_value > 100);
+      (selectedRange === '0-50' && typeof metric?.target_value === 'number' && metric.target_value <= 50) ||
+      (selectedRange === '50-100' && typeof metric?.target_value === 'number' && metric.target_value > 50 && metric.target_value <= 100) ||
+      (selectedRange === '100+' && typeof metric?.target_value === 'number' && metric.target_value > 100);
     
     const matchesTimeframe = selectedTimeframe === 'all' || 
       (selectedTimeframe === 'current' && metric?.timeframe_start && metric?.timeframe_end && 
