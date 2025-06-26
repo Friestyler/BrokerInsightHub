@@ -3424,7 +3424,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
           c.name as category,
           c.color as categoryColor,
           -- User info
-          u.full_name as assignedByName
+          u.name as assignedByName
         FROM degoudse.customer_product_assignments cpa
         INNER JOIN degoudse.product_templates pt ON cpa.product_template_id = pt.id
         LEFT JOIN degoudse.categories c ON pt.category_id = c.id

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, Link, useLocation } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -222,6 +223,41 @@ export default function CustomerDetailNew() {
   // Fetch all products for multi-select
   const { data: allProducts } = useQuery({
     queryKey: ['/api/products'],
+  });
+
+  // Product Templates for selection
+  const { data: productTemplates, isLoading: templatesLoading } = useQuery({
+    queryKey: ['/api/product-templates'],
+    enabled: showAddProductDialog
+  });
+
+  // Customer Product Assignments
+  const { data: assignedProducts, isLoading: assignmentsLoading, refetch: refetchAssignments } = useQuery({
+    queryKey: [`/api/customers/${customerId}/product-assignments`],
+    enabled: isValidId
+  });
+
+  // Mutations
+  const queryClient = useQueryClient();
+
+  const addProductMutation = useMutation({
+    mutationFn: async (data: any) => {
+      return apiRequest('POST', `/api/customers/${customerId}/product-assignments`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/customers/${customerId}/product-assignments`] });
+      refetchAssignments();
+      setShowAddProductDialog(false);
+      setSelectedProductTemplate(null);
+      setCustomAttributes({
+        customPrice: '',
+        customDiscountPercentage: '',
+        customPremiumPercentage: '',
+        customerContractStartDate: '',
+        customerContractEndDate: '',
+        notes: ''
+      });
+    },
   });
 
   // Initialize dialog data when it opens (after customer is declared)
