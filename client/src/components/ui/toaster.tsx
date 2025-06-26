@@ -18,9 +18,7 @@ export function Toaster() {
           <Toast 
             key={toast.id} 
             variant={toast.variant} 
-            className={toast.className} 
-            open={toast.open} 
-            onOpenChange={toast.onOpenChange}
+            className={toast.className}
           >
             <div className="grid gap-1">
               {toast.title && <ToastTitle>{toast.title}</ToastTitle>}

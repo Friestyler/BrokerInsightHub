@@ -1182,6 +1182,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create a new activity for a partner (comments, tasks)
+  app.post('/api/:envId/partners/:id/activities', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const partnerId = parseInt(req.params.id);
+      const { type, content, source_entity_type, source_entity_id, source_entity_name, visible_to_partner, assigned_to } = req.body;
+      
+      const envPool = getEnvironmentPool(envId);
+      
+      if (type === 'comment') {
+        // Create comment activity
+        const result = await envPool.query(`
+          INSERT INTO ${envId}.activities 
+          (activity_type, content, visible_to_partner, entity_type, entity_id, source_entity_type, source_entity_id, source_entity_name, assigned_to, created_at, updated_at)
+          VALUES ($1, $2, $3, 'partner', $4, $5, $6, $7, $8, NOW(), NOW())
+          RETURNING *
+        `, [type, content, visible_to_partner || false, partnerId, source_entity_type || null, source_entity_id || null, source_entity_name || null, assigned_to || null]);
+        
+        console.log(`Created ${type} activity for partner ${partnerId} from ${source_entity_type || 'direct'}`);
+        res.status(201).json(result.rows[0]);
+      } else if (type === 'task') {
+        // Create task activity
+        const result = await envPool.query(`
+          INSERT INTO ${envId}.activities 
+          (activity_type, title, content, priority, completed, visible_to_partner, entity_type, entity_id, source_entity_type, source_entity_id, source_entity_name, assigned_to, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, false, $5, 'partner', $6, $7, $8, $9, $10, NOW(), NOW())
+          RETURNING *
+        `, [type, content, content, 'medium', visible_to_partner || false, partnerId, source_entity_type || null, source_entity_id || null, source_entity_name || null, assigned_to || null]);
+        
+        console.log(`Created ${type} activity for partner ${partnerId} from ${source_entity_type || 'direct'}`);
+        res.status(201).json(result.rows[0]);
+      } else {
+        res.status(400).json({ error: 'Invalid activity type. Must be "comment" or "task".' });
+      }
+    } catch (error) {
+      console.error('Error creating partner activity:', error);
+      res.status(500).json({ error: 'Failed to create partner activity' });
+    }
+  });
+
   // Get timeline for a specific partner
   app.get('/api/:envId/partners/:id/timeline', async (req, res) => {
     try {

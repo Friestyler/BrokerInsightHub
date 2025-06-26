@@ -5074,73 +5074,99 @@ export default function PartnerDetail() {
 
       {/* Customer Comment Dialog */}
       <Dialog open={isCustomerCommentDialogOpen} onOpenChange={setIsCustomerCommentDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add Comment for {selectedCustomerForComment?.name}</DialogTitle>
-            <DialogDescription>
-              This comment will appear in both the partner activity hub and the customer's activity feed.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="customer-comment">Comment</Label>
+        <DialogContent className="sm:max-w-lg bg-white border-0 shadow-xl rounded-2xl p-0 overflow-hidden">
+          <div className="p-6 pb-4">
+            <DialogHeader className="space-y-3 pb-0">
+              <DialogTitle className="text-xl font-semibold text-[#282A3F] leading-tight">
+                Add Comment
+              </DialogTitle>
+              <DialogDescription className="text-sm text-gray-600 leading-relaxed">
+                Add a comment for <span className="font-medium text-[#282A3F]">{selectedCustomerForComment?.name}</span>. This will appear in both activity feeds.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          
+          <div className="px-6 pb-6">
+            <div className="space-y-1">
+              <Label htmlFor="customer-comment" className="text-sm font-medium text-[#282A3F]">
+                Comment
+              </Label>
               <Textarea
                 id="customer-comment"
-                placeholder="Enter your comment..."
+                placeholder="What would you like to share about this customer?"
                 value={customerComment}
                 onChange={(e) => setCustomerComment(e.target.value)}
-                className="mt-1"
-                rows={4}
+                className="min-h-[100px] border-gray-200 focus:border-[#5567E5] focus:ring-[#5567E5] resize-none rounded-lg text-[#282A3F] placeholder:text-[#888AA6]"
+                autoFocus
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsCustomerCommentDialogOpen(false)}>
+          
+          <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50 border-t border-gray-100">
+            <Button 
+              variant="ghost" 
+              onClick={() => setIsCustomerCommentDialogOpen(false)}
+              className="text-gray-600 hover:text-[#282A3F] hover:bg-gray-100 h-8"
+            >
               Cancel
             </Button>
             <Button 
               onClick={handleSubmitCustomerComment}
               disabled={!customerComment.trim() || createCrossEntityCommentMutation.isPending}
+              className="bg-[#5567E5] hover:bg-[#4556D4] text-white h-8 px-4 rounded-lg font-medium shadow-sm"
             >
               {createCrossEntityCommentMutation.isPending ? "Adding..." : "Add comment"}
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
 
       {/* Opportunity Comment Dialog */}
       <Dialog open={isOpportunityCommentDialogOpen} onOpenChange={setIsOpportunityCommentDialogOpen}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Add Comment for {selectedOpportunityForComment?.title}</DialogTitle>
-            <DialogDescription>
-              This comment will appear in both the partner activity hub and the opportunity's activity feed.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="opportunity-comment">Comment</Label>
+        <DialogContent className="sm:max-w-lg bg-white border-0 shadow-xl rounded-2xl p-0 overflow-hidden">
+          <div className="p-6 pb-4">
+            <DialogHeader className="space-y-3 pb-0">
+              <DialogTitle className="text-xl font-semibold text-[#282A3F] leading-tight">
+                Add Comment
+              </DialogTitle>
+              <DialogDescription className="text-sm text-gray-600 leading-relaxed">
+                Add a comment for <span className="font-medium text-[#282A3F]">{selectedOpportunityForComment?.title}</span>. This will appear in both activity feeds.
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          
+          <div className="px-6 pb-6">
+            <div className="space-y-1">
+              <Label htmlFor="opportunity-comment" className="text-sm font-medium text-[#282A3F]">
+                Comment
+              </Label>
               <Textarea
                 id="opportunity-comment"
-                placeholder="Enter your comment..."
+                placeholder="What would you like to share about this opportunity?"
                 value={opportunityComment}
                 onChange={(e) => setOpportunityComment(e.target.value)}
-                className="mt-1"
-                rows={4}
+                className="min-h-[100px] border-gray-200 focus:border-[#5567E5] focus:ring-[#5567E5] resize-none rounded-lg text-[#282A3F] placeholder:text-[#888AA6]"
+                autoFocus
               />
             </div>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setIsOpportunityCommentDialogOpen(false)}>
+          
+          <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50 border-t border-gray-100">
+            <Button 
+              variant="ghost" 
+              onClick={() => setIsOpportunityCommentDialogOpen(false)}
+              className="text-gray-600 hover:text-[#282A3F] hover:bg-gray-100 h-8"
+            >
               Cancel
             </Button>
             <Button 
               onClick={handleSubmitOpportunityComment}
               disabled={!opportunityComment.trim() || createCrossEntityCommentMutation.isPending}
+              className="bg-[#5567E5] hover:bg-[#4556D4] text-white h-8 px-4 rounded-lg font-medium shadow-sm"
             >
               {createCrossEntityCommentMutation.isPending ? "Adding..." : "Add comment"}
             </Button>
-          </DialogFooter>
+          </div>
         </DialogContent>
       </Dialog>
     </div>
