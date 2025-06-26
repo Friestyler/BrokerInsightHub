@@ -315,6 +315,10 @@ export default function ProductTemplates() {
     return categories.filter((cat: any) => !cat.parent_id);
   };
 
+  const getSubcategoryCount = (parentId: number) => {
+    return categories.filter((cat: any) => cat.parent_id === parentId).length;
+  };
+
   const renderProductTemplateForm = (form: any, onSubmit: (data: ProductTemplateFormData) => void) => (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -638,19 +642,17 @@ export default function ProductTemplates() {
                           <ChevronRight className="h-4 w-4 text-gray-500" />
                         )}
                       </Button>
-                      <div 
-                        className="w-4 h-4 rounded-full border border-gray-200"
-                        style={{ backgroundColor: category.color }}
-                      />
                       <div>
                         <h3 className="text-base font-medium text-[#282A3F]">{category.name}</h3>
                         {category.description && (
                           <p className="text-sm text-gray-500">{category.description}</p>
                         )}
                       </div>
-                      <Badge variant="outline" className="text-xs">
-                        Level {category.level || 1}
-                      </Badge>
+                      {getSubcategoryCount(category.id) > 0 && (
+                        <Badge variant="outline" className="text-xs">
+                          {getSubcategoryCount(category.id)} subcategories
+                        </Badge>
+                      )}
                     </div>
                     <div className="flex items-center space-x-2">
                       <Button
@@ -699,50 +701,157 @@ export default function ProductTemplates() {
                 {expandedCategories.has(category.id) && (
                   <div className="border-t border-[#E6E7F1] bg-gray-50/50">
                     {getSubcategories(category.id).map((subcategory: any) => (
-                      <div key={subcategory.id} className="p-4 pl-12 border-b border-[#E6E7F1] last:border-b-0 hover:bg-white transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div 
-                              className="w-3 h-3 rounded-full border border-gray-200"
-                              style={{ backgroundColor: subcategory.color }}
-                            />
-                            <div>
-                              <h4 className="text-sm font-medium text-[#282A3F]">{subcategory.name}</h4>
-                              {subcategory.description && (
-                                <p className="text-xs text-gray-500">{subcategory.description}</p>
+                      <div key={subcategory.id} className="group/subcategory">
+                        <div className="p-4 pl-12 border-b border-[#E6E7F1] last:border-b-0 hover:bg-white transition-colors">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-3">
+                              {getSubcategoryCount(subcategory.id) > 0 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => toggleCategoryExpansion(subcategory.id)}
+                                  className="p-0 h-auto hover:bg-transparent"
+                                >
+                                  {expandedCategories.has(subcategory.id) ? (
+                                    <ChevronDown className="h-3 w-3 text-gray-400" />
+                                  ) : (
+                                    <ChevronRight className="h-3 w-3 text-gray-400" />
+                                  )}
+                                </Button>
+                              )}
+                              <div>
+                                <h4 className="text-sm font-medium text-[#282A3F]">{subcategory.name}</h4>
+                                {subcategory.description && (
+                                  <p className="text-xs text-gray-500">{subcategory.description}</p>
+                                )}
+                              </div>
+                              {getSubcategoryCount(subcategory.id) > 0 && (
+                                <Badge variant="outline" className="text-xs">
+                                  {getSubcategoryCount(subcategory.id)} subcategories
+                                </Badge>
                               )}
                             </div>
-                            <Badge variant="outline" className="text-xs">
-                              Level {subcategory.level || 2}
-                            </Badge>
-                          </div>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm">
-                                <MoreVertical className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="bg-white">
-                              <DropdownMenuItem onClick={() => {
-                                setSelectedCategory(subcategory);
-                                setEditCategoryDialogOpen(true);
-                              }}>
-                                <Edit className="h-4 w-4 mr-2" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem 
-                                className="text-red-600"
+                            <div className="flex items-center space-x-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="opacity-0 group-hover/subcategory:opacity-100 transition-opacity text-[#5567E5] hover:text-[#4451c7] hover:bg-[#5567E5]/10"
                                 onClick={() => {
-                                  setSelectedCategory(subcategory);
-                                  setDeleteCategoryDialogOpen(true);
+                                  setSelectedParentCategory(subcategory);
+                                  setCreateSubcategoryDialogOpen(true);
                                 }}
                               >
-                                <Trash2 className="h-4 w-4 mr-2" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
+                                <ChevronRight className="h-3 w-3" />
+                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm">
+                                    <MoreVertical className="h-4 w-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="bg-white">
+                                  <DropdownMenuItem onClick={() => {
+                                    setSelectedCategory(subcategory);
+                                    setEditCategoryDialogOpen(true);
+                                  }}>
+                                    <Edit className="h-4 w-4 mr-2" />
+                                    Edit
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    className="text-red-600"
+                                    onClick={() => {
+                                      setSelectedCategory(subcategory);
+                                      setDeleteCategoryDialogOpen(true);
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4 mr-2" />
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </div>
                         </div>
+                        
+                        {/* Add Subcategory Button - Appears on Hover */}
+                        <div className="opacity-0 group-hover/subcategory:opacity-100 transition-opacity pl-16 pr-4 pb-2 bg-gray-50/50">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="text-xs text-[#5567E5] border-[#5567E5] hover:bg-[#5567E5] hover:text-white"
+                            onClick={() => {
+                              setSelectedParentCategory(subcategory);
+                              setCreateSubcategoryDialogOpen(true);
+                            }}
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Add subcategory
+                          </Button>
+                        </div>
+
+                        {/* Nested Subcategories */}
+                        {expandedCategories.has(subcategory.id) && getSubcategories(subcategory.id).length > 0 && (
+                          <div className="pl-8 border-l-2 border-gray-200 ml-16">
+                            {getSubcategories(subcategory.id).map((nestedSubcategory: any) => (
+                              <div key={nestedSubcategory.id} className="group/nested p-3 pl-8 border-b border-gray-100 last:border-b-0 hover:bg-white transition-colors">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center space-x-2">
+                                    <div>
+                                      <h5 className="text-xs font-medium text-[#282A3F]">{nestedSubcategory.name}</h5>
+                                      {nestedSubcategory.description && (
+                                        <p className="text-xs text-gray-400">{nestedSubcategory.description}</p>
+                                      )}
+                                    </div>
+                                    {getSubcategoryCount(nestedSubcategory.id) > 0 && (
+                                      <Badge variant="outline" className="text-xs">
+                                        {getSubcategoryCount(nestedSubcategory.id)} subcategories
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <div className="flex items-center space-x-1">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      className="opacity-0 group-hover/nested:opacity-100 transition-opacity text-[#5567E5] hover:text-[#4451c7] hover:bg-[#5567E5]/10"
+                                      onClick={() => {
+                                        setSelectedParentCategory(nestedSubcategory);
+                                        setCreateSubcategoryDialogOpen(true);
+                                      }}
+                                    >
+                                      <ChevronRight className="h-3 w-3" />
+                                    </Button>
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                          <MoreVertical className="h-3 w-3" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end" className="bg-white">
+                                        <DropdownMenuItem onClick={() => {
+                                          setSelectedCategory(nestedSubcategory);
+                                          setEditCategoryDialogOpen(true);
+                                        }}>
+                                          <Edit className="h-3 w-3 mr-2" />
+                                          Edit
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem 
+                                          className="text-red-600"
+                                          onClick={() => {
+                                            setSelectedCategory(nestedSubcategory);
+                                            setDeleteCategoryDialogOpen(true);
+                                          }}
+                                        >
+                                          <Trash2 className="h-3 w-3 mr-2" />
+                                          Delete
+                                        </DropdownMenuItem>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ))}
                   </div>
