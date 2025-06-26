@@ -13,6 +13,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Plus, MoreVertical, Edit, Trash2, Search } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import CategoryManagerForProducts from "@/components/CategoryManagerForProducts";
 import { apiRequest } from "@/lib/queryClient";
@@ -51,6 +53,7 @@ export default function ProductTemplates() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedTemplate, setSelectedTemplate] = useState<ProductTemplate | null>(null);
+  const [selectedTemplates, setSelectedTemplates] = useState<number[]>([]);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -460,8 +463,124 @@ export default function ProductTemplates() {
 
       {/* Tab Content */}
       {activeTab === 'categories' && (
-        <div className="mx-4">
-          <CategoryManagerForProducts />
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">Product Categories</h1>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create category
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Create New Category</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-sm font-medium">Category Name</label>
+                    <Input placeholder="Enter category name" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Color</label>
+                    <Input type="color" defaultValue="#3B82F6" />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium">Description</label>
+                    <Textarea placeholder="Enter description (optional)" />
+                  </div>
+                </div>
+                <DialogFooter>
+                  <Button variant="outline">Cancel</Button>
+                  <Button>Create category</Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
+          </div>
+
+          {/* Categories Table */}
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="min-w-[200px]">Category Name</TableHead>
+                    <TableHead className="min-w-[100px]">Color</TableHead>
+                    <TableHead className="min-w-[150px]">Description</TableHead>
+                    <TableHead className="min-w-[100px]">Level</TableHead>
+                    <TableHead className="min-w-[120px]">Subcategories</TableHead>
+                    <TableHead className="w-12">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {categories.map((category: any) => (
+                    <TableRow key={category.id} className="hover:bg-gray-50">
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <div 
+                            className="w-4 h-4 rounded-full border border-gray-200"
+                            style={{ backgroundColor: category.color }}
+                          />
+                          <div>
+                            <div className="font-medium text-gray-900">{category.name}</div>
+                            {category.parent_id && (
+                              <div className="text-sm text-gray-500">
+                                Child of: {categories.find((c: any) => c.id === category.parent_id)?.name}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-6 h-6 rounded border border-gray-200"
+                            style={{ backgroundColor: category.color }}
+                          />
+                          <span className="text-sm text-gray-600">{category.color}</span>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-gray-900">
+                          {category.description || '-'}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          Level {category.level || 1}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-gray-900">
+                          {categories.filter((c: any) => c.parent_id === category.id).length} subcategories
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreVertical className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              <Edit className="h-4 w-4 mr-2" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600">
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
         </div>
       )}
 
@@ -523,81 +642,122 @@ export default function ProductTemplates() {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTemplates.map((template: ProductTemplate) => (
-            <Card key={template.id} className="relative hover:shadow-lg transition-shadow">
-              <CardHeader>
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <CardTitle className="text-lg font-semibold">{template.name}</CardTitle>
-                    <div className="text-sm text-gray-600 mt-1">
-                      ID: {template.productId}
+        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12">
+                    <div className={`transition-opacity ${
+                      selectedTemplates.length > 0 ? 'opacity-100' : 'opacity-0'
+                    }`}>
+                      <Checkbox 
+                        checked={selectedTemplates.length === filteredTemplates.length && filteredTemplates.length > 0}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedTemplates(filteredTemplates.map((template: ProductTemplate) => template.id));
+                          } else {
+                            setSelectedTemplates([]);
+                          }
+                        }}
+                      />
                     </div>
-                  </div>
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm">
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem onClick={() => handleEdit(template)}>
-                        <Edit className="h-4 w-4 mr-2" />
-                        Edit
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleDelete(template)} className="text-red-600">
-                        <Trash2 className="h-4 w-4 mr-2" />
-                        Delete
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  {template.description && (
-                    <p className="text-sm text-gray-600 line-clamp-2">{template.description}</p>
-                  )}
-                  
-                  {template.category && (
-                    <div className="flex items-center">
-                      <Badge variant="outline" className="text-xs">
-                        {template.category}
+                  </TableHead>
+                  <TableHead className="min-w-[200px]">Name</TableHead>
+                  <TableHead className="min-w-[150px]">Category</TableHead>
+                  <TableHead className="min-w-[120px]">Provider</TableHead>
+                  <TableHead className="min-w-[100px]">Price</TableHead>
+                  <TableHead className="min-w-[100px]">Premium</TableHead>
+                  <TableHead className="min-w-[80px]">Status</TableHead>
+                  <TableHead className="w-12">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredTemplates.map((template: ProductTemplate) => (
+                  <TableRow 
+                    key={template.id} 
+                    className={`hover:bg-gray-50 ${
+                      selectedTemplates.includes(template.id) ? 'bg-blue-50' : ''
+                    }`}
+                  >
+                    <TableCell>
+                      <div className={`transition-opacity ${
+                        selectedTemplates.includes(template.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                      }`}>
+                        <Checkbox 
+                          checked={selectedTemplates.includes(template.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedTemplates([...selectedTemplates, template.id]);
+                            } else {
+                              setSelectedTemplates(selectedTemplates.filter(id => id !== template.id));
+                            }
+                          }}
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium text-gray-900">{template.name}</div>
+                        <div className="text-sm text-gray-500">ID: {template.productId}</div>
+                        {template.description && (
+                          <div className="text-sm text-gray-500 line-clamp-1 mt-1">{template.description}</div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {template.category ? (
+                        <Badge variant="outline" className="text-xs">
+                          {template.category}
+                        </Badge>
+                      ) : (
+                        <span className="text-gray-400">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm text-gray-900">
+                        {template.providerName || '-'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm text-gray-900">
+                        {template.averagePrice ? formatCurrency(template.averagePrice) : '-'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm text-gray-900">
+                        {template.premiumPercentage ? formatPercentage(template.premiumPercentage) : '-'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={template.status === 'active' ? 'default' : 'secondary'}>
+                        {template.status}
                       </Badge>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-2 gap-2 text-sm">
-                    {template.averagePrice && (
-                      <div>
-                        <span className="text-gray-500">Avg Price:</span>
-                        <div className="font-medium">{formatCurrency(template.averagePrice)}</div>
-                      </div>
-                    )}
-                    {template.premiumPercentage && (
-                      <div>
-                        <span className="text-gray-500">Premium:</span>
-                        <div className="font-medium">{formatPercentage(template.premiumPercentage)}</div>
-                      </div>
-                    )}
-                  </div>
-
-                  {template.providerName && (
-                    <div className="text-sm">
-                      <span className="text-gray-500">Provider:</span>
-                      <div className="font-medium">{template.providerName}</div>
-                    </div>
-                  )}
-
-                  <div className="flex items-center justify-between mt-4">
-                    <Badge variant={template.status === 'active' ? 'default' : 'secondary'}>
-                      {template.status}
-                    </Badge>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="sm">
+                            <MoreVertical className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem onClick={() => handleEdit(template)}>
+                            <Edit className="h-4 w-4 mr-2" />
+                            Edit
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => handleDelete(template)} className="text-red-600">
+                            <Trash2 className="h-4 w-4 mr-2" />
+                            Delete
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </div>
       )}
 
