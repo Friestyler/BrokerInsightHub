@@ -663,7 +663,6 @@ export default function ProductTemplates() {
                       />
                     </div>
                   </TableHead>
-                  <TableHead className="min-w-[80px]">ID</TableHead>
                   <TableHead className="min-w-[100px]">Product ID</TableHead>
                   <TableHead className="min-w-[200px]">Name</TableHead>
                   <TableHead className="min-w-[250px]">Description</TableHead>
@@ -700,11 +699,6 @@ export default function ProductTemplates() {
                             }
                           }}
                         />
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-900">
-                        {template.id}
                       </div>
                     </TableCell>
                     <TableCell>
