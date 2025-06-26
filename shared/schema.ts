@@ -157,6 +157,32 @@ export const clientProducts = pgTable("client_products", {
   productId: integer("product_id").notNull(),
 });
 
+// Customer Product Assignments - linking customers to Product Templates with customizable attributes
+export const customerProductAssignments = pgTable("customer_product_assignments", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").notNull().references(() => customers.id),
+  productTemplateId: integer("product_template_id").notNull().references(() => productTemplates.id),
+  
+  // Customizable attributes per customer (overrides from template)
+  customPrice: numeric("custom_price", { precision: 12, scale: 2 }), // Customer-specific price override
+  customDiscount: numeric("custom_discount", { precision: 12, scale: 2 }), // Customer-specific discount
+  customDiscountPercentage: numeric("custom_discount_percentage", { precision: 5, scale: 2 }), // Customer-specific discount %
+  customPremiumPercentage: numeric("custom_premium_percentage", { precision: 5, scale: 2 }), // Customer-specific premium %
+  
+  // Contract information specific to this customer
+  customerContractStartDate: date("customer_contract_start_date"),
+  customerContractEndDate: date("customer_contract_end_date"),
+  
+  // Assignment metadata
+  assignedBy: integer("assigned_by").references(() => users.id),
+  assignedAt: timestamp("assigned_at").defaultNow().notNull(),
+  isActive: boolean("is_active").notNull().default(true),
+  notes: text("notes"), // Customer-specific notes about this product
+  
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Opportunity model - matches actual database structure
 export const opportunities = pgTable("opportunities", {
   id: serial("id").primaryKey(),
