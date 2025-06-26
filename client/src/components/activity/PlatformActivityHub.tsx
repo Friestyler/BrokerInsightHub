@@ -351,21 +351,16 @@ export default function PlatformActivityHub() {
     }
   };
 
-  // Render timeline item
-  const renderTimelineItem = (activity: ActivityItem, index: number) => {
+  // Render timeline item using existing partner activity hub style
+  const renderTimelineItem = (activity: ActivityItem, index: string) => {
     const user = getUser(activity.assigned_to || activity.user_id || activity.author_id);
     const entityName = getEntityName(activity);
     const isCompleted = activity.activity_type === 'task' && activity.completed;
 
     return (
-      <div key={`${activity.activity_type}-${activity.id}`} className="relative group">
-        {/* Connecting line */}
-        {index < filteredActivities.length - 1 && (
-          <div className="absolute left-6 top-12 bottom-0 w-px bg-gray-200" />
-        )}
-        
-        {/* Timeline item */}
-        <div className={`flex gap-4 p-4 rounded-lg transition-all duration-200 hover:bg-[#F5F6FA] hover:border-[#E6E7F1] border border-transparent ${isCompleted ? 'bg-green-50 border-green-100' : ''}`}>
+      <div key={index} className="relative">
+        {/* Timeline item with existing partner activity styling */}
+        <div className={`flex gap-3 p-3 rounded-lg transition-all duration-200 hover:bg-[#F5F6FA] hover:border-[#E6E7F1] border border-transparent group ${isCompleted ? 'bg-green-50 border-green-100' : ''}`}>
           {/* Avatar */}
           <div className="flex-shrink-0">
             <Avatar className="h-8 w-8 border-2 border-white shadow-sm">
@@ -377,7 +372,7 @@ export default function PlatformActivityHub() {
 
           {/* Content */}
           <div className="flex-1 min-w-0">
-            {/* Header */}
+            {/* Header with user and timestamp */}
             <div className="flex items-center gap-2 mb-1">
               <span className="font-medium text-[#282A3F] text-sm">
                 {user?.name || 'Unknown User'}
@@ -390,14 +385,15 @@ export default function PlatformActivityHub() {
                   minute: '2-digit'
                 })}
               </span>
-              {/* Source indicator */}
-              <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border ${getEntityColor(activity.entity_type)}`}>
+              
+              {/* Source badge */}
+              <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border bg-white text-gray-700 border-gray-200`}>
                 {getEntityIcon(activity.entity_type)}
                 <span className="font-medium">{entityName}</span>
               </div>
             </div>
 
-            {/* Task title if it's a task */}
+            {/* Task title */}
             {activity.activity_type === 'task' && activity.title && (
               <div className={`font-medium text-sm mb-1 ${isCompleted ? 'line-through text-gray-500' : 'text-[#282A3F]'}`}>
                 {activity.title}
@@ -409,15 +405,17 @@ export default function PlatformActivityHub() {
               {activity.content}
             </div>
 
-            {/* Task details */}
+            {/* Task metadata */}
             {activity.activity_type === 'task' && (
-              <div className="flex items-center gap-3 mt-2">
+              <div className="flex items-center gap-2 mt-2 flex-wrap">
                 {activity.priority && (
-                  <Badge 
-                    variant={activity.priority === 'high' ? 'destructive' : activity.priority === 'medium' ? 'default' : 'secondary'}
-                    className="text-xs"
-                  >
+                  <Badge variant="outline" className="text-xs bg-white border-gray-200 text-gray-700">
                     {activity.priority}
+                  </Badge>
+                )}
+                {activity.assigned_to && (
+                  <Badge variant="outline" className="text-xs bg-white border-gray-200 text-gray-700">
+                    {getUser(activity.assigned_to)?.name || `User ${activity.assigned_to}`}
                   </Badge>
                 )}
                 {isCompleted && (
@@ -428,21 +426,25 @@ export default function PlatformActivityHub() {
               </div>
             )}
 
-            {/* Reactions */}
+            {/* Reactions display */}
             {activity.reactions && activity.reactions.length > 0 && (
               <div className="flex items-center gap-1 mt-2">
                 {activity.reactions.map((reaction: any, idx: number) => (
-                  <div key={idx} className="inline-flex items-center gap-1 px-2 py-1 bg-[#E6E7F1] rounded-full text-xs">
+                  <button
+                    key={idx}
+                    className="inline-flex items-center gap-1 px-2 py-1 bg-[#E6E7F1] rounded-full text-xs hover:bg-gray-200 transition-colors"
+                    onClick={() => handleReaction(activity.id, reaction.emoji)}
+                  >
                     <span>{reaction.emoji}</span>
                     <span className="text-gray-600">{reaction.count}</span>
-                  </div>
+                  </button>
                 ))}
               </div>
             )}
 
-            {/* Hover toolbar */}
-            <div className="absolute right-4 top-4 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-1 bg-white shadow-lg rounded-lg border border-gray-200 p-1">
-              {/* Reactions */}
+            {/* Hover toolbar - matching partner activity hub style */}
+            <div className="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-1 bg-white shadow-lg rounded-lg border border-gray-200 p-1 z-10">
+              {/* Emoji reactions */}
               <Button
                 variant="ghost"
                 size="sm"
@@ -468,7 +470,7 @@ export default function PlatformActivityHub() {
                 <span className="text-sm">⭐</span>
               </Button>
 
-              {/* Task completion */}
+              {/* Task completion button */}
               {activity.activity_type === 'task' && (
                 <Button
                   variant="ghost"
@@ -481,7 +483,7 @@ export default function PlatformActivityHub() {
                 </Button>
               )}
 
-              {/* Pin */}
+              {/* Pin button */}
               <Button
                 variant="ghost"
                 size="sm"
@@ -555,26 +557,98 @@ export default function PlatformActivityHub() {
           </div>
         )}
 
-        {/* Assignee */}
-        <div>
-          <Label className="text-sm font-medium text-gray-700">Assignee</Label>
-          <Select
-            value={filters.assignee}
-            onValueChange={(value) => setFilters(prev => ({ ...prev, assignee: value }))}
-          >
-            <SelectTrigger className="h-8 mt-1">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All assignees</SelectItem>
-              {Array.isArray(users) && users.map((user: any) => (
-                <SelectItem key={user.id} value={user.id.toString()}>
-                  {user.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
+        {/* Comments-specific filters */}
+        {activeTab === 'comments' ? (
+          <>
+            {/* From filter (who wrote comments) */}
+            <div>
+              <Label className="text-sm font-medium text-gray-700">From</Label>
+              <Select
+                value={filters.from}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, from: value }))}
+              >
+                <SelectTrigger className="h-8 mt-1">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All authors</SelectItem>
+                  {Array.isArray(users) && users.map((user: any) => (
+                    <SelectItem key={user.id} value={user.id.toString()}>
+                      {user.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* In filter (record names) */}
+            <div>
+              <Label className="text-sm font-medium text-gray-700">In</Label>
+              <Select
+                value={filters.recordNames.length > 0 ? 'selected' : 'all'}
+                onValueChange={(value) => {
+                  if (value === 'all') {
+                    setFilters(prev => ({ ...prev, recordNames: [] }));
+                  }
+                }}
+              >
+                <SelectTrigger className="h-8 mt-1">
+                  <SelectValue placeholder={
+                    filters.recordNames.length > 0 
+                      ? `${filters.recordNames.length} selected`
+                      : "All records"
+                  } />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All records</SelectItem>
+                  {Array.isArray(unifiedActivities) && 
+                    unifiedActivities
+                      .map(activity => getEntityName(activity))
+                      .filter((name, index, arr) => name && arr.indexOf(name) === index)
+                      .sort()
+                      .map((name, index) => (
+                        <SelectItem 
+                          key={index} 
+                          value={name}
+                          onSelect={() => {
+                            setFilters(prev => ({
+                              ...prev,
+                              recordNames: prev.recordNames.includes(name)
+                                ? prev.recordNames.filter(n => n !== name)
+                                : [...prev.recordNames, name]
+                            }));
+                          }}
+                        >
+                          {name}
+                        </SelectItem>
+                      ))
+                  }
+                </SelectContent>
+              </Select>
+            </div>
+          </>
+        ) : (
+          /* Assignee filter for non-comments tabs */
+          <div>
+            <Label className="text-sm font-medium text-gray-700">Assignee</Label>
+            <Select
+              value={filters.assignee}
+              onValueChange={(value) => setFilters(prev => ({ ...prev, assignee: value }))}
+            >
+              <SelectTrigger className="h-8 mt-1">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All assignees</SelectItem>
+                {Array.isArray(users) && users.map((user: any) => (
+                  <SelectItem key={user.id} value={user.id.toString()}>
+                    {user.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
 
         {/* Status (for tasks) */}
         {activeTab === 'tasks' && (
@@ -693,7 +767,7 @@ export default function PlatformActivityHub() {
                   </div>
                 ) : filteredActivities.length > 0 ? (
                   <div className="space-y-0">
-                    {filteredActivities.map((activity, index) => renderTimelineItem(activity, index))}
+                    {filteredActivities.map((activity, index) => renderTimelineItem(activity, `${activity.activity_type}-${activity.id}`))}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-gray-500">
