@@ -491,10 +491,23 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
   });
 
   // Fetch all related tasks (partner + opportunities + customers)
-  const { data: allTasks } = useQuery({
+  const { data: allTasks, isLoading: allTasksLoading, error: allTasksError } = useQuery({
     queryKey: [`/api/${currentEnv}/partners/${partnerId}/all-tasks`],
     enabled: !!partnerId
   });
+
+  // Debug logging for tasks data
+  useEffect(() => {
+    console.log('AllTasks Debug:', {
+      partnerId,
+      allTasks,
+      isLoading: allTasksLoading,
+      error: allTasksError,
+      isArray: Array.isArray(allTasks),
+      length: allTasks?.length,
+      selectedActivityType
+    });
+  }, [allTasks, allTasksLoading, allTasksError, selectedActivityType, partnerId]);
 
   // Fetch next best actions
   const { data: nextActions } = useQuery({
