@@ -703,12 +703,23 @@ export default function ProductTemplates() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <div>
-                        <div className="font-medium text-gray-900">{template.name}</div>
-                        <div className="text-sm text-gray-500">ID: {template.productId}</div>
-                        {template.description && (
-                          <div className="text-sm text-gray-500 line-clamp-1 mt-1">{template.description}</div>
-                        )}
+                      <div className="text-sm text-gray-900">
+                        {template.id}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm text-gray-900 font-mono">
+                        {template.productId || '-'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="font-medium text-gray-900">
+                        {template.name}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm text-gray-600 max-w-[250px] truncate">
+                        {template.description || '-'}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -733,6 +744,21 @@ export default function ProductTemplates() {
                     <TableCell>
                       <div className="text-sm text-gray-900">
                         {template.premiumPercentage ? formatPercentage(template.premiumPercentage) : '-'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm text-gray-900">
+                        {template.discountPercentage ? formatPercentage(template.discountPercentage) : '-'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm text-gray-900">
+                        {template.contractStartDate || '-'}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm text-gray-900">
+                        {template.contractEndDate || '-'}
                       </div>
                     </TableCell>
                     <TableCell>
