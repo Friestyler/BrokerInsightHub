@@ -702,7 +702,7 @@ export default function ProductTemplates() {
                   <div className="border-t border-[#E6E7F1] bg-white">
                     {getSubcategories(category.id).map((subcategory: any) => (
                       <div key={subcategory.id} className="group/subcategory">
-                        <div className="py-2 pl-8 pr-4 border-b border-[#E6E7F1] last:border-b-0 bg-white hover:bg-gray-50/50 transition-colors">
+                        <div className="py-2 pl-8 pr-4 border-b border-[#E6E7F1] bg-white hover:bg-gray-50/50 transition-colors">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-3">
                               {getSubcategoryCount(subcategory.id) > 0 && (
@@ -778,7 +778,7 @@ export default function ProductTemplates() {
                         {expandedCategories.has(subcategory.id) && getSubcategories(subcategory.id).length > 0 && (
                           <div className="bg-white border-t border-[#E6E7F1]">
                             {getSubcategories(subcategory.id).map((nestedSubcategory: any) => (
-                              <div key={nestedSubcategory.id} className="group/nested py-2 pl-12 pr-4 border-b border-[#E6E7F1] last:border-b-0 bg-white hover:bg-gray-50/50 transition-colors">
+                              <div key={nestedSubcategory.id} className="group/nested py-2 pl-12 pr-4 border-b border-[#E6E7F1] bg-white hover:bg-gray-50/50 transition-colors">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center space-x-2">
                                     <div>
