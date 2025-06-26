@@ -606,7 +606,7 @@ export default function ProductTemplates() {
               <DialogTrigger asChild>
                 <Button className="bg-[#5567E5] hover:bg-[#4451c7]">
                   <Plus className="h-4 w-4 mr-2" />
-                  Create category
+                  Add category
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-md bg-white">
