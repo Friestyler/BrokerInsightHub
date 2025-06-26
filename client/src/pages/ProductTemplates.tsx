@@ -293,8 +293,7 @@ export default function ProductTemplates() {
       providerId: template.providerId || undefined,
       providerType: template.providerType || "",
       providerName: template.providerName || "",
-      contractStartDate: template.contractStartDate || "",
-      contractEndDate: template.contractEndDate || "",
+
       averagePrice: template.averagePrice ? Number(template.averagePrice) : undefined,
       premiumValue: template.premiumValue ? Number(template.premiumValue) : undefined,
       premiumPercentage: template.premiumPercentage ? Number(template.premiumPercentage) : undefined,
@@ -464,34 +463,7 @@ export default function ProductTemplates() {
           />
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="contractStartDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Contract Start Date</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="contractEndDate"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Contract End Date</FormLabel>
-                <FormControl>
-                  <Input type="date" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+
 
         <div className="grid grid-cols-2 gap-4">
           <FormField
