@@ -45,7 +45,7 @@ const productTemplateSchema = z.object({
 type ProductTemplateFormData = z.infer<typeof productTemplateSchema>;
 
 export default function ProductTemplates() {
-  const [activeTab, setActiveTab] = useState<'template' | 'categories'>('template');
+  const [activeTab, setActiveTab] = useState<'templates' | 'categories'>('templates');
   const [searchTerm, setSearchTerm] = useState("");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
@@ -426,48 +426,6 @@ export default function ProductTemplates() {
     </Form>
   );
 
-  // Handle Categories tab early return
-  if (activeTab === 'categories') {
-    return (
-      <div className="flex-1">
-        {/* Tab Navigation */}
-        <div className="bg-white">
-          <div className="px-6 py-4">
-            <div className="flex space-x-1">
-              <Button 
-                variant="ghost" 
-                className={`flex items-center gap-2 ${
-                  activeTab === 'template' 
-                    ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
-                    : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
-                }`}
-                onClick={() => setActiveTab('template')}
-              >
-                Product template
-              </Button>
-              <Button 
-                variant="ghost" 
-                className={`flex items-center gap-2 ${
-                  activeTab === 'categories' 
-                    ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
-                    : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
-                }`}
-                onClick={() => setActiveTab('categories')}
-              >
-                Product Categories
-              </Button>
-            </div>
-          </div>
-        </div>
-
-        {/* Categories Content */}
-        <div className="mx-4">
-          <CategoryManagerForProducts />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex-1">
       {/* Tab Navigation */}
@@ -477,11 +435,11 @@ export default function ProductTemplates() {
             <Button 
               variant="ghost" 
               className={`flex items-center gap-2 ${
-                activeTab === 'template' 
+                activeTab === 'templates' 
                   ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
                   : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
               }`}
-              onClick={() => setActiveTab('template')}
+              onClick={() => setActiveTab('templates')}
             >
               Product template
             </Button>
@@ -500,8 +458,15 @@ export default function ProductTemplates() {
         </div>
       </div>
 
-      {/* Product Template Content */}
-      <div className="container mx-auto px-4 py-6">
+      {/* Tab Content */}
+      {activeTab === 'categories' && (
+        <div className="mx-4">
+          <CategoryManagerForProducts />
+        </div>
+      )}
+
+      {activeTab === 'templates' && (
+        <div className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-6">
           <h1 className="text-2xl font-bold text-gray-900">Product Templates</h1>
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
@@ -671,8 +636,8 @@ export default function ProductTemplates() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-        </div>
       </div>
+      )}
     </div>
   );
 }
