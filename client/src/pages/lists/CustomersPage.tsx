@@ -225,29 +225,47 @@ export default function CustomersPageClean() {
     if (!customersResponse?.data || !Array.isArray(customersResponse.data)) return [];
     
     try {
-      // Debug: Log the raw data structure
-      console.log('Raw customer data:', customersResponse.data[0]);
+      // Debug: Log the raw data structure safely
+      if (customersResponse.data.length > 0) {
+        console.log('Raw customer data:', customersResponse.data[0]);
+      }
       
       // Ensure data is properly structured and values are numbers
       const processedCustomers = customersResponse.data.map((customer: any) => {
-        if (!customer) return null;
+        if (!customer || typeof customer !== 'object') return null;
         
-        console.log('Processing customer:', customer.name, {
-          opportunityCount: customer.opportunityCount,
-          totalOpportunityValue: customer.totalOpportunityValue,
-          partnerCount: customer.partnerCount
+        // Safe property access with proper null checking
+        const customerName = customer.name || 'Unknown Customer';
+        const opportunityCount = Number(customer.opportunityCount) || 0;
+        const totalOpportunityValue = Number(customer.totalOpportunityValue) || 0;
+        const partnerCount = Number(customer.partnerCount) || 0;
+        const productCount = Number(customer.productCount) || 0;
+        
+        console.log('Processing customer:', customerName, {
+          opportunityCount,
+          totalOpportunityValue,
+          partnerCount
         });
         
         return {
           ...customer,
-          opportunityCount: Number(customer.opportunityCount) || 0,
-          totalOpportunityValue: Number(customer.totalOpportunityValue) || 0,
-          partnerCount: Number(customer.partnerCount) || 0,
-          productCount: Number(customer.productCount) || 0
+          name: customerName,
+          opportunityCount,
+          totalOpportunityValue,
+          partnerCount,
+          productCount,
+          // Ensure all required properties exist
+          id: customer.id || 0,
+          description: customer.description || '',
+          industry: customer.industry || '',
+          size: customer.size || '',
+          status: customer.status || 'active'
         };
       }).filter(Boolean);
       
-      console.log('Processed customers:', processedCustomers[0]);
+      if (processedCustomers.length > 0) {
+        console.log('Processed customers:', processedCustomers[0]);
+      }
       return processedCustomers;
     } catch (error) {
       console.error('Error processing customers data:', error);
@@ -255,7 +273,14 @@ export default function CustomersPageClean() {
     }
   }, [customersResponse?.data]);
   
-  const pagination = customersResponse?.pagination || { page: 1, totalPages: 1, totalCount: 0, hasNextPage: false, hasPreviousPage: false };
+  // Safe pagination access with proper defaults
+  const pagination = customersResponse?.pagination || { 
+    page: 1, 
+    totalPages: 1, 
+    totalCount: 0, 
+    hasNextPage: false, 
+    hasPreviousPage: false 
+  };
   
   const { data: savedListsData = [], isLoading: savedListsLoading } = useSavedLists();
   const createSavedListMutation = useCreateSavedList();
@@ -267,33 +292,62 @@ export default function CustomersPageClean() {
     list.entity_type === 'customers'
   );
 
-  // Filter and search logic
+  // Filter and search logic with comprehensive error handling
   const filteredCustomers = customers.filter((customer: any) => {
-    const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesIndustry = activeFilters.industry.length === 0 || activeFilters.industry.includes(customer.industry);
-    const matchesSize = activeFilters.size.length === 0 || activeFilters.size.includes(customer.size);
-    const matchesStatus = activeFilters.status.length === 0 || activeFilters.status.includes(customer.status || 'active');
-    
-    // Apply list filtering if an active list is selected
-    const matchesList = !activeList || (activeList.members && activeList.members.includes(customer.id));
-    
-    return matchesSearch && matchesIndustry && matchesSize && matchesStatus && matchesList;
+    try {
+      if (!customer || typeof customer !== 'object') return false;
+      
+      const customerName = customer.name || '';
+      const customerIndustry = customer.industry || '';
+      const customerSize = customer.size || '';
+      const customerStatus = customer.status || 'active';
+      const customerId = customer.id || 0;
+      
+      const matchesSearch = customerName.toLowerCase().includes((searchTerm || '').toLowerCase());
+      const matchesIndustry = !activeFilters?.industry?.length || activeFilters.industry.includes(customerIndustry);
+      const matchesSize = !activeFilters?.size?.length || activeFilters.size.includes(customerSize);
+      const matchesStatus = !activeFilters?.status?.length || activeFilters.status.includes(customerStatus);
+      
+      // Apply list filtering if an active list is selected
+      const matchesList = !activeList || !activeList.members || activeList.members.includes(customerId);
+      
+      return matchesSearch && matchesIndustry && matchesSize && matchesStatus && matchesList;
+    } catch (error) {
+      console.error('Error filtering customer:', error, customer);
+      return false;
+    }
   });
 
-  // Handle customer selection
+  // Handle customer selection with error handling
   const handleCustomerSelect = (customerId: number) => {
-    setSelectedCustomers(prev => 
-      prev.includes(customerId) 
-        ? prev.filter(id => id !== customerId)
-        : [...prev, customerId]
-    );
+    try {
+      if (!customerId || typeof customerId !== 'number') return;
+      
+      setSelectedCustomers(prev => {
+        if (!Array.isArray(prev)) return [customerId];
+        return prev.includes(customerId) 
+          ? prev.filter(id => id !== customerId)
+          : [...prev, customerId];
+      });
+    } catch (error) {
+      console.error('Error selecting customer:', error);
+    }
   };
 
   const handleSelectAll = () => {
-    if (selectedCustomers.length === filteredCustomers.length) {
-      setSelectedCustomers([]);
-    } else {
-      setSelectedCustomers(filteredCustomers.map((c: any) => c.id));
+    try {
+      if (!Array.isArray(filteredCustomers) || !Array.isArray(selectedCustomers)) return;
+      
+      if (selectedCustomers.length === filteredCustomers.length) {
+        setSelectedCustomers([]);
+      } else {
+        const validIds = filteredCustomers
+          .filter((c: any) => c && typeof c === 'object' && c.id)
+          .map((c: any) => c.id);
+        setSelectedCustomers(validIds);
+      }
+    } catch (error) {
+      console.error('Error selecting all customers:', error);
     }
   };
 
