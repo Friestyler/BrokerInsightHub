@@ -11,6 +11,37 @@ import Papa from 'papaparse';
 import { useQuery } from '@tanstack/react-query';
 import CategoryManagerForProducts from '@/components/CategoryManagerForProducts';
 
+// Helper function to render hierarchical categories
+const renderCategoriesHierarchy = (categories: any[], level = 0): React.ReactElement[] => {
+  const result: React.ReactElement[] = [];
+  
+  const rootCategories = categories.filter((cat: any) => !cat.parent_id);
+  const getSubcategories = (parentId: number) => 
+    categories.filter((cat: any) => cat.parent_id === parentId);
+  
+  const renderCategory = (category: any, currentLevel: number) => {
+    result.push(
+      <SelectItem key={category.id} value={category.id.toString()} level={currentLevel}>
+        <div className="flex items-center gap-2">
+          <div 
+            className="w-3 h-3 rounded-full" 
+            style={{ backgroundColor: category.color }}
+          />
+          {category.name}
+        </div>
+      </SelectItem>
+    );
+    
+    // Recursively render subcategories
+    const subcategories = getSubcategories(category.id);
+    subcategories.forEach(subcat => renderCategory(subcat, currentLevel + 1));
+  };
+  
+  rootCategories.forEach(category => renderCategory(category, level));
+  
+  return result;
+};
+
 // Simple MultiSelect component
 const MultiSelect = ({ options, value, onChange, placeholder }: {
   options: { value: string; label: string }[];
@@ -514,17 +545,7 @@ export default function ProductAssignmentStep({
                             <SelectValue placeholder="Select category..." />
                           </SelectTrigger>
                           <SelectContent>
-                            {(activeCategories as any[]).map((category: any) => (
-                              <SelectItem key={category.id} value={category.id}>
-                                <div className="flex items-center gap-2">
-                                  <div 
-                                    className="w-3 h-3 rounded-full" 
-                                    style={{ backgroundColor: category.color }}
-                                  />
-                                  {category.name}
-                                </div>
-                              </SelectItem>
-                            ))}
+                            {renderCategoriesHierarchy(activeCategories as any[])}
                             <SelectItem value="add-new">Add new category</SelectItem>
                           </SelectContent>
                         </Select>
