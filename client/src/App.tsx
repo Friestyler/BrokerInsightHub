@@ -111,7 +111,7 @@ function Router() {
           <Route path="/campaigns/create-from-template/:templateId" component={CampaignFromTemplate} />
 
           {/* Campaign routes from donald-dev */}
-          <Route path="/campaigns/:id" component={CampaignsPage} />
+          <Route path="/campaigns/:id" component={CampaignsOverview} />
 
           {/* Data Upload routes */}
           <Route path="/data-upload">
