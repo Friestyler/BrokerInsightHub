@@ -987,7 +987,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
               <div className="flex-1 space-y-4 max-h-64 overflow-y-auto mb-4">
                 {Array.isArray(allTasks) && allTasks.length > 0 ? (
                   allTasks
-                    .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                    .sort((a: any, b: any) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
                     .map((task: any, index: number) => (
                       <div key={`task-${task.id}-${index}`} className="flex items-start gap-3 relative group">
                         {/* Timeline line */}
