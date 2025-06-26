@@ -719,7 +719,7 @@ export default function ProductTemplates() {
                             }}
                           >
                             <CollapsibleTrigger asChild>
-                              <div className="pl-8 pr-4 py-3 hover:bg-gray-50 cursor-pointer">
+                              <div className="pl-8 pr-4 py-3 hover:bg-gray-50 cursor-pointer group">
                                 <div className="flex items-center justify-between">
                                   <div className="flex items-center space-x-3">
                                     {getSubcategoryCount(subcategory.id) > 0 ? (
@@ -788,7 +788,7 @@ export default function ProductTemplates() {
                             <CollapsibleContent>
                               <div className="bg-gray-50/50 border-t border-[#E6E7F1]">
                                 {getSubcategories(subcategory.id).map((nestedSubcategory: any) => (
-                                  <div key={nestedSubcategory.id} className="pl-12 pr-4 py-2 border-b border-[#E6E7F1] last:border-b-0 hover:bg-gray-50">
+                                  <div key={nestedSubcategory.id} className="pl-12 pr-4 py-2 border-b border-[#E6E7F1] last:border-b-0 hover:bg-gray-50 group">
                                     <div className="flex items-center justify-between">
                                       <div className="flex items-center space-x-3">
                                         <div className="w-3 h-3" />
@@ -799,32 +799,46 @@ export default function ProductTemplates() {
                                           )}
                                         </div>
                                       </div>
-                                      <DropdownMenu>
-                                        <DropdownMenuTrigger asChild>
-                                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
-                                            <MoreVertical className="h-3 w-3" />
-                                          </Button>
-                                        </DropdownMenuTrigger>
-                                        <DropdownMenuContent align="end">
-                                          <DropdownMenuItem onClick={() => {
-                                            setSelectedCategory(nestedSubcategory);
-                                            setEditCategoryDialogOpen(true);
-                                          }}>
-                                            <Edit className="h-3 w-3 mr-2" />
-                                            Edit
-                                          </DropdownMenuItem>
-                                          <DropdownMenuItem 
-                                            className="text-red-600"
-                                            onClick={() => {
+                                      <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
+                                        <Button
+                                          variant="ghost"
+                                          size="sm"
+                                          className="opacity-0 group-hover:opacity-100 transition-opacity text-[#5567E5] hover:text-[#4451c7] hover:bg-[#5567E5]/10 h-6"
+                                          onClick={() => {
+                                            setSelectedParentCategory(nestedSubcategory);
+                                            setCreateSubcategoryDialogOpen(true);
+                                          }}
+                                        >
+                                          <Plus className="h-3 w-3 mr-1" />
+                                          Add subcategory
+                                        </Button>
+                                        <DropdownMenu>
+                                          <DropdownMenuTrigger asChild>
+                                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                                              <MoreVertical className="h-3 w-3" />
+                                            </Button>
+                                          </DropdownMenuTrigger>
+                                          <DropdownMenuContent align="end">
+                                            <DropdownMenuItem onClick={() => {
                                               setSelectedCategory(nestedSubcategory);
-                                              setDeleteCategoryDialogOpen(true);
-                                            }}
-                                          >
-                                            <Trash2 className="h-3 w-3 mr-2" />
-                                            Delete
-                                          </DropdownMenuItem>
-                                        </DropdownMenuContent>
-                                      </DropdownMenu>
+                                              setEditCategoryDialogOpen(true);
+                                            }}>
+                                              <Edit className="h-3 w-3 mr-2" />
+                                              Edit
+                                            </DropdownMenuItem>
+                                            <DropdownMenuItem 
+                                              className="text-red-600"
+                                              onClick={() => {
+                                                setSelectedCategory(nestedSubcategory);
+                                                setDeleteCategoryDialogOpen(true);
+                                              }}
+                                            >
+                                              <Trash2 className="h-3 w-3 mr-2" />
+                                              Delete
+                                            </DropdownMenuItem>
+                                          </DropdownMenuContent>
+                                        </DropdownMenu>
+                                      </div>
                                     </div>
                                   </div>
                                 ))}
