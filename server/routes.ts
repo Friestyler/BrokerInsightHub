@@ -1189,12 +1189,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envPool = getEnvironmentPool(envId);
       
       // Fetch tasks from activity_tasks table
-      const tasksResult = await envPool.query(`
+      const tasksQuery = `
         SELECT 
           t.id,
           'task' as activity_type,
-          t.content as title,
-          t.content,
+          t.title,
+          COALESCE(t.description, t.title) as content,
           t.priority,
           t.completed,
           t.assigned_to,
@@ -1213,10 +1213,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LEFT JOIN ${envId}.partners p ON t.entity_type = 'partner' AND t.entity_id = p.id
         LEFT JOIN ${envId}.opportunities o ON t.entity_type = 'opportunity' AND t.entity_id = o.id  
         LEFT JOIN ${envId}.customers c ON t.entity_type = 'customer' AND t.entity_id = c.id
-      `);
+      `;
 
       // Fetch comments from activity_comments table
-      const commentsResult = await envPool.query(`
+      const commentsQuery = `
         SELECT 
           c.id,
           'comment' as activity_type,
@@ -1240,7 +1240,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LEFT JOIN ${envId}.partners p ON c.entity_type = 'partner' AND c.entity_id = p.id
         LEFT JOIN ${envId}.opportunities o ON c.entity_type = 'opportunity' AND c.entity_id = o.id  
         LEFT JOIN ${envId}.customers cu ON c.entity_type = 'customer' AND c.entity_id = cu.id
-      `);
+      `;
+
+      console.log('Executing tasks query...');
+      const tasksResult = await envPool.query(tasksQuery);
+      console.log(`Tasks found: ${tasksResult.rows.length}`);
+
+      console.log('Executing comments query...');
+      const commentsResult = await envPool.query(commentsQuery);
+      console.log(`Comments found: ${commentsResult.rows.length}`);
 
       // Combine and sort all activities
       const allActivities = [
@@ -1261,13 +1269,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         entity_id: activity.entity_id,
         entity_name: activity.entity_name,
         assigned_to: activity.assigned_to,
-        user_id: activity.assigned_to, // Map assigned_to to user_id for consistency
+        user_id: activity.assigned_to,
         author_id: activity.assigned_to,
         created_at: activity.created_at,
         updated_at: activity.updated_at,
         reactions: []
       }));
       
+      console.log(`Unified activities found: ${activities.length} (${tasksResult.rows.length} tasks, ${commentsResult.rows.length} comments)`);
       res.json(activities);
     } catch (error) {
       console.error('Error fetching unified activities:', error);
