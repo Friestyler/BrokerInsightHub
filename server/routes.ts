@@ -1197,14 +1197,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
             WHEN a.entity_type = 'opportunity' THEN o.title  
             WHEN a.entity_type = 'customer' THEN c.name
             ELSE NULL
-          END as entity_name,
-          u.name as user_name,
-          u.email as user_email
+          END as entity_name
         FROM ${envId}.activities a
         LEFT JOIN ${envId}.partners p ON a.entity_type = 'partner' AND a.entity_id = p.id
         LEFT JOIN ${envId}.opportunities o ON a.entity_type = 'opportunity' AND a.entity_id = o.id  
         LEFT JOIN ${envId}.customers c ON a.entity_type = 'customer' AND a.entity_id = c.id
-        LEFT JOIN ${envId}.users u ON (a.assigned_to = u.id OR a.user_id = u.id OR a.author_id = u.id)
         ORDER BY a.created_at DESC
         LIMIT 200
       `);
