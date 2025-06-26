@@ -28,7 +28,8 @@ import {
   Pin,
   CheckCircle,
   Calendar as CalendarIcon,
-  Users
+  Users,
+  Trash2
 } from 'lucide-react';
 
 interface ActivityItem {
@@ -155,6 +156,34 @@ export default function PlatformActivityHub() {
       queryClient.invalidateQueries({ 
         queryKey: ['/api/unified-activities'],
         exact: false 
+      });
+    }
+  });
+
+  // Delete activity mutation
+  const deleteActivityMutation = useMutation({
+    mutationFn: async (activityId: number) => {
+      const response = await fetch(`/api/${currentEnv}/activities/${activityId}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Failed to delete activity');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ 
+        queryKey: ['/api/unified-activities'],
+        exact: false 
+      });
+      toast({
+        title: "Activity deleted",
+        description: "The activity has been successfully removed.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to delete activity. Please try again.",
+        variant: "destructive",
       });
     }
   });
@@ -340,6 +369,11 @@ export default function PlatformActivityHub() {
   // Handle reaction
   const handleReaction = (activityId: number, emoji: string) => {
     addReactionMutation.mutate({ activityId, emoji });
+  };
+
+  // Handle delete activity
+  const handleDeleteActivity = (activityId: number) => {
+    deleteActivityMutation.mutate(activityId);
   };
 
   // Get entity icon
@@ -529,6 +563,15 @@ export default function PlatformActivityHub() {
                 {/* Pin Icon */}
                 <button className="w-8 h-8 flex items-center justify-center hover:bg-[#E6E7F1] rounded-md transition-colors duration-150">
                   <Pin className="h-4 w-4 text-gray-600" />
+                </button>
+                
+                {/* Delete Icon */}
+                <button 
+                  onClick={() => handleDeleteActivity(activity.id)}
+                  className="w-8 h-8 flex items-center justify-center hover:bg-red-50 rounded-md transition-colors duration-150"
+                  title="Delete activity"
+                >
+                  <Trash2 className="h-4 w-4 text-red-600" />
                 </button>
               </div>
             </div>
