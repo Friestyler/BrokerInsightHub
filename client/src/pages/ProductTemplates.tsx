@@ -1098,7 +1098,7 @@ export default function ProductTemplates() {
               name: formData.get('name') as string,
               color: formData.get('color') as string,
               description: formData.get('description') as string || undefined,
-              parent_id: selectedParentCategory?.id,
+              parentId: selectedParentCategory?.id,
             });
           }}>
             <div className="space-y-4">
