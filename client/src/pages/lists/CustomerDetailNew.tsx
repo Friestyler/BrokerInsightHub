@@ -5,13 +5,14 @@ import { apiRequest } from "@/lib/queryClient";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal } from "lucide-react";
+import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import LogoUploadModal from "@/components/LogoUploadModal";
 import EntityAvatar from "@/components/EntityAvatar";
@@ -736,7 +737,7 @@ export default function CustomerDetailNew() {
           <div>
             {/* Add Product Button */}
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">Assigned Products</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Products</h3>
               <Button 
                 onClick={() => setShowAddProductDialog(true)}
                 className="bg-[#5567E5] text-white hover:bg-[#4556D4] h-8"
@@ -745,79 +746,119 @@ export default function CustomerDetailNew() {
               </Button>
             </div>
             
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12"><Checkbox /></TableHead>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Vendor</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(relatedProducts || []).map((product: any) => {
-                  if (!product || typeof product !== 'object') return null;
-                  
-                  try {
-                    // Safe property access with error handling
-                    const productId = product.id || 0;
-                    const name = product.name || 'Unnamed Product';
-                    const type = product.type || 'Product';
-                    const category = product.category || 'General';
-                    const vendorName = product.vendorName || 'No vendor';
-                    const price = product.price;
-                    const status = product.status || 'Active';
-                    
-                    return (
-                      <TableRow key={productId}>
-                        <TableCell><Checkbox /></TableCell>
-                        <TableCell>
-                          <span className="font-medium text-gray-900">
-                            {name}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-gray-900">
-                            {type}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-gray-900">
-                            {category}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-gray-900">
-                            {vendorName}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="text-gray-900">
-                            {price ? `€${price}` : 'Contact for price'}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                            {status}
-                          </span>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  } catch (error) {
-                    console.error('Error rendering product:', error, product);
-                    return null;
-                  }
-                }).filter(Boolean)}
-              </TableBody>
-            </Table>
-            {(!relatedProducts || relatedProducts.length === 0) && (
-              <div className="text-center py-12">
-                <p className="text-gray-500">No products associated with this customer</p>
+            {/* Products Table with Partners page styling */}
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-white">
+                    <tr>
+                      <th className="w-12 group relative px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                        <div className="transition-opacity opacity-0 group-hover:opacity-100">
+                          <Checkbox />
+                        </div>
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider min-w-[200px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                        Product
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider min-w-[150px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                        Provider
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider min-w-[120px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                        Category
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider min-w-[120px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                        Premium Value
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider min-w-[100px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                        Premium %
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider min-w-[100px]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                        Status
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 bg-white">
+                    {(relatedProducts || []).map((product: any) => {
+                      if (!product || typeof product !== 'object') return null;
+                      
+                      try {
+                        // Safe property access with error handling using actual product entity attributes
+                        const productId = product.id || 0;
+                        const name = product.name || 'Unnamed Product';
+                        const providerName = product.providerName || product.provider_name || 'No provider';
+                        const category = product.category || 'General';
+                        const premiumValue = product.premiumValue || product.premium_value;
+                        const premiumPercentage = product.premiumPercentage || product.premium_percentage;
+                        const status = product.status || 'Active';
+                        
+                        return (
+                          <tr key={productId} className="group hover:bg-gray-50">
+                            <td className="whitespace-nowrap py-4 pl-6 pr-3 text-sm">
+                              <div className="transition-opacity opacity-0 group-hover:opacity-100">
+                                <Checkbox />
+                              </div>
+                            </td>
+                            <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm">
+                              <div className="flex items-center">
+                                <div className="h-10 w-10 flex-shrink-0">
+                                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                    <Package className="h-5 w-5 text-blue-600" />
+                                  </div>
+                                </div>
+                                <div className="ml-4">
+                                  <div className="font-medium text-gray-900">
+                                    {name}
+                                  </div>
+                                  {product.description && (
+                                    <div className="text-sm text-gray-500">
+                                      {product.description}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                              {providerName}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                              {category}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                              {premiumValue ? `€${Number(premiumValue).toLocaleString()}` : '-'}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                              {premiumPercentage ? `${Number(premiumPercentage)}%` : '-'}
+                            </td>
+                            <td className="whitespace-nowrap px-3 py-4 text-sm">
+                              <Badge 
+                                variant={status === 'Active' ? 'default' : 'secondary'}
+                                className={status === 'Active' ? 'bg-green-100 text-green-800' : ''}
+                              >
+                                {status}
+                              </Badge>
+                            </td>
+                          </tr>
+                        );
+                      } catch (error) {
+                        console.error('Error rendering product:', error, product);
+                        return null;
+                      }
+                    }).filter(Boolean)}
+                  </tbody>
+                </table>
               </div>
-            )}
+
+              {/* Empty state */}
+              {(!relatedProducts || relatedProducts.length === 0) && (
+                <div className="text-center py-12">
+                  <Package className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">No products found</h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    No products are associated with this customer.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
         )}
 
