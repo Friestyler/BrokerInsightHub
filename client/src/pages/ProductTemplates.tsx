@@ -742,7 +742,7 @@ export default function ProductTemplates() {
                                 }}
                               >
                                 <Plus className="h-3 w-3 mr-1" />
-                                Add
+                                Add subcategory
                               </Button>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
