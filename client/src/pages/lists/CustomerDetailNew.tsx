@@ -1646,7 +1646,7 @@ export default function CustomerDetailNew() {
             )}
             </div>
           </div>
-          
+        
           <DialogFooter className="flex-shrink-0 border-t border-border pt-4">
             <Button 
               variant="outline" 
