@@ -1354,9 +1354,9 @@ export default function CustomerDetailNew() {
             </div>
 
             {/* Right Panel - Product Details & Configuration */}
-            <div className="w-96 flex-shrink-0 pl-6 flex flex-col space-y-4">
+            <div className="w-96 flex-shrink-0 pl-6 flex flex-col min-h-0">
               {selectedProductTemplate ? (
-                <>
+                <div className="flex flex-col h-full min-h-0 space-y-4">
                   {/* Selected Product Summary */}
                   <div className="flex-shrink-0 bg-accent/50 border border-border rounded-lg p-4">
                     <div className="flex items-start justify-between">
@@ -1377,37 +1377,38 @@ export default function CustomerDetailNew() {
                     </div>
                   </div>
 
-                  {/* Template Details */}
-                  <div className="flex-shrink-0 bg-muted/30 rounded-lg p-4">
-                    <h4 className="font-medium text-foreground mb-3">Template Details</h4>
-                    <div className="grid grid-cols-1 gap-3 text-sm">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Provider:</span>
-                        <span className="text-foreground font-medium">{selectedProductTemplate.providerName}</span>
+                  {/* Scrollable Content Area */}
+                  <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-2">
+                    {/* Template Details */}
+                    <div className="bg-muted/30 rounded-lg p-4">
+                      <h4 className="font-medium text-foreground mb-3">Template Details</h4>
+                      <div className="grid grid-cols-1 gap-3 text-sm">
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Provider:</span>
+                          <span className="text-foreground font-medium">{selectedProductTemplate.providerName}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Category:</span>
+                          <span className="text-foreground font-medium">{selectedProductTemplate.category || 'Not specified'}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Default Price:</span>
+                          <span className="text-foreground font-medium">€{selectedProductTemplate.averagePrice}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Premium:</span>
+                          <span className="text-foreground font-medium">{selectedProductTemplate.premiumPercentage || 0}%</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Category:</span>
-                        <span className="text-foreground font-medium">{selectedProductTemplate.category || 'Not specified'}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Default Price:</span>
-                        <span className="text-foreground font-medium">€{selectedProductTemplate.averagePrice}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Premium:</span>
-                        <span className="text-foreground font-medium">{selectedProductTemplate.premiumPercentage || 0}%</span>
-                      </div>
+                      {selectedProductTemplate.description && (
+                        <div className="mt-3 pt-3 border-t border-border">
+                          <span className="text-sm text-muted-foreground">Description:</span>
+                          <p className="mt-1 text-sm text-foreground">{selectedProductTemplate.description}</p>
+                        </div>
+                      )}
                     </div>
-                    {selectedProductTemplate.description && (
-                      <div className="mt-3 pt-3 border-t border-border">
-                        <span className="text-sm text-muted-foreground">Description:</span>
-                        <p className="mt-1 text-sm text-foreground">{selectedProductTemplate.description}</p>
-                      </div>
-                    )}
-                  </div>
 
-                  {/* Custom Attributes */}
-                  <div className="flex-1 min-h-0 overflow-y-auto">
+                    {/* Custom Attributes */}
                     <div className="space-y-4">
                       <h4 className="font-medium text-foreground">Custom Attributes for {customer?.name}</h4>
                       
@@ -1507,7 +1508,7 @@ export default function CustomerDetailNew() {
                       </div>
                     </div>
                   </div>
-                </>
+                </div>
               ) : (
                 <div className="flex-1 flex items-center justify-center text-center p-8">
                   <div>
