@@ -1267,7 +1267,7 @@ export default function CustomerDetailNew() {
                         
                         // Get level 2 subcategories for this root category (proper hierarchy)
                         const subcategories = categories?.filter((c: any) => 
-                          c.parentId === rootCategoryId && c.level === 2
+                          c.parent_id === rootCategoryId && c.level === 2
                         ) || [];
                         
                         // Count total products in this root category and all its subcategories
