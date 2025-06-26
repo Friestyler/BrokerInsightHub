@@ -678,7 +678,7 @@ export default function ProductTemplates() {
                           </div>
                           {getSubcategoryCount(category.id) > 0 && (
                             <Badge variant="outline" className="text-xs">
-                              {getSubcategoryCount(category.id)} subcategories
+                              {getSubcategoryCount(category.id)}
                             </Badge>
                           )}
                         </div>
@@ -755,7 +755,7 @@ export default function ProductTemplates() {
                                     </div>
                                     {getSubcategoryCount(subcategory.id) > 0 && (
                                       <Badge variant="outline" className="text-xs">
-                                        {getSubcategoryCount(subcategory.id)} subcategories
+                                        {getSubcategoryCount(subcategory.id)}
                                       </Badge>
                                     )}
                                   </div>
