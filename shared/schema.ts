@@ -746,7 +746,7 @@ export const productTemplates = pgTable("product_templates", {
   productId: text("product_id").notNull().unique(), // Unique product identifier
   name: text("name").notNull(),
   description: text("description"),
-  categoryId: integer("category_id").references(() => productCategories.id),
+  categoryId: integer("category_id").references(() => categories.id),
   category: text("category"), // Legacy field - will be phased out
   
   // Provider information - can be vendor, broker/partner, or other
@@ -821,10 +821,21 @@ export const productTemplatesRelations = relations(productTemplates, ({ one }) =
     fields: [productTemplates.vendorId],
     references: [vendors.id],
   }),
-  category: one(productCategories, {
+  category: one(categories, {
     fields: [productTemplates.categoryId],
-    references: [productCategories.id],
+    references: [categories.id],
   }),
+}));
+
+// Categories relations
+export const categoriesRelations = relations(categories, ({ one, many }) => ({
+  parent: one(categories, {
+    fields: [categories.parentId],
+    references: [categories.id],
+  }),
+  children: many(categories),
+  productTemplates: many(productTemplates),
+  productCatalog: many(productCatalog),
 }));
 
 // Insert schemas
@@ -892,6 +903,16 @@ export const insertProductTemplateSchema = createInsertSchema(productTemplates).
   status: true,
   notes: true,
   tags: true,
+});
+
+export const insertCategorySchema = createInsertSchema(categories).pick({
+  name: true,
+  color: true,
+  description: true,
+  parentId: true,
+  level: true,
+  sortOrder: true,
+  isActive: true,
 });
 
 // Product Catalogues - master catalogues that can contain products
@@ -1599,6 +1620,10 @@ export type InsertNextBestAction = z.infer<typeof insertNextBestActionSchema>;
 // Product Template types
 export type ProductTemplate = typeof productTemplates.$inferSelect;
 export type InsertProductTemplate = z.infer<typeof insertProductTemplateSchema>;
+
+// Category types
+export type Category = typeof categories.$inferSelect;
+export type InsertCategory = z.infer<typeof insertCategorySchema>;
 
 // Product and Category types
 export type Vendor = typeof vendors.$inferSelect;
