@@ -786,7 +786,7 @@ export default function ProductTemplates() {
                             </CollapsibleTrigger>
 
                             <CollapsibleContent>
-                              <div className="bg-gray-50/50">
+                              <div className="bg-gray-50/50 border-t border-[#E6E7F1]">
                                 {getSubcategories(subcategory.id).map((nestedSubcategory: any) => (
                                   <div key={nestedSubcategory.id} className="pl-12 pr-4 py-2 border-b border-[#E6E7F1] last:border-b-0 hover:bg-gray-50">
                                     <div className="flex items-center justify-between">
