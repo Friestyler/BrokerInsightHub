@@ -46,7 +46,7 @@ export function useEntityLogo(entityType: 'partner' | 'customer', entityId: numb
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
           if (!controller.signal.aborted) {
-            controller.abort();
+            controller.abort('Request timeout');
           }
         }, 5000); // Increased timeout to 5 seconds
         
