@@ -520,7 +520,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
       isLoading: allTasksLoading,
       error: allTasksError,
       isArray: Array.isArray(allTasks),
-      length: allTasks?.length,
+      length: Array.isArray(allTasks) ? allTasks.length : 0,
       selectedActivityType
     });
   }, [allTasks, allTasksLoading, allTasksError, selectedActivityType, partnerId]);
@@ -986,7 +986,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
               {/* Task List with timeline styling */}
               <div 
                 ref={(el) => {
-                  if (el && allTasks?.length > 0) {
+                  if (el && Array.isArray(allTasks) && allTasks.length > 0) {
                     el.scrollTop = el.scrollHeight;
                   }
                 }}

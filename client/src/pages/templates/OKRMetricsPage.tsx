@@ -141,15 +141,15 @@ export default function OKRMetricsPage() {
     const matchesUnit = selectedUnit === 'all' || metric.measure_unit === selectedUnit;
     
     const matchesRange = selectedRange === 'all' || 
-      (selectedRange === '0-50' && metric.target_value !== null && metric.target_value <= 50) ||
-      (selectedRange === '50-100' && metric.target_value !== null && metric.target_value > 50 && metric.target_value <= 100) ||
-      (selectedRange === '100+' && metric.target_value !== null && metric.target_value > 100);
+      (selectedRange === '0-50' && metric?.target_value !== null && metric?.target_value !== undefined && metric?.target_value <= 50) ||
+      (selectedRange === '50-100' && metric?.target_value !== null && metric?.target_value !== undefined && metric?.target_value > 50 && metric?.target_value <= 100) ||
+      (selectedRange === '100+' && metric?.target_value !== null && metric?.target_value !== undefined && metric?.target_value > 100);
     
     const matchesTimeframe = selectedTimeframe === 'all' || 
-      (selectedTimeframe === 'current' && metric.timeframe_start && metric.timeframe_end && 
+      (selectedTimeframe === 'current' && metric?.timeframe_start && metric?.timeframe_end && 
        new Date() >= new Date(metric.timeframe_start) && new Date() <= new Date(metric.timeframe_end)) ||
-      (selectedTimeframe === 'upcoming' && metric.timeframe_start && new Date() < new Date(metric.timeframe_start)) ||
-      (selectedTimeframe === 'past' && metric.timeframe_end && new Date() > new Date(metric.timeframe_end));
+      (selectedTimeframe === 'upcoming' && metric?.timeframe_start && new Date() < new Date(metric.timeframe_start)) ||
+      (selectedTimeframe === 'past' && metric?.timeframe_end && new Date() > new Date(metric.timeframe_end));
     
     return matchesSearch && matchesTag && matchesUnit && matchesRange && matchesTimeframe;
   });
@@ -468,7 +468,7 @@ export default function OKRMetricsPage() {
                     // Metrics under this tag
                     ...tagMetrics.map((metric: OKRMetric, metricIndex: number) => {
                       const formatTimeframe = () => {
-                        if (metric.timeframe_start && metric.timeframe_end) {
+                        if (metric?.timeframe_start && metric?.timeframe_end) {
                           const start = new Date(metric.timeframe_start);
                           const end = new Date(metric.timeframe_end);
                           return `Until ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
