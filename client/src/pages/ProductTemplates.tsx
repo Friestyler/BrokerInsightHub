@@ -182,7 +182,7 @@ export default function ProductTemplates() {
       discountPercentage: template.discountPercentage ? Number(template.discountPercentage) : undefined,
       vendorId: template.vendorId || undefined,
       isActive: template.isActive,
-      status: template.status,
+
       notes: template.notes || "",
       tags: Array.isArray(template.tags) ? template.tags : [],
     });
@@ -673,7 +673,7 @@ export default function ProductTemplates() {
                   <TableHead className="min-w-[100px]">Discount %</TableHead>
                   <TableHead className="min-w-[120px]">Contract Start</TableHead>
                   <TableHead className="min-w-[120px]">Contract End</TableHead>
-                  <TableHead className="min-w-[80px]">Status</TableHead>
+
                   <TableHead className="w-12">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -755,11 +755,7 @@ export default function ProductTemplates() {
                         {template.contractEndDate || '-'}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <Badge variant={template.status === 'active' ? 'default' : 'secondary'}>
-                        {template.status}
-                      </Badge>
-                    </TableCell>
+
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
