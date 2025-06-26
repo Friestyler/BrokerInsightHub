@@ -1183,37 +1183,190 @@ export default function CustomerDetailNew() {
           </DialogHeader>
           
           <div className="space-y-6">
-            {/* Product Template Selection */}
-            <div className="space-y-2">
+            {/* Enhanced Product Template Selection */}
+            <div className="space-y-4">
               <Label htmlFor="product-template">Product Template</Label>
-              {templatesLoading ? (
-                <div className="text-sm text-muted-foreground">Loading templates...</div>
-              ) : (
+              
+              {/* Search and Filter Controls */}
+              <div className="flex space-x-3">
+                <div className="flex-1 relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search products and categories..."
+                    value={productSearchTerm}
+                    onChange={(e) => setProductSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
                 <Select 
-                  value={selectedProductTemplate?.id?.toString() || ""} 
-                  onValueChange={(value) => {
-                    const template = productTemplates?.find((t: any) => t.id.toString() === value);
-                    setSelectedProductTemplate(template);
-                  }}
+                  value={selectedCategoryFilter?.toString() || "all"} 
+                  onValueChange={(value) => setSelectedCategoryFilter(value === "all" ? null : parseInt(value))}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select a product template" />
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Filter by category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {productTemplates?.map((template: any) => (
-                      <SelectItem key={template.id} value={template.id.toString()}>
-                        <div className="flex items-center space-x-3">
-                          <div className="flex-1">
-                            <div className="font-medium">{template.name}</div>
-                            <div className="text-sm text-muted-foreground">
-                              {template.providerName} • €{template.averagePrice}
-                            </div>
-                          </div>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categories?.map((category: any) => (
+                      <SelectItem key={category.id} value={category.id.toString()}>
+                        <div className="flex items-center">
+                          <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: category.color }}></div>
+                          {category.name}
                         </div>
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Product Template Selection Interface */}
+              {templatesLoading ? (
+                <div className="text-sm text-muted-foreground">Loading templates...</div>
+              ) : (
+                <div className="border rounded-lg max-h-96 overflow-y-auto">
+                  {(() => {
+                    // Filter and organize products by category
+                    const filteredTemplates = productTemplates?.filter((template: any) => {
+                      const searchMatch = !productSearchTerm || 
+                        template.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+                        template.category?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+                        template.providerName?.toLowerCase().includes(productSearchTerm.toLowerCase());
+                      
+                      const categoryMatch = !selectedCategoryFilter || 
+                        template.categoryId === selectedCategoryFilter;
+                      
+                      return searchMatch && categoryMatch;
+                    }) || [];
+
+                    // Group templates by category
+                    const groupedTemplates: Record<string, any[]> = {};
+                    filteredTemplates.forEach((template: any) => {
+                      const categoryName = template.category || 'Uncategorized';
+                      if (!groupedTemplates[categoryName]) {
+                        groupedTemplates[categoryName] = [];
+                      }
+                      groupedTemplates[categoryName].push(template);
+                    });
+
+                    return Object.entries(groupedTemplates).map(([categoryName, templates]) => (
+                      <div key={categoryName} className="border-b last:border-b-0">
+                        {/* Category Header */}
+                        <div 
+                          className="px-4 py-3 bg-gray-50 border-b cursor-pointer flex items-center justify-between hover:bg-gray-100"
+                          onClick={() => {
+                            const categoryId = categories?.find((c: any) => c.name === categoryName)?.id;
+                            if (categoryId) {
+                              setExpandedCategories(prev => {
+                                const newSet = new Set(prev);
+                                if (newSet.has(categoryId)) {
+                                  newSet.delete(categoryId);
+                                } else {
+                                  newSet.add(categoryId);
+                                }
+                                return newSet;
+                              });
+                            }
+                          }}
+                        >
+                          <div className="flex items-center">
+                            <div className="w-3 h-3 rounded-full mr-3" 
+                                 style={{ backgroundColor: categories?.find((c: any) => c.name === categoryName)?.color || '#3B82F6' }}>
+                            </div>
+                            <span className="font-medium text-gray-900">{categoryName}</span>
+                            <span className="ml-2 text-sm text-gray-500">({templates.length})</span>
+                          </div>
+                          {(() => {
+                            const categoryId = categories?.find((c: any) => c.name === categoryName)?.id;
+                            const isExpanded = categoryId ? expandedCategories.has(categoryId) : true;
+                            return isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />;
+                          })()}
+                        </div>
+
+                        {/* Category Products */}
+                        {(() => {
+                          const categoryId = categories?.find((c: any) => c.name === categoryName)?.id;
+                          const isExpanded = categoryId ? expandedCategories.has(categoryId) : true;
+                          
+                          if (!isExpanded) return null;
+
+                          return (
+                            <div className="divide-y">
+                              {templates.map((template: any) => (
+                                <div 
+                                  key={template.id}
+                                  className={`p-4 cursor-pointer hover:bg-blue-50 ${
+                                    selectedProductTemplate?.id === template.id ? 'bg-blue-100 border-l-4 border-l-blue-600' : ''
+                                  }`}
+                                  onClick={() => setSelectedProductTemplate(template)}
+                                >
+                                  <div className="flex justify-between items-start">
+                                    <div className="flex-1">
+                                      <div className="font-medium text-gray-900">{template.name}</div>
+                                      <div className="text-sm text-gray-500 mt-1">
+                                        {template.providerName} • ID: {template.productId}
+                                      </div>
+                                      {template.description && (
+                                        <div className="text-sm text-gray-600 mt-1 line-clamp-2">
+                                          {template.description}
+                                        </div>
+                                      )}
+                                    </div>
+                                    <div className="text-right ml-4">
+                                      <div className="font-medium text-gray-900">€{template.averagePrice}</div>
+                                      {template.premiumPercentage && (
+                                        <div className="text-sm text-gray-500">{template.premiumPercentage}% premium</div>
+                                      )}
+                                    </div>
+                                  </div>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        })()}
+                      </div>
+                    ));
+                  })()}
+
+                  {/* No Results Message */}
+                  {productTemplates && productTemplates.length > 0 && 
+                   (!productTemplates?.filter((template: any) => {
+                     const searchMatch = !productSearchTerm || 
+                       template.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+                       template.category?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+                       template.providerName?.toLowerCase().includes(productSearchTerm.toLowerCase());
+                     
+                     const categoryMatch = !selectedCategoryFilter || 
+                       template.categoryId === selectedCategoryFilter;
+                     
+                     return searchMatch && categoryMatch;
+                   })?.length) && (
+                    <div className="p-8 text-center text-gray-500">
+                      <Package className="mx-auto h-12 w-12 text-gray-300 mb-4" />
+                      <h3 className="text-sm font-medium text-gray-900 mb-1">No products found</h3>
+                      <p className="text-sm">Try adjusting your search or filter criteria.</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Selected Product Summary */}
+              {selectedProductTemplate && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <div className="font-medium text-blue-900">{selectedProductTemplate.name}</div>
+                      <div className="text-sm text-blue-700">{selectedProductTemplate.providerName} • €{selectedProductTemplate.averagePrice}</div>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => setSelectedProductTemplate(null)}
+                      className="text-blue-600 hover:text-blue-800"
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </div>
               )}
             </div>
 
