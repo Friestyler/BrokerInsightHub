@@ -676,11 +676,7 @@ export default function ProductTemplates() {
                               <p className="text-sm text-gray-500 mt-1">{category.description}</p>
                             )}
                           </div>
-                          {getSubcategoryCount(category.id) > 0 && (
-                            <Badge variant="outline" className="text-xs">
-                              {getSubcategoryCount(category.id)}
-                            </Badge>
-                          )}
+
                         </div>
                         <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
                           <Button
@@ -753,11 +749,7 @@ export default function ProductTemplates() {
                                         <p className="text-xs text-gray-500 mt-0.5">{subcategory.description}</p>
                                       )}
                                     </div>
-                                    {getSubcategoryCount(subcategory.id) > 0 && (
-                                      <Badge variant="outline" className="text-xs">
-                                        {getSubcategoryCount(subcategory.id)}
-                                      </Badge>
-                                    )}
+
                                   </div>
                                   <div className="flex items-center space-x-2" onClick={(e) => e.stopPropagation()}>
                                     <Button
