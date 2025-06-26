@@ -13,6 +13,9 @@ const ListEditingContext = createContext<ListEditingContextType>({
   setIsEditingList: () => {},
 });
 
+// Export the hook for external use
+export const useListEditing = () => useContext(ListEditingContext);
+
 import {
   Card,
   CardContent,
@@ -81,9 +84,7 @@ export function ListEditingProvider({ children }: { children: React.ReactNode })
   );
 }
 
-export function useListEditing() {
-  return useContext(ListEditingContext);
-}
+
 
 export default function OKRMetricsPage() {
   const { toast } = useToast();
@@ -134,10 +135,12 @@ export default function OKRMetricsPage() {
 
   // Filter metrics
   const displayMetrics = (metrics as OKRMetric[]).filter((metric: OKRMetric) => {
-    const matchesSearch = metric.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    if (!metric) return false;
+    
+    const matchesSearch = metric.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          metric.description?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesTag = selectedTag === 'all' || metric.tags.includes(selectedTag);
+    const matchesTag = selectedTag === 'all' || (metric.tags && metric.tags.includes(selectedTag));
     const matchesUnit = selectedUnit === 'all' || metric.measure_unit === selectedUnit;
     
     const matchesRange = selectedRange === 'all' || 
@@ -146,10 +149,10 @@ export default function OKRMetricsPage() {
       (selectedRange === '100+' && typeof metric?.target_value === 'number' && metric.target_value > 100);
     
     const matchesTimeframe = selectedTimeframe === 'all' || 
-      (selectedTimeframe === 'current' && metric?.timeframe_start && metric?.timeframe_end && 
+      (selectedTimeframe === 'current' && metric && metric.timeframe_start && metric.timeframe_end && 
        new Date() >= new Date(metric.timeframe_start) && new Date() <= new Date(metric.timeframe_end)) ||
-      (selectedTimeframe === 'upcoming' && metric?.timeframe_start && new Date() < new Date(metric.timeframe_start)) ||
-      (selectedTimeframe === 'past' && metric?.timeframe_end && new Date() > new Date(metric.timeframe_end));
+      (selectedTimeframe === 'upcoming' && metric && metric.timeframe_start && new Date() < new Date(metric.timeframe_start)) ||
+      (selectedTimeframe === 'past' && metric && metric.timeframe_end && new Date() > new Date(metric.timeframe_end));
     
     return matchesSearch && matchesTag && matchesUnit && matchesRange && matchesTimeframe;
   });
