@@ -443,7 +443,7 @@ export default function PlatformActivityHub() {
             
             {/* Task metadata */}
             {isTask && (
-              <div className="flex items-center gap-2 flex-wrap">
+              <div className="flex items-center justify-end gap-2 flex-wrap">
                 {activity.priority && (
                   <Badge variant="outline" className="text-xs bg-white border-gray-200 text-gray-700">
                     {activity.priority}
