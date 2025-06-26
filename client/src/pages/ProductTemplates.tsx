@@ -70,6 +70,37 @@ export default function ProductTemplates() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Function to render categories hierarchically
+  const renderCategoriesHierarchy = (categories: any[], level = 0): React.ReactElement[] => {
+    const result: React.ReactElement[] = [];
+    
+    const rootCategories = categories.filter((cat: any) => !cat.parent_id);
+    const getSubcategories = (parentId: number) => 
+      categories.filter((cat: any) => cat.parent_id === parentId);
+    
+    const renderCategory = (category: any, currentLevel: number) => {
+      result.push(
+        <SelectItem key={category.id} value={category.id.toString()} level={currentLevel}>
+          <div className="flex items-center gap-2">
+            <div 
+              className="w-3 h-3 rounded-full" 
+              style={{ backgroundColor: category.color }}
+            />
+            {category.name}
+          </div>
+        </SelectItem>
+      );
+      
+      // Recursively render subcategories
+      const subcategories = getSubcategories(category.id);
+      subcategories.forEach(subcat => renderCategory(subcat, currentLevel + 1));
+    };
+    
+    rootCategories.forEach(category => renderCategory(category, level));
+    
+    return result;
+  };
+
   // Fetch product templates
   const { data: productTemplates = [], isLoading } = useQuery({
     queryKey: ['/api/product-templates'],
@@ -402,11 +433,7 @@ export default function ProductTemplates() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {(categories as any[]).map((category: any) => (
-                      <SelectItem key={category.id} value={category.id.toString()}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
+                    {renderCategoriesHierarchy(categories as any[])}
                   </SelectContent>
                 </Select>
                 <FormMessage />
