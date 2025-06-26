@@ -786,7 +786,7 @@ export default function PlatformActivityHub() {
                     <p>Loading activities...</p>
                   </div>
                 ) : filteredActivities.length > 0 ? (
-                  <div className="space-y-0">
+                  <div className="space-y-4">
                     {filteredActivities.map((activity, index) => renderTimelineItem(activity, index))}
                   </div>
                 ) : (
@@ -810,7 +810,7 @@ export default function PlatformActivityHub() {
                     <p>Loading tasks...</p>
                   </div>
                 ) : filteredActivities.length > 0 ? (
-                  <div className="space-y-0">
+                  <div className="space-y-4">
                     {filteredActivities.map((activity, index) => renderTimelineItem(activity, index))}
                   </div>
                 ) : (
@@ -834,7 +834,7 @@ export default function PlatformActivityHub() {
                     <p>Loading comments...</p>
                   </div>
                 ) : filteredActivities.length > 0 ? (
-                  <div className="space-y-0">
+                  <div className="space-y-4">
                     {filteredActivities.map((activity, index) => renderTimelineItem(activity, index))}
                   </div>
                 ) : (
