@@ -352,39 +352,59 @@ export default function PlatformActivityHub() {
   };
 
   // Render timeline item using existing partner activity hub style
-  const renderTimelineItem = (activity: ActivityItem, index: string) => {
+  const renderTimelineItem = (activity: ActivityItem, index: number) => {
     const user = getUser(activity.assigned_to || activity.user_id || activity.author_id);
     const entityName = getEntityName(activity);
-    const isCompleted = activity.activity_type === 'task' && activity.completed;
+    const isTask = activity.activity_type === 'task';
+    const isComment = activity.activity_type === 'comment';
+    const isCompleted = isTask && activity.completed;
 
     return (
-      <div key={index} className="relative">
-        {/* Timeline item with existing partner activity styling */}
-        <div className={`flex gap-3 p-3 rounded-lg transition-all duration-200 hover:bg-[#F5F6FA] hover:border-[#E6E7F1] border border-transparent group ${isCompleted ? 'bg-green-50 border-green-100' : ''}`}>
-          {/* Avatar */}
-          <div className="flex-shrink-0">
-            <Avatar className="h-8 w-8 border-2 border-white shadow-sm">
-              <AvatarFallback className="bg-[#5567E5] text-white text-xs font-medium">
+      <div key={`timeline-${activity.activity_type}-${activity.id}-${index}-${activity.created_at.replace(/[^\w]/g, '')}`} className="flex items-start gap-3 relative group">
+        {/* Timeline line */}
+        {index < filteredActivities.length - 1 && (
+          <div className="absolute left-4 top-10 w-px h-8 bg-gray-200"></div>
+        )}
+        
+        {/* Avatar/Icon */}
+        <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center relative z-10 bg-white border-2 border-gray-200">
+          {isTask && (
+            <CheckSquare className={`h-4 w-4 ${isCompleted ? 'text-green-600' : 'text-gray-600'}`} />
+          )}
+          {isComment && (
+            <div className="w-full h-full rounded-full bg-blue-100 flex items-center justify-center">
+              <span className="text-xs font-medium text-blue-700">
                 {user?.initials || user?.name?.split(' ').map(n => n[0]).join('') || 'U'}
-              </AvatarFallback>
-            </Avatar>
-          </div>
-
-          {/* Content */}
-          <div className="flex-1 min-w-0">
-            {/* Header with user and timestamp */}
+              </span>
+            </div>
+          )}
+        </div>
+        
+        <div className="flex-1 min-w-0 relative">
+          <div className={`bg-white rounded-lg p-3 border transition-all duration-200 relative ${
+            isCompleted 
+              ? 'border-green-200 bg-green-50/30' 
+              : 'border-gray-200 hover:bg-[#F5F6FA] hover:border-[#E6E7F1]'
+          }`}>
             <div className="flex items-center gap-2 mb-1">
-              <span className="font-medium text-[#282A3F] text-sm">
+              <span className={`text-sm font-medium ${
+                isCompleted ? 'text-gray-500' : 'text-gray-900'
+              }`}>
                 {user?.name || 'Unknown User'}
               </span>
               <span className="text-xs text-gray-500">
-                {new Date(activity.created_at).toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric',
-                  hour: '2-digit',
-                  minute: '2-digit'
+                {new Date(activity.created_at).toLocaleString([], { 
+                  month: 'short', 
+                  day: 'numeric', 
+                  hour: '2-digit', 
+                  minute: '2-digit' 
                 })}
               </span>
+              {isCompleted && (
+                <span className="text-xs text-green-600 font-medium bg-green-100 px-2 py-0.5 rounded-full">
+                  Completed
+                </span>
+              )}
               
               {/* Source badge */}
               <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border bg-white text-gray-700 border-gray-200`}>
@@ -392,22 +412,27 @@ export default function PlatformActivityHub() {
                 <span className="font-medium">{entityName}</span>
               </div>
             </div>
-
+            
             {/* Task title */}
-            {activity.activity_type === 'task' && activity.title && (
-              <div className={`font-medium text-sm mb-1 ${isCompleted ? 'line-through text-gray-500' : 'text-[#282A3F]'}`}>
+            {isTask && activity.title && (
+              <h4 className={`font-medium text-sm mb-1 ${
+                isCompleted ? 'text-gray-500 line-through' : 'text-gray-900'
+              }`}>
                 {activity.title}
-              </div>
+              </h4>
             )}
-
-            {/* Content */}
-            <div className={`text-sm leading-relaxed ${isCompleted ? 'line-through text-gray-500' : 'text-gray-700'}`}>
+            
+            <p className={`text-sm mb-2 ${
+              isCompleted 
+                ? 'text-gray-500 line-through' 
+                : 'text-gray-700'
+            }`}>
               {activity.content}
-            </div>
-
+            </p>
+            
             {/* Task metadata */}
-            {activity.activity_type === 'task' && (
-              <div className="flex items-center gap-2 mt-2 flex-wrap">
+            {isTask && (
+              <div className="flex items-center gap-2 flex-wrap">
                 {activity.priority && (
                   <Badge variant="outline" className="text-xs bg-white border-gray-200 text-gray-700">
                     {activity.priority}
@@ -416,11 +441,6 @@ export default function PlatformActivityHub() {
                 {activity.assigned_to && (
                   <Badge variant="outline" className="text-xs bg-white border-gray-200 text-gray-700">
                     {getUser(activity.assigned_to)?.name || `User ${activity.assigned_to}`}
-                  </Badge>
-                )}
-                {isCompleted && (
-                  <Badge variant="outline" className="text-xs text-green-600 border-green-200 bg-green-50">
-                    Completed
                   </Badge>
                 )}
               </div>
@@ -442,7 +462,7 @@ export default function PlatformActivityHub() {
               </div>
             )}
 
-            {/* Hover toolbar - matching partner activity hub style */}
+            {/* Hover toolbar */}
             <div className="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-1 bg-white shadow-lg rounded-lg border border-gray-200 p-1 z-10">
               {/* Emoji reactions */}
               <Button
@@ -471,7 +491,7 @@ export default function PlatformActivityHub() {
               </Button>
 
               {/* Task completion button */}
-              {activity.activity_type === 'task' && (
+              {isTask && (
                 <Button
                   variant="ghost"
                   size="sm"
@@ -767,7 +787,7 @@ export default function PlatformActivityHub() {
                   </div>
                 ) : filteredActivities.length > 0 ? (
                   <div className="space-y-0">
-                    {filteredActivities.map((activity, index) => renderTimelineItem(activity, `${activity.activity_type}-${activity.id}`))}
+                    {filteredActivities.map((activity, index) => renderTimelineItem(activity, index))}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-gray-500">
@@ -791,7 +811,7 @@ export default function PlatformActivityHub() {
                   </div>
                 ) : filteredActivities.length > 0 ? (
                   <div className="space-y-0">
-                    {filteredActivities.map((activity, index) => renderTimelineItem(activity, `task-${activity.id}`))}
+                    {filteredActivities.map((activity, index) => renderTimelineItem(activity, index))}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-gray-500">
@@ -815,7 +835,7 @@ export default function PlatformActivityHub() {
                   </div>
                 ) : filteredActivities.length > 0 ? (
                   <div className="space-y-0">
-                    {filteredActivities.map((activity) => renderTimelineItem(activity, `comment-${activity.id}`))}
+                    {filteredActivities.map((activity, index) => renderTimelineItem(activity, index))}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-gray-500">

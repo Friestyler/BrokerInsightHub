@@ -98,7 +98,11 @@ const colors = [
   '#06B6D4', '#84CC16', '#F97316', '#EC4899', '#6366F1'
 ];
 
-export default function CategoryManagerForProducts() {
+interface CategoryManagerForProductsProps {
+  onClose?: () => void;
+}
+
+export default function CategoryManagerForProducts({ onClose }: CategoryManagerForProductsProps = {}) {
   const [categories, setCategories] = useState<Category[]>(defaultCategories);
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
