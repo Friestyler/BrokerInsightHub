@@ -627,7 +627,7 @@ export default function ProductTemplates() {
             {getRootCategories().map((category: any) => (
               <div key={category.id} className="bg-white rounded-lg border border-[#E6E7F1] shadow-sm overflow-hidden">
                 {/* Category Header */}
-                <div className="p-4 hover:bg-gray-50 transition-colors min-h-[72px]">
+                <div className="py-4 pl-0 pr-4 hover:bg-gray-50 transition-colors min-h-[72px]">
                   <div className="flex items-center justify-between h-full">
                     <div className="flex items-center">
                       <Button
