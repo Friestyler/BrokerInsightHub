@@ -446,7 +446,7 @@ export default function PartnerPilot() {
               <div>
                 <p className="text-orange-600 text-sm font-medium">Pipeline Value</p>
                 <p className="text-2xl font-bold text-orange-900">
-                  €{opportunities?.reduce((sum: number, opp: any) => sum + (opp.estimated_value || 0), 0).toLocaleString() || '0'}
+                  €{Array.isArray(opportunities) ? opportunities.reduce((sum: number, opp: any) => sum + (opp.estimated_value || 0), 0).toLocaleString() : '0'}
                 </p>
               </div>
               <div className="p-2 bg-orange-200 rounded-lg">
@@ -550,7 +550,7 @@ export default function PartnerPilot() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-bold text-gray-900">{opportunities?.length || 0}</p>
+                  <p className="text-lg font-bold text-gray-900">{Array.isArray(opportunities) ? opportunities.length : 0}</p>
                 </div>
               </div>
 
@@ -565,7 +565,7 @@ export default function PartnerPilot() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-lg font-bold text-gray-900">{partners?.length || 0}</p>
+                  <p className="text-lg font-bold text-gray-900">{Array.isArray(partners) ? partners.length : 0}</p>
                 </div>
               </div>
 
