@@ -906,7 +906,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
   // Timeline data comes directly from the API - no client-side merging needed
 
   const completedTasks = tasks.filter((t: any) => t.completed).length;
-  const pendingTasks = tasks.filter((t: any) => !t.completed).length;
+  const pendingTasks = Array.isArray(allTasks) ? allTasks.filter((t: any) => !t.completed).length : 0;
   const totalActivities = tasks.length + comments.length + attachments.length;
 
   const SelectedIcon = activityTypes.find(type => type.value === selectedActivityType)?.icon || CheckSquare;
