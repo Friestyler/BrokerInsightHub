@@ -249,14 +249,26 @@ export default function CustomerDetailNew() {
       ) || []
     : [];
 
-  // Filter metrics based on search and filters
-  const filteredMetrics = assignedMetrics.filter((metric: any) => {
-    const matchesSearch = metric.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         metric.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTag = selectedTag === 'all' || metric.tags?.includes(selectedTag);
-    const matchesUnit = selectedUnit === 'all' || metric.measure_unit === selectedUnit;
-    
-    return matchesSearch && matchesTag && matchesUnit;
+  // Filter metrics based on search and filters with error handling
+  const filteredMetrics = (assignedMetrics || []).filter((metric: any) => {
+    try {
+      if (!metric || typeof metric !== 'object') return false;
+      
+      const metricName = metric.name || '';
+      const metricDescription = metric.description || '';
+      const metricTags = metric.tags || [];
+      const metricUnit = metric.measure_unit || '';
+      
+      const matchesSearch = metricName.toLowerCase().includes((searchTerm || '').toLowerCase()) ||
+                           metricDescription.toLowerCase().includes((searchTerm || '').toLowerCase());
+      const matchesTag = selectedTag === 'all' || metricTags.includes(selectedTag);
+      const matchesUnit = selectedUnit === 'all' || metricUnit === selectedUnit;
+      
+      return matchesSearch && matchesTag && matchesUnit;
+    } catch (error) {
+      console.error('Error filtering metric:', error, metric);
+      return false;
+    }
   });
 
   // Group metrics by tag if grouping is enabled
@@ -616,40 +628,57 @@ export default function CustomerDetailNew() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {relatedOpportunities?.map((opportunity: any) => (
-                  <TableRow key={opportunity.id}>
-                    <TableCell><Checkbox /></TableCell>
-                    <TableCell>
-                      <Link 
-                        href={`/opportunities/${opportunity.id}`}
-                        onClick={() => {
-                          // Store navigation context for opportunity detail back navigation
-                          sessionStorage.setItem('opportunityReferrer', `customers/${id}#opportunities`);
-                        }}
-                      >
-                        <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
-                          {opportunity.title}
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-gray-900">
-                        {opportunity.partnerNames || 'No partner'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                        {opportunity.stage}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      €{opportunity.estimated_value ? Number(opportunity.estimated_value).toLocaleString() : '0'}
-                    </TableCell>
-                    <TableCell>
-                      {opportunity.expected_close_date ? new Date(opportunity.expected_close_date).toLocaleDateString() : 'Not set'}
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {(relatedOpportunities || []).map((opportunity: any) => {
+                  if (!opportunity || typeof opportunity !== 'object') return null;
+                  
+                  try {
+                    // Safe property access with error handling
+                    const opportunityId = opportunity.id || 0;
+                    const title = opportunity.title || 'Untitled Opportunity';
+                    const partnerNames = opportunity.partnerNames || 'No partner';
+                    const stage = opportunity.stage || 'Unknown';
+                    const estimatedValue = opportunity.estimated_value ? Number(opportunity.estimated_value) || 0 : 0;
+                    const expectedCloseDate = opportunity.expected_close_date;
+                    
+                    return (
+                      <TableRow key={opportunityId}>
+                        <TableCell><Checkbox /></TableCell>
+                        <TableCell>
+                          <Link 
+                            href={`/opportunities/${opportunityId}`}
+                            onClick={() => {
+                              // Store navigation context for opportunity detail back navigation
+                              sessionStorage.setItem('opportunityReferrer', `customers/${id}#opportunities`);
+                            }}
+                          >
+                            <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
+                              {title}
+                            </span>
+                          </Link>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-gray-900">
+                            {partnerNames}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                            {stage}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          €{estimatedValue.toLocaleString()}
+                        </TableCell>
+                        <TableCell>
+                          {expectedCloseDate ? new Date(expectedCloseDate).toLocaleDateString() : 'Not set'}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  } catch (error) {
+                    console.error('Error rendering opportunity:', error, opportunity);
+                    return null;
+                  }
+                }).filter(Boolean)}
               </TableBody>
             </Table>
           </div>
@@ -670,41 +699,59 @@ export default function CustomerDetailNew() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {relatedProducts?.map((product: any) => (
-                  <TableRow key={product.id}>
-                    <TableCell><Checkbox /></TableCell>
-                    <TableCell>
-                      <span className="font-medium text-gray-900">
-                        {product.name}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-gray-900">
-                        {product.type || 'Product'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-gray-900">
-                        {product.category || 'General'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-gray-900">
-                        {product.vendorName || 'No vendor'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-gray-900">
-                        {product.price ? `€${product.price}` : 'Contact for price'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                        {product.status || 'Active'}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {(relatedProducts || []).map((product: any) => {
+                  if (!product || typeof product !== 'object') return null;
+                  
+                  try {
+                    // Safe property access with error handling
+                    const productId = product.id || 0;
+                    const name = product.name || 'Unnamed Product';
+                    const type = product.type || 'Product';
+                    const category = product.category || 'General';
+                    const vendorName = product.vendorName || 'No vendor';
+                    const price = product.price;
+                    const status = product.status || 'Active';
+                    
+                    return (
+                      <TableRow key={productId}>
+                        <TableCell><Checkbox /></TableCell>
+                        <TableCell>
+                          <span className="font-medium text-gray-900">
+                            {name}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-gray-900">
+                            {type}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-gray-900">
+                            {category}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-gray-900">
+                            {vendorName}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-gray-900">
+                            {price ? `€${price}` : 'Contact for price'}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                            {status}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  } catch (error) {
+                    console.error('Error rendering product:', error, product);
+                    return null;
+                  }
+                }).filter(Boolean)}
               </TableBody>
             </Table>
             {(!relatedProducts || relatedProducts.length === 0) && (
