@@ -51,6 +51,7 @@ type ProductTemplateFormData = z.infer<typeof productTemplateSchema>;
 export default function ProductTemplates() {
   const [activeTab, setActiveTab] = useState<'templates' | 'categories'>('templates');
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>("all");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -80,7 +81,7 @@ export default function ProductTemplates() {
     
     const renderCategory = (category: any, currentLevel: number) => {
       result.push(
-        <SelectItem key={category.id} value={category.id.toString()} level={currentLevel}>
+        <SelectItem key={category.id} value={category.name} level={currentLevel}>
           <div className="flex items-center gap-2">
             <div 
               className="w-3 h-3 rounded-full" 
@@ -266,12 +267,20 @@ export default function ProductTemplates() {
     resolver: zodResolver(productTemplateSchema),
   });
 
-  // Filter templates based on search
-  const filteredTemplates = (productTemplates as ProductTemplate[]).filter((template: ProductTemplate) =>
-    template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    template.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    template.category?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  // Filter templates based on search and category
+  const filteredTemplates = (productTemplates as ProductTemplate[]).filter((template: ProductTemplate) => {
+    // Text search filter
+    const matchesSearch = !searchTerm || 
+      template.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      template.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      template.category?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Category filter
+    const matchesCategory = selectedCategoryFilter === "all" || 
+      template.category === selectedCategoryFilter;
+    
+    return matchesSearch && matchesCategory;
+  });
 
   const handleEdit = (template: ProductTemplate) => {
     setSelectedTemplate(template);
@@ -426,7 +435,7 @@ export default function ProductTemplates() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Category</FormLabel>
-                <Select onValueChange={(value) => field.onChange(value ? parseInt(value) : undefined)} value={field.value?.toString()}>
+                <Select onValueChange={(value) => field.onChange(value)} value={field.value}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
@@ -900,7 +909,7 @@ export default function ProductTemplates() {
         </Dialog>
       </div>
 
-      <div className="mb-6">
+      <div className="mb-6 space-y-4">
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
@@ -909,6 +918,29 @@ export default function ProductTemplates() {
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
           />
+        </div>
+        
+        <div className="flex items-center gap-4">
+          <div className="min-w-[200px]">
+            <Select value={selectedCategoryFilter} onValueChange={setSelectedCategoryFilter}>
+              <SelectTrigger>
+                <SelectValue placeholder="Filter by category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All categories</SelectItem>
+                {renderCategoriesHierarchy(categories as any[])}
+              </SelectContent>
+            </Select>
+          </div>
+          {selectedCategoryFilter !== "all" && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => setSelectedCategoryFilter("all")}
+            >
+              Clear filter
+            </Button>
+          )}
         </div>
       </div>
 
@@ -967,9 +999,6 @@ export default function ProductTemplates() {
                   <TableHead className="min-w-[100px] text-[#696C8C]">Average Price</TableHead>
                   <TableHead className="min-w-[100px] text-[#696C8C]">Premium %</TableHead>
                   <TableHead className="min-w-[100px] text-[#696C8C]">Discount %</TableHead>
-                  <TableHead className="min-w-[120px] text-[#696C8C]">Contract Start Date</TableHead>
-                  <TableHead className="min-w-[120px] text-[#696C8C]">Contract End</TableHead>
-
                   <TableHead className="w-12 text-[#696C8C]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -1041,17 +1070,6 @@ export default function ProductTemplates() {
                         {template.discountPercentage ? formatPercentage(template.discountPercentage) : '-'}
                       </div>
                     </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-900">
-                        {formatDate(template.contractStartDate)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-900">
-                        {formatDate(template.contractEndDate)}
-                      </div>
-                    </TableCell>
-
                     <TableCell>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
