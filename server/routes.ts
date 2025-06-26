@@ -1188,25 +1188,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envId = req.params.envId;
       const envPool = getEnvironmentPool(envId);
       
-      // Fetch all activities from activities table with entity names
-      const activitiesResult = await envPool.query(`
+      // Fetch tasks from activity_tasks table
+      const tasksResult = await envPool.query(`
         SELECT 
-          a.*,
+          t.id,
+          'task' as activity_type,
+          t.content as title,
+          t.content,
+          t.priority,
+          t.completed,
+          t.assigned_to,
+          t.entity_type,
+          t.entity_id,
+          t.visible_to_partner,
+          t.created_at,
+          t.updated_at,
           CASE 
-            WHEN a.entity_type = 'partner' THEN p.name
-            WHEN a.entity_type = 'opportunity' THEN o.title  
-            WHEN a.entity_type = 'customer' THEN c.name
+            WHEN t.entity_type = 'partner' THEN p.name
+            WHEN t.entity_type = 'opportunity' THEN o.title  
+            WHEN t.entity_type = 'customer' THEN c.name
             ELSE NULL
           END as entity_name
-        FROM ${envId}.activities a
-        LEFT JOIN ${envId}.partners p ON a.entity_type = 'partner' AND a.entity_id = p.id
-        LEFT JOIN ${envId}.opportunities o ON a.entity_type = 'opportunity' AND a.entity_id = o.id  
-        LEFT JOIN ${envId}.customers c ON a.entity_type = 'customer' AND a.entity_id = c.id
-        ORDER BY a.created_at DESC
-        LIMIT 200
+        FROM ${envId}.activity_tasks t
+        LEFT JOIN ${envId}.partners p ON t.entity_type = 'partner' AND t.entity_id = p.id
+        LEFT JOIN ${envId}.opportunities o ON t.entity_type = 'opportunity' AND t.entity_id = o.id  
+        LEFT JOIN ${envId}.customers c ON t.entity_type = 'customer' AND t.entity_id = c.id
       `);
-      
-      const activities = activitiesResult.rows.map((activity: any) => ({
+
+      // Fetch comments from activity_comments table
+      const commentsResult = await envPool.query(`
+        SELECT 
+          c.id,
+          'comment' as activity_type,
+          c.content as title,
+          c.content,
+          null as priority,
+          false as completed,
+          c.user_id as assigned_to,
+          c.entity_type,
+          c.entity_id,
+          c.visible_to_partner,
+          c.created_at,
+          c.updated_at,
+          CASE 
+            WHEN c.entity_type = 'partner' THEN p.name
+            WHEN c.entity_type = 'opportunity' THEN o.title  
+            WHEN c.entity_type = 'customer' THEN cu.name
+            ELSE NULL
+          END as entity_name
+        FROM ${envId}.activity_comments c
+        LEFT JOIN ${envId}.partners p ON c.entity_type = 'partner' AND c.entity_id = p.id
+        LEFT JOIN ${envId}.opportunities o ON c.entity_type = 'opportunity' AND c.entity_id = o.id  
+        LEFT JOIN ${envId}.customers cu ON c.entity_type = 'customer' AND c.entity_id = cu.id
+      `);
+
+      // Combine and sort all activities
+      const allActivities = [
+        ...tasksResult.rows,
+        ...commentsResult.rows
+      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+       .slice(0, 200);
+
+      const activities = allActivities.map((activity: any) => ({
         id: activity.id,
         activity_type: activity.activity_type,
         title: activity.title,
@@ -1218,13 +1261,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         entity_id: activity.entity_id,
         entity_name: activity.entity_name,
         assigned_to: activity.assigned_to,
-        user_id: activity.user_id,
-        author_id: activity.author_id,
+        user_id: activity.assigned_to, // Map assigned_to to user_id for consistency
+        author_id: activity.assigned_to,
         created_at: activity.created_at,
         updated_at: activity.updated_at,
-        source_entity_type: activity.source_entity_type,
-        source_entity_id: activity.source_entity_id,
-        source_entity_name: activity.source_entity_name,
         reactions: []
       }));
       
