@@ -5071,6 +5071,78 @@ export default function PartnerDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Customer Comment Dialog */}
+      <Dialog open={isCustomerCommentDialogOpen} onOpenChange={setIsCustomerCommentDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Comment for {selectedCustomerForComment?.name}</DialogTitle>
+            <DialogDescription>
+              This comment will appear in both the partner activity hub and the customer's activity feed.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="customer-comment">Comment</Label>
+              <Textarea
+                id="customer-comment"
+                placeholder="Enter your comment..."
+                value={customerComment}
+                onChange={(e) => setCustomerComment(e.target.value)}
+                className="mt-1"
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsCustomerCommentDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSubmitCustomerComment}
+              disabled={!customerComment.trim() || createCrossEntityCommentMutation.isPending}
+            >
+              {createCrossEntityCommentMutation.isPending ? "Adding..." : "Add comment"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Opportunity Comment Dialog */}
+      <Dialog open={isOpportunityCommentDialogOpen} onOpenChange={setIsOpportunityCommentDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Comment for {selectedOpportunityForComment?.title}</DialogTitle>
+            <DialogDescription>
+              This comment will appear in both the partner activity hub and the opportunity's activity feed.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="opportunity-comment">Comment</Label>
+              <Textarea
+                id="opportunity-comment"
+                placeholder="Enter your comment..."
+                value={opportunityComment}
+                onChange={(e) => setOpportunityComment(e.target.value)}
+                className="mt-1"
+                rows={4}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsOpportunityCommentDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSubmitOpportunityComment}
+              disabled={!opportunityComment.trim() || createCrossEntityCommentMutation.isPending}
+            >
+              {createCrossEntityCommentMutation.isPending ? "Adding..." : "Add comment"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
