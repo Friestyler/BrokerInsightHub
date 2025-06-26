@@ -1230,7 +1230,7 @@ export default function CustomerDetailNew() {
                 <div className="flex-1 border border-border rounded-lg overflow-hidden min-h-0">
                   <div className="h-full overflow-y-auto">
                     {(() => {
-                      // Filter and organize products by category
+                      // Filter products for search
                       const filteredTemplates = productTemplates?.filter((template: any) => {
                         const searchMatch = !productSearchTerm || 
                           template.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
@@ -1243,97 +1243,68 @@ export default function CustomerDetailNew() {
                         return searchMatch && categoryMatch;
                       }) || [];
 
-                      // Group templates by hierarchy - show root categories (level 1) containing subcategories
-                      const groupedTemplates: Record<string, Record<string, any[]>> = {};
+                      // Build complete category hierarchy from database
+                      const rootCategories = categories?.filter((c: any) => c.level === 1) || [];
                       
-                      filteredTemplates.forEach((template: any) => {
-                        // Find the category for this template
-                        const templateCategory = categories?.find((c: any) => c.name === template.category);
-                        
-                        let rootCategoryName = 'Uncategorized';
-                        let subcategoryName = template.category || 'Other';
-                        
-                        if (templateCategory) {
-                          // Find the root category (level 1)
-                          if (templateCategory.level === 1) {
-                            rootCategoryName = templateCategory.name;
-                            subcategoryName = 'General'; // For products directly under level 1 categories
-                          } else if (templateCategory.level === 2) {
-                            // Find parent category (level 1)
-                            const parentCategory = categories?.find((c: any) => c.id === templateCategory.parentId);
-                            rootCategoryName = parentCategory?.name || 'Uncategorized';
-                            subcategoryName = templateCategory.name;
-                          } else if (templateCategory.level === 3) {
-                            // Find parent (level 2) and grandparent (level 1)
-                            const parentCategory = categories?.find((c: any) => c.id === templateCategory.parentId);
-                            if (parentCategory) {
-                              const grandparentCategory = categories?.find((c: any) => c.id === parentCategory.parentId);
-                              rootCategoryName = grandparentCategory?.name || 'Uncategorized';
-                              subcategoryName = parentCategory.name;
-                            }
-                          }
-                        }
-                        
-                        // Initialize nested structure
-                        if (!groupedTemplates[rootCategoryName]) {
-                          groupedTemplates[rootCategoryName] = {};
-                        }
-                        if (!groupedTemplates[rootCategoryName][subcategoryName]) {
-                          groupedTemplates[rootCategoryName][subcategoryName] = [];
-                        }
-                        
-                        groupedTemplates[rootCategoryName][subcategoryName].push(template);
-                      });
-
-                      if (Object.keys(groupedTemplates).length === 0) {
+                      if (rootCategories.length === 0) {
                         return (
                           <div className="h-full flex items-center justify-center p-8 text-center">
                             <div>
                               <Package className="mx-auto h-12 w-12 text-muted-foreground/40 mb-4" />
-                              <h3 className="text-sm font-medium text-foreground mb-1">No products found</h3>
-                              <p className="text-sm text-muted-foreground">Try adjusting your search or filter criteria.</p>
+                              <h3 className="text-sm font-medium text-foreground mb-1">No categories found</h3>
+                              <p className="text-sm text-muted-foreground">Categories will appear here once configured.</p>
                             </div>
                           </div>
                         );
                       }
 
-                      return Object.entries(groupedTemplates).map(([rootCategoryName, subcategories]) => {
-                        const rootCategory = categories?.find((c: any) => c.name === rootCategoryName && c.level === 1);
-                        const rootCategoryId = rootCategory?.id;
-                        const isRootExpanded = rootCategoryId ? expandedCategories.has(rootCategoryId) : true;
+                      return rootCategories.map((rootCategory: any) => {
+                        const rootCategoryId = rootCategory.id;
+                        const isRootExpanded = expandedCategories.has(rootCategoryId);
                         
-                        // Count total products in this root category
-                        const totalProducts = Object.values(subcategories).reduce((sum: number, templates: any) => {
-                          return sum + (Array.isArray(templates) ? templates.length : 0);
-                        }, 0);
+                        // Get subcategories for this root category
+                        const subcategories = categories?.filter((c: any) => c.parentId === rootCategoryId) || [];
+                        
+                        // Count total products in this root category and all its subcategories
+                        const totalProducts = filteredTemplates.filter((template: any) => {
+                          const templateCategory = categories?.find((c: any) => c.name === template.category);
+                          if (!templateCategory) return false;
+                          
+                          // Check if template belongs to this root category or any of its subcategories
+                          if (templateCategory.level === 1 && templateCategory.id === rootCategoryId) return true;
+                          if (templateCategory.level === 2 && templateCategory.parentId === rootCategoryId) return true;
+                          if (templateCategory.level === 3) {
+                            const parentCategory = categories?.find((c: any) => c.id === templateCategory.parentId);
+                            return parentCategory?.parentId === rootCategoryId;
+                          }
+                          return false;
+                        }).length;
                         
                         return (
-                          <div key={rootCategoryName} className="border-b border-border last:border-b-0">
+                          <div key={rootCategory.name} className="border-b border-border last:border-b-0">
                             {/* Root Category Header (Life, Non-Life, Services) */}
                             <div 
                               className="px-4 py-3 bg-muted/40 border-b border-border cursor-pointer flex items-center justify-between hover:bg-muted/60 transition-colors"
                               onClick={() => {
-                                if (rootCategoryId) {
-                                  setExpandedCategories(prev => {
-                                    const newSet = new Set(prev);
-                                    if (newSet.has(rootCategoryId)) {
-                                      newSet.delete(rootCategoryId);
-                                    } else {
-                                      newSet.add(rootCategoryId);
-                                    }
-                                    return newSet;
-                                  });
-                                }
+                                setExpandedCategories(prev => {
+                                  const newSet = new Set(prev);
+                                  if (newSet.has(rootCategoryId)) {
+                                    newSet.delete(rootCategoryId);
+                                  } else {
+                                    newSet.add(rootCategoryId);
+                                  }
+                                  return newSet;
+                                });
                               }}
                             >
                               <div className="flex items-center">
-                                {rootCategory?.color && (
+                                {rootCategory.color && (
                                   <div 
                                     className="w-3 h-3 rounded-full mr-3" 
                                     style={{ backgroundColor: rootCategory.color }}
                                   ></div>
                                 )}
-                                <span className="text-sm font-semibold text-foreground">{rootCategoryName}</span>
+                                <span className="text-sm font-semibold text-foreground">{rootCategory.name}</span>
                                 <span className="ml-2 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                                   {totalProducts}
                                 </span>
@@ -1347,13 +1318,18 @@ export default function CustomerDetailNew() {
                             {/* Subcategories and Products */}
                             {isRootExpanded && (
                               <div>
-                                {Object.entries(subcategories).map(([subcategoryName, templates]: [string, any]) => {
-                                  const subcategory = categories?.find((c: any) => c.name === subcategoryName && c.parentId === rootCategoryId);
-                                  const subcategoryId = subcategory?.id || `${rootCategoryName}-${subcategoryName}`;
+                                {subcategories.map((subcategory: any) => {
+                                  const subcategoryId = subcategory.id;
                                   const isSubExpanded = expandedCategories.has(subcategoryId);
                                   
+                                  // Get products for this subcategory
+                                  const subcategoryTemplates = filteredTemplates.filter((template: any) => {
+                                    const templateCategory = categories?.find((c: any) => c.name === template.category);
+                                    return templateCategory?.id === subcategoryId || templateCategory?.parentId === subcategoryId;
+                                  });
+                                  
                                   return (
-                                    <div key={subcategoryName} className="border-b border-border/50 last:border-b-0">
+                                    <div key={subcategory.name} className="border-b border-border/50 last:border-b-0">
                                       {/* Subcategory Header */}
                                       <div 
                                         className="px-6 py-2 bg-muted/20 cursor-pointer flex items-center justify-between hover:bg-muted/30 transition-colors"
@@ -1370,9 +1346,9 @@ export default function CustomerDetailNew() {
                                         }}
                                       >
                                         <div className="flex items-center">
-                                          <span className="text-sm font-medium text-foreground">{subcategoryName}</span>
+                                          <span className="text-sm font-medium text-foreground">{subcategory.name}</span>
                                           <span className="ml-2 text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
-                                            {Array.isArray(templates) ? templates.length : 0}
+                                            {subcategoryTemplates.length}
                                           </span>
                                         </div>
                                         {isSubExpanded ? 
@@ -1384,7 +1360,7 @@ export default function CustomerDetailNew() {
                                       {/* Products under subcategory */}
                                       {isSubExpanded && (
                                         <div className="divide-y divide-border/30">
-                                          {(Array.isArray(templates) ? templates : []).map((template: any) => (
+                                          {subcategoryTemplates.map((template: any) => (
                                             <div 
                                               key={template.id}
                                               className={`px-8 py-3 cursor-pointer hover:bg-accent transition-colors ${
