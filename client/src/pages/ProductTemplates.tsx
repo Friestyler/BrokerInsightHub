@@ -324,6 +324,24 @@ export default function ProductTemplates() {
     return categories.filter((cat: any) => cat.parent_id === parentId).length;
   };
 
+  // Handlers for category dialogs
+  const handleCreateSubcategory = (parentCategory: any) => {
+    setSelectedParentCategory(parentCategory);
+    setNewSubcategoryColor(parentCategory.color || "#3B82F6");
+    setCreateSubcategoryDialogOpen(true);
+  };
+
+  const handleEditCategory = (category: any) => {
+    setSelectedCategory(category);
+    setEditCategoryColor(category.color || "#3B82F6");
+    setEditCategoryDialogOpen(true);
+  };
+
+  const handleDeleteCategory = (category: any) => {
+    setSelectedCategory(category);
+    setDeleteCategoryDialogOpen(true);
+  };
+
   const renderProductTemplateForm = (form: any, onSubmit: (data: ProductTemplateFormData) => void) => (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -682,19 +700,13 @@ export default function ProductTemplates() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem onClick={() => {
-                                setSelectedCategory(category);
-                                setEditCategoryDialogOpen(true);
-                              }}>
+                              <DropdownMenuItem onClick={() => handleEditCategory(category)}>
                                 <Edit className="h-4 w-4 mr-2" />
                                 Edit
                               </DropdownMenuItem>
                               <DropdownMenuItem 
                                 className="text-red-600"
-                                onClick={() => {
-                                  setSelectedCategory(category);
-                                  setDeleteCategoryDialogOpen(true);
-                                }}
+                                onClick={() => handleDeleteCategory(category)}
                               >
                                 <Trash2 className="h-4 w-4 mr-2" />
                                 Delete
@@ -1162,7 +1174,7 @@ export default function ProductTemplates() {
                 id: selectedCategory.id,
                 data: {
                   name: formData.get('name') as string,
-                  color: formData.get('color') as string,
+                  color: editCategoryColor,
                   description: formData.get('description') as string || undefined,
                 }
               });
@@ -1181,12 +1193,12 @@ export default function ProductTemplates() {
               </div>
               <div>
                 <label className="text-sm font-medium text-[#282A3F]">Color</label>
-                <Input 
-                  name="color" 
-                  type="color" 
-                  defaultValue={selectedCategory?.color || "#3B82F6"} 
-                  className="mt-1" 
-                />
+                <div className="mt-1">
+                  <ColorPicker 
+                    value={editCategoryColor} 
+                    onChange={setEditCategoryColor}
+                  />
+                </div>
               </div>
               <div>
                 <label className="text-sm font-medium text-[#282A3F]">Description</label>
