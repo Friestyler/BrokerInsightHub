@@ -1165,31 +1165,17 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                 }) => {
                   console.log('Tasks tab onCreateTask callback triggered with:', taskData);
                   
-                  // Use existing task creation logic
-                  const originalType = selectedActivityType;
-                  const originalTitle = taskTitle;
-                  const originalPriority = taskPriority;
-                  const originalAssignedTo = assignedTo;
-                  const originalVisibility = visibleToPartner;
+                  // Create task directly with the data
+                  const activityData = {
+                    visible_to_partner: taskData.visibleToPartner,
+                    activityType: 'task',
+                    title: taskData.title,
+                    priority: taskData.priority,
+                    assigned_to: taskData.assignedTo
+                  };
 
-                  // Set temporary values for task creation
-                  setSelectedActivityType('task');
-                  setTaskTitle(taskData.title);
-                  setTaskPriority(taskData.priority);
-                  setAssignedTo(taskData.assignedTo);
-                  setVisibleToPartner(taskData.visibleToPartner);
-
-                  // Create the task
-                  handleCreateActivity();
-                  
-                  // Reset to original values after a brief delay
-                  setTimeout(() => {
-                    setSelectedActivityType(originalType);
-                    setTaskTitle(originalTitle);
-                    setTaskPriority(originalPriority);
-                    setAssignedTo(originalAssignedTo);
-                    setVisibleToPartner(originalVisibility);
-                  }, 100);
+                  console.log('Direct task creation with:', activityData);
+                  createActivityMutation.mutate(activityData);
                 }}
                 onCreateComment={() => {}} // Not used in task tab
                 teamMembers={teamMembers}
