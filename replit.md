@@ -326,6 +326,7 @@ Each environment maintains its own data isolation while sharing the same applica
 - June 26, 2025: Standardized Product Templates page padding to match Partners page layout - updated both Product Templates and Product Categories tabs to use consistent mx-4 (16px) horizontal padding, ensuring uniform distance between navigation menu and content tables across all entity pages in the platform.
 - June 26, 2025: Replaced professional color picker with simple dropdown containing 10 predefined color options (Blue, Green, Orange, Red, Purple, Cyan, Lime, Amber, Pink, Gray) - simplified ColorPicker component from complex HexColorPicker interface to standard Select dropdown with color swatches and names for easier user experience and consistent color choices throughout category management system.
 - June 26, 2025: Updated Product Templates table headers to use Qollabi's header color (#696C8C) instead of shadcn's text-muted-foreground - ensures consistent header styling across all entity tables in the platform while maintaining shadcn/ui Table component structure.
+- June 26, 2025: Standardized all input field heights to 36px (h-9) across Qollabi platform - updated Input, Select (SelectTrigger), and Command (CommandInput) components while maintaining buttons and toggles at 32px (h-8) height. Input fields now consistently use 36px height while interactive elements like buttons remain at 32px for optimal UX hierarchy.
 
 ## User Preferences
 
