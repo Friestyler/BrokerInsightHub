@@ -791,7 +791,7 @@ export default function PlatformActivityHub() {
                   </div>
                 ) : filteredActivities.length > 0 ? (
                   <div className="space-y-0">
-                    {filteredActivities.map((activity, index) => renderTimelineItem(activity, index))}
+                    {filteredActivities.map((activity, index) => renderTimelineItem(activity, `task-${activity.id}`))}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-gray-500">
@@ -815,7 +815,7 @@ export default function PlatformActivityHub() {
                   </div>
                 ) : filteredActivities.length > 0 ? (
                   <div className="space-y-0">
-                    {filteredActivities.map((activity, index) => renderTimelineItem(activity, index))}
+                    {filteredActivities.map((activity) => renderTimelineItem(activity, `comment-${activity.id}`))}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-gray-500">
