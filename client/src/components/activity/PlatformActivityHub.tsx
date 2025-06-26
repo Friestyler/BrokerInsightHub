@@ -166,15 +166,15 @@ export default function PlatformActivityHub() {
   }, [unifiedActivities, activeTab]);
 
   // Get entity name
-  const getEntityName = (activity: ActivityItem): string => {
+  const getEntityName = (activity: ActivityItem): string | null => {
     // Return entity_name if it exists and is not null/undefined
     if (activity.entity_name && activity.entity_name !== 'null' && activity.entity_name !== 'undefined') {
       return activity.entity_name;
     }
     
-    // Ensure we have valid entity_type and entity_id
+    // If no entity_type or entity_id, this is a general platform activity
     if (!activity.entity_type || activity.entity_id == null) {
-      return 'Unknown Entity';
+      return null; // Don't show source badge for general activities
     }
     
     switch (activity.entity_type) {
@@ -185,7 +185,7 @@ export default function PlatformActivityHub() {
       case 'customer':
         return Array.isArray(customers) ? customers.find((c: any) => c.id === activity.entity_id)?.name || `Customer #${activity.entity_id}` : `Customer #${activity.entity_id}`;
       default:
-        return activity.entity_type ? `${activity.entity_type} #${activity.entity_id}` : 'Unknown Entity';
+        return activity.entity_type ? `${activity.entity_type} #${activity.entity_id}` : null;
     }
   };
 
@@ -205,7 +205,8 @@ export default function PlatformActivityHub() {
         const searchLower = filters.search.toLowerCase();
         const matchesContent = activity.content?.toLowerCase().includes(searchLower);
         const matchesTitle = activity.title?.toLowerCase().includes(searchLower);
-        const matchesEntity = getEntityName(activity).toLowerCase().includes(searchLower);
+        const entityName = getEntityName(activity);
+        const matchesEntity = entityName ? entityName.toLowerCase().includes(searchLower) : false;
         if (!matchesContent && !matchesTitle && !matchesEntity) return false;
       }
 
@@ -274,7 +275,7 @@ export default function PlatformActivityHub() {
         // Record names filter
         if (filters.recordNames.length > 0) {
           const entityName = getEntityName(activity);
-          if (!filters.recordNames.some(name => entityName.toLowerCase().includes(name.toLowerCase()))) {
+          if (!entityName || !filters.recordNames.some(name => entityName.toLowerCase().includes(name.toLowerCase()))) {
             return false;
           }
         }
@@ -414,8 +415,8 @@ export default function PlatformActivityHub() {
                 </span>
               )}
               
-              {/* Source badge */}
-              {entityName && entityName !== 'null' && (
+              {/* Source badge - only show for activities linked to specific entities */}
+              {entityName && (
                 <div className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs border bg-white text-gray-700 border-gray-200`}>
                   {getEntityIcon(activity.entity_type)}
                   <span className="font-medium">{entityName}</span>
@@ -634,7 +635,8 @@ export default function PlatformActivityHub() {
                   {Array.isArray(unifiedActivities) && 
                     unifiedActivities
                       .map(activity => getEntityName(activity))
-                      .filter((name, index, arr) => name && arr.indexOf(name) === index)
+                      .filter((name): name is string => name !== null && name !== undefined)
+                      .filter((name, index, arr) => arr.indexOf(name) === index)
                       .sort()
                       .map((name, index) => (
                         <SelectItem 
