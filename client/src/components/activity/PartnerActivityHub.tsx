@@ -819,6 +819,9 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
     }
 
     console.log('handleCreateActivity called with:', activityData);
+    console.log('Current selectedActivityType:', selectedActivityType);
+    console.log('Current taskTitle:', taskTitle);
+    console.log('Current partnerId:', partnerId);
     createActivityMutation.mutate(activityData);
   };
 
