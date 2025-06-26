@@ -473,55 +473,54 @@ export default function PlatformActivityHub() {
               </div>
             )}
 
-            {/* Hover toolbar */}
-            <div className="absolute right-3 top-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center gap-1 bg-white shadow-lg rounded-lg border border-gray-200 p-1 z-10">
-              {/* Emoji reactions */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 hover:bg-[#E6E7F1]"
-                onClick={() => handleReaction(activity.id, '✅')}
-              >
-                <span className="text-sm">✅</span>
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 hover:bg-[#E6E7F1]"
-                onClick={() => handleReaction(activity.id, '👍')}
-              >
-                <span className="text-sm">👍</span>
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 hover:bg-[#E6E7F1]"
-                onClick={() => handleReaction(activity.id, '⭐')}
-              >
-                <span className="text-sm">⭐</span>
-              </Button>
-
-              {/* Task completion button */}
-              {isTask && (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0 hover:bg-[#E6E7F1]"
-                  onClick={() => handleCompleteTask(activity.id, activity.completed || false)}
-                  title={isCompleted ? "Mark as incomplete" : "Mark as complete"}
+            {/* Hover Toolbar */}
+            <div className="absolute -top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-200 z-20">
+              <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-1.5 py-1 flex items-center gap-0.5">
+                {/* Checkmark Emoji */}
+                <button 
+                  onClick={() => handleReaction(activity.id, '✅')}
+                  className="w-8 h-8 flex items-center justify-center hover:bg-[#E6E7F1] rounded-md transition-colors duration-150"
                 >
-                  <CheckSquare className={`h-3 w-3 ${isCompleted ? 'text-green-600' : 'text-gray-600'}`} />
-                </Button>
-              )}
-
-              {/* Pin button */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-6 w-6 p-0 hover:bg-[#E6E7F1]"
-              >
-                <Pin className="h-3 w-3 text-gray-600" />
-              </Button>
+                  <span className="text-lg">✅</span>
+                </button>
+                
+                {/* Thumbs Up Emoji */}
+                <button 
+                  onClick={() => handleReaction(activity.id, '👍')}
+                  className="w-8 h-8 flex items-center justify-center hover:bg-[#E6E7F1] rounded-md transition-colors duration-150"
+                >
+                  <span className="text-lg">👍</span>
+                </button>
+                
+                {/* Star Emoji */}
+                <button 
+                  onClick={() => handleReaction(activity.id, '⭐')}
+                  className="w-8 h-8 flex items-center justify-center hover:bg-[#E6E7F1] rounded-md transition-colors duration-150"
+                >
+                  <span className="text-lg">⭐</span>
+                </button>
+                
+                {/* Task completion button */}
+                {isTask && (
+                  <button 
+                    onClick={() => handleCompleteTask(activity.id, activity.completed || false)}
+                    className="w-8 h-8 flex items-center justify-center hover:bg-[#E6E7F1] rounded-md transition-colors duration-150"
+                    title={isCompleted ? "Mark as incomplete" : "Mark task as complete"}
+                  >
+                    <CheckSquare className={`h-4 w-4 ${isCompleted ? 'text-green-600' : 'text-gray-600'}`} />
+                  </button>
+                )}
+                
+                {/* Reply Icon */}
+                <button className="w-8 h-8 flex items-center justify-center hover:bg-[#E6E7F1] rounded-md transition-colors duration-150">
+                  <MessageSquare className="h-4 w-4 text-gray-600" />
+                </button>
+                
+                {/* Pin Icon */}
+                <button className="w-8 h-8 flex items-center justify-center hover:bg-[#E6E7F1] rounded-md transition-colors duration-150">
+                  <Pin className="h-4 w-4 text-gray-600" />
+                </button>
+              </div>
             </div>
           </div>
         </div>
