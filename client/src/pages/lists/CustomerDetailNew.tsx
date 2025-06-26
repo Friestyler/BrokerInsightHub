@@ -1243,36 +1243,46 @@ export default function CustomerDetailNew() {
                         return searchMatch && categoryMatch;
                       }) || [];
 
-                      // Group templates by hierarchy - show root categories (level 1)
-                      const groupedTemplates: Record<string, any[]> = {};
+                      // Group templates by hierarchy - show root categories (level 1) containing subcategories
+                      const groupedTemplates: Record<string, Record<string, any[]>> = {};
                       
                       filteredTemplates.forEach((template: any) => {
                         // Find the category for this template
                         const templateCategory = categories?.find((c: any) => c.name === template.category);
                         
-                        // Determine the root category (level 1)
                         let rootCategoryName = 'Uncategorized';
+                        let subcategoryName = template.category || 'Other';
+                        
                         if (templateCategory) {
-                          // If it's level 1, use it directly
+                          // Find the root category (level 1)
                           if (templateCategory.level === 1) {
                             rootCategoryName = templateCategory.name;
-                          } else {
-                            // Find the root parent for this category
-                            const rootCategory = categories?.find((c: any) => 
-                              c.level === 1 && 
-                              (c.id === templateCategory.parentId || 
-                               categories?.some((parent: any) => 
-                                 parent.parentId === c.id && parent.id === templateCategory.parentId
-                               ))
-                            );
-                            rootCategoryName = rootCategory?.name || template.category || 'Uncategorized';
+                            subcategoryName = 'General'; // For products directly under level 1 categories
+                          } else if (templateCategory.level === 2) {
+                            // Find parent category (level 1)
+                            const parentCategory = categories?.find((c: any) => c.id === templateCategory.parentId);
+                            rootCategoryName = parentCategory?.name || 'Uncategorized';
+                            subcategoryName = templateCategory.name;
+                          } else if (templateCategory.level === 3) {
+                            // Find parent (level 2) and grandparent (level 1)
+                            const parentCategory = categories?.find((c: any) => c.id === templateCategory.parentId);
+                            if (parentCategory) {
+                              const grandparentCategory = categories?.find((c: any) => c.id === parentCategory.parentId);
+                              rootCategoryName = grandparentCategory?.name || 'Uncategorized';
+                              subcategoryName = parentCategory.name;
+                            }
                           }
                         }
                         
+                        // Initialize nested structure
                         if (!groupedTemplates[rootCategoryName]) {
-                          groupedTemplates[rootCategoryName] = [];
+                          groupedTemplates[rootCategoryName] = {};
                         }
-                        groupedTemplates[rootCategoryName].push(template);
+                        if (!groupedTemplates[rootCategoryName][subcategoryName]) {
+                          groupedTemplates[rootCategoryName][subcategoryName] = [];
+                        }
+                        
+                        groupedTemplates[rootCategoryName][subcategoryName].push(template);
                       });
 
                       if (Object.keys(groupedTemplates).length === 0) {
@@ -1287,79 +1297,127 @@ export default function CustomerDetailNew() {
                         );
                       }
 
-                      return Object.entries(groupedTemplates).map(([categoryName, templates]) => (
-                        <div key={categoryName} className="border-b border-border last:border-b-0">
-                          {/* Category Header */}
-                          <div 
-                            className="px-4 py-2 bg-muted/30 border-b border-border cursor-pointer flex items-center justify-between hover:bg-muted/50 transition-colors"
-                            onClick={() => {
-                              const categoryId = categories?.find((c: any) => c.name === categoryName)?.id;
-                              if (categoryId) {
-                                setExpandedCategories(prev => {
-                                  const newSet = new Set(prev);
-                                  if (newSet.has(categoryId)) {
-                                    newSet.delete(categoryId);
-                                  } else {
-                                    newSet.add(categoryId);
-                                  }
-                                  return newSet;
-                                });
-                              }
-                            }}
-                          >
-                            <div className="flex items-center">
-                              <span className="text-sm font-medium text-foreground">{categoryName}</span>
-                              <span className="ml-2 text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
-                                {templates.length}
-                              </span>
-                            </div>
-                            {(() => {
-                              const categoryId = categories?.find((c: any) => c.name === categoryName)?.id;
-                              const isExpanded = categoryId ? expandedCategories.has(categoryId) : true;
-                              return isExpanded ? 
-                                <ChevronDown className="h-4 w-4 text-muted-foreground" /> : 
-                                <ChevronRight className="h-4 w-4 text-muted-foreground" />;
-                            })()}
-                          </div>
-
-                          {/* Category Products */}
-                          {(() => {
-                            const categoryId = categories?.find((c: any) => c.name === categoryName)?.id;
-                            const isExpanded = categoryId ? expandedCategories.has(categoryId) : true;
-                            
-                            if (!isExpanded) return null;
-
-                            return (
-                              <div className="divide-y divide-border">
-                                {templates.map((template: any) => (
+                      return Object.entries(groupedTemplates).map(([rootCategoryName, subcategories]) => {
+                        const rootCategory = categories?.find((c: any) => c.name === rootCategoryName && c.level === 1);
+                        const rootCategoryId = rootCategory?.id;
+                        const isRootExpanded = rootCategoryId ? expandedCategories.has(rootCategoryId) : true;
+                        
+                        // Count total products in this root category
+                        const totalProducts = Object.values(subcategories).reduce((sum: number, templates: any) => {
+                          return sum + (Array.isArray(templates) ? templates.length : 0);
+                        }, 0);
+                        
+                        return (
+                          <div key={rootCategoryName} className="border-b border-border last:border-b-0">
+                            {/* Root Category Header (Life, Non-Life, Services) */}
+                            <div 
+                              className="px-4 py-3 bg-muted/40 border-b border-border cursor-pointer flex items-center justify-between hover:bg-muted/60 transition-colors"
+                              onClick={() => {
+                                if (rootCategoryId) {
+                                  setExpandedCategories(prev => {
+                                    const newSet = new Set(prev);
+                                    if (newSet.has(rootCategoryId)) {
+                                      newSet.delete(rootCategoryId);
+                                    } else {
+                                      newSet.add(rootCategoryId);
+                                    }
+                                    return newSet;
+                                  });
+                                }
+                              }}
+                            >
+                              <div className="flex items-center">
+                                {rootCategory?.color && (
                                   <div 
-                                    key={template.id}
-                                    className={`p-3 cursor-pointer hover:bg-accent transition-colors ${
-                                      selectedProductTemplate?.id === template.id ? 
-                                        'bg-primary/5 border-l-2 border-l-primary' : ''
-                                    }`}
-                                    onClick={() => setSelectedProductTemplate(template)}
-                                  >
-                                    <div className="flex justify-between items-start">
-                                      <div className="flex-1 min-w-0">
-                                        <div className="text-sm font-medium text-foreground truncate">{template.name}</div>
-                                        <div className="text-xs text-muted-foreground mt-0.5">
-                                          {template.providerName} • Product ID: {template.productId}
-                                        </div>
-                                        {template.description && (
-                                          <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
-                                            {template.description}
-                                          </div>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
+                                    className="w-3 h-3 rounded-full mr-3" 
+                                    style={{ backgroundColor: rootCategory.color }}
+                                  ></div>
+                                )}
+                                <span className="text-sm font-semibold text-foreground">{rootCategoryName}</span>
+                                <span className="ml-2 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
+                                  {totalProducts}
+                                </span>
                               </div>
-                            );
-                          })()}
-                        </div>
-                      ));
+                              {isRootExpanded ? 
+                                <ChevronDown className="h-4 w-4 text-muted-foreground" /> : 
+                                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                              }
+                            </div>
+
+                            {/* Subcategories and Products */}
+                            {isRootExpanded && (
+                              <div>
+                                {Object.entries(subcategories).map(([subcategoryName, templates]: [string, any]) => {
+                                  const subcategory = categories?.find((c: any) => c.name === subcategoryName && c.parentId === rootCategoryId);
+                                  const subcategoryId = subcategory?.id || `${rootCategoryName}-${subcategoryName}`;
+                                  const isSubExpanded = expandedCategories.has(subcategoryId);
+                                  
+                                  return (
+                                    <div key={subcategoryName} className="border-b border-border/50 last:border-b-0">
+                                      {/* Subcategory Header */}
+                                      <div 
+                                        className="px-6 py-2 bg-muted/20 cursor-pointer flex items-center justify-between hover:bg-muted/30 transition-colors"
+                                        onClick={() => {
+                                          setExpandedCategories(prev => {
+                                            const newSet = new Set(prev);
+                                            if (newSet.has(subcategoryId)) {
+                                              newSet.delete(subcategoryId);
+                                            } else {
+                                              newSet.add(subcategoryId);
+                                            }
+                                            return newSet;
+                                          });
+                                        }}
+                                      >
+                                        <div className="flex items-center">
+                                          <span className="text-sm font-medium text-foreground">{subcategoryName}</span>
+                                          <span className="ml-2 text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+                                            {Array.isArray(templates) ? templates.length : 0}
+                                          </span>
+                                        </div>
+                                        {isSubExpanded ? 
+                                          <ChevronDown className="h-3 w-3 text-muted-foreground" /> : 
+                                          <ChevronRight className="h-3 w-3 text-muted-foreground" />
+                                        }
+                                      </div>
+
+                                      {/* Products under subcategory */}
+                                      {isSubExpanded && (
+                                        <div className="divide-y divide-border/30">
+                                          {(Array.isArray(templates) ? templates : []).map((template: any) => (
+                                            <div 
+                                              key={template.id}
+                                              className={`px-8 py-3 cursor-pointer hover:bg-accent transition-colors ${
+                                                selectedProductTemplate?.id === template.id ? 
+                                                  'bg-primary/5 border-l-2 border-l-primary' : ''
+                                              }`}
+                                              onClick={() => setSelectedProductTemplate(template)}
+                                            >
+                                              <div className="flex justify-between items-start">
+                                                <div className="flex-1 min-w-0">
+                                                  <div className="text-sm font-medium text-foreground truncate">{template.name}</div>
+                                                  <div className="text-xs text-muted-foreground mt-0.5">
+                                                    {template.providerName} • Product ID: {template.productId}
+                                                  </div>
+                                                  {template.description && (
+                                                    <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                                      {template.description}
+                                                    </div>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      )}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      });
                     })()}
                   </div>
                 </div>
