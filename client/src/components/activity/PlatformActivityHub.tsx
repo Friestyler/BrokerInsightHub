@@ -96,30 +96,7 @@ export default function PlatformActivityHub() {
   const tasksRef = useRef<HTMLDivElement>(null);
   const commentsRef = useRef<HTMLDivElement>(null);
 
-  // Auto-scroll to bottom when tab changes or data updates
-  useEffect(() => {
-    const scrollToBottom = (ref: React.RefObject<HTMLDivElement>) => {
-      if (ref.current) {
-        const scrollArea = ref.current.querySelector('[data-radix-scroll-area-viewport]');
-        if (scrollArea) {
-          scrollArea.scrollTop = scrollArea.scrollHeight;
-        }
-      }
-    };
 
-    // Small delay to ensure content is rendered
-    const timer = setTimeout(() => {
-      if (activeTab === 'timeline' && filteredActivities.length > 0) {
-        scrollToBottom(timelineRef);
-      } else if (activeTab === 'tasks' && filteredActivities.length > 0) {
-        scrollToBottom(tasksRef);
-      } else if (activeTab === 'comments' && filteredActivities.length > 0) {
-        scrollToBottom(commentsRef);
-      }
-    }, 100);
-
-    return () => clearTimeout(timer);
-  }, [activeTab, filteredActivities]);
 
   // Fetch unified activities from all entities
   const { data: unifiedActivities, isLoading } = useQuery({
@@ -382,6 +359,33 @@ export default function PlatformActivityHub() {
   };
 
   const filteredActivities = getActivitiesForTab();
+
+  // Auto-scroll to bottom when tab changes or data updates (WhatsApp/Slack style)
+  useEffect(() => {
+    const scrollToBottom = (ref: React.RefObject<HTMLDivElement>) => {
+      if (ref.current) {
+        const scrollArea = ref.current.querySelector('[data-radix-scroll-area-viewport]');
+        if (scrollArea) {
+          scrollArea.scrollTop = scrollArea.scrollHeight;
+        }
+      }
+    };
+
+    // Small delay to ensure content is rendered
+    const timer = setTimeout(() => {
+      if (filteredActivities.length > 0) {
+        if (activeTab === 'timeline') {
+          scrollToBottom(timelineRef);
+        } else if (activeTab === 'tasks') {
+          scrollToBottom(tasksRef);
+        } else if (activeTab === 'comments') {
+          scrollToBottom(commentsRef);
+        }
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [activeTab, filteredActivities]);
 
   // Reset filters when tab changes
   useEffect(() => {
@@ -901,7 +905,7 @@ export default function PlatformActivityHub() {
 
           <TabsContent value="tasks" className="mt-0">
             {renderFilters()}
-            <ScrollArea className="h-[600px]">
+            <ScrollArea className="h-[600px]" ref={tasksRef}>
               <div className="p-6 border border-gray-200">
                 {isLoading ? (
                   <div className="text-center py-8 text-gray-500">
@@ -925,7 +929,7 @@ export default function PlatformActivityHub() {
 
           <TabsContent value="comments" className="mt-0">
             {renderFilters()}
-            <ScrollArea className="h-[600px]">
+            <ScrollArea className="h-[600px]" ref={commentsRef}>
               <div className="p-6 border border-gray-200">
                 {isLoading ? (
                   <div className="text-center py-8 text-gray-500">
