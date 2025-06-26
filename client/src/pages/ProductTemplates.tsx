@@ -573,7 +573,7 @@ export default function ProductTemplates() {
       </div>
       {/* Tab Content */}
       {activeTab === 'categories' && (
-        <div className="container mx-auto px-4 py-6">
+        <div className="mx-4 py-6">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold text-gray-900">Product Categories</h1>
             <Dialog open={createCategoryDialogOpen} onOpenChange={setCreateCategoryDialogOpen}>
