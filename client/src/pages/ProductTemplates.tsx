@@ -327,7 +327,7 @@ export default function ProductTemplates() {
   // Handlers for category dialogs
   const handleCreateSubcategory = (parentCategory: any) => {
     setSelectedParentCategory(parentCategory);
-    setNewSubcategoryColor(parentCategory.color || "#3B82F6");
+    setNewSubcategoryColor(parentCategory.color || "#10B981");
     setCreateSubcategoryDialogOpen(true);
   };
 
