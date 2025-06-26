@@ -47,38 +47,58 @@ import { useToast } from "@/hooks/use-toast";
 
 // Calculate total value from ALL opportunities linked to customers (not just displayed page)
 function calculateCustomerTotalValue(customers: any[], opportunities: any[] = []): number {
-  // Filter opportunities that have a clientId (linked to any customer)
-  const relevantOpportunities = opportunities.filter(opp => opp.clientId);
-  
-  // Sum unique opportunity values (no double counting)
-  return relevantOpportunities.reduce((sum, opp) => {
-    const value = parseFloat(opp.estimated_value) || 0;
-    return sum + value;
-  }, 0);
+  try {
+    if (!Array.isArray(opportunities) || opportunities.length === 0) return 0;
+    
+    // Filter opportunities that have a clientId (linked to any customer)
+    const relevantOpportunities = opportunities.filter(opp => opp && opp.clientId);
+    
+    // Sum unique opportunity values (no double counting)
+    const total = relevantOpportunities.reduce((sum, opp) => {
+      if (!opp || typeof opp !== 'object') return sum;
+      const value = parseFloat(opp.estimated_value) || 0;
+      return sum + value;
+    }, 0);
+    
+    return isNaN(total) ? 0 : total;
+  } catch (error) {
+    console.error('Error in calculateCustomerTotalValue:', error);
+    return 0;
+  }
 }
 
 // Calculate weighted value from ALL opportunities linked to customers (not just displayed page)
 function calculateCustomerWeightedValue(customers: any[], opportunities: any[] = []): number {
-  // Filter opportunities that have a clientId (linked to any customer)
-  const relevantOpportunities = opportunities.filter(opp => opp.clientId);
-  
-  // Calculate probability-adjusted sum of opportunity values using stage-based probabilities
-  return relevantOpportunities.reduce((sum, opp) => {
-    const value = parseFloat(opp.estimated_value) || 0;
-    const probability = opp.stage === 'Closed (Won)' ? 1.0 : 
-                      opp.stage === 'Negotiation' ? 0.7 :
-                      opp.stage === 'Proposal Sent to Client' ? 0.6 :
-                      opp.stage === 'Proposal Sent' ? 0.6 :
-                      opp.stage === 'proposal' ? 0.6 :
-                      opp.stage === 'Qualified Lead' ? 0.4 :
-                      opp.stage === 'qualification' ? 0.4 :
-                      opp.stage === 'Validated' ? 0.3 :
-                      opp.stage === 'discovery' ? 0.2 :
-                      opp.stage === 'Lost' ? 0 :
-                      opp.stage === 'Rejected' ? 0 :
-                      !opp.stage || opp.stage === '' ? 0.1 : 0.1;
-    return sum + (value * probability);
-  }, 0);
+  try {
+    if (!Array.isArray(opportunities) || opportunities.length === 0) return 0;
+    
+    // Filter opportunities that have a clientId (linked to any customer)
+    const relevantOpportunities = opportunities.filter(opp => opp && opp.clientId);
+    
+    // Calculate probability-adjusted sum of opportunity values using stage-based probabilities
+    const total = relevantOpportunities.reduce((sum, opp) => {
+      if (!opp || typeof opp !== 'object') return sum;
+      const value = parseFloat(opp.estimated_value) || 0;
+      const probability = opp.stage === 'Closed (Won)' ? 1.0 : 
+                        opp.stage === 'Negotiation' ? 0.7 :
+                        opp.stage === 'Proposal Sent to Client' ? 0.6 :
+                        opp.stage === 'Proposal Sent' ? 0.6 :
+                        opp.stage === 'proposal' ? 0.6 :
+                        opp.stage === 'Qualified Lead' ? 0.4 :
+                        opp.stage === 'qualification' ? 0.4 :
+                        opp.stage === 'Validated' ? 0.3 :
+                        opp.stage === 'discovery' ? 0.2 :
+                        opp.stage === 'Lost' ? 0 :
+                        opp.stage === 'Rejected' ? 0 :
+                        !opp.stage || opp.stage === '' ? 0.1 : 0.1;
+      return sum + (value * probability);
+    }, 0);
+    
+    return isNaN(total) ? 0 : total;
+  } catch (error) {
+    console.error('Error in calculateCustomerWeightedValue:', error);
+    return 0;
+  }
 }
 
 // Fetch customers from database with pagination
@@ -202,30 +222,37 @@ export default function CustomersPageClean() {
     enabled: true
   });
   const customers = useMemo(() => {
-    if (!customersResponse?.data) return [];
+    if (!customersResponse?.data || !Array.isArray(customersResponse.data)) return [];
     
-    // Debug: Log the raw data structure
-    console.log('Raw customer data:', customersResponse.data[0]);
-    
-    // Ensure data is properly structured and values are numbers
-    const processedCustomers = customersResponse.data.map((customer: any) => {
-      console.log('Processing customer:', customer.name, {
-        opportunityCount: customer.opportunityCount,
-        totalOpportunityValue: customer.totalOpportunityValue,
-        partnerCount: customer.partnerCount
-      });
+    try {
+      // Debug: Log the raw data structure
+      console.log('Raw customer data:', customersResponse.data[0]);
       
-      return {
-        ...customer,
-        opportunityCount: Number(customer.opportunityCount) || 0,
-        totalOpportunityValue: Number(customer.totalOpportunityValue) || 0,
-        partnerCount: Number(customer.partnerCount) || 0,
-        productCount: Number(customer.productCount) || 0
-      };
-    });
-    
-    console.log('Processed customers:', processedCustomers[0]);
-    return processedCustomers;
+      // Ensure data is properly structured and values are numbers
+      const processedCustomers = customersResponse.data.map((customer: any) => {
+        if (!customer) return null;
+        
+        console.log('Processing customer:', customer.name, {
+          opportunityCount: customer.opportunityCount,
+          totalOpportunityValue: customer.totalOpportunityValue,
+          partnerCount: customer.partnerCount
+        });
+        
+        return {
+          ...customer,
+          opportunityCount: Number(customer.opportunityCount) || 0,
+          totalOpportunityValue: Number(customer.totalOpportunityValue) || 0,
+          partnerCount: Number(customer.partnerCount) || 0,
+          productCount: Number(customer.productCount) || 0
+        };
+      }).filter(Boolean);
+      
+      console.log('Processed customers:', processedCustomers[0]);
+      return processedCustomers;
+    } catch (error) {
+      console.error('Error processing customers data:', error);
+      return [];
+    }
   }, [customersResponse?.data]);
   
   const pagination = customersResponse?.pagination || { page: 1, totalPages: 1, totalCount: 0, hasNextPage: false, hasPreviousPage: false };
@@ -844,14 +871,28 @@ export default function CustomersPageClean() {
           
           <div className="bg-white p-4 rounded-md border border-gray-200">
             <div className="text-xl font-semibold text-[#282A3F]">
-              €{calculateCustomerTotalValue(customers as any[], opportunities as any[]).toLocaleString()}
+              €{(() => {
+                try {
+                  return calculateCustomerTotalValue(customers as any[], opportunities as any[]).toLocaleString();
+                } catch (error) {
+                  console.error('Error calculating total value:', error);
+                  return '0';
+                }
+              })()}
             </div>
             <div className="text-sm text-gray-500">Total Value</div>
           </div>
           
           <div className="bg-white p-4 rounded-md border border-gray-200">
             <div className="text-xl font-semibold text-[#282A3F]">
-              €{calculateCustomerWeightedValue(customers as any[], opportunities as any[]).toLocaleString()}
+              €{(() => {
+                try {
+                  return calculateCustomerWeightedValue(customers as any[], opportunities as any[]).toLocaleString();
+                } catch (error) {
+                  console.error('Error calculating weighted value:', error);
+                  return '0';
+                }
+              })()}
             </div>
             <div className="text-sm text-gray-500">Weighted Value</div>
           </div>
