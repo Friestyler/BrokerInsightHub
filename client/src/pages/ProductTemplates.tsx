@@ -82,11 +82,7 @@ export default function ProductTemplates() {
     const renderCategory = (category: any, currentLevel: number) => {
       result.push(
         <SelectItem key={category.id} value={category.name} level={currentLevel}>
-          <div className="flex items-center gap-2">
-            <div 
-              className="w-3 h-3 rounded-full" 
-              style={{ backgroundColor: category.color }}
-            />
+          <div className="flex items-center">
             {category.name}
           </div>
         </SelectItem>
