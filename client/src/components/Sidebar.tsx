@@ -352,7 +352,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
         {/* More Section */}
         <div className="relative">
           <button 
-            className={`nav-container w-full text-left ${(collapsed && (location.startsWith('/projects') || location.startsWith('/vendors') || location.startsWith('/smart-updates') || location.startsWith('/notifications') || (location.startsWith('/partner-pilot') && location.includes('reports')))) ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+            className={`nav-container w-full text-left ${(collapsed && (location.startsWith('/projects') || location.startsWith('/vendors') || location.startsWith('/product-templates') || location.startsWith('/smart-updates') || location.startsWith('/notifications') || (location.startsWith('/partner-pilot') && location.includes('reports')))) ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
             onClick={() => {
               const newValue = !moreMenuOpen;
               setMoreMenuOpen(newValue);
@@ -392,7 +392,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
           </button>
           
           {/* More indicator when collapsed */}
-          {collapsed && !moreMenuOpen && (location.startsWith('/projects') || location.startsWith('/vendors') || location.startsWith('/smart-updates') || location.startsWith('/notifications') || (location.startsWith('/partner-pilot') && location.includes('reports'))) && (
+          {collapsed && !moreMenuOpen && (location.startsWith('/projects') || location.startsWith('/vendors') || location.startsWith('/product-templates') || location.startsWith('/smart-updates') || location.startsWith('/notifications') || (location.startsWith('/partner-pilot') && location.includes('reports'))) && (
             <div className="absolute top-[93px] right-0 w-1 h-7 bg-indigo-500 rounded-l-md"></div>
           )}
           
@@ -441,6 +441,25 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
                   <path d="M12 13.5V8"></path>
                 </svg>
                 Vendors
+              </button>
+              <button
+                onClick={() => navigateTo('/product-templates')}
+                className={`submenu-nav-container ${location.startsWith("/product-templates") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect width="14" height="20" x="5" y="2" rx="2" ry="2"></rect>
+                  <path d="M9 22v-4h6v4"></path>
+                  <path d="M8 6h.01"></path>
+                  <path d="M16 6h.01"></path>
+                  <path d="M12 6h.01"></path>
+                  <path d="M12 10h.01"></path>
+                  <path d="M12 14h.01"></path>
+                  <path d="M16 10h.01"></path>
+                  <path d="M16 14h.01"></path>
+                  <path d="M8 10h.01"></path>
+                  <path d="M8 14h.01"></path>
+                </svg>
+                Product Templates
               </button>
               <button
                 onClick={() => navigateTo('/smart-updates/notifications')}

@@ -111,14 +111,7 @@ function Router() {
           <Route path="/campaigns/create-from-template/:templateId" component={CampaignFromTemplate} />
 
           {/* Campaign routes from donald-dev */}
-          <Route path="/campaigns/:id">
-            {() => (
-              <EnvironmentRouteGuard
-                component={CampaignDetail}
-                excludedEnvironments={["acme"]}
-              />
-            )}
-          </Route>
+          <Route path="/campaigns/:id" component={CampaignsPage} />
 
           {/* Data Upload routes */}
           <Route path="/data-upload">
