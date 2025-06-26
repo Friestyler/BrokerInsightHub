@@ -1174,35 +1174,37 @@ export default function CustomerDetailNew() {
 
       {/* Add Product Dialog */}
       <Dialog open={showAddProductDialog} onOpenChange={setShowAddProductDialog}>
-        <DialogContent className="max-w-2xl bg-white text-foreground">
-          <DialogHeader>
-            <DialogTitle>Add Product Template</DialogTitle>
-            <DialogDescription>
+        <DialogContent className="max-w-4xl h-[90vh] flex flex-col bg-white text-foreground">
+          <DialogHeader className="flex-shrink-0">
+            <DialogTitle className="text-xl font-semibold">Add Product Template</DialogTitle>
+            <DialogDescription className="text-muted-foreground">
               Assign a product template to {customer?.name} with custom attributes
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-6">
-            {/* Enhanced Product Template Selection */}
-            <div className="space-y-4">
-              <Label htmlFor="product-template">Product Template</Label>
+          <div className="flex-1 flex min-h-0">
+            {/* Left Panel - Product Selection */}
+            <div className="flex-1 flex flex-col space-y-4 pr-6 border-r min-h-0">
+              <div className="flex-shrink-0">
+                <Label className="text-sm font-medium text-foreground">Select Product Template</Label>
+              </div>
               
               {/* Search and Filter Controls */}
-              <div className="flex space-x-3">
+              <div className="flex-shrink-0 flex space-x-3">
                 <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <Input
                     placeholder="Search products and categories..."
                     value={productSearchTerm}
                     onChange={(e) => setProductSearchTerm(e.target.value)}
-                    className="pl-10"
+                    className="pl-10 h-9 border-border bg-background"
                   />
                 </div>
                 <Select 
                   value={selectedCategoryFilter?.toString() || "all"} 
                   onValueChange={(value) => setSelectedCategoryFilter(value === "all" ? null : parseInt(value))}
                 >
-                  <SelectTrigger className="w-48">
+                  <SelectTrigger className="w-48 h-9 border-border">
                     <SelectValue placeholder="Filter by category" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1210,7 +1212,7 @@ export default function CustomerDetailNew() {
                     {categories?.map((category: any) => (
                       <SelectItem key={category.id} value={category.id.toString()}>
                         <div className="flex items-center">
-                          <div className="w-3 h-3 rounded-full mr-2" style={{ backgroundColor: category.color }}></div>
+                          <div className="w-2.5 h-2.5 rounded-full mr-2" style={{ backgroundColor: category.color }}></div>
                           {category.name}
                         </div>
                       </SelectItem>
@@ -1221,154 +1223,302 @@ export default function CustomerDetailNew() {
 
               {/* Product Template Selection Interface */}
               {templatesLoading ? (
-                <div className="text-sm text-muted-foreground">Loading templates...</div>
+                <div className="flex-1 flex items-center justify-center">
+                  <div className="text-sm text-muted-foreground">Loading templates...</div>
+                </div>
               ) : (
-                <div className="border rounded-lg max-h-96 overflow-y-auto">
-                  {(() => {
-                    // Filter and organize products by category
-                    const filteredTemplates = productTemplates?.filter((template: any) => {
-                      const searchMatch = !productSearchTerm || 
-                        template.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
-                        template.category?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
-                        template.providerName?.toLowerCase().includes(productSearchTerm.toLowerCase());
-                      
-                      const categoryMatch = !selectedCategoryFilter || 
-                        template.categoryId === selectedCategoryFilter;
-                      
-                      return searchMatch && categoryMatch;
-                    }) || [];
+                <div className="flex-1 border border-border rounded-lg overflow-hidden min-h-0">
+                  <div className="h-full overflow-y-auto">
+                    {(() => {
+                      // Filter and organize products by category
+                      const filteredTemplates = productTemplates?.filter((template: any) => {
+                        const searchMatch = !productSearchTerm || 
+                          template.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+                          template.category?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
+                          template.providerName?.toLowerCase().includes(productSearchTerm.toLowerCase());
+                        
+                        const categoryMatch = !selectedCategoryFilter || 
+                          template.categoryId === selectedCategoryFilter;
+                        
+                        return searchMatch && categoryMatch;
+                      }) || [];
 
-                    // Group templates by category
-                    const groupedTemplates: Record<string, any[]> = {};
-                    filteredTemplates.forEach((template: any) => {
-                      const categoryName = template.category || 'Uncategorized';
-                      if (!groupedTemplates[categoryName]) {
-                        groupedTemplates[categoryName] = [];
-                      }
-                      groupedTemplates[categoryName].push(template);
-                    });
+                      // Group templates by category
+                      const groupedTemplates: Record<string, any[]> = {};
+                      filteredTemplates.forEach((template: any) => {
+                        const categoryName = template.category || 'Uncategorized';
+                        if (!groupedTemplates[categoryName]) {
+                          groupedTemplates[categoryName] = [];
+                        }
+                        groupedTemplates[categoryName].push(template);
+                      });
 
-                    return Object.entries(groupedTemplates).map(([categoryName, templates]) => (
-                      <div key={categoryName} className="border-b last:border-b-0">
-                        {/* Category Header */}
-                        <div 
-                          className="px-4 py-3 bg-gray-50 border-b cursor-pointer flex items-center justify-between hover:bg-gray-100"
-                          onClick={() => {
-                            const categoryId = categories?.find((c: any) => c.name === categoryName)?.id;
-                            if (categoryId) {
-                              setExpandedCategories(prev => {
-                                const newSet = new Set(prev);
-                                if (newSet.has(categoryId)) {
-                                  newSet.delete(categoryId);
-                                } else {
-                                  newSet.add(categoryId);
-                                }
-                                return newSet;
-                              });
-                            }
-                          }}
-                        >
-                          <div className="flex items-center">
-                            <div className="w-3 h-3 rounded-full mr-3" 
-                                 style={{ backgroundColor: categories?.find((c: any) => c.name === categoryName)?.color || '#3B82F6' }}>
+                      if (Object.keys(groupedTemplates).length === 0) {
+                        return (
+                          <div className="h-full flex items-center justify-center p-8 text-center">
+                            <div>
+                              <Package className="mx-auto h-12 w-12 text-muted-foreground/40 mb-4" />
+                              <h3 className="text-sm font-medium text-foreground mb-1">No products found</h3>
+                              <p className="text-sm text-muted-foreground">Try adjusting your search or filter criteria.</p>
                             </div>
-                            <span className="font-medium text-gray-900">{categoryName}</span>
-                            <span className="ml-2 text-sm text-gray-500">({templates.length})</span>
                           </div>
+                        );
+                      }
+
+                      return Object.entries(groupedTemplates).map(([categoryName, templates]) => (
+                        <div key={categoryName} className="border-b border-border last:border-b-0">
+                          {/* Category Header */}
+                          <div 
+                            className="px-4 py-3 bg-muted/30 border-b border-border cursor-pointer flex items-center justify-between hover:bg-muted/50 transition-colors"
+                            onClick={() => {
+                              const categoryId = categories?.find((c: any) => c.name === categoryName)?.id;
+                              if (categoryId) {
+                                setExpandedCategories(prev => {
+                                  const newSet = new Set(prev);
+                                  if (newSet.has(categoryId)) {
+                                    newSet.delete(categoryId);
+                                  } else {
+                                    newSet.add(categoryId);
+                                  }
+                                  return newSet;
+                                });
+                              }
+                            }}
+                          >
+                            <div className="flex items-center">
+                              <div className="w-2.5 h-2.5 rounded-full mr-3" 
+                                   style={{ backgroundColor: categories?.find((c: any) => c.name === categoryName)?.color || '#6366f1' }}>
+                              </div>
+                              <span className="font-medium text-foreground">{categoryName}</span>
+                              <span className="ml-2 text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
+                                {templates.length}
+                              </span>
+                            </div>
+                            {(() => {
+                              const categoryId = categories?.find((c: any) => c.name === categoryName)?.id;
+                              const isExpanded = categoryId ? expandedCategories.has(categoryId) : true;
+                              return isExpanded ? 
+                                <ChevronDown className="h-4 w-4 text-muted-foreground" /> : 
+                                <ChevronRight className="h-4 w-4 text-muted-foreground" />;
+                            })()}
+                          </div>
+
+                          {/* Category Products */}
                           {(() => {
                             const categoryId = categories?.find((c: any) => c.name === categoryName)?.id;
                             const isExpanded = categoryId ? expandedCategories.has(categoryId) : true;
-                            return isExpanded ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />;
-                          })()}
-                        </div>
+                            
+                            if (!isExpanded) return null;
 
-                        {/* Category Products */}
-                        {(() => {
-                          const categoryId = categories?.find((c: any) => c.name === categoryName)?.id;
-                          const isExpanded = categoryId ? expandedCategories.has(categoryId) : true;
-                          
-                          if (!isExpanded) return null;
-
-                          return (
-                            <div className="divide-y">
-                              {templates.map((template: any) => (
-                                <div 
-                                  key={template.id}
-                                  className={`p-4 cursor-pointer hover:bg-blue-50 ${
-                                    selectedProductTemplate?.id === template.id ? 'bg-blue-100 border-l-4 border-l-blue-600' : ''
-                                  }`}
-                                  onClick={() => setSelectedProductTemplate(template)}
-                                >
-                                  <div className="flex justify-between items-start">
-                                    <div className="flex-1">
-                                      <div className="font-medium text-gray-900">{template.name}</div>
-                                      <div className="text-sm text-gray-500 mt-1">
-                                        {template.providerName} • ID: {template.productId}
-                                      </div>
-                                      {template.description && (
-                                        <div className="text-sm text-gray-600 mt-1 line-clamp-2">
-                                          {template.description}
+                            return (
+                              <div className="divide-y divide-border">
+                                {templates.map((template: any) => (
+                                  <div 
+                                    key={template.id}
+                                    className={`p-4 cursor-pointer hover:bg-accent transition-colors ${
+                                      selectedProductTemplate?.id === template.id ? 
+                                        'bg-primary/5 border-l-2 border-l-primary' : ''
+                                    }`}
+                                    onClick={() => setSelectedProductTemplate(template)}
+                                  >
+                                    <div className="flex justify-between items-start">
+                                      <div className="flex-1 min-w-0">
+                                        <div className="font-medium text-foreground truncate">{template.name}</div>
+                                        <div className="text-sm text-muted-foreground mt-0.5">
+                                          {template.providerName} • ID: {template.productId}
                                         </div>
-                                      )}
-                                    </div>
-                                    <div className="text-right ml-4">
-                                      <div className="font-medium text-gray-900">€{template.averagePrice}</div>
-                                      {template.premiumPercentage && (
-                                        <div className="text-sm text-gray-500">{template.premiumPercentage}% premium</div>
-                                      )}
+                                        {template.description && (
+                                          <div className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                                            {template.description}
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="text-right ml-4 flex-shrink-0">
+                                        <div className="font-semibold text-foreground">€{template.averagePrice}</div>
+                                        {template.premiumPercentage && (
+                                          <div className="text-xs text-muted-foreground">{template.premiumPercentage}% premium</div>
+                                        )}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              ))}
-                            </div>
-                          );
-                        })()}
-                      </div>
-                    ));
-                  })()}
-
-                  {/* No Results Message */}
-                  {productTemplates && productTemplates.length > 0 && 
-                   (!productTemplates?.filter((template: any) => {
-                     const searchMatch = !productSearchTerm || 
-                       template.name.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
-                       template.category?.toLowerCase().includes(productSearchTerm.toLowerCase()) ||
-                       template.providerName?.toLowerCase().includes(productSearchTerm.toLowerCase());
-                     
-                     const categoryMatch = !selectedCategoryFilter || 
-                       template.categoryId === selectedCategoryFilter;
-                     
-                     return searchMatch && categoryMatch;
-                   })?.length) && (
-                    <div className="p-8 text-center text-gray-500">
-                      <Package className="mx-auto h-12 w-12 text-gray-300 mb-4" />
-                      <h3 className="text-sm font-medium text-gray-900 mb-1">No products found</h3>
-                      <p className="text-sm">Try adjusting your search or filter criteria.</p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Selected Product Summary */}
-              {selectedProductTemplate && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium text-blue-900">{selectedProductTemplate.name}</div>
-                      <div className="text-sm text-blue-700">{selectedProductTemplate.providerName} • €{selectedProductTemplate.averagePrice}</div>
-                    </div>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      onClick={() => setSelectedProductTemplate(null)}
-                      className="text-blue-600 hover:text-blue-800"
-                    >
-                      Clear
-                    </Button>
+                                ))}
+                              </div>
+                            );
+                          })()}
+                        </div>
+                      ));
+                    })()}
                   </div>
                 </div>
               )}
             </div>
+
+            {/* Right Panel - Product Details & Configuration */}
+            <div className="w-96 flex-shrink-0 pl-6 flex flex-col space-y-4">
+              {selectedProductTemplate ? (
+                <>
+                  {/* Selected Product Summary */}
+                  <div className="flex-shrink-0 bg-accent/50 border border-border rounded-lg p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-foreground truncate">{selectedProductTemplate.name}</div>
+                        <div className="text-sm text-muted-foreground mt-0.5">
+                          {selectedProductTemplate.providerName} • €{selectedProductTemplate.averagePrice}
+                        </div>
+                      </div>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setSelectedProductTemplate(null)}
+                        className="h-8 px-2 text-muted-foreground hover:text-foreground ml-2 flex-shrink-0"
+                      >
+                        Clear
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Template Details */}
+                  <div className="flex-shrink-0 bg-muted/30 rounded-lg p-4">
+                    <h4 className="font-medium text-foreground mb-3">Template Details</h4>
+                    <div className="grid grid-cols-1 gap-3 text-sm">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Provider:</span>
+                        <span className="text-foreground font-medium">{selectedProductTemplate.providerName}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Category:</span>
+                        <span className="text-foreground font-medium">{selectedProductTemplate.category || 'Not specified'}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Default Price:</span>
+                        <span className="text-foreground font-medium">€{selectedProductTemplate.averagePrice}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Premium:</span>
+                        <span className="text-foreground font-medium">{selectedProductTemplate.premiumPercentage || 0}%</span>
+                      </div>
+                    </div>
+                    {selectedProductTemplate.description && (
+                      <div className="mt-3 pt-3 border-t border-border">
+                        <span className="text-sm text-muted-foreground">Description:</span>
+                        <p className="mt-1 text-sm text-foreground">{selectedProductTemplate.description}</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Custom Attributes */}
+                  <div className="flex-1 min-h-0 overflow-y-auto">
+                    <div className="space-y-4">
+                      <h4 className="font-medium text-foreground">Custom Attributes for {customer?.name}</h4>
+                      
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div className="space-y-2">
+                            <Label htmlFor="custom-price" className="text-sm">Custom Price (€)</Label>
+                            <Input
+                              id="custom-price"
+                              type="number"
+                              step="0.01"
+                              placeholder={`${selectedProductTemplate.averagePrice}`}
+                              value={customAttributes.customPrice}
+                              onChange={(e) => setCustomAttributes(prev => ({
+                                ...prev,
+                                customPrice: e.target.value
+                              }))}
+                              className="h-9"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="custom-discount-percentage" className="text-sm">Discount (%)</Label>
+                            <Input
+                              id="custom-discount-percentage"
+                              type="number"
+                              step="0.01"
+                              max="100"
+                              placeholder={`${selectedProductTemplate.discountPercentage || 0}`}
+                              value={customAttributes.customDiscountPercentage}
+                              onChange={(e) => setCustomAttributes(prev => ({
+                                ...prev,
+                                customDiscountPercentage: e.target.value
+                              }))}
+                              className="h-9"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="custom-premium-percentage" className="text-sm">Premium (%)</Label>
+                            <Input
+                              id="custom-premium-percentage"
+                              type="number"
+                              step="0.01"
+                              placeholder={`${selectedProductTemplate.premiumPercentage || 0}`}
+                              value={customAttributes.customPremiumPercentage}
+                              onChange={(e) => setCustomAttributes(prev => ({
+                                ...prev,
+                                customPremiumPercentage: e.target.value
+                              }))}
+                              className="h-9"
+                            />
+                          </div>
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="contract-start" className="text-sm">Contract Start</Label>
+                            <Input
+                              id="contract-start"
+                              type="date"
+                              value={customAttributes.customerContractStartDate}
+                              onChange={(e) => setCustomAttributes(prev => ({
+                                ...prev,
+                                customerContractStartDate: e.target.value
+                              }))}
+                              className="h-9"
+                            />
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="contract-end" className="text-sm">Contract End Date</Label>
+                          <Input
+                            id="contract-end"
+                            type="date"
+                            value={customAttributes.customerContractEndDate}
+                            onChange={(e) => setCustomAttributes(prev => ({
+                              ...prev,
+                              customerContractEndDate: e.target.value
+                            }))}
+                            className="h-9"
+                          />
+                        </div>
+                        
+                        <div className="space-y-2">
+                          <Label htmlFor="notes" className="text-sm">Notes</Label>
+                          <Textarea
+                            id="notes"
+                            placeholder="Add any special notes about this product assignment..."
+                            value={customAttributes.notes}
+                            onChange={(e) => setCustomAttributes(prev => ({
+                              ...prev,
+                              notes: e.target.value
+                            }))}
+                            className="min-h-[80px] resize-none"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="flex-1 flex items-center justify-center text-center p-8">
+                  <div>
+                    <Package className="mx-auto h-12 w-12 text-muted-foreground/40 mb-4" />
+                    <h3 className="text-sm font-medium text-foreground mb-1">Select a Product</h3>
+                    <p className="text-sm text-muted-foreground">Choose a product template from the list to configure custom attributes.</p>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
 
             {/* Template Details */}
             {selectedProductTemplate && (
@@ -1494,9 +1644,11 @@ export default function CustomerDetailNew() {
                 </div>
               </div>
             )}
+            </div>
+            </div>
           </div>
-
-          <DialogFooter>
+          
+          <DialogFooter className="flex-shrink-0 border-t border-border pt-4">
             <Button 
               variant="outline" 
               onClick={() => {
@@ -1511,6 +1663,7 @@ export default function CustomerDetailNew() {
                   notes: ''
                 });
               }}
+              className="h-9"
             >
               Cancel
             </Button>
@@ -1531,9 +1684,9 @@ export default function CustomerDetailNew() {
                 addProductMutation.mutate(assignmentData);
               }}
               disabled={!selectedProductTemplate || addProductMutation.isPending}
-              className="bg-[#5567E5] text-white hover:bg-[#4556D4]"
+              className="bg-[#5567E5] text-white hover:bg-[#4556D4] h-9"
             >
-              {addProductMutation.isPending ? 'Adding...' : 'Add Product'}
+              {addProductMutation.isPending ? 'Adding...' : 'Add product'}
             </Button>
           </DialogFooter>
         </DialogContent>
