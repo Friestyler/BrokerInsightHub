@@ -152,13 +152,13 @@ export default function ProductTemplates() {
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to update product template",
+        description: "Failed to update product catalogue",
         variant: "destructive",
       });
     },
   });
 
-  // Delete product template mutation
+  // Delete product catalogue mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
       return apiRequest('DELETE', `/api/product-catalogue/${id}`);
@@ -169,13 +169,13 @@ export default function ProductTemplates() {
       setSelectedTemplate(null);
       toast({
         title: "Success",
-        description: "Product template deleted successfully",
+        description: "Product catalogue deleted successfully",
       });
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to delete product template",
+        description: "Failed to delete product catalogue",
         variant: "destructive",
       });
     },
@@ -1069,7 +1069,7 @@ export default function ProductTemplates() {
       <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Edit Product Template</DialogTitle>
+            <DialogTitle>Edit Product Catalogue</DialogTitle>
           </DialogHeader>
           {renderProductTemplateForm(editForm, (data) => {
             if (selectedTemplate) {
@@ -1083,7 +1083,7 @@ export default function ProductTemplates() {
       <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Product Template</AlertDialogTitle>
+            <AlertDialogTitle>Delete Product Catalogue</AlertDialogTitle>
             <AlertDialogDescription>
               Are you sure you want to delete "{selectedTemplate?.name}"? This action cannot be undone.
             </AlertDialogDescription>
