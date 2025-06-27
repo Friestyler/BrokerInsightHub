@@ -1,0 +1,106 @@
+You are building a decision-support component for insurance account managers who manage large commercial clients.
+
+The context: This panel is part of a broader Customer Portfolio View, where the account manager can already see active contracts and expiring policies. Your job is to now build the “Smart Coverage Gaps” section — where the system recommends the most relevant additional products to propose.
+
+
+🎯 Purpose of This Panel
+
+Account managers need to:
+	1.	Understand which important coverages are missing from the customer’s portfolio
+	2.	Know why those gaps matter
+	3.	See what to offer now and how valuable it is
+	4.	Act with confidence, backed by industry insight, compliance cues, and value estimates
+
+This isn’t a product catalog. This is a focused, strategic recommendation engine.
+
+⸻
+
+🧩 What You Must Build
+
+You must create a Smart Coverage Gaps panel that includes:
+
+
+✅ 1. A set of 3–4 highly relevant coverage suggestions
+
+Each shown as a card, ranked by impact and urgency.
+
+Every card must include:
+	•	Product name (e.g., Cyber Security Insurance)
+	•	Contextual reason it’s relevant
+	•	“Common in companies like this”
+	•	“Required due to regulation”
+	•	“Part of bundle customer is partially covered for”
+	•	Projected premium value (e.g., +€1,200/year)
+	•	Visual label for one of the following:
+	•	🔵 High Priority
+	•	🟢 Profile Match
+	•	🟠 Seasonal
+	•	🟣 Bundle Eligible
+
+And a CTA:
+	•	Create an opportunity, add to a campaign
+
+⸻
+
+✅ 2. Visual Consistency Across Cards
+
+Each card should follow the same layout:
+	1.	Top left: Icon (insurance or risk symbol)
+	2.	Top right: Label tag (e.g., “High Priority”)
+	3.	Middle: Product name and 2-line description of business logic
+	4.	Bottom left: Premium uplift
+	5.	Bottom right: Action button
+
+DO NOT vary the layout across cards. This panel must feel ordered, deliberate, and polished.
+
+⸻
+
+✅ 3. Implicit Ranking by Relevance
+	•	First card = most important opportunity
+	•	Visual priority should be clear via layout or badge
+	•	DO NOT display more than 4 cards
+	•	If more suggestions are available, add a “Show More” button (but hide it by default)
+
+⸻
+
+✅ 4. Strategic Relevance Logic
+
+These suggestions are not random. They’re based on:
+	•	What the customer already has
+	•	What’s common among similar customers
+	•	What’s required by law, industry, or region
+	•	What’s part of bundle logic but missing
+	•	Risk exposure if coverage is not in place
+
+Use insurance industry language, not marketing terms.
+
+Examples of strong descriptions:
+	•	“Regulatory compliance for companies with 10+ employees”
+	•	“Typical add-on for construction businesses with mobile staff”
+	•	“Required for businesses handling client data in the EU”
+
+⸻
+
+🎨 Design Requirements
+	•	Use shadcn/ui components
+	•	Style like an Apple product: clean, quiet, confident
+	•	Use 4 clear colors for label badges only
+	•	Keep icons subtle and aligned to insurance (risk shield, scales, document, building, suitcase)
+
+⸻
+
+❌ You MUST NOT:
+	•	Use a generic product list
+	•	Show more than 4 cards by default
+	•	Include coverage the customer already has
+	•	Use vague phrases like “You might also like”
+
+⸻
+
+✅ Success =
+
+The account manager opens this panel and immediately sees:
+
+“These are the 3–4 most important coverage additions I should propose, and here’s exactly why, what it’s worth, and how to act.”
+
+They feel like the system has already done 80% of the thinking — and they just need to click “Create opportunity.”
