@@ -373,6 +373,7 @@ export default function ProductTemplates() {
   const handleEditCategory = (category: any) => {
     setSelectedCategory(category);
     setEditCategoryColor(category.color || "#3B82F6");
+    setEditCategoryIcon(category.icon || "");
     setEditCategoryDialogOpen(true);
   };
 
@@ -623,7 +624,7 @@ export default function ProductTemplates() {
                   createCategoryMutation.mutate({
                     name: formData.get('name') as string,
                     color: newCategoryColor,
-                    icon: formData.get('icon') as string || undefined,
+                    icon: newCategoryIcon || undefined,
                     description: formData.get('description') as string || undefined,
                   });
                 }}>
@@ -1157,7 +1158,7 @@ export default function ProductTemplates() {
             createCategoryMutation.mutate({
               name: formData.get('name') as string,
               color: newSubcategoryColor,
-              icon: formData.get('icon') as string || undefined,
+              icon: newSubcategoryIcon || undefined,
               description: formData.get('description') as string || undefined,
               parentId: selectedParentCategory?.id,
             });
@@ -1178,13 +1179,14 @@ export default function ProductTemplates() {
               </div>
               <div>
                 <label className="text-sm font-medium text-[#282A3F]">Icon (Optional)</label>
-                <Input 
-                  name="icon" 
-                  placeholder="Enter emoji or icon (e.g., 🏠, 🚗, 💰)" 
-                  className="mt-1"
-                  maxLength={4}
-                />
-                <p className="text-xs text-gray-500 mt-1">Use an emoji or Unicode icon to visually represent this subcategory</p>
+                <div className="mt-1">
+                  <IconPicker 
+                    value={newSubcategoryIcon}
+                    onChange={setNewSubcategoryIcon}
+                    placeholder="Select icon..."
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Choose a visual icon to represent this subcategory</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-[#282A3F]">Description</label>
@@ -1220,7 +1222,7 @@ export default function ProductTemplates() {
                 data: {
                   name: formData.get('name') as string,
                   color: editCategoryColor,
-                  icon: formData.get('icon') as string || undefined,
+                  icon: editCategoryIcon || undefined,
                   description: formData.get('description') as string || undefined,
                 }
               });
@@ -1248,14 +1250,14 @@ export default function ProductTemplates() {
               </div>
               <div>
                 <label className="text-sm font-medium text-[#282A3F]">Icon (Optional)</label>
-                <Input 
-                  name="icon" 
-                  placeholder="Enter emoji or icon (e.g., 🏠, 🚗, 💰)" 
-                  defaultValue={selectedCategory?.icon || ""} 
-                  className="mt-1"
-                  maxLength={4}
-                />
-                <p className="text-xs text-gray-500 mt-1">Use an emoji or Unicode icon to visually represent this category</p>
+                <div className="mt-1">
+                  <IconPicker 
+                    value={editCategoryIcon}
+                    onChange={setEditCategoryIcon}
+                    placeholder="Select icon..."
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Choose a visual icon to represent this category</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-[#282A3F]">Description</label>
