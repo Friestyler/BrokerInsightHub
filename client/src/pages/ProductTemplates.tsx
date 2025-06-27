@@ -448,15 +448,15 @@ export default function ProductTemplates() {
   };
 
   const getSubcategories = (parentId: number) => {
-    return categories.filter((cat: any) => cat.parent_id === parentId);
+    return (categories as any[])?.filter((cat: any) => cat.parent_id === parentId) || [];
   };
 
   const getRootCategories = () => {
-    return categories.filter((cat: any) => !cat.parent_id);
+    return (categories as any[])?.filter((cat: any) => !cat.parent_id) || [];
   };
 
   const getSubcategoryCount = (parentId: number) => {
-    return categories.filter((cat: any) => cat.parent_id === parentId).length;
+    return (categories as any[])?.filter((cat: any) => cat.parent_id === parentId)?.length || 0;
   };
 
   // Handlers for category dialogs
@@ -538,7 +538,7 @@ export default function ProductTemplates() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {renderCategoriesHierarchy(categories as any[])}
+                    {categories && renderCategoriesHierarchy(categories as any[])}
                   </SelectContent>
                 </Select>
                 <FormMessage />
@@ -1034,7 +1034,7 @@ export default function ProductTemplates() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All categories</SelectItem>
-                {renderCategoriesHierarchy(categories as any[])}
+                {categories && renderCategoriesHierarchy(categories as any[])}
               </SelectContent>
             </Select>
           </div>
