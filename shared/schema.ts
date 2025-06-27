@@ -259,6 +259,7 @@ export const categories = pgTable("categories", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   color: text("color").notNull().default("#3B82F6"),
+  icon: text("icon"), // Optional icon name for visual representation
   description: text("description"),
   parentId: integer("parent_id").references(() => categories.id),
   level: integer("level").notNull().default(1), // 1, 2, or 3 for hierarchy
