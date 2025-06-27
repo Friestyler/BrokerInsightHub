@@ -77,6 +77,9 @@ export default function CustomerDetailNew() {
     notes: ''
   });
 
+  // Track configured products (products that have been set up but not necessarily saved yet)
+  const [configuredProducts, setConfiguredProducts] = useState<Set<number>>(new Set());
+
   // Product selection states
   const [productSearchTerm, setProductSearchTerm] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<number | null>(null);
@@ -1190,7 +1193,7 @@ export default function CustomerDetailNew() {
 
       {/* Add Product Dialog */}
       <Dialog open={showAddProductDialog} onOpenChange={setShowAddProductDialog}>
-        <DialogContent className="max-w-4xl h-[90vh] flex flex-col bg-white text-foreground">
+        <DialogContent className="max-w-7xl h-[90vh] flex flex-col bg-white text-foreground">
           <DialogHeader className="flex-shrink-0">
             <DialogTitle className="text-xl font-semibold">Add Product Template</DialogTitle>
             <DialogDescription className="text-muted-foreground">
@@ -1351,7 +1354,12 @@ export default function CustomerDetailNew() {
                                     >
                                       <div className="flex justify-between items-start">
                                         <div className="flex-1 min-w-0">
-                                          <div className="text-sm font-medium text-foreground truncate">{template.name}</div>
+                                          <div className="flex items-center gap-2">
+                                            <div className="text-sm font-medium text-foreground truncate">{template.name}</div>
+                                            {configuredProducts.has(template.id) && (
+                                              <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0" title="Configured"></div>
+                                            )}
+                                          </div>
                                           <div className="text-xs text-muted-foreground mt-0.5">
                                             {template.providerName} • Product ID: {template.productId}
                                           </div>
@@ -1427,7 +1435,12 @@ export default function CustomerDetailNew() {
                                             >
                                               <div className="flex justify-between items-start">
                                                 <div className="flex-1 min-w-0">
-                                                  <div className="text-sm font-medium text-foreground truncate">{template.name}</div>
+                                                  <div className="flex items-center gap-2">
+                                                    <div className="text-sm font-medium text-foreground truncate">{template.name}</div>
+                                                    {configuredProducts.has(template.id) && (
+                                                      <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0" title="Configured"></div>
+                                                    )}
+                                                  </div>
                                                   <div className="text-xs text-muted-foreground mt-0.5">
                                                     {template.providerName} • Product ID: {template.productId}
                                                   </div>
@@ -1650,7 +1663,8 @@ export default function CustomerDetailNew() {
                   
                   addProductMutation.mutate(assignmentData, {
                     onSuccess: () => {
-                      // Reset form but keep dialog open
+                      // Mark product as configured and reset form but keep dialog open
+                      setConfiguredProducts(prev => new Set([...prev, selectedProductTemplate.id]));
                       setSelectedProductTemplate(null);
                       setCustomAttributes({
                         customPrice: '',
