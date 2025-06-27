@@ -854,6 +854,23 @@ export default function CustomerDetailNew() {
 
         {activeTab === "product-dashboard" && (
           <div className="space-y-6">
+            {/* Premium Impact Panel - Compact */}
+            <div className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold">Total Premium Impact</h3>
+                  <p className="text-emerald-100 text-sm">Combined uplift potential</p>
+                </div>
+                <div className="text-right">
+                  <div className="flex items-center space-x-2">
+                    <TrendingUp className="w-5 h-5" />
+                    <div className="text-2xl font-bold">€9,300</div>
+                  </div>
+                  <div className="text-emerald-100 text-xs">+142% growth</div>
+                </div>
+              </div>
+            </div>
+
             {/* Coverage Summary by Category - Radial Charts */}
             <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
               <h3 className="text-lg font-semibold text-gray-900 mb-6">Coverage Pulse by Category</h3>
@@ -1169,33 +1186,7 @@ export default function CustomerDetailNew() {
               </div>
             </div>
 
-            {/* Premium Impact Panel */}
-            <div className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white rounded-xl p-6 sticky bottom-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <h3 className="text-xl font-bold">Total Premium Impact</h3>
-                  <p className="text-emerald-100">Combined uplift from all recommended actions</p>
-                </div>
-                <div className="text-right">
-                  <div className="flex items-center justify-end space-x-2">
-                    <TrendingUp className="w-8 h-8 text-white" />
-                    <div className="text-4xl font-bold animate-pulse">€9,300</div>
-                  </div>
-                  <div className="text-emerald-100 text-sm">Annual premium uplift</div>
-                </div>
-              </div>
-              
-              {/* Progress meter */}
-              <div className="mt-6">
-                <div className="flex items-center justify-between text-sm text-emerald-100 mb-2">
-                  <span>Portfolio Growth</span>
-                  <span>+142%</span>
-                </div>
-                <div className="w-full bg-white/20 rounded-full h-3">
-                  <div className="bg-white h-3 rounded-full animate-pulse" style={{width: '85%'}}></div>
-                </div>
-              </div>
-            </div>
+
           </div>
         )}
       </div>
