@@ -67,12 +67,81 @@ export default function CustomerDetailNew() {
     );
   };
 
-  // Filter categories based on selection
+  // Get category info from database with fallback colors
+  const getCategoryInfo = (categoryName: string) => {
+    const dbCategory = categories?.find((cat: any) => cat.name === categoryName);
+    if (dbCategory) {
+      return {
+        color: dbCategory.color || 'blue',
+        icon: dbCategory.icon,
+        id: dbCategory.id
+      };
+    }
+    
+    // Fallback colors if not in database
+    const fallbackColors: any = {
+      'Life Insurance': 'green',
+      'Non-Life Insurance': 'blue', 
+      'Services': 'purple'
+    };
+    
+    return {
+      color: fallbackColors[categoryName] || 'gray',
+      icon: null,
+      id: null
+    };
+  };
+
+  // Helper function to render category badge like Products page
+  const renderCategoryBadge = (category: any) => {
+    const iconMap: any = {
+      'shield': Shield,
+      'trending-up': TrendingUp,
+      'briefcase': Briefcase,
+      'target': Target,
+      'zap': Zap,
+      'clock': Clock,
+      'alert-triangle': AlertTriangle,
+      'check-circle': CheckCircle,
+      'arrow-up': ArrowUp,
+      'dollar-sign': DollarSign,
+      'users': Users,
+      'package': Package,
+      'plane': Plane,
+      'piggy-bank': PiggyBank,
+      'scale': Scale
+    };
+    
+    const IconComponent = category.icon ? iconMap[category.icon] : null;
+    
+    return (
+      <Badge variant="outline" className="capitalize flex items-center gap-1.5">
+        {IconComponent && <IconComponent className="w-3 h-3" />}
+        {category.name}
+      </Badge>
+    );
+  };
+
+  // Helper function to get gradient classes based on category color
+  const getBarGradientClasses = (color: string) => {
+    const gradientMap: any = {
+      'green': 'bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700',
+      'blue': 'bg-gradient-to-r from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700',
+      'purple': 'bg-gradient-to-r from-purple-400 to-purple-600 hover:from-purple-500 hover:to-purple-700',
+      'orange': 'bg-gradient-to-r from-orange-400 to-orange-600 hover:from-orange-500 hover:to-orange-700',
+      'red': 'bg-gradient-to-r from-red-400 to-red-600 hover:from-red-500 hover:to-red-700',
+      'gray': 'bg-gradient-to-r from-gray-300 to-gray-400 hover:from-gray-400 hover:to-gray-500'
+    };
+    
+    return gradientMap[color] || gradientMap['gray'];
+  };
+
+  // Filter categories based on selection with animated bars
   const getFilteredCategories = (): any[] => {
     const allCategories = [
       {
         name: 'Life Insurance',
-        color: 'green',
+        ...getCategoryInfo('Life Insurance'),
         covered: 2,
         total: 8,
         percentage: 25,
@@ -93,7 +162,7 @@ export default function CustomerDetailNew() {
       },
       {
         name: 'Non-Life Insurance',
-        color: 'orange',
+        ...getCategoryInfo('Non-Life Insurance'),
         covered: 5,
         total: 12,
         percentage: 42,
@@ -118,7 +187,7 @@ export default function CustomerDetailNew() {
       },
       {
         name: 'Services',
-        color: 'gray',
+        ...getCategoryInfo('Services'),
         covered: 0,
         total: 3,
         percentage: 0,
@@ -1764,30 +1833,32 @@ export default function CustomerDetailNew() {
               
               <div className="space-y-6 overflow-visible">
                 {/* Filtered Categories */}
-                {getFilteredCategories().map((category) => (
+                {getFilteredCategories().map((category, index) => (
                   <div key={category.name} className="space-y-3">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-3">
-                        <div className={`w-4 h-4 rounded ${
-                          category.color === 'green' ? 'bg-green-500' :
-                          category.color === 'orange' ? 'bg-orange-500' : 'bg-gray-400'
-                        }`}></div>
-                        <h3 className="font-medium text-gray-900">{category.name}</h3>
+                        {renderCategoryBadge(category)}
                       </div>
                       <div className="text-sm text-gray-600">{category.covered} of {category.total} products ({category.percentage}%)</div>
                     </div>
                   
                     <div className="relative mb-20">
-                      <div className="flex h-8 bg-gray-200 rounded-lg overflow-visible cursor-pointer">
+                      <div className="flex h-10 bg-gray-100/60 backdrop-blur-sm rounded-xl overflow-visible cursor-pointer border border-gray-200/50 shadow-sm">
                         {category.percentage > 0 && (
                           <div 
-                            className={`${
-                              category.color === 'green' ? 'bg-green-500 hover:bg-green-600' :
-                              category.color === 'orange' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-gray-500 hover:bg-gray-600'
-                            } flex items-center justify-center text-white text-xs font-medium transition-colors relative group rounded-l-lg`}
-                            style={{ width: `${category.percentage}%` }}
+                            className={`${getBarGradientClasses(category.color)} flex items-center justify-center text-white text-xs font-medium transition-all duration-300 relative group rounded-l-xl shadow-sm`}
+                            style={{ 
+                              width: '0%',
+                              animation: `growBar 1.5s ease-out ${index * 0.3}s forwards`
+                            }}
                           >
-                            {category.percentage}% Covered
+                            <style jsx>{`
+                              @keyframes growBar {
+                                from { width: 0%; }
+                                to { width: ${category.percentage}%; }
+                              }
+                            `}</style>
+                            <span className="drop-shadow-sm">{category.percentage}% Covered</span>
                             
                             {/* Tooltip - Covered Products */}
                             <div 
@@ -1842,12 +1913,12 @@ export default function CustomerDetailNew() {
                         
                         {category.percentage < 100 && (
                           <div 
-                            className={`bg-gray-300 flex items-center justify-center text-gray-700 text-xs font-medium hover:bg-gray-400 transition-colors relative group ${
-                              category.percentage > 0 ? 'rounded-r-lg' : 'rounded-lg'
+                            className={`bg-gray-200/80 backdrop-blur-sm flex items-center justify-center text-gray-600 text-xs font-medium hover:bg-gray-300/80 transition-all duration-300 relative group shadow-inner ${
+                              category.percentage > 0 ? 'rounded-r-xl' : 'rounded-xl'
                             }`}
                             style={{ width: `${100 - category.percentage}%` }}
                           >
-                            {100 - category.percentage}% Not Covered
+                            <span className="drop-shadow-sm">{100 - category.percentage}% Not Covered</span>
                             
                             {/* Tooltip - Available Products */}
                             <div 
