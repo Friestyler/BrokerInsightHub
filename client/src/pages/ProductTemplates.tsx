@@ -860,7 +860,7 @@ export default function ProductTemplates() {
       {activeTab === 'templates' && (
         <div className="mx-4 py-6">
         <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Product Templates</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Product Catalogue</h1>
         <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
           <DialogTrigger asChild>
             <Button>
@@ -1102,7 +1102,6 @@ export default function ProductTemplates() {
       </AlertDialog>
       </div>
       )}
-
       {/* Create Subcategory Dialog */}
       <Dialog open={createSubcategoryDialogOpen} onOpenChange={setCreateSubcategoryDialogOpen}>
         <DialogContent className="max-w-md bg-white">
@@ -1154,7 +1153,6 @@ export default function ProductTemplates() {
           </form>
         </DialogContent>
       </Dialog>
-
       {/* Edit Category Dialog */}
       <Dialog open={editCategoryDialogOpen} onOpenChange={setEditCategoryDialogOpen}>
         <DialogContent className="max-w-md bg-white">
@@ -1219,7 +1217,6 @@ export default function ProductTemplates() {
           </form>
         </DialogContent>
       </Dialog>
-
       {/* Delete Category Dialog */}
       <AlertDialog open={deleteCategoryDialogOpen} onOpenChange={setDeleteCategoryDialogOpen}>
         <AlertDialogContent className="bg-white">
