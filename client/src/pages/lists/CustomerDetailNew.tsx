@@ -2005,6 +2005,150 @@ export default function CustomerDetailNew() {
               </div>
             </div>
 
+            {/* Smart Coverage Gaps Section */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Smart Coverage Gaps</h2>
+              <p className="text-sm text-gray-600 mb-6">
+                Top opportunities missing from this customer's portfolio based on profile, current contracts, and peer behavior
+              </p>
+              
+              {/* Coverage Gap Cards */}
+              <div className="space-y-6">
+                {/* Non-Life / Business Category */}
+                <div>
+                  <h4 className="text-md font-medium text-gray-800 mb-3">Non-Life / Business</h4>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* Cyber Insurance Card */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
+                      <div className="flex items-start justify-between mb-3">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          High Priority
+                        </span>
+                        <div className="text-right">
+                          <div className="font-bold text-green-600 text-lg">+€2,400/year</div>
+                          <div className="text-xs text-gray-500">Estimated Value</div>
+                        </div>
+                      </div>
+                      <h5 className="font-semibold text-gray-900 mb-2">Cyber Security Insurance</h5>
+                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                        Critical gap for engineering firms. Required for EU compliance and often bundled with Professional Indemnity
+                      </p>
+                      <button 
+                        className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white text-sm font-medium py-2 px-4 rounded-md transition-colors"
+                        onClick={() => handleSmartGapAction('cyber-insurance', 'Add to Opportunity List')}
+                      >
+                        Add to Opportunity List
+                      </button>
+                    </div>
+
+                    {/* Directors & Officers Insurance Card */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
+                      <div className="flex items-start justify-between mb-3">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                          Compliance
+                        </span>
+                        <div className="text-right">
+                          <div className="font-bold text-green-600 text-lg">+€1,800/year</div>
+                          <div className="text-xs text-gray-500">Estimated Value</div>
+                        </div>
+                      </div>
+                      <h5 className="font-semibold text-gray-900 mb-2">Directors & Officers Insurance</h5>
+                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                        Management liability protection becoming standard. 89% of similar engineering firms have coverage
+                      </p>
+                      <button 
+                        className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-4 rounded-md transition-colors"
+                        onClick={() => handleSmartGapAction('do-insurance', 'Share with Partner')}
+                      >
+                        Share with Partner
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Non-Life / Health Category */}
+                <div>
+                  <h4 className="text-md font-medium text-gray-800 mb-3">Non-Life / Health</h4>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* Group Health Insurance Card */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
+                      <div className="flex items-start justify-between mb-3">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          Profile Match
+                        </span>
+                        <div className="text-right">
+                          <div className="font-bold text-green-600 text-lg">+€3,200/year</div>
+                          <div className="text-xs text-gray-500">Estimated Value</div>
+                        </div>
+                      </div>
+                      <h5 className="font-semibold text-gray-900 mb-2">Group Health Insurance</h5>
+                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                        Competitive advantage for employee retention. Tax benefits available for engineering firms
+                      </p>
+                      <button 
+                        className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-4 rounded-md transition-colors"
+                        onClick={() => handleSmartGapAction('group-health', 'Assign to Campaign')}
+                      >
+                        Assign to Campaign
+                      </button>
+                    </div>
+
+                    {/* Occupational Health Card */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
+                      <div className="flex items-start justify-between mb-3">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          Bundle Eligible
+                        </span>
+                        <div className="text-right">
+                          <div className="font-bold text-green-600 text-lg">+€1,500/year</div>
+                          <div className="text-xs text-gray-500">Estimated Value</div>
+                        </div>
+                      </div>
+                      <h5 className="font-semibold text-gray-900 mb-2">Occupational Health Insurance</h5>
+                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                        Pairs well with existing liability. 15% discount when bundled with current business coverage
+                      </p>
+                      <button 
+                        className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-4 rounded-md transition-colors"
+                        onClick={() => handleSmartGapAction('occupational-health', 'Explore Partner Matches')}
+                      >
+                        Explore Partner Matches
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Life Insurance Category */}
+                <div>
+                  <h4 className="text-md font-medium text-gray-800 mb-3">Life Insurance</h4>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* Key Person Insurance Card */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
+                      <div className="flex items-start justify-between mb-3">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          Upgrade
+                        </span>
+                        <div className="text-right">
+                          <div className="font-bold text-green-600 text-lg">+€2,600/year</div>
+                          <div className="text-xs text-gray-500">Estimated Value</div>
+                        </div>
+                      </div>
+                      <h5 className="font-semibold text-gray-900 mb-2">Key Person Life Insurance</h5>
+                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                        Business protection for owner-managed engineering firm. Critical for business continuity planning
+                      </p>
+                      <button 
+                        className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white text-sm font-medium py-2 px-4 rounded-md transition-colors"
+                        onClick={() => handleSmartGapAction('key-person', 'Add to Opportunity List')}
+                      >
+                        Add to Opportunity List
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* 2. Policies Requiring Attention - Timeline Strip */}
             <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-6">Policies Requiring Attention</h2>
@@ -2322,149 +2466,7 @@ export default function CustomerDetailNew() {
               </div>
             </div>
 
-            {/* Smart Coverage Gaps Section */}
-            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">Smart Coverage Gaps</h2>
-              <p className="text-sm text-gray-600 mb-6">
-                Top opportunities missing from this customer's portfolio based on profile, current contracts, and peer behavior
-              </p>
-              
-              {/* Coverage Gap Cards */}
-              <div className="space-y-6">
-                {/* Non-Life / Business Category */}
-                <div>
-                  <h4 className="text-md font-medium text-gray-800 mb-3">Non-Life / Business</h4>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {/* Cyber Insurance Card */}
-                    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
-                      <div className="flex items-start justify-between mb-3">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                          High Priority
-                        </span>
-                        <div className="text-right">
-                          <div className="font-bold text-green-600 text-lg">+€2,400/year</div>
-                          <div className="text-xs text-gray-500">Estimated Value</div>
-                        </div>
-                      </div>
-                      <h5 className="font-semibold text-gray-900 mb-2">Cyber Security Insurance</h5>
-                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                        Critical gap for engineering firms. Required for EU compliance and often bundled with Professional Indemnity
-                      </p>
-                      <button 
-                        className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white text-sm font-medium py-2 px-4 rounded-md transition-colors"
-                        onClick={() => handleSmartGapAction('cyber-insurance', 'Add to Opportunity List')}
-                      >
-                        Add to Opportunity List
-                      </button>
-                    </div>
 
-                    {/* Directors & Officers Insurance Card */}
-                    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
-                      <div className="flex items-start justify-between mb-3">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
-                          Compliance
-                        </span>
-                        <div className="text-right">
-                          <div className="font-bold text-green-600 text-lg">+€1,800/year</div>
-                          <div className="text-xs text-gray-500">Estimated Value</div>
-                        </div>
-                      </div>
-                      <h5 className="font-semibold text-gray-900 mb-2">Directors & Officers Insurance</h5>
-                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                        Management liability protection becoming standard. 89% of similar engineering firms have coverage
-                      </p>
-                      <button 
-                        className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-4 rounded-md transition-colors"
-                        onClick={() => handleSmartGapAction('do-insurance', 'Share with Partner')}
-                      >
-                        Share with Partner
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Non-Life / Health Category */}
-                <div>
-                  <h4 className="text-md font-medium text-gray-800 mb-3">Non-Life / Health</h4>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {/* Group Health Insurance Card */}
-                    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
-                      <div className="flex items-start justify-between mb-3">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          Profile Match
-                        </span>
-                        <div className="text-right">
-                          <div className="font-bold text-green-600 text-lg">+€3,200/year</div>
-                          <div className="text-xs text-gray-500">Estimated Value</div>
-                        </div>
-                      </div>
-                      <h5 className="font-semibold text-gray-900 mb-2">Group Health Insurance</h5>
-                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                        Competitive advantage for employee retention. Tax benefits available for engineering firms
-                      </p>
-                      <button 
-                        className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-4 rounded-md transition-colors"
-                        onClick={() => handleSmartGapAction('group-health', 'Assign to Campaign')}
-                      >
-                        Assign to Campaign
-                      </button>
-                    </div>
-
-                    {/* Occupational Health Card */}
-                    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
-                      <div className="flex items-start justify-between mb-3">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                          Bundle Eligible
-                        </span>
-                        <div className="text-right">
-                          <div className="font-bold text-green-600 text-lg">+€1,500/year</div>
-                          <div className="text-xs text-gray-500">Estimated Value</div>
-                        </div>
-                      </div>
-                      <h5 className="font-semibold text-gray-900 mb-2">Occupational Health Insurance</h5>
-                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                        Pairs well with existing liability. 15% discount when bundled with current business coverage
-                      </p>
-                      <button 
-                        className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-4 rounded-md transition-colors"
-                        onClick={() => handleSmartGapAction('occupational-health', 'Explore Partner Matches')}
-                      >
-                        Explore Partner Matches
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Life Insurance Category */}
-                <div>
-                  <h4 className="text-md font-medium text-gray-800 mb-3">Life Insurance</h4>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {/* Key Person Insurance Card */}
-                    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
-                      <div className="flex items-start justify-between mb-3">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                          Upgrade
-                        </span>
-                        <div className="text-right">
-                          <div className="font-bold text-green-600 text-lg">+€2,600/year</div>
-                          <div className="text-xs text-gray-500">Estimated Value</div>
-                        </div>
-                      </div>
-                      <h5 className="font-semibold text-gray-900 mb-2">Key Person Life Insurance</h5>
-                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                        Business protection for owner-managed engineering firm. Critical for business continuity planning
-                      </p>
-                      <button 
-                        className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white text-sm font-medium py-2 px-4 rounded-md transition-colors"
-                        onClick={() => handleSmartGapAction('key-person', 'Add to Opportunity List')}
-                      >
-                        Add to Opportunity List
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
           </div>
         )}
         
