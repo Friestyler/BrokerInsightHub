@@ -100,7 +100,7 @@ export default function ProductTemplates() {
 
   // Fetch product templates
   const { data: productTemplates = [], isLoading } = useQuery({
-    queryKey: ['/api/product-templates'],
+    queryKey: ['/api/product-catalogue'],
   });
 
   // Fetch categories for dropdown
@@ -116,10 +116,10 @@ export default function ProductTemplates() {
   // Create product template mutation
   const createMutation = useMutation({
     mutationFn: async (data: ProductTemplateFormData) => {
-      return apiRequest('POST', '/api/product-templates', data);
+      return apiRequest('POST', '/api/product-catalogue', data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/product-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/product-catalogue'] });
       setCreateDialogOpen(false);
       toast({
         title: "Success",
@@ -138,10 +138,10 @@ export default function ProductTemplates() {
   // Update product template mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: ProductTemplateFormData }) => {
-      return apiRequest('PUT', `/api/product-templates/${id}`, data);
+      return apiRequest('PUT', `/api/product-catalogue/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/product-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/product-catalogue'] });
       setEditDialogOpen(false);
       setSelectedTemplate(null);
       toast({
@@ -161,7 +161,7 @@ export default function ProductTemplates() {
   // Delete product template mutation
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest('DELETE', `/api/product-templates/${id}`);
+      return apiRequest('DELETE', `/api/product-catalogue/${id}`);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/product-templates'] });
