@@ -33,7 +33,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
         '/api/partners',
         '/api/customers', 
         '/api/opportunities',
-        '/api/products',
+        '/api/product-templates',
         '/api/saved-lists?entity_type=partners',
         '/api/saved-lists?entity_type=customers',
         '/api/saved-lists?entity_type=opportunities',
