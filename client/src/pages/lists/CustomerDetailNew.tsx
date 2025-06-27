@@ -114,23 +114,39 @@ export default function CustomerDetailNew() {
     
     const IconComponent = category.icon ? iconMap[category.icon] : null;
     
+    // Get color classes based on database color
+    const getColorClasses = (color: string) => {
+      const colorMap: any = {
+        'green': 'border-green-200 bg-green-50 text-green-700',
+        'blue': 'border-blue-200 bg-blue-50 text-blue-700',
+        'purple': 'border-purple-200 bg-purple-50 text-purple-700',
+        'orange': 'border-orange-200 bg-orange-50 text-orange-700',
+        'red': 'border-red-200 bg-red-50 text-red-700',
+        'gray': 'border-gray-200 bg-gray-50 text-gray-700'
+      };
+      return colorMap[color] || colorMap['gray'];
+    };
+    
     return (
-      <Badge variant="outline" className="capitalize flex items-center gap-1.5">
+      <Badge 
+        variant="outline" 
+        className={`capitalize flex items-center gap-1.5 ${getColorClasses(category.color)}`}
+      >
         {IconComponent && <IconComponent className="w-3 h-3" />}
         {category.name}
       </Badge>
     );
   };
 
-  // Helper function to get gradient classes based on category color
+  // Helper function to get gradient classes that match badge colors exactly
   const getBarGradientClasses = (color: string) => {
     const gradientMap: any = {
-      'green': 'bg-gradient-to-r from-green-400 to-green-600 hover:from-green-500 hover:to-green-700',
-      'blue': 'bg-gradient-to-r from-blue-400 to-blue-600 hover:from-blue-500 hover:to-blue-700',
-      'purple': 'bg-gradient-to-r from-purple-400 to-purple-600 hover:from-purple-500 hover:to-purple-700',
-      'orange': 'bg-gradient-to-r from-orange-400 to-orange-600 hover:from-orange-500 hover:to-orange-700',
-      'red': 'bg-gradient-to-r from-red-400 to-red-600 hover:from-red-500 hover:to-red-700',
-      'gray': 'bg-gradient-to-r from-gray-300 to-gray-400 hover:from-gray-400 hover:to-gray-500'
+      'green': 'bg-gradient-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800',
+      'blue': 'bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-700 hover:to-blue-800',
+      'purple': 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800',
+      'orange': 'bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800',
+      'red': 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800',
+      'gray': 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800'
     };
     
     return gradientMap[color] || gradientMap['gray'];
@@ -574,6 +590,12 @@ export default function CustomerDetailNew() {
     enabled: isValidId,
   });
 
+  // Categories query for authentic database colors and icons
+  const { data: categories } = useQuery({
+    queryKey: ["/api/categories"],
+    enabled: true
+  });
+
   // Fetch related partners for this customer
   const { data: relatedPartners, isLoading: partnersLoading } = useQuery({
     queryKey: [`/api/customers/${customerId}/partners`],
@@ -630,11 +652,7 @@ export default function CustomerDetailNew() {
     enabled: showAddProductDialog
   });
 
-  // Categories for hierarchical display
-  const { data: categories } = useQuery({
-    queryKey: ['/api/categories'],
-    enabled: showAddProductDialog
-  });
+
 
   // Customer Product Assignments
   const { data: assignedProducts, isLoading: assignmentsLoading, refetch: refetchAssignments } = useQuery({
@@ -1864,7 +1882,7 @@ export default function CustomerDetailNew() {
                             
                             {/* Tooltip - Covered Products */}
                             <div 
-                              className={`absolute left-0 top-full mt-2 z-[100] w-72 p-0 bg-white/90 backdrop-blur-md border border-white/20 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] transition-all duration-200 pointer-events-auto overflow-hidden ${
+                              className={`absolute left-0 top-full mt-2 z-[999] w-72 p-0 bg-white/90 backdrop-blur-md border border-white/20 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] transition-all duration-200 pointer-events-auto overflow-hidden ${
                                 hoveredTooltip === `${category.name}-covered` ? 'opacity-100 visible' : 'opacity-0 invisible group-hover:opacity-100 group-hover:visible'
                               }`}
                               onMouseEnter={() => setHoveredTooltip(`${category.name}-covered`)}
@@ -1924,7 +1942,7 @@ export default function CustomerDetailNew() {
                             
                             {/* Tooltip - Available Products */}
                             <div 
-                              className={`absolute left-0 top-full mt-2 z-[100] w-72 p-0 bg-white/90 backdrop-blur-md border border-white/20 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] transition-all duration-200 pointer-events-auto overflow-hidden ${
+                              className={`absolute left-0 top-full mt-2 z-[999] w-72 p-0 bg-white/90 backdrop-blur-md border border-white/20 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] transition-all duration-200 pointer-events-auto overflow-hidden ${
                                 hoveredTooltip === `${category.name}-available` ? 'opacity-100 visible' : 'opacity-0 invisible group-hover:opacity-100 group-hover:visible'
                               }`}
                               onMouseEnter={() => setHoveredTooltip(`${category.name}-available`)}
