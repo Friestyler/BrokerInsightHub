@@ -53,6 +53,12 @@ export default function CustomerDetailNew() {
   const [selectedCategories, setSelectedCategories] = useState<string[]>(['Life Insurance', 'Non-Life Insurance', 'Services']);
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   
+  // Tooltip and product list dialog state
+  const [hoveredTooltip, setHoveredTooltip] = useState<string | null>(null);
+  const [isProductListDialogOpen, setIsProductListDialogOpen] = useState(false);
+  const [selectedTooltipProducts, setSelectedTooltipProducts] = useState<any[]>([]);
+  const [tooltipCategoryName, setTooltipCategoryName] = useState('');
+  
   const toggleCategory = (category: string) => {
     setSelectedCategories(prev => 
       prev.includes(category) 
@@ -1612,11 +1618,17 @@ export default function CustomerDetailNew() {
                             {category.percentage}% Covered
                             
                             {/* Tooltip - Covered Products */}
-                            <div className="absolute left-0 top-full mt-2 z-[100] w-72 p-4 bg-white border border-gray-200 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none">
+                            <div 
+                              className={`absolute left-0 top-full mt-2 z-[100] w-72 p-4 bg-white border border-gray-200 rounded-lg shadow-2xl transition-all duration-200 pointer-events-auto ${
+                                hoveredTooltip === `${category.name}-covered` ? 'opacity-100 visible' : 'opacity-0 invisible group-hover:opacity-100 group-hover:visible'
+                              }`}
+                              onMouseEnter={() => setHoveredTooltip(`${category.name}-covered`)}
+                              onMouseLeave={() => setHoveredTooltip(null)}
+                            >
                               <h4 className="font-semibold text-gray-900 mb-3">{category.name} - Covered Products</h4>
                               <div className="space-y-2 text-sm">
                                 {category.coveredProducts && category.coveredProducts.length > 0 ? (
-                                  category.coveredProducts.map((product, idx) => (
+                                  category.coveredProducts.map((product: any, idx: number) => (
                                     <div key={idx} className="flex justify-between items-center">
                                       <span className="text-gray-700">{product.name}</span>
                                       <span className={`font-semibold ${
@@ -1629,13 +1641,25 @@ export default function CustomerDetailNew() {
                                   <div className="text-gray-500 italic">No covered products</div>
                                 )}
                                 <hr className="my-3 border-gray-200" />
-                                <div className="flex justify-between items-center font-semibold">
+                                <div className="flex justify-between items-center font-semibold mb-3">
                                   <span className="text-gray-900">Total Coverage</span>
                                   <span className={`${
                                     category.color === 'green' ? 'text-green-600' :
                                     category.color === 'orange' ? 'text-orange-600' : 'text-gray-600'
                                   }`}>€{category.currentPremium.toLocaleString()}/year</span>
                                 </div>
+                                <Button 
+                                  onClick={() => {
+                                    setSelectedTooltipProducts(category.coveredProducts || []);
+                                    setTooltipCategoryName(`${category.name} - Covered Products`);
+                                    setIsProductListDialogOpen(true);
+                                    setHoveredTooltip(null);
+                                  }}
+                                  className="w-full h-8 text-sm"
+                                  variant="outline"
+                                >
+                                  See list
+                                </Button>
                               </div>
                             </div>
                           </div>
@@ -1651,11 +1675,17 @@ export default function CustomerDetailNew() {
                             {100 - category.percentage}% Not Covered
                             
                             {/* Tooltip - Available Products */}
-                            <div className="absolute left-0 top-full mt-2 z-[100] w-72 p-4 bg-white border border-gray-200 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none">
+                            <div 
+                              className={`absolute left-0 top-full mt-2 z-[100] w-72 p-4 bg-white border border-gray-200 rounded-lg shadow-2xl transition-all duration-200 pointer-events-auto ${
+                                hoveredTooltip === `${category.name}-available` ? 'opacity-100 visible' : 'opacity-0 invisible group-hover:opacity-100 group-hover:visible'
+                              }`}
+                              onMouseEnter={() => setHoveredTooltip(`${category.name}-available`)}
+                              onMouseLeave={() => setHoveredTooltip(null)}
+                            >
                               <h4 className="font-semibold text-gray-900 mb-3">{category.name} - Available Products</h4>
                               <div className="space-y-2 text-sm">
                                 {category.availableProducts && category.availableProducts.length > 0 ? (
-                                  category.availableProducts.map((product, idx) => (
+                                  category.availableProducts.map((product: any, idx: number) => (
                                     <div key={idx} className="flex justify-between items-center">
                                       <span className="text-gray-700">{product.name}</span>
                                       <span className="font-semibold text-blue-600">€{product.premium.toLocaleString()}/year</span>
@@ -1665,10 +1695,22 @@ export default function CustomerDetailNew() {
                                   <div className="text-gray-500 italic">No available products</div>
                                 )}
                                 <hr className="my-3 border-gray-200" />
-                                <div className="flex justify-between items-center font-semibold">
+                                <div className="flex justify-between items-center font-semibold mb-3">
                                   <span className="text-gray-900">Total Potential</span>
                                   <span className="text-blue-600">€{category.potentialUplift.toLocaleString()}/year</span>
                                 </div>
+                                <Button 
+                                  onClick={() => {
+                                    setSelectedTooltipProducts(category.availableProducts || []);
+                                    setTooltipCategoryName(`${category.name} - Available Products`);
+                                    setIsProductListDialogOpen(true);
+                                    setHoveredTooltip(null);
+                                  }}
+                                  className="w-full h-8 text-sm"
+                                  variant="outline"
+                                >
+                                  See list
+                                </Button>
                               </div>
                             </div>
                           </div>
@@ -2118,6 +2160,45 @@ export default function CustomerDetailNew() {
           </div>
         )}
       </div>
+      
+      {/* Product List Dialog */}
+      <Dialog open={isProductListDialogOpen} onOpenChange={setIsProductListDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>{tooltipCategoryName}</DialogTitle>
+            <DialogDescription>
+              Product list from coverage analysis
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            <div className="space-y-3">
+              {selectedTooltipProducts.map((product, idx) => (
+                <div key={idx} className="flex justify-between items-center p-3 border border-gray-200 rounded-lg">
+                  <div>
+                    <h4 className="font-medium text-gray-900">{product.name}</h4>
+                    <p className="text-sm text-gray-500">Insurance Product</p>
+                  </div>
+                  <div className="text-right">
+                    <div className="font-semibold text-blue-600">€{product.premium.toLocaleString()}/year</div>
+                    <div className="text-sm text-gray-500">Premium</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <DialogFooter className="flex justify-between">
+            <Button variant="outline" onClick={() => setIsProductListDialogOpen(false)}>
+              Close list
+            </Button>
+            <Button 
+              onClick={handleCreateOpportunityList}
+              className="bg-[#5567E5] hover:bg-[#4556D4]"
+            >
+              Create opportunity list
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
