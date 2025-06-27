@@ -784,40 +784,40 @@ export default function CustomerDetailNew() {
                         </div>
                         <div className="ml-4">
                           <div className="font-medium text-gray-900">
-                            {assignment.productTemplate?.name || 'Unknown Product'}
+                            {assignment.productname || 'Unknown Product'}
                           </div>
-                          {assignment.productTemplate?.description && (
+                          {assignment.productdescription && (
                             <div className="text-sm text-gray-500">
-                              {assignment.productTemplate.description}
+                              {assignment.productdescription}
                             </div>
                           )}
                         </div>
                       </div>
                     </TableCell>
                     <TableCell className="text-sm text-gray-600">
-                      {assignment.productTemplate?.productId || 'N/A'}
+                      {assignment.producttemplateid || 'N/A'}
                     </TableCell>
-                    <TableCell>{assignment.productTemplate?.providerName || 'Not specified'}</TableCell>
-                    <TableCell>{assignment.productTemplate?.category || 'Not categorized'}</TableCell>
+                    <TableCell>{assignment.providername || 'Not specified'}</TableCell>
+                    <TableCell>{assignment.category || 'Not categorized'}</TableCell>
                     <TableCell className="text-sm text-gray-600">
-                      {assignment.productTemplate?.contractStartDate && assignment.productTemplate?.contractEndDate
-                        ? `${new Date(assignment.productTemplate.contractStartDate).toLocaleDateString()} - ${new Date(assignment.productTemplate.contractEndDate).toLocaleDateString()}`
+                      {assignment.customercontractstartdate && assignment.customercontractenddate
+                        ? `${new Date(assignment.customercontractstartdate).toLocaleDateString()} - ${new Date(assignment.customercontractenddate).toLocaleDateString()}`
                         : 'Not specified'
                       }
                     </TableCell>
                     <TableCell>
-                      {assignment.customPrice 
-                        ? `€${Number(assignment.customPrice).toLocaleString()}`
-                        : assignment.productTemplate?.premiumValue 
-                        ? `€${Number(assignment.productTemplate.premiumValue).toLocaleString()}`
+                      {assignment.customprice 
+                        ? `€${Number(assignment.customprice).toLocaleString()}`
+                        : assignment.templateaverageprice 
+                        ? `€${Number(assignment.templateaverageprice).toLocaleString()}`
                         : 'Not set'
                       }
                     </TableCell>
                     <TableCell>
-                      {assignment.customPremiumPercentage 
-                        ? `${assignment.customPremiumPercentage}%`
-                        : assignment.productTemplate?.premiumPercentage 
-                        ? `${assignment.productTemplate.premiumPercentage}%`
+                      {assignment.custompremiumpercentage 
+                        ? `${assignment.custompremiumpercentage}%`
+                        : assignment.templatepremiumpercentage 
+                        ? `${assignment.templatepremiumpercentage}%`
                         : 'Not set'
                       }
                     </TableCell>
