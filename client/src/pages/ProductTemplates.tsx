@@ -700,9 +700,8 @@ export default function ProductTemplates() {
       </div>
       {/* Tab Content */}
       {activeTab === 'categories' && (
-        <div className="mx-4 py-6">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Product Categories</h1>
+        <div className="mx-4">
+          <div className="flex items-center justify-end mb-6">
             <Dialog open={createCategoryDialogOpen} onOpenChange={setCreateCategoryDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-[#5567E5] hover:bg-[#4451c7]">
@@ -996,24 +995,23 @@ export default function ProductTemplates() {
         </div>
       )}
       {activeTab === 'templates' && (
-        <div className="mx-4 py-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Products</h1>
-        <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
-          <DialogTrigger asChild>
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Add product
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Add product</DialogTitle>
-            </DialogHeader>
-            {renderProductTemplateForm(createForm, (data) => createMutation.mutate(data))}
-          </DialogContent>
-        </Dialog>
-      </div>
+        <div className="mx-4">
+          <div className="flex items-center justify-end mb-6">
+            <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
+              <DialogTrigger asChild>
+                <Button>
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add product
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Add product</DialogTitle>
+                </DialogHeader>
+                {renderProductTemplateForm(createForm, (data) => createMutation.mutate(data))}
+              </DialogContent>
+            </Dialog>
+          </div>
 
       <div className="mb-6 space-y-4">
         <div className="relative">
