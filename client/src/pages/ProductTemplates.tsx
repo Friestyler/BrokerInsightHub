@@ -870,7 +870,7 @@ export default function ProductTemplates() {
           </DialogTrigger>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Create Product Template</DialogTitle>
+              <DialogTitle>Create Product Catalogue</DialogTitle>
             </DialogHeader>
             {renderProductTemplateForm(createForm, (data) => createMutation.mutate(data))}
           </DialogContent>
