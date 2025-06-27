@@ -1869,8 +1869,6 @@ export default function CustomerDetailNew() {
                               width: '0%',
                               animation: `growBar-${index} 1.5s ease-out ${index * 0.3}s forwards`
                             }}
-                            onMouseEnter={() => setHoveredTooltip(`${category.name}-covered`)}
-                            onMouseLeave={() => setHoveredTooltip(null)}
                           >
                             <style dangerouslySetInnerHTML={{
                               __html: `
@@ -1881,205 +1879,814 @@ export default function CustomerDetailNew() {
                               `
                             }} />
                             <span className="drop-shadow-sm">{category.percentage}% Covered</span>
-                          </div>
-                        )}
-                        
-                        {(100 - category.percentage) > 0 && (
-                          <div 
-                            className="bg-gray-200/40 flex items-center justify-center text-gray-600 text-xs font-medium transition-all duration-300 relative group rounded-r-xl"
-                            style={{ width: `${100 - category.percentage}%` }}
-                            onMouseEnter={() => setHoveredTooltip(`${category.name}-available`)}
-                            onMouseLeave={() => setHoveredTooltip(null)}
-                          >
-                            <span className="drop-shadow-sm">{100 - category.percentage}% Not Covered</span>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* Tooltip - Covered Products */}
-                      {hoveredTooltip === `${category.name}-covered` && (
-                        <div 
-                          className={`absolute left-0 top-full mt-2 z-50 w-72 p-0 bg-white/90 backdrop-blur-md border border-white/20 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] transition-all duration-200 pointer-events-auto overflow-hidden opacity-100 visible`}
-                          onMouseEnter={() => setHoveredTooltip(`${category.name}-covered`)}
-                          onMouseLeave={() => setHoveredTooltip(null)}
-                        >
-                          <div className={`h-1 ${category.name === 'Life Insurance' ? 'bg-green-500' : category.name === 'Non-Life Insurance' ? 'bg-blue-500' : 'bg-purple-500'}`}></div>
-                          <div className="p-4">
-                            <h4 className="font-bold text-gray-900 mb-3 text-lg">{category.name} - Covered Products</h4>
-                            <div className="space-y-2 text-sm">
-                              {category.coveredProducts && category.coveredProducts.length > 0 ? (
-                                category.coveredProducts.map((product: any, idx: number) => (
-                                  <div key={idx} className="flex justify-between items-center">
-                                    <span className="text-gray-700">{product.name}</span>
-                                    <span className={`font-semibold ${
+                            
+                            {/* Tooltip - Covered Products */}
+                            <div 
+                              className={`fixed left-0 top-full mt-2 z-[9999] w-72 p-0 bg-white backdrop-blur-md border border-gray-200 rounded-xl shadow-2xl transition-all duration-200 pointer-events-auto overflow-hidden ${
+                                hoveredTooltip === `${category.name}-covered` ? 'opacity-100 visible' : 'opacity-0 invisible group-hover:opacity-100 group-hover:visible'
+                              }`}
+                              style={{
+                                position: 'fixed',
+                                zIndex: 10000
+                              }}
+                              onMouseEnter={() => setHoveredTooltip(`${category.name}-covered`)}
+                              onMouseLeave={() => setHoveredTooltip(null)}
+                            >
+                              <div className={`h-1 ${category.name === 'Life Insurance' ? 'bg-green-500' : category.name === 'Non-Life Insurance' ? 'bg-blue-500' : 'bg-purple-500'}`}></div>
+                              <div className="p-4">
+                                <h4 className="font-bold text-gray-900 mb-3 text-lg">{category.name} - Covered Products</h4>
+                                <div className="space-y-2 text-sm">
+                                  {category.coveredProducts && category.coveredProducts.length > 0 ? (
+                                    category.coveredProducts.map((product: any, idx: number) => (
+                                      <div key={idx} className="flex justify-between items-center">
+                                        <span className="text-gray-700">{product.name}</span>
+                                        <span className={`font-semibold ${
+                                          category.color === 'green' ? 'text-green-600' :
+                                          category.color === 'orange' ? 'text-orange-600' : 'text-gray-600'
+                                        }`}>€{product.premium.toLocaleString()}/year</span>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <div className="text-gray-500 italic">No covered products</div>
+                                  )}
+                                  <hr className="my-3 border-gray-200/50" />
+                                  <div className="flex justify-between items-center font-semibold mb-3">
+                                    <span className="text-gray-900">Total Coverage</span>
+                                    <span className={`${
                                       category.color === 'green' ? 'text-green-600' :
                                       category.color === 'orange' ? 'text-orange-600' : 'text-gray-600'
-                                    }`}>€{product.premium.toLocaleString()}/year</span>
+                                    }`}>€{category.currentPremium.toLocaleString()}/year</span>
                                   </div>
-                                ))
-                              ) : (
-                                <div className="text-gray-500 italic">No covered products</div>
-                              )}
-                              <hr className="my-3 border-gray-200/50" />
-                              <div className="flex justify-between items-center font-semibold mb-3">
-                                <span className="text-gray-900">Total Coverage</span>
-                                <span className={`${
-                                  category.color === 'green' ? 'text-green-600' :
-                                  category.color === 'orange' ? 'text-orange-600' : 'text-gray-600'
-                                }`}>€{category.currentPremium.toLocaleString()}/year</span>
+                                  <Button 
+                                    onClick={() => {
+                                      setSelectedTooltipProducts(category.coveredProducts || []);
+                                      setTooltipCategoryName(`${category.name} - Covered Products`);
+                                      setIsProductListDialogOpen(true);
+                                      setHoveredTooltip(null);
+                                    }}
+                                    className="w-full h-8 text-sm"
+                                    variant="outline"
+                                  >
+                                    See list
+                                  </Button>
+                                </div>
                               </div>
-                              <Button 
-                                onClick={() => {
-                                  setSelectedTooltipProducts(category.coveredProducts || []);
-                                  setTooltipCategoryName(`${category.name} - Covered Products`);
-                                  setIsProductListDialogOpen(true);
-                                  setHoveredTooltip(null);
-                                }}
-                                className="w-full h-8 text-sm"
-                                variant="outline"
-                              >
-                                See list
-                              </Button>
                             </div>
                           </div>
-                        </div>
-                      )}
-                      
-                      {/* Tooltip - Available Products */}
-                      {hoveredTooltip === `${category.name}-available` && (
-                        <div 
-                          className={`absolute left-0 top-full mt-2 z-50 w-72 p-0 bg-white/90 backdrop-blur-md border border-white/20 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] transition-all duration-200 pointer-events-auto overflow-hidden opacity-100 visible`}
-                          onMouseEnter={() => setHoveredTooltip(`${category.name}-available`)}
-                          onMouseLeave={() => setHoveredTooltip(null)}
-                        >
-                          <div className={`h-1 ${category.name === 'Life Insurance' ? 'bg-green-500' : category.name === 'Non-Life Insurance' ? 'bg-blue-500' : 'bg-purple-500'}`}></div>
-                          <div className="p-4">
-                            <h4 className="font-bold text-gray-900 mb-3 text-lg">{category.name} - Available Products</h4>
-                            <div className="space-y-2 text-sm">
-                              {category.availableProducts && category.availableProducts.length > 0 ? (
-                                category.availableProducts.map((product: any, idx: number) => (
-                                  <div key={idx} className="flex justify-between items-center">
-                                    <span className="text-gray-700">{product.name}</span>
-                                    <span className="text-gray-600 font-semibold">€{product.premium.toLocaleString()}/year</span>
-                                  </div>
-                                ))
-                              ) : (
-                                <div className="text-gray-500 italic">No available products</div>
-                              )}
-                              <hr className="my-3 border-gray-200/50" />
-                              <div className="flex justify-between items-center font-semibold mb-3">
-                                <span className="text-gray-900">Potential Value</span>
-                                <span className="text-green-600">€{category.potentialPremium.toLocaleString()}/year</span>
-                              </div>
-                              <Button 
-                                onClick={() => {
-                                  setSelectedTooltipProducts(category.availableProducts || []);
-                                  setTooltipCategoryName(`${category.name} - Available Products`);
-                                  setIsProductListDialogOpen(true);
-                                  setHoveredTooltip(null);
-                                }}
-                                className="w-full h-8 text-sm"
-                                variant="outline"
-                              >
-                                See list
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                        )}
                         
-                        {(100 - category.percentage) > 0 && (
+                        {category.percentage < 100 && (
                           <div 
-                            className="bg-gray-200/40 flex items-center justify-center text-gray-600 text-xs font-medium transition-all duration-300 relative group rounded-r-xl"
+                            className={`bg-gray-200/80 backdrop-blur-sm flex items-center justify-center text-gray-600 text-xs font-medium hover:bg-gray-300/80 transition-all duration-300 relative group shadow-inner ${
+                              category.percentage > 0 ? 'rounded-r-xl' : 'rounded-xl'
+                            }`}
                             style={{ width: `${100 - category.percentage}%` }}
-                            onMouseEnter={() => setHoveredTooltip(`${category.name}-available`)}
-                            onMouseLeave={() => setHoveredTooltip(null)}
                           >
                             <span className="drop-shadow-sm">{100 - category.percentage}% Not Covered</span>
+                            
+                            {/* Tooltip - Available Products */}
+                            <div 
+                              className={`fixed left-0 top-full mt-2 z-[9999] w-72 p-0 bg-white backdrop-blur-md border border-gray-200 rounded-xl shadow-2xl transition-all duration-200 pointer-events-auto overflow-hidden ${
+                                hoveredTooltip === `${category.name}-available` ? 'opacity-100 visible' : 'opacity-0 invisible group-hover:opacity-100 group-hover:visible'
+                              }`}
+                              style={{
+                                position: 'fixed',
+                                zIndex: 10000
+                              }}
+                              onMouseEnter={() => setHoveredTooltip(`${category.name}-available`)}
+                              onMouseLeave={() => setHoveredTooltip(null)}
+                            >
+                              <div className={`h-1 ${category.name === 'Life Insurance' ? 'bg-green-500' : category.name === 'Non-Life Insurance' ? 'bg-blue-500' : 'bg-purple-500'}`}></div>
+                              <div className="p-4">
+                                <h4 className="font-bold text-gray-900 mb-3 text-lg">{category.name} - Available Products</h4>
+                                <div className="space-y-2 text-sm">
+                                  {category.availableProducts && category.availableProducts.length > 0 ? (
+                                    category.availableProducts.map((product: any, idx: number) => (
+                                      <div key={idx} className="flex justify-between items-center">
+                                        <span className="text-gray-700">{product.name}</span>
+                                        <span className="font-semibold text-blue-600">€{product.premium.toLocaleString()}/year</span>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <div className="text-gray-500 italic">No available products</div>
+                                  )}
+                                  <hr className="my-3 border-gray-200/50" />
+                                  <div className="flex justify-between items-center font-semibold mb-3">
+                                    <span className="text-gray-900">Total Potential</span>
+                                    <span className="text-blue-600">€{category.potentialUplift.toLocaleString()}/year</span>
+                                  </div>
+                                  <Button 
+                                    onClick={() => {
+                                      setSelectedTooltipProducts(category.availableProducts || []);
+                                      setTooltipCategoryName(`${category.name} - Available Products`);
+                                      setIsProductListDialogOpen(true);
+                                      setHoveredTooltip(null);
+                                    }}
+                                    className="w-full h-8 text-sm"
+                                    variant="outline"
+                                  >
+                                    See list
+                                  </Button>
+                                </div>
+                              </div>
+                            </div>
                           </div>
                         )}
                       </div>
                     </div>
-                  ))}
-                </div>
+                    
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <span>Current premium: €{category.currentPremium.toLocaleString()}/year</span>
+                      <span>Potential uplift: €{(category.potentialUplift - category.currentPremium).toLocaleString()}/year</span>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
-            </div>
-            
-            <div className="mb-16 bg-white/80 backdrop-blur-lg rounded-2xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.1)] p-8 hover:shadow-[0_16px_48px_rgba(0,0,0,0.15)] transition-shadow duration-500">
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-2">Smart Coverage Gaps</h2>
-              <p className="text-gray-600 text-sm">AI-identified expansion opportunities based on customer profile analysis</p>
-            </div>
-            
-            {/* Smart Coverage Gaps content */}
-            <div className="space-y-6">
-              {/* Coverage Gap Card */}
-              <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200">
-                <div className="flex items-start justify-between mb-3">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                    High Priority
-                  </span>
-                  <div className="text-right">
-                    <div className="font-bold text-green-600 text-lg">+€2,400/year</div>
-                    <div className="text-xs text-gray-500">Estimated Value</div>
+              
+              {/* Summary Section */}
+              <div className="pt-6 border-t border-gray-200">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <div className="text-2xl font-bold text-gray-900">{getFilteredTotals().covered}</div>
+                    <div className="text-sm text-gray-600">Products Covered</div>
+                  </div>
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">€{getFilteredTotals().potentialUplift.toLocaleString()}</div>
+                    <div className="text-sm text-gray-600">Total Potential</div>
                   </div>
                 </div>
-                <h5 className="font-semibold text-gray-900 mb-2">Cyber Security Insurance</h5>
-                <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                  Critical gap for engineering firms. Required for EU compliance and often bundled with Professional Indemnity
-                </p>
-                <button className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white text-sm font-medium py-2 px-4 rounded-md transition-colors">
-                  Add to Opportunity List
-                </button>
               </div>
             </div>
-          </div>
+            
+            
 
-          {/* Time-Sensitive Actions & Events */}
-          <div className="mb-16 bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-2xl p-8 hover:shadow-[0_16px_48px_rgba(0,0,0,0.15)] transition-shadow duration-500">
-            <div className="mb-6">
-              <h2 className="text-xl font-bold text-gray-800 mb-2">Time-Sensitive Actions & Events</h2>
-              <p className="text-gray-600 text-sm">Urgent triggers requiring immediate attention due to upcoming renewals or regulatory deadlines</p>
-            </div>
-            
-            {/* Time-Sensitive Action Card */}
-            <div className="bg-white border-l-4 border-red-500 rounded-lg p-4 flex items-center justify-between hover:shadow-md transition-shadow">
-              <div className="flex items-center space-x-4 flex-1">
-                <div className="flex-shrink-0">
-                  <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-red-100 text-red-800">
-                    EXPIRING SOON
-                  </span>
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-semibold text-gray-900 mb-1">Cyber Security Policy</h3>
-                  <p className="text-sm text-gray-600 mb-2">Policy expires in 12 days - critical for EU compliance requirements</p>
-                  <div className="flex items-center space-x-6 text-xs text-gray-500">
-                    <div className="flex items-center space-x-1">
-                      <Clock className="w-3 h-3" />
-                      <span className="font-medium text-red-600">12 days left</span>
+            {/* Smart Coverage Gaps Section */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Smart Coverage Gaps</h2>
+              <p className="text-sm text-gray-600 mb-6">
+                Top opportunities missing from this customer's portfolio based on profile, current contracts, and peer behavior
+              </p>
+              
+              {/* Coverage Gap Cards */}
+              <div className="space-y-6">
+                {/* Non-Life / Business Category */}
+                <div>
+                  <h4 className="text-md font-medium text-gray-800 mb-3">Non-Life / Business</h4>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* Cyber Insurance Card */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
+                      <div className="flex items-start justify-between mb-3">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          High Priority
+                        </span>
+                        <div className="text-right">
+                          <div className="font-bold text-green-600 text-lg">+€2,400/year</div>
+                          <div className="text-xs text-gray-500">Estimated Value</div>
+                        </div>
+                      </div>
+                      <h5 className="font-semibold text-gray-900 mb-2">Cyber Security Insurance</h5>
+                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                        Critical gap for engineering firms. Required for EU compliance and often bundled with Professional Indemnity
+                      </p>
+                      <button 
+                        className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white text-sm font-medium py-2 px-4 rounded-md transition-colors"
+                        onClick={() => handleSmartGapAction('cyber-insurance', 'Add to Opportunity List')}
+                      >
+                        Add to Opportunity List
+                      </button>
                     </div>
-                    <div className="flex items-center space-x-1">
-                      <DollarSign className="w-3 h-3" />
-                      <span>€3,200 at risk</span>
+
+                    {/* Directors & Officers Insurance Card */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
+                      <div className="flex items-start justify-between mb-3">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-orange-100 text-orange-800">
+                          Compliance
+                        </span>
+                        <div className="text-right">
+                          <div className="font-bold text-green-600 text-lg">+€1,800/year</div>
+                          <div className="text-xs text-gray-500">Estimated Value</div>
+                        </div>
+                      </div>
+                      <h5 className="font-semibold text-gray-900 mb-2">Directors & Officers Insurance</h5>
+                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                        Management liability protection becoming standard. 89% of similar engineering firms have coverage
+                      </p>
+                      <button 
+                        className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-4 rounded-md transition-colors"
+                        onClick={() => handleSmartGapAction('do-insurance', 'Share with Partner')}
+                      >
+                        Share with Partner
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Non-Life / Health Category */}
+                <div>
+                  <h4 className="text-md font-medium text-gray-800 mb-3">Non-Life / Health</h4>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* Group Health Insurance Card */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
+                      <div className="flex items-start justify-between mb-3">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          Profile Match
+                        </span>
+                        <div className="text-right">
+                          <div className="font-bold text-green-600 text-lg">+€3,200/year</div>
+                          <div className="text-xs text-gray-500">Estimated Value</div>
+                        </div>
+                      </div>
+                      <h5 className="font-semibold text-gray-900 mb-2">Group Health Insurance</h5>
+                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                        Competitive advantage for employee retention. Tax benefits available for engineering firms
+                      </p>
+                      <button 
+                        className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-4 rounded-md transition-colors"
+                        onClick={() => handleSmartGapAction('group-health', 'Assign to Campaign')}
+                      >
+                        Assign to Campaign
+                      </button>
+                    </div>
+
+                    {/* Occupational Health Card */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
+                      <div className="flex items-start justify-between mb-3">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          Bundle Eligible
+                        </span>
+                        <div className="text-right">
+                          <div className="font-bold text-green-600 text-lg">+€1,500/year</div>
+                          <div className="text-xs text-gray-500">Estimated Value</div>
+                        </div>
+                      </div>
+                      <h5 className="font-semibold text-gray-900 mb-2">Occupational Health Insurance</h5>
+                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                        Pairs well with existing liability. 15% discount when bundled with current business coverage
+                      </p>
+                      <button 
+                        className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-4 rounded-md transition-colors"
+                        onClick={() => handleSmartGapAction('occupational-health', 'Explore Partner Matches')}
+                      >
+                        Explore Partner Matches
+                      </button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Life Insurance Category */}
+                <div>
+                  <h4 className="text-md font-medium text-gray-800 mb-3">Life Insurance</h4>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* Key Person Insurance Card */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
+                      <div className="flex items-start justify-between mb-3">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          Upgrade
+                        </span>
+                        <div className="text-right">
+                          <div className="font-bold text-green-600 text-lg">+€2,600/year</div>
+                          <div className="text-xs text-gray-500">Estimated Value</div>
+                        </div>
+                      </div>
+                      <h5 className="font-semibold text-gray-900 mb-2">Key Person Life Insurance</h5>
+                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                        Business protection for owner-managed engineering firm. Critical for business continuity planning
+                      </p>
+                      <button 
+                        className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white text-sm font-medium py-2 px-4 rounded-md transition-colors"
+                        onClick={() => handleSmartGapAction('key-person', 'Add to Opportunity List')}
+                      >
+                        Add to Opportunity List
+                      </button>
                     </div>
                   </div>
                 </div>
               </div>
-              <div className="flex items-center space-x-2">
-                <button className="px-3 py-1.5 bg-[#5567E5] hover:bg-[#4556D4] text-white text-xs font-medium rounded-md transition-colors">
-                  Add to Campaign
-                </button>
-                <button className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-md transition-colors">
-                  Share with Partner
-                </button>
+            </div>
+
+            {/* Time-Sensitive Actions & Events */}
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Time-Sensitive Actions & Events</h2>
+              <p className="text-sm text-gray-600 mb-6">
+                Urgent triggers requiring immediate attention due to upcoming renewals, external events, or regulatory deadlines
+              </p>
+              
+              {/* Time-Sensitive Strip Items */}
+              <div className="space-y-4">
+                {/* Policy Expiring Soon */}
+                <div className="bg-white border-l-4 border-red-500 rounded-lg p-4 flex items-center justify-between hover:shadow-md transition-shadow">
+                  <div className="flex items-center space-x-4 flex-1">
+                    <div className="flex-shrink-0">
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-red-100 text-red-800">
+                        EXPIRING SOON
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-1">Cyber Security Policy</h3>
+                      <p className="text-sm text-gray-600 mb-2">Policy expires in 12 days - critical for EU compliance requirements</p>
+                      <div className="flex items-center space-x-6 text-xs text-gray-500">
+                        <div className="flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
+                          <span className="font-medium text-red-600">12 days left</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <DollarSign className="w-3 h-3" />
+                          <span>€3,200 at risk</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button 
+                      className="px-3 py-1.5 bg-[#5567E5] hover:bg-[#4556D4] text-white text-xs font-medium rounded-md transition-colors"
+                      onClick={() => handleSmartGapAction('cyber-expiry', 'Add to Campaign')}
+                    >
+                      Add to Campaign
+                    </button>
+                    <button 
+                      className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-md transition-colors"
+                      onClick={() => handleSmartGapAction('cyber-expiry', 'Share with Partner')}
+                    >
+                      Share with Partner
+                    </button>
+                  </div>
+                </div>
+
+                {/* Weather Alert */}
+                <div className="bg-white border-l-4 border-orange-500 rounded-lg p-4 flex items-center justify-between hover:shadow-md transition-shadow">
+                  <div className="flex items-center space-x-4 flex-1">
+                    <div className="flex-shrink-0">
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-orange-100 text-orange-800">
+                        WEATHER ALERT
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-1">Storm Protection Add-on</h3>
+                      <p className="text-sm text-gray-600 mb-2">Severe storm warning issued for this region - increased property risk</p>
+                      <div className="flex items-center space-x-6 text-xs text-gray-500">
+                        <div className="flex items-center space-x-1">
+                          <AlertTriangle className="w-3 h-3" />
+                          <span className="font-medium text-orange-600">Storm risk: This week</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <DollarSign className="w-3 h-3" />
+                          <span>€1,800 uncovered assets</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button 
+                      className="px-3 py-1.5 bg-[#5567E5] hover:bg-[#4556D4] text-white text-xs font-medium rounded-md transition-colors"
+                      onClick={() => handleSmartGapAction('storm-protection', 'Add to Campaign')}
+                    >
+                      Add to Campaign
+                    </button>
+                    <button 
+                      className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-md transition-colors"
+                      onClick={() => handleSmartGapAction('storm-protection', 'Track This Risk')}
+                    >
+                      Track This Risk
+                    </button>
+                  </div>
+                </div>
+
+                {/* Tax Deadline */}
+                <div className="bg-white border-l-4 border-blue-500 rounded-lg p-4 flex items-center justify-between hover:shadow-md transition-shadow">
+                  <div className="flex items-center space-x-4 flex-1">
+                    <div className="flex-shrink-0">
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
+                        TAX DEADLINE
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-1">Professional Indemnity Upgrade</h3>
+                      <p className="text-sm text-gray-600 mb-2">Business tax season increases audit risk - enhanced liability protection recommended</p>
+                      <div className="flex items-center space-x-6 text-xs text-gray-500">
+                        <div className="flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
+                          <span className="font-medium text-blue-600">Filing deadline: March 31</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <DollarSign className="w-3 h-3" />
+                          <span>€2,400 coverage gap</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button 
+                      className="px-3 py-1.5 bg-[#5567E5] hover:bg-[#4556D4] text-white text-xs font-medium rounded-md transition-colors"
+                      onClick={() => handleSmartGapAction('tax-indemnity', 'Add to Campaign')}
+                    >
+                      Add to Campaign
+                    </button>
+                    <button 
+                      className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-md transition-colors"
+                      onClick={() => handleSmartGapAction('tax-indemnity', 'Share with Partner')}
+                    >
+                      Share with Partner
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
+
+            {/* 2. Policies Requiring Attention - Timeline Strip */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Policies Requiring Attention</h2>
+              <div className="space-y-4">
+                {/* Critical - Auto Insurance */}
+                <div className="flex items-center space-x-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
+                  <div className="flex-shrink-0">
+                    <Clock className="w-6 h-6 text-red-500" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Auto Insurance - Business Vehicle</h3>
+                        <p className="text-sm text-red-600">🔴 Expires in 19 days (Jan 15, 2025)</p>
+                        <p className="text-xs text-gray-500 mt-1">Suggested action: Renew with comprehensive upgrade</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-green-600">+€1,200</div>
+                        <div className="text-xs text-gray-500">Premium impact</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Warning - Property Insurance */}
+                <div className="flex items-center space-x-4 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg">
+                  <div className="flex-shrink-0">
+                    <AlertTriangle className="w-6 h-6 text-yellow-500" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Property Insurance - Office Building</h3>
+                        <p className="text-sm text-yellow-600">🟡 Review needed (Mar 1, 2025)</p>
+                        <p className="text-xs text-gray-500 mt-1">Suggested action: Increase coverage limit for building expansion</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-green-600">+€800</div>
+                        <div className="text-xs text-gray-500">Premium impact</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Info - Life Insurance */}
+                <div className="flex items-center space-x-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+                  <div className="flex-shrink-0">
+                    <TrendingUp className="w-6 h-6 text-blue-500" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Life Insurance - Executive Coverage</h3>
+                        <p className="text-sm text-blue-600">🔵 Opportunity (Jun 1, 2025)</p>
+                        <p className="text-xs text-gray-500 mt-1">Suggested action: Add key person insurance for new executives</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-green-600">+€2,400</div>
+                        <div className="text-xs text-gray-500">Premium impact</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Premium Impact Panel */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Premium Impact Analysis</h2>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="p-4 bg-green-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-green-800">Current Annual Premium</span>
+                      <TrendingUp className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div className="text-2xl font-bold text-green-900">€5,600</div>
+                    <div className="text-sm text-green-600">Across 7 active policies</div>
+                  </div>
+                  
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-blue-800">Projected Premium</span>
+                      <ArrowUp className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div className="text-2xl font-bold text-blue-900">€15,150</div>
+                    <div className="text-sm text-blue-600">With all recommended products</div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="p-4 bg-yellow-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-yellow-800">Revenue Increase</span>
+                      <ArrowUp className="w-4 h-4 text-yellow-600" />
+                    </div>
+                    <div className="text-2xl font-bold text-yellow-900">€9,550</div>
+                    <div className="text-sm text-yellow-600">+170% growth potential</div>
+                  </div>
+                  
+                  <div className="p-4 bg-purple-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-purple-800">Commission Impact</span>
+                      <DollarSign className="w-4 h-4 text-purple-600" />
+                    </div>
+                    <div className="text-2xl font-bold text-purple-900">€1,910</div>
+                    <div className="text-sm text-purple-600">Annual commission increase (20%)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Coverage Gaps - Radial Visualization */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Coverage Gap Analysis</h2>
+              <div className="grid grid-cols-4 gap-6">
+                {/* Critical Gap - Cyber Security */}
+                <div className="text-center">
+                  <div className="relative inline-flex items-center justify-center w-24 h-24 mb-3">
+                    <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#f3f4f6"
+                        strokeWidth="4"
+                      />
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#ef4444"
+                        strokeWidth="4"
+                        strokeDasharray="85, 15"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                      <div className="text-lg font-bold text-red-600">High</div>
+                    </div>
+                  </div>
+                  <h4 className="font-medium text-gray-900 text-sm">Cyber Security</h4>
+                  <p className="text-xs text-red-600 mt-1">Critical gap</p>
+                  <p className="text-xs text-gray-500">€1,200/year</p>
+                </div>
+
+                {/* Medium Gap - Environmental */}
+                <div className="text-center">
+                  <div className="relative inline-flex items-center justify-center w-24 h-24 mb-3">
+                    <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#f3f4f6"
+                        strokeWidth="4"
+                      />
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#f59e0b"
+                        strokeWidth="4"
+                        strokeDasharray="65, 35"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                      <div className="text-lg font-bold text-yellow-600">Med</div>
+                    </div>
+                  </div>
+                  <h4 className="font-medium text-gray-900 text-sm">Environmental</h4>
+                  <p className="text-xs text-yellow-600 mt-1">Medium gap</p>
+                  <p className="text-xs text-gray-500">€400/year</p>
+                </div>
+
+                {/* Low Gap - Legal */}
+                <div className="text-center">
+                  <div className="relative inline-flex items-center justify-center w-24 h-24 mb-3">
+                    <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#f3f4f6"
+                        strokeWidth="4"
+                      />
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#10b981"
+                        strokeWidth="4"
+                        strokeDasharray="30, 70"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                      <div className="text-lg font-bold text-green-600">Low</div>
+                    </div>
+                  </div>
+                  <h4 className="font-medium text-gray-900 text-sm">Legal Protection</h4>
+                  <p className="text-xs text-green-600 mt-1">Low priority</p>
+                  <p className="text-xs text-gray-500">€680/year</p>
+                </div>
+
+                {/* Covered - Auto */}
+                <div className="text-center">
+                  <div className="relative inline-flex items-center justify-center w-24 h-24 mb-3">
+                    <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#10b981"
+                        strokeWidth="4"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                      <div className="text-lg font-bold text-green-600">✓</div>
+                    </div>
+                  </div>
+                  <h4 className="font-medium text-gray-900 text-sm">Auto Insurance</h4>
+                  <p className="text-xs text-green-600 mt-1">Well covered</p>
+                  <p className="text-xs text-gray-500">€840/year</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 5. Expansion Opportunities */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Strategic Expansion Opportunities</h2>
+              <div className="space-y-4">
+                {/* High Priority */}
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <span className="font-semibold text-gray-900">High Priority - Cyber Security Package</span>
+                    </div>
+                    <span className="text-sm font-medium text-red-600">Critical</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Revenue Impact:</span>
+                      <div className="font-semibold text-green-600">€1,200/year</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Implementation:</span>
+                      <div className="font-semibold text-gray-900">2-3 weeks</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Success Rate:</span>
+                      <div className="font-semibold text-blue-600">85%</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Medium Priority */}
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      <span className="font-semibold text-gray-900">Medium Priority - Executive Life Insurance</span>
+                    </div>
+                    <span className="text-sm font-medium text-yellow-600">Opportunity</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Revenue Impact:</span>
+                      <div className="font-semibold text-green-600">€2,400/year</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Implementation:</span>
+                      <div className="font-semibold text-gray-900">4-6 weeks</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Success Rate:</span>
+                      <div className="font-semibold text-blue-600">72%</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Low Priority */}
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <span className="font-semibold text-gray-900">Low Priority - Professional Services Bundle</span>
+                    </div>
+                    <span className="text-sm font-medium text-green-600">Enhancement</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Revenue Impact:</span>
+                      <div className="font-semibold text-green-600">€1,950/year</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Implementation:</span>
+                      <div className="font-semibold text-gray-900">6-8 weeks</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Success Rate:</span>
+                      <div className="font-semibold text-blue-600">58%</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
           </div>
-        </div>
+        )}
+        
+        {activeTab === 'activities' && (
+          <div className="space-y-6">
+            <div className="text-center py-8">
+              <p className="text-gray-500">Activity management will be available soon.</p>
+            </div>
           </div>
         )}
       </div>
+
+
+      
+      {/* Product List Dialog */}
+      <Dialog open={isProductListDialogOpen} onOpenChange={setIsProductListDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>{tooltipCategoryName}</DialogTitle>
+            <DialogDescription>
+              Product list from coverage analysis
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            <div className="space-y-3">
+              {selectedTooltipProducts.map((product, idx) => (
+                <div key={idx} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900">{product.name}</h4>
+                      <p className="text-sm text-gray-500">Insurance Product</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold text-blue-600">€{product.premium.toLocaleString()}/year</div>
+                      <div className="text-sm text-gray-500">Premium</div>
+                    </div>
+                  </div>
+                  
+                  {/* Partner Sales History */}
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    <h5 className="text-sm font-medium text-gray-700 mb-2">Partners who sold this product:</h5>
+                    <div className="flex flex-wrap gap-2">
+                      {getPartnerSalesHistory(product.name).map((partner, partnerIdx) => (
+                        <div key={partnerIdx} className="flex items-center space-x-2 bg-white px-2 py-1 rounded border">
+                          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span className="text-xs font-medium text-blue-600">
+                              {partner.name.split(' ').map(word => word[0]).join('').substring(0, 2)}
+                            </span>
+                          </div>
+                          <div className="text-xs">
+                            <div className="font-medium text-gray-700">{partner.name}</div>
+                            <div className="text-gray-500">{partner.salesCount} sales • €{partner.totalValue.toLocaleString()}</div>
+                          </div>
+                        </div>
+                      ))}
+                      {getPartnerSalesHistory(product.name).length === 0 && (
+                        <span className="text-sm text-gray-500 italic">No previous sales recorded</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <DialogFooter className="flex justify-between">
+            <Button variant="outline" onClick={() => setIsProductListDialogOpen(false)}>
+              Close list
+            </Button>
+            <Button 
+              onClick={handleCreateOpportunityList}
+              className="bg-[#5567E5] hover:bg-[#4556D4]"
+            >
+              Create opportunity list
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
