@@ -701,10 +701,11 @@ export default function ProductTemplates() {
       {/* Tab Content */}
       {activeTab === 'categories' && (
         <div className="mx-4">
-          <div className="flex items-center justify-between mb-6">
-            <h1 className="text-2xl font-bold text-gray-900">Product Categories</h1>
-            <Dialog open={createCategoryDialogOpen} onOpenChange={setCreateCategoryDialogOpen}>
-              <DialogTrigger asChild>
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h1 className="text-2xl font-bold text-gray-900">Product Categories</h1>
+              <Dialog open={createCategoryDialogOpen} onOpenChange={setCreateCategoryDialogOpen}>
+                <DialogTrigger asChild>
                 <Button className="bg-[#5567E5] hover:bg-[#4451c7]">
                   <Plus className="h-4 w-4 mr-2" />
                   Add category
@@ -762,6 +763,8 @@ export default function ProductTemplates() {
                 </form>
               </DialogContent>
             </Dialog>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">Organize your insurance products into categories and subcategories for better structure and easier management.</p>
           </div>
 
           {/* Badge-based Category Tree */}
@@ -1051,13 +1054,7 @@ export default function ProductTemplates() {
             )}
           </div>
           
-          <Button 
-            onClick={() => setCreateDialogOpen(true)}
-            className="bg-[#5567E5] hover:bg-[#4451c7] text-white"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add product
-          </Button>
+
         </div>
       </div>
 
