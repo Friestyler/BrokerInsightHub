@@ -1330,6 +1330,44 @@ export default function CustomerDetailNew() {
                               </div>
                             </div>
 
+                            {/* Products directly assigned to root category */}
+                            {isRootExpanded && (() => {
+                              // Get products directly assigned to this root category (level 1)
+                              const directRootTemplates = filteredTemplates.filter((template: any) => {
+                                const templateCategory = categories?.find((c: any) => c.name === template.category);
+                                return templateCategory?.level === 1 && templateCategory?.id === rootCategoryId;
+                              });
+
+                              return directRootTemplates.length > 0 && (
+                                <div className="divide-y divide-border/30 border-b border-border/50">
+                                  {directRootTemplates.map((template: any) => (
+                                    <div 
+                                      key={template.id}
+                                      className={`px-8 py-3 cursor-pointer hover:bg-accent transition-colors ${
+                                        selectedProductTemplate?.id === template.id ? 
+                                          'bg-primary/5 border-l-2 border-l-primary' : ''
+                                      }`}
+                                      onClick={() => setSelectedProductTemplate(template)}
+                                    >
+                                      <div className="flex justify-between items-start">
+                                        <div className="flex-1 min-w-0">
+                                          <div className="text-sm font-medium text-foreground truncate">{template.name}</div>
+                                          <div className="text-xs text-muted-foreground mt-0.5">
+                                            {template.providerName} • Product ID: {template.productId}
+                                          </div>
+                                          {template.description && (
+                                            <div className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                                              {template.description}
+                                            </div>
+                                          )}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              );
+                            })()}
+
                             {/* Level 2 and Level 3 Subcategories with Products */}
                             {isRootExpanded && (
                               <div>
