@@ -1,0 +1,164 @@
+Perfect — here is your final, explicit, and directive Replit Agent prompt for your integrated Phase 1 + Phase 2 experience. Every visual is now mandatory, clearly described, and prioritized.
+
+⸻
+
+🧠 Replit Agent Prompt
+
+Customer Insurance Portfolio Interface with Coverage, Gaps & Growth Potential
+(Integrating Phase 1 + Phase 2 in a clean, visual-first layout)
+
+⸻
+
+You are building a visual, insight-driven interface for insurance account managers to manage a single customer’s insurance portfolio.
+
+This is not a data report. This is a decision cockpit — designed to answer:
+
+⸻
+
+🔍 Core Questions:
+	1.	✅ What coverage does the customer already have?
+	2.	✅ Which policies require renewal or upgrade?
+	3.	✅ What additional products could be added now (cross-sell)?
+	4.	✅ Which existing policies could be upgraded (upsell)?
+	5.	✅ Where are white space gaps based on the customer’s profile and common product combinations?
+	6.	✅ What’s the total premium uplift potential?
+
+⸻
+
+🧩 MANDATORY LAYOUT SECTIONS & VISUALS
+
+⸻
+
+🟦 1. Coverage Overview by Category
+
+📌 Required Visual: Horizontal Bar Chart or Radial Meter Grid
+
+For each product category, show:
+	•	% of products currently held
+	•	% not held
+	•	Total number of products in that category
+
+DO NOT use cards, lists, or tables here.
+
+Use either:
+	•	✅ Radial progress charts per category (1 per category, side by side), or
+	•	✅ Stacked horizontal bar chart, grouped by category
+
+Color code:
+	•	✅ Green = Covered
+	•	⚠️ Orange = Partially covered
+	•	❌ Gray = Not covered
+
+This section gives a glanceable sense of overall portfolio shape across categories.
+
+⸻
+
+🟥 2. Policies Requiring Attention
+
+📌 Required Visual: Timeline Strip or Vertical Priority Stack
+
+Create a visually ranked stack (or horizontal timeline) of:
+	•	Expiring contracts (within 30–90 days)
+	•	Policies that can be upgraded
+	•	Bundle-eligible products
+
+Each visual block must include:
+	•	Product name
+	•	Expiry date
+	•	Urgency indicator (🔴 19 days left)
+	•	Suggested action: Renew, Upgrade, Bundle
+	•	Expected premium impact
+
+🛑 Do not use a plain card list. This must be visually structured by priority or urgency.
+
+⸻
+
+🟨 3. Smart Coverage Gaps (Light White Space Logic)
+
+📌 Required Visual: Strategic Recommendation Cards
+
+You must build a “Smart Suggestions” panel with 3–6 recommended product additions, based on:
+	•	Customer profile
+	•	Bundle eligibility
+	•	Peer usage or industry norms
+
+Each card must include:
+	•	Missing product name
+	•	Business reason: e.g. “Common in similar profiles,” “Part of Financial Protection bundle,” “Regulatory gap”
+	•	Estimated premium uplift
+	•	CTA: Prepare Quote, Add to Proposal
+
+✅ These are profile-based white space opportunities — not a raw product dump.
+
+DO NOT skip this section. This is where the system becomes advisory.
+
+⸻
+
+🟧 4. Uncovered Products Chart
+
+📌 Required Visual: Bar Chart with Filtering
+
+You must build a bar chart that shows, per category:
+	•	Total number of uncovered products
+
+Each bar = one category. Bar height = number of products not held in that category.
+
+✅ Required filters above the chart:
+	•	Product(s)
+	•	Category
+	•	Average Price Range (use slider or predefined buckets: €0–€1K, €1K–€5K, €5K+)
+
+Use consistent colors across bars (e.g., all in neutral blue tones).
+
+This is not optional and must be implemented as a visual, not as a table or tag cloud.
+
+⸻
+
+🟩 5. Total Premium Uplift Panel
+
+📌 Required Visual: Large Summary Block with Visual Number Emphasis
+
+Create a fixed or bottom-pinned block showing:
+	•	“Estimated premium uplift from all proposed actions: +€[amount]/year”
+	•	Subtext: % growth vs current portfolio (if available)
+
+Use visual emphasis:
+	•	Bold type
+	•	Light animated count-up
+	•	Color-coded change arrow (e.g. green ↑)
+
+This gives business justification for every action above.
+
+⸻
+
+🎨 Design & Component Instructions
+	•	Use shadcn/ui components only
+	•	Style must reflect a Google/Apple design ethos:
+	•	Clarity
+	•	Strong visual hierarchy
+	•	Minimal distraction
+	•	Use color only to reinforce urgency, fit, or coverage status
+	•	Use icons, badges, progress indicators, not raw text or flat UI blocks
+
+⸻
+
+❌ DO NOT
+	•	Use tables, plain lists, or generic cards for coverage or opportunity sections
+	•	Make any visual or graph optional
+	•	Overload the UI with filters (except for the uncovered product chart)
+
+⸻
+
+✅ Success =
+
+A portfolio manager opens the page and within 15 seconds can:
+	•	See where the customer is covered or not
+	•	Know which contracts require immediate action
+	•	Understand what new or upgraded products to offer — and why
+	•	View the premium uplift they could unlock
+
+They should never need to analyze a table to take smart action.
+
+⸻
+
+Let me know if you’d like a follow-up version with layout wireframes or design tokens for development.
