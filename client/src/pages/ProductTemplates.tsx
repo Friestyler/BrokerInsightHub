@@ -790,18 +790,18 @@ export default function ProductTemplates() {
                               setExpandedCategories(newExpanded);
                             }}
                           >
-                            <div className="flex items-center space-x-3 group">
-                              {getSubcategoryCount(subcategory.id) > 0 ? (
-                                <CollapsibleTrigger asChild>
-                                  <Button variant="ghost" size="sm" className="p-0 h-auto">
-                                    <ChevronRight className={`h-3 w-3 text-gray-400 transition-transform ${
-                                      expandedCategories.has(subcategory.id) ? 'rotate-90' : ''
-                                    }`} />
-                                  </Button>
-                                </CollapsibleTrigger>
-                              ) : (
-                                <div className="w-3 h-3" />
-                              )}
+                            <div className="flex items-center group">
+                              <div className="w-3 flex justify-center mr-3">
+                                {getSubcategoryCount(subcategory.id) > 0 ? (
+                                  <CollapsibleTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="p-0 h-auto w-3">
+                                      <ChevronRight className={`h-3 w-3 text-gray-400 transition-transform ${
+                                        expandedCategories.has(subcategory.id) ? 'rotate-90' : ''
+                                      }`} />
+                                    </Button>
+                                  </CollapsibleTrigger>
+                                ) : null}
+                              </div>
                               
                               <Badge 
                                 variant={getBadgeVariantFromColor(subcategory.color || category.color)}
@@ -824,7 +824,7 @@ export default function ProductTemplates() {
                                 {subcategory.name}
                               </Badge>
                               
-                              <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="flex items-center space-x-2 opacity-0 group-hover:opacity-100 transition-opacity ml-3">
                                 <Button
                                   variant="ghost"
                                   size="sm"
