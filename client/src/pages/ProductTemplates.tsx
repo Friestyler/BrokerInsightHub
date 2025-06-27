@@ -619,6 +619,7 @@ export default function ProductTemplates() {
                   createCategoryMutation.mutate({
                     name: formData.get('name') as string,
                     color: newCategoryColor,
+                    icon: formData.get('icon') as string || undefined,
                     description: formData.get('description') as string || undefined,
                   });
                 }}>
@@ -1168,6 +1169,16 @@ export default function ProductTemplates() {
                     onChange={setNewSubcategoryColor}
                   />
                 </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#282A3F]">Icon (Optional)</label>
+                <Input 
+                  name="icon" 
+                  placeholder="Enter emoji or icon (e.g., 🏠, 🚗, 💰)" 
+                  className="mt-1"
+                  maxLength={4}
+                />
+                <p className="text-xs text-gray-500 mt-1">Use an emoji or Unicode icon to visually represent this subcategory</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-[#282A3F]">Description</label>

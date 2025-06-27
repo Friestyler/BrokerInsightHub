@@ -949,6 +949,7 @@ export const insertProductTemplateSchema = createInsertSchema(productTemplates).
 export const insertCategorySchema = createInsertSchema(categories).pick({
   name: true,
   color: true,
+  icon: true,
   description: true,
   parentId: true,
   level: true,

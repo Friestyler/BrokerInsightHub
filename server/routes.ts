@@ -6633,14 +6633,14 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
   app.post('/api/:envId/categories', async (req, res) => {
     try {
       const envId = req.params.envId;
-      const { name, color, description, parentId, level, sortOrder, isActive } = req.body;
+      const { name, color, icon, description, parentId, level, sortOrder, isActive } = req.body;
       const envPool = pool;
       
       const result = await envPool.query(`
-        INSERT INTO ${envId}.categories (name, color, description, parent_id, level, sort_order, is_active)
-        VALUES ($1, $2, $3, $4, $5, $6, $7)
+        INSERT INTO ${envId}.categories (name, color, icon, description, parent_id, level, sort_order, is_active)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
         RETURNING *
-      `, [name, color || '#3B82F6', description, parentId, level || 1, sortOrder || 0, isActive !== false]);
+      `, [name, color || '#3B82F6', icon, description, parentId, level || 1, sortOrder || 0, isActive !== false]);
       
       res.status(201).json(result.rows[0]);
     } catch (error) {
@@ -6654,15 +6654,15 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
     try {
       const envId = req.params.envId;
       const categoryId = parseInt(req.params.id);
-      const { name, color, description, parentId, level, sortOrder, isActive } = req.body;
+      const { name, color, icon, description, parentId, level, sortOrder, isActive } = req.body;
       const envPool = pool;
       
       const result = await envPool.query(`
         UPDATE ${envId}.categories 
-        SET name = $1, color = $2, description = $3, parent_id = $4, level = $5, sort_order = $6, is_active = $7, updated_at = NOW()
-        WHERE id = $8
+        SET name = $1, color = $2, icon = $3, description = $4, parent_id = $5, level = $6, sort_order = $7, is_active = $8, updated_at = NOW()
+        WHERE id = $9
         RETURNING *
-      `, [name, color, description, parentId, level, sortOrder, isActive, categoryId]);
+      `, [name, color, icon, description, parentId, level, sortOrder, isActive, categoryId]);
       
       if (result.rows.length === 0) {
         return res.status(404).json({ error: 'Category not found' });
