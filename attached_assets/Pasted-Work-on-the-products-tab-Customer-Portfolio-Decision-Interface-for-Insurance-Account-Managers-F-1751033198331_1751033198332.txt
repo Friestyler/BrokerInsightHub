@@ -1,0 +1,118 @@
+Work on the 'products' tab.
+
+Customer Portfolio Decision Interface for Insurance Account Managers
+(Focus on coverage, renewals, upsell/cross-sell)
+
+⸻
+
+You are designing a visual decision interface for an insurance account manager, focused on a single customer’s insurance portfolio.
+
+This is not a reporting dashboard. It is a portfolio cockpit that helps the user know where to act now, why, and what the impact is — without needing to analyze data manually.
+
+⸻
+
+🔍 Key Business Questions
+	1.	What product categories is the customer already covered for?
+	2.	Which contracts are expiring soon?
+	3.	What additional products or upgrades are most relevant to propose now (cross-sell & upsell)?
+	4.	What’s the projected increase in written premium from those actions?
+
+⸻
+
+🧩 Layout Structure (STRICT)
+
+⸻
+
+1. 🟦 Coverage Summary by Category
+
+🛑 Do not use tables or cards here.
+✅ You must use non-tabular visualizations to display this.
+
+Use one of the following:
+	•	✅ Radial (donut) charts
+	•	✅ Horizontal bar meters
+	•	✅ Segmented ring visuals
+
+Each visual should show, per category:
+	•	% of products currently held
+	•	% not held (uncovered)
+	•	overlay premium value or potential uplift
+	•	Use color coding: green = covered, gray = uncovered, yellow/red = action needed
+
+This gives a glanceable pulse on portfolio strength by category.
+📌 If you skip this visual format, the feature fails its goal.
+
+⸻
+
+2. 🟥 Policies Requiring Attention
+
+Show only the most urgent contracts that are:
+	•	Expiring within 30–90 days
+	•	Up for renewal or upgrade
+	•	At risk of churn or downgrade
+
+Use a compact timeline bar or stacked visual cards with urgency indicators.
+Each visual card must include:
+	•	Product name
+	•	Expiration date
+	•	Current status
+	•	Suggested action: e.g., Add to list of opportunities to share with partner, Add to campaign, ...
+	•	Estimated value impact (premium uplift)
+
+Use red/yellow urgency badges (e.g., 🔴 19 days left).
+
+⸻
+
+3. 🟨 Coverage Expansion Paths
+
+Present a prioritized, insight-driven list of next best actions. This must include both:
+	•	Cross-sell: new products the customer doesn’t yet have
+	•	Upsell: upgrades to existing coverages (e.g., Standard → Premium, add-ons, riders)
+
+You must group or rank them by:
+	•	💰 Premium value
+	•	⏰ Urgency
+	•	✅ Profile fit or eligibility
+
+Each opportunity card must include:
+	•	Why it’s relevant now (e.g., “Auto + Home, but no Legal – common coverage trio”)
+	•	Expected annual premium uplift
+	•	CTA: Prepare Quote, Propose Coverage, Schedule Call
+
+✅ Use insurance-native terms: Add coverage, Upgrade policy, Mitigate exposure — not “marketing” or “campaign” terms.
+
+⸻
+
+4. 🟩 Premium Impact Panel
+
+📌 Required at the bottom or pinned right.
+
+Show a clear summary of:
+	•	Total potential premium uplift from all proposed actions (e.g., +€9,300/year)
+	•	Visualize this as a meter, badge, or animated number
+	•	This helps anchor all actions in business value
+
+⸻
+
+🎨 Design Guidelines
+	•	Use shadcn/ui components
+	•	Style must be clean and clear, like Apple or Google dashboards
+	•	Avoid color overload — use meaningful visual hierarchy (icons, indicators, spacing)
+	•	✨ Every visual must be designed to help the user decide faster, not read longer
+
+⸻
+
+❌ DO NOT
+	•	Use tables, generic product cards, or passive lists
+	•	Show full product catalogs or generic grids
+	•	Include aggregated data across customers
+
+⸻
+
+✅ Success =
+
+An insurance account manager opens the view and immediately sees:
+	•	Where the customer has strong or weak coverage
+	•	Which contracts need urgent attention
+	•	Which upgrades or add-ons are worth offering now
+	•	What the total business impact will be — without needing to analyze anything

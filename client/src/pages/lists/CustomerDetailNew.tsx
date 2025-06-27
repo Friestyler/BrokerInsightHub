@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, ChevronDown, ChevronRight, Shield, TrendingUp, Clock, AlertTriangle, Target, Zap, Briefcase, Plane, PiggyBank, Scale } from "lucide-react";
+import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, ChevronDown, ChevronRight, Shield, TrendingUp, Clock, AlertTriangle, Target, Zap, Briefcase, Plane, PiggyBank, Scale, DollarSign, CheckCircle } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import LogoUploadModal from "@/components/LogoUploadModal";
 import EntityAvatar from "@/components/EntityAvatar";
@@ -854,131 +854,207 @@ export default function CustomerDetailNew() {
 
         {activeTab === "product-dashboard" && (
           <div className="space-y-6">
-            {/* Coverage Summary by Category */}
+            {/* Coverage Summary by Category - Radial Charts */}
             <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">Coverage Overview by Category</h3>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Life Insurance */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Coverage Pulse by Category</h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                
+                {/* Life Insurance Donut */}
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="relative">
+                    {/* Donut Chart */}
+                    <svg width="120" height="120" className="transform -rotate-90">
+                      {/* Background circle */}
+                      <circle
+                        cx="60"
+                        cy="60"
+                        r="45"
+                        stroke="#E5E7EB"
+                        strokeWidth="12"
+                        fill="transparent"
+                      />
+                      {/* Covered portion (12.5% = 45 degrees) */}
+                      <circle
+                        cx="60"
+                        cy="60"
+                        r="45"
+                        stroke="#10B981"
+                        strokeWidth="12"
+                        fill="transparent"
+                        strokeDasharray={`${45 * 0.125} ${45 * 6.28}`}
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    {/* Center text */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-2xl font-bold text-gray-900">12%</span>
+                      <span className="text-xs text-gray-500">covered</span>
+                    </div>
+                  </div>
+                  <div className="text-center space-y-2">
+                    <div className="flex items-center justify-center space-x-2">
                       <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
                       <span className="font-medium text-gray-900">Life Insurance</span>
                     </div>
-                    <span className="text-sm text-gray-500">1 of 8 covered</span>
-                  </div>
-                  
-                  {/* Progress Bar */}
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-emerald-500 h-2 rounded-full" style={{width: '12.5%'}}></div>
-                  </div>
-                  
-                  <div className="text-xs text-gray-600">
-                    Customer profile suggests 3 of 8 products are relevant
+                    <div className="text-sm text-gray-600">1 of 8 products</div>
+                    <div className="text-xs text-gray-500">€1,200 current premium</div>
+                    <div className="text-xs text-red-600 font-medium">High exposure risk</div>
                   </div>
                 </div>
 
-                {/* Non-Life Insurance */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
+                {/* Non-Life Insurance Donut */}
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="relative">
+                    {/* Donut Chart */}
+                    <svg width="120" height="120" className="transform -rotate-90">
+                      {/* Background circle */}
+                      <circle
+                        cx="60"
+                        cy="60"
+                        r="45"
+                        stroke="#E5E7EB"
+                        strokeWidth="12"
+                        fill="transparent"
+                      />
+                      {/* Covered portion (16.7% = 60 degrees) */}
+                      <circle
+                        cx="60"
+                        cy="60"
+                        r="45"
+                        stroke="#3B82F6"
+                        strokeWidth="12"
+                        fill="transparent"
+                        strokeDasharray={`${45 * 0.167} ${45 * 6.28}`}
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    {/* Center text */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-2xl font-bold text-gray-900">17%</span>
+                      <span className="text-xs text-gray-500">covered</span>
+                    </div>
+                  </div>
+                  <div className="text-center space-y-2">
+                    <div className="flex items-center justify-center space-x-2">
                       <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                       <span className="font-medium text-gray-900">Non-Life Insurance</span>
                     </div>
-                    <span className="text-sm text-gray-500">2 of 12 covered</span>
-                  </div>
-                  
-                  {/* Progress Bar */}
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-blue-500 h-2 rounded-full" style={{width: '16.7%'}}></div>
-                  </div>
-                  
-                  <div className="text-xs text-gray-600">
-                    Customer profile suggests 5 of 12 products are relevant
+                    <div className="text-sm text-gray-600">2 of 12 products</div>
+                    <div className="text-xs text-gray-500">€2,850 current premium</div>
+                    <div className="text-xs text-yellow-600 font-medium">Moderate gaps</div>
                   </div>
                 </div>
 
-                {/* Services */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
+                {/* Services Donut */}
+                <div className="flex flex-col items-center space-y-4">
+                  <div className="relative">
+                    {/* Donut Chart */}
+                    <svg width="120" height="120" className="transform -rotate-90">
+                      {/* Background circle */}
+                      <circle
+                        cx="60"
+                        cy="60"
+                        r="45"
+                        stroke="#E5E7EB"
+                        strokeWidth="12"
+                        fill="transparent"
+                      />
+                      {/* No coverage - just background */}
+                    </svg>
+                    {/* Center text */}
+                    <div className="absolute inset-0 flex flex-col items-center justify-center">
+                      <span className="text-2xl font-bold text-gray-900">0%</span>
+                      <span className="text-xs text-gray-500">covered</span>
+                    </div>
+                  </div>
+                  <div className="text-center space-y-2">
+                    <div className="flex items-center justify-center space-x-2">
                       <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
                       <span className="font-medium text-gray-900">Services</span>
                     </div>
-                    <span className="text-sm text-gray-500">0 of 2 covered</span>
-                  </div>
-                  
-                  {/* Progress Bar */}
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="bg-purple-500 h-2 rounded-full" style={{width: '0%'}}></div>
-                  </div>
-                  
-                  <div className="text-xs text-gray-600">
-                    Customer profile suggests 1 of 2 products are relevant
+                    <div className="text-sm text-gray-600">0 of 2 products</div>
+                    <div className="text-xs text-gray-500">€0 current premium</div>
+                    <div className="text-xs text-red-600 font-medium">Complete gap</div>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Policies Requiring Attention */}
+            {/* Policies Requiring Attention - Timeline */}
             <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-gray-900">Policies Requiring Attention</h3>
-                <span className="bg-orange-100 text-orange-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                  Act within 30 days
+                <span className="bg-red-100 text-red-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
+                  🔴 19 days left
                 </span>
               </div>
               
-              <div className="space-y-4">
-                {/* Expiring Policy */}
-                <div className="border border-orange-200 bg-orange-50 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <AlertTriangle className="w-4 h-4 text-orange-600" />
-                        <span className="font-medium text-gray-900">Auto Insurance - Comprehensive</span>
+              {/* Timeline Visualization */}
+              <div className="relative">
+                {/* Timeline Base */}
+                <div className="absolute left-4 top-8 bottom-8 w-0.5 bg-gray-200"></div>
+                
+                <div className="space-y-6">
+                  {/* Critical - Auto Insurance */}
+                  <div className="relative flex items-start space-x-4">
+                    <div className="relative z-10 flex items-center justify-center w-8 h-8 bg-red-100 border-4 border-white rounded-full">
+                      <AlertTriangle className="w-4 h-4 text-red-600" />
+                    </div>
+                    <div className="flex-1 bg-red-50 border border-red-200 rounded-lg p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium text-gray-900">Auto Insurance - Comprehensive</span>
+                            <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">CRITICAL</span>
+                          </div>
+                          <p className="text-sm text-gray-600">Expires January 15, 2025</p>
+                          <p className="text-sm text-red-700 font-medium">Upgrade to Premium + Legal bundle</p>
+                        </div>
+                        <div className="text-right space-y-1">
+                          <div className="text-lg font-semibold text-emerald-600">+€1,800</div>
+                          <div className="text-xs text-gray-500">Annual uplift</div>
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-600">Expires in 19 days (January 15, 2025)</p>
-                      <p className="text-sm text-orange-700 font-medium">Suggested: Renew with Premium upgrade</p>
-                    </div>
-                    <div className="text-right space-y-1">
-                      <div className="text-lg font-semibold text-emerald-600">+€1,800</div>
-                      <div className="text-xs text-gray-500">Annual uplift</div>
+                      <div className="flex gap-2 mt-4">
+                        <Button size="sm" className="bg-[#5567E5] hover:bg-[#4456D4]">
+                          Add to opportunity list
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          Prepare quote
+                        </Button>
+                      </div>
                     </div>
                   </div>
-                  <div className="flex gap-2 mt-4">
-                    <Button size="sm" className="bg-[#5567E5] hover:bg-[#4456D4]">
-                      Prepare quote
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      Schedule call
-                    </Button>
-                  </div>
-                </div>
 
-                {/* Second Policy */}
-                <div className="border border-yellow-200 bg-yellow-50 rounded-lg p-4 hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between">
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2">
-                        <Clock className="w-4 h-4 text-yellow-600" />
-                        <span className="font-medium text-gray-900">Home Insurance - Standard</span>
+                  {/* Warning - Home Insurance */}
+                  <div className="relative flex items-start space-x-4">
+                    <div className="relative z-10 flex items-center justify-center w-8 h-8 bg-yellow-100 border-4 border-white rounded-full">
+                      <Clock className="w-4 h-4 text-yellow-600" />
+                    </div>
+                    <div className="flex-1 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <span className="font-medium text-gray-900">Home Insurance - Standard</span>
+                            <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">42 DAYS</span>
+                          </div>
+                          <p className="text-sm text-gray-600">Expires February 8, 2025</p>
+                          <p className="text-sm text-yellow-700 font-medium">Bundle with Legal Protection</p>
+                        </div>
+                        <div className="text-right space-y-1">
+                          <div className="text-lg font-semibold text-emerald-600">+€650</div>
+                          <div className="text-xs text-gray-500">Annual uplift</div>
+                        </div>
                       </div>
-                      <p className="text-sm text-gray-600">Expires in 42 days (February 8, 2025)</p>
-                      <p className="text-sm text-yellow-700 font-medium">Suggested: Bundle with Legal Protection</p>
+                      <div className="flex gap-2 mt-4">
+                        <Button size="sm" className="bg-[#5567E5] hover:bg-[#4456D4]">
+                          Add to campaign
+                        </Button>
+                        <Button size="sm" variant="outline">
+                          Schedule call
+                        </Button>
+                      </div>
                     </div>
-                    <div className="text-right space-y-1">
-                      <div className="text-lg font-semibold text-emerald-600">+€650</div>
-                      <div className="text-xs text-gray-500">Annual uplift</div>
-                    </div>
-                  </div>
-                  <div className="flex gap-2 mt-4">
-                    <Button size="sm" className="bg-[#5567E5] hover:bg-[#4456D4]">
-                      Prepare quote
-                    </Button>
-                    <Button size="sm" variant="outline">
-                      Send offer
-                    </Button>
                   </div>
                 </div>
               </div>
@@ -986,34 +1062,36 @@ export default function CustomerDetailNew() {
 
             {/* Coverage Expansion Paths */}
             <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">Strategic Coverage Expansion</h3>
+              <h3 className="text-lg font-semibold text-gray-900 mb-6">Coverage Expansion Opportunities</h3>
               
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* High Value */}
+                {/* Premium Value */}
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                    <h4 className="font-medium text-gray-900">High Value</h4>
+                    <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                      <DollarSign className="w-4 h-4 text-emerald-600" />
+                    </div>
+                    <h4 className="font-medium text-gray-900">Premium Value</h4>
                   </div>
                   
                   <div className="space-y-3">
-                    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
+                    <div className="border-l-4 border-emerald-500 bg-emerald-50 p-4 rounded-r-lg">
                       <div className="space-y-2">
                         <h5 className="font-medium text-gray-900">Life Insurance - Term</h5>
-                        <p className="text-sm text-gray-600">Customer has Home + Auto, 85% of similar profiles add Life coverage</p>
+                        <p className="text-sm text-gray-600">Auto + Home but no Life coverage - common trio completion</p>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-emerald-600">€2,400/year</span>
-                          <Button size="sm" variant="outline">Prepare quote</Button>
+                          <span className="text-lg font-semibold text-emerald-600">€2,400/year</span>
+                          <Button size="sm" variant="outline">Propose coverage</Button>
                         </div>
                       </div>
                     </div>
 
-                    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
+                    <div className="border-l-4 border-emerald-400 bg-emerald-50 p-4 rounded-r-lg">
                       <div className="space-y-2">
                         <h5 className="font-medium text-gray-900">Business Liability</h5>
-                        <p className="text-sm text-gray-600">Professional exposure detected, recommended for risk mitigation</p>
+                        <p className="text-sm text-gray-600">Professional exposure detected - mitigate liability risk</p>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-emerald-600">€1,800/year</span>
+                          <span className="text-lg font-semibold text-emerald-600">€1,800/year</span>
                           <Button size="sm" variant="outline">Schedule call</Button>
                         </div>
                       </div>
@@ -1021,31 +1099,33 @@ export default function CustomerDetailNew() {
                   </div>
                 </div>
 
-                {/* Time-Sensitive */}
+                {/* Urgency */}
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                    <h4 className="font-medium text-gray-900">Time-Sensitive</h4>
+                    <div className="w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center">
+                      <Clock className="w-4 h-4 text-orange-600" />
+                    </div>
+                    <h4 className="font-medium text-gray-900">Urgency</h4>
                   </div>
                   
                   <div className="space-y-3">
-                    <div className="border border-orange-200 bg-orange-50 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
+                    <div className="border-l-4 border-red-500 bg-red-50 p-4 rounded-r-lg">
                       <div className="space-y-2">
                         <h5 className="font-medium text-gray-900">Cyber Insurance</h5>
                         <p className="text-sm text-gray-600">New regulatory requirement effective Q2 2025</p>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-emerald-600">€950/year</span>
-                          <Button size="sm" variant="outline">Send offer</Button>
+                          <span className="text-lg font-semibold text-emerald-600">€950/year</span>
+                          <Button size="sm" variant="outline">Propose coverage</Button>
                         </div>
                       </div>
                     </div>
 
-                    <div className="border border-yellow-200 bg-yellow-50 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
+                    <div className="border-l-4 border-orange-500 bg-orange-50 p-4 rounded-r-lg">
                       <div className="space-y-2">
                         <h5 className="font-medium text-gray-900">Travel Insurance</h5>
-                        <p className="text-sm text-gray-600">Seasonal opportunity - expires March 31</p>
+                        <p className="text-sm text-gray-600">Seasonal window closes March 31</p>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-emerald-600">€450/year</span>
+                          <span className="text-lg font-semibold text-emerald-600">€450/year</span>
                           <Button size="sm" variant="outline">Quick quote</Button>
                         </div>
                       </div>
@@ -1056,29 +1136,31 @@ export default function CustomerDetailNew() {
                 {/* Profile Fit */}
                 <div className="space-y-4">
                   <div className="flex items-center space-x-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                      <CheckCircle className="w-4 h-4 text-blue-600" />
+                    </div>
                     <h4 className="font-medium text-gray-900">Profile Fit</h4>
                   </div>
                   
                   <div className="space-y-3">
-                    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
+                    <div className="border-l-4 border-blue-500 bg-blue-50 p-4 rounded-r-lg">
                       <div className="space-y-2">
                         <h5 className="font-medium text-gray-900">Legal Protection</h5>
                         <p className="text-sm text-gray-600">78% of Home + Auto customers add Legal within 2 years</p>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-emerald-600">€320/year</span>
-                          <Button size="sm" variant="outline">Send offer</Button>
+                          <span className="text-lg font-semibold text-emerald-600">€320/year</span>
+                          <Button size="sm" variant="outline">Add coverage</Button>
                         </div>
                       </div>
                     </div>
 
-                    <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition-shadow cursor-pointer">
+                    <div className="border-l-4 border-blue-400 bg-blue-50 p-4 rounded-r-lg">
                       <div className="space-y-2">
-                        <h5 className="font-medium text-gray-900">Health Insurance Supplement</h5>
-                        <p className="text-sm text-gray-600">Demographics match target profile (95% confidence)</p>
+                        <h5 className="font-medium text-gray-900">Health Supplement</h5>
+                        <p className="text-sm text-gray-600">Demographics match target (95% eligibility)</p>
                         <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-emerald-600">€720/year</span>
-                          <Button size="sm" variant="outline">Prepare quote</Button>
+                          <span className="text-lg font-semibold text-emerald-600">€720/year</span>
+                          <Button size="sm" variant="outline">Upgrade policy</Button>
                         </div>
                       </div>
                     </div>
@@ -1087,32 +1169,30 @@ export default function CustomerDetailNew() {
               </div>
             </div>
 
-            {/* Total Premium Impact Panel */}
-            <div className="bg-gradient-to-r from-emerald-50 to-blue-50 border border-emerald-200 rounded-xl p-6">
+            {/* Premium Impact Panel */}
+            <div className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white rounded-xl p-6 sticky bottom-4">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
-                  <h3 className="text-lg font-semibold text-gray-900">Portfolio Impact Summary</h3>
-                  <p className="text-sm text-gray-600">Estimated premium uplift from recommended actions</p>
+                  <h3 className="text-xl font-bold">Total Premium Impact</h3>
+                  <p className="text-emerald-100">Combined uplift from all recommended actions</p>
                 </div>
-                <div className="text-right space-y-1">
-                  <div className="text-3xl font-bold text-emerald-600">€9,300</div>
-                  <div className="text-sm text-gray-500">Annual premium uplift</div>
-                  <div className="text-xs text-emerald-700 font-medium">+142% portfolio growth</div>
+                <div className="text-right">
+                  <div className="flex items-center justify-end space-x-2">
+                    <TrendingUp className="w-8 h-8 text-white" />
+                    <div className="text-4xl font-bold animate-pulse">€9,300</div>
+                  </div>
+                  <div className="text-emerald-100 text-sm">Annual premium uplift</div>
                 </div>
               </div>
               
-              <div className="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white rounded-lg p-4 text-center">
-                  <div className="text-xl font-semibold text-gray-900">€2,450</div>
-                  <div className="text-sm text-gray-600">Renewal upgrades</div>
+              {/* Progress meter */}
+              <div className="mt-6">
+                <div className="flex items-center justify-between text-sm text-emerald-100 mb-2">
+                  <span>Portfolio Growth</span>
+                  <span>+142%</span>
                 </div>
-                <div className="bg-white rounded-lg p-4 text-center">
-                  <div className="text-xl font-semibold text-gray-900">€4,200</div>
-                  <div className="text-sm text-gray-600">New coverage</div>
-                </div>
-                <div className="bg-white rounded-lg p-4 text-center">
-                  <div className="text-xl font-semibold text-gray-900">€2,650</div>
-                  <div className="text-sm text-gray-600">Bundle opportunities</div>
+                <div className="w-full bg-white/20 rounded-full h-3">
+                  <div className="bg-white h-3 rounded-full animate-pulse" style={{width: '85%'}}></div>
                 </div>
               </div>
             </div>
