@@ -6749,7 +6749,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         name: row.name,
         description: row.description,
         categoryId: row.category_id,
-        category: row.category,
+        category: row.category_name,
         providerId: row.provider_id,
         providerType: row.provider_type,
         providerName: row.provider_name,

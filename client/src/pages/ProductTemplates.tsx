@@ -24,6 +24,13 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import type { ProductTemplate, InsertProductTemplate } from "@shared/schema";
 
+// Extended interface for frontend with additional fields from backend joins
+interface ProductTemplateWithCategory extends ProductTemplate {
+  categoryColor?: string;
+  categoryName?: string;
+  vendorName?: string;
+}
+
 const productTemplateSchema = z.object({
   productId: z.string().min(1, "Product ID is required"),
   name: z.string().min(1, "Name is required"),
@@ -123,7 +130,7 @@ export default function ProductTemplates() {
   };
 
   // Fetch product catalogue
-  const { data: productTemplates = [], isLoading } = useQuery({
+  const { data: productTemplates = [], isLoading } = useQuery<ProductTemplateWithCategory[]>({
     queryKey: ['/api/product-catalogue'],
   });
 
@@ -1079,7 +1086,15 @@ export default function ProductTemplates() {
                     </TableCell>
                     <TableCell>
                       {template.category ? (
-                        <Badge variant="outline" className="text-xs">
+                        <Badge 
+                          variant="outline" 
+                          className="text-xs"
+                          style={{
+                            borderColor: template.categoryColor || '#E6E7F1',
+                            backgroundColor: `${template.categoryColor || '#E6E7F1'}10`,
+                            color: template.categoryColor || '#6B7280'
+                          }}
+                        >
                           {template.category}
                         </Badge>
                       ) : (
