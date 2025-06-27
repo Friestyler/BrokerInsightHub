@@ -1849,15 +1849,17 @@ export default function CustomerDetailNew() {
                             className={`${getBarGradientClasses(category.color)} flex items-center justify-center text-white text-xs font-medium transition-all duration-300 relative group rounded-l-xl shadow-sm`}
                             style={{ 
                               width: '0%',
-                              animation: `growBar 1.5s ease-out ${index * 0.3}s forwards`
+                              animation: `growBar-${index} 1.5s ease-out ${index * 0.3}s forwards`
                             }}
                           >
-                            <style jsx>{`
-                              @keyframes growBar {
-                                from { width: 0%; }
-                                to { width: ${category.percentage}%; }
-                              }
-                            `}</style>
+                            <style dangerouslySetInnerHTML={{
+                              __html: `
+                                @keyframes growBar-${index} {
+                                  from { width: 0%; }
+                                  to { width: ${category.percentage}%; }
+                                }
+                              `
+                            }} />
                             <span className="drop-shadow-sm">{category.percentage}% Covered</span>
                             
                             {/* Tooltip - Covered Products */}
