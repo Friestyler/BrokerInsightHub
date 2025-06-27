@@ -2003,11 +2003,9 @@ export default function CustomerDetailNew() {
                   ))}
                 </div>
               </div>
-            )
-          )}
-          
-          {/* Smart Coverage Gaps section starts here */}
-          <div className="mb-16 bg-white/80 backdrop-blur-lg rounded-2xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.1)] p-8 hover:shadow-[0_16px_48px_rgba(0,0,0,0.15)] transition-shadow duration-500">
+            </div>
+            
+            <div className="mb-16 bg-white/80 backdrop-blur-lg rounded-2xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.1)] p-8 hover:shadow-[0_16px_48px_rgba(0,0,0,0.15)] transition-shadow duration-500">
             <div className="mb-6">
               <h2 className="text-xl font-bold text-gray-800 mb-2">Smart Coverage Gaps</h2>
               <p className="text-gray-600 text-sm">AI-identified expansion opportunities based on customer profile analysis</p>
