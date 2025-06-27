@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, ChevronDown, ChevronRight, Shield, TrendingUp, Clock, AlertTriangle, Target, Zap, Briefcase, Plane, PiggyBank, Scale } from "lucide-react";
+import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, ChevronDown, ChevronRight, Shield, TrendingUp, Clock, AlertTriangle, Target, Zap, Briefcase, Plane, PiggyBank, Scale, Lightbulb } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import LogoUploadModal from "@/components/LogoUploadModal";
 import EntityAvatar from "@/components/EntityAvatar";
@@ -853,173 +853,393 @@ export default function CustomerDetailNew() {
         )}
 
         {activeTab === "product-dashboard" && (
-          <div className="space-y-8">
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* Active Coverage */}
-              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center group-hover:bg-emerald-200 transition-colors">
-                      <Shield className="w-5 h-5 text-emerald-600" />
+          <div className="space-y-6">
+            {/* Category Prioritization Visual */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900">Where to Focus Your Time</h3>
+                <div className="text-sm text-gray-500">Ranked by impact & urgency</div>
+              </div>
+              
+              <div className="space-y-4">
+                {/* Services - Highest Priority */}
+                <div className="relative">
+                  <div className="flex items-center justify-between p-5 bg-gradient-to-r from-red-50 to-orange-50 border-l-4 border-red-500 rounded-lg hover:shadow-lg transition-all cursor-pointer group">
+                    <div className="flex items-center space-x-6">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-4 h-4 bg-red-500 rounded-full animate-pulse"></div>
+                        <span className="text-xl font-bold text-gray-900">Services</span>
+                      </div>
+                      <div className="flex items-center space-x-6">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-red-600">€4,200</div>
+                          <div className="text-xs text-gray-500 uppercase tracking-wide">Upsell Value</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl">🔥</div>
+                          <div className="text-xs text-gray-500 uppercase tracking-wide">High Urgency</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-red-600">67%</div>
+                          <div className="text-xs text-gray-500 uppercase tracking-wide">Under-coverage</div>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Active Coverage</h3>
-                      <p className="text-sm text-gray-500">Products in force</p>
+                    <div className="flex items-center space-x-4">
+                      <div className="bg-red-500 text-white px-4 py-2 rounded-full text-sm font-bold">
+                        Focus Score: 94
+                      </div>
+                      <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-red-600 transition-colors" />
                     </div>
                   </div>
-                  <div className="text-2xl font-bold text-gray-900 group-hover:scale-110 transition-transform">7</div>
+                  <div className="absolute -bottom-1 left-5 right-5 h-3 bg-red-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-red-500 rounded-full animate-in slide-in-from-left duration-1000" style={{width: '94%'}}></div>
+                  </div>
                 </div>
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center text-emerald-600 mr-2">
-                    <TrendingUp className="w-4 h-4 mr-1" />
-                    +2 this quarter
+
+                {/* Non-Life - Medium Priority */}
+                <div className="relative">
+                  <div className="flex items-center justify-between p-5 bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-500 rounded-lg hover:shadow-lg transition-all cursor-pointer group">
+                    <div className="flex items-center space-x-6">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-4 h-4 bg-blue-500 rounded-full"></div>
+                        <span className="text-xl font-bold text-gray-900">Non-Life</span>
+                      </div>
+                      <div className="flex items-center space-x-6">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-blue-600">€4,500</div>
+                          <div className="text-xs text-gray-500 uppercase tracking-wide">Upsell Value</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl">⚠️</div>
+                          <div className="text-xs text-gray-500 uppercase tracking-wide">Medium Urgency</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-blue-600">75%</div>
+                          <div className="text-xs text-gray-500 uppercase tracking-wide">Under-coverage</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <div className="bg-blue-500 text-white px-4 py-2 rounded-full text-sm font-bold">
+                        Focus Score: 78
+                      </div>
+                      <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-blue-600 transition-colors" />
+                    </div>
                   </div>
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                    <ChevronRight className="w-4 h-4 text-gray-400" />
+                  <div className="absolute -bottom-1 left-5 right-5 h-3 bg-blue-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-blue-500 rounded-full animate-in slide-in-from-left duration-1000 delay-200" style={{width: '78%'}}></div>
+                  </div>
+                </div>
+
+                {/* Life - Lower Priority */}
+                <div className="relative">
+                  <div className="flex items-center justify-between p-5 bg-gradient-to-r from-emerald-50 to-green-50 border-l-4 border-emerald-500 rounded-lg hover:shadow-lg transition-all cursor-pointer group">
+                    <div className="flex items-center space-x-6">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-4 h-4 bg-emerald-500 rounded-full"></div>
+                        <span className="text-xl font-bold text-gray-900">Life</span>
+                      </div>
+                      <div className="flex items-center space-x-6">
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-emerald-600">€3,200</div>
+                          <div className="text-xs text-gray-500 uppercase tracking-wide">Upsell Value</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl">💡</div>
+                          <div className="text-xs text-gray-500 uppercase tracking-wide">Low Urgency</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-emerald-600">62%</div>
+                          <div className="text-xs text-gray-500 uppercase tracking-wide">Under-coverage</div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <div className="bg-emerald-500 text-white px-4 py-2 rounded-full text-sm font-bold">
+                        Focus Score: 61
+                      </div>
+                      <ChevronRight className="w-6 h-6 text-gray-400 group-hover:text-emerald-600 transition-colors" />
+                    </div>
+                  </div>
+                  <div className="absolute -bottom-1 left-5 right-5 h-3 bg-emerald-200 rounded-full overflow-hidden">
+                    <div className="h-full bg-emerald-500 rounded-full animate-in slide-in-from-left duration-1000 delay-400" style={{width: '61%'}}></div>
                   </div>
                 </div>
               </div>
 
-              {/* Expiring Soon */}
-              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center group-hover:bg-orange-200 transition-colors">
-                      <Clock className="w-5 h-5 text-orange-600" />
+              {/* Key Insight Callout */}
+              <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                <div className="flex items-start space-x-3">
+                  <div className="w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <Lightbulb className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <div className="font-medium text-amber-900">Most untapped value in Services</div>
+                    <div className="text-sm text-amber-700 mt-1">
+                      Customer has high-value financial advisory but is missing Legal Services and Tax Planning - both natural upsells with 78% conversion rate in similar profiles.
                     </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Expiring Soon</h3>
-                      <p className="text-sm text-gray-500">Next 90 days</p>
-                    </div>
-                  </div>
-                  <div className="text-2xl font-bold text-orange-600 group-hover:scale-110 transition-transform">2</div>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center text-orange-600 mr-2">
-                    <AlertTriangle className="w-4 h-4 mr-1" />
-                    Action required
-                  </div>
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                    <ChevronRight className="w-4 h-4 text-gray-400" />
-                  </div>
-                </div>
-              </div>
-
-              {/* Opportunities */}
-              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
-                      <Target className="w-5 h-5 text-blue-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-gray-900">Cross-sell Ready</h3>
-                      <p className="text-sm text-gray-500">High-potential gaps</p>
-                    </div>
-                  </div>
-                  <div className="text-2xl font-bold text-blue-600 group-hover:scale-110 transition-transform">4</div>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center text-blue-600 mr-2">
-                    <Zap className="w-4 h-4 mr-1" />
-                    €12K potential value
-                  </div>
-                  <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                    <ChevronRight className="w-4 h-4 text-gray-400" />
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Category Coverage Grid */}
+            {/* Next Best Actions Panel */}
             <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
               <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-semibold text-gray-900">Coverage by Category</h3>
-                <div className="flex items-center space-x-4">
-                  <div className="flex items-center text-sm text-gray-500">
-                    <div className="w-3 h-3 bg-emerald-500 rounded-full mr-2"></div>
-                    Active products
+                <h3 className="text-xl font-bold text-gray-900">Next Best Actions</h3>
+                <div className="text-sm text-gray-500">No thinking required</div>
+              </div>
+
+              <div className="space-y-4">
+                {/* Urgent Action */}
+                <div className="flex items-center justify-between p-4 bg-red-50 border border-red-200 rounded-lg group hover:shadow-md transition-all">
+                  <div className="flex items-center space-x-4">
+                    <div className="text-2xl">🔥</div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-900">Renew Auto Insurance - Premium Plan</div>
+                      <div className="text-sm text-gray-600">Expires Feb 15, 2025 • 19 days left</div>
+                    </div>
                   </div>
-                  <div className="flex items-center text-sm text-gray-500">
-                    <div className="w-3 h-3 bg-gray-200 rounded-full mr-2"></div>
-                    Available products
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-red-100 text-red-800 px-3 py-1 rounded-full text-sm font-medium">
+                      19 days
+                    </div>
+                    <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white">
+                      Start renewal
+                    </Button>
+                  </div>
+                </div>
+
+                {/* High Value Action */}
+                <div className="flex items-center justify-between p-4 bg-blue-50 border border-blue-200 rounded-lg group hover:shadow-md transition-all">
+                  <div className="flex items-center space-x-4">
+                    <div className="text-2xl">💰</div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-900">Propose Business Insurance</div>
+                      <div className="text-sm text-gray-600">78% conversion rate • €4,500 potential value</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+                      €4,500
+                    </div>
+                    <Button size="sm" className="bg-[#5567E5] hover:bg-[#4556D4] text-white">
+                      Create proposal
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Bundle Opportunity */}
+                <div className="flex items-center justify-between p-4 bg-purple-50 border border-purple-200 rounded-lg group hover:shadow-md transition-all">
+                  <div className="flex items-center space-x-4">
+                    <div className="text-2xl">⏰</div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-900">Send Travel + Life bundle offer</div>
+                      <div className="text-sm text-gray-600">Perfect timing before Death Cover renewal • 15% bundle discount</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm font-medium">
+                      Bundle
+                    </div>
+                    <Button size="sm" variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-50">
+                      Send offer
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Easy Win */}
+                <div className="flex items-center justify-between p-4 bg-emerald-50 border border-emerald-200 rounded-lg group hover:shadow-md transition-all">
+                  <div className="flex items-center space-x-4">
+                    <div className="text-2xl">💡</div>
+                    <div className="flex-1">
+                      <div className="font-semibold text-gray-900">Add Legal Services to Financial Advisory</div>
+                      <div className="text-sm text-gray-600">Natural extension • €720 annual value • High acceptance rate</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-emerald-100 text-emerald-800 px-3 py-1 rounded-full text-sm font-medium">
+                      Easy win
+                    </div>
+                    <Button size="sm" variant="outline" className="border-emerald-300 text-emerald-700 hover:bg-emerald-50">
+                      Schedule call
+                    </Button>
                   </div>
                 </div>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Life Insurance */}
-                <div 
-                  className="space-y-4 cursor-pointer group"
-                  onClick={() => {
-                    const newExpanded = new Set(expandedDashboardCategories);
-                    if (newExpanded.has('life')) {
-                      newExpanded.delete('life');
-                    } else {
-                      newExpanded.add('life');
-                    }
-                    setExpandedDashboardCategories(newExpanded);
-                  }}
-                >
-                  <div className="flex items-center justify-between p-3 rounded-lg group-hover:bg-emerald-50 transition-colors">
-                    <div className="flex items-center space-x-3">
-                      {/* Progress Ring */}
-                      <div className="relative w-12 h-12">
-                        <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
-                          <path
-                            d="M18 2.0845
-                              a 15.9155 15.9155 0 0 1 0 31.831
-                              a 15.9155 15.9155 0 0 1 0 -31.831"
-                            fill="none"
-                            stroke="#e5e7eb"
-                            strokeWidth="3"
-                          />
-                          <path
-                            d="M18 2.0845
-                              a 15.9155 15.9155 0 0 1 0 31.831
-                              a 15.9155 15.9155 0 0 1 0 -31.831"
-                            fill="none"
-                            stroke="#10b981"
-                            strokeWidth="3"
-                            strokeDasharray="37.5, 100"
-                            className="transition-all duration-1000 ease-out"
-                          />
-                        </svg>
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <span className="text-xs font-medium text-emerald-600">38%</span>
-                        </div>
-                      </div>
+            </div>
+
+            {/* Strategic Cross-Sell Opportunities */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-gray-900">Strategic Cross-Sell Opportunities</h3>
+                <div className="text-sm text-gray-500">Prioritized by value & timing</div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* High Value Opportunities */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2 mb-4">
+                    <div className="text-lg">💸</div>
+                    <h4 className="font-semibold text-gray-900">High Value</h4>
+                    <div className="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs font-medium">
+                      €8,700 potential
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-red-50 border border-red-200 rounded-lg group hover:shadow-md transition-all cursor-pointer">
+                    <div className="flex justify-between items-start mb-3">
                       <div>
-                        <div className="flex items-center space-x-2">
-                          <span className="font-medium text-gray-900">Life Insurance</span>
-                          <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${
-                            expandedDashboardCategories.has('life') ? 'transform rotate-180' : ''
-                          }`} />
+                        <div className="font-semibold text-gray-900">Business Insurance Package</div>
+                        <div className="text-sm text-gray-600">Professional Liability + Cyber Security</div>
+                      </div>
+                      <div className="text-xl">🔥</div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4 text-sm">
+                        <div className="text-red-600 font-medium">€4,500</div>
+                        <div className="text-gray-500">78% conversion</div>
+                      </div>
+                      <Button size="sm" className="bg-red-600 hover:bg-red-700 text-white">
+                        Create proposal
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg group hover:shadow-md transition-all cursor-pointer">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <div className="font-semibold text-gray-900">Legal Services Suite</div>
+                        <div className="text-sm text-gray-600">Contract Review + Tax Planning</div>
+                      </div>
+                      <div className="text-xl">💰</div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4 text-sm">
+                        <div className="text-purple-600 font-medium">€4,200</div>
+                        <div className="text-gray-500">85% acceptance</div>
+                      </div>
+                      <Button size="sm" variant="outline" className="border-purple-300 text-purple-700 hover:bg-purple-50">
+                        Schedule call
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Time-Sensitive Opportunities */}
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-2 mb-4">
+                    <div className="text-lg">⚠️</div>
+                    <h4 className="font-semibold text-gray-900">Time-Sensitive</h4>
+                    <div className="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs font-medium">
+                      Act within 30 days
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg group hover:shadow-md transition-all cursor-pointer">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <div className="font-semibold text-gray-900">Auto Insurance Renewal</div>
+                        <div className="text-sm text-gray-600">Upgrade to Premium with multi-car discount</div>
+                      </div>
+                      <div className="text-xl">⏰</div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4 text-sm">
+                        <div className="text-orange-600 font-medium">€1,800 extra</div>
+                        <div className="text-red-600 font-medium">19 days left</div>
+                      </div>
+                      <Button size="sm" className="bg-orange-600 hover:bg-orange-700 text-white">
+                        Start renewal
+                      </Button>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg group hover:shadow-md transition-all cursor-pointer">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <div className="font-semibold text-gray-900">Travel Insurance Bundle</div>
+                        <div className="text-sm text-gray-600">Perfect timing for summer vacation planning</div>
+                      </div>
+                      <div className="text-xl">✈️</div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-4 text-sm">
+                        <div className="text-blue-600 font-medium">€720/year</div>
+                        <div className="text-gray-500">Q1 timing</div>
+                      </div>
+                      <Button size="sm" variant="outline" className="border-blue-300 text-blue-700 hover:bg-blue-50">
+                        Send offer
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Easy Wins Section */}
+              <div className="mt-8 pt-6 border-t border-gray-200">
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="text-lg">✅</div>
+                  <h4 className="font-semibold text-gray-900">Easy Wins</h4>
+                  <div className="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full text-xs font-medium">
+                    High conversion probability
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-4 bg-emerald-50 border border-emerald-200 rounded-lg group hover:shadow-md transition-all cursor-pointer">
+                    <div className="flex items-start space-x-3">
+                      <div className="text-2xl">💡</div>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">Add Health Supplement</div>
+                        <div className="text-sm text-gray-600 mt-1">Natural extension to existing health coverage</div>
+                        <div className="flex items-center justify-between mt-3">
+                          <div className="text-emerald-600 font-medium text-sm">€240/year</div>
+                          <Button size="sm" variant="ghost" className="text-emerald-700 hover:bg-emerald-100 h-6 text-xs">
+                            Quick add
+                          </Button>
                         </div>
-                        <span className="text-sm text-gray-500">3 of 8 products</span>
                       </div>
                     </div>
                   </div>
-                  
-                  {expandedDashboardCategories.has('life') && (
-                    <div className="pl-4 space-y-2 animate-in slide-in-from-top-2 duration-200">
-                      <div className="flex justify-between items-center text-sm p-2 rounded hover:bg-emerald-50 transition-colors">
-                        <span className="text-gray-600">Death Cover</span>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                          <span className="text-xs text-gray-500">€2,400/year</span>
+
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg group hover:shadow-md transition-all cursor-pointer">
+                    <div className="flex items-start space-x-3">
+                      <div className="text-2xl">📱</div>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">Digital Asset Protection</div>
+                        <div className="text-sm text-gray-600 mt-1">Covers online fraud and identity theft</div>
+                        <div className="flex items-center justify-between mt-3">
+                          <div className="text-blue-600 font-medium text-sm">€180/year</div>
+                          <Button size="sm" variant="ghost" className="text-blue-700 hover:bg-blue-100 h-6 text-xs">
+                            Learn more
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex justify-between items-center text-sm p-2 rounded hover:bg-emerald-50 transition-colors">
-                        <span className="text-gray-600">Branch 21</span>
-                        <div className="flex items-center space-x-2">
-                          <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                          <span className="text-xs text-gray-500">€1,800/year</span>
+                    </div>
+                  </div>
+
+                  <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg group hover:shadow-md transition-all cursor-pointer">
+                    <div className="flex items-start space-x-3">
+                      <div className="text-2xl">🏠</div>
+                      <div className="flex-1">
+                        <div className="font-medium text-gray-900">Home Office Coverage</div>
+                        <div className="text-sm text-gray-600 mt-1">Equipment and liability protection</div>
+                        <div className="flex items-center justify-between mt-3">
+                          <div className="text-purple-600 font-medium text-sm">€360/year</div>
+                          <Button size="sm" variant="ghost" className="text-purple-700 hover:bg-purple-100 h-6 text-xs">
+                            Get quote
+                          </Button>
                         </div>
                       </div>
-                      <div className="flex justify-between items-center text-sm p-2 rounded hover:bg-emerald-50 transition-colors">
-                        <span className="text-gray-600">Group Insurance</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
                         <div className="flex items-center space-x-2">
                           <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
                           <span className="text-xs text-gray-500">€3,200/year</span>
