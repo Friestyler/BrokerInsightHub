@@ -79,6 +79,17 @@ export default function CustomerDetailNew() {
 
   // Track configured products (products that have been set up but not necessarily saved yet)
   const [configuredProducts, setConfiguredProducts] = useState<number[]>([]);
+  const [stagedProducts, setStagedProducts] = useState<Array<{
+    templateId: number;
+    template: any;
+    customAttributes: {
+      customPrice: string;
+      customDiscountPercentage: string;
+      customPremiumPercentage: string;
+      customerContractStartDate: string;
+      customerContractEndDate: string;
+    };
+  }>>([]);
 
   // Product selection states
   const [productSearchTerm, setProductSearchTerm] = useState('');
@@ -1202,8 +1213,8 @@ export default function CustomerDetailNew() {
           </DialogHeader>
           
           <div className="flex-1 flex min-h-0">
-            {/* Left Panel - Product Selection */}
-            <div className="flex-1 flex flex-col space-y-4 pr-6 border-r min-h-0">
+            {/* Left Panel - Product Selection (narrower) */}
+            <div className="w-2/5 flex flex-col space-y-4 pr-6 border-r min-h-0">
               <div className="flex-shrink-0">
                 <Label className="text-sm font-medium text-foreground">Select Product Template</Label>
               </div>
@@ -1469,8 +1480,51 @@ export default function CustomerDetailNew() {
               )}
             </div>
 
-            {/* Right Panel - Product Details & Configuration */}
-            <div className="w-96 flex-shrink-0 pl-6 flex flex-col min-h-0">
+            {/* Right Panel - Product Details & Configuration (wider) */}
+            <div className="w-3/5 flex-shrink-0 pl-6 flex flex-col min-h-0">
+              {/* Staged Products Area */}
+              {stagedProducts.length > 0 && (
+                <div className="flex-shrink-0 mb-4">
+                  <div className="text-sm font-medium text-foreground mb-2">Configured Products ({stagedProducts.length})</div>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {stagedProducts.map((staged) => (
+                      <div key={staged.templateId} className="bg-green-50 border border-green-200 rounded-lg p-3 flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <div className="text-sm font-medium text-foreground truncate">{staged.template.name}</div>
+                          <div className="text-xs text-muted-foreground">
+                            {staged.template.providerName} • €{staged.customAttributes.customPrice || staged.template.averagePrice}
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedProductTemplate(staged.template);
+                              setCustomAttributes(staged.customAttributes);
+                            }}
+                            className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                          >
+                            Edit
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setStagedProducts(prev => prev.filter(p => p.templateId !== staged.templateId));
+                              setConfiguredProducts(prev => prev.filter(id => id !== staged.templateId));
+                            }}
+                            className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
+                          >
+                            Remove
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               {selectedProductTemplate ? (
                 <div className="flex flex-col h-full min-h-0 space-y-4">
                   {/* Selected Product Summary */}
