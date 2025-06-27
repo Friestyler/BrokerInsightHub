@@ -127,7 +127,207 @@ export default function CustomerDetailNew() {
       }
     ];
 
-    return allCategories.filter(cat => selectedCategories.includes(cat.name));
+    const filteredCategories = [];
+    
+    for (const selectedCat of selectedCategories) {
+      // Check if it's a main category
+      const mainCategory = allCategories.find(cat => cat.name === selectedCat);
+      if (mainCategory) {
+        filteredCategories.push(mainCategory);
+        continue;
+      }
+      
+      // Check if it's a subcategory - create individual category for it
+      if (selectedCat === 'Death Cover') {
+        filteredCategories.push({
+          name: 'Death Cover',
+          covered: 1,
+          total: 2,
+          percentage: 50,
+          color: 'green',
+          currentPremium: 1400,
+          potentialUplift: 2800,
+          coveredProducts: [
+            { name: 'Basic Death Cover', premium: 1400 }
+          ],
+          availableProducts: [
+            { name: 'Premium Death Cover', premium: 1400 }
+          ]
+        });
+      } else if (selectedCat === 'Branch 21') {
+        filteredCategories.push({
+          name: 'Branch 21',
+          covered: 1,
+          total: 2,
+          percentage: 50,
+          color: 'green',
+          currentPremium: 1200,
+          potentialUplift: 2400,
+          coveredProducts: [
+            { name: 'Branch 21 Savings', premium: 1200 }
+          ],
+          availableProducts: [
+            { name: 'Branch 21 Premium', premium: 1200 }
+          ]
+        });
+      } else if (selectedCat === 'Branch 23') {
+        filteredCategories.push({
+          name: 'Branch 23',
+          covered: 0,
+          total: 2,
+          percentage: 0,
+          color: 'green',
+          currentPremium: 0,
+          potentialUplift: 3000,
+          coveredProducts: [],
+          availableProducts: [
+            { name: 'Branch 23 Investment', premium: 1500 },
+            { name: 'Branch 23 Growth', premium: 1500 }
+          ]
+        });
+      } else if (selectedCat === 'Group Insurance') {
+        filteredCategories.push({
+          name: 'Group Insurance',
+          covered: 0,
+          total: 2,
+          percentage: 0,
+          color: 'green',
+          currentPremium: 0,
+          potentialUplift: 1800,
+          coveredProducts: [],
+          availableProducts: [
+            { name: 'Employee Group Plan', premium: 900 },
+            { name: 'Executive Group Plan', premium: 900 }
+          ]
+        });
+      } else if (selectedCat === 'Health') {
+        filteredCategories.push({
+          name: 'Health',
+          covered: 1,
+          total: 2,
+          percentage: 50,
+          color: 'orange',
+          currentPremium: 960,
+          potentialUplift: 1920,
+          coveredProducts: [
+            { name: 'Health Insurance Basic', premium: 960 }
+          ],
+          availableProducts: [
+            { name: 'Health Insurance Premium', premium: 960 }
+          ]
+        });
+      } else if (selectedCat === 'Auto') {
+        filteredCategories.push({
+          name: 'Auto',
+          covered: 1,
+          total: 3,
+          percentage: 33,
+          color: 'orange',
+          currentPremium: 840,
+          potentialUplift: 2520,
+          coveredProducts: [
+            { name: 'Auto Insurance Premium', premium: 840 }
+          ],
+          availableProducts: [
+            { name: 'Comprehensive Auto', premium: 840 },
+            { name: 'Commercial Auto', premium: 840 }
+          ]
+        });
+      } else if (selectedCat === 'Property') {
+        filteredCategories.push({
+          name: 'Property',
+          covered: 1,
+          total: 3,
+          percentage: 33,
+          color: 'orange',
+          currentPremium: 1200,
+          potentialUplift: 3600,
+          coveredProducts: [
+            { name: 'Home Insurance Standard', premium: 1200 }
+          ],
+          availableProducts: [
+            { name: 'Fire Insurance', premium: 800 },
+            { name: 'Property Premium', premium: 1600 }
+          ]
+        });
+      } else if (selectedCat === 'Business') {
+        filteredCategories.push({
+          name: 'Business',
+          covered: 1,
+          total: 2,
+          percentage: 50,
+          color: 'orange',
+          currentPremium: 150,
+          potentialUplift: 300,
+          coveredProducts: [
+            { name: 'Business Liability', premium: 150 }
+          ],
+          availableProducts: [
+            { name: 'Professional Indemnity', premium: 150 }
+          ]
+        });
+      } else if (selectedCat === 'Travel') {
+        filteredCategories.push({
+          name: 'Travel',
+          covered: 1,
+          total: 2,
+          percentage: 50,
+          color: 'orange',
+          currentPremium: 50,
+          potentialUplift: 100,
+          coveredProducts: [
+            { name: 'Travel Insurance', premium: 50 }
+          ],
+          availableProducts: [
+            { name: 'Business Travel', premium: 50 }
+          ]
+        });
+      } else if (selectedCat === 'Legal Services') {
+        filteredCategories.push({
+          name: 'Legal Services',
+          covered: 0,
+          total: 1,
+          percentage: 0,
+          color: 'purple',
+          currentPremium: 0,
+          potentialUplift: 650,
+          coveredProducts: [],
+          availableProducts: [
+            { name: 'Legal Services Package', premium: 650 }
+          ]
+        });
+      } else if (selectedCat === 'HR Consulting') {
+        filteredCategories.push({
+          name: 'HR Consulting',
+          covered: 0,
+          total: 1,
+          percentage: 0,
+          color: 'purple',
+          currentPremium: 0,
+          potentialUplift: 800,
+          coveredProducts: [],
+          availableProducts: [
+            { name: 'HR Consulting Services', premium: 800 }
+          ]
+        });
+      } else if (selectedCat === 'Financial Advisory') {
+        filteredCategories.push({
+          name: 'Financial Advisory',
+          covered: 0,
+          total: 1,
+          percentage: 0,
+          color: 'purple',
+          currentPremium: 0,
+          potentialUplift: 500,
+          coveredProducts: [],
+          availableProducts: [
+            { name: 'Financial Advisory', premium: 500 }
+          ]
+        });
+      }
+    }
+    
+    return filteredCategories;
   };
 
   // Calculate filtered totals
@@ -1412,7 +1612,7 @@ export default function CustomerDetailNew() {
                             {category.percentage}% Covered
                             
                             {/* Tooltip - Covered Products */}
-                            <div className="absolute left-0 top-10 z-30 w-64 p-3 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                            <div className="absolute left-0 top-full mt-2 z-50 w-64 p-3 bg-white border border-gray-200 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
                               <h4 className="font-medium text-gray-900 mb-2">{category.name} - Covered Products</h4>
                               <div className="space-y-1 text-sm">
                                 {category.coveredProducts.map((product, idx) => (
@@ -1445,7 +1645,7 @@ export default function CustomerDetailNew() {
                             {100 - category.percentage}% Not Covered
                             
                             {/* Tooltip - Available Products */}
-                            <div className="absolute left-0 top-10 z-30 w-64 p-3 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                            <div className="absolute left-0 top-full mt-2 z-50 w-64 p-3 bg-white border border-gray-200 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
                               <h4 className="font-medium text-gray-900 mb-2">{category.name} - Available Products</h4>
                               <div className="space-y-1 text-sm">
                                 {category.availableProducts.map((product, idx) => (
