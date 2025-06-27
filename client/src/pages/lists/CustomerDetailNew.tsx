@@ -1882,9 +1882,13 @@ export default function CustomerDetailNew() {
                             
                             {/* Tooltip - Covered Products */}
                             <div 
-                              className={`absolute left-0 top-full mt-2 z-[999] w-72 p-0 bg-white/90 backdrop-blur-md border border-white/20 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] transition-all duration-200 pointer-events-auto overflow-hidden ${
+                              className={`fixed left-0 top-full mt-2 z-[9999] w-72 p-0 bg-white backdrop-blur-md border border-gray-200 rounded-xl shadow-2xl transition-all duration-200 pointer-events-auto overflow-hidden ${
                                 hoveredTooltip === `${category.name}-covered` ? 'opacity-100 visible' : 'opacity-0 invisible group-hover:opacity-100 group-hover:visible'
                               }`}
+                              style={{
+                                position: 'fixed',
+                                zIndex: 10000
+                              }}
                               onMouseEnter={() => setHoveredTooltip(`${category.name}-covered`)}
                               onMouseLeave={() => setHoveredTooltip(null)}
                             >
@@ -1942,9 +1946,13 @@ export default function CustomerDetailNew() {
                             
                             {/* Tooltip - Available Products */}
                             <div 
-                              className={`absolute left-0 top-full mt-2 z-[999] w-72 p-0 bg-white/90 backdrop-blur-md border border-white/20 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] transition-all duration-200 pointer-events-auto overflow-hidden ${
+                              className={`fixed left-0 top-full mt-2 z-[9999] w-72 p-0 bg-white backdrop-blur-md border border-gray-200 rounded-xl shadow-2xl transition-all duration-200 pointer-events-auto overflow-hidden ${
                                 hoveredTooltip === `${category.name}-available` ? 'opacity-100 visible' : 'opacity-0 invisible group-hover:opacity-100 group-hover:visible'
                               }`}
+                              style={{
+                                position: 'fixed',
+                                zIndex: 10000
+                              }}
                               onMouseEnter={() => setHoveredTooltip(`${category.name}-available`)}
                               onMouseLeave={() => setHoveredTooltip(null)}
                             >
