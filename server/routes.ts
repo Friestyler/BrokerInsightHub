@@ -6722,7 +6722,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
   // ===== PRODUCT TEMPLATES API =====
 
   // Get all product templates
-  app.get('/api/:envId/product-catalogue', async (req, res) => {
+  app.get('/api/:envId/product-templates', async (req, res) => {
     try {
       const envId = req.params.envId;
       const envPool = pool;
@@ -6796,7 +6796,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
   });
 
   // Create product template
-  app.post('/api/:envId/product-catalogue', async (req, res) => {
+  app.post('/api/:envId/product-templates', async (req, res) => {
     try {
       const envId = req.params.envId;
       const { 
@@ -6864,7 +6864,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
   });
 
   // Update product template
-  app.put('/api/:envId/product-catalogue/:id', async (req, res) => {
+  app.put('/api/:envId/product-templates/:id', async (req, res) => {
     try {
       const envId = req.params.envId;
       const templateId = parseInt(req.params.id);
@@ -6938,7 +6938,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
   });
 
   // Delete product template
-  app.delete('/api/:envId/product-catalogue/:id', async (req, res) => {
+  app.delete('/api/:envId/product-templates/:id', async (req, res) => {
     try {
       const envId = req.params.envId;
       const templateId = parseInt(req.params.id);

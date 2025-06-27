@@ -194,7 +194,7 @@ export default function ProductTemplates() {
 
   // Fetch product catalogue
   const { data: productTemplates = [], isLoading } = useQuery<ProductTemplateWithCategory[]>({
-    queryKey: ['/api/product-catalogue'],
+    queryKey: ['/api/product-templates'],
   });
 
   // Fetch categories for dropdown
@@ -210,10 +210,10 @@ export default function ProductTemplates() {
   // Create product catalogue mutation
   const createMutation = useMutation({
     mutationFn: async (data: ProductTemplateFormData) => {
-      return apiRequest('POST', '/api/product-catalogue', data);
+      return apiRequest('POST', '/api/product-templates', data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/product-catalogue'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/product-templates'] });
       setCreateDialogOpen(false);
       toast({
         title: "Success",
