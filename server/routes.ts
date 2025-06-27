@@ -6734,7 +6734,23 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
           pt.*,
           c.name as category_name,
           c.color as category_color,
-          v.name as vendor_name
+          c.icon as category_icon,
+          v.name as vendor_name,
+          -- Get partner count (indirect through opportunities)
+          (SELECT COUNT(DISTINCT o.partner_id) 
+           FROM ${envId}.opportunities o 
+           JOIN ${envId}.opportunity_products op ON o.id = op.opportunity_id 
+           WHERE op.product_template_id = pt.id AND o.partner_id IS NOT NULL) as partner_count,
+          -- Get customer count (direct assignments)
+          (SELECT COUNT(DISTINCT c.id)
+           FROM ${envId}.customers c
+           JOIN ${envId}.customer_products cp ON c.id = cp.customer_id
+           WHERE cp.product_template_id = pt.id) as customer_count,
+          -- Get opportunity count
+          (SELECT COUNT(DISTINCT o.id)
+           FROM ${envId}.opportunities o
+           JOIN ${envId}.opportunity_products op ON o.id = op.opportunity_id
+           WHERE op.product_template_id = pt.id) as opportunity_count
         FROM ${envId}.product_templates pt
         LEFT JOIN ${envId}.categories c ON pt.category_id = c.id
         LEFT JOIN ${envId}.vendors v ON pt.vendor_id = v.id
@@ -6768,7 +6784,11 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         updatedAt: row.updated_at,
         categoryName: row.category_name,
         categoryColor: row.category_color,
-        vendorName: row.vendor_name
+        categoryIcon: row.category_icon,
+        vendorName: row.vendor_name,
+        partnerCount: parseInt(row.partner_count) || 0,
+        customerCount: parseInt(row.customer_count) || 0,
+        opportunityCount: parseInt(row.opportunity_count) || 0
       }));
       
       res.json(transformedRows);
