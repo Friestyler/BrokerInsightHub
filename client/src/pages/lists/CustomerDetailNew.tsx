@@ -596,6 +596,49 @@ export default function CustomerDetailNew() {
     },
   });
 
+  // Mutation for creating opportunities from product lists
+  const createOpportunitiesMutation = useMutation({
+    mutationFn: async (products: any[]) => {
+      const opportunities = products.map((product, index) => ({
+        title: `${product.name} - Cross-sell Opportunity`,
+        description: `Cross-sell opportunity for ${product.name} product`,
+        estimatedValue: product.premium || 5000,
+        probability: 50,
+        stage: 'Qualification',
+        insuranceType: 'Cross-sell',
+        customerId: parseInt(id!),
+        accountManagerId: 1,
+        products: [product.name]
+      }));
+      
+      const results = await Promise.all(
+        opportunities.map(opp => apiRequest('POST', '/api/opportunities', opp))
+      );
+      
+      return results;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/customers/${id}/opportunities`] });
+      toast({
+        title: "Success",
+        description: `Created ${selectedTooltipProducts.length} opportunities successfully`,
+      });
+      setIsProductListDialogOpen(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: "Failed to create opportunities",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle opportunity creation from product list
+  const handleCreateOpportunityList = () => {
+    createOpportunitiesMutation.mutate(selectedTooltipProducts);
+  };
+
   // Initialize dialog data when it opens (after customer is declared)
   useEffect(() => {
     if (showDetailsDialog && customer) {
