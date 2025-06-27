@@ -762,6 +762,7 @@ export default function CustomerDetailNew() {
                 <TableRow>
                   <TableHead className="w-12"><Checkbox /></TableHead>
                   <TableHead>Product Name</TableHead>
+                  <TableHead>Description</TableHead>
                   <TableHead>Product ID</TableHead>
                   <TableHead>Provider</TableHead>
                   <TableHead>Category</TableHead>
@@ -786,13 +787,11 @@ export default function CustomerDetailNew() {
                           <div className="font-medium text-gray-900">
                             {assignment.productname || 'Unknown Product'}
                           </div>
-                          {assignment.productdescription && (
-                            <div className="text-sm text-gray-500">
-                              {assignment.productdescription}
-                            </div>
-                          )}
                         </div>
                       </div>
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-600">
+                      {assignment.productdescription || 'No description'}
                     </TableCell>
                     <TableCell className="text-sm text-gray-600">
                       {assignment.producttemplateid || 'N/A'}
