@@ -998,7 +998,7 @@ export default function ProductTemplates() {
       {activeTab === 'templates' && (
         <div className="mx-4">
           <div className="flex items-center justify-between mb-6">
-            <span className="text-gray-600">Product Lists</span>
+            <span className="text-[#111827] font-medium text-[15px]">Product Lists</span>
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
