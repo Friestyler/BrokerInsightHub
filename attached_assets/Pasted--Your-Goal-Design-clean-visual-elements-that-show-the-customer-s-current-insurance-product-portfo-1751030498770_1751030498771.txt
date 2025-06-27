@@ -1,0 +1,39 @@
+🎯 Your Goal
+Design clean, visual elements that show the customer’s current insurance product portfolio, with immediate clarity on:
+1. Which categories the customer is active in
+2. Which products they have per category
+3. Which contracts are expiring soon (e.g. within 90 days)
+4. Which complementary products could be added
+5. What the next best commercial action is (renew, new products, launch a campaign, share with a partner)
+
+Interface Rules
+• Do NOT use long lists
+• Use visualizations to drive insight:
+• Radial charts, progress rings, punch cards, bar segments, category grids, or timelines
+• Think: Apple Health, Google Finance, Stripe Analytics
+• Emphasize:
+• Coverage per category (visually show what’s present and how much isn't)
+• Contract timeline per product (e.g. expiring soon = red, renewed = green)
+• Cross & up-sell potential: show empty or suggestive product spaces subtly (no “white space” label yet)
+• Prioritize clarity, hierarchy, elegance
+• Add inline action cards or buttons like:
+• "View list of opportunities" "Share list of opportunities with partner" "Add to a campaign"
+
+✨ Suggested Components & Ideas (but feel free to innovate)
+• Category grid with coverage rings: show what % of that category is covered by the customer
+• Horizontal timeline slider: showing contract end dates over the next 12 months
+• Bubble chart or chord diagram: to connect owned products with upsell suggestions
+• Summary callout blocks:
+• “2 contracts expiring in 30 days”
+• “Customer has 1 product in Disability – consider x”
+
+🧭 Design Style
+• Use shadcn/ui components
+• Match the Google or Apple aesthetic: minimal, clean, tactile
+• Think visuals for action, not admin report
+• Every element should answer a question/ provoke a follow-up
+
+An interface where someone can see a beautiful and visual portfolio snapshot, and say:
+👉 “Ah, I see what the cross and upsell opportunities are at this customer”
+👉 “They only have one product in Health – I should suggest X,”
+👉 “Let’s push that bundle before end of quarter.”

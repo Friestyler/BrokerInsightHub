@@ -96,6 +96,11 @@ export default function CustomerDetailNew() {
   const [productSearchTerm, setProductSearchTerm] = useState('');
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<number | null>(null);
   const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set());
+  
+  // Product dashboard interactive state
+  const [expandedDashboardCategories, setExpandedDashboardCategories] = useState<Set<string>>(new Set());
+  const [selectedTimelineFilter, setSelectedTimelineFilter] = useState("all");
+  const [hoveredOpportunity, setHoveredOpportunity] = useState<string | null>(null);
 
   // Handle tab parameter from URL or sessionStorage
   useEffect(() => {
@@ -852,10 +857,10 @@ export default function CustomerDetailNew() {
             {/* Summary Cards */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {/* Active Coverage */}
-              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center group-hover:bg-emerald-200 transition-colors">
                       <Shield className="w-5 h-5 text-emerald-600" />
                     </div>
                     <div>
@@ -863,21 +868,24 @@ export default function CustomerDetailNew() {
                       <p className="text-sm text-gray-500">Products in force</p>
                     </div>
                   </div>
-                  <div className="text-2xl font-bold text-gray-900">7</div>
+                  <div className="text-2xl font-bold text-gray-900 group-hover:scale-110 transition-transform">7</div>
                 </div>
-                <div className="flex items-center text-sm">
+                <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center text-emerald-600 mr-2">
                     <TrendingUp className="w-4 h-4 mr-1" />
                     +2 this quarter
+                  </div>
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ChevronRight className="w-4 h-4 text-gray-400" />
                   </div>
                 </div>
               </div>
 
               {/* Expiring Soon */}
-              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                    <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center group-hover:bg-orange-200 transition-colors">
                       <Clock className="w-5 h-5 text-orange-600" />
                     </div>
                     <div>
@@ -885,21 +893,24 @@ export default function CustomerDetailNew() {
                       <p className="text-sm text-gray-500">Next 90 days</p>
                     </div>
                   </div>
-                  <div className="text-2xl font-bold text-orange-600">2</div>
+                  <div className="text-2xl font-bold text-orange-600 group-hover:scale-110 transition-transform">2</div>
                 </div>
-                <div className="flex items-center text-sm">
+                <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center text-orange-600 mr-2">
                     <AlertTriangle className="w-4 h-4 mr-1" />
                     Action required
+                  </div>
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ChevronRight className="w-4 h-4 text-gray-400" />
                   </div>
                 </div>
               </div>
 
               {/* Opportunities */}
-              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6 hover:shadow-lg transition-all duration-300 cursor-pointer group">
                 <div className="flex items-center justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center group-hover:bg-blue-200 transition-colors">
                       <Target className="w-5 h-5 text-blue-600" />
                     </div>
                     <div>
@@ -907,12 +918,15 @@ export default function CustomerDetailNew() {
                       <p className="text-sm text-gray-500">High-potential gaps</p>
                     </div>
                   </div>
-                  <div className="text-2xl font-bold text-blue-600">4</div>
+                  <div className="text-2xl font-bold text-blue-600 group-hover:scale-110 transition-transform">4</div>
                 </div>
-                <div className="flex items-center text-sm">
+                <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center text-blue-600 mr-2">
                     <Zap className="w-4 h-4 mr-1" />
                     €12K potential value
+                  </div>
+                  <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ChevronRight className="w-4 h-4 text-gray-400" />
                   </div>
                 </div>
               </div>
@@ -936,109 +950,283 @@ export default function CustomerDetailNew() {
               
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Life Insurance */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
-                      <span className="font-medium text-gray-900">Life Insurance</span>
+                <div 
+                  className="space-y-4 cursor-pointer group"
+                  onClick={() => {
+                    const newExpanded = new Set(expandedDashboardCategories);
+                    if (newExpanded.has('life')) {
+                      newExpanded.delete('life');
+                    } else {
+                      newExpanded.add('life');
+                    }
+                    setExpandedDashboardCategories(newExpanded);
+                  }}
+                >
+                  <div className="flex items-center justify-between p-3 rounded-lg group-hover:bg-emerald-50 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      {/* Progress Ring */}
+                      <div className="relative w-12 h-12">
+                        <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
+                          <path
+                            d="M18 2.0845
+                              a 15.9155 15.9155 0 0 1 0 31.831
+                              a 15.9155 15.9155 0 0 1 0 -31.831"
+                            fill="none"
+                            stroke="#e5e7eb"
+                            strokeWidth="3"
+                          />
+                          <path
+                            d="M18 2.0845
+                              a 15.9155 15.9155 0 0 1 0 31.831
+                              a 15.9155 15.9155 0 0 1 0 -31.831"
+                            fill="none"
+                            stroke="#10b981"
+                            strokeWidth="3"
+                            strokeDasharray="37.5, 100"
+                            className="transition-all duration-1000 ease-out"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-xs font-medium text-emerald-600">38%</span>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium text-gray-900">Life Insurance</span>
+                          <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${
+                            expandedDashboardCategories.has('life') ? 'transform rotate-180' : ''
+                          }`} />
+                        </div>
+                        <span className="text-sm text-gray-500">3 of 8 products</span>
+                      </div>
                     </div>
-                    <span className="text-sm text-gray-500">3 of 8 products</span>
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Death Cover</span>
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                  
+                  {expandedDashboardCategories.has('life') && (
+                    <div className="pl-4 space-y-2 animate-in slide-in-from-top-2 duration-200">
+                      <div className="flex justify-between items-center text-sm p-2 rounded hover:bg-emerald-50 transition-colors">
+                        <span className="text-gray-600">Death Cover</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                          <span className="text-xs text-gray-500">€2,400/year</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center text-sm p-2 rounded hover:bg-emerald-50 transition-colors">
+                        <span className="text-gray-600">Branch 21</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                          <span className="text-xs text-gray-500">€1,800/year</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center text-sm p-2 rounded hover:bg-emerald-50 transition-colors">
+                        <span className="text-gray-600">Group Insurance</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                          <span className="text-xs text-gray-500">€3,200/year</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center text-sm p-2 rounded hover:bg-gray-50 transition-colors border-t pt-3 mt-3">
+                        <span className="text-gray-400">Branch 23</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
+                          <Button variant="ghost" size="sm" className="h-6 text-xs text-blue-600">
+                            Add product
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center text-sm p-2 rounded hover:bg-gray-50 transition-colors">
+                        <span className="text-gray-400">Pension Savings</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
+                          <Button variant="ghost" size="sm" className="h-6 text-xs text-blue-600">
+                            Add product
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Branch 21</span>
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Group Insurance</span>
-                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Branch 23</span>
-                      <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Pension Savings</span>
-                      <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
-                    </div>
-                  </div>
-                  <div className="pt-2">
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-emerald-500 h-2 rounded-full" style={{width: '37.5%'}}></div>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Non-Life Insurance */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                      <span className="font-medium text-gray-900">Non-Life Insurance</span>
+                <div 
+                  className="space-y-4 cursor-pointer group"
+                  onClick={() => {
+                    const newExpanded = new Set(expandedDashboardCategories);
+                    if (newExpanded.has('nonlife')) {
+                      newExpanded.delete('nonlife');
+                    } else {
+                      newExpanded.add('nonlife');
+                    }
+                    setExpandedDashboardCategories(newExpanded);
+                  }}
+                >
+                  <div className="flex items-center justify-between p-3 rounded-lg group-hover:bg-blue-50 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      {/* Progress Ring */}
+                      <div className="relative w-12 h-12">
+                        <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
+                          <path
+                            d="M18 2.0845
+                              a 15.9155 15.9155 0 0 1 0 31.831
+                              a 15.9155 15.9155 0 0 1 0 -31.831"
+                            fill="none"
+                            stroke="#e5e7eb"
+                            strokeWidth="3"
+                          />
+                          <path
+                            d="M18 2.0845
+                              a 15.9155 15.9155 0 0 1 0 31.831
+                              a 15.9155 15.9155 0 0 1 0 -31.831"
+                            fill="none"
+                            stroke="#3b82f6"
+                            strokeWidth="3"
+                            strokeDasharray="25, 100"
+                            className="transition-all duration-1000 ease-out"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-xs font-medium text-blue-600">25%</span>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium text-gray-900">Non-Life Insurance</span>
+                          <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${
+                            expandedDashboardCategories.has('nonlife') ? 'transform rotate-180' : ''
+                          }`} />
+                        </div>
+                        <span className="text-sm text-gray-500">3 of 12 products</span>
+                      </div>
                     </div>
-                    <span className="text-sm text-gray-500">3 of 12 products</span>
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Health Insurance</span>
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                  
+                  {expandedDashboardCategories.has('nonlife') && (
+                    <div className="pl-4 space-y-2 animate-in slide-in-from-top-2 duration-200">
+                      <div className="flex justify-between items-center text-sm p-2 rounded hover:bg-blue-50 transition-colors">
+                        <span className="text-gray-600">Health Insurance</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <span className="text-xs text-gray-500">€1,200/year</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center text-sm p-2 rounded hover:bg-blue-50 transition-colors">
+                        <span className="text-gray-600">Auto Insurance</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <span className="text-xs text-gray-500">€850/year</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center text-sm p-2 rounded hover:bg-blue-50 transition-colors">
+                        <span className="text-gray-600">Home Insurance</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          <span className="text-xs text-gray-500">€680/year</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center text-sm p-2 rounded hover:bg-gray-50 transition-colors border-t pt-3 mt-3">
+                        <span className="text-gray-400">Business Insurance</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
+                          <Button variant="ghost" size="sm" className="h-6 text-xs text-blue-600">
+                            Add product
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center text-sm p-2 rounded hover:bg-gray-50 transition-colors">
+                        <span className="text-gray-400">Travel Insurance</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
+                          <Button variant="ghost" size="sm" className="h-6 text-xs text-blue-600">
+                            Add product
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Auto Insurance</span>
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Home Insurance</span>
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Business Insurance</span>
-                      <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Travel Insurance</span>
-                      <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
-                    </div>
-                  </div>
-                  <div className="pt-2">
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-blue-500 h-2 rounded-full" style={{width: '25%'}}></div>
-                    </div>
-                  </div>
+                  )}
                 </div>
 
                 {/* Services */}
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                      <span className="font-medium text-gray-900">Services</span>
+                <div 
+                  className="space-y-4 cursor-pointer group"
+                  onClick={() => {
+                    const newExpanded = new Set(expandedDashboardCategories);
+                    if (newExpanded.has('services')) {
+                      newExpanded.delete('services');
+                    } else {
+                      newExpanded.add('services');
+                    }
+                    setExpandedDashboardCategories(newExpanded);
+                  }}
+                >
+                  <div className="flex items-center justify-between p-3 rounded-lg group-hover:bg-purple-50 transition-colors">
+                    <div className="flex items-center space-x-3">
+                      {/* Progress Ring */}
+                      <div className="relative w-12 h-12">
+                        <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 36 36">
+                          <path
+                            d="M18 2.0845
+                              a 15.9155 15.9155 0 0 1 0 31.831
+                              a 15.9155 15.9155 0 0 1 0 -31.831"
+                            fill="none"
+                            stroke="#e5e7eb"
+                            strokeWidth="3"
+                          />
+                          <path
+                            d="M18 2.0845
+                              a 15.9155 15.9155 0 0 1 0 31.831
+                              a 15.9155 15.9155 0 0 1 0 -31.831"
+                            fill="none"
+                            stroke="#8b5cf6"
+                            strokeWidth="3"
+                            strokeDasharray="33, 100"
+                            className="transition-all duration-1000 ease-out"
+                          />
+                        </svg>
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-xs font-medium text-purple-600">33%</span>
+                        </div>
+                      </div>
+                      <div>
+                        <div className="flex items-center space-x-2">
+                          <span className="font-medium text-gray-900">Services</span>
+                          <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${
+                            expandedDashboardCategories.has('services') ? 'transform rotate-180' : ''
+                          }`} />
+                        </div>
+                        <span className="text-sm text-gray-500">1 of 3 products</span>
+                      </div>
                     </div>
-                    <span className="text-sm text-gray-500">1 of 3 products</span>
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Financial Advisory</span>
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                  
+                  {expandedDashboardCategories.has('services') && (
+                    <div className="pl-4 space-y-2 animate-in slide-in-from-top-2 duration-200">
+                      <div className="flex justify-between items-center text-sm p-2 rounded hover:bg-purple-50 transition-colors">
+                        <span className="text-gray-600">Financial Advisory</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                          <span className="text-xs text-gray-500">€2,400/year</span>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center text-sm p-2 rounded hover:bg-gray-50 transition-colors border-t pt-3 mt-3">
+                        <span className="text-gray-400">Legal Services</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
+                          <Button variant="ghost" size="sm" className="h-6 text-xs text-blue-600">
+                            Add product
+                          </Button>
+                        </div>
+                      </div>
+                      <div className="flex justify-between items-center text-sm p-2 rounded hover:bg-gray-50 transition-colors">
+                        <span className="text-gray-400">Tax Planning</span>
+                        <div className="flex items-center space-x-2">
+                          <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
+                          <Button variant="ghost" size="sm" className="h-6 text-xs text-blue-600">
+                            Add product
+                          </Button>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Legal Services</span>
-                      <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-400">Tax Planning</span>
-                      <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
-                    </div>
-                  </div>
-                  <div className="pt-2">
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-purple-500 h-2 rounded-full" style={{width: '33%'}}></div>
-                    </div>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1047,7 +1235,34 @@ export default function CustomerDetailNew() {
             <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
               <div className="flex items-center justify-between mb-6">
                 <h3 className="text-lg font-semibold text-gray-900">Contract Timeline</h3>
-                <div className="text-sm text-gray-500">Next 12 months</div>
+                <div className="flex items-center space-x-2">
+                  <div className="flex items-center space-x-1">
+                    <Button 
+                      variant={selectedTimelineFilter === "all" ? "default" : "ghost"} 
+                      size="sm" 
+                      className="h-7 text-xs"
+                      onClick={() => setSelectedTimelineFilter("all")}
+                    >
+                      All
+                    </Button>
+                    <Button 
+                      variant={selectedTimelineFilter === "urgent" ? "default" : "ghost"} 
+                      size="sm" 
+                      className="h-7 text-xs"
+                      onClick={() => setSelectedTimelineFilter("urgent")}
+                    >
+                      Urgent
+                    </Button>
+                    <Button 
+                      variant={selectedTimelineFilter === "upcoming" ? "default" : "ghost"} 
+                      size="sm" 
+                      className="h-7 text-xs"
+                      onClick={() => setSelectedTimelineFilter("upcoming")}
+                    >
+                      Upcoming
+                    </Button>
+                  </div>
+                </div>
               </div>
               
               <div className="relative">
@@ -1056,59 +1271,77 @@ export default function CustomerDetailNew() {
                 
                 {/* Timeline items */}
                 <div className="relative space-y-4">
-                  <div className="flex items-center">
-                    <div className="w-4 h-4 bg-red-500 rounded-full z-10 relative"></div>
-                    <div className="ml-4 flex-1">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-medium text-gray-900">Auto Insurance - Premium Plan</div>
-                          <div className="text-sm text-gray-500">Expires Feb 15, 2025</div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm text-red-600 font-medium">19 days</span>
-                          <Button variant="outline" size="sm" className="h-8">
-                            Renew
-                          </Button>
+                  {(selectedTimelineFilter === "all" || selectedTimelineFilter === "urgent") && (
+                    <div className="flex items-center group hover:bg-red-50 rounded-lg p-2 transition-colors cursor-pointer">
+                      <div className="w-4 h-4 bg-red-500 rounded-full z-10 relative group-hover:scale-110 transition-transform"></div>
+                      <div className="ml-4 flex-1">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-medium text-gray-900">Auto Insurance - Premium Plan</div>
+                            <div className="text-sm text-gray-500">Expires Feb 15, 2025</div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm text-red-600 font-medium bg-red-100 px-2 py-1 rounded-full">19 days</span>
+                            <Button variant="outline" size="sm" className="h-8 opacity-60 group-hover:opacity-100 transition-opacity">
+                              Renew
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                   
-                  <div className="flex items-center">
-                    <div className="w-4 h-4 bg-orange-500 rounded-full z-10 relative"></div>
-                    <div className="ml-4 flex-1">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-medium text-gray-900">Home Insurance - Comprehensive</div>
-                          <div className="text-sm text-gray-500">Expires Apr 22, 2025</div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm text-orange-600 font-medium">85 days</span>
-                          <Button variant="outline" size="sm" className="h-8">
-                            Review
-                          </Button>
+                  {(selectedTimelineFilter === "all" || selectedTimelineFilter === "upcoming") && (
+                    <div className="flex items-center group hover:bg-orange-50 rounded-lg p-2 transition-colors cursor-pointer">
+                      <div className="w-4 h-4 bg-orange-500 rounded-full z-10 relative group-hover:scale-110 transition-transform"></div>
+                      <div className="ml-4 flex-1">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-medium text-gray-900">Home Insurance - Comprehensive</div>
+                            <div className="text-sm text-gray-500">Expires Apr 22, 2025</div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm text-orange-600 font-medium bg-orange-100 px-2 py-1 rounded-full">85 days</span>
+                            <Button variant="outline" size="sm" className="h-8 opacity-60 group-hover:opacity-100 transition-opacity">
+                              Review
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  )}
                   
-                  <div className="flex items-center">
-                    <div className="w-4 h-4 bg-green-500 rounded-full z-10 relative"></div>
-                    <div className="ml-4 flex-1">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-medium text-gray-900">Death Cover - Family Plan</div>
-                          <div className="text-sm text-gray-500">Expires Aug 10, 2025</div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <span className="text-sm text-green-600 font-medium">195 days</span>
-                          <Button variant="ghost" size="sm" className="h-8">
-                            Monitor
-                          </Button>
+                  {(selectedTimelineFilter === "all" || selectedTimelineFilter === "upcoming") && (
+                    <div className="flex items-center group hover:bg-green-50 rounded-lg p-2 transition-colors cursor-pointer">
+                      <div className="w-4 h-4 bg-green-500 rounded-full z-10 relative group-hover:scale-110 transition-transform"></div>
+                      <div className="ml-4 flex-1">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-medium text-gray-900">Death Cover - Family Plan</div>
+                            <div className="text-sm text-gray-500">Expires Aug 10, 2025</div>
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm text-green-600 font-medium bg-green-100 px-2 py-1 rounded-full">195 days</span>
+                            <Button variant="ghost" size="sm" className="h-8 opacity-60 group-hover:opacity-100 transition-opacity">
+                              Monitor
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  )}
+                  
+                  {selectedTimelineFilter !== "all" && selectedTimelineFilter === "urgent" && (
+                    <div className="text-center py-4 text-gray-500 text-sm">
+                      1 contract requires urgent attention
+                    </div>
+                  )}
+                  
+                  {selectedTimelineFilter !== "all" && selectedTimelineFilter === "upcoming" && (
+                    <div className="text-center py-4 text-gray-500 text-sm">
+                      2 contracts up for review
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -1123,10 +1356,14 @@ export default function CustomerDetailNew() {
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div 
+                  className="bg-blue-50 border border-blue-200 rounded-lg p-4 cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 group"
+                  onMouseEnter={() => setHoveredOpportunity("business")}
+                  onMouseLeave={() => setHoveredOpportunity(null)}
+                >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                      <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                         <Briefcase className="w-4 h-4 text-white" />
                       </div>
                       <div>
@@ -1134,25 +1371,34 @@ export default function CustomerDetailNew() {
                         <div className="text-sm text-gray-500">High potential match</div>
                       </div>
                     </div>
-                    <div className="text-sm font-medium text-blue-600">€4,500</div>
+                    <div className="text-sm font-medium text-blue-600 group-hover:text-blue-700">€4,500</div>
                   </div>
-                  <p className="text-sm text-gray-600 mb-3">
+                  <p className="text-sm text-gray-600 mb-3 group-hover:text-gray-700 transition-colors">
                     Customer has home and auto insurance but no business coverage. Similar profiles show 78% conversion rate.
                   </p>
+                  {hoveredOpportunity === "business" && (
+                    <div className="mb-3 p-2 bg-blue-100 rounded text-xs text-blue-800 animate-in slide-in-from-bottom-2 duration-200">
+                      💡 Best time to approach: Within 30 days of auto insurance renewal
+                    </div>
+                  )}
                   <div className="flex space-x-2">
-                    <Button size="sm" className="h-8 bg-[#5567E5] text-white hover:bg-[#4556D4]">
+                    <Button size="sm" className="h-8 bg-[#5567E5] text-white hover:bg-[#4556D4] transition-all">
                       Add to campaign
                     </Button>
-                    <Button variant="outline" size="sm" className="h-8">
+                    <Button variant="outline" size="sm" className="h-8 group-hover:border-blue-300 transition-colors">
                       Share with partner
                     </Button>
                   </div>
                 </div>
 
-                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                <div 
+                  className="bg-purple-50 border border-purple-200 rounded-lg p-4 cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 group"
+                  onMouseEnter={() => setHoveredOpportunity("travel")}
+                  onMouseLeave={() => setHoveredOpportunity(null)}
+                >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                      <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                         <Plane className="w-4 h-4 text-white" />
                       </div>
                       <div>
@@ -1160,25 +1406,34 @@ export default function CustomerDetailNew() {
                         <div className="text-sm text-gray-500">Bundle opportunity</div>
                       </div>
                     </div>
-                    <div className="text-sm font-medium text-purple-600">€480</div>
+                    <div className="text-sm font-medium text-purple-600 group-hover:text-purple-700">€480</div>
                   </div>
-                  <p className="text-sm text-gray-600 mb-3">
+                  <p className="text-sm text-gray-600 mb-3 group-hover:text-gray-700 transition-colors">
                     Perfect add-on to existing life insurance. Can be bundled with current Death Cover renewal.
                   </p>
+                  {hoveredOpportunity === "travel" && (
+                    <div className="mb-3 p-2 bg-purple-100 rounded text-xs text-purple-800 animate-in slide-in-from-bottom-2 duration-200">
+                      🎯 Bundle with Death Cover renewal for 15% discount
+                    </div>
+                  )}
                   <div className="flex space-x-2">
-                    <Button size="sm" className="h-8 bg-[#5567E5] text-white hover:bg-[#4556D4]">
+                    <Button size="sm" className="h-8 bg-[#5567E5] text-white hover:bg-[#4556D4] transition-all">
                       Add to campaign
                     </Button>
-                    <Button variant="outline" size="sm" className="h-8">
+                    <Button variant="outline" size="sm" className="h-8 group-hover:border-purple-300 transition-colors">
                       Share with partner
                     </Button>
                   </div>
                 </div>
 
-                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                <div 
+                  className="bg-emerald-50 border border-emerald-200 rounded-lg p-4 cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 group"
+                  onMouseEnter={() => setHoveredOpportunity("pension")}
+                  onMouseLeave={() => setHoveredOpportunity(null)}
+                >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+                      <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                         <PiggyBank className="w-4 h-4 text-white" />
                       </div>
                       <div>
@@ -1186,25 +1441,34 @@ export default function CustomerDetailNew() {
                         <div className="text-sm text-gray-500">Life stage match</div>
                       </div>
                     </div>
-                    <div className="text-sm font-medium text-emerald-600">€3,200</div>
+                    <div className="text-sm font-medium text-emerald-600 group-hover:text-emerald-700">€3,200</div>
                   </div>
-                  <p className="text-sm text-gray-600 mb-3">
+                  <p className="text-sm text-gray-600 mb-3 group-hover:text-gray-700 transition-colors">
                     Customer age and income profile suggest retirement planning need. Strong complement to existing life products.
                   </p>
+                  {hoveredOpportunity === "pension" && (
+                    <div className="mb-3 p-2 bg-emerald-100 rounded text-xs text-emerald-800 animate-in slide-in-from-bottom-2 duration-200">
+                      ⏰ Tax year deadline: December 31st - €2,350 max benefit
+                    </div>
+                  )}
                   <div className="flex space-x-2">
-                    <Button size="sm" className="h-8 bg-[#5567E5] text-white hover:bg-[#4556D4]">
+                    <Button size="sm" className="h-8 bg-[#5567E5] text-white hover:bg-[#4556D4] transition-all">
                       Add to campaign
                     </Button>
-                    <Button variant="outline" size="sm" className="h-8">
+                    <Button variant="outline" size="sm" className="h-8 group-hover:border-emerald-300 transition-colors">
                       Share with partner
                     </Button>
                   </div>
                 </div>
 
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                <div 
+                  className="bg-amber-50 border border-amber-200 rounded-lg p-4 cursor-pointer transition-all duration-300 hover:shadow-xl hover:scale-105 group"
+                  onMouseEnter={() => setHoveredOpportunity("legal")}
+                  onMouseLeave={() => setHoveredOpportunity(null)}
+                >
                   <div className="flex items-center justify-between mb-3">
                     <div className="flex items-center space-x-2">
-                      <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center">
+                      <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform">
                         <Scale className="w-4 h-4 text-white" />
                       </div>
                       <div>
@@ -1212,16 +1476,21 @@ export default function CustomerDetailNew() {
                         <div className="text-sm text-gray-500">Service upsell</div>
                       </div>
                     </div>
-                    <div className="text-sm font-medium text-amber-600">€720</div>
+                    <div className="text-sm font-medium text-amber-600 group-hover:text-amber-700">€720</div>
                   </div>
-                  <p className="text-sm text-gray-600 mb-3">
+                  <p className="text-sm text-gray-600 mb-3 group-hover:text-gray-700 transition-colors">
                     Add legal advisory services to complement existing financial advisory. Increases customer lifetime value.
                   </p>
+                  {hoveredOpportunity === "legal" && (
+                    <div className="mb-3 p-2 bg-amber-100 rounded text-xs text-amber-800 animate-in slide-in-from-bottom-2 duration-200">
+                      📋 Cross-sell with existing financial advisory for package discount
+                    </div>
+                  )}
                   <div className="flex space-x-2">
-                    <Button size="sm" className="h-8 bg-[#5567E5] text-white hover:bg-[#4556D4]">
+                    <Button size="sm" className="h-8 bg-[#5567E5] text-white hover:bg-[#4556D4] transition-all">
                       Add to campaign
                     </Button>
-                    <Button variant="outline" size="sm" className="h-8">
+                    <Button variant="outline" size="sm" className="h-8 group-hover:border-amber-300 transition-colors">
                       Share with partner
                     </Button>
                   </div>
