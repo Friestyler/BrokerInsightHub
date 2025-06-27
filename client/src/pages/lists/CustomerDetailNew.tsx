@@ -1600,32 +1600,36 @@ export default function CustomerDetailNew() {
                     </div>
                   
                     <div className="relative mb-20">
-                      <div className="flex h-8 bg-gray-200 rounded-lg overflow-hidden cursor-pointer">
+                      <div className="flex h-8 bg-gray-200 rounded-lg overflow-visible cursor-pointer">
                         {category.percentage > 0 && (
                           <div 
                             className={`${
                               category.color === 'green' ? 'bg-green-500 hover:bg-green-600' :
                               category.color === 'orange' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-gray-500 hover:bg-gray-600'
-                            } flex items-center justify-center text-white text-xs font-medium transition-colors relative group`}
+                            } flex items-center justify-center text-white text-xs font-medium transition-colors relative group rounded-l-lg`}
                             style={{ width: `${category.percentage}%` }}
                           >
                             {category.percentage}% Covered
                             
                             {/* Tooltip - Covered Products */}
-                            <div className="absolute left-0 top-full mt-2 z-50 w-64 p-3 bg-white border border-gray-200 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                              <h4 className="font-medium text-gray-900 mb-2">{category.name} - Covered Products</h4>
-                              <div className="space-y-1 text-sm">
-                                {category.coveredProducts.map((product, idx) => (
-                                  <div key={idx} className="flex justify-between">
-                                    <span className="text-gray-600">{product.name}</span>
-                                    <span className={`font-medium ${
-                                      category.color === 'green' ? 'text-green-600' :
-                                      category.color === 'orange' ? 'text-orange-600' : 'text-gray-600'
-                                    }`}>€{product.premium.toLocaleString()}/year</span>
-                                  </div>
-                                ))}
-                                <hr className="my-2" />
-                                <div className="flex justify-between font-medium">
+                            <div className="absolute left-0 top-full mt-2 z-[100] w-72 p-4 bg-white border border-gray-200 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none">
+                              <h4 className="font-semibold text-gray-900 mb-3">{category.name} - Covered Products</h4>
+                              <div className="space-y-2 text-sm">
+                                {category.coveredProducts && category.coveredProducts.length > 0 ? (
+                                  category.coveredProducts.map((product, idx) => (
+                                    <div key={idx} className="flex justify-between items-center">
+                                      <span className="text-gray-700">{product.name}</span>
+                                      <span className={`font-semibold ${
+                                        category.color === 'green' ? 'text-green-600' :
+                                        category.color === 'orange' ? 'text-orange-600' : 'text-gray-600'
+                                      }`}>€{product.premium.toLocaleString()}/year</span>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div className="text-gray-500 italic">No covered products</div>
+                                )}
+                                <hr className="my-3 border-gray-200" />
+                                <div className="flex justify-between items-center font-semibold">
                                   <span className="text-gray-900">Total Coverage</span>
                                   <span className={`${
                                     category.color === 'green' ? 'text-green-600' :
@@ -1639,23 +1643,29 @@ export default function CustomerDetailNew() {
                         
                         {category.percentage < 100 && (
                           <div 
-                            className="bg-gray-300 flex items-center justify-center text-gray-700 text-xs font-medium hover:bg-gray-400 transition-colors relative group"
+                            className={`bg-gray-300 flex items-center justify-center text-gray-700 text-xs font-medium hover:bg-gray-400 transition-colors relative group ${
+                              category.percentage > 0 ? 'rounded-r-lg' : 'rounded-lg'
+                            }`}
                             style={{ width: `${100 - category.percentage}%` }}
                           >
                             {100 - category.percentage}% Not Covered
                             
                             {/* Tooltip - Available Products */}
-                            <div className="absolute left-0 top-full mt-2 z-50 w-64 p-3 bg-white border border-gray-200 rounded-lg shadow-xl opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                              <h4 className="font-medium text-gray-900 mb-2">{category.name} - Available Products</h4>
-                              <div className="space-y-1 text-sm">
-                                {category.availableProducts.map((product, idx) => (
-                                  <div key={idx} className="flex justify-between">
-                                    <span className="text-gray-600">{product.name}</span>
-                                    <span className="font-medium text-gray-500">€{product.premium.toLocaleString()}/year</span>
-                                  </div>
-                                ))}
-                                <hr className="my-2" />
-                                <div className="flex justify-between font-medium">
+                            <div className="absolute left-0 top-full mt-2 z-[100] w-72 p-4 bg-white border border-gray-200 rounded-lg shadow-2xl opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 pointer-events-none">
+                              <h4 className="font-semibold text-gray-900 mb-3">{category.name} - Available Products</h4>
+                              <div className="space-y-2 text-sm">
+                                {category.availableProducts && category.availableProducts.length > 0 ? (
+                                  category.availableProducts.map((product, idx) => (
+                                    <div key={idx} className="flex justify-between items-center">
+                                      <span className="text-gray-700">{product.name}</span>
+                                      <span className="font-semibold text-blue-600">€{product.premium.toLocaleString()}/year</span>
+                                    </div>
+                                  ))
+                                ) : (
+                                  <div className="text-gray-500 italic">No available products</div>
+                                )}
+                                <hr className="my-3 border-gray-200" />
+                                <div className="flex justify-between items-center font-semibold">
                                   <span className="text-gray-900">Total Potential</span>
                                   <span className="text-blue-600">€{category.potentialUplift.toLocaleString()}/year</span>
                                 </div>
