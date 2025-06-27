@@ -2149,6 +2149,134 @@ export default function CustomerDetailNew() {
               </div>
             </div>
 
+            {/* Time-Sensitive Actions & Events */}
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-4">Time-Sensitive Actions & Events</h2>
+              <p className="text-sm text-gray-600 mb-6">
+                Urgent triggers requiring immediate attention due to upcoming renewals, external events, or regulatory deadlines
+              </p>
+              
+              {/* Time-Sensitive Strip Items */}
+              <div className="space-y-4">
+                {/* Policy Expiring Soon */}
+                <div className="bg-white border-l-4 border-red-500 rounded-lg p-4 flex items-center justify-between hover:shadow-md transition-shadow">
+                  <div className="flex items-center space-x-4 flex-1">
+                    <div className="flex-shrink-0">
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-red-100 text-red-800">
+                        EXPIRING SOON
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-1">Cyber Security Policy</h3>
+                      <p className="text-sm text-gray-600 mb-2">Policy expires in 12 days - critical for EU compliance requirements</p>
+                      <div className="flex items-center space-x-6 text-xs text-gray-500">
+                        <div className="flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
+                          <span className="font-medium text-red-600">12 days left</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <DollarSign className="w-3 h-3" />
+                          <span>€3,200 at risk</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button 
+                      className="px-3 py-1.5 bg-[#5567E5] hover:bg-[#4556D4] text-white text-xs font-medium rounded-md transition-colors"
+                      onClick={() => handleSmartGapAction('cyber-expiry', 'Add to Campaign')}
+                    >
+                      Add to Campaign
+                    </button>
+                    <button 
+                      className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-md transition-colors"
+                      onClick={() => handleSmartGapAction('cyber-expiry', 'Share with Partner')}
+                    >
+                      Share with Partner
+                    </button>
+                  </div>
+                </div>
+
+                {/* Weather Alert */}
+                <div className="bg-white border-l-4 border-orange-500 rounded-lg p-4 flex items-center justify-between hover:shadow-md transition-shadow">
+                  <div className="flex items-center space-x-4 flex-1">
+                    <div className="flex-shrink-0">
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-orange-100 text-orange-800">
+                        WEATHER ALERT
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-1">Storm Protection Add-on</h3>
+                      <p className="text-sm text-gray-600 mb-2">Severe storm warning issued for this region - increased property risk</p>
+                      <div className="flex items-center space-x-6 text-xs text-gray-500">
+                        <div className="flex items-center space-x-1">
+                          <AlertTriangle className="w-3 h-3" />
+                          <span className="font-medium text-orange-600">Storm risk: This week</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <DollarSign className="w-3 h-3" />
+                          <span>€1,800 uncovered assets</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button 
+                      className="px-3 py-1.5 bg-[#5567E5] hover:bg-[#4556D4] text-white text-xs font-medium rounded-md transition-colors"
+                      onClick={() => handleSmartGapAction('storm-protection', 'Add to Campaign')}
+                    >
+                      Add to Campaign
+                    </button>
+                    <button 
+                      className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-md transition-colors"
+                      onClick={() => handleSmartGapAction('storm-protection', 'Track This Risk')}
+                    >
+                      Track This Risk
+                    </button>
+                  </div>
+                </div>
+
+                {/* Tax Deadline */}
+                <div className="bg-white border-l-4 border-blue-500 rounded-lg p-4 flex items-center justify-between hover:shadow-md transition-shadow">
+                  <div className="flex items-center space-x-4 flex-1">
+                    <div className="flex-shrink-0">
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
+                        TAX DEADLINE
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-1">Professional Indemnity Upgrade</h3>
+                      <p className="text-sm text-gray-600 mb-2">Business tax season increases audit risk - enhanced liability protection recommended</p>
+                      <div className="flex items-center space-x-6 text-xs text-gray-500">
+                        <div className="flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
+                          <span className="font-medium text-blue-600">Filing deadline: March 31</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <DollarSign className="w-3 h-3" />
+                          <span>€2,400 coverage gap</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button 
+                      className="px-3 py-1.5 bg-[#5567E5] hover:bg-[#4556D4] text-white text-xs font-medium rounded-md transition-colors"
+                      onClick={() => handleSmartGapAction('tax-indemnity', 'Add to Campaign')}
+                    >
+                      Add to Campaign
+                    </button>
+                    <button 
+                      className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-md transition-colors"
+                      onClick={() => handleSmartGapAction('tax-indemnity', 'Share with Partner')}
+                    >
+                      Share with Partner
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* 2. Policies Requiring Attention - Timeline Strip */}
             <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-6">Policies Requiring Attention</h2>
