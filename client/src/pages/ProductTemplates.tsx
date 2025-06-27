@@ -700,8 +700,12 @@ export default function ProductTemplates() {
                     </CollapsibleTrigger>
                     
                     <Badge 
-                      style={{ backgroundColor: category.color || '#3B82F6' }}
-                      className="text-white border-0 text-sm font-medium px-3 py-1.5 cursor-pointer hover:opacity-90"
+                      style={{ 
+                        backgroundColor: `${category.color || '#3B82F6'}20`,
+                        borderColor: `${category.color || '#3B82F6'}40`,
+                        color: category.color || '#3B82F6'
+                      }}
+                      className="border text-sm font-medium px-3 py-1.5 cursor-pointer hover:opacity-80"
                       onClick={() => {
                         const newExpanded = new Set(expandedCategories);
                         if (expandedCategories.has(category.id)) {
@@ -784,8 +788,12 @@ export default function ProductTemplates() {
                               )}
                               
                               <Badge 
-                                style={{ backgroundColor: subcategory.color || category.color || '#3B82F6' }}
-                                className="text-white border-0 text-sm px-3 py-1 cursor-pointer hover:opacity-90"
+                                style={{ 
+                                  backgroundColor: `${subcategory.color || category.color || '#3B82F6'}20`,
+                                  borderColor: `${subcategory.color || category.color || '#3B82F6'}40`,
+                                  color: subcategory.color || category.color || '#3B82F6'
+                                }}
+                                className="border text-sm px-3 py-1 cursor-pointer hover:opacity-80"
                                 onClick={() => {
                                   if (getSubcategoryCount(subcategory.id) > 0) {
                                     const newExpanded = new Set(expandedCategories);
@@ -847,8 +855,12 @@ export default function ProductTemplates() {
                                     <div className="w-3 h-3" />
                                     
                                     <Badge 
-                                      style={{ backgroundColor: nestedSubcategory.color || subcategory.color || category.color || '#3B82F6' }}
-                                      className="text-white border-0 text-xs px-2 py-1"
+                                      style={{ 
+                                        backgroundColor: `${nestedSubcategory.color || subcategory.color || category.color || '#3B82F6'}20`,
+                                        borderColor: `${nestedSubcategory.color || subcategory.color || category.color || '#3B82F6'}40`,
+                                        color: nestedSubcategory.color || subcategory.color || category.color || '#3B82F6'
+                                      }}
+                                      className="border text-xs px-2 py-1"
                                     >
                                       {nestedSubcategory.icon && (
                                         <span className="mr-1">{nestedSubcategory.icon}</span>
