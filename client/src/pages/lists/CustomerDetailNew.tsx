@@ -854,19 +854,116 @@ export default function CustomerDetailNew() {
 
         {activeTab === "product-dashboard" && (
           <div className="space-y-6">
-            {/* Total Premium Uplift Panel - Compact Summary */}
-            <div className="bg-gradient-to-r from-emerald-500 to-blue-500 text-white rounded-xl p-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-1">
-                  <h3 className="text-lg font-bold">Total Premium Uplift</h3>
-                  <p className="text-emerald-100 text-sm">Estimated annual increase</p>
-                </div>
-                <div className="text-right">
-                  <div className="flex items-center justify-end space-x-2">
-                    <TrendingUp className="w-6 h-6 text-white" />
-                    <div className="text-2xl font-bold">€9,150</div>
+            {/* Coverage Overview by Category - Horizontal Bar Chart */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Coverage Overview by Category</h2>
+              
+              <div className="space-y-6">
+                {/* Life Insurance Category */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-4 h-4 bg-green-500 rounded"></div>
+                      <h3 className="font-medium text-gray-900">Life Insurance</h3>
+                    </div>
+                    <div className="text-sm text-gray-600">2 of 8 products (25%)</div>
                   </div>
-                  <div className="text-emerald-100 text-sm">+163% growth ↗</div>
+                  
+                  <div className="relative">
+                    <div className="flex h-8 bg-gray-200 rounded-lg overflow-hidden">
+                      <div 
+                        className="bg-green-500 flex items-center justify-center text-white text-xs font-medium"
+                        style={{ width: '25%' }}
+                      >
+                        25% Covered
+                      </div>
+                      <div 
+                        className="bg-gray-300 flex items-center justify-center text-gray-700 text-xs font-medium"
+                        style={{ width: '75%' }}
+                      >
+                        75% Not Covered
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <span>Current premium: €2,400/year</span>
+                    <span>Potential uplift: €4,800/year</span>
+                  </div>
+                </div>
+
+                {/* Non-Life Insurance Category */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-4 h-4 bg-orange-500 rounded"></div>
+                      <h3 className="font-medium text-gray-900">Non-Life Insurance</h3>
+                    </div>
+                    <div className="text-sm text-gray-600">5 of 12 products (42%)</div>
+                  </div>
+                  
+                  <div className="relative">
+                    <div className="flex h-8 bg-gray-200 rounded-lg overflow-hidden">
+                      <div 
+                        className="bg-orange-500 flex items-center justify-center text-white text-xs font-medium"
+                        style={{ width: '42%' }}
+                      >
+                        42% Covered
+                      </div>
+                      <div 
+                        className="bg-gray-300 flex items-center justify-center text-gray-700 text-xs font-medium"
+                        style={{ width: '58%' }}
+                      >
+                        58% Not Covered
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <span>Current premium: €3,200/year</span>
+                    <span>Potential uplift: €2,800/year</span>
+                  </div>
+                </div>
+
+                {/* Services Category */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-4 h-4 bg-gray-400 rounded"></div>
+                      <h3 className="font-medium text-gray-900">Services</h3>
+                    </div>
+                    <div className="text-sm text-gray-600">0 of 3 products (0%)</div>
+                  </div>
+                  
+                  <div className="relative">
+                    <div className="flex h-8 bg-gray-200 rounded-lg overflow-hidden">
+                      <div 
+                        className="bg-gray-300 flex items-center justify-center text-gray-700 text-xs font-medium"
+                        style={{ width: '100%' }}
+                      >
+                        100% Not Covered
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-sm text-gray-500">
+                    <span>Current premium: €0/year</span>
+                    <span>Potential uplift: €1,950/year</span>
+                  </div>
+                </div>
+
+                {/* Total Summary */}
+                <div className="pt-4 border-t border-gray-200">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <h4 className="font-medium text-gray-900">Portfolio Summary</h4>
+                      <p className="text-sm text-gray-600">7 of 23 total products covered (30%)</p>
+                    </div>
+                    <div className="text-right space-y-1">
+                      <div className="text-lg font-bold text-gray-900">€9,550</div>
+                      <div className="text-sm text-gray-600">Total uplift potential</div>
+                    </div>
+                  </div>
                 </div>
               </div>
             </div>
