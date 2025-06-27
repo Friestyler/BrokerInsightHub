@@ -775,6 +775,211 @@ export default function CustomerDetailNew() {
                 Add product
               </Button>
             </div>
+
+            {/* 2. Policies Requiring Attention - Timeline Strip */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Policies Requiring Attention</h2>
+              
+              <div className="space-y-4">
+                {/* Critical Priority - 19 days left */}
+                <div className="relative pl-8 pb-4 border-l-4 border-red-500">
+                  <div className="absolute -left-3 top-0 w-6 h-6 bg-red-500 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  </div>
+                  
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="font-semibold text-gray-900">Auto Insurance - Policy #AI-2024-003</h3>
+                          <span className="px-2 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full">
+                            🔴 19 days left
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-3">
+                          <div>
+                            <span className="font-medium">Expires:</span> January 15, 2025
+                          </div>
+                          <div>
+                            <span className="font-medium">Current Premium:</span> €840/year
+                          </div>
+                          <div>
+                            <span className="font-medium">Provider:</span> Allianz Belgium
+                          </div>
+                          <div>
+                            <span className="font-medium">Upgrade Potential:</span> +€280/year
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2 text-sm">
+                          <span className="text-gray-600">Suggested Actions:</span>
+                          <button className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium hover:bg-blue-200">
+                            Add to Campaign
+                          </button>
+                          <button className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium hover:bg-green-200">
+                            Create Opportunity
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* High Priority - 45 days left */}
+                <div className="relative pl-8 pb-4 border-l-4 border-orange-500">
+                  <div className="absolute -left-3 top-0 w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  </div>
+                  
+                  <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="font-semibold text-gray-900">Home Insurance - Policy #HI-2024-007</h3>
+                          <span className="px-2 py-1 bg-orange-100 text-orange-800 text-xs font-medium rounded-full">
+                            🟡 45 days left
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-3">
+                          <div>
+                            <span className="font-medium">Expires:</span> February 10, 2025
+                          </div>
+                          <div>
+                            <span className="font-medium">Current Premium:</span> €1,200/year
+                          </div>
+                          <div>
+                            <span className="font-medium">Provider:</span> KBC Insurance
+                          </div>
+                          <div>
+                            <span className="font-medium">Upgrade Potential:</span> +€480/year
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2 text-sm">
+                          <span className="text-gray-600">Suggested Actions:</span>
+                          <button className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium hover:bg-blue-200">
+                            Add to Campaign
+                          </button>
+                          <button className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium hover:bg-green-200">
+                            Schedule Review
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Medium Priority - Upgrade Opportunity */}
+                <div className="relative pl-8 pb-4 border-l-4 border-blue-500">
+                  <div className="absolute -left-3 top-0 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  </div>
+                  
+                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="font-semibold text-gray-900">Health Insurance - Policy #HI-2023-012</h3>
+                          <span className="px-2 py-1 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                            💼 Upgrade Available
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-3">
+                          <div>
+                            <span className="font-medium">Next Review:</span> March 2025
+                          </div>
+                          <div>
+                            <span className="font-medium">Current Premium:</span> €960/year
+                          </div>
+                          <div>
+                            <span className="font-medium">Provider:</span> Ethias Insurance
+                          </div>
+                          <div>
+                            <span className="font-medium">Upgrade Potential:</span> +€320/year
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2 text-sm">
+                          <span className="text-gray-600">Suggested Actions:</span>
+                          <button className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium hover:bg-blue-200">
+                            Add to Campaign
+                          </button>
+                          <button className="px-3 py-1 bg-purple-100 text-purple-700 rounded-full text-xs font-medium hover:bg-purple-200">
+                            Prepare Proposal
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Low Priority - Future Opportunity */}
+                <div className="relative pl-8 border-l-4 border-gray-400">
+                  <div className="absolute -left-3 top-0 w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center">
+                    <div className="w-2 h-2 bg-white rounded-full"></div>
+                  </div>
+                  
+                  <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="font-semibold text-gray-900">Life Insurance - Policy #LI-2023-005</h3>
+                          <span className="px-2 py-1 bg-gray-100 text-gray-800 text-xs font-medium rounded-full">
+                            📅 Future Review
+                          </span>
+                        </div>
+                        
+                        <div className="grid grid-cols-2 gap-4 text-sm text-gray-600 mb-3">
+                          <div>
+                            <span className="font-medium">Next Review:</span> June 2025
+                          </div>
+                          <div>
+                            <span className="font-medium">Current Premium:</span> €1,440/year
+                          </div>
+                          <div>
+                            <span className="font-medium">Provider:</span> AG Insurance
+                          </div>
+                          <div>
+                            <span className="font-medium">Upgrade Potential:</span> +€240/year
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center space-x-2 text-sm">
+                          <span className="text-gray-600">Suggested Actions:</span>
+                          <button className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200">
+                            Monitor
+                          </button>
+                          <button className="px-3 py-1 bg-yellow-100 text-yellow-700 rounded-full text-xs font-medium hover:bg-yellow-200">
+                            Plan Review
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Summary Actions */}
+              <div className="mt-6 pt-4 border-t border-gray-200">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-1">
+                    <h4 className="font-medium text-gray-900">Priority Actions</h4>
+                    <p className="text-sm text-gray-600">2 critical renewals, 2 upgrade opportunities</p>
+                  </div>
+                  <div className="flex space-x-3">
+                    <button className="px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700">
+                      Create Campaign
+                    </button>
+                    <button className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50">
+                      Export List
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
 
