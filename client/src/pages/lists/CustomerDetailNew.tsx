@@ -1622,6 +1622,7 @@ export default function CustomerDetailNew() {
 
         {activeTab === "product-dashboard" && (
           <div className="space-y-6 overflow-visible">
+            <>
             {/* Coverage Overview by Category - Horizontal Bar Chart */}
             <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
               <div className="flex items-center justify-between mb-6">
@@ -2076,7 +2077,8 @@ export default function CustomerDetailNew() {
             </div>
           </div>
         </div>
-      )}
+            </>
+        )}
       </div>
     </div>
   );
