@@ -43,7 +43,7 @@ import {
   CheckCircle 
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
@@ -142,11 +142,6 @@ export default function ProductTemplates() {
   const [newSubcategoryIcon, setNewSubcategoryIcon] = useState("");
   const [editCategoryIcon, setEditCategoryIcon] = useState("");
 
-  // Bulk actions state
-  const [bulkListDialogOpen, setBulkListDialogOpen] = useState(false);
-  const [listNameInput, setListNameInput] = useState("");
-  const [listDescriptionInput, setListDescriptionInput] = useState("");
-
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -210,12 +205,6 @@ export default function ProductTemplates() {
   // Fetch vendors for dropdown
   const { data: vendors = [] } = useQuery({
     queryKey: ['/api/vendors'],
-  });
-
-  // Fetch saved views for products
-  const { data: savedViews = [] } = useQuery({
-    queryKey: ['/api/saved-views', 'product-templates'],
-    queryFn: () => apiRequest('GET', '/api/saved-views?entity_type=product-templates'),
   });
 
   // Create product catalogue mutation
@@ -1061,38 +1050,7 @@ export default function ProductTemplates() {
         </div>
       </div>
 
-      {/* Bulk Actions Bar */}
-      {selectedTemplates.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="text-sm font-medium text-blue-900">
-              {selectedTemplates.length} product{selectedTemplates.length !== 1 ? 's' : ''} selected
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setSelectedTemplates([])}
-              className="h-7 text-xs border-blue-300 text-blue-700 hover:bg-blue-100"
-            >
-              Clear selection
-            </Button>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setBulkListDialogOpen(true)}
-              className="h-7 text-xs border-blue-300 text-blue-700 hover:bg-blue-100"
-            >
-              Add to list
-            </Button>
-          </div>
-        </div>
-      )}
-
-        {/* Table Content */}
-        <div className="mx-4">
-        {isLoading ? (
+      {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
             <Card key={i} className="animate-pulse">
