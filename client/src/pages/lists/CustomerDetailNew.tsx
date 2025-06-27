@@ -1356,7 +1356,7 @@ export default function CustomerDetailNew() {
         )}
 
         {activeTab === "product-dashboard" && (
-          <div className="space-y-6">
+          <div className="space-y-6 overflow-visible">
             {/* Coverage Overview by Category - Horizontal Bar Chart */}
             <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
               <div className="flex items-center justify-between mb-6">
@@ -1584,7 +1584,7 @@ export default function CustomerDetailNew() {
                 </div>
               </div>
               
-              <div className="space-y-6">
+              <div className="space-y-6 overflow-visible">
                 {/* Filtered Categories */}
                 {getFilteredCategories().map((category) => (
                   <div key={category.name} className="space-y-3">
@@ -1599,7 +1599,7 @@ export default function CustomerDetailNew() {
                       <div className="text-sm text-gray-600">{category.covered} of {category.total} products ({category.percentage}%)</div>
                     </div>
                   
-                    <div className="relative">
+                    <div className="relative mb-20">
                       <div className="flex h-8 bg-gray-200 rounded-lg overflow-hidden cursor-pointer">
                         {category.percentage > 0 && (
                           <div 
