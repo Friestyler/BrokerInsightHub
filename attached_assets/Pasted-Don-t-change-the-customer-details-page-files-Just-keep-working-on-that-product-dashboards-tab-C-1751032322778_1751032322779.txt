@@ -1,0 +1,108 @@
+Don't change the customer details page files! Just keep working on that 'product dashboards' tab.
+
+Customer Portfolio Decision Interface for Insurance Account Managers
+(No white space logic yet — focus on coverage, renewals, and next best coverage)
+
+⸻
+
+You are designing a visual decision interface for insurance account managers. The view is for a single customer and should help answer:
+
+🔍 Key Questions:
+	1.	What insurance coverage does this customer already have?
+	2.	Where are there critical gaps in their protection?
+	3.	Which contracts are expiring soon and require action?
+	4.	What additional coverages are most relevant to offer now, and why?
+	5.	What’s the estimated uplift in written premium from those offers?
+
+⸻
+
+🎯 Business Context
+	•	The customer can hold multiple products, grouped into categories (e.g., Life, Non-Life, Services).
+	•	Contracts have status: Active, Expiring, Cancelled, Renewed.
+	•	Products may belong to common bundles (e.g., Life + Pension).
+	•	Some gaps may indicate risk exposure or regulatory obligations.
+
+It’s a portfolio management cockpit for a account managers.
+
+⸻
+
+🧩 Layout Structure & Component Guidelines
+
+1. 🟦 Coverage Summary by Category
+
+Use a clean visual overview to compare product coverage per category. For each category, show:
+	•	✅ Number of active products
+	•	⚪️ Number of available products not yet held (but don’t label this “white space” yet)
+	•	A simple coverage meter (e.g., 2 of 5 covered)
+
+Use compact, non-tabular visuals like:
+	•	Radial charts, horizontal bars, or visual meters
+	•	Color-coded indicators (e.g., green = covered, gray = uncovered)
+
+Add a fit indicator if possible: “Customer profile suggests 4 of 5 products are relevant.”
+
+⸻
+
+2. 🟥 Policies Requiring Attention
+
+A clearly scoped section showing contracts that are expiring soon or flagged for action.
+	•	Visual timeline bar or stacked cards
+	•	Each card should show:
+	•	Product name
+	•	End date (e.g., “Expires in 19 days”)
+	•	Suggested action (e.g., “Renew,” “Upgrade,” “Bundle”)
+	•	Expected value impact (e.g., “€1,800 uplift if upgraded to Premium”)
+
+Use urgency indicators like 🔴 ⚠️ and urgency labels like “Act within 30 days.”
+
+⸻
+
+3. 🟨 Coverage Expansion Paths (Strategic Cross-Sell)
+
+Present a prioritized view of additional products to propose — not in a list by category, but grouped by:
+	•	💰 High Value
+	•	⏰ Time-Sensitive
+	•	✅ Profile Fit / Easy Win
+
+Each card should include:
+	•	Product name
+	•	Why it’s relevant (e.g., “Customer has Auto + Home, 78% of similar profiles add Legal”)
+	•	Estimated premium value
+	•	CTA: Prepare Quote, Schedule Call, or Send Offer
+
+Use insurance lingo like:
+	•	“Add coverage” instead of “Cross-sell”
+	•	“Exposure” instead of “Gap”
+	•	“Premium uplift” instead of “Potential revenue”
+
+⸻
+
+4. 🟩 Total Premium Impact Panel
+
+At the bottom or pinned to the side:
+	•	“Estimated premium uplift from recommended actions: €9,300 / year”
+	•	Optionally: % growth vs current portfolio
+
+Helps the manager quantify impact.
+
+⸻
+
+🎨 Design Language & Components
+	•	Use shadcn/ui components
+	•	Layout should feel like a compliance-grade, Apple-style interface:
+	•	Clean
+	•	Hierarchical
+	•	Padded and precise
+	•	Avoid overwhelming color: focus on signal, not noise
+	•	Prioritize scan-ability and decision-making — no digging or mental comparison
+
+
+⸻
+
+✅ Success =
+
+A strategic insurance account manager opens this interface and immediately understands:
+	•	Where the customer is well covered
+	•	Where there’s risk or renewal urgency
+	•	What coverage to add next
+	•	What it’s worth — without having to analyze anything
