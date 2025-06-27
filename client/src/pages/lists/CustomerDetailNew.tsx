@@ -760,22 +760,30 @@ export default function CustomerDetailNew() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12"><Checkbox /></TableHead>
-                  <TableHead>Product Name</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Product ID</TableHead>
-                  <TableHead>Provider</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Contract Period</TableHead>
-                  <TableHead>Premium Value</TableHead>
-                  <TableHead>Premium %</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead className="w-12 text-[#696C8C]">
+                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <Checkbox />
+                    </div>
+                  </TableHead>
+                  <TableHead className="min-w-[200px] text-[#696C8C]">Product Name</TableHead>
+                  <TableHead className="min-w-[250px] text-[#696C8C]">Description</TableHead>
+                  <TableHead className="min-w-[100px] text-[#696C8C]">Product ID</TableHead>
+                  <TableHead className="min-w-[120px] text-[#696C8C]">Provider</TableHead>
+                  <TableHead className="min-w-[150px] text-[#696C8C]">Category</TableHead>
+                  <TableHead className="min-w-[150px] text-[#696C8C]">Contract Period</TableHead>
+                  <TableHead className="min-w-[100px] text-[#696C8C]">Premium Value</TableHead>
+                  <TableHead className="min-w-[100px] text-[#696C8C]">Premium %</TableHead>
+                  <TableHead className="min-w-[100px] text-[#696C8C]">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {(assignedProducts || []).map((assignment: any) => (
-                  <TableRow key={assignment.id}>
-                    <TableCell><Checkbox /></TableCell>
+                  <TableRow key={assignment.id} className="group">
+                    <TableCell>
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Checkbox />
+                      </div>
+                    </TableCell>
                     <TableCell>
                       <div className="flex items-center">
                         <div className="h-10 w-10 flex-shrink-0">
