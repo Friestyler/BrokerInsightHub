@@ -60,6 +60,92 @@ export default function CustomerDetailNew() {
         : [...prev, category]
     );
   };
+
+  // Filter categories based on selection
+  const getFilteredCategories = () => {
+    const allCategories = [
+      {
+        name: 'Life Insurance',
+        color: 'green',
+        covered: 2,
+        total: 8,
+        percentage: 25,
+        currentPremium: 2400,
+        potentialUplift: 6600,
+        coveredProducts: [
+          { name: 'Death Cover Basic', premium: 1200 },
+          { name: 'Group Insurance Plan', premium: 1200 }
+        ],
+        availableProducts: [
+          { name: 'Branch 21 Investment', premium: 2400 },
+          { name: 'Branch 23 Investment', premium: 1800 },
+          { name: 'Pension Savings Plan', premium: 600 },
+          { name: 'IPT Insurance', premium: 480 },
+          { name: 'Term Life Insurance', premium: 360 },
+          { name: 'Disability Insurance', premium: 960 }
+        ]
+      },
+      {
+        name: 'Non-Life Insurance',
+        color: 'orange',
+        covered: 5,
+        total: 12,
+        percentage: 42,
+        currentPremium: 3200,
+        potentialUplift: 4200,
+        coveredProducts: [
+          { name: 'Auto Insurance Premium', premium: 840 },
+          { name: 'Health Insurance Basic', premium: 960 },
+          { name: 'Home Insurance Standard', premium: 1200 },
+          { name: 'Business Liability', premium: 150 },
+          { name: 'Travel Insurance', premium: 50 }
+        ],
+        availableProducts: [
+          { name: 'Cyber Security Insurance', premium: 1200 },
+          { name: 'Fire Insurance', premium: 800 },
+          { name: 'Legal Protection', premium: 680 },
+          { name: 'Professional Indemnity', premium: 450 },
+          { name: 'Equipment Insurance', premium: 320 },
+          { name: 'Environmental Liability', premium: 400 },
+          { name: 'Director\'s Insurance', premium: 350 }
+        ]
+      },
+      {
+        name: 'Services',
+        color: 'gray',
+        covered: 0,
+        total: 3,
+        percentage: 0,
+        currentPremium: 0,
+        potentialUplift: 1950,
+        coveredProducts: [],
+        availableProducts: [
+          { name: 'Legal Services Package', premium: 650 },
+          { name: 'HR Consulting Services', premium: 800 },
+          { name: 'Financial Advisory', premium: 500 }
+        ]
+      }
+    ];
+
+    return allCategories.filter(cat => selectedCategories.includes(cat.name));
+  };
+
+  // Calculate filtered totals
+  const getFilteredTotals = () => {
+    const filtered = getFilteredCategories();
+    const totalCovered = filtered.reduce((sum, cat) => sum + cat.covered, 0);
+    const totalProducts = filtered.reduce((sum, cat) => sum + cat.total, 0);
+    const totalCurrentPremium = filtered.reduce((sum, cat) => sum + cat.currentPremium, 0);
+    const totalPotentialUplift = filtered.reduce((sum, cat) => sum + cat.potentialUplift, 0);
+    
+    return {
+      covered: totalCovered,
+      total: totalProducts,
+      percentage: totalProducts > 0 ? Math.round((totalCovered / totalProducts) * 100) : 0,
+      currentPremium: totalCurrentPremium,
+      potentialUplift: totalPotentialUplift
+    };
+  };
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState("all");
   const [selectedUnit, setSelectedUnit] = useState("all");
@@ -1299,577 +1385,119 @@ export default function CustomerDetailNew() {
               </div>
               
               <div className="space-y-6">
-                {/* Life Insurance Category */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-4 h-4 bg-green-500 rounded"></div>
-                      <h3 className="font-medium text-gray-900">Life Insurance</h3>
-                    </div>
-                    <div className="text-sm text-gray-600">2 of 8 products (25%)</div>
-                  </div>
-                  
-                  <div className="relative">
-                    <div className="flex h-8 bg-gray-200 rounded-lg overflow-hidden cursor-pointer">
-                      <div 
-                        className="bg-green-500 flex items-center justify-center text-white text-xs font-medium hover:bg-green-600 transition-colors relative group"
-                        style={{ width: '25%' }}
-                      >
-                        25% Covered
-                        
-                        {/* Tooltip - Covered Products */}
-                        <div className="absolute left-0 top-10 z-10 w-64 p-3 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                          <h4 className="font-medium text-gray-900 mb-2">Life Insurance - Covered Products</h4>
-                          <div className="space-y-1 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Death Cover Basic</span>
-                              <span className="font-medium text-green-600">€1,200/year</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Group Insurance Plan</span>
-                              <span className="font-medium text-green-600">€1,200/year</span>
-                            </div>
-                            <hr className="my-2" />
-                            <div className="flex justify-between font-medium">
-                              <span className="text-gray-900">Total Coverage</span>
-                              <span className="text-green-600">€2,400/year</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div 
-                        className="bg-gray-300 flex items-center justify-center text-gray-700 text-xs font-medium hover:bg-gray-400 transition-colors relative group"
-                        style={{ width: '75%' }}
-                      >
-                        75% Not Covered
-                        
-                        {/* Tooltip - Not Covered Products */}
-                        <div className="absolute left-0 top-10 z-10 w-64 p-3 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                          <h4 className="font-medium text-gray-900 mb-2">Life Insurance - Available Products</h4>
-                          <div className="space-y-1 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Branch 21 Investment</span>
-                              <span className="font-medium text-gray-500">€2,400/year</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Branch 23 Investment</span>
-                              <span className="font-medium text-gray-500">€1,800/year</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Pension Savings Plan</span>
-                              <span className="font-medium text-gray-500">€600/year</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">IPT Insurance</span>
-                              <span className="font-medium text-gray-500">€480/year</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Term Life Insurance</span>
-                              <span className="font-medium text-gray-500">€360/year</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Disability Insurance</span>
-                              <span className="font-medium text-gray-500">€960/year</span>
-                            </div>
-                            <hr className="my-2" />
-                            <div className="flex justify-between font-medium">
-                              <span className="text-gray-900">Total Potential</span>
-                              <span className="text-blue-600">€6,600/year</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>Current premium: €2,400/year</span>
-                    <span>Potential uplift: €4,800/year</span>
-                  </div>
-                </div>
-
-                {/* Non-Life Insurance Category */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-4 h-4 bg-orange-500 rounded"></div>
-                      <h3 className="font-medium text-gray-900">Non-Life Insurance</h3>
-                    </div>
-                    <div className="text-sm text-gray-600">5 of 12 products (42%)</div>
-                  </div>
-                  
-                  <div className="relative">
-                    <div className="flex h-8 bg-gray-200 rounded-lg overflow-hidden cursor-pointer">
-                      <div 
-                        className="bg-orange-500 flex items-center justify-center text-white text-xs font-medium hover:bg-orange-600 transition-colors relative group"
-                        style={{ width: '42%' }}
-                      >
-                        42% Covered
-                        
-                        {/* Tooltip - Covered Products */}
-                        <div className="absolute left-0 top-10 z-10 w-64 p-3 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                          <h4 className="font-medium text-gray-900 mb-2">Non-Life Insurance - Covered Products</h4>
-                          <div className="space-y-1 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Auto Insurance Premium</span>
-                              <span className="font-medium text-orange-600">€840/year</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Health Insurance Basic</span>
-                              <span className="font-medium text-orange-600">€960/year</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Home Insurance Standard</span>
-                              <span className="font-medium text-orange-600">€1,200/year</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Business Liability</span>
-                              <span className="font-medium text-orange-600">€150/year</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Travel Insurance</span>
-                              <span className="font-medium text-orange-600">€50/year</span>
-                            </div>
-                            <hr className="my-2" />
-                            <div className="flex justify-between font-medium">
-                              <span className="text-gray-900">Total Coverage</span>
-                              <span className="text-orange-600">€3,200/year</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                      <div 
-                        className="bg-gray-300 flex items-center justify-center text-gray-700 text-xs font-medium hover:bg-gray-400 transition-colors relative group"
-                        style={{ width: '58%' }}
-                      >
-                        58% Not Covered
-                        
-                        {/* Tooltip - Not Covered Products */}
-                        <div className="absolute left-0 top-10 z-10 w-64 p-3 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                          <h4 className="font-medium text-gray-900 mb-2">Non-Life Insurance - Available Products</h4>
-                          <div className="space-y-1 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Cyber Security Insurance</span>
-                              <span className="font-medium text-gray-500">€1,200/year</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Fire Insurance</span>
-                              <span className="font-medium text-gray-500">€800/year</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Legal Protection</span>
-                              <span className="font-medium text-gray-500">€680/year</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Professional Indemnity</span>
-                              <span className="font-medium text-gray-500">€450/year</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Equipment Insurance</span>
-                              <span className="font-medium text-gray-500">€320/year</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Environmental Liability</span>
-                              <span className="font-medium text-gray-500">€400/year</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Director's Insurance</span>
-                              <span className="font-medium text-gray-500">€350/year</span>
-                            </div>
-                            <hr className="my-2" />
-                            <div className="flex justify-between font-medium">
-                              <span className="text-gray-900">Total Potential</span>
-                              <span className="text-blue-600">€4,200/year</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>Current premium: €3,200/year</span>
-                    <span>Potential uplift: €2,800/year</span>
-                  </div>
-                </div>
-
-                {/* Services Category */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-4 h-4 bg-gray-400 rounded"></div>
-                      <h3 className="font-medium text-gray-900">Services</h3>
-                    </div>
-                    <div className="text-sm text-gray-600">0 of 3 products (0%)</div>
-                  </div>
-                  
-                  <div className="relative">
-                    <div className="flex h-8 bg-gray-200 rounded-lg overflow-hidden cursor-pointer">
-                      <div 
-                        className="bg-gray-300 flex items-center justify-center text-gray-700 text-xs font-medium hover:bg-gray-400 transition-colors relative group"
-                        style={{ width: '100%' }}
-                      >
-                        100% Not Covered
-                        
-                        {/* Tooltip - Available Products */}
-                        <div className="absolute left-0 top-10 z-10 w-64 p-3 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                          <h4 className="font-medium text-gray-900 mb-2">Services - Available Products</h4>
-                          <div className="space-y-1 text-sm">
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Legal Services Package</span>
-                              <span className="font-medium text-gray-500">€650/year</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">HR Consulting Services</span>
-                              <span className="font-medium text-gray-500">€800/year</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-gray-600">Financial Advisory</span>
-                              <span className="font-medium text-gray-500">€500/year</span>
-                            </div>
-                            <hr className="my-2" />
-                            <div className="flex justify-between font-medium">
-                              <span className="text-gray-900">Total Potential</span>
-                              <span className="text-blue-600">€1,950/year</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>Current premium: €0/year</span>
-                    <span>Potential uplift: €1,950/year</span>
-                  </div>
-                </div>
-
-                {/* Total Summary */}
-                <div className="pt-4 border-t border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-1">
-                      <h4 className="font-medium text-gray-900">Portfolio Summary</h4>
-                      <p className="text-sm text-gray-600">7 of 23 total products covered (30%)</p>
-                    </div>
-                    <div className="text-right space-y-1">
-                      <div className="text-lg font-bold text-gray-900">€9,550</div>
-                      <div className="text-sm text-gray-600">Total uplift potential</div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* 1. Coverage Overview by Category - Radial Meter Grid */}
-            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Coverage Overview by Category</h2>
-              <div className="grid grid-cols-3 gap-8">
-                {/* Life Insurance Coverage */}
-                <div className="text-center">
-                  <div className="relative inline-flex items-center justify-center w-32 h-32 mb-4">
-                    <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
-                      <path
-                        d="M18 2.0845
-                          a 15.9155 15.9155 0 0 1 0 31.831
-                          a 15.9155 15.9155 0 0 1 0 -31.831"
-                        fill="none"
-                        stroke="#f3f4f6"
-                        strokeWidth="3"
-                      />
-                      <path
-                        d="M18 2.0845
-                          a 15.9155 15.9155 0 0 1 0 31.831
-                          a 15.9155 15.9155 0 0 1 0 -31.831"
-                        fill="none"
-                        stroke="#10b981"
-                        strokeWidth="3"
-                        strokeDasharray="25, 75"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                      <div className="text-2xl font-bold text-gray-900">25%</div>
-                      <div className="text-xs text-gray-500">2 of 8</div>
-                    </div>
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Life Insurance</h3>
-                  <div className="text-sm text-orange-600 font-medium">⚠️ Partially covered</div>
-                </div>
-
-                {/* Non-Life Insurance Coverage */}
-                <div className="text-center">
-                  <div className="relative inline-flex items-center justify-center w-32 h-32 mb-4">
-                    <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
-                      <path
-                        d="M18 2.0845
-                          a 15.9155 15.9155 0 0 1 0 31.831
-                          a 15.9155 15.9155 0 0 1 0 -31.831"
-                        fill="none"
-                        stroke="#f3f4f6"
-                        strokeWidth="3"
-                      />
-                      <path
-                        d="M18 2.0845
-                          a 15.9155 15.9155 0 0 1 0 31.831
-                          a 15.9155 15.9155 0 0 1 0 -31.831"
-                        fill="none"
-                        stroke="#10b981"
-                        strokeWidth="3"
-                        strokeDasharray="42, 58"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                      <div className="text-2xl font-bold text-gray-900">42%</div>
-                      <div className="text-xs text-gray-500">5 of 12</div>
-                    </div>
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Non-Life Insurance</h3>
-                  <div className="text-sm text-green-600 font-medium">✅ Good coverage</div>
-                </div>
-
-                {/* Services Coverage */}
-                <div className="text-center">
-                  <div className="relative inline-flex items-center justify-center w-32 h-32 mb-4">
-                    <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
-                      <path
-                        d="M18 2.0845
-                          a 15.9155 15.9155 0 0 1 0 31.831
-                          a 15.9155 15.9155 0 0 1 0 -31.831"
-                        fill="none"
-                        stroke="#f3f4f6"
-                        strokeWidth="3"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                      <div className="text-2xl font-bold text-gray-900">0%</div>
-                      <div className="text-xs text-gray-500">0 of 3</div>
-                    </div>
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Services</h3>
-                  <div className="text-sm text-gray-600 font-medium">❌ Not covered</div>
-                </div>
-              </div>
-            </div>
-
-            {/* 2. Policies Requiring Attention - Timeline Strip */}
-            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Policies Requiring Attention</h2>
-              <div className="space-y-4">
-                {/* Critical - Auto Insurance */}
-                <div className="flex items-center space-x-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
-                  <div className="flex-shrink-0">
-                    <Clock className="w-6 h-6 text-red-500" />
-                  </div>
-                  <div className="flex-1">
+                {/* Filtered Categories */}
+                {getFilteredCategories().map((category) => (
+                  <div key={category.name} className="space-y-3">
                     <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-semibold text-gray-900">Auto Insurance - Business Vehicle</h3>
-                        <p className="text-sm text-red-600">🔴 Expires in 19 days (Jan 15, 2025)</p>
-                        <p className="text-xs text-gray-500 mt-1">Suggested action: Renew with comprehensive upgrade</p>
+                      <div className="flex items-center space-x-3">
+                        <div className={`w-4 h-4 rounded ${
+                          category.color === 'green' ? 'bg-green-500' :
+                          category.color === 'orange' ? 'bg-orange-500' : 'bg-gray-400'
+                        }`}></div>
+                        <h3 className="font-medium text-gray-900">{category.name}</h3>
                       </div>
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-green-600">+€1,200</div>
-                        <div className="text-xs text-gray-500">Premium impact</div>
+                      <div className="text-sm text-gray-600">{category.covered} of {category.total} products ({category.percentage}%)</div>
+                    </div>
+                  
+                    <div className="relative">
+                      <div className="flex h-8 bg-gray-200 rounded-lg overflow-hidden cursor-pointer">
+                        {category.percentage > 0 && (
+                          <div 
+                            className={`${
+                              category.color === 'green' ? 'bg-green-500 hover:bg-green-600' :
+                              category.color === 'orange' ? 'bg-orange-500 hover:bg-orange-600' : 'bg-gray-500 hover:bg-gray-600'
+                            } flex items-center justify-center text-white text-xs font-medium transition-colors relative group`}
+                            style={{ width: `${category.percentage}%` }}
+                          >
+                            {category.percentage}% Covered
+                            
+                            {/* Tooltip - Covered Products */}
+                            <div className="absolute left-0 top-10 z-30 w-64 p-3 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                              <h4 className="font-medium text-gray-900 mb-2">{category.name} - Covered Products</h4>
+                              <div className="space-y-1 text-sm">
+                                {category.coveredProducts.map((product, idx) => (
+                                  <div key={idx} className="flex justify-between">
+                                    <span className="text-gray-600">{product.name}</span>
+                                    <span className={`font-medium ${
+                                      category.color === 'green' ? 'text-green-600' :
+                                      category.color === 'orange' ? 'text-orange-600' : 'text-gray-600'
+                                    }`}>€{product.premium.toLocaleString()}/year</span>
+                                  </div>
+                                ))}
+                                <hr className="my-2" />
+                                <div className="flex justify-between font-medium">
+                                  <span className="text-gray-900">Total Coverage</span>
+                                  <span className={`${
+                                    category.color === 'green' ? 'text-green-600' :
+                                    category.color === 'orange' ? 'text-orange-600' : 'text-gray-600'
+                                  }`}>€{category.currentPremium.toLocaleString()}/year</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {category.percentage < 100 && (
+                          <div 
+                            className="bg-gray-300 flex items-center justify-center text-gray-700 text-xs font-medium hover:bg-gray-400 transition-colors relative group"
+                            style={{ width: `${100 - category.percentage}%` }}
+                          >
+                            {100 - category.percentage}% Not Covered
+                            
+                            {/* Tooltip - Available Products */}
+                            <div className="absolute left-0 top-10 z-30 w-64 p-3 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                              <h4 className="font-medium text-gray-900 mb-2">{category.name} - Available Products</h4>
+                              <div className="space-y-1 text-sm">
+                                {category.availableProducts.map((product, idx) => (
+                                  <div key={idx} className="flex justify-between">
+                                    <span className="text-gray-600">{product.name}</span>
+                                    <span className="font-medium text-gray-500">€{product.premium.toLocaleString()}/year</span>
+                                  </div>
+                                ))}
+                                <hr className="my-2" />
+                                <div className="flex justify-between font-medium">
+                                  <span className="text-gray-900">Total Potential</span>
+                                  <span className="text-blue-600">€{category.potentialUplift.toLocaleString()}/year</span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
-                  </div>
-                </div>
-
-                {/* Warning - Property Insurance */}
-                <div className="flex items-center space-x-4 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg">
-                  <div className="flex-shrink-0">
-                    <AlertTriangle className="w-6 h-6 text-yellow-500" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-semibold text-gray-900">Property Insurance Bundle</h3>
-                        <p className="text-sm text-yellow-600">⚠️ Bundle opportunity available</p>
-                        <p className="text-xs text-gray-500 mt-1">Suggested action: Bundle with liability for discount</p>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-green-600">+€850</div>
-                        <div className="text-xs text-gray-500">Premium impact</div>
-                      </div>
+                    
+                    <div className="flex items-center justify-between text-sm text-gray-500">
+                      <span>Current premium: €{category.currentPremium.toLocaleString()}/year</span>
+                      <span>Potential uplift: €{(category.potentialUplift - category.currentPremium).toLocaleString()}/year</span>
                     </div>
                   </div>
-                </div>
-
-                {/* Upgrade - Life Insurance */}
-                <div className="flex items-center space-x-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
-                  <div className="flex-shrink-0">
-                    <TrendingUp className="w-6 h-6 text-blue-500" />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <h3 className="font-semibold text-gray-900">Life Insurance Coverage</h3>
-                        <p className="text-sm text-blue-600">💡 Upgrade recommended based on business growth</p>
-                        <p className="text-xs text-gray-500 mt-1">Suggested action: Increase coverage amount</p>
-                      </div>
-                      <div className="text-right">
-                        <div className="text-lg font-bold text-green-600">+€650</div>
-                        <div className="text-xs text-gray-500">Premium impact</div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
-            </div>
-
-            {/* 3. Smart Coverage Gaps - Strategic Recommendation Cards */}
-            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Smart Coverage Gaps</h2>
-              <div className="grid grid-cols-2 gap-6">
-                <div className="p-4 bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
-                  <div className="flex items-start justify-between mb-3">
-                    <Shield className="w-8 h-8 text-blue-600" />
-                    <span className="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">High Priority</span>
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Cyber Security Insurance</h3>
-                  <p className="text-sm text-gray-600 mb-3">
-                    Common in similar construction profiles. EU regulations require cyber coverage for businesses handling client data. 
-                    Compliance deadline approaching March 2025.
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-green-600">+€1,200/year</span>
-                    <button className="px-3 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700">Prepare Quote</button>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-lg">
-                  <div className="flex items-start justify-between mb-3">
-                    <Scale className="w-8 h-8 text-green-600" />
-                    <span className="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">Profile Match</span>
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Legal Protection Insurance</h3>
-                  <p className="text-sm text-gray-600 mb-3">
-                    Part of Professional Services bundle. 78% of similar construction businesses carry legal protection 
-                    due to high dispute frequency in this sector.
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-green-600">+€680/year</span>
-                    <button className="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700">Add to Proposal</button>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-gradient-to-br from-orange-50 to-yellow-50 border border-orange-200 rounded-lg">
-                  <div className="flex items-start justify-between mb-3">
-                    <Briefcase className="w-8 h-8 text-orange-600" />
-                    <span className="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded-full">Seasonal</span>
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Business Travel Insurance</h3>
-                  <p className="text-sm text-gray-600 mb-3">
-                    Construction season approaching. Common add-on for companies with project sites requiring 
-                    employee travel. Regional flood risks identified in customer area.
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-green-600">+€420/year</span>
-                    <button className="px-3 py-1 bg-orange-600 text-white text-sm rounded hover:bg-orange-700">Prepare Quote</button>
-                  </div>
-                </div>
-
-                <div className="p-4 bg-gradient-to-br from-purple-50 to-pink-50 border border-purple-200 rounded-lg">
-                  <div className="flex items-start justify-between mb-3">
-                    <PiggyBank className="w-8 h-8 text-purple-600" />
-                    <span className="text-xs bg-purple-100 text-purple-700 px-2 py-1 rounded-full">Bundle Eligible</span>
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Employee Benefits Package</h3>
-                  <p className="text-sm text-gray-600 mb-3">
-                    Regulatory gap for companies with 10+ employees. Tax benefits available for employer-sponsored 
-                    health and pension benefits. Typical for businesses this size.
-                  </p>
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-green-600">+€1,850/year</span>
-                    <button className="px-3 py-1 bg-purple-600 text-white text-sm rounded hover:bg-purple-700">Add to Proposal</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 4. Uncovered Products Chart - Bar Chart with Filtering */}
-            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Uncovered Products by Category</h2>
               
-              {/* Filters */}
-              <div className="flex items-center space-x-4 mb-6">
-                <div className="flex-1">
-                  <Select defaultValue="all-products">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Filter by product" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all-products">All Products</SelectItem>
-                      <SelectItem value="death-cover">Death Cover</SelectItem>
-                      <SelectItem value="car-insurance">Car Insurance</SelectItem>
-                      <SelectItem value="cyber-insurance">Cyber Insurance</SelectItem>
-                      <SelectItem value="legal-protection">Legal Protection</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex-1">
-                  <Select defaultValue="all-categories">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Filter by category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all-categories">All Categories</SelectItem>
-                      <SelectItem value="life">Life Insurance</SelectItem>
-                      <SelectItem value="non-life">Non-Life Insurance</SelectItem>
-                      <SelectItem value="services">Services</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex-1">
-                  <Select defaultValue="all-prices">
-                    <SelectTrigger>
-                      <SelectValue placeholder="Price range" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all-prices">All Prices</SelectItem>
-                      <SelectItem value="0-1000">€0 - €1,000</SelectItem>
-                      <SelectItem value="1000-5000">€1,000 - €5,000</SelectItem>
-                      <SelectItem value="5000-plus">€5,000+</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {/* Bar Chart */}
-              <div className="space-y-4">
-                <div className="flex items-end space-x-2 h-48">
-                  {/* Life Insurance Bar */}
-                  <div className="flex-1 flex flex-col items-center">
-                    <div className="w-full bg-blue-500 rounded-t" style={{height: '60%'}}></div>
-                    <div className="text-center mt-2">
-                      <div className="text-2xl font-bold text-gray-900">6</div>
-                      <div className="text-xs text-gray-500 mt-1">Life<br />Insurance</div>
-                    </div>
+              {/* Summary Section */}
+              <div className="pt-6 border-t border-gray-200">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <div className="text-2xl font-bold text-gray-900">{getFilteredTotals().covered}</div>
+                    <div className="text-sm text-gray-600">Products Covered</div>
                   </div>
-                  
-                  {/* Non-Life Insurance Bar */}
-                  <div className="flex-1 flex flex-col items-center">
-                    <div className="w-full bg-blue-500 rounded-t" style={{height: '35%'}}></div>
-                    <div className="text-center mt-2">
-                      <div className="text-2xl font-bold text-gray-900">7</div>
-                      <div className="text-xs text-gray-500 mt-1">Non-Life<br />Insurance</div>
-                    </div>
-                  </div>
-                  
-                  {/* Services Bar */}
-                  <div className="flex-1 flex flex-col items-center">
-                    <div className="w-full bg-blue-500 rounded-t" style={{height: '15%'}}></div>
-                    <div className="text-center mt-2">
-                      <div className="text-2xl font-bold text-gray-900">3</div>
-                      <div className="text-xs text-gray-500 mt-1">Services</div>
-                    </div>
+                  <div className="text-center p-4 bg-gray-50 rounded-lg">
+                    <div className="text-2xl font-bold text-blue-600">€{getFilteredTotals().potentialUplift.toLocaleString()}</div>
+                    <div className="text-sm text-gray-600">Total Potential</div>
                   </div>
                 </div>
               </div>
             </div>
-
-
+          </div>
+        )}
+        
+        {activeTab === 'activities' && (
+          <div className="space-y-6">
+            <PlatformActivityHub 
+              entityType="customer" 
+              entityId={parseInt(id!)} 
+              entityName={customerData?.name || 'Customer'} 
+            />
           </div>
         )}
       </div>
