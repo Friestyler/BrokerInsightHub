@@ -795,7 +795,7 @@ export default function ProductTemplates() {
                                 {getSubcategoryCount(subcategory.id) > 0 ? (
                                   <CollapsibleTrigger asChild>
                                     <Button variant="ghost" size="sm" className="p-0 h-auto w-3">
-                                      <ChevronRight className={`h-3 w-3 text-gray-400 transition-transform ${
+                                      <ChevronRight className={`h-4 w-4 text-gray-400 transition-transform ${
                                         expandedCategories.has(subcategory.id) ? 'rotate-90' : ''
                                       }`} />
                                     </Button>
@@ -1250,6 +1250,10 @@ export default function ProductTemplates() {
                   color: editCategoryColor,
                   icon: editCategoryIcon || undefined,
                   description: formData.get('description') as string || undefined,
+                  parentId: selectedCategory.parentId,
+                  level: selectedCategory.level,
+                  sortOrder: selectedCategory.sortOrder,
+                  isActive: selectedCategory.isActive
                 }
               });
             }
