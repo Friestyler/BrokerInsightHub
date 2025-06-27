@@ -62,7 +62,7 @@ export default function CustomerDetailNew() {
   };
 
   // Filter categories based on selection
-  const getFilteredCategories = () => {
+  const getFilteredCategories = (): any[] => {
     const allCategories = [
       {
         name: 'Life Insurance',
@@ -127,7 +127,7 @@ export default function CustomerDetailNew() {
       }
     ];
 
-    const filteredCategories = [];
+    const filteredCategories: any[] = [];
     
     for (const selectedCat of selectedCategories) {
       // Check if it's a main category
