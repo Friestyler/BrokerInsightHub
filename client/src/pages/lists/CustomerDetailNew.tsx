@@ -1791,47 +1791,50 @@ export default function CustomerDetailNew() {
                             
                             {/* Tooltip - Covered Products */}
                             <div 
-                              className={`absolute left-0 top-full mt-2 z-[100] w-72 p-4 bg-white border border-gray-200 rounded-lg shadow-2xl transition-all duration-200 pointer-events-auto ${
+                              className={`absolute left-0 top-full mt-2 z-[100] w-72 p-0 bg-white/90 backdrop-blur-md border border-white/20 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] transition-all duration-200 pointer-events-auto overflow-hidden ${
                                 hoveredTooltip === `${category.name}-covered` ? 'opacity-100 visible' : 'opacity-0 invisible group-hover:opacity-100 group-hover:visible'
                               }`}
                               onMouseEnter={() => setHoveredTooltip(`${category.name}-covered`)}
                               onMouseLeave={() => setHoveredTooltip(null)}
                             >
-                              <h4 className="font-semibold text-gray-900 mb-3">{category.name} - Covered Products</h4>
-                              <div className="space-y-2 text-sm">
-                                {category.coveredProducts && category.coveredProducts.length > 0 ? (
-                                  category.coveredProducts.map((product: any, idx: number) => (
-                                    <div key={idx} className="flex justify-between items-center">
-                                      <span className="text-gray-700">{product.name}</span>
-                                      <span className={`font-semibold ${
-                                        category.color === 'green' ? 'text-green-600' :
-                                        category.color === 'orange' ? 'text-orange-600' : 'text-gray-600'
-                                      }`}>€{product.premium.toLocaleString()}/year</span>
-                                    </div>
-                                  ))
-                                ) : (
-                                  <div className="text-gray-500 italic">No covered products</div>
-                                )}
-                                <hr className="my-3 border-gray-200" />
-                                <div className="flex justify-between items-center font-semibold mb-3">
-                                  <span className="text-gray-900">Total Coverage</span>
-                                  <span className={`${
-                                    category.color === 'green' ? 'text-green-600' :
-                                    category.color === 'orange' ? 'text-orange-600' : 'text-gray-600'
-                                  }`}>€{category.currentPremium.toLocaleString()}/year</span>
+                              <div className={`h-1 ${category.name === 'Life Insurance' ? 'bg-green-500' : category.name === 'Non-Life Insurance' ? 'bg-blue-500' : 'bg-purple-500'}`}></div>
+                              <div className="p-4">
+                                <h4 className="font-bold text-gray-900 mb-3 text-lg">{category.name} - Covered Products</h4>
+                                <div className="space-y-2 text-sm">
+                                  {category.coveredProducts && category.coveredProducts.length > 0 ? (
+                                    category.coveredProducts.map((product: any, idx: number) => (
+                                      <div key={idx} className="flex justify-between items-center">
+                                        <span className="text-gray-700">{product.name}</span>
+                                        <span className={`font-semibold ${
+                                          category.color === 'green' ? 'text-green-600' :
+                                          category.color === 'orange' ? 'text-orange-600' : 'text-gray-600'
+                                        }`}>€{product.premium.toLocaleString()}/year</span>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <div className="text-gray-500 italic">No covered products</div>
+                                  )}
+                                  <hr className="my-3 border-gray-200/50" />
+                                  <div className="flex justify-between items-center font-semibold mb-3">
+                                    <span className="text-gray-900">Total Coverage</span>
+                                    <span className={`${
+                                      category.color === 'green' ? 'text-green-600' :
+                                      category.color === 'orange' ? 'text-orange-600' : 'text-gray-600'
+                                    }`}>€{category.currentPremium.toLocaleString()}/year</span>
+                                  </div>
+                                  <Button 
+                                    onClick={() => {
+                                      setSelectedTooltipProducts(category.coveredProducts || []);
+                                      setTooltipCategoryName(`${category.name} - Covered Products`);
+                                      setIsProductListDialogOpen(true);
+                                      setHoveredTooltip(null);
+                                    }}
+                                    className="w-full h-8 text-sm"
+                                    variant="outline"
+                                  >
+                                    See list
+                                  </Button>
                                 </div>
-                                <Button 
-                                  onClick={() => {
-                                    setSelectedTooltipProducts(category.coveredProducts || []);
-                                    setTooltipCategoryName(`${category.name} - Covered Products`);
-                                    setIsProductListDialogOpen(true);
-                                    setHoveredTooltip(null);
-                                  }}
-                                  className="w-full h-8 text-sm"
-                                  variant="outline"
-                                >
-                                  See list
-                                </Button>
                               </div>
                             </div>
                           </div>
