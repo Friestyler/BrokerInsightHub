@@ -800,7 +800,7 @@ export default function ProductTemplates() {
                       }}
                     >
                       {category.icon && (
-                        <span className="mr-2">{category.icon}</span>
+                        <span className="mr-2">{renderCategoryIcon(category.icon)}</span>
                       )}
                       {category.name}
                     </Badge>
@@ -1094,6 +1094,7 @@ export default function ProductTemplates() {
                       />
                     </div>
                   </TableHead>
+                  <TableHead className="w-8"></TableHead>
                   <TableHead className="min-w-[100px] text-[#696C8C]">Product ID</TableHead>
                   <TableHead className="min-w-[200px] text-[#696C8C]">Name</TableHead>
                   <TableHead className="min-w-[250px] text-[#696C8C]">Description</TableHead>
@@ -1102,6 +1103,9 @@ export default function ProductTemplates() {
                   <TableHead className="min-w-[100px] text-[#696C8C]">Average Price</TableHead>
                   <TableHead className="min-w-[100px] text-[#696C8C]">Premium %</TableHead>
                   <TableHead className="min-w-[100px] text-[#696C8C]">Discount %</TableHead>
+                  <TableHead className="min-w-[80px] text-[#696C8C]">Partners</TableHead>
+                  <TableHead className="min-w-[80px] text-[#696C8C]">Customers</TableHead>
+                  <TableHead className="min-w-[100px] text-[#696C8C]">Opportunities</TableHead>
                   <TableHead className="w-12 text-[#696C8C]">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -1128,6 +1132,9 @@ export default function ProductTemplates() {
                           }}
                         />
                       </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      {(template as ProductTemplateWithCategory).categoryIcon && renderCategoryIcon((template as ProductTemplateWithCategory).categoryIcon)}
                     </TableCell>
                     <TableCell>
                       <div className="text-sm text-gray-900 font-mono">
@@ -1179,6 +1186,21 @@ export default function ProductTemplates() {
                     <TableCell>
                       <div className="text-sm text-gray-900">
                         {template.discountPercentage ? formatPercentage(template.discountPercentage) : '-'}
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div className="inline-flex items-center justify-center w-8 h-6 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
+                        0
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div className="inline-flex items-center justify-center w-8 h-6 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                        0
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-center">
+                      <div className="inline-flex items-center justify-center w-8 h-6 bg-green-100 text-green-800 text-xs font-medium rounded-full">
+                        0
                       </div>
                     </TableCell>
                     <TableCell>
