@@ -1437,7 +1437,7 @@ export default function CustomerDetailNew() {
                                                 <div className="flex-1 min-w-0">
                                                   <div className="flex items-center gap-2">
                                                     <div className="text-sm font-medium text-foreground truncate">{template.name}</div>
-                                                    {configuredProducts.has(template.id) && (
+                                                    {configuredProducts.includes(template.id) && (
                                                       <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0" title="Configured"></div>
                                                     )}
                                                   </div>
@@ -1665,7 +1665,7 @@ export default function CustomerDetailNew() {
                   addProductMutation.mutate(assignmentData, {
                     onSuccess: () => {
                       // Mark product as configured and reset form but keep dialog open
-                      setConfiguredProducts(prev => new Set([...Array.from(prev), selectedProductTemplate.id]));
+                      setConfiguredProducts(prev => [...prev, selectedProductTemplate.id]);
                       setSelectedProductTemplate(null);
                       setCustomAttributes({
                         customPrice: '',
@@ -1701,7 +1701,7 @@ export default function CustomerDetailNew() {
                   addProductMutation.mutate(assignmentData, {
                     onSuccess: () => {
                       // Mark product as configured and close dialog
-                      setConfiguredProducts(prev => new Set([...Array.from(prev), selectedProductTemplate.id]));
+                      setConfiguredProducts(prev => [...prev, selectedProductTemplate.id]);
                       setShowAddProductDialog(false);
                       setSelectedProductTemplate(null);
                       setCustomAttributes({
