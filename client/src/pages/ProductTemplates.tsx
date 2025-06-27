@@ -164,7 +164,7 @@ export default function ProductTemplates() {
       return apiRequest('DELETE', `/api/product-catalogue/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/product-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/product-catalogue'] });
       setDeleteDialogOpen(false);
       setSelectedTemplate(null);
       toast({
