@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, ChevronDown, ChevronRight } from "lucide-react";
+import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, ChevronDown, ChevronRight, Shield, TrendingUp, Clock, AlertTriangle, Target, Zap, Briefcase, Plane, PiggyBank, Scale } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import LogoUploadModal from "@/components/LogoUploadModal";
 import EntityAvatar from "@/components/EntityAvatar";
@@ -848,32 +848,385 @@ export default function CustomerDetailNew() {
         )}
 
         {activeTab === "product-dashboard" && (
-          <div className="flex flex-col items-center justify-center py-16 px-4 text-center">
-            <div className="mx-auto w-20 h-20 bg-gradient-to-br from-blue-50 to-indigo-100 rounded-full flex items-center justify-center mb-6">
-              <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
-                <path d="M9 9h6v6H9z"/>
-                <path d="M9 3v6"/>
-                <path d="M15 9v6"/>
-                <path d="M9 15h6"/>
-                <path d="M3 9h6"/>
-                <path d="M15 3v6"/>
-                <path d="M21 9h-6"/>
-                <path d="M9 21v-6"/>
-                <path d="M15 15h6"/>
-              </svg>
+          <div className="space-y-8">
+            {/* Summary Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {/* Active Coverage */}
+              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
+                      <Shield className="w-5 h-5 text-emerald-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">Active Coverage</h3>
+                      <p className="text-sm text-gray-500">Products in force</p>
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-gray-900">7</div>
+                </div>
+                <div className="flex items-center text-sm">
+                  <div className="flex items-center text-emerald-600 mr-2">
+                    <TrendingUp className="w-4 h-4 mr-1" />
+                    +2 this quarter
+                  </div>
+                </div>
+              </div>
+
+              {/* Expiring Soon */}
+              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                      <Clock className="w-5 h-5 text-orange-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">Expiring Soon</h3>
+                      <p className="text-sm text-gray-500">Next 90 days</p>
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-orange-600">2</div>
+                </div>
+                <div className="flex items-center text-sm">
+                  <div className="flex items-center text-orange-600 mr-2">
+                    <AlertTriangle className="w-4 h-4 mr-1" />
+                    Action required
+                  </div>
+                </div>
+              </div>
+
+              {/* Opportunities */}
+              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <Target className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-gray-900">Cross-sell Ready</h3>
+                      <p className="text-sm text-gray-500">High-potential gaps</p>
+                    </div>
+                  </div>
+                  <div className="text-2xl font-bold text-blue-600">4</div>
+                </div>
+                <div className="flex items-center text-sm">
+                  <div className="flex items-center text-blue-600 mr-2">
+                    <Zap className="w-4 h-4 mr-1" />
+                    €12K potential value
+                  </div>
+                </div>
+              </div>
             </div>
-            <h3 className="text-xl font-semibold text-gray-900 mb-3">Product Dashboard Coming Soon</h3>
-            <p className="text-gray-600 max-w-md mb-4">
-              We're building comprehensive product analytics and insights for this customer. 
-              This dashboard will show product performance, purchasing patterns, and recommendations.
-            </p>
-            <div className="flex items-center text-sm text-gray-500">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                <circle cx="12" cy="12" r="10"/>
-                <polyline points="12,6 12,12 16,14"/>
-              </svg>
-              Expected launch: Q2 2025
+
+            {/* Category Coverage Grid */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">Coverage by Category</h3>
+                <div className="flex items-center space-x-4">
+                  <div className="flex items-center text-sm text-gray-500">
+                    <div className="w-3 h-3 bg-emerald-500 rounded-full mr-2"></div>
+                    Active products
+                  </div>
+                  <div className="flex items-center text-sm text-gray-500">
+                    <div className="w-3 h-3 bg-gray-200 rounded-full mr-2"></div>
+                    Available products
+                  </div>
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Life Insurance */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-emerald-500 rounded-full"></div>
+                      <span className="font-medium text-gray-900">Life Insurance</span>
+                    </div>
+                    <span className="text-sm text-gray-500">3 of 8 products</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Death Cover</span>
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Branch 21</span>
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Group Insurance</span>
+                      <div className="w-2 h-2 bg-emerald-500 rounded-full"></div>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Branch 23</span>
+                      <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Pension Savings</span>
+                      <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
+                    </div>
+                  </div>
+                  <div className="pt-2">
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="bg-emerald-500 h-2 rounded-full" style={{width: '37.5%'}}></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Non-Life Insurance */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                      <span className="font-medium text-gray-900">Non-Life Insurance</span>
+                    </div>
+                    <span className="text-sm text-gray-500">3 of 12 products</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Health Insurance</span>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Auto Insurance</span>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Home Insurance</span>
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Business Insurance</span>
+                      <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Travel Insurance</span>
+                      <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
+                    </div>
+                  </div>
+                  <div className="pt-2">
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="bg-blue-500 h-2 rounded-full" style={{width: '25%'}}></div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Services */}
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                      <span className="font-medium text-gray-900">Services</span>
+                    </div>
+                    <span className="text-sm text-gray-500">1 of 3 products</span>
+                  </div>
+                  <div className="space-y-2">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-600">Financial Advisory</span>
+                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Legal Services</span>
+                      <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-gray-400">Tax Planning</span>
+                      <div className="w-2 h-2 bg-gray-200 rounded-full"></div>
+                    </div>
+                  </div>
+                  <div className="pt-2">
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="bg-purple-500 h-2 rounded-full" style={{width: '33%'}}></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Contract Timeline */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">Contract Timeline</h3>
+                <div className="text-sm text-gray-500">Next 12 months</div>
+              </div>
+              
+              <div className="relative">
+                {/* Timeline bar */}
+                <div className="absolute top-8 left-0 w-full h-2 bg-gray-100 rounded-full"></div>
+                
+                {/* Timeline items */}
+                <div className="relative space-y-4">
+                  <div className="flex items-center">
+                    <div className="w-4 h-4 bg-red-500 rounded-full z-10 relative"></div>
+                    <div className="ml-4 flex-1">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-medium text-gray-900">Auto Insurance - Premium Plan</div>
+                          <div className="text-sm text-gray-500">Expires Feb 15, 2025</div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-red-600 font-medium">19 days</span>
+                          <Button variant="outline" size="sm" className="h-8">
+                            Renew
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <div className="w-4 h-4 bg-orange-500 rounded-full z-10 relative"></div>
+                    <div className="ml-4 flex-1">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-medium text-gray-900">Home Insurance - Comprehensive</div>
+                          <div className="text-sm text-gray-500">Expires Apr 22, 2025</div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-orange-600 font-medium">85 days</span>
+                          <Button variant="outline" size="sm" className="h-8">
+                            Review
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center">
+                    <div className="w-4 h-4 bg-green-500 rounded-full z-10 relative"></div>
+                    <div className="ml-4 flex-1">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <div className="font-medium text-gray-900">Death Cover - Family Plan</div>
+                          <div className="text-sm text-gray-500">Expires Aug 10, 2025</div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-sm text-green-600 font-medium">195 days</span>
+                          <Button variant="ghost" size="sm" className="h-8">
+                            Monitor
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Cross-sell Opportunities */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-lg font-semibold text-gray-900">Cross-sell Opportunities</h3>
+                <Button variant="outline" size="sm" className="h-8">
+                  View all opportunities
+                </Button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                        <Briefcase className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">Business Insurance</div>
+                        <div className="text-sm text-gray-500">High potential match</div>
+                      </div>
+                    </div>
+                    <div className="text-sm font-medium text-blue-600">€4,500</div>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Customer has home and auto insurance but no business coverage. Similar profiles show 78% conversion rate.
+                  </p>
+                  <div className="flex space-x-2">
+                    <Button size="sm" className="h-8 bg-[#5567E5] text-white hover:bg-[#4556D4]">
+                      Add to campaign
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-8">
+                      Share with partner
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                        <Plane className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">Travel Insurance</div>
+                        <div className="text-sm text-gray-500">Bundle opportunity</div>
+                      </div>
+                    </div>
+                    <div className="text-sm font-medium text-purple-600">€480</div>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Perfect add-on to existing life insurance. Can be bundled with current Death Cover renewal.
+                  </p>
+                  <div className="flex space-x-2">
+                    <Button size="sm" className="h-8 bg-[#5567E5] text-white hover:bg-[#4556D4]">
+                      Add to campaign
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-8">
+                      Share with partner
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+                        <PiggyBank className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">Pension Savings</div>
+                        <div className="text-sm text-gray-500">Life stage match</div>
+                      </div>
+                    </div>
+                    <div className="text-sm font-medium text-emerald-600">€3,200</div>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Customer age and income profile suggest retirement planning need. Strong complement to existing life products.
+                  </p>
+                  <div className="flex space-x-2">
+                    <Button size="sm" className="h-8 bg-[#5567E5] text-white hover:bg-[#4556D4]">
+                      Add to campaign
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-8">
+                      Share with partner
+                    </Button>
+                  </div>
+                </div>
+
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="w-8 h-8 bg-amber-500 rounded-lg flex items-center justify-center">
+                        <Scale className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">Legal Services</div>
+                        <div className="text-sm text-gray-500">Service upsell</div>
+                      </div>
+                    </div>
+                    <div className="text-sm font-medium text-amber-600">€720</div>
+                  </div>
+                  <p className="text-sm text-gray-600 mb-3">
+                    Add legal advisory services to complement existing financial advisory. Increases customer lifetime value.
+                  </p>
+                  <div className="flex space-x-2">
+                    <Button size="sm" className="h-8 bg-[#5567E5] text-white hover:bg-[#4556D4]">
+                      Add to campaign
+                    </Button>
+                    <Button variant="outline" size="sm" className="h-8">
+                      Share with partner
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         )}

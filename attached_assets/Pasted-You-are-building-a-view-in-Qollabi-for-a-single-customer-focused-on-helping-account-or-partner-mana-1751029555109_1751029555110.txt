@@ -1,0 +1,55 @@
+You are building a view in Qollabi for a single customer, focused on helping account or partner managers identify upsell and cross-sell opportunities within that customer’s insurance portfolio.
+
+⸻
+
+🎯 Objective
+
+Design an interface that clearly shows:
+	1.	The insurance product categories that apply to this customer
+	2.	The products the customer already has in each category
+	3.	The contract status and expiration date for each product
+	4.	Contracts expiring soon (e.g. within the next 90 days)
+	5.	Cross-sell opportunities within the same category (other products the customer doesn’t yet have — but do not label this as “white space” yet)
+	6.	Suggested actions the user can take:
+	•	Renew an expiring contract
+	•	Propose an additional product
+	•	Offer a bundle
+
+This is not a general analytics dashboard. It is a focused, actionable view of one customer’s insurance portfolio.
+
+⸻
+
+🧩 Input Data
+
+You’ll be working with this structure:
+	•	Customer (Context: this entire view is about one customer)
+	•	Categories (e.g. Health, Legal, Disability)
+	•	Products (e.g. “Legal Basic”, “Income Protection Plus”)
+	•	Belongs to a Category
+	•	Can be Active, Expiring, Renewed, Cancelled
+	•	Has a Contract End Date
+	•	May include Tags (e.g. Strategic, High-Margin, Bundleable)
+	•	May be linked to a suggested bundle or complementary product
+
+Note: A customer can only have one instance of a product, but multiple products per category are possible.
+
+⸻
+
+🧠 Interface Design Guidance
+	•	Use shadcn/ui components only
+	•	Design with the minimalist clarity of Google or Apple-style interfaces (clean spacing, subtle hierarchy, sharp typography)
+	•	Prioritize readability and scan-ability for a human reviewing a portfolio
+	•	Make it easy to spot:
+	•	What’s active
+	•	What’s expiring
+	•	What else could be proposed
+
+⸻
+
+🔧 Layout Suggestions (you’re free to explore)
+	•	Table or Card Layout, grouped by category
+	•	Each row = one product
+	•	Columns = status, expiration date, suggested action
+	•	Inline actions: “Renew”, “Propose”, “Bundle”
+	•	Visual cues: badges, urgency chips, colored tags for expiring soon
+	•	Optional: add filters or dropdowns for category, status, tag
