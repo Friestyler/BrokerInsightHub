@@ -764,112 +764,12 @@ export default function CustomerDetailNew() {
             {/* Add Product Button */}
             <div className="flex justify-end items-center mb-4">
               <Button 
-                onClick={() => setShowAddProductDialog(true)}
-                className="bg-[#5567E5] text-white hover:bg-[#4556D4] h-8"
+                disabled
+                className="bg-gray-300 text-gray-500 cursor-not-allowed h-8"
               >
                 Add product
               </Button>
             </div>
-            
-            {/* Products Table */}
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12 text-[#696C8C]">
-                    <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                      <Checkbox />
-                    </div>
-                  </TableHead>
-                  <TableHead className="min-w-[200px] text-[#696C8C]">Product Name</TableHead>
-                  <TableHead className="min-w-[250px] text-[#696C8C]">Description</TableHead>
-                  <TableHead className="min-w-[100px] text-[#696C8C]">Product ID</TableHead>
-                  <TableHead className="min-w-[120px] text-[#696C8C]">Provider</TableHead>
-                  <TableHead className="min-w-[150px] text-[#696C8C]">Category</TableHead>
-                  <TableHead className="min-w-[120px] text-[#696C8C]">Contract Start</TableHead>
-                  <TableHead className="min-w-[120px] text-[#696C8C]">Contract End</TableHead>
-                  <TableHead className="min-w-[100px] text-[#696C8C]">Premium Value</TableHead>
-                  <TableHead className="min-w-[100px] text-[#696C8C]">Premium %</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {(assignedProducts || []).map((assignment: any) => (
-                  <TableRow key={assignment.id} className="group">
-                    <TableCell>
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Checkbox />
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center">
-                        <div className="h-10 w-10 flex-shrink-0">
-                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                            <Package className="h-5 w-5 text-blue-600" />
-                          </div>
-                        </div>
-                        <div className="ml-4">
-                          <div className="font-medium text-gray-900">
-                            {assignment.productname || 'Unknown Product'}
-                          </div>
-                        </div>
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-600">
-                      {assignment.productdescription || 'No description'}
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-600">
-                      {assignment.producttemplateid || 'N/A'}
-                    </TableCell>
-                    <TableCell>{assignment.providername || 'Not specified'}</TableCell>
-                    <TableCell>
-                      {assignment.category ? (
-                        <Badge variant="outline" className="capitalize">
-                          {assignment.category}
-                        </Badge>
-                      ) : (
-                        <span className="text-gray-500">Not categorized</span>
-                      )}
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-600">
-                      {assignment.customercontractstartdate
-                        ? new Date(assignment.customercontractstartdate).toLocaleDateString()
-                        : 'Not specified'
-                      }
-                    </TableCell>
-                    <TableCell className="text-sm text-gray-600">
-                      {assignment.customercontractenddate
-                        ? new Date(assignment.customercontractenddate).toLocaleDateString()
-                        : 'Not specified'
-                      }
-                    </TableCell>
-                    <TableCell>
-                      {assignment.customprice 
-                        ? `€${Number(assignment.customprice).toLocaleString()}`
-                        : assignment.templateaverageprice 
-                        ? `€${Number(assignment.templateaverageprice).toLocaleString()}`
-                        : 'Not set'
-                      }
-                    </TableCell>
-                    <TableCell>
-                      {assignment.custompremiumpercentage 
-                        ? `${assignment.custompremiumpercentage}%`
-                        : assignment.templatepremiumpercentage 
-                        ? `${assignment.templatepremiumpercentage}%`
-                        : 'Not set'
-                      }
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            {(!assignedProducts || assignedProducts.length === 0) && (
-              <div className="text-center py-12">
-                <Package className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No product assignments</h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  No products have been assigned to this customer yet.
-                </p>
-              </div>
-            )}
           </div>
         )}
 
