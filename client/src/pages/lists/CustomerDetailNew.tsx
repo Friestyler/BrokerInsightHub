@@ -1293,10 +1293,10 @@ export default function CustomerDetailNew() {
                           
                           // Check if template belongs to this root category or any of its subcategories
                           if (templateCategory.level === 1 && templateCategory.id === rootCategoryId) return true;
-                          if (templateCategory.level === 2 && templateCategory.parentId === rootCategoryId) return true;
+                          if (templateCategory.level === 2 && templateCategory.parent_id === rootCategoryId) return true;
                           if (templateCategory.level === 3) {
-                            const parentCategory = categories?.find((c: any) => c.id === templateCategory.parentId);
-                            return parentCategory?.parentId === rootCategoryId;
+                            const parentCategory = categories?.find((c: any) => c.id === templateCategory.parent_id);
+                            return parentCategory?.parent_id === rootCategoryId;
                           }
                           return false;
                         }).length;
