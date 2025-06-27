@@ -3355,42 +3355,6 @@ Keep the tone clear and professional. Focus on what will help the account manage
   });
 
   // Customer Product Assignments API endpoints
-  
-  // Get Product Templates (for selection dialog)
-  app.get('/api/degoudse/product-templates', async (req, res) => {
-    try {
-      const envPool = pool;
-      const result = await envPool.query(`
-        SELECT 
-          pt.id,
-          pt.product_id as productId,
-          pt.name,
-          pt.description,
-          c.name as category,
-          c.color as categoryColor,
-          pt.provider_name as providerName,
-          pt.average_price as averagePrice,
-          pt.premium_value as premiumValue,
-          pt.premium_percentage as premiumPercentage,
-          pt.discount,
-          pt.discount_percentage as discountPercentage,
-          pt.contract_start_date as contractStartDate,
-          pt.contract_end_date as contractEndDate,
-          pt.notes,
-          pt.is_active as isActive
-        FROM degoudse.product_templates pt
-        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
-        WHERE pt.is_active = true
-        ORDER BY c.name, pt.name
-      `);
-      
-      console.log(`Returning ${result.rows.length} product templates`);
-      res.json(result.rows);
-    } catch (error) {
-      console.error('Error fetching product templates:', error);
-      res.status(500).json({ error: 'Failed to fetch product templates' });
-    }
-  });
 
   // Get Customer Product Assignments
   app.get('/api/degoudse/customers/:id/product-assignments', async (req, res) => {
@@ -6806,6 +6770,9 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         categoryColor: row.category_color,
         vendorName: row.vendor_name
       }));
+      
+      console.log('First row before transformation:', result.rows[0]);
+      console.log('First row after transformation:', transformedRows[0]);
       
       res.json(transformedRows);
     } catch (error) {
