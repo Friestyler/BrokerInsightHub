@@ -195,6 +195,10 @@ export default function ProductTemplates() {
       setCreateCategoryDialogOpen(false);
       setCreateSubcategoryDialogOpen(false);
       setSelectedParentCategory(null);
+      setNewCategoryColor("#3B82F6");
+      setNewSubcategoryColor("#3B82F6");
+      setNewCategoryIcon("");
+      setNewSubcategoryIcon("");
       toast({
         title: "Success",
         description: "Category created successfully",
@@ -217,6 +221,8 @@ export default function ProductTemplates() {
       queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
       setEditCategoryDialogOpen(false);
       setSelectedCategory(null);
+      setEditCategoryColor("#3B82F6");
+      setEditCategoryIcon("");
       toast({
         title: "Success",
         description: "Category updated successfully",
