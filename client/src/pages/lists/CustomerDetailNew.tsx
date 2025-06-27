@@ -1567,7 +1567,9 @@ export default function CustomerDetailNew() {
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Average Price:</span>
-                          <span className="text-foreground font-medium">€{selectedProductTemplate.averagePrice}</span>
+                          <span className="text-foreground font-medium">
+                            {selectedProductTemplate.averagePrice ? `€${selectedProductTemplate.averagePrice}` : 'Not specified'}
+                          </span>
                         </div>
                         <div className="flex justify-between">
                           <span className="text-muted-foreground">Premium:</span>
