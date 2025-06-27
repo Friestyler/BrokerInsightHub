@@ -773,7 +773,6 @@ export default function CustomerDetailNew() {
                   <TableHead className="min-w-[150px] text-[#696C8C]">Contract Period</TableHead>
                   <TableHead className="min-w-[100px] text-[#696C8C]">Premium Value</TableHead>
                   <TableHead className="min-w-[100px] text-[#696C8C]">Premium %</TableHead>
-                  <TableHead className="min-w-[100px] text-[#696C8C]">Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -827,11 +826,6 @@ export default function CustomerDetailNew() {
                         ? `${assignment.templatepremiumpercentage}%`
                         : 'Not set'
                       }
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="capitalize">
-                        {assignment.isActive ? 'Active' : 'Inactive'}
-                      </Badge>
                     </TableCell>
                   </TableRow>
                 ))}
