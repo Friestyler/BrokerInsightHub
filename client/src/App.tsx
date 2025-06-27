@@ -25,8 +25,7 @@ import OpportunityDetailBrokerPOV from "@/pages/lists/OpportunityDetailBrokerPOV
 import PartnerDetailBrokerPOV from "@/pages/lists/PartnerDetailBrokerPOV";
 import PartnersViewforPartner from "@/pages/PartnersViewforPartner";
 import VendorsPage from "@/pages/lists/VendorsPage";
-import ProductsPage from "@/pages/lists/ProductsPage";
-import ProductDetail from "@/pages/lists/ProductDetail";
+
 import ProductTemplates from "@/pages/ProductTemplates";
 
 import OKRTemplatesPage from "@/pages/templates/OKRMetricsPage";
@@ -96,8 +95,6 @@ function Router() {
           <Route path="/opportunities/:id" component={OpportunityDetail} />
           <Route path="/lists/opportunities/:id" component={OpportunityDetail} />
           <Route path="/vendors" component={VendorsPage} />
-          <Route path="/products" component={ProductsPage} />
-          <Route path="/lists/products/:id" component={ProductDetail} />
           <Route path="/product-templates" component={ProductTemplates} />
           <Route path="/projects" component={ProjectsPage} />
           <Route path="/contacts" component={ContactsPage} />

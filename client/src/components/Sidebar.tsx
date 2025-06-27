@@ -67,7 +67,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
   
   // Auto-open the appropriate menu when on relevant pages
   useEffect(() => {
-    if (location.startsWith('/partners') || location.startsWith('/lists/partners') || location.startsWith('/customers') || location.startsWith('/lists/customers') || location.startsWith('/opportunities') || location.startsWith('/lists/opportunities') || location.startsWith('/vendors') || location.startsWith('/products') || location.startsWith('/projects') || location.startsWith('/contacts')) {
+    if (location.startsWith('/partners') || location.startsWith('/lists/partners') || location.startsWith('/customers') || location.startsWith('/lists/customers') || location.startsWith('/opportunities') || location.startsWith('/lists/opportunities') || location.startsWith('/vendors') || location.startsWith('/product-templates') || location.startsWith('/projects') || location.startsWith('/contacts')) {
       setDataMenuOpen(true);
       setTemplatesMenuOpen(false);
       setSmartUpdatesMenuOpen(false);
@@ -178,7 +178,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
         
         <div ref={dataMenuRef} className="relative">
           <button 
-            className={`nav-container w-full text-left ${(collapsed && (location.startsWith('/partners') || location.startsWith('/lists/partners') || location.startsWith('/customers') || location.startsWith('/lists/customers') || location.startsWith('/opportunities') || location.startsWith('/lists/opportunities') || location.startsWith('/contacts'))) ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+            className={`nav-container w-full text-left ${(collapsed && (location.startsWith('/partners') || location.startsWith('/lists/partners') || location.startsWith('/customers') || location.startsWith('/lists/customers') || location.startsWith('/opportunities') || location.startsWith('/lists/opportunities') || location.startsWith('/contacts') || location.startsWith('/product-templates'))) ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
             onClick={() => setDataMenuOpen(!dataMenuOpen)}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -212,7 +212,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
           </button>
           
           {/* Always show a tiny indicator on the sidebar if a list section is active */}
-          {collapsed && !dataMenuOpen && (location.startsWith('/partners') || location.startsWith('/lists/partners') || location.startsWith('/customers') || location.startsWith('/lists/customers') || location.startsWith('/opportunities') || location.startsWith('/lists/opportunities') || location.startsWith('/contacts')) && (
+          {collapsed && !dataMenuOpen && (location.startsWith('/partners') || location.startsWith('/lists/partners') || location.startsWith('/customers') || location.startsWith('/lists/customers') || location.startsWith('/opportunities') || location.startsWith('/lists/opportunities') || location.startsWith('/contacts') || location.startsWith('/product-templates')) && (
             <div className="absolute top-[93px] right-0 w-1 h-7 bg-indigo-500 rounded-l-md"></div>
           )}
           
@@ -261,15 +261,15 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
                 Contacts
               </button>
               <button
-                onClick={() => navigateTo('/products')}
-                className={`submenu-nav-container ${location.startsWith("/products") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+                onClick={() => navigateTo('/product-templates')}
+                className={`submenu-nav-container ${location.startsWith("/product-templates") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
                   <polyline points="3.27,6.96 12,12.01 20.73,6.96"></polyline>
                   <line x1="12" y1="22.08" x2="12" y2="12"></line>
                 </svg>
-                Products
+                Product templates
               </button>
             </div>
           )}
