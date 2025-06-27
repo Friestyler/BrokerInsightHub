@@ -13,7 +13,35 @@ import { IconPicker } from "@/components/ui/icon-picker";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, MoreVertical, Edit, Trash2, Search, ChevronDown, ChevronRight } from "lucide-react";
+import { 
+  Plus, 
+  MoreVertical, 
+  Edit, 
+  Trash2, 
+  Search, 
+  ChevronDown, 
+  ChevronRight,
+  Building2, 
+  Car, 
+  Heart, 
+  Shield, 
+  Home, 
+  Plane, 
+  Briefcase, 
+  Users, 
+  DollarSign, 
+  Target, 
+  TrendingUp, 
+  Award, 
+  Clock, 
+  FileText, 
+  Settings, 
+  Zap, 
+  Globe, 
+  Lock, 
+  Star, 
+  CheckCircle 
+} from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -29,7 +57,39 @@ interface ProductTemplateWithCategory extends ProductTemplate {
   categoryColor?: string;
   categoryName?: string;
   vendorName?: string;
+  categoryIcon?: string;
 }
+
+// Icon mapping for category icons
+const ICON_MAP = {
+  "Building2": Building2,
+  "Car": Car,
+  "Heart": Heart,
+  "Shield": Shield,
+  "Home": Home,
+  "Plane": Plane,
+  "Briefcase": Briefcase,
+  "Users": Users,
+  "DollarSign": DollarSign,
+  "Target": Target,
+  "TrendingUp": TrendingUp,
+  "Award": Award,
+  "Clock": Clock,
+  "FileText": FileText,
+  "Settings": Settings,
+  "Zap": Zap,
+  "Globe": Globe,
+  "Lock": Lock,
+  "Star": Star,
+  "CheckCircle": CheckCircle,
+} as const;
+
+// Helper function to render category icon
+const renderCategoryIcon = (iconName?: string) => {
+  if (!iconName || !(iconName in ICON_MAP)) return null;
+  const IconComponent = ICON_MAP[iconName as keyof typeof ICON_MAP];
+  return <IconComponent className="h-4 w-4" />;
+};
 
 const productTemplateSchema = z.object({
   productId: z.string().min(1, "Product ID is required"),
@@ -619,7 +679,7 @@ export default function ProductTemplates() {
               }`}
               onClick={() => setActiveTab('templates')}
             >
-              Product template
+              Products
             </Button>
             <Button 
               variant="ghost" 
@@ -956,7 +1016,7 @@ export default function ProductTemplates() {
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
           <Input
-            placeholder="Search templates..."
+            placeholder="Search products..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="pl-10"
