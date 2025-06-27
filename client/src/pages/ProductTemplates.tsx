@@ -75,6 +75,26 @@ export default function ProductTemplates() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Helper function to map color hex values to badge variants
+  const getBadgeVariantFromColor = (color: string | null): "blue" | "green" | "amber" | "red" | "purple" | "cyan" | "lime" | "orange" | "pink" | "gray" => {
+    if (!color) return 'blue';
+    
+    const colorMap: { [key: string]: "blue" | "green" | "amber" | "red" | "purple" | "cyan" | "lime" | "orange" | "pink" | "gray" } = {
+      '#3B82F6': 'blue',
+      '#10B981': 'green', 
+      '#F59E0B': 'amber',
+      '#EF4444': 'red',
+      '#8B5CF6': 'purple',
+      '#06B6D4': 'cyan',
+      '#84CC16': 'lime',
+      '#F97316': 'orange',
+      '#EC4899': 'pink',
+      '#6B7280': 'gray'
+    };
+    
+    return colorMap[color] || 'blue';
+  };
+
   // Function to render categories hierarchically
   const renderCategoriesHierarchy = (categories: any[], level = 0): React.ReactElement[] => {
     const result: React.ReactElement[] = [];
@@ -700,12 +720,8 @@ export default function ProductTemplates() {
                     </CollapsibleTrigger>
                     
                     <Badge 
-                      style={{ 
-                        backgroundColor: `${category.color || '#3B82F6'}20`,
-                        borderColor: `${category.color || '#3B82F6'}40`,
-                        color: category.color || '#3B82F6'
-                      }}
-                      className="border text-sm font-medium px-3 py-1.5 cursor-pointer hover:opacity-80"
+                      variant={getBadgeVariantFromColor(category.color)}
+                      className="text-sm font-medium px-3 py-1.5 cursor-pointer hover:opacity-80"
                       onClick={() => {
                         const newExpanded = new Set(expandedCategories);
                         if (expandedCategories.has(category.id)) {
@@ -788,12 +804,8 @@ export default function ProductTemplates() {
                               )}
                               
                               <Badge 
-                                style={{ 
-                                  backgroundColor: `${subcategory.color || category.color || '#3B82F6'}20`,
-                                  borderColor: `${subcategory.color || category.color || '#3B82F6'}40`,
-                                  color: subcategory.color || category.color || '#3B82F6'
-                                }}
-                                className="border text-sm px-3 py-1 cursor-pointer hover:opacity-80"
+                                variant={getBadgeVariantFromColor(subcategory.color || category.color)}
+                                className="text-sm px-3 py-1 cursor-pointer hover:opacity-80"
                                 onClick={() => {
                                   if (getSubcategoryCount(subcategory.id) > 0) {
                                     const newExpanded = new Set(expandedCategories);
@@ -855,12 +867,8 @@ export default function ProductTemplates() {
                                     <div className="w-3 h-3" />
                                     
                                     <Badge 
-                                      style={{ 
-                                        backgroundColor: `${nestedSubcategory.color || subcategory.color || category.color || '#3B82F6'}20`,
-                                        borderColor: `${nestedSubcategory.color || subcategory.color || category.color || '#3B82F6'}40`,
-                                        color: nestedSubcategory.color || subcategory.color || category.color || '#3B82F6'
-                                      }}
-                                      className="border text-xs px-2 py-1"
+                                      variant={getBadgeVariantFromColor(nestedSubcategory.color || subcategory.color || category.color)}
+                                      className="text-xs px-2 py-1"
                                     >
                                       {nestedSubcategory.icon && (
                                         <span className="mr-1">{nestedSubcategory.icon}</span>
