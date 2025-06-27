@@ -9,6 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { ColorPicker } from "@/components/ui/color-picker";
+import { IconPicker } from "@/components/ui/icon-picker";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -67,6 +68,9 @@ export default function ProductTemplates() {
   const [newCategoryColor, setNewCategoryColor] = useState("#3B82F6");
   const [newSubcategoryColor, setNewSubcategoryColor] = useState("#3B82F6");
   const [editCategoryColor, setEditCategoryColor] = useState("#3B82F6");
+  const [newCategoryIcon, setNewCategoryIcon] = useState("");
+  const [newSubcategoryIcon, setNewSubcategoryIcon] = useState("");
+  const [editCategoryIcon, setEditCategoryIcon] = useState("");
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -636,13 +640,14 @@ export default function ProductTemplates() {
                     </div>
                     <div>
                       <label className="text-sm font-medium text-[#282A3F]">Icon (Optional)</label>
-                      <Input 
-                        name="icon" 
-                        placeholder="Enter emoji or icon (e.g., 🏠, 🚗, 💰)" 
-                        className="mt-1"
-                        maxLength={4}
-                      />
-                      <p className="text-xs text-gray-500 mt-1">Use an emoji or Unicode icon to visually represent this category</p>
+                      <div className="mt-1">
+                        <IconPicker 
+                          value={newCategoryIcon}
+                          onChange={setNewCategoryIcon}
+                          placeholder="Select icon..."
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Choose a visual icon to represent this category</p>
                     </div>
                     <div>
                       <label className="text-sm font-medium text-[#282A3F]">Description</label>
