@@ -1319,21 +1319,15 @@ export default function CustomerDetailNew() {
                               }}
                             >
                               <div className="flex items-center">
-                                {rootCategory.color && (
-                                  <div 
-                                    className="w-3 h-3 rounded-full mr-3" 
-                                    style={{ backgroundColor: rootCategory.color }}
-                                  ></div>
-                                )}
+                                {isRootExpanded ? 
+                                  <ChevronDown className="h-4 w-4 text-muted-foreground mr-2" /> : 
+                                  <ChevronRight className="h-4 w-4 text-muted-foreground mr-2" />
+                                }
                                 <span className="text-sm font-semibold text-foreground">{rootCategory.name}</span>
                                 <span className="ml-2 text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">
                                   {totalProducts}
                                 </span>
                               </div>
-                              {isRootExpanded ? 
-                                <ChevronDown className="h-4 w-4 text-muted-foreground" /> : 
-                                <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                              }
                             </div>
 
                             {/* Level 2 and Level 3 Subcategories with Products */}
@@ -1370,15 +1364,15 @@ export default function CustomerDetailNew() {
                                         }}
                                       >
                                         <div className="flex items-center">
-                                          <span className="text-sm font-medium text-foreground">→ {subcategory.name}</span>
+                                          {isSubExpanded ? 
+                                            <ChevronDown className="h-3 w-3 text-muted-foreground mr-2" /> : 
+                                            <ChevronRight className="h-3 w-3 text-muted-foreground mr-2" />
+                                          }
+                                          <span className="text-sm font-medium text-foreground">{subcategory.name}</span>
                                           <span className="ml-2 text-xs text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
                                             {totalSubcategoryProducts}
                                           </span>
                                         </div>
-                                        {isSubExpanded ? 
-                                          <ChevronDown className="h-3 w-3 text-muted-foreground" /> : 
-                                          <ChevronRight className="h-3 w-3 text-muted-foreground" />
-                                        }
                                       </div>
 
                                       {/* Products under Level 2 subcategory */}
@@ -1387,7 +1381,7 @@ export default function CustomerDetailNew() {
                                           {directSubcategoryTemplates.map((template: any) => (
                                             <div 
                                               key={template.id}
-                                              className={`px-8 py-3 cursor-pointer hover:bg-accent transition-colors ${
+                                              className={`px-12 py-3 cursor-pointer hover:bg-accent transition-colors ${
                                                 selectedProductTemplate?.id === template.id ? 
                                                   'bg-primary/5 border-l-2 border-l-primary' : ''
                                               }`}
@@ -1395,7 +1389,7 @@ export default function CustomerDetailNew() {
                                             >
                                               <div className="flex justify-between items-start">
                                                 <div className="flex-1 min-w-0">
-                                                  <div className="text-sm font-medium text-foreground truncate">---→ {template.name}</div>
+                                                  <div className="text-sm font-medium text-foreground truncate">{template.name}</div>
                                                   <div className="text-xs text-muted-foreground mt-0.5">
                                                     {template.providerName} • Product ID: {template.productId}
                                                   </div>
