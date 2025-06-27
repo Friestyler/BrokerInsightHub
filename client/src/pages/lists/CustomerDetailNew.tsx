@@ -78,7 +78,7 @@ export default function CustomerDetailNew() {
   });
 
   // Track configured products (products that have been set up but not necessarily saved yet)
-  const [configuredProducts, setConfiguredProducts] = useState<Set<number>>(new Set());
+  const [configuredProducts, setConfiguredProducts] = useState<number[]>([]);
 
   // Product selection states
   const [productSearchTerm, setProductSearchTerm] = useState('');
@@ -1356,7 +1356,7 @@ export default function CustomerDetailNew() {
                                         <div className="flex-1 min-w-0">
                                           <div className="flex items-center gap-2">
                                             <div className="text-sm font-medium text-foreground truncate">{template.name}</div>
-                                            {configuredProducts.has(template.id) && (
+                                            {configuredProducts.includes(template.id) && (
                                               <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0" title="Configured"></div>
                                             )}
                                           </div>
@@ -1631,6 +1631,7 @@ export default function CustomerDetailNew() {
               onClick={() => {
                 setShowAddProductDialog(false);
                 setSelectedProductTemplate(null);
+                setConfiguredProducts([]);
                 setCustomAttributes({
                   customPrice: '',
                   customDiscountPercentage: '',
@@ -1664,7 +1665,7 @@ export default function CustomerDetailNew() {
                   addProductMutation.mutate(assignmentData, {
                     onSuccess: () => {
                       // Mark product as configured and reset form but keep dialog open
-                      setConfiguredProducts(prev => new Set([...prev, selectedProductTemplate.id]));
+                      setConfiguredProducts(prev => new Set([...Array.from(prev), selectedProductTemplate.id]));
                       setSelectedProductTemplate(null);
                       setCustomAttributes({
                         customPrice: '',
@@ -1699,7 +1700,8 @@ export default function CustomerDetailNew() {
                   
                   addProductMutation.mutate(assignmentData, {
                     onSuccess: () => {
-                      // Close dialog after adding
+                      // Mark product as configured and close dialog
+                      setConfiguredProducts(prev => new Set([...Array.from(prev), selectedProductTemplate.id]));
                       setShowAddProductDialog(false);
                       setSelectedProductTemplate(null);
                       setCustomAttributes({
