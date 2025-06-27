@@ -48,6 +48,18 @@ export default function CustomerDetailNew() {
   
   // OKR metrics state management
   const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
+  
+  // Product dashboard filters
+  const [selectedCategories, setSelectedCategories] = useState<string[]>(['Life Insurance', 'Non-Life Insurance', 'Services']);
+  const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
+  
+  const toggleCategory = (category: string) => {
+    setSelectedCategories(prev => 
+      prev.includes(category) 
+        ? prev.filter(c => c !== category)
+        : [...prev, category]
+    );
+  };
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState("all");
   const [selectedUnit, setSelectedUnit] = useState("all");
@@ -1066,14 +1078,209 @@ export default function CustomerDetailNew() {
                 
                 {/* Filter Controls */}
                 <div className="flex items-center space-x-3">
-                  <select className="h-8 px-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    <option>All categories</option>
-                    <option>Life Insurance</option>
-                    <option>Non-Life Insurance</option>
-                    <option>Services</option>
-                  </select>
+                  {/* Multi-select Category Filter */}
+                  <div className="relative">
+                    <button 
+                      className="h-9 px-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white flex items-center justify-between min-w-[200px]"
+                      onClick={() => setCategoryDropdownOpen(!categoryDropdownOpen)}
+                    >
+                      <span className="text-gray-700">
+                        {selectedCategories.length === 0 ? 'All categories' : 
+                         selectedCategories.length === 1 ? selectedCategories[0] :
+                         `${selectedCategories.length} categories selected`}
+                      </span>
+                      <ChevronDown className="w-4 h-4 text-gray-400" />
+                    </button>
+                    
+                    {categoryDropdownOpen && (
+                      <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-64 overflow-y-auto">
+                        <div className="p-2 space-y-1">
+                          {/* Main Categories */}
+                          <div className="space-y-1">
+                            <label className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                checked={selectedCategories.includes('Life Insurance')}
+                                onChange={() => toggleCategory('Life Insurance')}
+                                className="w-4 h-4 text-blue-600"
+                              />
+                              <div className="w-3 h-3 bg-green-500 rounded"></div>
+                              <span className="text-sm font-medium text-gray-900">Life Insurance</span>
+                            </label>
+                            
+                            {/* Life Insurance Subcategories */}
+                            <div className="ml-6 space-y-1">
+                              <label className="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  checked={selectedCategories.includes('Death Cover')}
+                                  onChange={() => toggleCategory('Death Cover')}
+                                  className="w-4 h-4 text-blue-600"
+                                />
+                                <span className="text-sm text-gray-600">Death Cover</span>
+                              </label>
+                              <label className="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  checked={selectedCategories.includes('Branch 21')}
+                                  onChange={() => toggleCategory('Branch 21')}
+                                  className="w-4 h-4 text-blue-600"
+                                />
+                                <span className="text-sm text-gray-600">Branch 21</span>
+                              </label>
+                              <label className="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  checked={selectedCategories.includes('Branch 23')}
+                                  onChange={() => toggleCategory('Branch 23')}
+                                  className="w-4 h-4 text-blue-600"
+                                />
+                                <span className="text-sm text-gray-600">Branch 23</span>
+                              </label>
+                              <label className="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  checked={selectedCategories.includes('Group Insurance')}
+                                  onChange={() => toggleCategory('Group Insurance')}
+                                  className="w-4 h-4 text-blue-600"
+                                />
+                                <span className="text-sm text-gray-600">Group Insurance</span>
+                              </label>
+                              <label className="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  checked={selectedCategories.includes('Pension Savings')}
+                                  onChange={() => toggleCategory('Pension Savings')}
+                                  className="w-4 h-4 text-blue-600"
+                                />
+                                <span className="text-sm text-gray-600">Pension Savings</span>
+                              </label>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <label className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                checked={selectedCategories.includes('Non-Life Insurance')}
+                                onChange={() => toggleCategory('Non-Life Insurance')}
+                                className="w-4 h-4 text-blue-600"
+                              />
+                              <div className="w-3 h-3 bg-orange-500 rounded"></div>
+                              <span className="text-sm font-medium text-gray-900">Non-Life Insurance</span>
+                            </label>
+                            
+                            {/* Non-Life Insurance Subcategories */}
+                            <div className="ml-6 space-y-1">
+                              <label className="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  checked={selectedCategories.includes('Health')}
+                                  onChange={() => toggleCategory('Health')}
+                                  className="w-4 h-4 text-blue-600"
+                                />
+                                <span className="text-sm text-gray-600">Health</span>
+                              </label>
+                              <label className="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  checked={selectedCategories.includes('Mobility')}
+                                  onChange={() => toggleCategory('Mobility')}
+                                  className="w-4 h-4 text-blue-600"
+                                />
+                                <span className="text-sm text-gray-600">Mobility</span>
+                              </label>
+                              <label className="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  checked={selectedCategories.includes('Property & Liability')}
+                                  onChange={() => toggleCategory('Property & Liability')}
+                                  className="w-4 h-4 text-blue-600"
+                                />
+                                <span className="text-sm text-gray-600">Property & Liability</span>
+                              </label>
+                              <label className="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  checked={selectedCategories.includes('Business')}
+                                  onChange={() => toggleCategory('Business')}
+                                  className="w-4 h-4 text-blue-600"
+                                />
+                                <span className="text-sm text-gray-600">Business</span>
+                              </label>
+                              <label className="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  checked={selectedCategories.includes('Travel')}
+                                  onChange={() => toggleCategory('Travel')}
+                                  className="w-4 h-4 text-blue-600"
+                                />
+                                <span className="text-sm text-gray-600">Travel</span>
+                              </label>
+                            </div>
+                          </div>
+                          
+                          <div className="space-y-1">
+                            <label className="flex items-center space-x-2 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                              <input 
+                                type="checkbox" 
+                                checked={selectedCategories.includes('Services')}
+                                onChange={() => toggleCategory('Services')}
+                                className="w-4 h-4 text-blue-600"
+                              />
+                              <div className="w-3 h-3 bg-purple-500 rounded"></div>
+                              <span className="text-sm font-medium text-gray-900">Services</span>
+                            </label>
+                            
+                            {/* Services Subcategories */}
+                            <div className="ml-6 space-y-1">
+                              <label className="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  checked={selectedCategories.includes('Legal Services')}
+                                  onChange={() => toggleCategory('Legal Services')}
+                                  className="w-4 h-4 text-blue-600"
+                                />
+                                <span className="text-sm text-gray-600">Legal Services</span>
+                              </label>
+                              <label className="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  checked={selectedCategories.includes('HR Consulting')}
+                                  onChange={() => toggleCategory('HR Consulting')}
+                                  className="w-4 h-4 text-blue-600"
+                                />
+                                <span className="text-sm text-gray-600">HR Consulting</span>
+                              </label>
+                              <label className="flex items-center space-x-2 p-1 hover:bg-gray-50 rounded cursor-pointer">
+                                <input 
+                                  type="checkbox" 
+                                  checked={selectedCategories.includes('Financial Advisory')}
+                                  onChange={() => toggleCategory('Financial Advisory')}
+                                  className="w-4 h-4 text-blue-600"
+                                />
+                                <span className="text-sm text-gray-600">Financial Advisory</span>
+                              </label>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="border-t border-gray-200 p-2">
+                          <button 
+                            onClick={() => {
+                              setSelectedCategories(['Life Insurance', 'Non-Life Insurance', 'Services']);
+                              setCategoryDropdownOpen(false);
+                            }}
+                            className="w-full text-sm text-blue-600 hover:text-blue-700 py-1"
+                          >
+                            Reset to default (3 categories)
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   
-                  <select className="h-8 px-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <select className="h-9 px-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option>All products</option>
                     <option>Death Cover</option>
                     <option>Auto Insurance</option>
@@ -1081,7 +1288,7 @@ export default function CustomerDetailNew() {
                     <option>Home Insurance</option>
                   </select>
                   
-                  <select className="h-8 px-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                  <select className="h-9 px-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
                     <option>All price ranges</option>
                     <option>€0 - €500</option>
                     <option>€500 - €1,000</option>
@@ -1296,36 +1503,36 @@ export default function CustomerDetailNew() {
                     <div className="text-sm text-gray-600">0 of 3 products (0%)</div>
                   </div>
                   
-                  <div className="relative group">
+                  <div className="relative">
                     <div className="flex h-8 bg-gray-200 rounded-lg overflow-hidden cursor-pointer">
                       <div 
-                        className="bg-gray-300 flex items-center justify-center text-gray-700 text-xs font-medium hover:bg-gray-400 transition-colors"
+                        className="bg-gray-300 flex items-center justify-center text-gray-700 text-xs font-medium hover:bg-gray-400 transition-colors relative group"
                         style={{ width: '100%' }}
                       >
                         100% Not Covered
-                      </div>
-                    </div>
-                    
-                    {/* Tooltip - Available Products */}
-                    <div className="absolute left-0 top-10 z-10 w-64 p-3 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-                      <h4 className="font-medium text-gray-900 mb-2">Services - Available Products</h4>
-                      <div className="space-y-1 text-sm">
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Legal Services Package</span>
-                          <span className="font-medium text-gray-500">€650/year</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">HR Consulting Services</span>
-                          <span className="font-medium text-gray-500">€800/year</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span className="text-gray-600">Financial Advisory</span>
-                          <span className="font-medium text-gray-500">€500/year</span>
-                        </div>
-                        <hr className="my-2" />
-                        <div className="flex justify-between font-medium">
-                          <span className="text-gray-900">Total Potential</span>
-                          <span className="text-blue-600">€1,950/year</span>
+                        
+                        {/* Tooltip - Available Products */}
+                        <div className="absolute left-0 top-10 z-10 w-64 p-3 bg-white border border-gray-200 rounded-lg shadow-lg opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+                          <h4 className="font-medium text-gray-900 mb-2">Services - Available Products</h4>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Legal Services Package</span>
+                              <span className="font-medium text-gray-500">€650/year</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">HR Consulting Services</span>
+                              <span className="font-medium text-gray-500">€800/year</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600">Financial Advisory</span>
+                              <span className="font-medium text-gray-500">€500/year</span>
+                            </div>
+                            <hr className="my-2" />
+                            <div className="flex justify-between font-medium">
+                              <span className="text-gray-900">Total Potential</span>
+                              <span className="text-blue-600">€1,950/year</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
