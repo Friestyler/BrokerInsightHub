@@ -889,7 +889,7 @@ export default function ProductTemplates() {
                                 }}
                               >
                                 {subcategory.icon && (
-                                  <span className="mr-2">{subcategory.icon}</span>
+                                  <span className="mr-2">{renderCategoryIcon(subcategory.icon)}</span>
                                 )}
                                 {subcategory.name}
                               </Badge>
@@ -941,7 +941,7 @@ export default function ProductTemplates() {
                                       className="text-sm px-3 py-1.5"
                                     >
                                       {nestedSubcategory.icon && (
-                                        <span className="mr-1">{nestedSubcategory.icon}</span>
+                                        <span className="mr-1">{renderCategoryIcon(nestedSubcategory.icon)}</span>
                                       )}
                                       {nestedSubcategory.name}
                                     </Badge>
