@@ -6771,9 +6771,6 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         vendorName: row.vendor_name
       }));
       
-      console.log('First row before transformation:', result.rows[0]);
-      console.log('First row after transformation:', transformedRows[0]);
-      
       res.json(transformedRows);
     } catch (error) {
       console.error('Error fetching product templates:', error);
