@@ -1015,38 +1015,49 @@ export default function ProductTemplates() {
             </Dialog>
           </div>
 
-      <div className="mb-6 space-y-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Search products..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        
-        <div className="flex items-center gap-4">
-          <div className="min-w-[200px]">
-            <Select value={selectedCategoryFilter} onValueChange={setSelectedCategoryFilter}>
-              <SelectTrigger>
-                <SelectValue placeholder="Filter by category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All categories</SelectItem>
-                {categories && renderCategoriesHierarchy(categories as any[])}
-              </SelectContent>
-            </Select>
+      <div className="mb-6">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4 flex-1">
+            <div className="relative max-w-sm">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Input
+                placeholder="Search products..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            <div className="min-w-[200px]">
+              <Select value={selectedCategoryFilter} onValueChange={setSelectedCategoryFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Filter by category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All categories</SelectItem>
+                  {categories && renderCategoriesHierarchy(categories as any[])}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {selectedCategoryFilter !== "all" && (
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => setSelectedCategoryFilter("all")}
+              >
+                Clear filter
+              </Button>
+            )}
           </div>
-          {selectedCategoryFilter !== "all" && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={() => setSelectedCategoryFilter("all")}
-            >
-              Clear filter
-            </Button>
-          )}
+          
+          <Button 
+            onClick={() => setCreateDialogOpen(true)}
+            className="bg-[#5567E5] hover:bg-[#4451c7] text-white"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add product
+          </Button>
         </div>
       </div>
 
