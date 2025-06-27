@@ -183,7 +183,7 @@ export default function ProductTemplates() {
 
   // Category mutations
   const createCategoryMutation = useMutation({
-    mutationFn: async (data: { name: string; color: string; description?: string; parentId?: number }) => {
+    mutationFn: async (data: { name: string; color: string; icon?: string; description?: string; parentId?: number }) => {
       return apiRequest('POST', '/api/categories', data);
     },
     onSuccess: () => {
@@ -1152,6 +1152,7 @@ export default function ProductTemplates() {
             createCategoryMutation.mutate({
               name: formData.get('name') as string,
               color: newSubcategoryColor,
+              icon: formData.get('icon') as string || undefined,
               description: formData.get('description') as string || undefined,
               parentId: selectedParentCategory?.id,
             });
@@ -1214,6 +1215,7 @@ export default function ProductTemplates() {
                 data: {
                   name: formData.get('name') as string,
                   color: editCategoryColor,
+                  icon: formData.get('icon') as string || undefined,
                   description: formData.get('description') as string || undefined,
                 }
               });
@@ -1238,6 +1240,17 @@ export default function ProductTemplates() {
                     onChange={setEditCategoryColor}
                   />
                 </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#282A3F]">Icon (Optional)</label>
+                <Input 
+                  name="icon" 
+                  placeholder="Enter emoji or icon (e.g., 🏠, 🚗, 💰)" 
+                  defaultValue={selectedCategory?.icon || ""} 
+                  className="mt-1"
+                  maxLength={4}
+                />
+                <p className="text-xs text-gray-500 mt-1">Use an emoji or Unicode icon to visually represent this category</p>
               </div>
               <div>
                 <label className="text-sm font-medium text-[#282A3F]">Description</label>
