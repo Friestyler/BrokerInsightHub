@@ -88,6 +88,7 @@ export default function CustomerDetailNew() {
       customPremiumPercentage: string;
       customerContractStartDate: string;
       customerContractEndDate: string;
+      notes: string;
     };
   }>>([]);
 
@@ -1501,7 +1502,10 @@ export default function CustomerDetailNew() {
                             size="sm"
                             onClick={() => {
                               setSelectedProductTemplate(staged.template);
-                              setCustomAttributes(staged.customAttributes);
+                              setCustomAttributes({
+                                ...staged.customAttributes,
+                                notes: staged.customAttributes.notes || ''
+                              });
                             }}
                             className="h-7 px-2 text-xs text-muted-foreground hover:text-foreground"
                           >
@@ -1706,73 +1710,124 @@ export default function CustomerDetailNew() {
                 onClick={() => {
                   if (!selectedProductTemplate) return;
                   
-                  const assignmentData = {
-                    productTemplateId: selectedProductTemplate.id,
-                    customPrice: customAttributes.customPrice ? parseFloat(customAttributes.customPrice) : null,
-                    customDiscountPercentage: customAttributes.customDiscountPercentage ? parseFloat(customAttributes.customDiscountPercentage) : null,
-                    customPremiumPercentage: customAttributes.customPremiumPercentage ? parseFloat(customAttributes.customPremiumPercentage) : null,
-                    customerContractStartDate: customAttributes.customerContractStartDate || null,
-                    customerContractEndDate: customAttributes.customerContractEndDate || null,
-                    notes: ''
+                  // Stage the product instead of immediately saving it
+                  const stagedProduct = {
+                    templateId: selectedProductTemplate.id,
+                    template: selectedProductTemplate,
+                    customAttributes: { 
+                      ...customAttributes,
+                      notes: customAttributes.notes || ''
+                    }
                   };
-                  
-                  addProductMutation.mutate(assignmentData, {
-                    onSuccess: () => {
-                      // Mark product as configured and reset form but keep dialog open
-                      setConfiguredProducts(prev => [...prev, selectedProductTemplate.id]);
-                      setSelectedProductTemplate(null);
-                      setCustomAttributes({
-                        customPrice: '',
-                        customDiscountPercentage: '',
-                        customPremiumPercentage: '',
-                        customerContractStartDate: '',
-                        customerContractEndDate: '',
-                        notes: ''
-                      });
+
+                  // Add to staged products or update existing
+                  setStagedProducts(prev => {
+                    const existing = prev.findIndex(p => p.templateId === selectedProductTemplate.id);
+                    if (existing >= 0) {
+                      const updated = [...prev];
+                      updated[existing] = stagedProduct;
+                      return updated;
+                    } else {
+                      return [...prev, stagedProduct];
                     }
                   });
+
+                  // Mark as configured
+                  if (!configuredProducts.includes(selectedProductTemplate.id)) {
+                    setConfiguredProducts(prev => [...prev, selectedProductTemplate.id]);
+                  }
+
+                  // Reset form but keep dialog open
+                  setSelectedProductTemplate(null);
+                  setCustomAttributes({
+                    customPrice: '',
+                    customDiscountPercentage: '',
+                    customPremiumPercentage: '',
+                    customerContractStartDate: '',
+                    customerContractEndDate: '',
+                    notes: ''
+                  });
                 }}
-                disabled={!selectedProductTemplate || addProductMutation.isPending}
+                disabled={!selectedProductTemplate}
                 className="h-9"
               >
-                {addProductMutation.isPending ? 'Adding...' : 'Add & continue'}
+                Add & continue
               </Button>
               
               <Button 
-                onClick={() => {
-                  if (!selectedProductTemplate) return;
-                  
-                  const assignmentData = {
-                    productTemplateId: selectedProductTemplate.id,
-                    customPrice: customAttributes.customPrice ? parseFloat(customAttributes.customPrice) : null,
-                    customDiscountPercentage: customAttributes.customDiscountPercentage ? parseFloat(customAttributes.customDiscountPercentage) : null,
-                    customPremiumPercentage: customAttributes.customPremiumPercentage ? parseFloat(customAttributes.customPremiumPercentage) : null,
-                    customerContractStartDate: customAttributes.customerContractStartDate || null,
-                    customerContractEndDate: customAttributes.customerContractEndDate || null,
-                    notes: ''
-                  };
-                  
-                  addProductMutation.mutate(assignmentData, {
-                    onSuccess: () => {
-                      // Mark product as configured and close dialog
-                      setConfiguredProducts(prev => [...prev, selectedProductTemplate.id]);
-                      setShowAddProductDialog(false);
-                      setSelectedProductTemplate(null);
-                      setCustomAttributes({
-                        customPrice: '',
-                        customDiscountPercentage: '',
-                        customPremiumPercentage: '',
-                        customerContractStartDate: '',
-                        customerContractEndDate: '',
-                        notes: ''
-                      });
+                onClick={async () => {
+                  // If there's a currently selected product, stage it first
+                  if (selectedProductTemplate) {
+                    const stagedProduct = {
+                      templateId: selectedProductTemplate.id,
+                      template: selectedProductTemplate,
+                      customAttributes: { 
+                        ...customAttributes,
+                        notes: customAttributes.notes || ''
+                      }
+                    };
+
+                    setStagedProducts(prev => {
+                      const existing = prev.findIndex(p => p.templateId === selectedProductTemplate.id);
+                      if (existing >= 0) {
+                        const updated = [...prev];
+                        updated[existing] = stagedProduct;
+                        return updated;
+                      } else {
+                        return [...prev, stagedProduct];
+                      }
+                    });
+                  }
+
+                  // Now save all staged products
+                  const allProductsToSave = selectedProductTemplate ? 
+                    [...stagedProducts.filter(p => p.templateId !== selectedProductTemplate.id), {
+                      templateId: selectedProductTemplate.id,
+                      template: selectedProductTemplate,
+                      customAttributes: { 
+                        ...customAttributes,
+                        notes: customAttributes.notes || ''
+                      }
+                    }] : stagedProducts;
+
+                  // Save each staged product
+                  for (const staged of allProductsToSave) {
+                    const assignmentData = {
+                      productTemplateId: staged.templateId,
+                      customPrice: staged.customAttributes.customPrice ? parseFloat(staged.customAttributes.customPrice) : null,
+                      customDiscountPercentage: staged.customAttributes.customDiscountPercentage ? parseFloat(staged.customAttributes.customDiscountPercentage) : null,
+                      customPremiumPercentage: staged.customAttributes.customPremiumPercentage ? parseFloat(staged.customAttributes.customPremiumPercentage) : null,
+                      customerContractStartDate: staged.customAttributes.customerContractStartDate || null,
+                      customerContractEndDate: staged.customAttributes.customerContractEndDate || null,
+                      notes: ''
+                    };
+                    
+                    try {
+                      await addProductMutation.mutateAsync(assignmentData);
+                    } catch (error) {
+                      console.error('Failed to save product:', error);
+                      return; // Stop on first error
                     }
+                  }
+
+                  // Clear all state and close dialog
+                  setStagedProducts([]);
+                  setConfiguredProducts([]);
+                  setShowAddProductDialog(false);
+                  setSelectedProductTemplate(null);
+                  setCustomAttributes({
+                    customPrice: '',
+                    customDiscountPercentage: '',
+                    customPremiumPercentage: '',
+                    customerContractStartDate: '',
+                    customerContractEndDate: '',
+                    notes: ''
                   });
                 }}
-                disabled={!selectedProductTemplate || addProductMutation.isPending}
+                disabled={stagedProducts.length === 0 && !selectedProductTemplate || addProductMutation.isPending}
                 className="bg-[#5567E5] text-white hover:bg-[#4556D4] h-9"
               >
-                {addProductMutation.isPending ? 'Adding...' : 'Add & close'}
+                {addProductMutation.isPending ? 'Saving...' : 'Add & close'}
               </Button>
             </div>
           </DialogFooter>
