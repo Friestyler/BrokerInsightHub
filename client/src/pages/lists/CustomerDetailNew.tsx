@@ -1848,41 +1848,44 @@ export default function CustomerDetailNew() {
                             
                             {/* Tooltip - Available Products */}
                             <div 
-                              className={`absolute left-0 top-full mt-2 z-[100] w-72 p-4 bg-white border border-gray-200 rounded-lg shadow-2xl transition-all duration-200 pointer-events-auto ${
+                              className={`absolute left-0 top-full mt-2 z-[100] w-72 p-0 bg-white/90 backdrop-blur-md border border-white/20 rounded-xl shadow-[0_8px_32px_rgba(0,0,0,0.1)] transition-all duration-200 pointer-events-auto overflow-hidden ${
                                 hoveredTooltip === `${category.name}-available` ? 'opacity-100 visible' : 'opacity-0 invisible group-hover:opacity-100 group-hover:visible'
                               }`}
                               onMouseEnter={() => setHoveredTooltip(`${category.name}-available`)}
                               onMouseLeave={() => setHoveredTooltip(null)}
                             >
-                              <h4 className="font-semibold text-gray-900 mb-3">{category.name} - Available Products</h4>
-                              <div className="space-y-2 text-sm">
-                                {category.availableProducts && category.availableProducts.length > 0 ? (
-                                  category.availableProducts.map((product: any, idx: number) => (
-                                    <div key={idx} className="flex justify-between items-center">
-                                      <span className="text-gray-700">{product.name}</span>
-                                      <span className="font-semibold text-blue-600">€{product.premium.toLocaleString()}/year</span>
-                                    </div>
-                                  ))
-                                ) : (
-                                  <div className="text-gray-500 italic">No available products</div>
-                                )}
-                                <hr className="my-3 border-gray-200" />
-                                <div className="flex justify-between items-center font-semibold mb-3">
-                                  <span className="text-gray-900">Total Potential</span>
-                                  <span className="text-blue-600">€{category.potentialUplift.toLocaleString()}/year</span>
+                              <div className={`h-1 ${category.name === 'Life Insurance' ? 'bg-green-500' : category.name === 'Non-Life Insurance' ? 'bg-blue-500' : 'bg-purple-500'}`}></div>
+                              <div className="p-4">
+                                <h4 className="font-bold text-gray-900 mb-3 text-lg">{category.name} - Available Products</h4>
+                                <div className="space-y-2 text-sm">
+                                  {category.availableProducts && category.availableProducts.length > 0 ? (
+                                    category.availableProducts.map((product: any, idx: number) => (
+                                      <div key={idx} className="flex justify-between items-center">
+                                        <span className="text-gray-700">{product.name}</span>
+                                        <span className="font-semibold text-blue-600">€{product.premium.toLocaleString()}/year</span>
+                                      </div>
+                                    ))
+                                  ) : (
+                                    <div className="text-gray-500 italic">No available products</div>
+                                  )}
+                                  <hr className="my-3 border-gray-200/50" />
+                                  <div className="flex justify-between items-center font-semibold mb-3">
+                                    <span className="text-gray-900">Total Potential</span>
+                                    <span className="text-blue-600">€{category.potentialUplift.toLocaleString()}/year</span>
+                                  </div>
+                                  <Button 
+                                    onClick={() => {
+                                      setSelectedTooltipProducts(category.availableProducts || []);
+                                      setTooltipCategoryName(`${category.name} - Available Products`);
+                                      setIsProductListDialogOpen(true);
+                                      setHoveredTooltip(null);
+                                    }}
+                                    className="w-full h-8 text-sm"
+                                    variant="outline"
+                                  >
+                                    See list
+                                  </Button>
                                 </div>
-                                <Button 
-                                  onClick={() => {
-                                    setSelectedTooltipProducts(category.availableProducts || []);
-                                    setTooltipCategoryName(`${category.name} - Available Products`);
-                                    setIsProductListDialogOpen(true);
-                                    setHoveredTooltip(null);
-                                  }}
-                                  className="w-full h-8 text-sm"
-                                  variant="outline"
-                                >
-                                  See list
-                                </Button>
                               </div>
                             </div>
                           </div>
@@ -1913,97 +1916,7 @@ export default function CustomerDetailNew() {
               </div>
             </div>
             
-            {/* 1. Coverage Overview by Category - Radial Meter Grid */}
-            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Coverage Overview by Category</h2>
-              <div className="grid grid-cols-3 gap-8">
-                {/* Life Insurance Coverage */}
-                <div className="text-center">
-                  <div className="relative inline-flex items-center justify-center w-32 h-32 mb-4">
-                    <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
-                      <path
-                        d="M18 2.0845
-                          a 15.9155 15.9155 0 0 1 0 31.831
-                          a 15.9155 15.9155 0 0 1 0 -31.831"
-                        fill="none"
-                        stroke="#f3f4f6"
-                        strokeWidth="3"
-                      />
-                      <path
-                        d="M18 2.0845
-                          a 15.9155 15.9155 0 0 1 0 31.831
-                          a 15.9155 15.9155 0 0 1 0 -31.831"
-                        fill="none"
-                        stroke="#10b981"
-                        strokeWidth="3"
-                        strokeDasharray="25, 75"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                      <div className="text-2xl font-bold text-gray-900">25%</div>
-                      <div className="text-xs text-gray-500">2 of 8</div>
-                    </div>
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Life Insurance</h3>
-                  <div className="text-sm text-orange-600 font-medium">⚠️ Partially covered</div>
-                </div>
-
-                {/* Non-Life Insurance Coverage */}
-                <div className="text-center">
-                  <div className="relative inline-flex items-center justify-center w-32 h-32 mb-4">
-                    <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
-                      <path
-                        d="M18 2.0845
-                          a 15.9155 15.9155 0 0 1 0 31.831
-                          a 15.9155 15.9155 0 0 1 0 -31.831"
-                        fill="none"
-                        stroke="#f3f4f6"
-                        strokeWidth="3"
-                      />
-                      <path
-                        d="M18 2.0845
-                          a 15.9155 15.9155 0 0 1 0 31.831
-                          a 15.9155 15.9155 0 0 1 0 -31.831"
-                        fill="none"
-                        stroke="#10b981"
-                        strokeWidth="3"
-                        strokeDasharray="42, 58"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                      <div className="text-2xl font-bold text-gray-900">42%</div>
-                      <div className="text-xs text-gray-500">5 of 12</div>
-                    </div>
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Non-Life Insurance</h3>
-                  <div className="text-sm text-green-600 font-medium">✅ Good coverage</div>
-                </div>
-
-                {/* Services Coverage */}
-                <div className="text-center">
-                  <div className="relative inline-flex items-center justify-center w-32 h-32 mb-4">
-                    <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
-                      <path
-                        d="M18 2.0845
-                          a 15.9155 15.9155 0 0 1 0 31.831
-                          a 15.9155 15.9155 0 0 1 0 -31.831"
-                        fill="none"
-                        stroke="#f3f4f6"
-                        strokeWidth="3"
-                      />
-                    </svg>
-                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
-                      <div className="text-2xl font-bold text-gray-900">0%</div>
-                      <div className="text-xs text-gray-500">0 of 3</div>
-                    </div>
-                  </div>
-                  <h3 className="font-semibold text-gray-900 mb-1">Services</h3>
-                  <div className="text-sm text-gray-600 font-medium">❌ Not covered</div>
-                </div>
-              </div>
-            </div>
+            
 
             {/* Smart Coverage Gaps Section */}
             <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
