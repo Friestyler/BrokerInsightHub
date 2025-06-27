@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, ChevronDown, ChevronRight, Shield, TrendingUp, Clock, AlertTriangle, Target, Zap, Briefcase, Plane, PiggyBank, Scale, DollarSign, CheckCircle } from "lucide-react";
+import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, ChevronDown, ChevronRight, Shield, TrendingUp, Clock, AlertTriangle, Target, Zap, Briefcase, Plane, PiggyBank, Scale, DollarSign, CheckCircle, ArrowUp } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import LogoUploadModal from "@/components/LogoUploadModal";
 import EntityAvatar from "@/components/EntityAvatar";
@@ -1488,16 +1488,423 @@ export default function CustomerDetailNew() {
                 </div>
               </div>
             </div>
+            
+            {/* 1. Coverage Overview by Category - Radial Meter Grid */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Coverage Overview by Category</h2>
+              <div className="grid grid-cols-3 gap-8">
+                {/* Life Insurance Coverage */}
+                <div className="text-center">
+                  <div className="relative inline-flex items-center justify-center w-32 h-32 mb-4">
+                    <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#f3f4f6"
+                        strokeWidth="3"
+                      />
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#10b981"
+                        strokeWidth="3"
+                        strokeDasharray="25, 75"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                      <div className="text-2xl font-bold text-gray-900">25%</div>
+                      <div className="text-xs text-gray-500">2 of 8</div>
+                    </div>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-1">Life Insurance</h3>
+                  <div className="text-sm text-orange-600 font-medium">⚠️ Partially covered</div>
+                </div>
+
+                {/* Non-Life Insurance Coverage */}
+                <div className="text-center">
+                  <div className="relative inline-flex items-center justify-center w-32 h-32 mb-4">
+                    <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#f3f4f6"
+                        strokeWidth="3"
+                      />
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#10b981"
+                        strokeWidth="3"
+                        strokeDasharray="42, 58"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                      <div className="text-2xl font-bold text-gray-900">42%</div>
+                      <div className="text-xs text-gray-500">5 of 12</div>
+                    </div>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-1">Non-Life Insurance</h3>
+                  <div className="text-sm text-green-600 font-medium">✅ Good coverage</div>
+                </div>
+
+                {/* Services Coverage */}
+                <div className="text-center">
+                  <div className="relative inline-flex items-center justify-center w-32 h-32 mb-4">
+                    <svg className="w-32 h-32 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#f3f4f6"
+                        strokeWidth="3"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                      <div className="text-2xl font-bold text-gray-900">0%</div>
+                      <div className="text-xs text-gray-500">0 of 3</div>
+                    </div>
+                  </div>
+                  <h3 className="font-semibold text-gray-900 mb-1">Services</h3>
+                  <div className="text-sm text-gray-600 font-medium">❌ Not covered</div>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Policies Requiring Attention - Timeline Strip */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Policies Requiring Attention</h2>
+              <div className="space-y-4">
+                {/* Critical - Auto Insurance */}
+                <div className="flex items-center space-x-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
+                  <div className="flex-shrink-0">
+                    <Clock className="w-6 h-6 text-red-500" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Auto Insurance - Business Vehicle</h3>
+                        <p className="text-sm text-red-600">🔴 Expires in 19 days (Jan 15, 2025)</p>
+                        <p className="text-xs text-gray-500 mt-1">Suggested action: Renew with comprehensive upgrade</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-green-600">+€1,200</div>
+                        <div className="text-xs text-gray-500">Premium impact</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Warning - Property Insurance */}
+                <div className="flex items-center space-x-4 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg">
+                  <div className="flex-shrink-0">
+                    <AlertTriangle className="w-6 h-6 text-yellow-500" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Property Insurance - Office Building</h3>
+                        <p className="text-sm text-yellow-600">🟡 Review needed (Mar 1, 2025)</p>
+                        <p className="text-xs text-gray-500 mt-1">Suggested action: Increase coverage limit for building expansion</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-green-600">+€800</div>
+                        <div className="text-xs text-gray-500">Premium impact</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Info - Life Insurance */}
+                <div className="flex items-center space-x-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+                  <div className="flex-shrink-0">
+                    <TrendingUp className="w-6 h-6 text-blue-500" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Life Insurance - Executive Coverage</h3>
+                        <p className="text-sm text-blue-600">🔵 Opportunity (Jun 1, 2025)</p>
+                        <p className="text-xs text-gray-500 mt-1">Suggested action: Add key person insurance for new executives</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-green-600">+€2,400</div>
+                        <div className="text-xs text-gray-500">Premium impact</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 3. Premium Impact Panel */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Premium Impact Analysis</h2>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="p-4 bg-green-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-green-800">Current Annual Premium</span>
+                      <TrendingUp className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div className="text-2xl font-bold text-green-900">€5,600</div>
+                    <div className="text-sm text-green-600">Across 7 active policies</div>
+                  </div>
+                  
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-blue-800">Projected Premium</span>
+                      <ArrowUp className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div className="text-2xl font-bold text-blue-900">€15,150</div>
+                    <div className="text-sm text-blue-600">With all recommended products</div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="p-4 bg-yellow-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-yellow-800">Revenue Increase</span>
+                      <ArrowUp className="w-4 h-4 text-yellow-600" />
+                    </div>
+                    <div className="text-2xl font-bold text-yellow-900">€9,550</div>
+                    <div className="text-sm text-yellow-600">+170% growth potential</div>
+                  </div>
+                  
+                  <div className="p-4 bg-purple-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-purple-800">Commission Impact</span>
+                      <DollarSign className="w-4 h-4 text-purple-600" />
+                    </div>
+                    <div className="text-2xl font-bold text-purple-900">€1,910</div>
+                    <div className="text-sm text-purple-600">Annual commission increase (20%)</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 4. Coverage Gaps - Radial Visualization */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Coverage Gap Analysis</h2>
+              <div className="grid grid-cols-4 gap-6">
+                {/* Critical Gap - Cyber Security */}
+                <div className="text-center">
+                  <div className="relative inline-flex items-center justify-center w-24 h-24 mb-3">
+                    <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#f3f4f6"
+                        strokeWidth="4"
+                      />
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#ef4444"
+                        strokeWidth="4"
+                        strokeDasharray="85, 15"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                      <div className="text-lg font-bold text-red-600">High</div>
+                    </div>
+                  </div>
+                  <h4 className="font-medium text-gray-900 text-sm">Cyber Security</h4>
+                  <p className="text-xs text-red-600 mt-1">Critical gap</p>
+                  <p className="text-xs text-gray-500">€1,200/year</p>
+                </div>
+
+                {/* Medium Gap - Environmental */}
+                <div className="text-center">
+                  <div className="relative inline-flex items-center justify-center w-24 h-24 mb-3">
+                    <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#f3f4f6"
+                        strokeWidth="4"
+                      />
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#f59e0b"
+                        strokeWidth="4"
+                        strokeDasharray="65, 35"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                      <div className="text-lg font-bold text-yellow-600">Med</div>
+                    </div>
+                  </div>
+                  <h4 className="font-medium text-gray-900 text-sm">Environmental</h4>
+                  <p className="text-xs text-yellow-600 mt-1">Medium gap</p>
+                  <p className="text-xs text-gray-500">€400/year</p>
+                </div>
+
+                {/* Low Gap - Legal */}
+                <div className="text-center">
+                  <div className="relative inline-flex items-center justify-center w-24 h-24 mb-3">
+                    <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#f3f4f6"
+                        strokeWidth="4"
+                      />
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#10b981"
+                        strokeWidth="4"
+                        strokeDasharray="30, 70"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                      <div className="text-lg font-bold text-green-600">Low</div>
+                    </div>
+                  </div>
+                  <h4 className="font-medium text-gray-900 text-sm">Legal Protection</h4>
+                  <p className="text-xs text-green-600 mt-1">Low priority</p>
+                  <p className="text-xs text-gray-500">€680/year</p>
+                </div>
+
+                {/* Covered - Auto */}
+                <div className="text-center">
+                  <div className="relative inline-flex items-center justify-center w-24 h-24 mb-3">
+                    <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#10b981"
+                        strokeWidth="4"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                      <div className="text-lg font-bold text-green-600">✓</div>
+                    </div>
+                  </div>
+                  <h4 className="font-medium text-gray-900 text-sm">Auto Insurance</h4>
+                  <p className="text-xs text-green-600 mt-1">Well covered</p>
+                  <p className="text-xs text-gray-500">€840/year</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 5. Expansion Opportunities */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Strategic Expansion Opportunities</h2>
+              <div className="space-y-4">
+                {/* High Priority */}
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <span className="font-semibold text-gray-900">High Priority - Cyber Security Package</span>
+                    </div>
+                    <span className="text-sm font-medium text-red-600">Critical</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Revenue Impact:</span>
+                      <div className="font-semibold text-green-600">€1,200/year</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Implementation:</span>
+                      <div className="font-semibold text-gray-900">2-3 weeks</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Success Rate:</span>
+                      <div className="font-semibold text-blue-600">85%</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Medium Priority */}
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      <span className="font-semibold text-gray-900">Medium Priority - Executive Life Insurance</span>
+                    </div>
+                    <span className="text-sm font-medium text-yellow-600">Opportunity</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Revenue Impact:</span>
+                      <div className="font-semibold text-green-600">€2,400/year</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Implementation:</span>
+                      <div className="font-semibold text-gray-900">4-6 weeks</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Success Rate:</span>
+                      <div className="font-semibold text-blue-600">72%</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Low Priority */}
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <span className="font-semibold text-gray-900">Low Priority - Professional Services Bundle</span>
+                    </div>
+                    <span className="text-sm font-medium text-green-600">Enhancement</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Revenue Impact:</span>
+                      <div className="font-semibold text-green-600">€1,950/year</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Implementation:</span>
+                      <div className="font-semibold text-gray-900">6-8 weeks</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Success Rate:</span>
+                      <div className="font-semibold text-blue-600">58%</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         )}
         
         {activeTab === 'activities' && (
           <div className="space-y-6">
-            <PlatformActivityHub 
-              entityType="customer" 
-              entityId={parseInt(id!)} 
-              entityName={customerData?.name || 'Customer'} 
-            />
+            <div className="text-center py-8">
+              <p className="text-gray-500">Activity management will be available soon.</p>
+            </div>
           </div>
         )}
       </div>
