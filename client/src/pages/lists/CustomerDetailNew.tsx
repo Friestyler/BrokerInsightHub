@@ -2078,6 +2078,7 @@ export default function CustomerDetailNew() {
           </div>
         </div>
             </>
+          </div>
         )}
       </div>
     </div>
