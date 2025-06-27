@@ -6722,7 +6722,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
   // ===== PRODUCT TEMPLATES API =====
 
   // Get all product templates
-  app.get('/api/:envId/product-templates', async (req, res) => {
+  app.get('/api/:envId/product-catalogue', async (req, res) => {
     try {
       const envId = req.params.envId;
       const envPool = pool;
@@ -6779,7 +6779,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
   });
 
   // Create product template
-  app.post('/api/:envId/product-templates', async (req, res) => {
+  app.post('/api/:envId/product-catalogue', async (req, res) => {
     try {
       const envId = req.params.envId;
       const { 
