@@ -1350,10 +1350,10 @@ export default function ProductTemplates() {
                   color: editCategoryColor,
                   icon: editCategoryIcon || undefined,
                   description: formData.get('description') as string || undefined,
-                  parentId: selectedCategory.parentId,
+                  parentId: selectedCategory.parent_id,
                   level: selectedCategory.level || 1,
-                  sortOrder: selectedCategory.sortOrder || 0,
-                  isActive: selectedCategory.isActive !== false
+                  sortOrder: selectedCategory.sort_order || 0,
+                  isActive: selectedCategory.is_active !== false
                 }
               });
             }
