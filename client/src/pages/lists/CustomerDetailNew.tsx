@@ -770,7 +770,8 @@ export default function CustomerDetailNew() {
                   <TableHead className="min-w-[100px] text-[#696C8C]">Product ID</TableHead>
                   <TableHead className="min-w-[120px] text-[#696C8C]">Provider</TableHead>
                   <TableHead className="min-w-[150px] text-[#696C8C]">Category</TableHead>
-                  <TableHead className="min-w-[150px] text-[#696C8C]">Contract Period</TableHead>
+                  <TableHead className="min-w-[120px] text-[#696C8C]">Contract Start</TableHead>
+                  <TableHead className="min-w-[120px] text-[#696C8C]">Contract End</TableHead>
                   <TableHead className="min-w-[100px] text-[#696C8C]">Premium Value</TableHead>
                   <TableHead className="min-w-[100px] text-[#696C8C]">Premium %</TableHead>
                 </TableRow>
@@ -804,10 +805,24 @@ export default function CustomerDetailNew() {
                       {assignment.producttemplateid || 'N/A'}
                     </TableCell>
                     <TableCell>{assignment.providername || 'Not specified'}</TableCell>
-                    <TableCell>{assignment.category || 'Not categorized'}</TableCell>
+                    <TableCell>
+                      {assignment.category ? (
+                        <Badge variant="outline" className="capitalize">
+                          {assignment.category}
+                        </Badge>
+                      ) : (
+                        <span className="text-gray-500">Not categorized</span>
+                      )}
+                    </TableCell>
                     <TableCell className="text-sm text-gray-600">
-                      {assignment.customercontractstartdate && assignment.customercontractenddate
-                        ? `${new Date(assignment.customercontractstartdate).toLocaleDateString()} - ${new Date(assignment.customercontractenddate).toLocaleDateString()}`
+                      {assignment.customercontractstartdate
+                        ? new Date(assignment.customercontractstartdate).toLocaleDateString()
+                        : 'Not specified'
+                      }
+                    </TableCell>
+                    <TableCell className="text-sm text-gray-600">
+                      {assignment.customercontractenddate
+                        ? new Date(assignment.customercontractenddate).toLocaleDateString()
                         : 'Not specified'
                       }
                     </TableCell>
