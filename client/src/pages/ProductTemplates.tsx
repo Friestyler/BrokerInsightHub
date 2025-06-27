@@ -701,7 +701,8 @@ export default function ProductTemplates() {
       {/* Tab Content */}
       {activeTab === 'categories' && (
         <div className="mx-4">
-          <div className="flex items-center justify-end mb-6">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">Product Categories</h1>
             <Dialog open={createCategoryDialogOpen} onOpenChange={setCreateCategoryDialogOpen}>
               <DialogTrigger asChild>
                 <Button className="bg-[#5567E5] hover:bg-[#4451c7]">
@@ -996,7 +997,8 @@ export default function ProductTemplates() {
       )}
       {activeTab === 'templates' && (
         <div className="mx-4">
-          <div className="flex items-center justify-end mb-6">
+          <div className="flex items-center justify-between mb-6">
+            <h1 className="text-2xl font-bold text-gray-900">Products</h1>
             <Dialog open={createDialogOpen} onOpenChange={setCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button>
