@@ -459,7 +459,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
                   <path d="M8 10h.01"></path>
                   <path d="M8 14h.01"></path>
                 </svg>
-                Product Templates
+                Product Catalogue
               </button>
               <button
                 onClick={() => navigateTo('/smart-updates/notifications')}

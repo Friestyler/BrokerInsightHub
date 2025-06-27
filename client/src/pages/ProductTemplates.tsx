@@ -98,7 +98,7 @@ export default function ProductTemplates() {
     return result;
   };
 
-  // Fetch product templates
+  // Fetch product catalogue
   const { data: productTemplates = [], isLoading } = useQuery({
     queryKey: ['/api/product-catalogue'],
   });
@@ -113,7 +113,7 @@ export default function ProductTemplates() {
     queryKey: ['/api/vendors'],
   });
 
-  // Create product template mutation
+  // Create product catalogue mutation
   const createMutation = useMutation({
     mutationFn: async (data: ProductTemplateFormData) => {
       return apiRequest('POST', '/api/product-catalogue', data);
@@ -123,19 +123,19 @@ export default function ProductTemplates() {
       setCreateDialogOpen(false);
       toast({
         title: "Success",
-        description: "Product template created successfully",
+        description: "Product catalogue created successfully",
       });
     },
     onError: () => {
       toast({
         title: "Error",
-        description: "Failed to create product template",
+        description: "Failed to create product catalogue",
         variant: "destructive",
       });
     },
   });
 
-  // Update product template mutation
+  // Update product catalogue mutation
   const updateMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: ProductTemplateFormData }) => {
       return apiRequest('PUT', `/api/product-catalogue/${id}`, data);
@@ -146,7 +146,7 @@ export default function ProductTemplates() {
       setSelectedTemplate(null);
       toast({
         title: "Success",
-        description: "Product template updated successfully",
+        description: "Product catalogue updated successfully",
       });
     },
     onError: () => {
