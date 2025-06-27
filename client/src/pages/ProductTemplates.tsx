@@ -868,7 +868,7 @@ export default function ProductTemplates() {
                                     
                                     <Badge 
                                       variant={getBadgeVariantFromColor(nestedSubcategory.color || subcategory.color || category.color)}
-                                      className="text-xs px-2 py-1"
+                                      className="text-sm px-3 py-1.5"
                                     >
                                       {nestedSubcategory.icon && (
                                         <span className="mr-1">{nestedSubcategory.icon}</span>
