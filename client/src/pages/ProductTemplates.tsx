@@ -1071,7 +1071,7 @@ export default function ProductTemplates() {
         <Card>
           <CardContent className="text-center py-12">
             <div className="text-gray-500">
-              {searchTerm ? "No templates found matching your search." : "No product templates found. Create your first template to get started."}
+              {searchTerm ? "No templates found matching your search." : "No products found. Add your first product to get started."}
             </div>
           </CardContent>
         </Card>

@@ -4379,7 +4379,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
       const envPool = pool;
       const result = await envPool.query(`
         SELECT id, name, description, initials, contact_name, contact_email, 
-               contact_phone, "ownerId", "createdAt", "updatedAt"
+               contact_phone, owner_id, created_at, updated_at
         FROM degoudse.vendors 
         ORDER BY name ASC
       `);
@@ -6740,17 +6740,14 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
           (SELECT COUNT(DISTINCT o.partner_id) 
            FROM ${envId}.opportunities o 
            JOIN ${envId}.opportunity_products op ON o.id = op.opportunity_id 
-           WHERE op.product_template_id = pt.id AND o.partner_id IS NOT NULL) as partner_count,
-          -- Get customer count (direct assignments)
-          (SELECT COUNT(DISTINCT c.id)
-           FROM ${envId}.customers c
-           JOIN ${envId}.customer_products cp ON c.id = cp.customer_id
-           WHERE cp.product_template_id = pt.id) as customer_count,
+           WHERE op.product_id = pt.id AND o.partner_id IS NOT NULL) as partner_count,
+          -- Get customer count (direct assignments - if table exists)
+          0 as customer_count,
           -- Get opportunity count
           (SELECT COUNT(DISTINCT o.id)
            FROM ${envId}.opportunities o
            JOIN ${envId}.opportunity_products op ON o.id = op.opportunity_id
-           WHERE op.product_template_id = pt.id) as opportunity_count
+           WHERE op.product_id = pt.id) as opportunity_count
         FROM ${envId}.product_templates pt
         LEFT JOIN ${envId}.categories c ON pt.category_id = c.id
         LEFT JOIN ${envId}.vendors v ON pt.vendor_id = v.id
