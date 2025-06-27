@@ -1090,9 +1090,9 @@ export default function ProductTemplates() {
                           variant="outline" 
                           className="text-xs"
                           style={{
-                            borderColor: template.categoryColor || '#E6E7F1',
-                            backgroundColor: `${template.categoryColor || '#E6E7F1'}10`,
-                            color: template.categoryColor || '#6B7280'
+                            borderColor: (template as any).categoryColor || '#E6E7F1',
+                            backgroundColor: `${(template as any).categoryColor || '#E6E7F1'}10`,
+                            color: (template as any).categoryColor || '#6B7280'
                           }}
                         >
                           {template.category}
