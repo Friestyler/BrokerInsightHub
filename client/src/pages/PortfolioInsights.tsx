@@ -7,7 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
-import { BarChart3, Search, Settings, Target, X, Star, Send, Users, List, DollarSign, TrendingUp, Download, Filter, Eye, ChevronDown, ChevronRight } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { BarChart3, Search, Settings, Target, X, Star, Send, Users, List, DollarSign, TrendingUp, Download, Filter, Eye, ChevronDown, ChevronRight, AlertTriangle, MapPin, Calendar, Play, Zap, TrendingDown, BarChart2, Shield, Heart, Car, Home, Globe, Briefcase } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
 // Fetch authentic product categories with hierarchy
@@ -136,12 +137,9 @@ function getBenchmarkIcon(rate: number, benchmark: number): string {
   return '🔴';
 }
 
-// Dashboard Section Component
+// AI-Powered Insurance Portfolio Analysis Dashboard
 function DashboardSection() {
-  const [selectedProduct, setSelectedProduct] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [showMoreFilters, setShowMoreFilters] = useState(false);
-  const [collapsedDashboardCategories, setCollapsedDashboardCategories] = useState<Set<string>>(new Set());
+  const [activeTab, setActiveTab] = useState('overview');
 
   // Helper function for dashboard category collapse/expand
   const toggleDashboardCategoryCollapse = (categoryName: string) => {
