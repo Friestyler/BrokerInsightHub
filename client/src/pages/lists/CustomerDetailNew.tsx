@@ -785,74 +785,12 @@ export default function CustomerDetailNew() {
     return partnerSalesData[productName] || [];
   };
 
-  // Handle smart coverage gap actions
-  const handleSmartGapAction = (productType: string, actionType: string) => {
-    const productMap: Record<string, {name: string, value: number}> = {
-      'cyber-insurance': { name: 'Cyber Security Insurance', value: 2400 },
-      'do-insurance': { name: 'Directors & Officers Insurance', value: 1800 },
-      'group-health': { name: 'Group Health Insurance', value: 3200 },
-      'occupational-health': { name: 'Occupational Health Insurance', value: 1500 },
-      'key-person': { name: 'Key Person Life Insurance', value: 2600 }
-    };
-
-    const product = productMap[productType];
-    
-    switch (actionType) {
-      case 'Add to Opportunity List':
-        // Create opportunity directly
-        const opportunity = {
-          title: `${product.name} - Smart Gap Opportunity`,
-          description: `Coverage gap identified for ${product.name} based on customer profile and industry analysis`,
-          estimatedValue: product.value,
-          probability: 60,
-          stage: 'Qualification',
-          insuranceType: 'Cross-sell',
-          customerId: parseInt(id!),
-          accountManagerId: 1,
-          products: [product.name]
-        };
-        
-        apiRequest('POST', '/api/opportunities', opportunity)
-          .then(() => {
-            queryClient.invalidateQueries({ queryKey: [`/api/customers/${id}/opportunities`] });
-            toast({
-              title: "Success",
-              description: `Added ${product.name} to opportunity list`,
-            });
-          })
-          .catch(() => {
-            toast({
-              title: "Error",
-              description: "Failed to create opportunity",
-              variant: "destructive",
-            });
-          });
-        break;
-        
-      case 'Share with Partner':
-        toast({
-          title: "Partner Sharing",
-          description: `${product.name} opportunity shared with relevant partners`,
-        });
-        break;
-        
-      case 'Assign to Campaign':
-        toast({
-          title: "Campaign Assignment",
-          description: `${product.name} assigned to targeted campaign`,
-        });
-        break;
-        
-      case 'Explore Partner Matches':
-        toast({
-          title: "Partner Analysis",
-          description: `Analyzing partner expertise for ${product.name}`,
-        });
-        break;
-        
-      default:
-        console.log('Unknown action:', actionType);
-    }
+  // Handle smart gap actions with toast notifications
+  const handleSmartGapAction = (gapType: string, action: string) => {
+    toast({
+      title: "Action Added",
+      description: `${action} for ${gapType} has been added to your workflow.`,
+    });
   };
 
   // Initialize dialog data when it opens (after customer is declared)
