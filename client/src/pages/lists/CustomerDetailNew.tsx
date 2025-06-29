@@ -1611,30 +1611,75 @@ export default function CustomerDetailNew() {
           </div>
         )}
 
-        {activeTab === "product-dashboard" && (
-          <div className="space-y-6 overflow-visible">
-            {/* Coverage Overview by Category - Horizontal Bar Chart */}
-            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Coverage Overview by Category</h2>
-                
-                {/* Filter Controls */}
-                <div className="flex items-center space-x-3">
-                  {/* Multi-select Category Filter */}
-                  <div className="relative">
-                    <button 
-                      className="h-9 px-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white flex items-center justify-between min-w-[200px]"
-                      onClick={() => setCategoryDropdownOpen(!categoryDropdownOpen)}
-                    >
-                      <span className="text-gray-700">
-                        {selectedCategories.length === 0 ? 'All categories' : 
-                         selectedCategories.length === 1 ? selectedCategories[0] :
-                         `${selectedCategories.length} categories selected`}
-                      </span>
-                      <ChevronDown className="w-4 h-4 text-gray-400" />
-                    </button>
-                    
-                    {categoryDropdownOpen && (
+      </div>
+
+      
+      {/* Product List Dialog */}
+      <Dialog open={isProductListDialogOpen} onOpenChange={setIsProductListDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>{tooltipCategoryName}</DialogTitle>
+            <DialogDescription>
+              Product list from coverage analysis
+            </DialogDescription>
+          </DialogHeader>
+          <div className="max-h-[60vh] overflow-y-auto">
+            <div className="space-y-3">
+              {selectedTooltipProducts.map((product, idx) => (
+                <div key={idx} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900">{product.name}</h4>
+                      <p className="text-sm text-gray-500">Insurance Product</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold text-blue-600">€{product.premium.toLocaleString()}/year</div>
+                      <div className="text-sm text-gray-500">Premium</div>
+                    </div>
+                  </div>
+                  
+                  {/* Partner Sales History */}
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    <h5 className="text-sm font-medium text-gray-700 mb-2">Partners who sold this product:</h5>
+                    <div className="flex flex-wrap gap-2">
+                      {getPartnerSalesHistory(product.name).map((partner, partnerIdx) => (
+                        <div key={partnerIdx} className="flex items-center space-x-2 bg-white px-2 py-1 rounded border">
+                          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span className="text-xs font-medium text-blue-600">
+                              {partner.name.split(' ').map(word => word[0]).join('').substring(0, 2)}
+                            </span>
+                          </div>
+                          <div className="text-xs">
+                            <div className="font-medium text-gray-700">{partner.name}</div>
+                            <div className="text-gray-500">{partner.salesCount} sales • €{partner.totalValue.toLocaleString()}</div>
+                          </div>
+                        </div>
+                      ))}
+                      {getPartnerSalesHistory(product.name).length === 0 && (
+                        <span className="text-sm text-gray-500 italic">No previous sales recorded</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          <DialogFooter className="flex justify-between">
+            <Button variant="outline" onClick={() => setIsProductListDialogOpen(false)}>
+              Close list
+            </Button>
+            <Button 
+              onClick={handleCreateOpportunityList}
+              className="bg-[#5567E5] hover:bg-[#4556D4]"
+            >
+              Create opportunity list
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
                       <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-20 max-h-64 overflow-y-auto">
                         <div className="p-2 space-y-1">
                           {/* Main Categories */}
