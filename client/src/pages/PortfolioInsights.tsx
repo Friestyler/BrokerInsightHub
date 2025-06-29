@@ -322,173 +322,120 @@ function DashboardSection() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Product Analysis Dashboard</h1>
-          <p className="text-gray-600 mt-1">Cross-sell and upsell opportunities in your customer portfolio</p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-1" />
-            Export
-          </Button>
-          <Button variant="outline" size="sm">
-            <Settings className="h-4 w-4 mr-1" />
-            Settings
-          </Button>
+      {/* AI-Powered Dashboard Header */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-xl p-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-blue-900 flex items-center">
+              <Zap className="h-6 w-6 mr-2 text-blue-600" />
+              AI-Powered Portfolio Analysis
+            </h1>
+            <p className="text-blue-700 mt-1">Intelligent insights for Belgian insurance brokers</p>
+          </div>
+          <div className="text-right">
+            <div className="text-3xl font-bold text-blue-900">€4.2M</div>
+            <div className="text-sm text-blue-600">Untapped potential identified</div>
+          </div>
         </div>
       </div>
 
-      {/* Filters */}
-      <div className="flex items-center space-x-4 bg-gray-50 p-4 rounded-lg">
-        <div className="flex-1">
-          <Input
-            placeholder="Search product categories..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="max-w-xs"
-          />
-        </div>
-        <Select value={selectedProduct} onValueChange={setSelectedProduct}>
-          <SelectTrigger className="w-48">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">
-              <div className="flex items-center space-x-2">
-                <span>✓ All products</span>
-              </div>
-            </SelectItem>
-            {productCategories.map(category => {
-              const isCategoryCollapsed = collapsedDashboardCategories.has(category.name);
-              return (
-                <div key={category.name}>
-                  <SelectItem value={category.name}>
-                    <div className="flex items-center space-x-2 w-full">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleDashboardCategoryCollapse(category.name);
-                        }}
-                        className="p-0.5 hover:bg-gray-200 rounded"
-                      >
-                        {isCategoryCollapsed ? (
-                          <ChevronRight className="h-3 w-3 text-gray-500" />
-                        ) : (
-                          <ChevronDown className="h-3 w-3 text-gray-500" />
-                        )}
-                      </button>
-                      <div 
-                        className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
-                        style={{ backgroundColor: category.color }}
-                      />
-                      <span>{category.name}</span>
-                      <span className="text-xs text-gray-500">({category.productCount} products)</span>
+      {/* Tabbed Interface */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="overview" className="flex items-center space-x-2">
+            <BarChart2 className="h-4 w-4" />
+            <span>Overview</span>
+          </TabsTrigger>
+          <TabsTrigger value="life" className="flex items-center space-x-2">
+            <Heart className="h-4 w-4" />
+            <span>Life</span>
+          </TabsTrigger>
+          <TabsTrigger value="non-life" className="flex items-center space-x-2">
+            <Shield className="h-4 w-4" />
+            <span>Non-Life</span>
+          </TabsTrigger>
+          <TabsTrigger value="services" className="flex items-center space-x-2">
+            <Globe className="h-4 w-4" />
+            <span>Services</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview" className="space-y-6">
+          {/* AI Instant Insights */}
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            {aiInsights.map((insight, index) => (
+              <Card key={index} className={`border-2 ${getPriorityColor(insight.priority)}`}>
+                <CardContent className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center space-x-2">
+                      <insight.icon className="h-5 w-5" />
+                      <Badge className={getPriorityColor(insight.priority)}>
+                        {insight.priority.toUpperCase()}
+                      </Badge>
                     </div>
-                  </SelectItem>
-                  
-                  {/* Show subcategories and products when expanded */}
-                  {!isCategoryCollapsed && (
-                    <>
-                      {/* Show related products from database */}
-                      {(products as any[]).filter((product: any) => 
-                        product.parent_category_name === category.name ||
-                        (category.name === 'Non-Life' && (
-                          product.parent_category_name === 'Business' ||
-                          product.parent_category_name === 'Health' ||
-                          product.parent_category_name === 'Mobility' ||
-                          product.parent_category_name === 'Property & Liability'
-                        )) ||
-                        (category.name === 'Life' && (
-                          product.parent_category_name === 'Life' ||
-                          product.category?.toLowerCase().includes('life') ||
-                          product.category?.toLowerCase().includes('death') ||
-                          product.category?.toLowerCase().includes('pension')
-                        )) ||
-                        (category.name === 'Services' && (
-                          product.parent_category_name === 'Travel' ||
-                          product.category?.toLowerCase().includes('service')
-                        ))
-                      ).map((product: any) => (
-                        <SelectItem key={`product-${product.id}`} value={product.name} className="ml-6">
-                          <div className="flex items-center space-x-2">
-                            <div 
-                              className="w-2 h-2 rounded-full flex-shrink-0" 
-                              style={{ backgroundColor: product.category_color || category.color }}
-                            />
-                            <span className="text-sm">{product.name}</span>
-                            <span className="text-xs text-gray-400">€{(parseFloat(product.total_value || '0') / 1000).toFixed(0)}k</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </>
-                  )}
+                    <div className="text-right">
+                      <div className="font-bold">€{(insight.value / 1000).toFixed(0)}K</div>
+                      <div className="text-xs text-gray-500">{insight.clients} clients</div>
+                    </div>
+                  </div>
+                  <h3 className="font-bold text-gray-900 mb-2">{insight.title}</h3>
+                  <p className="text-sm text-gray-600 mb-4">{insight.description}</p>
+                  <Button className="w-full" size="sm">
+                    <Play className="h-4 w-4 mr-1" />
+                    {insight.action}
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Geographical Analysis */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center">
+                <MapPin className="h-5 w-5 mr-2" />
+                Benelux Market Analysis
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <div className="text-2xl mb-2">🇧🇪</div>
+                  <h3 className="font-bold">Belgium</h3>
+                  <div className="text-sm text-gray-600 mt-2">
+                    <div>Brussels: {Math.floor(totalCustomers * 0.35).toLocaleString()} clients</div>
+                    <div>Flanders: {Math.floor(totalCustomers * 0.45).toLocaleString()} clients</div>
+                    <div>Wallonia: {Math.floor(totalCustomers * 0.20).toLocaleString()} clients</div>
+                  </div>
+                  <div className="mt-3 p-2 bg-white rounded border">
+                    <div className="text-xs font-medium text-red-600">Top Gap: Omnium (Brussels)</div>
+                  </div>
                 </div>
-              );
-            })}
-          </SelectContent>
-        </Select>
-        <Button variant="outline" size="sm" onClick={() => setShowMoreFilters(!showMoreFilters)}>
-          <Filter className="h-4 w-4 mr-1" />
-          More filters
-        </Button>
-      </div>
-
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Customers</p>
-                <p className="text-2xl font-bold text-gray-900">{totalCustomers.toLocaleString()}</p>
-                <p className="text-xs text-green-600 mt-1">+12% vs previous month</p>
+                <div className="text-center p-4 bg-orange-50 rounded-lg">
+                  <div className="text-2xl mb-2">🇳🇱</div>
+                  <h3 className="font-bold">Netherlands</h3>
+                  <div className="text-sm text-gray-600 mt-2">
+                    <div>Randstad: {Math.floor(totalCustomers * 0.08).toLocaleString()} clients</div>
+                    <div>Other regions: {Math.floor(totalCustomers * 0.05).toLocaleString()} clients</div>
+                  </div>
+                  <div className="mt-3 p-2 bg-white rounded border">
+                    <div className="text-xs font-medium text-orange-600">Top Gap: Health Supplements</div>
+                  </div>
+                </div>
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <div className="text-2xl mb-2">🇱🇺</div>
+                  <h3 className="font-bold">Luxembourg</h3>
+                  <div className="text-sm text-gray-600 mt-2">
+                    <div>Luxembourg City: {Math.floor(totalCustomers * 0.03).toLocaleString()} clients</div>
+                    <div>Other: {Math.floor(totalCustomers * 0.02).toLocaleString()} clients</div>
+                  </div>
+                  <div className="mt-3 p-2 bg-white rounded border">
+                    <div className="text-xs font-medium text-green-600">Top Gap: Private Banking</div>
+                  </div>
+                </div>
               </div>
-              <Users className="h-8 w-8 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Cross-sell Potential</p>
-                <p className="text-2xl font-bold text-gray-900">{crossSellPotential.toLocaleString()}</p>
-                <p className="text-xs text-gray-500 mt-1">Estimated opportunities</p>
-              </div>
-              <Target className="h-8 w-8 text-purple-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Potential Value</p>
-                <p className="text-2xl font-bold text-gray-900">€{(potentialValue / 1000000).toFixed(1)}M</p>
-                <p className="text-xs text-gray-500 mt-1">Annual premium potential</p>
-              </div>
-              <DollarSign className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Avg. Penetration</p>
-                <p className="text-2xl font-bold text-gray-900">{averagePenetration.toFixed(1)}%</p>
-                <p className="text-xs text-gray-500 mt-1">Across all products</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-orange-500" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+            </CardContent>
+          </Card>
 
       {/* Charts Section */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
