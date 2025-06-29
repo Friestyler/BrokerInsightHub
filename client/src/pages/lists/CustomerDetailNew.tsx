@@ -1622,7 +1622,163 @@ export default function CustomerDetailNew() {
 
         {activeTab === "product-dashboard" && (
           <div className="space-y-6 overflow-visible">
-            {/* Coverage Overview by Category - Horizontal Bar Chart */}
+            {/* AI Instant Insights Dashboard - Top Priority Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              {/* Top Opportunity */}
+              <div className="bg-gradient-to-br from-red-50 via-red-25 to-orange-50 border-2 border-red-200 rounded-xl p-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-16 h-16 bg-red-500/10 rounded-full -translate-y-8 translate-x-8"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="px-3 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded-full">CRITICAL OPPORTUNITY</span>
+                    <AlertTriangle className="w-5 h-5 text-red-500" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">67% of Auto BA clients lack Omnium coverage</h3>
+                  <p className="text-sm text-gray-600 mb-4">142 clients identified • €2.1M potential revenue</p>
+                  <button className="w-full bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors">
+                    Launch Campaign
+                  </button>
+                </div>
+              </div>
+
+              {/* Risk Alert */}
+              <div className="bg-gradient-to-br from-amber-50 via-yellow-25 to-orange-50 border-2 border-amber-200 rounded-xl p-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-16 h-16 bg-amber-500/10 rounded-full -translate-y-8 translate-x-8"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">RISK ALERT</span>
+                    <Shield className="w-5 h-5 text-amber-500" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">23% of Hospitalisatie clients 55+ without Invaliditeit</h3>
+                  <p className="text-sm text-gray-600 mb-4">89 clients at risk • High churn probability</p>
+                  <button className="w-full bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors">
+                    Protect Clients
+                  </button>
+                </div>
+              </div>
+
+              {/* Cross-sell Opportunity */}
+              <div className="bg-gradient-to-br from-emerald-50 via-green-25 to-teal-50 border-2 border-emerald-200 rounded-xl p-6 relative overflow-hidden">
+                <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/10 rounded-full -translate-y-8 translate-x-8"></div>
+                <div className="relative">
+                  <div className="flex items-center justify-between mb-3">
+                    <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">CROSS-SELL</span>
+                    <TrendingUp className="w-5 h-5 text-emerald-500" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900 mb-2">Growing Families segment ready for Life upgrade</h3>
+                  <p className="text-sm text-gray-600 mb-4">67 families • €890K opportunity</p>
+                  <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors">
+                    Start Outreach
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Real-time ROI Calculator */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
+              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-gray-500">Today's Revenue</h3>
+                  <TrendingUp className="w-4 h-4 text-green-500" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900">€47,250</div>
+                <div className="text-sm text-green-600 mt-1">+12.5% vs yesterday</div>
+              </div>
+              
+              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-gray-500">Campaign ROI</h3>
+                  <Target className="w-4 h-4 text-blue-500" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900">1,256%</div>
+                <div className="text-sm text-blue-600 mt-1">vs 340% industry avg</div>
+              </div>
+              
+              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-gray-500">Annual Projection</h3>
+                  <Calendar className="w-4 h-4 text-purple-500" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900">€18.4M</div>
+                <div className="text-sm text-purple-600 mt-1">Based on Q1 trends</div>
+              </div>
+              
+              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-sm font-medium text-gray-500">Untapped Potential</h3>
+                  <Zap className="w-4 h-4 text-orange-500" />
+                </div>
+                <div className="text-2xl font-bold text-gray-900">€4.2M</div>
+                <div className="text-sm text-orange-600 mt-1">Across portfolio</div>
+              </div>
+            </div>
+
+            {/* Portfolio Health Navigator */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6 mb-8">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Portfolio Health Navigator</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {/* Single Product Clients */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-medium text-gray-700">Single Product</h3>
+                    <span className="text-sm font-bold text-gray-900">2,847 clients</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div className="bg-red-500 h-3 rounded-full" style={{ width: '45%' }}></div>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500">High opportunity</span>
+                    <span className="text-red-600 font-medium">45%</span>
+                  </div>
+                </div>
+
+                {/* Multi Product Clients */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-medium text-gray-700">Multi Product</h3>
+                    <span className="text-sm font-bold text-gray-900">1,923 clients</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div className="bg-amber-500 h-3 rounded-full" style={{ width: '62%' }}></div>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500">Growth potential</span>
+                    <span className="text-amber-600 font-medium">62%</span>
+                  </div>
+                </div>
+
+                {/* Premium Clients */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-medium text-gray-700">Premium</h3>
+                    <span className="text-sm font-bold text-gray-900">567 clients</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div className="bg-emerald-500 h-3 rounded-full" style={{ width: '84%' }}></div>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500">High satisfaction</span>
+                    <span className="text-emerald-600 font-medium">84%</span>
+                  </div>
+                </div>
+
+                {/* At-Risk Clients */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-sm font-medium text-gray-700">At-Risk</h3>
+                    <span className="text-sm font-bold text-gray-900">234 clients</span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-3">
+                    <div className="bg-red-600 h-3 rounded-full" style={{ width: '28%' }}></div>
+                  </div>
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-gray-500">Immediate attention</span>
+                    <span className="text-red-600 font-medium">28%</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Coverage Overview by Category - Enhanced */}
             <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-gray-900">Coverage Overview by Category</h2>

@@ -1,0 +1,224 @@
+# User Story: AI-Powered Insurance Portfolio Analysis Dashboard
+
+## Epic: Portfolio Optimization for Insurance Brokers
+
+### User Story
+
+**As a** Belgian insurance broker managing multiple provider relationships (Allianz, AXA, AG Insurance)**I want** an AI-powered dashboard that analyzes my client portfolio and identifies cross-sell opportunities**So that** I can maximize revenue, improve client coverage, and make data-driven decisions about campaign priorities.
+
+---
+
+## Acceptance Criteria
+
+### 1. AI-Powered Product Gap Analysis
+
+- **Given** I have client data across Life, Non-Life, and Services categories
+- **When** I navigate through the tabbed interface (Life, Non-Life, Diensten, Overview)
+- **Then** I should see:
+
+- Coverage percentages for each product type
+- Client counts for each category
+- Color-coded opportunity levels (Critical/High/Medium/Low)
+- Clickable product cards that reveal detailed insights
+
+
+
+
+
+### 2. AI Instant Insights Dashboard
+
+- **Given** the system has analyzed my portfolio
+- **When** I view the dashboard
+- **Then** I should see three prominent insight cards showing:
+
+- Top opportunity detected (e.g., "67% of Auto BA clients lack Omnium coverage")
+- Risk alerts (e.g., "23% of Hospitalisatie clients are 55+ without Invaliditeit")
+- Cross-sell opportunities with actionable buttons
+
+
+
+
+
+### 3. Geographical Market Analysis
+
+- **Given** I operate in the Benelux region
+- **When** I view the geographical analysis section
+- **Then** I should see:
+
+- Client distribution across Belgium 🇧🇪, Netherlands 🇳🇱, and Luxembourg 🇱🇺
+- Regional breakdown (Brussels, Flanders, Wallonia)
+- Highest opportunity regions with specific product gaps
+
+
+
+
+
+### 4. Portfolio Health Navigator
+
+- **Given** I need to understand my portfolio composition
+- **When** I review the health navigator
+- **Then** I should see:
+
+- Progress bars showing client segmentation (Single/Multi/Premium/At-Risk)
+- Risk indicators and recommendations for each segment
+- Visual warnings for high churn risk clients
+
+
+
+
+
+### 5. Ready-to-Launch Campaigns
+
+- **Given** the AI has identified opportunities
+- **When** I view the campaigns section
+- **Then** I should see:
+
+- Pre-configured campaigns with target revenue, success rates, and ROI
+- Status indicators (Ready, Scheduled, In Progress)
+- One-click launch buttons and preview options
+- Campaign details including client counts and potential revenue
+
+
+
+
+
+### 6. Life Stage Targeting
+
+- **Given** I want to target clients based on demographics
+- **When** I review life stage opportunities
+- **Then** I should see:
+
+- Segmented client groups (Young Professionals 25-35, Growing Families 35-45, Pre-Retirement 55+)
+- Missing product coverage for each segment
+- Campaign creation buttons for each life stage
+
+
+
+
+
+### 7. Provider Performance Analysis
+
+- **Given** I work with multiple insurance providers
+- **When** I analyze provider performance
+- **Then** I should see:
+
+- Client distribution across Allianz, AXA, and AG Insurance
+- Product-specific performance metrics
+- Conversion rates and growth opportunities by provider
+
+
+
+
+
+### 8. Real-time ROI Calculator
+
+- **Given** I need to track financial performance
+- **When** I view the ROI section
+- **Then** I should see:
+
+- Daily revenue figures with trend indicators
+- Campaign costs and ROI percentages
+- Annual projections based on current performance
+- Comparison to industry averages
+
+
+
+
+
+### 9. AI-Guided Next Steps
+
+- **Given** I need actionable recommendations
+- **When** I view the guidance section
+- **Then** I should see:
+
+- Time-based recommendations (This Week, Next Month, Long Term)
+- Specific actions with client counts and revenue potential
+- Prioritized action buttons (Start Campaign, Schedule, Plan)
+
+
+
+
+
+---
+
+## Technical Requirements
+
+### Data Integration
+
+- Import client data from existing CRM systems
+- Real-time synchronization with provider databases
+- Support for CSV/Excel data uploads
+
+
+### AI/ML Capabilities
+
+- Pattern recognition for cross-sell opportunities
+- Predictive analytics for client churn risk
+- Dynamic campaign optimization based on success rates
+
+
+### User Interface
+
+- Responsive design for desktop and tablet use
+- Interactive charts and progress bars
+- Color-coded priority system (Red=Critical, Yellow=Medium, Green=Low)
+- One-click action buttons throughout the interface
+
+
+### Performance
+
+- Dashboard loads within 3 seconds
+- Real-time data updates every 15 minutes
+- Smooth transitions between tabs and sections
+
+
+---
+
+## Business Value
+
+### Primary Benefits
+
+- **Revenue Growth**: Identify €4.2M in untapped potential across portfolio
+- **Efficiency**: Reduce campaign planning time from days to minutes
+- **Risk Mitigation**: Proactively identify at-risk clients before churn
+- **Data-Driven Decisions**: Replace gut instinct with AI-powered insights
+
+
+### Success Metrics
+
+- 25% increase in cross-sell conversion rates
+- 40% reduction in client churn among identified at-risk segments
+- 60% faster campaign deployment time
+- ROI improvement from industry average 340% to 1,256%
+
+
+---
+
+## User Personas
+
+### Primary User: Senior Insurance Broker
+
+- Manages 10,000+ client relationships
+- Responsible for revenue targets and client retention
+- Limited time for manual analysis
+- Needs quick, actionable insights
+
+
+### Secondary User: Portfolio Manager
+
+- Oversees multiple brokers
+- Focuses on strategic planning and performance optimization
+- Requires high-level analytics and trend identification
+
+
+---
+
+## Definition of Done
+
+- All acceptance criteria met and tested
+- Dashboard loads sample data successfully
+- All interactive elements function correctly
+- Responsive design works on desktop and tablet
+- Performance benchmarks achieved
+- User acceptance testing completed with target brokers
+- Documentation and training materials created
