@@ -23,7 +23,7 @@ export default function CustomerDetailNew() {
   const { environment } = useEnvironment();
   const [location] = useLocation();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("product-dashboard");
+  const [activeTab, setActiveTab] = useState("opportunities");
   const [backUrl, setBackUrl] = useState("/customers");
   const [backLabel, setBackLabel] = useState("Back to Customers");
   
@@ -785,12 +785,74 @@ export default function CustomerDetailNew() {
     return partnerSalesData[productName] || [];
   };
 
-  // Handle smart gap actions with toast notifications
-  const handleSmartGapAction = (gapType: string, action: string) => {
-    toast({
-      title: "Action Added",
-      description: `${action} for ${gapType} has been added to your workflow.`,
-    });
+  // Handle smart coverage gap actions
+  const handleSmartGapAction = (productType: string, actionType: string) => {
+    const productMap: Record<string, {name: string, value: number}> = {
+      'cyber-insurance': { name: 'Cyber Security Insurance', value: 2400 },
+      'do-insurance': { name: 'Directors & Officers Insurance', value: 1800 },
+      'group-health': { name: 'Group Health Insurance', value: 3200 },
+      'occupational-health': { name: 'Occupational Health Insurance', value: 1500 },
+      'key-person': { name: 'Key Person Life Insurance', value: 2600 }
+    };
+
+    const product = productMap[productType];
+    
+    switch (actionType) {
+      case 'Add to Opportunity List':
+        // Create opportunity directly
+        const opportunity = {
+          title: `${product.name} - Smart Gap Opportunity`,
+          description: `Coverage gap identified for ${product.name} based on customer profile and industry analysis`,
+          estimatedValue: product.value,
+          probability: 60,
+          stage: 'Qualification',
+          insuranceType: 'Cross-sell',
+          customerId: parseInt(id!),
+          accountManagerId: 1,
+          products: [product.name]
+        };
+        
+        apiRequest('POST', '/api/opportunities', opportunity)
+          .then(() => {
+            queryClient.invalidateQueries({ queryKey: [`/api/customers/${id}/opportunities`] });
+            toast({
+              title: "Success",
+              description: `Added ${product.name} to opportunity list`,
+            });
+          })
+          .catch(() => {
+            toast({
+              title: "Error",
+              description: "Failed to create opportunity",
+              variant: "destructive",
+            });
+          });
+        break;
+        
+      case 'Share with Partner':
+        toast({
+          title: "Partner Sharing",
+          description: `${product.name} opportunity shared with relevant partners`,
+        });
+        break;
+        
+      case 'Assign to Campaign':
+        toast({
+          title: "Campaign Assignment",
+          description: `${product.name} assigned to targeted campaign`,
+        });
+        break;
+        
+      case 'Explore Partner Matches':
+        toast({
+          title: "Partner Analysis",
+          description: `Analyzing partner expertise for ${product.name}`,
+        });
+        break;
+        
+      default:
+        console.log('Unknown action:', actionType);
+    }
   };
 
   // Initialize dialog data when it opens (after customer is declared)
@@ -1560,163 +1622,7 @@ export default function CustomerDetailNew() {
 
         {activeTab === "product-dashboard" && (
           <div className="space-y-6 overflow-visible">
-            {/* AI Instant Insights Dashboard - Top Priority Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              {/* Top Opportunity */}
-              <div className="bg-gradient-to-br from-red-50 via-red-25 to-orange-50 border-2 border-red-200 rounded-xl p-6 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-16 h-16 bg-red-500/10 rounded-full -translate-y-8 translate-x-8"></div>
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="px-3 py-1 bg-red-100 text-red-700 text-xs font-semibold rounded-full">CRITICAL OPPORTUNITY</span>
-                    <AlertTriangle className="w-5 h-5 text-red-500" />
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">67% of Auto BA clients lack Omnium coverage</h3>
-                  <p className="text-sm text-gray-600 mb-4">142 clients identified • €2.1M potential revenue</p>
-                  <button className="w-full bg-red-600 hover:bg-red-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors">
-                    Launch Campaign
-                  </button>
-                </div>
-              </div>
-
-              {/* Risk Alert */}
-              <div className="bg-gradient-to-br from-amber-50 via-yellow-25 to-orange-50 border-2 border-amber-200 rounded-xl p-6 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-16 h-16 bg-amber-500/10 rounded-full -translate-y-8 translate-x-8"></div>
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">RISK ALERT</span>
-                    <Shield className="w-5 h-5 text-amber-500" />
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">23% of Hospitalisatie clients 55+ without Invaliditeit</h3>
-                  <p className="text-sm text-gray-600 mb-4">89 clients at risk • High churn probability</p>
-                  <button className="w-full bg-amber-600 hover:bg-amber-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors">
-                    Protect Clients
-                  </button>
-                </div>
-              </div>
-
-              {/* Cross-sell Opportunity */}
-              <div className="bg-gradient-to-br from-emerald-50 via-green-25 to-teal-50 border-2 border-emerald-200 rounded-xl p-6 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/10 rounded-full -translate-y-8 translate-x-8"></div>
-                <div className="relative">
-                  <div className="flex items-center justify-between mb-3">
-                    <span className="px-3 py-1 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full">CROSS-SELL</span>
-                    <TrendingUp className="w-5 h-5 text-emerald-500" />
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900 mb-2">Growing Families segment ready for Life upgrade</h3>
-                  <p className="text-sm text-gray-600 mb-4">67 families • €890K opportunity</p>
-                  <button className="w-full bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors">
-                    Start Outreach
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Real-time ROI Calculator */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-medium text-gray-500">Today's Revenue</h3>
-                  <TrendingUp className="w-4 h-4 text-green-500" />
-                </div>
-                <div className="text-2xl font-bold text-gray-900">€47,250</div>
-                <div className="text-sm text-green-600 mt-1">+12.5% vs yesterday</div>
-              </div>
-              
-              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-medium text-gray-500">Campaign ROI</h3>
-                  <Target className="w-4 h-4 text-blue-500" />
-                </div>
-                <div className="text-2xl font-bold text-gray-900">1,256%</div>
-                <div className="text-sm text-blue-600 mt-1">vs 340% industry avg</div>
-              </div>
-              
-              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-medium text-gray-500">Annual Projection</h3>
-                  <Calendar className="w-4 h-4 text-purple-500" />
-                </div>
-                <div className="text-2xl font-bold text-gray-900">€18.4M</div>
-                <div className="text-sm text-purple-600 mt-1">Based on Q1 trends</div>
-              </div>
-              
-              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
-                <div className="flex items-center justify-between mb-3">
-                  <h3 className="text-sm font-medium text-gray-500">Untapped Potential</h3>
-                  <Zap className="w-4 h-4 text-orange-500" />
-                </div>
-                <div className="text-2xl font-bold text-gray-900">€4.2M</div>
-                <div className="text-sm text-orange-600 mt-1">Across portfolio</div>
-              </div>
-            </div>
-
-            {/* Portfolio Health Navigator */}
-            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6 mb-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Portfolio Health Navigator</h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {/* Single Product Clients */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium text-gray-700">Single Product</h3>
-                    <span className="text-sm font-bold text-gray-900">2,847 clients</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div className="bg-red-500 h-3 rounded-full" style={{ width: '45%' }}></div>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-500">High opportunity</span>
-                    <span className="text-red-600 font-medium">45%</span>
-                  </div>
-                </div>
-
-                {/* Multi Product Clients */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium text-gray-700">Multi Product</h3>
-                    <span className="text-sm font-bold text-gray-900">1,923 clients</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div className="bg-amber-500 h-3 rounded-full" style={{ width: '62%' }}></div>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-500">Growth potential</span>
-                    <span className="text-amber-600 font-medium">62%</span>
-                  </div>
-                </div>
-
-                {/* Premium Clients */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium text-gray-700">Premium</h3>
-                    <span className="text-sm font-bold text-gray-900">567 clients</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div className="bg-emerald-500 h-3 rounded-full" style={{ width: '84%' }}></div>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-500">High satisfaction</span>
-                    <span className="text-emerald-600 font-medium">84%</span>
-                  </div>
-                </div>
-
-                {/* At-Risk Clients */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-sm font-medium text-gray-700">At-Risk</h3>
-                    <span className="text-sm font-bold text-gray-900">234 clients</span>
-                  </div>
-                  <div className="w-full bg-gray-200 rounded-full h-3">
-                    <div className="bg-red-600 h-3 rounded-full" style={{ width: '28%' }}></div>
-                  </div>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-500">Immediate attention</span>
-                    <span className="text-red-600 font-medium">28%</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Coverage Overview by Category - Enhanced */}
+            {/* Coverage Overview by Category - Horizontal Bar Chart */}
             <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-xl font-bold text-gray-900">Coverage Overview by Category</h2>
@@ -2114,468 +2020,6 @@ export default function CustomerDetailNew() {
             
             
 
-            {/* Geographical Market Analysis */}
-            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6 mb-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Geographical Market Analysis</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Belgium */}
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-2xl">🇧🇪</span>
-                    <h3 className="text-lg font-semibold text-gray-900">Belgium</h3>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Brussels</span>
-                      <span className="text-sm font-medium text-gray-900">1,247 clients</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-blue-500 h-2 rounded-full" style={{ width: '68%' }}></div>
-                    </div>
-                    <div className="text-xs text-blue-600">High Life Insurance opportunity</div>
-                    
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Flanders</span>
-                      <span className="text-sm font-medium text-gray-900">2,134 clients</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '84%' }}></div>
-                    </div>
-                    <div className="text-xs text-emerald-600">Strong business insurance potential</div>
-                    
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Wallonia</span>
-                      <span className="text-sm font-medium text-gray-900">892 clients</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-amber-500 h-2 rounded-full" style={{ width: '45%' }}></div>
-                    </div>
-                    <div className="text-xs text-amber-600">Health insurance gaps</div>
-                  </div>
-                </div>
-
-                {/* Netherlands */}
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-2xl">🇳🇱</span>
-                    <h3 className="text-lg font-semibold text-gray-900">Netherlands</h3>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Amsterdam</span>
-                      <span className="text-sm font-medium text-gray-900">567 clients</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-purple-500 h-2 rounded-full" style={{ width: '72%' }}></div>
-                    </div>
-                    <div className="text-xs text-purple-600">Premium segment focus</div>
-                    
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Other Regions</span>
-                      <span className="text-sm font-medium text-gray-900">423 clients</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-blue-500 h-2 rounded-full" style={{ width: '58%' }}></div>
-                    </div>
-                    <div className="text-xs text-blue-600">Mixed opportunities</div>
-                  </div>
-                </div>
-
-                {/* Luxembourg */}
-                <div className="space-y-4">
-                  <div className="flex items-center space-x-3">
-                    <span className="text-2xl">🇱🇺</span>
-                    <h3 className="text-lg font-semibold text-gray-900">Luxembourg</h3>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Luxembourg City</span>
-                      <span className="text-sm font-medium text-gray-900">234 clients</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-emerald-500 h-2 rounded-full" style={{ width: '89%' }}></div>
-                    </div>
-                    <div className="text-xs text-emerald-600">High-value opportunities</div>
-                    
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Other Areas</span>
-                      <span className="text-sm font-medium text-gray-900">145 clients</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div className="bg-blue-500 h-2 rounded-full" style={{ width: '65%' }}></div>
-                    </div>
-                    <div className="text-xs text-blue-600">Cross-border potential</div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Life Stage Targeting */}
-            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6 mb-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Life Stage Targeting</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Young Professionals */}
-                <div className="bg-gradient-to-br from-blue-50 to-cyan-50 border border-blue-200 rounded-xl p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Young Professionals</h3>
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">25-35 years</span>
-                  </div>
-                  <div className="space-y-3 mb-4">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Total clients</span>
-                      <span className="text-sm font-medium">1,247</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Missing Life Insurance</span>
-                      <span className="text-sm font-medium text-red-600">834 (67%)</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">No Health Coverage</span>
-                      <span className="text-sm font-medium text-orange-600">623 (50%)</span>
-                    </div>
-                  </div>
-                  <button className="w-full bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors">
-                    Create Campaign
-                  </button>
-                </div>
-
-                {/* Growing Families */}
-                <div className="bg-gradient-to-br from-green-50 to-emerald-50 border border-green-200 rounded-xl p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Growing Families</h3>
-                    <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">35-45 years</span>
-                  </div>
-                  <div className="space-y-3 mb-4">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Total clients</span>
-                      <span className="text-sm font-medium">1,834</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Inadequate Life Cover</span>
-                      <span className="text-sm font-medium text-red-600">1,101 (60%)</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">No Education Savings</span>
-                      <span className="text-sm font-medium text-orange-600">1,284 (70%)</span>
-                    </div>
-                  </div>
-                  <button className="w-full bg-green-600 hover:bg-green-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors">
-                    Create Campaign
-                  </button>
-                </div>
-
-                {/* Pre-Retirement */}
-                <div className="bg-gradient-to-br from-purple-50 to-indigo-50 border border-purple-200 rounded-xl p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Pre-Retirement</h3>
-                    <span className="px-3 py-1 bg-purple-100 text-purple-700 text-xs font-semibold rounded-full">55+ years</span>
-                  </div>
-                  <div className="space-y-3 mb-4">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Total clients</span>
-                      <span className="text-sm font-medium">892</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Insufficient Pension</span>
-                      <span className="text-sm font-medium text-red-600">534 (60%)</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">No Disability Cover</span>
-                      <span className="text-sm font-medium text-orange-600">623 (70%)</span>
-                    </div>
-                  </div>
-                  <button className="w-full bg-purple-600 hover:bg-purple-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors">
-                    Create Campaign
-                  </button>
-                </div>
-              </div>
-            </div>
-
-            {/* Provider Performance Analysis */}
-            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6 mb-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Provider Performance Analysis</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* Allianz */}
-                <div className="bg-white border border-gray-200 rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Allianz</h3>
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">Leading Partner</span>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Client Distribution</span>
-                      <span className="text-sm font-medium">2,847 (45%)</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Conversion Rate</span>
-                      <span className="text-sm font-medium text-green-600">72%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Growth Opportunity</span>
-                      <span className="text-sm font-medium text-blue-600">€1.8M</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
-                      <div className="bg-blue-500 h-2 rounded-full" style={{ width: '72%' }}></div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* AXA */}
-                <div className="bg-white border border-gray-200 rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">AXA</h3>
-                    <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">Growing</span>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Client Distribution</span>
-                      <span className="text-sm font-medium">1,923 (30%)</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Conversion Rate</span>
-                      <span className="text-sm font-medium text-green-600">68%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Growth Opportunity</span>
-                      <span className="text-sm font-medium text-blue-600">€1.4M</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
-                      <div className="bg-green-500 h-2 rounded-full" style={{ width: '68%' }}></div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* AG Insurance */}
-                <div className="bg-white border border-gray-200 rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">AG Insurance</h3>
-                    <span className="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">Opportunity</span>
-                  </div>
-                  <div className="space-y-3">
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Client Distribution</span>
-                      <span className="text-sm font-medium">1,567 (25%)</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Conversion Rate</span>
-                      <span className="text-sm font-medium text-amber-600">58%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-sm text-gray-600">Growth Opportunity</span>
-                      <span className="text-sm font-medium text-blue-600">€1.0M</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
-                      <div className="bg-amber-500 h-2 rounded-full" style={{ width: '58%' }}></div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Ready-to-Launch Campaigns */}
-            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6 mb-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Ready-to-Launch Campaigns</h2>
-              <div className="space-y-4">
-                {/* Campaign 1 */}
-                <div className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Auto Omnium Cross-sell Campaign</h3>
-                      <p className="text-sm text-gray-600">Target existing Auto BA clients without comprehensive coverage</p>
-                    </div>
-                    <span className="px-3 py-1 bg-green-100 text-green-700 text-xs font-semibold rounded-full">Ready</span>
-                  </div>
-                  <div className="grid grid-cols-4 gap-4 mb-4">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-gray-900">142</div>
-                      <div className="text-xs text-gray-500">Target Clients</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-green-600">€2.1M</div>
-                      <div className="text-xs text-gray-500">Revenue Potential</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-blue-600">67%</div>
-                      <div className="text-xs text-gray-500">Success Rate</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-purple-600">1,340%</div>
-                      <div className="text-xs text-gray-500">Expected ROI</div>
-                    </div>
-                  </div>
-                  <div className="flex space-x-3">
-                    <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors">
-                      Launch Now
-                    </button>
-                    <button className="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
-                      Preview
-                    </button>
-                    <button className="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
-                      Schedule
-                    </button>
-                  </div>
-                </div>
-
-                {/* Campaign 2 */}
-                <div className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Life Insurance Upgrade - Growing Families</h3>
-                      <p className="text-sm text-gray-600">Target families aged 35-45 with inadequate life coverage</p>
-                    </div>
-                    <span className="px-3 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">Scheduled</span>
-                  </div>
-                  <div className="grid grid-cols-4 gap-4 mb-4">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-gray-900">67</div>
-                      <div className="text-xs text-gray-500">Target Families</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-green-600">€890K</div>
-                      <div className="text-xs text-gray-500">Revenue Potential</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-blue-600">73%</div>
-                      <div className="text-xs text-gray-500">Success Rate</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-purple-600">1,120%</div>
-                      <div className="text-xs text-gray-500">Expected ROI</div>
-                    </div>
-                  </div>
-                  <div className="flex space-x-3">
-                    <button className="flex-1 bg-gray-400 text-white text-sm font-medium py-2 px-4 rounded-lg cursor-not-allowed">
-                      Launching Jan 15
-                    </button>
-                    <button className="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
-                      Edit
-                    </button>
-                    <button className="px-4 py-2 border border-red-300 text-red-700 text-sm font-medium rounded-lg hover:bg-red-50 transition-colors">
-                      Cancel
-                    </button>
-                  </div>
-                </div>
-
-                {/* Campaign 3 */}
-                <div className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between mb-4">
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Health Insurance Gap Analysis</h3>
-                      <p className="text-sm text-gray-600">Target clients 55+ without disability coverage</p>
-                    </div>
-                    <span className="px-3 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">In Progress</span>
-                  </div>
-                  <div className="grid grid-cols-4 gap-4 mb-4">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-gray-900">89</div>
-                      <div className="text-xs text-gray-500">Target Clients</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-green-600">€1.2M</div>
-                      <div className="text-xs text-gray-500">Revenue Potential</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-blue-600">58%</div>
-                      <div className="text-xs text-gray-500">Success Rate</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-purple-600">890%</div>
-                      <div className="text-xs text-gray-500">Expected ROI</div>
-                    </div>
-                  </div>
-                  <div className="flex space-x-3">
-                    <button className="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium py-2 px-4 rounded-lg transition-colors">
-                      View Progress
-                    </button>
-                    <button className="px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-lg hover:bg-gray-50 transition-colors">
-                      Adjust
-                    </button>
-                    <button className="px-4 py-2 border border-red-300 text-red-700 text-sm font-medium rounded-lg hover:bg-red-50 transition-colors">
-                      Pause
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* AI-Guided Next Steps */}
-            <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 border-2 border-indigo-200 rounded-xl p-6 mb-8">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">AI-Guided Next Steps</h2>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* This Week */}
-                <div className="bg-white/80 backdrop-blur-sm border border-white/50 rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">This Week</h3>
-                    <Clock className="w-5 h-5 text-blue-500" />
-                  </div>
-                  <div className="space-y-4">
-                    <div className="border-l-4 border-red-500 pl-4">
-                      <h4 className="font-medium text-gray-900 mb-1">Launch Auto Omnium Campaign</h4>
-                      <p className="text-sm text-gray-600 mb-2">142 clients • €2.1M potential</p>
-                      <button className="text-sm bg-red-600 hover:bg-red-700 text-white py-1 px-3 rounded transition-colors">
-                        Start Campaign
-                      </button>
-                    </div>
-                    <div className="border-l-4 border-amber-500 pl-4">
-                      <h4 className="font-medium text-gray-900 mb-1">Contact At-Risk Clients</h4>
-                      <p className="text-sm text-gray-600 mb-2">89 clients • High churn risk</p>
-                      <button className="text-sm bg-amber-600 hover:bg-amber-700 text-white py-1 px-3 rounded transition-colors">
-                        Schedule Calls
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Next Month */}
-                <div className="bg-white/80 backdrop-blur-sm border border-white/50 rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Next Month</h3>
-                    <Calendar className="w-5 h-5 text-green-500" />
-                  </div>
-                  <div className="space-y-4">
-                    <div className="border-l-4 border-emerald-500 pl-4">
-                      <h4 className="font-medium text-gray-900 mb-1">Family Life Insurance Push</h4>
-                      <p className="text-sm text-gray-600 mb-2">67 families • €890K opportunity</p>
-                      <button className="text-sm bg-emerald-600 hover:bg-emerald-700 text-white py-1 px-3 rounded transition-colors">
-                        Plan Campaign
-                      </button>
-                    </div>
-                    <div className="border-l-4 border-blue-500 pl-4">
-                      <h4 className="font-medium text-gray-900 mb-1">Young Professional Outreach</h4>
-                      <p className="text-sm text-gray-600 mb-2">834 prospects • Life+Health gaps</p>
-                      <button className="text-sm bg-blue-600 hover:bg-blue-700 text-white py-1 px-3 rounded transition-colors">
-                        Plan Strategy
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Long Term */}
-                <div className="bg-white/80 backdrop-blur-sm border border-white/50 rounded-lg p-6">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Long Term</h3>
-                    <TrendingUp className="w-5 h-5 text-purple-500" />
-                  </div>
-                  <div className="space-y-4">
-                    <div className="border-l-4 border-purple-500 pl-4">
-                      <h4 className="font-medium text-gray-900 mb-1">Pre-Retirement Strategy</h4>
-                      <p className="text-sm text-gray-600 mb-2">534 clients • Pension gaps</p>
-                      <button className="text-sm bg-purple-600 hover:bg-purple-700 text-white py-1 px-3 rounded transition-colors">
-                        Develop Plan
-                      </button>
-                    </div>
-                    <div className="border-l-4 border-indigo-500 pl-4">
-                      <h4 className="font-medium text-gray-900 mb-1">Regional Expansion</h4>
-                      <p className="text-sm text-gray-600 mb-2">Wallonia focus • Health opportunities</p>
-                      <button className="text-sm bg-indigo-600 hover:bg-indigo-700 text-white py-1 px-3 rounded transition-colors">
-                        Research Market
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             {/* Smart Coverage Gaps Section */}
             <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Smart Coverage Gaps</h2>
@@ -2637,283 +2081,612 @@ export default function CustomerDetailNew() {
                   </div>
                 </div>
 
-                {/* Life Insurance Category */}
+                {/* Non-Life / Health Category */}
                 <div>
-                  <h4 className="text-md font-medium text-gray-800 mb-3">Life Insurance</h4>
+                  <h4 className="text-md font-medium text-gray-800 mb-3">Non-Life / Health</h4>
                   <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {/* Term Life Insurance Card */}
+                    {/* Group Health Insurance Card */}
                     <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
                       <div className="flex items-start justify-between mb-3">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                          Family Protection
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                          Profile Match
                         </span>
                         <div className="text-right">
                           <div className="font-bold text-green-600 text-lg">+€3,200/year</div>
                           <div className="text-xs text-gray-500">Estimated Value</div>
                         </div>
                       </div>
-                      <h5 className="font-semibold text-gray-900 mb-2">Term Life Insurance Upgrade</h5>
+                      <h5 className="font-semibold text-gray-900 mb-2">Group Health Insurance</h5>
                       <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                        Current coverage insufficient for mortgage and family needs. Industry standard suggests 10x annual income
-                      </p>
-                      <button 
-                        className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white text-sm font-medium py-2 px-4 rounded-md transition-colors"
-                        onClick={() => handleSmartGapAction('term-life', 'Schedule Consultation')}
-                      >
-                        Schedule Consultation
-                      </button>
-                    </div>
-
-                    {/* Disability Insurance Card */}
-                    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
-                      <div className="flex items-start justify-between mb-3">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 text-amber-800">
-                          Income Protection
-                        </span>
-                        <div className="text-right">
-                          <div className="font-bold text-green-600 text-lg">+€2,100/year</div>
-                          <div className="text-xs text-gray-500">Estimated Value</div>
-                        </div>
-                      </div>
-                      <h5 className="font-semibold text-gray-900 mb-2">Long-term Disability Insurance</h5>
-                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                        High-risk profession without adequate income protection. Essential for business owners and professionals
+                        Competitive advantage for employee retention. Tax benefits available for engineering firms
                       </p>
                       <button 
                         className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-4 rounded-md transition-colors"
-                        onClick={() => handleSmartGapAction('disability', 'Send Information')}
+                        onClick={() => handleSmartGapAction('group-health', 'Assign to Campaign')}
                       >
-                        Send Information
+                        Assign to Campaign
                       </button>
                     </div>
-                  </div>
-                </div>
 
-                {/* Health & Wellness Category */}
-                <div>
-                  <h4 className="text-md font-medium text-gray-800 mb-3">Health & Wellness</h4>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                    {/* Critical Illness Card */}
+                    {/* Occupational Health Card */}
                     <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
                       <div className="flex items-start justify-between mb-3">
                         <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                          Health Protection
+                          Bundle Eligible
                         </span>
                         <div className="text-right">
-                          <div className="font-bold text-green-600 text-lg">+€1,600/year</div>
+                          <div className="font-bold text-green-600 text-lg">+€1,500/year</div>
                           <div className="text-xs text-gray-500">Estimated Value</div>
                         </div>
                       </div>
-                      <h5 className="font-semibold text-gray-900 mb-2">Critical Illness Coverage</h5>
+                      <h5 className="font-semibold text-gray-900 mb-2">Occupational Health Insurance</h5>
                       <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                        Age-appropriate protection for major health events. Often bundled with existing life insurance policies
-                      </p>
-                      <button 
-                        className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white text-sm font-medium py-2 px-4 rounded-md transition-colors"
-                        onClick={() => handleSmartGapAction('critical-illness', 'Request Quote')}
-                      >
-                        Request Quote
-                      </button>
-                    </div>
-
-                    {/* Travel Insurance Card */}
-                    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
-                      <div className="flex items-start justify-between mb-3">
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                          Convenience
-                        </span>
-                        <div className="text-right">
-                          <div className="font-bold text-green-600 text-lg">+€450/year</div>
-                          <div className="text-xs text-gray-500">Estimated Value</div>
-                        </div>
-                      </div>
-                      <h5 className="font-semibold text-gray-900 mb-2">Annual Travel Insurance</h5>
-                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                        Frequent business travel indicates need for comprehensive annual coverage with medical evacuation
+                        Pairs well with existing liability. 15% discount when bundled with current business coverage
                       </p>
                       <button 
                         className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-4 rounded-md transition-colors"
-                        onClick={() => handleSmartGapAction('travel', 'Add to Portfolio')}
+                        onClick={() => handleSmartGapAction('occupational-health', 'Explore Partner Matches')}
                       >
-                        Add to Portfolio
+                        Explore Partner Matches
                       </button>
                     </div>
                   </div>
                 </div>
-              </div>
 
-              {/* Summary Actions */}
-              <div className="mt-8 pt-6 border-t border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium text-gray-900">Total Opportunity Value</h4>
-                    <p className="text-2xl font-bold text-green-600">€11,550/year</p>
-                    <p className="text-sm text-gray-500">Across 6 identified gaps</p>
-                  </div>
-                  <div className="flex space-x-3">
-                    <button className="px-6 py-2 bg-[#5567E5] hover:bg-[#4556D4] text-white font-medium rounded-lg transition-colors">
-                      Create Campaign for All
-                    </button>
-                    <button className="px-6 py-2 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors">
-                      Export Report
-                    </button>
+                {/* Life Insurance Category */}
+                <div>
+                  <h4 className="text-md font-medium text-gray-800 mb-3">Life Insurance</h4>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {/* Key Person Insurance Card */}
+                    <div className="bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group">
+                      <div className="flex items-start justify-between mb-3">
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                          Upgrade
+                        </span>
+                        <div className="text-right">
+                          <div className="font-bold text-green-600 text-lg">+€2,600/year</div>
+                          <div className="text-xs text-gray-500">Estimated Value</div>
+                        </div>
+                      </div>
+                      <h5 className="font-semibold text-gray-900 mb-2">Key Person Life Insurance</h5>
+                      <p className="text-sm text-gray-600 mb-4 leading-relaxed">
+                        Business protection for owner-managed engineering firm. Critical for business continuity planning
+                      </p>
+                      <button 
+                        className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white text-sm font-medium py-2 px-4 rounded-md transition-colors"
+                        onClick={() => handleSmartGapAction('key-person', 'Add to Opportunity List')}
+                      >
+                        Add to Opportunity List
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
             </div>
 
             {/* Time-Sensitive Actions & Events */}
-            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+            <div className="bg-gradient-to-r from-amber-50 to-orange-50 border border-amber-200 rounded-xl p-6">
               <h2 className="text-xl font-bold text-gray-900 mb-4">Time-Sensitive Actions & Events</h2>
+              <p className="text-sm text-gray-600 mb-6">
+                Urgent triggers requiring immediate attention due to upcoming renewals, external events, or regulatory deadlines
+              </p>
+              
+              {/* Time-Sensitive Strip Items */}
               <div className="space-y-4">
-                {/* Contract Renewals */}
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center space-x-2">
-                      <Clock className="w-5 h-5 text-amber-600" />
-                      <h3 className="font-semibold text-amber-900">Contract Renewals (Next 90 days)</h3>
+                {/* Policy Expiring Soon */}
+                <div className="bg-white border-l-4 border-red-500 rounded-lg p-4 flex items-center justify-between hover:shadow-md transition-shadow">
+                  <div className="flex items-center space-x-4 flex-1">
+                    <div className="flex-shrink-0">
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-red-100 text-red-800">
+                        EXPIRING SOON
+                      </span>
                     </div>
-                    <span className="px-2 py-1 bg-amber-100 text-amber-700 text-xs font-semibold rounded-full">3 contracts</span>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-1">Cyber Security Policy</h3>
+                      <p className="text-sm text-gray-600 mb-2">Policy expires in 12 days - critical for EU compliance requirements</p>
+                      <div className="flex items-center space-x-6 text-xs text-gray-500">
+                        <div className="flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
+                          <span className="font-medium text-red-600">12 days left</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <DollarSign className="w-3 h-3" />
+                          <span>€3,200 at risk</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-amber-800">Auto Insurance - expires March 15</span>
-                      <button className="text-xs bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded transition-colors">
-                        Start Renewal
-                      </button>
+                  <div className="flex items-center space-x-2">
+                    <button 
+                      className="px-3 py-1.5 bg-[#5567E5] hover:bg-[#4556D4] text-white text-xs font-medium rounded-md transition-colors"
+                      onClick={() => handleSmartGapAction('cyber-expiry', 'Add to Campaign')}
+                    >
+                      Add to Campaign
+                    </button>
+                    <button 
+                      className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-md transition-colors"
+                      onClick={() => handleSmartGapAction('cyber-expiry', 'Share with Partner')}
+                    >
+                      Share with Partner
+                    </button>
+                  </div>
+                </div>
+
+                {/* Weather Alert */}
+                <div className="bg-white border-l-4 border-orange-500 rounded-lg p-4 flex items-center justify-between hover:shadow-md transition-shadow">
+                  <div className="flex items-center space-x-4 flex-1">
+                    <div className="flex-shrink-0">
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-orange-100 text-orange-800">
+                        WEATHER ALERT
+                      </span>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-amber-800">Property Insurance - expires April 2</span>
-                      <button className="text-xs bg-amber-600 hover:bg-amber-700 text-white px-3 py-1 rounded transition-colors">
-                        Start Renewal
-                      </button>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-1">Storm Protection Add-on</h3>
+                      <p className="text-sm text-gray-600 mb-2">Severe storm warning issued for this region - increased property risk</p>
+                      <div className="flex items-center space-x-6 text-xs text-gray-500">
+                        <div className="flex items-center space-x-1">
+                          <AlertTriangle className="w-3 h-3" />
+                          <span className="font-medium text-orange-600">Storm risk: This week</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <DollarSign className="w-3 h-3" />
+                          <span>€1,800 uncovered assets</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button 
+                      className="px-3 py-1.5 bg-[#5567E5] hover:bg-[#4556D4] text-white text-xs font-medium rounded-md transition-colors"
+                      onClick={() => handleSmartGapAction('storm-protection', 'Add to Campaign')}
+                    >
+                      Add to Campaign
+                    </button>
+                    <button 
+                      className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-md transition-colors"
+                      onClick={() => handleSmartGapAction('storm-protection', 'Track This Risk')}
+                    >
+                      Track This Risk
+                    </button>
+                  </div>
+                </div>
+
+                {/* Tax Deadline */}
+                <div className="bg-white border-l-4 border-blue-500 rounded-lg p-4 flex items-center justify-between hover:shadow-md transition-shadow">
+                  <div className="flex items-center space-x-4 flex-1">
+                    <div className="flex-shrink-0">
+                      <span className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-bold bg-blue-100 text-blue-800">
+                        TAX DEADLINE
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-semibold text-gray-900 mb-1">Professional Indemnity Upgrade</h3>
+                      <p className="text-sm text-gray-600 mb-2">Business tax season increases audit risk - enhanced liability protection recommended</p>
+                      <div className="flex items-center space-x-6 text-xs text-gray-500">
+                        <div className="flex items-center space-x-1">
+                          <Clock className="w-3 h-3" />
+                          <span className="font-medium text-blue-600">Filing deadline: March 31</span>
+                        </div>
+                        <div className="flex items-center space-x-1">
+                          <DollarSign className="w-3 h-3" />
+                          <span>€2,400 coverage gap</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <button 
+                      className="px-3 py-1.5 bg-[#5567E5] hover:bg-[#4556D4] text-white text-xs font-medium rounded-md transition-colors"
+                      onClick={() => handleSmartGapAction('tax-indemnity', 'Add to Campaign')}
+                    >
+                      Add to Campaign
+                    </button>
+                    <button 
+                      className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-medium rounded-md transition-colors"
+                      onClick={() => handleSmartGapAction('tax-indemnity', 'Share with Partner')}
+                    >
+                      Share with Partner
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 2. Policies Requiring Attention - Timeline Strip */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Policies Requiring Attention</h2>
+              <div className="space-y-4">
+                {/* Critical - Auto Insurance */}
+                <div className="flex items-center space-x-4 p-4 bg-red-50 border-l-4 border-red-500 rounded-lg">
+                  <div className="flex-shrink-0">
+                    <Clock className="w-6 h-6 text-red-500" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Auto Insurance - Business Vehicle</h3>
+                        <p className="text-sm text-red-600">🔴 Expires in 19 days (Jan 15, 2025)</p>
+                        <p className="text-xs text-gray-500 mt-1">Suggested action: Renew with comprehensive upgrade</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-green-600">+€1,200</div>
+                        <div className="text-xs text-gray-500">Premium impact</div>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Policy Changes */}
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center space-x-2">
-                      <AlertTriangle className="w-5 h-5 text-blue-600" />
-                      <h3 className="font-semibold text-blue-900">Policy Change Opportunities</h3>
-                    </div>
-                    <span className="px-2 py-1 bg-blue-100 text-blue-700 text-xs font-semibold rounded-full">2 actions</span>
+                {/* Warning - Property Insurance */}
+                <div className="flex items-center space-x-4 p-4 bg-yellow-50 border-l-4 border-yellow-500 rounded-lg">
+                  <div className="flex-shrink-0">
+                    <AlertTriangle className="w-6 h-6 text-yellow-500" />
                   </div>
-                  <div className="space-y-2">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-blue-800">Business expansion requires coverage update</span>
-                      <button className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded transition-colors">
-                        Review Coverage
-                      </button>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Property Insurance - Office Building</h3>
+                        <p className="text-sm text-yellow-600">🟡 Review needed (Mar 1, 2025)</p>
+                        <p className="text-xs text-gray-500 mt-1">Suggested action: Increase coverage limit for building expansion</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-green-600">+€800</div>
+                        <div className="text-xs text-gray-500">Premium impact</div>
+                      </div>
                     </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-blue-800">New employee benefits enrollment period</span>
-                      <button className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded transition-colors">
-                        Schedule Meeting
-                      </button>
+                  </div>
+                </div>
+
+                {/* Info - Life Insurance */}
+                <div className="flex items-center space-x-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-lg">
+                  <div className="flex-shrink-0">
+                    <TrendingUp className="w-6 h-6 text-blue-500" />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-semibold text-gray-900">Life Insurance - Executive Coverage</h3>
+                        <p className="text-sm text-blue-600">🔵 Opportunity (Jun 1, 2025)</p>
+                        <p className="text-xs text-gray-500 mt-1">Suggested action: Add key person insurance for new executives</p>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-lg font-bold text-green-600">+€2,400</div>
+                        <div className="text-xs text-gray-500">Premium impact</div>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
-        )}
 
-        {activeTab === "products" && (
-          <div className="space-y-6">
-            <button 
-              className="w-full h-8 text-sm bg-gray-400 text-white cursor-not-allowed rounded-lg"
-              disabled
-            >
-              Add product
-            </button>
-          </div>
-        )}
-
-        {activeTab === "contacts" && (
-          <div className="space-y-6">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <Checkbox />
-                  </TableHead>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Email</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Status</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {relatedContacts?.map((contact: any) => (
-                  <TableRow key={contact.id}>
-                    <TableCell>
-                      <Checkbox />
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {contact.firstName && contact.lastName ? (
-                        `${contact.firstName} ${contact.lastName}`
-                      ) : (
-                        contact.companyName || 'Unknown Contact'
-                      )}
-                    </TableCell>
-                    <TableCell>{contact.jobTitle || 'N/A'}</TableCell>
-                    <TableCell>{contact.email || 'N/A'}</TableCell>
-                    <TableCell>{contact.phone || 'N/A'}</TableCell>
-                    <TableCell>
-                      <span className={`px-2 py-1 rounded-full text-xs ${
-                        contact.isActive 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-gray-100 text-gray-800'
-                      }`}>
-                        {contact.isActive ? 'Active' : 'Inactive'}
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            {(!relatedContacts || relatedContacts.length === 0) && (
-              <div className="text-center py-12">
-                <p className="text-gray-500">No contacts associated with this customer</p>
+            {/* 3. Premium Impact Panel */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Premium Impact Analysis</h2>
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="p-4 bg-green-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-green-800">Current Annual Premium</span>
+                      <TrendingUp className="w-4 h-4 text-green-600" />
+                    </div>
+                    <div className="text-2xl font-bold text-green-900">€5,600</div>
+                    <div className="text-sm text-green-600">Across 7 active policies</div>
+                  </div>
+                  
+                  <div className="p-4 bg-blue-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-blue-800">Projected Premium</span>
+                      <ArrowUp className="w-4 h-4 text-blue-600" />
+                    </div>
+                    <div className="text-2xl font-bold text-blue-900">€15,150</div>
+                    <div className="text-sm text-blue-600">With all recommended products</div>
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div className="p-4 bg-yellow-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-yellow-800">Revenue Increase</span>
+                      <ArrowUp className="w-4 h-4 text-yellow-600" />
+                    </div>
+                    <div className="text-2xl font-bold text-yellow-900">€9,550</div>
+                    <div className="text-sm text-yellow-600">+170% growth potential</div>
+                  </div>
+                  
+                  <div className="p-4 bg-purple-50 rounded-lg">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-purple-800">Commission Impact</span>
+                      <DollarSign className="w-4 h-4 text-purple-600" />
+                    </div>
+                    <div className="text-2xl font-bold text-purple-900">€1,910</div>
+                    <div className="text-sm text-purple-600">Annual commission increase (20%)</div>
+                  </div>
+                </div>
               </div>
-            )}
+            </div>
+
+            {/* 4. Coverage Gaps - Radial Visualization */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Coverage Gap Analysis</h2>
+              <div className="grid grid-cols-4 gap-6">
+                {/* Critical Gap - Cyber Security */}
+                <div className="text-center">
+                  <div className="relative inline-flex items-center justify-center w-24 h-24 mb-3">
+                    <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#f3f4f6"
+                        strokeWidth="4"
+                      />
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#ef4444"
+                        strokeWidth="4"
+                        strokeDasharray="85, 15"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                      <div className="text-lg font-bold text-red-600">High</div>
+                    </div>
+                  </div>
+                  <h4 className="font-medium text-gray-900 text-sm">Cyber Security</h4>
+                  <p className="text-xs text-red-600 mt-1">Critical gap</p>
+                  <p className="text-xs text-gray-500">€1,200/year</p>
+                </div>
+
+                {/* Medium Gap - Environmental */}
+                <div className="text-center">
+                  <div className="relative inline-flex items-center justify-center w-24 h-24 mb-3">
+                    <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#f3f4f6"
+                        strokeWidth="4"
+                      />
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#f59e0b"
+                        strokeWidth="4"
+                        strokeDasharray="65, 35"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                      <div className="text-lg font-bold text-yellow-600">Med</div>
+                    </div>
+                  </div>
+                  <h4 className="font-medium text-gray-900 text-sm">Environmental</h4>
+                  <p className="text-xs text-yellow-600 mt-1">Medium gap</p>
+                  <p className="text-xs text-gray-500">€400/year</p>
+                </div>
+
+                {/* Low Gap - Legal */}
+                <div className="text-center">
+                  <div className="relative inline-flex items-center justify-center w-24 h-24 mb-3">
+                    <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#f3f4f6"
+                        strokeWidth="4"
+                      />
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#10b981"
+                        strokeWidth="4"
+                        strokeDasharray="30, 70"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                      <div className="text-lg font-bold text-green-600">Low</div>
+                    </div>
+                  </div>
+                  <h4 className="font-medium text-gray-900 text-sm">Legal Protection</h4>
+                  <p className="text-xs text-green-600 mt-1">Low priority</p>
+                  <p className="text-xs text-gray-500">€680/year</p>
+                </div>
+
+                {/* Covered - Auto */}
+                <div className="text-center">
+                  <div className="relative inline-flex items-center justify-center w-24 h-24 mb-3">
+                    <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 36 36">
+                      <path
+                        d="M18 2.0845
+                          a 15.9155 15.9155 0 0 1 0 31.831
+                          a 15.9155 15.9155 0 0 1 0 -31.831"
+                        fill="none"
+                        stroke="#10b981"
+                        strokeWidth="4"
+                      />
+                    </svg>
+                    <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+                      <div className="text-lg font-bold text-green-600">✓</div>
+                    </div>
+                  </div>
+                  <h4 className="font-medium text-gray-900 text-sm">Auto Insurance</h4>
+                  <p className="text-xs text-green-600 mt-1">Well covered</p>
+                  <p className="text-xs text-gray-500">€840/year</p>
+                </div>
+              </div>
+            </div>
+
+            {/* 5. Expansion Opportunities */}
+            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+              <h2 className="text-xl font-bold text-gray-900 mb-6">Strategic Expansion Opportunities</h2>
+              <div className="space-y-4">
+                {/* High Priority */}
+                <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                      <span className="font-semibold text-gray-900">High Priority - Cyber Security Package</span>
+                    </div>
+                    <span className="text-sm font-medium text-red-600">Critical</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Revenue Impact:</span>
+                      <div className="font-semibold text-green-600">€1,200/year</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Implementation:</span>
+                      <div className="font-semibold text-gray-900">2-3 weeks</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Success Rate:</span>
+                      <div className="font-semibold text-blue-600">85%</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Medium Priority */}
+                <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                      <span className="font-semibold text-gray-900">Medium Priority - Executive Life Insurance</span>
+                    </div>
+                    <span className="text-sm font-medium text-yellow-600">Opportunity</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Revenue Impact:</span>
+                      <div className="font-semibold text-green-600">€2,400/year</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Implementation:</span>
+                      <div className="font-semibold text-gray-900">4-6 weeks</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Success Rate:</span>
+                      <div className="font-semibold text-blue-600">72%</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Low Priority */}
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                      <span className="font-semibold text-gray-900">Low Priority - Professional Services Bundle</span>
+                    </div>
+                    <span className="text-sm font-medium text-green-600">Enhancement</span>
+                  </div>
+                  <div className="grid grid-cols-3 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-500">Revenue Impact:</span>
+                      <div className="font-semibold text-green-600">€1,950/year</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Implementation:</span>
+                      <div className="font-semibold text-gray-900">6-8 weeks</div>
+                    </div>
+                    <div>
+                      <span className="text-gray-500">Success Rate:</span>
+                      <div className="font-semibold text-blue-600">58%</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+
+          </div>
+        )}
+        
+        {activeTab === 'activities' && (
+          <div className="space-y-6">
+            <div className="text-center py-8">
+              <p className="text-gray-500">Activity management will be available soon.</p>
+            </div>
           </div>
         )}
       </div>
 
+
+      
       {/* Product List Dialog */}
       <Dialog open={isProductListDialogOpen} onOpenChange={setIsProductListDialogOpen}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl max-h-[80vh]">
           <DialogHeader>
             <DialogTitle>{tooltipCategoryName}</DialogTitle>
+            <DialogDescription>
+              Product list from coverage analysis
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 max-h-96 overflow-y-auto">
-            {selectedTooltipProducts?.map((product: any, idx: number) => (
-              <div key={idx} className="border rounded-lg p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <h4 className="font-semibold text-gray-900">{product.name}</h4>
-                  <span className="font-bold text-blue-600">€{product.premium?.toLocaleString()}/year</span>
-                </div>
-                <p className="text-sm text-gray-600 mb-3">{product.description}</p>
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <span className="text-gray-500">Provider:</span>
-                    <span className="ml-2 font-medium">{product.provider}</span>
+          <div className="max-h-[60vh] overflow-y-auto">
+            <div className="space-y-3">
+              {selectedTooltipProducts.map((product, idx) => (
+                <div key={idx} className="p-4 border border-gray-200 rounded-lg bg-gray-50">
+                  <div className="flex justify-between items-start mb-3">
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900">{product.name}</h4>
+                      <p className="text-sm text-gray-500">Insurance Product</p>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-semibold text-blue-600">€{product.premium.toLocaleString()}/year</div>
+                      <div className="text-sm text-gray-500">Premium</div>
+                    </div>
                   </div>
-                  <div>
-                    <span className="text-gray-500">Category:</span>
-                    <span className="ml-2 font-medium">{product.category}</span>
+                  
+                  {/* Partner Sales History */}
+                  <div className="mt-3 pt-3 border-t border-gray-200">
+                    <h5 className="text-sm font-medium text-gray-700 mb-2">Partners who sold this product:</h5>
+                    <div className="flex flex-wrap gap-2">
+                      {getPartnerSalesHistory(product.name).map((partner, partnerIdx) => (
+                        <div key={partnerIdx} className="flex items-center space-x-2 bg-white px-2 py-1 rounded border">
+                          <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span className="text-xs font-medium text-blue-600">
+                              {partner.name.split(' ').map(word => word[0]).join('').substring(0, 2)}
+                            </span>
+                          </div>
+                          <div className="text-xs">
+                            <div className="font-medium text-gray-700">{partner.name}</div>
+                            <div className="text-gray-500">{partner.salesCount} sales • €{partner.totalValue.toLocaleString()}</div>
+                          </div>
+                        </div>
+                      ))}
+                      {getPartnerSalesHistory(product.name).length === 0 && (
+                        <span className="text-sm text-gray-500 italic">No previous sales recorded</span>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
+          <DialogFooter className="flex justify-between">
+            <Button variant="outline" onClick={() => setIsProductListDialogOpen(false)}>
+              Close list
+            </Button>
+            <Button 
+              onClick={handleCreateOpportunityList}
+              className="bg-[#5567E5] hover:bg-[#4556D4]"
+            >
+              Create opportunity list
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
   );
-
 }
