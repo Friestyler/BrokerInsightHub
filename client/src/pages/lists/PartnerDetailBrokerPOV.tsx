@@ -703,6 +703,44 @@ export default function PartnerDetailBrokerPOV() {
                   </Button>
                 </div>
               </div>
+              
+              {/* Collaborators Component */}
+              <div className="flex items-center space-x-3 mt-2">
+                <span className="text-sm text-gray-600 font-medium">Collaborators:</span>
+                <div className="flex items-center space-x-2">
+                  {/* Internal users */}
+                  <div className="flex items-center space-x-1">
+                    <div className="flex -space-x-1">
+                      <div className="w-6 h-6 rounded-full bg-blue-500 border-2 border-white flex items-center justify-center">
+                        <span className="text-xs font-medium text-white">JS</span>
+                      </div>
+                      <div className="w-6 h-6 rounded-full bg-green-500 border-2 border-white flex items-center justify-center">
+                        <span className="text-xs font-medium text-white">AB</span>
+                      </div>
+                      <div className="w-6 h-6 rounded-full bg-purple-500 border-2 border-white flex items-center justify-center">
+                        <span className="text-xs font-medium text-white">AS</span>
+                      </div>
+                    </div>
+                    <span className="text-xs text-gray-500 ml-1">Internal</span>
+                  </div>
+                  
+                  {/* Separator */}
+                  <div className="w-px h-4 bg-gray-300"></div>
+                  
+                  {/* External users */}
+                  <div className="flex items-center space-x-1">
+                    <div className="flex -space-x-1">
+                      <div className="w-6 h-6 rounded-full bg-orange-500 border-2 border-white flex items-center justify-center">
+                        <span className="text-xs font-medium text-white">ES</span>
+                      </div>
+                      <div className="w-6 h-6 rounded-full bg-red-500 border-2 border-white flex items-center justify-center">
+                        <span className="text-xs font-medium text-white">MV</span>
+                      </div>
+                    </div>
+                    <span className="text-xs text-gray-500 ml-1">External</span>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           
