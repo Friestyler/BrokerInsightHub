@@ -2474,17 +2474,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       const envPool = pool;
       const result = await envPool.query(`
-        SELECT DISTINCT p.id, p.name, p.description, p.location, p.contact_email, p.primary_contact
+        SELECT DISTINCT p.id, p.name, p.description, p.status, p.location, p.contact_email, p.primary_contact
         FROM degoudse.partners p
-        INNER JOIN degoudse.opportunities o ON p.id = o.partner_id
-        WHERE o.client_id = $1
+        INNER JOIN degoudse.partner_customers pc ON p.id = pc.partner_id
+        WHERE pc.customer_id = $1
         ORDER BY p.id
       `, [customerId]);
+      
+      console.log(`Customer ${customerId} partners query returned ${result.rows.length} results`);
       
       const partners = result.rows.map((partner: any) => ({
         id: partner.id,
         name: partner.name,
         description: partner.description,
+        status: partner.status,
         location: partner.location,
         contact_email: partner.contact_email,
         primary_contact: partner.primary_contact
