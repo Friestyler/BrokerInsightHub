@@ -2188,7 +2188,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                p.linked_opportunity_ids, p.created_at, p.updated_at,
                u.name as owner_name,
                COALESCE(rel.opportunity_count, 0) as opportunity_count,
-               COALESCE(rel.customer_count, 0) as customer_count,
+               COALESCE(pc_rel.customer_count, 0) as customer_count,
                COALESCE(rel.total_opportunity_value, 0) as total_opportunity_value,
                COALESCE(rel.total_weighted_value, 0) as total_weighted_value,
                COALESCE(contact_rel.contact_count, 0) as contact_count
@@ -2197,13 +2197,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LEFT JOIN (
           SELECT "partnerId", 
                  COUNT(*) as opportunity_count,
-                 COUNT(DISTINCT "clientId") as customer_count,
                  SUM(COALESCE("estimatedValue", 0)) as total_opportunity_value,
                  SUM(COALESCE("estimatedValue", 0) * COALESCE(probability, 0) / 100.0) as total_weighted_value
           FROM degoudse.opportunities 
           WHERE "partnerId" IS NOT NULL AND id > 16
           GROUP BY "partnerId"
         ) rel ON p.id = rel."partnerId"
+        LEFT JOIN (
+          SELECT partner_id,
+                 COUNT(DISTINCT customer_id) as customer_count
+          FROM degoudse.partner_customers
+          GROUP BY partner_id
+        ) pc_rel ON p.id = pc_rel.partner_id
         LEFT JOIN (
           SELECT COUNT(*) as contact_count, 'placeholder' as partner_reference
           FROM degoudse.contacts 
@@ -2256,19 +2261,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const partnerId = parseInt(req.params.id);
       const envPool = pool;
       const result = await envPool.query(`
-        SELECT DISTINCT c.id, c.name, c.description
+        SELECT DISTINCT c.id, c.name, c.description,
+               COUNT(o.id) as opportunity_count
         FROM degoudse.customers c
-        INNER JOIN degoudse.opportunities o ON c.id = o.client_id
-        WHERE o.partner_id = $1
+        INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
+        LEFT JOIN degoudse.opportunities o ON c.id = o.client_id
+        WHERE pc.partner_id = $1
+        GROUP BY c.id, c.name, c.description
         ORDER BY c.id
       `, [partnerId]);
       
       const customers = result.rows.map((customer: any) => ({
         id: customer.id,
         name: customer.name,
-        description: customer.description
+        description: customer.description,
+        opportunityCount: parseInt(customer.opportunity_count) || 0
       }));
       
+      console.log(`Partner ${partnerId} customers query returned ${customers.length} results`);
       res.json(customers);
     } catch (error) {
       console.error('Error fetching De Goudse partner customers:', error);
