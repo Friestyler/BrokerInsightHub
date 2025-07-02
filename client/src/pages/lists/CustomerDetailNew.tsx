@@ -23,7 +23,7 @@ export default function CustomerDetailNew() {
   const { environment } = useEnvironment();
   const [location] = useLocation();
   const { toast } = useToast();
-  const [activeTab, setActiveTab] = useState("opportunities");
+  const [activeTab, setActiveTab] = useState("products");
   const [backUrl, setBackUrl] = useState("/customers");
   const [backLabel, setBackLabel] = useState("Back to Customers");
   
@@ -1009,14 +1009,14 @@ export default function CustomerDetailNew() {
         <div className="border-b border-gray-200">
           <nav className="flex space-x-2 mb-3">
             <button 
-              onClick={() => setActiveTab("okr-plans")}
+              onClick={() => setActiveTab("products")}
               className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
-                activeTab === "okr-plans" 
+                activeTab === "products" 
                   ? "bg-[#E1E4FB] text-[#3E4DC4]" 
                   : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
               }`}
             >
-              OKR plans
+              Products ({relatedProducts?.length || 0})
             </button>
             <button 
               onClick={() => setActiveTab("partners")}
@@ -1039,25 +1039,28 @@ export default function CustomerDetailNew() {
               Opportunities ({relatedOpportunities?.length || 0})
             </button>
             <button 
-              onClick={() => setActiveTab("products")}
+              onClick={() => setActiveTab("okr-plans")}
               className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
-                activeTab === "products" 
+                activeTab === "okr-plans" 
                   ? "bg-[#E1E4FB] text-[#3E4DC4]" 
                   : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
               }`}
             >
-              Products ({relatedProducts?.length || 0})
+              OKR plans
             </button>
-            <button 
-              onClick={() => setActiveTab("contacts")}
-              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
-                activeTab === "contacts" 
-                  ? "bg-[#E1E4FB] text-[#3E4DC4]" 
-                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
-              }`}
-            >
-              Contacts ({relatedContacts?.length || 0})
-            </button>
+            {/* Hide Contacts tab for Amazon CS (customer ID 18) */}
+            {customer?.id !== 18 && (
+              <button 
+                onClick={() => setActiveTab("contacts")}
+                className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                  activeTab === "contacts" 
+                    ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                    : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                }`}
+              >
+                Contacts ({relatedContacts?.length || 0})
+              </button>
+            )}
 
           </nav>
         </div>
