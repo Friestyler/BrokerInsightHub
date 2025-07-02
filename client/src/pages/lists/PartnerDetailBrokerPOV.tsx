@@ -28,17 +28,9 @@ export default function PartnerDetailBrokerPOV() {
   
   // Get URL parameters for tab and list selection
   const urlParams = new URLSearchParams(window.location.search);
-  const tabParam = urlParams.get('tab');
   const listParam = urlParams.get('list');
   
   const [activeTab, setActiveTab] = useState("products");
-  
-  // Ensure Products tab is always the default
-  useEffect(() => {
-    if (!tabParam) {
-      setActiveTab("products");
-    }
-  }, [tabParam]);
   
   // State for filtering
   const [searchTerm, setSearchTerm] = useState("");
