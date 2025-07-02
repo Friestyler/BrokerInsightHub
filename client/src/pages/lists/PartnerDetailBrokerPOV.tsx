@@ -31,7 +31,7 @@ export default function PartnerDetailBrokerPOV() {
   const tabParam = urlParams.get('tab');
   const listParam = urlParams.get('list');
   
-  const [activeTab, setActiveTab] = useState(tabParam || "okr-plans");
+  const [activeTab, setActiveTab] = useState(tabParam || "products");
   
   // State for filtering
   const [searchTerm, setSearchTerm] = useState("");
@@ -773,6 +773,16 @@ export default function PartnerDetailBrokerPOV() {
                 Opportunities ({baseOpportunities?.length || 0})
               </button>
               <button 
+                onClick={() => setActiveTab("products")}
+                className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                  activeTab === "products" 
+                    ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                    : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                }`}
+              >
+                Products
+              </button>
+              <button 
                 onClick={() => setActiveTab("customers")}
                 className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
                   activeTab === "customers" 
@@ -1091,6 +1101,33 @@ export default function PartnerDetailBrokerPOV() {
                   ))}
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === "products" && (
+            <div className="space-y-4">
+              <div className="bg-white rounded-lg border">
+                <div className="p-6">
+                  <div className="text-center py-12">
+                    <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-2">Products Portfolio</h3>
+                    <p className="text-gray-500">View and manage products associated with this partner</p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="mt-4 cursor-not-allowed opacity-50"
+                      disabled
+                    >
+                      Add product assignment
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
