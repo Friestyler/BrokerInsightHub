@@ -37,17 +37,22 @@ export function getEnvironmentUrl(url: string): string {
     return url;
   }
   
-  // Both degoudse and baloise should use the degoudse backend data
-  if (envId === 'degoudse' || envId === 'baloise') {
-    // Both environments use degoudse data backend
-    if (url.startsWith('/api/') && !url.includes('/degoudse/') && !url.includes('/baloise/')) {
+  // All environments (degoudse, baloise, nn) should use the degoudse backend data
+  if (envId === 'degoudse' || envId === 'baloise' || envId === 'nn') {
+    // All environments use degoudse data backend
+    if (url.startsWith('/api/') && !url.includes('/degoudse/') && !url.includes('/baloise/') && !url.includes('/nn/')) {
       const newUrl = url.replace('/api/', `/api/degoudse/`);
       console.log('Environment URL transformed:', { from: url, to: newUrl });
       return newUrl;
     }
-    // If URL already has environment prefix, don't double-prefix
+    // If URL already has environment prefix, redirect to degoudse
     if (url.includes('/baloise/')) {
       const newUrl = url.replace('/api/baloise/', '/api/degoudse/');
+      console.log('Environment URL transformed:', { from: url, to: newUrl });
+      return newUrl;
+    }
+    if (url.includes('/nn/')) {
+      const newUrl = url.replace('/api/nn/', '/api/degoudse/');
       console.log('Environment URL transformed:', { from: url, to: newUrl });
       return newUrl;
     }
