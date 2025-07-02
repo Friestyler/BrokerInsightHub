@@ -760,6 +760,16 @@ export default function PartnerDetailBrokerPOV() {
           <div className="border-b border-gray-200">
             <nav className="flex space-x-2 mb-3">
               <button 
+                onClick={() => setActiveTab("products")}
+                className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                  activeTab === "products" 
+                    ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                    : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                }`}
+              >
+                Products
+              </button>
+              <button 
                 onClick={() => setActiveTab("okr-plans")}
                 className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
                   activeTab === "okr-plans" 
@@ -778,16 +788,6 @@ export default function PartnerDetailBrokerPOV() {
                 }`}
               >
                 Opportunities ({baseOpportunities?.length || 0})
-              </button>
-              <button 
-                onClick={() => setActiveTab("products")}
-                className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
-                  activeTab === "products" 
-                    ? "bg-[#E1E4FB] text-[#3E4DC4]" 
-                    : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
-                }`}
-              >
-                Products
               </button>
               <button 
                 onClick={() => setActiveTab("customers")}
