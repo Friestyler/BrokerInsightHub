@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import acmeLogo from "../assets/acme-logo.svg";
 import qollabiLogo from "../assets/qollabi-placeholder.svg";
 import baloiseLogoPng from "../assets/baloise-logo.png";
+import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
 
 export interface Environment {
   id: string;
@@ -18,7 +19,7 @@ const getEnvironmentLogo = (envId: string): string | undefined => {
   return undefined;
 };
 
-// Demo environments - both use same backend data
+// Demo environments - all use same backend data
 const FALLBACK_ENVIRONMENTS: Environment[] = [
   { 
     id: "degoudse", 
@@ -31,6 +32,13 @@ const FALLBACK_ENVIRONMENTS: Environment[] = [
     id: "baloise", 
     name: "Baloise", 
     logo: baloiseLogoPng,
+    apiBaseUrl: "/api/degoudse", // Same backend data as De Goudse
+    databaseId: "degoudse"
+  },
+  { 
+    id: "nn", 
+    name: "Nationale Nederlanden", 
+    logo: nnLogo,
     apiBaseUrl: "/api/degoudse", // Same backend data as De Goudse
     databaseId: "degoudse"
   }
@@ -51,8 +59,8 @@ export const EnvironmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [environments, setEnvironments] = useState<Environment[]>(FALLBACK_ENVIRONMENTS);
   const [environment, setEnvironmentState] = useState<Environment>(() => {
     const savedEnvId = localStorage.getItem('selectedEnvironment');
-    // Allow both degoudse and baloise environments
-    if (savedEnvId && (savedEnvId === 'degoudse' || savedEnvId === 'baloise')) {
+    // Allow all available environments: degoudse, baloise, and nn
+    if (savedEnvId && (savedEnvId === 'degoudse' || savedEnvId === 'baloise' || savedEnvId === 'nn')) {
       return FALLBACK_ENVIRONMENTS.find(env => env.id === savedEnvId) || FALLBACK_ENVIRONMENTS[0];
     }
     // Default to degoudse if no valid environment is saved
