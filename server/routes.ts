@@ -1186,6 +1186,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get activities for a specific customer (including related opportunity activities)
+  app.get('/api/:envId/customers/:id/activities', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const customerId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool(envId);
+      
+      // Fetch tasks for this customer AND related opportunity tasks
+      const tasksResult = await envPool.query(`
+        SELECT t.*, u.name as assigned_to_name, 
+               CASE WHEN t.entity_type = 'opportunity' THEN o.title ELSE NULL END as opportunity_title
+        FROM ${envId}.activity_tasks t
+        LEFT JOIN ${envId}.users u ON t.assigned_to = u.id
+        LEFT JOIN ${envId}.opportunities o ON t.entity_id = o.id AND t.entity_type = 'opportunity'
+        WHERE (t.entity_type = 'customer' AND t.entity_id = $1)
+           OR (t.entity_type = 'opportunity' AND t.entity_id IN (
+               SELECT o2.id FROM ${envId}.opportunities o2 
+               JOIN ${envId}.customer_opportunities co ON o2.id = co.opportunity_id 
+               WHERE co.customer_id = $1
+           ))
+        ORDER BY t.created_at DESC
+      `, [customerId]);
+      
+      // Fetch comments for this customer AND related opportunity comments
+      const commentsResult = await envPool.query(`
+        SELECT c.*, u.name as author_name
+        FROM ${envId}.activity_comments c
+        LEFT JOIN ${envId}.users u ON c.user_id = u.id
+        WHERE c.entity_type = 'customer' AND c.entity_id = $1
+        ORDER BY c.created_at DESC
+      `, [customerId]);
+      
+      // Fetch attachments for this customer (attachments are only partner-based currently)
+      const attachmentsResult = await envPool.query(`
+        SELECT a.*, u.name as author_name
+        FROM ${envId}.activity_attachments a
+        LEFT JOIN ${envId}.users u ON a.uploaded_by_id = u.id
+        LEFT JOIN ${envId}.opportunities o ON o.partner_id = a.partner_id
+        JOIN ${envId}.customer_opportunities co ON o.id = co.opportunity_id
+        WHERE co.customer_id = $1
+        ORDER BY a.created_at DESC
+      `, [customerId]);
+      
+      res.json({
+        tasks: tasksResult.rows,
+        comments: commentsResult.rows,
+        attachments: attachmentsResult.rows
+      });
+    } catch (error) {
+      console.error('Error fetching customer activities:', error);
+      res.status(500).json({ error: 'Failed to fetch customer activities' });
+    }
+  });
+
   // Get unified activities from all entities (for platform activity hub)
   app.get('/api/:envId/unified-activities', async (req, res) => {
     try {
@@ -1419,6 +1473,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create activity (task or comment) for a specific customer
+  app.post('/api/:envId/customers/:id/activities', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const customerId = parseInt(req.params.id);
+      const { type, content, title, priority, visible_to_partner, assigned_to } = req.body;
+      
+      const envPool = getEnvironmentPool(envId);
+      
+      if (type === 'comment') {
+        // Create comment activity
+        const result = await envPool.query(`
+          INSERT INTO ${envId}.activity_comments 
+          (content, visible_to_partner, entity_type, entity_id, user_id, created_at, updated_at)
+          VALUES ($1, $2, 'customer', $3, $4, NOW(), NOW())
+          RETURNING *
+        `, [content, visible_to_partner || false, customerId, assigned_to || null]);
+        
+        console.log(`Created comment activity for customer ${customerId}`);
+        res.status(201).json(result.rows[0]);
+      } else if (type === 'task') {
+        // Create task activity
+        const result = await envPool.query(`
+          INSERT INTO ${envId}.activity_tasks 
+          (title, description, priority, completed, visible_to_partner, entity_type, entity_id, assigned_to, created_at, updated_at)
+          VALUES ($1, $2, $3, false, $4, 'customer', $5, $6, NOW(), NOW())
+          RETURNING *
+        `, [title || content, content, priority || 'medium', visible_to_partner || false, customerId, assigned_to || null]);
+        
+        console.log(`Created task activity for customer ${customerId}`);
+        res.status(201).json(result.rows[0]);
+      } else {
+        res.status(400).json({ error: 'Invalid activity type. Must be "comment" or "task".' });
+      }
+    } catch (error) {
+      console.error('Error creating customer activity:', error);
+      res.status(500).json({ error: 'Failed to create customer activity' });
+    }
+  });
+
+  // Get timeline for a specific customer
+  app.get('/api/:envId/customers/:id/timeline', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const customerId = parseInt(req.params.id);
+      
+      // Fetch all timeline activities from database with user information
+      const timelineQuery = sql`
+        SELECT 
+          t.id, 
+          'task' as activity_type, 
+          t.title, 
+          t.title as content, 
+          t.description,
+          t.priority,
+          t.completed,
+          t.visible_to_partner,
+          t.assigned_to as assigned_to,
+          t.created_at,
+          t.updated_at,
+          u.name as author_name
+        FROM ${sql.identifier(envId)}.activity_tasks t
+        LEFT JOIN ${sql.identifier(envId)}.users u ON t.assigned_to = u.id
+        WHERE t.entity_type = 'customer' AND t.entity_id = ${customerId}
+        
+        UNION ALL
+        
+        SELECT 
+          c.id, 
+          'comment' as activity_type, 
+          'Comment' as title, 
+          c.content, 
+          null as description,
+          null as priority,
+          null as completed,
+          c.visible_to_partner,
+          c.user_id as assigned_to,
+          c.created_at,
+          c.updated_at,
+          u.name as author_name
+        FROM ${sql.identifier(envId)}.activity_comments c
+        LEFT JOIN ${sql.identifier(envId)}.users u ON c.user_id = u.id
+        WHERE c.entity_type = 'customer' AND c.entity_id = ${customerId}
+        
+        UNION ALL
+        
+        SELECT 
+          a.id, 
+          'attachment' as activity_type, 
+          'Document' as title, 
+          a.filename as content, 
+          null as description,
+          null as priority,
+          null as completed,
+          a.visible_to_partner,
+          a.uploaded_by_id as assigned_to,
+          a.created_at,
+          null as updated_at,
+          u.name as author_name
+        FROM ${sql.identifier(envId)}.activity_attachments a
+        LEFT JOIN ${sql.identifier(envId)}.users u ON a.uploaded_by_id = u.id
+        LEFT JOIN ${sql.identifier(envId)}.opportunities o ON o.partner_id = a.partner_id
+        JOIN ${sql.identifier(envId)}.customer_opportunities co ON o.id = co.opportunity_id
+        WHERE co.customer_id = ${customerId}
+        
+        ORDER BY created_at DESC
+      `;
+      
+      const timelineResult = await db.execute(timelineQuery);
+      
+      // Transform the results to match expected frontend format
+      const timeline = timelineResult.rows.map((item: any) => ({
+        id: item.id,
+        activity_type: item.activity_type,
+        title: item.title,
+        content: item.content,
+        description: item.description,
+        priority: item.priority,
+        completed: item.completed,
+        visible_to_partner: item.visible_to_partner,
+        assigned_to: item.assigned_to,
+        created_at: item.created_at,
+        updated_at: item.updated_at,
+        author_name: item.author_name || 'Unknown User'
+      }));
+      
+      res.json(timeline);
+    } catch (error) {
+      console.error('Error fetching customer timeline:', error);
+      res.status(500).json({ error: 'Failed to fetch customer timeline' });
+    }
+  });
+
   // Get all related tasks for a specific partner (from partner, opportunities, and customers)
   app.get('/api/:envId/partners/:id/all-tasks', async (req, res) => {
     try {
@@ -1519,6 +1706,85 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(allTasks);
     } catch (error) {
       console.error('Error fetching all partner tasks:', error);
+      res.status(500).json({ message: 'Failed to fetch tasks' });
+    }
+  });
+
+  // Get all related tasks for a specific customer (from customer and related opportunities)
+  app.get('/api/:envId/customers/:id/all-tasks', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const customerId = parseInt(req.params.id);
+      
+      console.log(`Fetching all tasks for customer ${customerId} in environment ${envId}`);
+      
+      // Use simple parameterized SQL queries instead of complex Drizzle templates
+      const envPool = pool;
+      
+      // Query 1: Direct customer tasks
+      const customerTasksQuery = `
+        SELECT 
+          t.id, 
+          t.title, 
+          t.description,
+          t.priority,
+          COALESCE(t.completed, false) as completed,
+          COALESCE(t.visible_to_partner, false) as visible_to_partner,
+          t.assigned_to,
+          t.created_at,
+          t.updated_at,
+          u.name as author_name,
+          'customer' as source_type,
+          c.name as source_name,
+          $1 as source_id
+        FROM ${envId}.activity_tasks t
+        LEFT JOIN ${envId}.users u ON t.assigned_to = u.id
+        LEFT JOIN ${envId}.customers c ON c.id = $1
+        WHERE t.entity_type = 'customer' AND t.entity_id = $1
+      `;
+      
+      // Query 2: Tasks from opportunities connected to this customer
+      const opportunityTasksQuery = `
+        SELECT 
+          t.id, 
+          t.title, 
+          t.description,
+          t.priority,
+          COALESCE(t.completed, false) as completed,
+          COALESCE(t.visible_to_partner, false) as visible_to_partner,
+          t.assigned_to,
+          t.created_at,
+          t.updated_at,
+          u.name as author_name,
+          'opportunity' as source_type,
+          o.title as source_name,
+          o.id as source_id
+        FROM ${envId}.activity_tasks t
+        LEFT JOIN ${envId}.users u ON t.assigned_to = u.id
+        LEFT JOIN ${envId}.opportunities o ON t.entity_id = o.id
+        JOIN ${envId}.customer_opportunities co ON o.id = co.opportunity_id
+        WHERE t.entity_type = 'opportunity' AND co.customer_id = $1
+      `;
+      
+      // Execute all queries
+      const [customerTasks, opportunityTasks] = await Promise.all([
+        envPool.query(customerTasksQuery, [customerId]),
+        envPool.query(opportunityTasksQuery, [customerId])
+      ]);
+      
+      // Combine and sort all results
+      const allTasks = [
+        ...customerTasks.rows,
+        ...opportunityTasks.rows
+      ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      
+      console.log(`Found ${allTasks.length} total tasks for customer ${customerId}`);
+      console.log(`- Customer tasks: ${customerTasks.rows.length}`);
+      console.log(`- Opportunity tasks: ${opportunityTasks.rows.length}`);
+      
+      res.json(allTasks);
+    } catch (error) {
+      console.error('Error fetching all customer tasks:', error);
       res.status(500).json({ message: 'Failed to fetch tasks' });
     }
   });

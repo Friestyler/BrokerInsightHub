@@ -1004,7 +1004,13 @@ export default function CustomerDetailNew() {
           </div>
         </div>
         
-
+        {/* Activity Hub */}
+        <PartnerActivityHub 
+          partnerId={parseInt(id!)} 
+          partnerName={customer?.name || 'Customer'}
+          entityType="customer"
+          entityId={parseInt(id!)}
+        />
 
         {/* Custom tab styling to match design */}
         <div className="border-b border-gray-200">
@@ -1048,16 +1054,6 @@ export default function CustomerDetailNew() {
               }`}
             >
               OKR plans
-            </button>
-            <button 
-              onClick={() => setActiveTab("activity-hub")}
-              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
-                activeTab === "activity-hub" 
-                  ? "bg-[#E1E4FB] text-[#3E4DC4]" 
-                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
-              }`}
-            >
-              Activity Hub
             </button>
             {/* Hide Contacts tab for Amazon CS (customer ID 18) */}
             {customer?.id !== 18 && (

@@ -64,7 +64,7 @@ const ActivityReactions = ({ activityType, activityId, onReactionClick }: Activi
 interface PartnerActivityHubProps {
   partnerId: number;
   partnerName: string;
-  entityType?: 'partner' | 'opportunity';
+  entityType?: 'partner' | 'opportunity' | 'customer';
   entityId?: number;
 }
 
@@ -492,6 +492,8 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
   const actualEntityId = entityId || partnerId;
   const apiEndpoint = entityType === 'opportunity' 
     ? `/api/degoudse/opportunities/${actualEntityId}/activities`
+    : entityType === 'customer'
+    ? `/api/degoudse/customers/${actualEntityId}/activities`
     : `/api/degoudse/partners/${actualEntityId}/activities`;
 
   // Fetch activities using the dynamic endpoint
@@ -499,17 +501,25 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
     queryKey: [apiEndpoint],
   });
 
-  // Fetch timeline
+  // Fetch timeline based on entity type
+  const timelineEndpoint = entityType === 'customer' 
+    ? `/api/${currentEnv}/customers/${actualEntityId}/timeline`
+    : `/api/${currentEnv}/partners/${partnerId}/timeline`;
+  
   const { data: timeline } = useQuery({
-    queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`],
+    queryKey: [timelineEndpoint],
     staleTime: 0,
     gcTime: 0
   });
 
-  // Fetch all related tasks (partner + opportunities + customers)
+  // Fetch all related tasks based on entity type
+  const tasksEndpoint = entityType === 'customer'
+    ? `/api/${currentEnv}/customers/${actualEntityId}/all-tasks`
+    : `/api/${currentEnv}/partners/${partnerId}/all-tasks`;
+    
   const { data: allTasks, isLoading: allTasksLoading, error: allTasksError } = useQuery({
-    queryKey: [`/api/${currentEnv}/partners/${partnerId}/all-tasks`],
-    enabled: !!partnerId
+    queryKey: [tasksEndpoint],
+    enabled: !!(entityType === 'customer' ? actualEntityId : partnerId)
   });
 
   // Debug logging for tasks data
