@@ -75,13 +75,17 @@ export default function Breadcrumbs() {
       // Second breadcrumb is the specific entity name
       let entityName = `${entityMappings[entityType].label.slice(0, -1)} ${entityId}`; // Remove 's' and add ID
       
-      if (entityType === 'partners' && partners) {
+      if (entityType === 'partners' && Array.isArray(partners)) {
         const partner = partners.find((p: any) => p.id.toString() === entityId);
         entityName = partner?.name || `Partner ${entityId}`;
       } else if (entityType === 'customers' && customers) {
-        const customer = customers.find((c: any) => c.id.toString() === entityId);
-        entityName = customer?.name || `Customer ${entityId}`;
-      } else if (entityType === 'opportunities' && opportunities) {
+        // Handle customers API structure {data: [...]}
+        const customersList = Array.isArray(customers) ? customers : customers?.data;
+        if (Array.isArray(customersList)) {
+          const customer = customersList.find((c: any) => c.id.toString() === entityId);
+          entityName = customer?.name || `Customer ${entityId}`;
+        }
+      } else if (entityType === 'opportunities' && Array.isArray(opportunities)) {
         const opportunity = opportunities.find((o: any) => o.id.toString() === entityId);
         entityName = opportunity?.title || `Opportunity ${entityId}`;
       }

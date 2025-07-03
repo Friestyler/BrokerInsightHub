@@ -70,7 +70,7 @@ export default function CustomerDetailNew() {
 
   // Get category info from database with fallback colors
   const getCategoryInfo = (categoryName: string) => {
-    const dbCategory = categories?.find((cat: any) => cat.name === categoryName);
+    const dbCategory = Array.isArray(categories) ? categories.find((cat: any) => cat.name === categoryName) : null;
     if (dbCategory) {
       return {
         color: dbCategory.color || 'blue',
