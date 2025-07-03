@@ -883,7 +883,7 @@ export default function CustomerDetailNew() {
 
   // Initialize dialog data when it opens (after customer is declared)
   useEffect(() => {
-    if (showDetailsDialog && customer) {
+    if (showDetailsDialog && customer && typeof customer === 'object') {
       setEditedCustomer({
         name: customer.name || '',
         industry: customer.industry || '',
@@ -1024,7 +1024,7 @@ export default function CustomerDetailNew() {
                   size="sm" 
                   className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded h-auto"
                   onClick={() => {
-                    if (customer) {
+                    if (customer && typeof customer === 'object') {
                       setEditedCustomer({
                         name: customer.name || '',
                         industry: customer.industry || '',
