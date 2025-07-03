@@ -303,19 +303,7 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">{getEntityName()} Portfolio Analysis</h2>
-          {entityType === 'partners' && entityId === '1' && (
-            <div className="mt-2">
-              <a
-                href="/broker-view/partner/1?tab=opportunities&list=39"
-                className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center transition-colors"
-              >
-                <div className="w-4 h-4 bg-orange-500 rounded-sm mr-1.5 flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">NN</span>
-                </div>
-                View in Nationale Nederlanden
-              </a>
-            </div>
-          )}
+
           <div className="flex items-center mt-1">
             <p className="text-gray-600">Comprehensive portfolio overview and gap analysis</p>
           </div>
