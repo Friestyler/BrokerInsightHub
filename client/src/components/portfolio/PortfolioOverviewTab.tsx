@@ -191,48 +191,80 @@ export function PortfolioOverviewTab({ entityType, entityId }: PortfolioOverview
         </Card>
       </div>
 
-      {/* Category Coverage Visualization */}
-      <Card className="border border-[#E6E7F1]">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Target className="w-5 h-5 mr-2 text-[#5567E5]" />
-            Category Coverage Analysis
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {portfolioData.categoryBreakdown.map((category) => (
-            <div key={category.categoryId} className="space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                  <div 
-                    className="w-3 h-3 rounded-full mr-3"
-                    style={{ backgroundColor: category.categoryColor || '#6B7280' }}
-                  />
-                  <span className="font-medium text-gray-900">{category.categoryName}</span>
-                  <Badge variant="outline" className="ml-2">
-                    {category.productsCovered}/{category.totalProducts} products
-                  </Badge>
+      {/* Category Coverage Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        {portfolioData.categoryBreakdown.map((category) => {
+          const gapCount = Math.max(0, category.totalProducts - category.productsCovered);
+          const gapValue = category.gapValue || (gapCount * 50000); // Estimate gap value
+          
+          return (
+            <Card key={category.categoryId} className="border border-[#E6E7F1] bg-white relative overflow-hidden">
+              {/* Gap notification badge */}
+              {gapCount > 0 && (
+                <div className="absolute top-3 right-3 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-medium">
+                  {gapCount}
                 </div>
-                <div className="flex items-center space-x-4">
-                  <span className="text-sm text-gray-600">
-                    {formatCurrency(category.currentPremium)}
-                  </span>
-                  <span className={`text-sm font-medium ${getCoverageColor(category.coveragePercentage)}`}>
-                    {category.coveragePercentage}%
-                  </span>
+              )}
+              
+              <CardContent className="p-6 text-center">
+                {/* Circular Progress */}
+                <div className="relative w-20 h-20 mx-auto mb-4">
+                  <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 80 80">
+                    {/* Background circle */}
+                    <circle
+                      cx="40"
+                      cy="40"
+                      r="32"
+                      stroke="#E5E7EB"
+                      strokeWidth="8"
+                      fill="none"
+                    />
+                    {/* Progress circle */}
+                    <circle
+                      cx="40"
+                      cy="40"
+                      r="32"
+                      stroke={category.categoryColor || '#6B7280'}
+                      strokeWidth="8"
+                      fill="none"
+                      strokeDasharray={`${2 * Math.PI * 32}`}
+                      strokeDashoffset={`${2 * Math.PI * 32 * (1 - Math.min(category.coveragePercentage, 100) / 100)}`}
+                      strokeLinecap="round"
+                      className="transition-all duration-500"
+                    />
+                  </svg>
+                  {/* Percentage text */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <span className="text-lg font-bold text-gray-900">
+                      {Math.round(category.coveragePercentage)}%
+                    </span>
+                  </div>
                 </div>
-              </div>
-              <Progress 
-                value={category.coveragePercentage} 
-                className="h-2"
-                style={{
-                  '--progress-background': category.categoryColor || '#6B7280'
-                } as React.CSSProperties}
-              />
-            </div>
-          ))}
-        </CardContent>
-      </Card>
+                
+                {/* Category Name */}
+                <h3 className="font-semibold text-gray-900 mb-2">{category.categoryName}</h3>
+                
+                {/* Product Count */}
+                <p className="text-sm text-gray-600 mb-2">
+                  {category.productsCovered}/{category.totalProducts} products
+                </p>
+                
+                {/* Current Value */}
+                <p className="text-lg font-bold text-gray-900 mb-1">
+                  {formatCurrency(category.currentPremium)}
+                </p>
+                
+                {/* Gap Information */}
+                {gapCount > 0 && (
+                  <p className="text-sm text-gray-600">
+                    Gap: {formatCurrency(gapValue)}
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
 
       {/* Priority Gap Analysis */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

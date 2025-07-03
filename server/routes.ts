@@ -3789,7 +3789,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
           totalProducts: parseInt(cat.total_products || '0'),
           coveragePercentage: parseFloat(cat.coverage_percentage || '0'),
           currentPremium: parseFloat(cat.current_premium || '0'),
-          gapValue: 0 // Calculate based on missing products
+          gapValue: parseFloat(cat.gap_value || '0')
         })),
         gapAnalysis: {
           critical: {
@@ -4208,12 +4208,16 @@ Keep the tone clear and professional. Focus on what will help the account manage
           c.id as categoryId,
           c.name as categoryName,
           c.color as categoryColor,
-          COUNT(DISTINCT pp.product_id) as products_covered,
+          COUNT(DISTINCT CASE WHEN pp.product_id IS NOT NULL THEN p.id END) as products_covered,
           COUNT(DISTINCT pt.id) as total_products,
-          SUM(COALESCE(p.premium_value, 0)) as current_premium,
-          ROUND((COUNT(DISTINCT pp.product_id)::decimal / NULLIF(COUNT(DISTINCT pt.id), 0)) * 100, 1) as coverage_percentage
+          SUM(CASE WHEN pp.product_id IS NOT NULL THEN COALESCE(p.premium_value, 0) ELSE 0 END) as current_premium,
+          ROUND(
+            (COUNT(DISTINCT CASE WHEN pp.product_id IS NOT NULL THEN p.id END)::decimal / 
+             NULLIF(COUNT(DISTINCT pt.id), 0)) * 100, 1
+          ) as coverage_percentage,
+          SUM(CASE WHEN pp.product_id IS NULL THEN COALESCE(pt.average_price, 50000) ELSE 0 END) as gap_value
         FROM degoudse.categories c
-        LEFT JOIN degoudse.product_templates pt ON pt.category_id = c.id
+        LEFT JOIN degoudse.product_templates pt ON pt.category_id = c.id AND pt.is_active = true
         LEFT JOIN degoudse.products p ON p.category_id = c.id
         LEFT JOIN degoudse.partner_products pp ON pp.product_id = p.id AND pp.partner_id = $1
         WHERE c.level = 1 AND c.is_active = true
@@ -4272,7 +4276,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
           totalProducts: parseInt(cat.total_products || '0'),
           coveragePercentage: parseFloat(cat.coverage_percentage || '0'),
           currentPremium: parseFloat(cat.current_premium || '0'),
-          gapValue: 0 // Calculate based on missing products
+          gapValue: parseFloat(cat.gap_value || '0')
         })),
         gapAnalysis: {
           critical: {
