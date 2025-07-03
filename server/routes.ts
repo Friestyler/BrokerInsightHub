@@ -4188,36 +4188,34 @@ Keep the tone clear and professional. Focus on what will help the account manage
       
       const partnerName = partnerResult.rows[0].name;
       
-      // Get portfolio summary metrics
+      // Get portfolio summary metrics - use actual products table
       const summaryResult = await envPool.query(`
         SELECT 
           COUNT(DISTINCT pp.product_id) as products_covered,
           COUNT(DISTINCT c.id) as categories_covered,
           SUM(COALESCE(p.premium_value, 0)) as total_premium,
-          COUNT(DISTINCT pt.id) as total_available_products
+          (SELECT COUNT(*) FROM degoudse.products) as total_available_products
         FROM degoudse.partner_products pp
         INNER JOIN degoudse.products p ON pp.product_id = p.id
         LEFT JOIN degoudse.categories c ON p.category_id = c.id
-        CROSS JOIN (SELECT COUNT(*) as id FROM degoudse.product_templates) pt
         WHERE pp.partner_id = $1
       `, [partnerId]);
       
-      // Get category coverage breakdown
+      // Get category coverage breakdown using actual products
       const categoryResult = await envPool.query(`
         SELECT 
           c.id as categoryId,
           c.name as categoryName,
           c.color as categoryColor,
           COUNT(DISTINCT CASE WHEN pp.product_id IS NOT NULL THEN p.id END) as products_covered,
-          COUNT(DISTINCT pt.id) as total_products,
+          COUNT(DISTINCT all_products.id) as total_products,
           SUM(CASE WHEN pp.product_id IS NOT NULL THEN COALESCE(p.premium_value, 0) ELSE 0 END) as current_premium,
           ROUND(
             (COUNT(DISTINCT CASE WHEN pp.product_id IS NOT NULL THEN p.id END)::decimal / 
-             NULLIF(COUNT(DISTINCT pt.id), 0)) * 100, 1
-          ) as coverage_percentage,
-          SUM(CASE WHEN pp.product_id IS NULL THEN COALESCE(pt.average_price, 50000) ELSE 0 END) as gap_value
+             NULLIF(COUNT(DISTINCT all_products.id), 0)) * 100, 1
+          ) as coverage_percentage
         FROM degoudse.categories c
-        LEFT JOIN degoudse.product_templates pt ON pt.category_id = c.id AND pt.is_active = true
+        LEFT JOIN degoudse.products all_products ON all_products.category_id = c.id
         LEFT JOIN degoudse.products p ON p.category_id = c.id
         LEFT JOIN degoudse.partner_products pp ON pp.product_id = p.id AND pp.partner_id = $1
         WHERE c.level = 1 AND c.is_active = true
@@ -4225,27 +4223,25 @@ Keep the tone clear and professional. Focus on what will help the account manage
         ORDER BY coverage_percentage DESC NULLS LAST
       `, [partnerId]);
       
-      // Calculate gap opportunities
+      // Calculate gap opportunities using products not assigned to this partner
       const gapResult = await envPool.query(`
         SELECT 
-          pt.name as product_name,
-          pt.average_price as potential_value,
+          p.name as product_name,
+          p.premium_value as potential_value,
           c.name as category_name,
           CASE 
-            WHEN pt.average_price >= 5000 THEN 'critical'
-            WHEN pt.average_price >= 2000 THEN 'medium'
+            WHEN p.premium_value >= 5000 THEN 'critical'
+            WHEN p.premium_value >= 2000 THEN 'medium'
             ELSE 'low'
           END as priority
-        FROM degoudse.product_templates pt
-        INNER JOIN degoudse.categories c ON pt.category_id = c.id
-        WHERE pt.id NOT IN (
-          SELECT DISTINCT p.id 
-          FROM degoudse.products p 
-          INNER JOIN degoudse.partner_products pp ON p.id = pp.product_id 
+        FROM degoudse.products p
+        INNER JOIN degoudse.categories c ON p.category_id = c.id
+        WHERE p.id NOT IN (
+          SELECT DISTINCT pp.product_id 
+          FROM degoudse.partner_products pp 
           WHERE pp.partner_id = $1
         )
-        AND pt.is_active = true
-        ORDER BY pt.average_price DESC
+        ORDER BY p.premium_value DESC
       `, [partnerId]);
       
       const summary = summaryResult.rows[0];
@@ -4276,7 +4272,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
           totalProducts: parseInt(cat.total_products || '0'),
           coveragePercentage: parseFloat(cat.coverage_percentage || '0'),
           currentPremium: parseFloat(cat.current_premium || '0'),
-          gapValue: parseFloat(cat.gap_value || '0')
+          gapValue: 0 // Will calculate properly later if needed
         })),
         gapAnalysis: {
           critical: {
