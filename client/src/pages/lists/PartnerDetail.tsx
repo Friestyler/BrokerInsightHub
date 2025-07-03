@@ -235,6 +235,11 @@ export default function PartnerDetail() {
     enabled: !!id,
   });
 
+  // Fetch users for collaborators
+  const { data: users } = useQuery({
+    queryKey: ['/api/users'],
+  });
+
   // Fetch related products for this partner
   const { data: relatedProducts, isLoading: productsLoading } = useQuery({
     queryKey: [`/api/partners/${id}/products`],
@@ -1149,6 +1154,55 @@ export default function PartnerDetail() {
                       Details
                     </Button>
                     <span className="text-sm text-gray-500">Owner: <span className="text-blue-600">{partner.owner_name || 'Not assigned'}</span></span>
+                  </div>
+                </div>
+                
+                {/* Collaborators Section */}
+                <div className="flex items-center space-x-3 mt-2">
+                  <span className="text-sm text-gray-600 font-medium">Collaborators:</span>
+                  <div className="flex items-center space-x-4">
+                    {/* Internal users */}
+                    <div className="flex items-center space-x-2">
+                      <div className="flex -space-x-1">
+                        {users && Array.isArray(users) && users.slice(0, 3).map((user: any, index: number) => {
+                          const initials = user.name ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'U';
+                          const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500'];
+                          return (
+                            <div 
+                              key={user.id} 
+                              className={`w-6 h-6 rounded-full ${colors[index % colors.length]} border-2 border-white flex items-center justify-center`}
+                              title={user.name}
+                            >
+                              <span className="text-xs font-medium text-white">{initials}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <span className="text-xs text-gray-500 font-medium">Internal</span>
+                    </div>
+                    
+                    {/* Separator */}
+                    <div className="h-4 w-px bg-gray-300"></div>
+                    
+                    {/* External users */}
+                    <div className="flex items-center space-x-2">
+                      <div className="flex -space-x-1">
+                        {users && Array.isArray(users) && users.slice(3, 5).map((user: any, index: number) => {
+                          const initials = user.name ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'U';
+                          const colors = ['bg-orange-500', 'bg-red-500'];
+                          return (
+                            <div 
+                              key={user.id} 
+                              className={`w-6 h-6 rounded-full ${colors[index % colors.length]} border-2 border-white flex items-center justify-center`}
+                              title={user.name}
+                            >
+                              <span className="text-xs font-medium text-white">{initials}</span>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      <span className="text-xs text-gray-500 font-medium">External</span>
+                    </div>
                   </div>
                 </div>
               </div>
