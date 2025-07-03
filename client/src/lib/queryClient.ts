@@ -138,13 +138,20 @@ try {
   const envUrl = getEnvironmentUrl(baseUrl);
   console.log('Fetching from URL:', envUrl);
 
+  // Add timeout handling
+  const abortController = new AbortController();
+  const timeoutId = setTimeout(() => abortController.abort(), 30000); // 30 second timeout
+
   const res = await fetch(envUrl, {
     credentials: "include",
+    signal: abortController.signal,
     headers: {
       // Add environment header as an alternative way to specify environment
       'X-Environment': getCurrentEnvironmentId()
     }
   });
+  
+  clearTimeout(timeoutId);
 
   if (unauthorizedBehavior === "returnNull" && res.status === 401) {
     return null;
@@ -158,7 +165,13 @@ try {
 
   await throwIfResNotOk(res);
   return await res.json();
-} catch (error) {
+} catch (error: any) {
+  // Handle timeout errors gracefully
+  if (error?.name === 'AbortError') {
+    console.warn(`Request timeout for ${baseUrl}`);
+    return []; // Return empty array instead of throwing
+  }
+  
   // Only log errors for non-template-assignment endpoints to reduce noise
   if (!baseUrl.includes('template-assignments')) {
     console.error('Fetch error in queryFn:', error);
