@@ -133,56 +133,68 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     const baseUrl = queryKey[0] as string;
-try {
-  // Apply environment to URL
-  const envUrl = getEnvironmentUrl(baseUrl);
-  console.log('Fetching from URL:', envUrl);
+    
+    // Apply environment to URL
+    const envUrl = getEnvironmentUrl(baseUrl);
+    console.log('Fetching from URL:', envUrl);
 
-  // Add timeout handling - shorter timeout to prevent hanging
-  const abortController = new AbortController();
-  const timeoutId = setTimeout(() => {
-    console.warn(`Timeout: Aborting request to ${envUrl}`);
-    abortController.abort();
-  }, 10000); // 10 second timeout
+    // Add timeout handling - shorter timeout to prevent hanging
+    const abortController = new AbortController();
+    const timeoutId = setTimeout(() => {
+      console.warn(`Timeout: Aborting request to ${envUrl}`);
+      abortController.abort();
+    }, 10000); // 10 second timeout
 
-  const res = await fetch(envUrl, {
-    credentials: "include",
-    signal: abortController.signal,
-    headers: {
-      // Add environment header as an alternative way to specify environment
-      'X-Environment': getCurrentEnvironmentId()
+    try {
+      const res = await fetch(envUrl, {
+        credentials: "include",
+        signal: abortController.signal,
+        headers: {
+          // Add environment header as an alternative way to specify environment
+          'X-Environment': getCurrentEnvironmentId()
+        }
+      });
+      
+      clearTimeout(timeoutId);
+
+      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+        return null;
+      }
+
+      // Check if response is HTML (indicates a routing error)
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        throw new Error(`Endpoint ${envUrl} returned HTML instead of JSON - likely missing backend route`);
+      }
+
+      await throwIfResNotOk(res);
+      return await res.json();
+    } catch (error: any) {
+      clearTimeout(timeoutId);
+    
+      // Handle ALL timeout and abort errors gracefully - prevent propagation
+      if (error?.name === 'AbortError' || 
+          error?.message?.includes('timeout') || 
+          error?.message?.includes('Request timeout') ||
+          error?.code === 'TIMEOUT') {
+        console.warn(`Request timeout for ${baseUrl} - returning empty data`);
+        return []; // Return empty array instead of throwing
+      }
+      
+      // Handle network errors that might be timeout-related
+      if (error?.name === 'TypeError' && 
+          (error?.message?.includes('fetch') || error?.message?.includes('network'))) {
+        console.warn(`Network error for ${baseUrl} - returning empty data`);
+        return [];
+      }
+      
+      // Only log errors for non-template-assignment endpoints to reduce noise
+      if (!baseUrl.includes('template-assignments')) {
+        console.error('Fetch error in queryFn:', error);
+        console.error('Query key:', queryKey);
+      }
+      throw error;
     }
-  });
-  
-  clearTimeout(timeoutId);
-
-  if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-    return null;
-  }
-
-  // Check if response is HTML (indicates a routing error)
-  const contentType = res.headers.get('content-type');
-  if (contentType && contentType.includes('text/html')) {
-    throw new Error(`Endpoint ${envUrl} returned HTML instead of JSON - likely missing backend route`);
-  }
-
-  await throwIfResNotOk(res);
-  return await res.json();
-} catch (error: any) {
-  // Handle timeout errors gracefully
-  if (error?.name === 'AbortError') {
-    console.warn(`Request timeout for ${baseUrl}`);
-    return []; // Return empty array instead of throwing
-  }
-  
-  // Only log errors for non-template-assignment endpoints to reduce noise
-  if (!baseUrl.includes('template-assignments')) {
-    console.error('Fetch error in queryFn:', error);
-    console.error('Query key:', queryKey);
-  }
-  throw error;
-}
-
   };
 
 export const queryClient = new QueryClient({
