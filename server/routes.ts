@@ -3832,37 +3832,28 @@ Keep the tone clear and professional. Focus on what will help the account manage
       
       const result = await envPool.query(`
         SELECT 
-          ppa.id,
-          ppa.partner_id as partnerId,
-          ppa.product_template_id as productTemplateId,
-          ppa.custom_price as customPrice,
-          ppa.custom_discount as customDiscount,
-          ppa.custom_discount_percentage as customDiscountPercentage,
-          ppa.custom_premium_percentage as customPremiumPercentage,
-          ppa.partner_contract_start_date as partnerContractStartDate,
-          ppa.partner_contract_end_date as partnerContractEndDate,
-          ppa.notes,
-          ppa.assigned_at as assignedAt,
-          ppa.is_active as isActive,
-          -- Product Template info
-          pt.name as productName,
-          pt.description as productDescription,
-          pt.average_price as templateAveragePrice,
-          pt.discount as templateDiscount,
-          pt.discount_percentage as templateDiscountPercentage,
-          pt.premium_percentage as templatePremiumPercentage,
-          pt.provider_name as providerName,
+          pp.id,
+          pp.partner_id as partnerId,
+          pp.product_id as productId,
+          pp.created_at as assignedAt,
+          -- Product info
+          p.name as productName,
+          p.description as productDescription,
+          p.category as category,
+          p.contract_start_date as contractStartDate,
+          p.contract_end_date as contractEndDate,
+          p.premium_value as premiumValue,
+          p.premium_percentage as premiumPercentage,
+          p.discount_percentage as discountPercentage,
+          p.total_value as totalValue,
           -- Category info
-          c.name as category,
-          c.color as categoryColor,
-          -- User info
-          u.name as assignedByName
-        FROM degoudse.partner_product_assignments ppa
-        INNER JOIN degoudse.product_templates pt ON ppa.product_template_id = pt.id
-        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
-        LEFT JOIN degoudse.users u ON ppa.assigned_by = u.id
-        WHERE ppa.partner_id = $1 AND ppa.is_active = true
-        ORDER BY ppa.assigned_at DESC
+          c.name as categoryName,
+          c.color as categoryColor
+        FROM degoudse.partner_products pp
+        INNER JOIN degoudse.products p ON pp.product_id = p.id
+        LEFT JOIN degoudse.categories c ON p.category_id = c.id
+        WHERE pp.partner_id = $1
+        ORDER BY pp.created_at DESC
       `, [partnerId]);
       
       console.log(`Returning ${result.rows.length} product assignments for partner ${partnerId}`);

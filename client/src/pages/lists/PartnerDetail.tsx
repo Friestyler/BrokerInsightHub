@@ -242,7 +242,7 @@ export default function PartnerDetail() {
 
   // Partner Product Assignments
   const { data: assignedProducts, isLoading: assignmentsLoading, refetch: refetchAssignments } = useQuery({
-    queryKey: [`/api/partners/${id}/product-assignments`],
+    queryKey: [`/api/degoudse/partners/${id}/product-assignments`],
     enabled: !!id
   });
   
@@ -3207,6 +3207,26 @@ export default function PartnerDetail() {
 
             {/* Product Overview Tab */}
             {activeProductTab === "overview" && (
+              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Product Portfolio Overview</h2>
+                <div className="text-center py-12">
+                  <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                      <path d="M3 3v5h5"/>
+                      <path d="M21 21v-5h-5"/>
+                      <path d="M21 3a16 16 0 0 0-13.8 8"/>
+                      <path d="M3 21a16 16 0 0 0 13.8-8"/>
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Product insights coming soon</h3>
+                  <p className="text-gray-500">Get detailed portfolio analytics and product performance metrics</p>
+                  <p className="text-sm text-gray-400 mt-2">Expected launch: Q2 2025</p>
+                </div>
+              </div>
+            )}
+
+            {/* List Tab */}
+            {activeProductTab === "list" && (
               <div>
                 {/* Enhanced unified toolbar - Products version */}
                 <div className="bg-white p-4 rounded-lg shadow-sm">
