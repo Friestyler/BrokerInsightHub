@@ -3822,6 +3822,57 @@ Keep the tone clear and professional. Focus on what will help the account manage
     }
   });
 
+  // Partner Product Assignments API endpoints
+
+  // Get Partner Product Assignments
+  app.get('/api/degoudse/partners/:id/product-assignments', async (req, res) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        SELECT 
+          ppa.id,
+          ppa.partner_id as partnerId,
+          ppa.product_template_id as productTemplateId,
+          ppa.custom_price as customPrice,
+          ppa.custom_discount as customDiscount,
+          ppa.custom_discount_percentage as customDiscountPercentage,
+          ppa.custom_premium_percentage as customPremiumPercentage,
+          ppa.partner_contract_start_date as partnerContractStartDate,
+          ppa.partner_contract_end_date as partnerContractEndDate,
+          ppa.notes,
+          ppa.assigned_at as assignedAt,
+          ppa.is_active as isActive,
+          -- Product Template info
+          pt.name as productName,
+          pt.description as productDescription,
+          pt.average_price as templateAveragePrice,
+          pt.discount as templateDiscount,
+          pt.discount_percentage as templateDiscountPercentage,
+          pt.premium_percentage as templatePremiumPercentage,
+          pt.provider_name as providerName,
+          -- Category info
+          c.name as category,
+          c.color as categoryColor,
+          -- User info
+          u.name as assignedByName
+        FROM degoudse.partner_product_assignments ppa
+        INNER JOIN degoudse.product_templates pt ON ppa.product_template_id = pt.id
+        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
+        LEFT JOIN degoudse.users u ON ppa.assigned_by = u.id
+        WHERE ppa.partner_id = $1 AND ppa.is_active = true
+        ORDER BY ppa.assigned_at DESC
+      `, [partnerId]);
+      
+      console.log(`Returning ${result.rows.length} product assignments for partner ${partnerId}`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching partner product assignments:', error);
+      res.status(500).json({ error: 'Failed to fetch partner product assignments' });
+    }
+  });
+
   // Cache clearing endpoint
   app.post('/api/admin/clear-cache', (req, res) => {
     clearCache();

@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, ChevronDown, ChevronRight, Shield, TrendingUp, Clock, AlertTriangle, Target, Zap, Briefcase, Plane, PiggyBank, Scale, DollarSign, CheckCircle, ArrowUp } from "lucide-react";
+import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, ChevronDown, ChevronRight, Shield, TrendingUp, Clock, AlertTriangle, Target, Zap, Briefcase, Plane, PiggyBank, Scale, DollarSign, CheckCircle, ArrowUp, Filter } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import LogoUploadModal from "@/components/LogoUploadModal";
 import EntityAvatar from "@/components/EntityAvatar";
@@ -1393,15 +1393,126 @@ export default function CustomerDetailNew() {
 
             {/* List Tab */}
             {activeProductTab === "list" && (
-              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Product List</h2>
-                <p className="text-gray-600 mb-4">
-                  Detailed product information, contracts, and performance metrics
-                </p>
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-                  <p className="text-gray-500">Detailed product analytics coming soon...</p>
-                  <p className="text-sm text-gray-400 mt-2">Expected launch: Q2 2025</p>
+              <div>
+                <div className="mb-6">
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">Lists</h2>
+                  
+                  {/* Filter Row */}
+                  <div className="flex items-center space-x-4 mb-4">
+                    <Select defaultValue="all-products">
+                      <SelectTrigger className="w-48 h-9">
+                        <div className="flex items-center space-x-2">
+                          <div className="w-4 h-4 bg-blue-500 rounded-sm flex items-center justify-center">
+                            <div className="w-2 h-2 bg-white rounded-sm"></div>
+                          </div>
+                          <SelectValue />
+                        </div>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all-products">All products</SelectItem>
+                        <SelectItem value="active-products">Active products</SelectItem>
+                        <SelectItem value="expiring-products">Expiring products</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    <div className="relative flex-1 max-w-sm">
+                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                      <Input
+                        placeholder="Search products..."
+                        className="pl-10 h-9"
+                      />
+                    </div>
+                    
+                    <Select defaultValue="view">
+                      <SelectTrigger className="w-40 h-9">
+                        <SelectValue placeholder="Select a view" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="view">Select a view</SelectItem>
+                        <SelectItem value="default">Default view</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    <Button variant="outline" size="sm" className="h-9">
+                      <Filter className="w-4 h-4 mr-2" />
+                      Category
+                    </Button>
+                    
+                    <Button variant="outline" size="sm" className="h-9">
+                      <DollarSign className="w-4 h-4 mr-2" />
+                      Price Range
+                    </Button>
+                  </div>
                 </div>
+
+                {/* Product Table */}
+                {assignedProducts && assignedProducts.length > 0 ? (
+                  <div className="bg-white border border-[#E6E7F1] rounded-lg overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12">
+                            <Checkbox />
+                          </TableHead>
+                          <TableHead style={{ color: '#696C8C' }}>Product Name</TableHead>
+                          <TableHead style={{ color: '#696C8C' }}>Description</TableHead>
+                          <TableHead style={{ color: '#696C8C' }}>Product ID</TableHead>
+                          <TableHead style={{ color: '#696C8C' }}>Provider</TableHead>
+                          <TableHead style={{ color: '#696C8C' }}>Category</TableHead>
+                          <TableHead style={{ color: '#696C8C' }}>Contract Start</TableHead>
+                          <TableHead style={{ color: '#696C8C' }}>Contract End</TableHead>
+                          <TableHead style={{ color: '#696C8C' }}>Premium Value</TableHead>
+                          <TableHead style={{ color: '#696C8C' }}>Premium %</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {assignedProducts.map((assignment: any) => (
+                          <TableRow 
+                            key={assignment.id}
+                            className="hover:bg-gray-50 group"
+                          >
+                            <TableCell>
+                              <Checkbox className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </TableCell>
+                            <TableCell className="font-medium">{assignment.productname}</TableCell>
+                            <TableCell className="text-gray-600 max-w-xs truncate">{assignment.productdescription}</TableCell>
+                            <TableCell className="text-gray-600">{assignment.producttemplateid}</TableCell>
+                            <TableCell className="text-gray-600">{assignment.providername}</TableCell>
+                            <TableCell>
+                              {assignment.category && (
+                                <Badge variant="outline" className="capitalize">
+                                  {assignment.category}
+                                </Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-gray-600">
+                              {assignment.customercontractstartdate ? new Date(assignment.customercontractstartdate).toLocaleDateString('en-GB') : '-'}
+                            </TableCell>
+                            <TableCell className="text-gray-600">
+                              {assignment.customercontractenddate ? new Date(assignment.customercontractenddate).toLocaleDateString('en-GB') : '-'}
+                            </TableCell>
+                            <TableCell className="text-gray-600">
+                              {assignment.customprice ? `€${parseFloat(assignment.customprice).toLocaleString()}` : 
+                               assignment.templateaverageprice ? `€${parseFloat(assignment.templateaverageprice).toLocaleString()}` : '-'}
+                            </TableCell>
+                            <TableCell className="text-gray-600">
+                              {assignment.custompremiumpercentage ? `${assignment.custompremiumpercentage}%` : 
+                               assignment.templatepremiumpercentage ? `${assignment.templatepremiumpercentage}%` : '-'}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="bg-white border border-[#E6E7F1] rounded-lg p-16 text-center">
+                    <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                      <Package className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No products found</h3>
+                    <p className="text-gray-500 mb-4">No products are currently associated with this customer.</p>
+                  </div>
+                )}
               </div>
             )}
           </div>

@@ -5,12 +5,13 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Copy, Users, Trash2, MoreHorizontal, MoreVertical, MessageSquare, ArrowLeft, Plus, Mail, Calendar, Clock, Play, Pause, AlertCircle, CheckCircle, Eye, Edit } from "lucide-react";
+import { Search, Copy, Users, Trash2, MoreHorizontal, MoreVertical, MessageSquare, ArrowLeft, Plus, Mail, Calendar, Clock, Play, Pause, AlertCircle, CheckCircle, Eye, Edit, Filter, Package } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
@@ -237,6 +238,12 @@ export default function PartnerDetail() {
   const { data: relatedProducts, isLoading: productsLoading } = useQuery({
     queryKey: [`/api/partners/${id}/products`],
     enabled: !!id,
+  });
+
+  // Partner Product Assignments
+  const { data: assignedProducts, isLoading: assignmentsLoading, refetch: refetchAssignments } = useQuery({
+    queryKey: [`/api/partners/${id}/product-assignments`],
+    enabled: !!id
   });
   
   // Initialize dialog data when it opens (needs to be here for hooks order)
@@ -3839,15 +3846,90 @@ export default function PartnerDetail() {
 
             {/* List Tab */}
             {activeProductTab === "list" && (
-              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Product List</h2>
-                <p className="text-gray-600 mb-4">
-                  Detailed product information, contracts, and performance metrics
-                </p>
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
-                  <p className="text-gray-500">Detailed product analytics coming soon...</p>
-                  <p className="text-sm text-gray-400 mt-2">Expected launch: Q2 2025</p>
+              <div>
+                {/* Toolbar Section */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center space-x-3">
+                    <Filter className="w-4 h-4 text-gray-400" />
+                    <span className="text-sm text-gray-600">
+                      Showing {assignedProducts?.length || 0} product assignments
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Button size="sm" variant="outline" disabled>
+                      Add product
+                    </Button>
+                  </div>
                 </div>
+
+                {/* Product Table */}
+                {assignedProducts && assignedProducts.length > 0 ? (
+                  <div className="bg-white border border-[#E6E7F1] rounded-lg overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12">
+                            <Checkbox />
+                          </TableHead>
+                          <TableHead style={{ color: '#696C8C' }}>Product Name</TableHead>
+                          <TableHead style={{ color: '#696C8C' }}>Description</TableHead>
+                          <TableHead style={{ color: '#696C8C' }}>Product ID</TableHead>
+                          <TableHead style={{ color: '#696C8C' }}>Provider</TableHead>
+                          <TableHead style={{ color: '#696C8C' }}>Category</TableHead>
+                          <TableHead style={{ color: '#696C8C' }}>Contract Start</TableHead>
+                          <TableHead style={{ color: '#696C8C' }}>Contract End</TableHead>
+                          <TableHead style={{ color: '#696C8C' }}>Premium Value</TableHead>
+                          <TableHead style={{ color: '#696C8C' }}>Premium %</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {assignedProducts.map((assignment: any) => (
+                          <TableRow 
+                            key={assignment.id}
+                            className="hover:bg-gray-50 group"
+                          >
+                            <TableCell>
+                              <Checkbox className="opacity-0 group-hover:opacity-100 transition-opacity" />
+                            </TableCell>
+                            <TableCell className="font-medium">{assignment.productname}</TableCell>
+                            <TableCell className="text-gray-600 max-w-xs truncate">{assignment.productdescription}</TableCell>
+                            <TableCell className="text-gray-600">{assignment.producttemplateid}</TableCell>
+                            <TableCell className="text-gray-600">{assignment.providername}</TableCell>
+                            <TableCell>
+                              {assignment.category && (
+                                <Badge variant="outline" className="capitalize">
+                                  {assignment.category}
+                                </Badge>
+                              )}
+                            </TableCell>
+                            <TableCell className="text-gray-600">
+                              {assignment.partnercontractstartdate ? new Date(assignment.partnercontractstartdate).toLocaleDateString('en-GB') : '-'}
+                            </TableCell>
+                            <TableCell className="text-gray-600">
+                              {assignment.partnercontractenddate ? new Date(assignment.partnercontractenddate).toLocaleDateString('en-GB') : '-'}
+                            </TableCell>
+                            <TableCell className="text-gray-600">
+                              {assignment.customprice ? `€${parseFloat(assignment.customprice).toLocaleString()}` : 
+                               assignment.templateaverageprice ? `€${parseFloat(assignment.templateaverageprice).toLocaleString()}` : '-'}
+                            </TableCell>
+                            <TableCell className="text-gray-600">
+                              {assignment.custompremiumpercentage ? `${assignment.custompremiumpercentage}%` : 
+                               assignment.templatepremiumpercentage ? `${assignment.templatepremiumpercentage}%` : '-'}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                ) : (
+                  <div className="bg-white border border-[#E6E7F1] rounded-lg p-16 text-center">
+                    <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                      <Package className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No products found</h3>
+                    <p className="text-gray-500 mb-4">No products are currently associated with this partner.</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
