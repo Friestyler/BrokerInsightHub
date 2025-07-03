@@ -3168,9 +3168,9 @@ export default function PartnerDetail() {
         )}
 
         {activeTab === "products" && (
-          <div className="space-y-4">
+          <div className="space-y-2">
             {/* Product Subtabs Navigation */}
-            <div className="border-b border-gray-200 mb-4">
+            <div className="border-b border-gray-200 mb-2 -mt-2">
               <nav className="flex space-x-1">
                 <button 
                   onClick={() => setActiveProductTab("overview")}
@@ -3207,8 +3207,8 @@ export default function PartnerDetail() {
 
             {/* Product Overview Tab */}
             {activeProductTab === "overview" && (
-              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Product Portfolio Overview</h2>
+              <div className="bg-white border border-[#E6E7F1] rounded-xl p-4">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Product Portfolio Overview</h2>
                 <div className="text-center py-12">
                   <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
@@ -3852,12 +3852,12 @@ export default function PartnerDetail() {
 
             {/* Cross-sell Matrix Tab */}
             {activeProductTab === "matrix" && (
-              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Cross-sell Matrix</h2>
-                <p className="text-gray-600 mb-4">
+              <div className="bg-white border border-[#E6E7F1] rounded-xl p-4">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Cross-sell Matrix</h2>
+                <p className="text-gray-600 mb-3">
                   Analyze cross-selling opportunities based on partner's current product portfolio
                 </p>
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
                   <p className="text-gray-500">Cross-sell matrix analysis coming soon...</p>
                   <p className="text-sm text-gray-400 mt-2">Expected launch: Q2 2025</p>
                 </div>

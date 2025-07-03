@@ -1369,9 +1369,9 @@ export default function CustomerDetailNew() {
         )}
 
         {activeTab === "products" && (
-          <div>
+          <div className="space-y-2">
             {/* Product Subtabs Navigation */}
-            <div className="border-b border-gray-200 mb-4">
+            <div className="border-b border-gray-200 mb-2 -mt-2">
               <nav className="flex space-x-1">
                 <button 
                   onClick={() => setActiveProductTab("overview")}
@@ -1409,7 +1409,7 @@ export default function CustomerDetailNew() {
             {/* Product Overview Tab */}
             {activeProductTab === "overview" && (
               <div>
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
                   <p className="text-gray-500">Product overview coming soon...</p>
                   <p className="text-sm text-gray-400 mt-2">Expected launch: Q2 2025</p>
                 </div>
@@ -1418,12 +1418,12 @@ export default function CustomerDetailNew() {
 
             {/* Cross-sell Matrix Tab */}
             {activeProductTab === "matrix" && (
-              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Cross-sell Matrix</h2>
-                <p className="text-gray-600 mb-4">
+              <div className="bg-white border border-[#E6E7F1] rounded-xl p-4">
+                <h2 className="text-xl font-bold text-gray-900 mb-4">Cross-sell Matrix</h2>
+                <p className="text-gray-600 mb-3">
                   Analyze cross-selling opportunities based on customer's current product portfolio
                 </p>
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
                   <p className="text-gray-500">Cross-sell matrix analysis coming soon...</p>
                   <p className="text-sm text-gray-400 mt-2">Expected launch: Q2 2025</p>
                 </div>
