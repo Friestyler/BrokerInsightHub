@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Copy, Users, Trash2, MoreHorizontal, MoreVertical, MessageSquare, ArrowLeft, Plus, Mail, Calendar, Clock, Play, Pause, AlertCircle, CheckCircle, Eye, Edit, Filter, Package } from "lucide-react";
+import { Search, Copy, Users, Trash2, MoreHorizontal, MoreVertical, MessageSquare, ArrowLeft, Plus, Mail, Calendar, Clock, Play, Pause, AlertCircle, CheckCircle, Eye, Edit, Filter, Package, Target } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
@@ -54,6 +54,7 @@ export default function PartnerDetail() {
   const [selectedOpportunityForComment, setSelectedOpportunityForComment] = useState<any>(null);
   const [customerComment, setCustomerComment] = useState("");
   const [opportunityComment, setOpportunityComment] = useState("");
+  const [isOpportunityModalOpen, setIsOpportunityModalOpen] = useState(false);
 
   // Back navigation state
   const [backUrl, setBackUrl] = useState("/partners");
@@ -1206,6 +1207,17 @@ export default function PartnerDetail() {
                   </div>
                 </div>
               </div>
+            </div>
+            
+            {/* Header Action Buttons */}
+            <div className="flex items-center space-x-3">
+              <Button 
+                className="bg-[#5567E5] hover:bg-[#4556D4] text-white"
+                onClick={() => setIsOpportunityModalOpen(true)}
+              >
+                <Target className="w-4 h-4 mr-2" />
+                Creëer Partner Kans
+              </Button>
             </div>
           </div>
           
@@ -5274,6 +5286,16 @@ export default function PartnerDetail() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Opportunity Creation Modal - Using PortfolioOverviewTab modal */}
+      {isOpportunityModalOpen && (
+        <PortfolioOverviewTab 
+          entityType="partners" 
+          entityId={id!}
+          isModalOpen={isOpportunityModalOpen}
+          onModalClose={() => setIsOpportunityModalOpen(false)}
+        />
+      )}
     </div>
   );
 }

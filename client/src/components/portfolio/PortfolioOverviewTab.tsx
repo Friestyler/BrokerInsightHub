@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { TrendingUp, Target, DollarSign, Package, AlertTriangle, Star, Plus, CalendarIcon, Users, Sparkles, X } from 'lucide-react';
+import { TrendingUp, Target, DollarSign, Package, AlertTriangle, Star, Plus, CalendarIcon, Users, Sparkles, X, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
@@ -21,6 +21,8 @@ import { useEnvironment } from '@/contexts/EnvironmentContext';
 interface PortfolioOverviewProps {
   entityType: 'partners' | 'customers' | 'opportunities';
   entityId: string;
+  isModalOpen?: boolean;
+  onModalClose?: () => void;
 }
 
 interface PortfolioData {
@@ -72,7 +74,7 @@ interface PortfolioData {
   };
 }
 
-export function PortfolioOverviewTab({ entityType, entityId }: PortfolioOverviewProps) {
+export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: externalModalOpen, onModalClose: externalModalClose }: PortfolioOverviewProps) {
   const { environment } = useEnvironment();
   const envId = environment?.id || 'degoudse';
   const { toast } = useToast();
@@ -80,10 +82,23 @@ export function PortfolioOverviewTab({ entityType, entityId }: PortfolioOverview
   
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  // Use external modal state if provided, otherwise use internal state
+  const modalOpen = externalModalOpen !== undefined ? externalModalOpen : isModalOpen;
+  const setModalOpen = externalModalClose !== undefined ? 
+    (open: boolean) => {
+      if (!open && externalModalClose) {
+        externalModalClose();
+      } else if (open) {
+        // For external control, we don't open the modal directly
+      }
+    } : setIsModalOpen;
   const [isGeneratingSuggestion, setIsGeneratingSuggestion] = useState(false);
   const [closingDate, setClosingDate] = useState<Date>();
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [mentionedUsers, setMentionedUsers] = useState<string[]>([]);
+  const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
+  const [customerSelectionType, setCustomerSelectionType] = useState<'single' | 'multiple' | 'list'>('single');
   
   // Form state
   const [formData, setFormData] = useState({
@@ -116,6 +131,18 @@ export function PortfolioOverviewTab({ entityType, entityId }: PortfolioOverview
   // Fetch users for mentions
   const { data: users } = useQuery({
     queryKey: [`/api/${envId}/users`],
+    enabled: isModalOpen
+  });
+
+  // Fetch customers attached to partner (only for partner entity type)
+  const { data: partnerCustomers } = useQuery({
+    queryKey: [`/api/${envId}/partners/${entityId}/customers`],
+    enabled: isModalOpen && entityType === 'partners'
+  });
+
+  // Fetch saved customer lists
+  const { data: savedCustomerLists } = useQuery({
+    queryKey: [`/api/${envId}/saved-lists?entity_type=customers`],
     enabled: isModalOpen
   });
 
@@ -175,7 +202,7 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
         comments: ''
       });
     }
-    setIsModalOpen(true);
+    setModalOpen(true);
   };
 
   // Create opportunity mutation
@@ -200,7 +227,7 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
       
       // Invalidate queries to refresh data
       queryClient.invalidateQueries({ queryKey: [`/api/${envId}/opportunities`] });
-      setIsModalOpen(false);
+      setModalOpen(false);
       resetForm();
     },
     onError: () => {
@@ -313,7 +340,7 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
           className="bg-[#5567E5] hover:bg-[#4556D4]"
         >
           <Plus className="w-4 h-4 mr-2" />
-          Creëer kans
+          Creëer Partner Kans
         </Button>
       </div>
 
@@ -559,11 +586,11 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
       </div>
 
       {/* Creëer Kans Modal */}
-      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
         <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0">
           <DialogHeader className="px-6 py-4 border-b border-[#E6E7F1]">
             <DialogTitle className="text-xl font-semibold text-gray-900">
-              Creëer nieuwe kans
+              Creëer Partner Kans
             </DialogTitle>
             <p className="text-sm text-gray-600 mt-1">
               Maak een nieuwe verkoopkans op basis van portfolio-analyse en sync met Salesforce
@@ -613,6 +640,140 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                 className="mt-1 min-h-[100px]"
               />
             </div>
+
+            {/* Customer Selection */}
+            {entityType === 'partners' && (
+              <div>
+                <Label className="text-sm font-medium text-gray-700">
+                  Klant selectie *
+                </Label>
+                <div className="mt-2 space-y-4">
+                  {/* Selection Type */}
+                  <div className="flex space-x-4">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="customerSelection"
+                        value="single"
+                        checked={customerSelectionType === 'single'}
+                        onChange={(e) => setCustomerSelectionType(e.target.value as any)}
+                        className="text-[#5567E5] focus:ring-[#5567E5]"
+                      />
+                      <span className="text-sm text-gray-700">Enkele klant</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="customerSelection"
+                        value="multiple"
+                        checked={customerSelectionType === 'multiple'}
+                        onChange={(e) => setCustomerSelectionType(e.target.value as any)}
+                        className="text-[#5567E5] focus:ring-[#5567E5]"
+                      />
+                      <span className="text-sm text-gray-700">Meerdere klanten</span>
+                    </label>
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="radio"
+                        name="customerSelection"
+                        value="list"
+                        checked={customerSelectionType === 'list'}
+                        onChange={(e) => setCustomerSelectionType(e.target.value as any)}
+                        className="text-[#5567E5] focus:ring-[#5567E5]"
+                      />
+                      <span className="text-sm text-gray-700">Qollabi lijst</span>
+                    </label>
+                  </div>
+
+                  {/* Customer Selection Interface */}
+                  {customerSelectionType === 'single' && (
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">
+                        Selecteer klant
+                      </Label>
+                      <Select 
+                        value={selectedCustomers[0] || ''} 
+                        onValueChange={(value) => setSelectedCustomers([value])}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Kies een klant..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {partnerCustomers && Array.isArray(partnerCustomers) && partnerCustomers.map((customer: any) => (
+                            <SelectItem key={customer.id} value={customer.id.toString()}>
+                              {customer.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+
+                  {customerSelectionType === 'multiple' && (
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">
+                        Selecteer klanten
+                      </Label>
+                      <div className="mt-2 max-h-48 overflow-y-auto border border-[#E6E7F1] rounded-lg p-3 space-y-2">
+                        {partnerCustomers && Array.isArray(partnerCustomers) && partnerCustomers.map((customer: any) => (
+                          <label key={customer.id} className="flex items-center space-x-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={selectedCustomers.includes(customer.id.toString())}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedCustomers(prev => [...prev, customer.id.toString()]);
+                                } else {
+                                  setSelectedCustomers(prev => prev.filter(id => id !== customer.id.toString()));
+                                }
+                              }}
+                              className="rounded text-[#5567E5] focus:ring-[#5567E5]"
+                            />
+                            <span className="text-sm text-gray-700">{customer.name}</span>
+                          </label>
+                        ))}
+                      </div>
+                      {selectedCustomers.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {selectedCustomers.map((customerId) => {
+                            const customer = partnerCustomers?.find((c: any) => c.id.toString() === customerId);
+                            return (
+                              <Badge key={customerId} variant="secondary" className="text-xs">
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                {customer?.name || `Customer ${customerId}`}
+                              </Badge>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {customerSelectionType === 'list' && (
+                    <div>
+                      <Label className="text-sm font-medium text-gray-700">
+                        Selecteer Qollabi lijst
+                      </Label>
+                      <Select 
+                        value={selectedCustomers[0] || ''} 
+                        onValueChange={(value) => setSelectedCustomers([value])}
+                      >
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Kies een opgeslagen lijst..." />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {savedCustomerLists && Array.isArray(savedCustomerLists) && savedCustomerLists.map((list: any) => (
+                            <SelectItem key={list.id} value={`list-${list.id}`}>
+                              {list.name} ({list.item_count || 0} klanten)
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
 
             {/* Sales Information */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -799,7 +960,7 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
             <div className="flex space-x-3">
               <Button 
                 variant="outline" 
-                onClick={() => setIsModalOpen(false)}
+                onClick={() => setModalOpen(false)}
               >
                 Annuleren
               </Button>
