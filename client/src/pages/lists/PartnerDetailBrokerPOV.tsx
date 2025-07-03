@@ -17,7 +17,7 @@ import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import EntityAvatar from "@/components/EntityAvatar";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { BrokerLayout } from "@/components/layouts/BrokerLayout";
-import baloiseLogo from "@assets/image_1750679195320.png";
+import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
 
 
 
@@ -88,13 +88,13 @@ export default function PartnerDetailBrokerPOV() {
     }
   }, [editingStageId, editStageDropdownRef]);
 
-  // For broker view, show Baloise as the sharing partner
+  // For broker view, show Nationale Nederlanden as the sharing partner
   const partner = {
     id: 'degoudse',
-    name: 'Baloise',
+    name: 'Nationale Nederlanden',
     description: 'Insurance company that shared this list with Regional Insurance Partners',
     primary_contact: 'Partnership Manager',
-    contact_email: 'partnerships@baloise.nl',
+    contact_email: 'partnerships@nn.nl',
     location: 'Netherlands',
     phone: '+31 20 123 4567'
   };
@@ -672,11 +672,11 @@ export default function PartnerDetailBrokerPOV() {
             </Link>
             {/* Company Logo */}
             <div className="flex-shrink-0 mr-4">
-              {partner.name === 'Baloise' ? (
+              {partner.name === 'Nationale Nederlanden' ? (
                 <div className="w-16 h-16 rounded-lg overflow-hidden bg-white border border-gray-200 flex items-center justify-center">
                   <img 
-                    src={baloiseLogo} 
-                    alt="Baloise Logo"
+                    src={nnLogo} 
+                    alt="Nationale Nederlanden Logo"
                     className="w-full h-full object-contain p-1"
                   />
                 </div>
