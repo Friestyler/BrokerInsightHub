@@ -28,6 +28,29 @@ export default function CustomerDetailNew() {
   const [activeProductTab, setActiveProductTab] = useState("overview");
   const [backUrl, setBackUrl] = useState("/customers");
   const [backLabel, setBackLabel] = useState("Back to Customers");
+
+  // Error boundary for runtime safety
+  const [hasError, setHasError] = useState(false);
+
+  useEffect(() => {
+    const handleError = (event: ErrorEvent) => {
+      console.error('Runtime error caught:', event.error);
+      setHasError(true);
+    };
+
+    const handleUnhandledRejection = (event: PromiseRejectionEvent) => {
+      console.error('Unhandled promise rejection:', event.reason);
+      event.preventDefault();
+    };
+
+    window.addEventListener('error', handleError);
+    window.addEventListener('unhandledrejection', handleUnhandledRejection);
+
+    return () => {
+      window.removeEventListener('error', handleError);
+      window.removeEventListener('unhandledrejection', handleUnhandledRejection);
+    };
+  }, []);
   
   // Handle back navigation from stored location
   useEffect(() => {
@@ -879,6 +902,20 @@ export default function CustomerDetailNew() {
     }
   }, [showDetailsDialog, customer, relatedOpportunities, relatedProducts]);
   
+  if (hasError) {
+    return (
+      <div className="p-6">
+        <div className="text-red-600 mb-4">An error occurred while loading the customer details.</div>
+        <button 
+          onClick={() => window.location.reload()} 
+          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+        >
+          Reload Page
+        </button>
+      </div>
+    );
+  }
+
   if (customersLoading) {
     return <div className="p-6">Loading...</div>;
   }
@@ -888,10 +925,10 @@ export default function CustomerDetailNew() {
   }
 
   // Get assigned metrics for this customer
-  const assignedMetrics = templateAssignments?.length > 0 
-    ? allMetrics?.filter((metric: any) => 
+  const assignedMetrics = (Array.isArray(templateAssignments) && templateAssignments.length > 0) 
+    ? (Array.isArray(allMetrics) ? allMetrics.filter((metric: any) => 
         templateAssignments.some((assignment: any) => assignment.metric_id === metric.id)
-      ) || []
+      ) : [])
     : [];
 
   // Filter metrics based on search and filters with error handling
@@ -917,7 +954,7 @@ export default function CustomerDetailNew() {
   });
 
   // Group metrics by tag if grouping is enabled
-  const groupedMetrics = groupBy === 'tag' && availableTags?.length > 0
+  const groupedMetrics = groupBy === 'tag' && Array.isArray(availableTags) && availableTags.length > 0
     ? availableTags.reduce((acc: any, tag: any) => {
         const tagMetrics = filteredMetrics.filter((metric: any) => 
           metric.tags?.includes(tag.name)
@@ -1026,7 +1063,7 @@ export default function CustomerDetailNew() {
                   : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
               }`}
             >
-              Products ({relatedProducts?.length || 0})
+              Products ({Array.isArray(relatedProducts) ? relatedProducts.length : 0})
             </button>
             <button 
               onClick={() => setActiveTab("partners")}
