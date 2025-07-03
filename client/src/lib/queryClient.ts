@@ -138,9 +138,12 @@ try {
   const envUrl = getEnvironmentUrl(baseUrl);
   console.log('Fetching from URL:', envUrl);
 
-  // Add timeout handling
+  // Add timeout handling - shorter timeout to prevent hanging
   const abortController = new AbortController();
-  const timeoutId = setTimeout(() => abortController.abort(), 30000); // 30 second timeout
+  const timeoutId = setTimeout(() => {
+    console.warn(`Timeout: Aborting request to ${envUrl}`);
+    abortController.abort();
+  }, 10000); // 10 second timeout
 
   const res = await fetch(envUrl, {
     credentials: "include",
@@ -190,8 +193,8 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       staleTime: Infinity, // data is always considered fresh
       gcTime: CACHE_TIME, // 10 minutes - keep in cache
-      retry: 1,
-      retryDelay: 500,
+      retry: false, // Disable retries to prevent multiple timeout attempts
+      retryDelay: 0,
 
     },
     mutations: {

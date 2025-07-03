@@ -33,7 +33,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
         '/api/partners',
         '/api/customers', 
         '/api/opportunities',
-        '/api/product-catalogue',
+        // Remove product-catalogue from prefetch due to timeout issues
         '/api/saved-lists?entity_type=partners',
         '/api/saved-lists?entity_type=customers',
         '/api/saved-lists?entity_type=opportunities',
@@ -47,14 +47,19 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
         '/api/template-assignments/opportunity'
       ];
 
-      // Prefetch all queries silently in background
+      // Prefetch all queries silently in background with enhanced error handling
       criticalQueries.forEach(queryKey => {
-        queryClient.prefetchQuery({
-          queryKey: [queryKey],
-          staleTime: 5 * 60 * 1000, // 5 minutes
-          gcTime: 10 * 60 * 1000 // 10 minutes
-        }).catch(() => {
-          // Silently ignore prefetch errors
+        Promise.resolve().then(() => 
+          queryClient.prefetchQuery({
+            queryKey: [queryKey],
+            staleTime: 5 * 60 * 1000, // 5 minutes
+            gcTime: 10 * 60 * 1000 // 10 minutes
+          })
+        ).catch((error) => {
+          // Silently ignore all prefetch errors including timeouts and aborts
+          if (error?.name !== 'AbortError') {
+            console.warn(`Prefetch failed for ${queryKey}:`, error?.message);
+          }
         });
       });
     };
