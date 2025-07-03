@@ -33,6 +33,7 @@ export default function PartnerDetail() {
   const urlParams = new URLSearchParams(window.location.search);
   const tabParam = urlParams.get('tab');
   const [activeTab, setActiveTab] = useState(tabParam || "products");
+  const [activeProductTab, setActiveProductTab] = useState("overview");
   const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState("all");
@@ -3161,8 +3162,47 @@ export default function PartnerDetail() {
 
         {activeTab === "products" && (
           <div className="space-y-4">
-            {/* Enhanced unified toolbar - Products version */}
-            <div className="bg-white p-4 rounded-lg shadow-sm">
+            {/* Product Subtabs Navigation */}
+            <div className="border-b border-gray-200 mb-6">
+              <nav className="flex space-x-2 mb-3">
+                <button 
+                  onClick={() => setActiveProductTab("overview")}
+                  className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                    activeProductTab === "overview" 
+                      ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                      : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                  }`}
+                >
+                  Product Overview
+                </button>
+                <button 
+                  onClick={() => setActiveProductTab("matrix")}
+                  className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                    activeProductTab === "matrix" 
+                      ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                      : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                  }`}
+                >
+                  Cross-sell Matrix
+                </button>
+                <button 
+                  onClick={() => setActiveProductTab("details")}
+                  className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                    activeProductTab === "details" 
+                      ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                      : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                  }`}
+                >
+                  Details
+                </button>
+              </nav>
+            </div>
+
+            {/* Product Overview Tab */}
+            {activeProductTab === "overview" && (
+              <div>
+                {/* Enhanced unified toolbar - Products version */}
+                <div className="bg-white p-4 rounded-lg shadow-sm">
               <div className="flex flex-col gap-4">
                 {/* Top row with saved lists and views */}
                 <div className="flex flex-wrap items-center justify-between">
@@ -3780,10 +3820,38 @@ export default function PartnerDetail() {
                 </div>
               )}
             </div>
+              </div>
+            )}
+
+            {/* Cross-sell Matrix Tab */}
+            {activeProductTab === "matrix" && (
+              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Cross-sell Matrix</h2>
+                <p className="text-gray-600 mb-4">
+                  Analyze cross-selling opportunities based on partner's current product portfolio
+                </p>
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+                  <p className="text-gray-500">Cross-sell matrix analysis coming soon...</p>
+                  <p className="text-sm text-gray-400 mt-2">Expected launch: Q2 2025</p>
+                </div>
+              </div>
+            )}
+
+            {/* Details Tab */}
+            {activeProductTab === "details" && (
+              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Product Details</h2>
+                <p className="text-gray-600 mb-4">
+                  Detailed product information, contracts, and performance metrics
+                </p>
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+                  <p className="text-gray-500">Detailed product analytics coming soon...</p>
+                  <p className="text-sm text-gray-400 mt-2">Expected launch: Q2 2025</p>
+                </div>
+              </div>
+            )}
           </div>
         )}
-
-
 
         {activeTab === "contacts" && (
           <div className="space-y-4">

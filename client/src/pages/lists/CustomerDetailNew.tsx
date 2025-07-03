@@ -25,6 +25,7 @@ export default function CustomerDetailNew() {
   const [location] = useLocation();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("products");
+  const [activeProductTab, setActiveProductTab] = useState("overview");
   const [backUrl, setBackUrl] = useState("/customers");
   const [backLabel, setBackLabel] = useState("Back to Customers");
   
@@ -1330,19 +1331,58 @@ export default function CustomerDetailNew() {
 
         {activeTab === "products" && (
           <div>
-            {/* Add Product Button */}
-            <div className="flex justify-end items-center mb-4">
-              <Button 
-                disabled
-                className="bg-gray-300 text-gray-500 cursor-not-allowed h-8"
-              >
-                Add product
-              </Button>
+            {/* Product Subtabs Navigation */}
+            <div className="border-b border-gray-200 mb-6">
+              <nav className="flex space-x-2 mb-3">
+                <button 
+                  onClick={() => setActiveProductTab("overview")}
+                  className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                    activeProductTab === "overview" 
+                      ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                      : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                  }`}
+                >
+                  Product Overview
+                </button>
+                <button 
+                  onClick={() => setActiveProductTab("matrix")}
+                  className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                    activeProductTab === "matrix" 
+                      ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                      : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                  }`}
+                >
+                  Cross-sell Matrix
+                </button>
+                <button 
+                  onClick={() => setActiveProductTab("details")}
+                  className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                    activeProductTab === "details" 
+                      ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                      : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                  }`}
+                >
+                  Details
+                </button>
+              </nav>
             </div>
 
-            {/* 2. Policies Requiring Attention - Timeline Strip */}
-            <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Policies Requiring Attention</h2>
+            {/* Product Overview Tab */}
+            {activeProductTab === "overview" && (
+              <div>
+                {/* Add Product Button */}
+                <div className="flex justify-end items-center mb-4">
+                  <Button 
+                    disabled
+                    className="bg-gray-300 text-gray-500 cursor-not-allowed h-8"
+                  >
+                    Add product
+                  </Button>
+                </div>
+
+                {/* 2. Policies Requiring Attention - Timeline Strip */}
+                <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+                  <h2 className="text-xl font-bold text-gray-900 mb-6">Policies Requiring Attention</h2>
               
               <div className="space-y-4">
                 {/* Critical Priority - 19 days left */}
@@ -1544,6 +1584,36 @@ export default function CustomerDetailNew() {
                 </div>
               </div>
             </div>
+          </div>
+            )}
+
+            {/* Cross-sell Matrix Tab */}
+            {activeProductTab === "matrix" && (
+              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Cross-sell Matrix</h2>
+                <p className="text-gray-600 mb-4">
+                  Analyze cross-selling opportunities based on customer's current product portfolio
+                </p>
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+                  <p className="text-gray-500">Cross-sell matrix analysis coming soon...</p>
+                  <p className="text-sm text-gray-400 mt-2">Expected launch: Q2 2025</p>
+                </div>
+              </div>
+            )}
+
+            {/* Details Tab */}
+            {activeProductTab === "details" && (
+              <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Product Details</h2>
+                <p className="text-gray-600 mb-4">
+                  Detailed product information, contracts, and performance metrics
+                </p>
+                <div className="bg-gray-50 border border-gray-200 rounded-lg p-8 text-center">
+                  <p className="text-gray-500">Detailed product analytics coming soon...</p>
+                  <p className="text-sm text-gray-400 mt-2">Expected launch: Q2 2025</p>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
