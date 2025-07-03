@@ -16,6 +16,7 @@ import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, Chevro
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import LogoUploadModal from "@/components/LogoUploadModal";
 import EntityAvatar from "@/components/EntityAvatar";
+import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import { useToast } from "@/hooks/use-toast";
 
 export default function CustomerDetailNew() {
@@ -1047,6 +1048,16 @@ export default function CustomerDetailNew() {
               }`}
             >
               OKR plans
+            </button>
+            <button 
+              onClick={() => setActiveTab("activity-hub")}
+              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                activeTab === "activity-hub" 
+                  ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+              }`}
+            >
+              Activity Hub
             </button>
             {/* Hide Contacts tab for Amazon CS (customer ID 18) */}
             {customer?.id !== 18 && (
