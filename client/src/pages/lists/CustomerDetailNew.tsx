@@ -1332,37 +1332,37 @@ export default function CustomerDetailNew() {
         {activeTab === "products" && (
           <div>
             {/* Product Subtabs Navigation */}
-            <div className="border-b border-gray-200 mb-6">
-              <nav className="flex space-x-2 mb-3">
+            <div className="border-b border-gray-200 mb-4">
+              <nav className="flex space-x-1">
                 <button 
                   onClick={() => setActiveProductTab("overview")}
-                  className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                  className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md ${
                     activeProductTab === "overview" 
-                      ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                      ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
                       : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
                   }`}
                 >
-                  Product Overview
+                  Overview
                 </button>
                 <button 
                   onClick={() => setActiveProductTab("matrix")}
-                  className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                  className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md ${
                     activeProductTab === "matrix" 
-                      ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                      ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
                       : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
                   }`}
                 >
-                  Cross-sell Matrix
+                  Matrix
                 </button>
                 <button 
-                  onClick={() => setActiveProductTab("details")}
-                  className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
-                    activeProductTab === "details" 
-                      ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                  onClick={() => setActiveProductTab("list")}
+                  className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md ${
+                    activeProductTab === "list" 
+                      ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
                       : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
                   }`}
                 >
-                  Details
+                  List
                 </button>
               </nav>
             </div>
@@ -1601,10 +1601,10 @@ export default function CustomerDetailNew() {
               </div>
             )}
 
-            {/* Details Tab */}
-            {activeProductTab === "details" && (
+            {/* List Tab */}
+            {activeProductTab === "list" && (
               <div className="bg-white border border-[#E6E7F1] rounded-xl p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Product Details</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Product List</h2>
                 <p className="text-gray-600 mb-4">
                   Detailed product information, contracts, and performance metrics
                 </p>
