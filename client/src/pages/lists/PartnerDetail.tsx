@@ -3168,9 +3168,9 @@ export default function PartnerDetail() {
         )}
 
         {activeTab === "products" && (
-          <div className="space-y-2">
+          <div>
             {/* Product Subtabs Navigation */}
-            <div className="border-b border-gray-200 mb-2 -mt-2">
+            <div className="border-b border-gray-200 mb-3 -mt-6">
               <nav className="flex space-x-1">
                 <button 
                   onClick={() => setActiveProductTab("overview")}
