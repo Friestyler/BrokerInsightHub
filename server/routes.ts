@@ -3684,6 +3684,313 @@ Keep the tone clear and professional. Focus on what will help the account manage
     }
   });
 
+  // Get Customer Portfolio Overview
+  app.get('/api/degoudse/customers/:id/portfolio-overview', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      // Get customer basic info
+      const customerResult = await envPool.query(`
+        SELECT name FROM degoudse.customers WHERE id = $1
+      `, [customerId]);
+      
+      if (customerResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Customer not found' });
+      }
+      
+      const customerName = customerResult.rows[0].name;
+      
+      // Get portfolio summary metrics using customer_product_assignments table
+      const summaryResult = await envPool.query(`
+        SELECT 
+          COUNT(DISTINCT cpa.product_template_id) as products_covered,
+          COUNT(DISTINCT c.id) as categories_covered,
+          SUM(COALESCE(CASE 
+            WHEN cpa.custom_price IS NOT NULL THEN cpa.custom_price 
+            ELSE pt.average_price 
+          END, 0)) as total_premium,
+          COUNT(DISTINCT pt_all.id) as total_available_products
+        FROM degoudse.customer_product_assignments cpa
+        INNER JOIN degoudse.product_templates pt ON cpa.product_template_id = pt.id
+        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
+        CROSS JOIN (SELECT id FROM degoudse.product_templates WHERE is_active = true) pt_all
+        WHERE cpa.customer_id = $1 AND cpa.is_active = true
+      `, [customerId]);
+      
+      // Get category coverage breakdown
+      const categoryResult = await envPool.query(`
+        SELECT 
+          c.id as categoryId,
+          c.name as categoryName,
+          c.color as categoryColor,
+          COUNT(DISTINCT cpa.product_template_id) as products_covered,
+          COUNT(DISTINCT pt.id) as total_products,
+          SUM(COALESCE(CASE 
+            WHEN cpa.custom_price IS NOT NULL THEN cpa.custom_price 
+            ELSE pt.average_price 
+          END, 0)) as current_premium,
+          ROUND((COUNT(DISTINCT cpa.product_template_id)::decimal / NULLIF(COUNT(DISTINCT pt.id), 0)) * 100, 1) as coverage_percentage
+        FROM degoudse.categories c
+        LEFT JOIN degoudse.product_templates pt ON pt.category_id = c.id AND pt.is_active = true
+        LEFT JOIN degoudse.customer_product_assignments cpa ON cpa.product_template_id = pt.id AND cpa.customer_id = $1 AND cpa.is_active = true
+        WHERE c.level = 1 AND c.is_active = true
+        GROUP BY c.id, c.name, c.color
+        ORDER BY coverage_percentage DESC NULLS LAST
+      `, [customerId]);
+      
+      // Calculate gap opportunities
+      const gapResult = await envPool.query(`
+        SELECT 
+          pt.name as product_name,
+          pt.average_price as potential_value,
+          c.name as category_name,
+          CASE 
+            WHEN pt.average_price >= 5000 THEN 'critical'
+            WHEN pt.average_price >= 2000 THEN 'medium'
+            ELSE 'low'
+          END as priority
+        FROM degoudse.product_templates pt
+        INNER JOIN degoudse.categories c ON pt.category_id = c.id
+        WHERE pt.id NOT IN (
+          SELECT DISTINCT cpa.product_template_id 
+          FROM degoudse.customer_product_assignments cpa 
+          WHERE cpa.customer_id = $1 AND cpa.is_active = true
+        )
+        AND pt.is_active = true
+        ORDER BY pt.average_price DESC
+      `, [customerId]);
+      
+      const summary = summaryResult.rows[0];
+      const coveragePercentage = summary.total_available_products > 0 
+        ? Math.round((summary.products_covered / summary.total_available_products) * 100)
+        : 0;
+      
+      // Calculate gap opportunities by priority
+      const criticalGaps = gapResult.rows.filter(gap => gap.priority === 'critical');
+      const mediumGaps = gapResult.rows.filter(gap => gap.priority === 'medium');
+      const lowGaps = gapResult.rows.filter(gap => gap.priority === 'low');
+      
+      const portfolioOverview = {
+        customerName,
+        summary: {
+          totalPremium: parseFloat(summary.total_premium || '0'),
+          productsCovered: parseInt(summary.products_covered || '0'),
+          totalProducts: parseInt(summary.total_available_products || '0'),
+          coveragePercentage,
+          categoriesCovered: parseInt(summary.categories_covered || '0'),
+          gapOpportunities: gapResult.rows.length
+        },
+        categoryBreakdown: categoryResult.rows.map(cat => ({
+          categoryId: cat.categoryid,
+          categoryName: cat.categoryname,
+          categoryColor: cat.categorycolor,
+          productsCovered: parseInt(cat.products_covered || '0'),
+          totalProducts: parseInt(cat.total_products || '0'),
+          coveragePercentage: parseFloat(cat.coverage_percentage || '0'),
+          currentPremium: parseFloat(cat.current_premium || '0'),
+          gapValue: 0 // Calculate based on missing products
+        })),
+        gapAnalysis: {
+          critical: {
+            count: criticalGaps.length,
+            totalValue: criticalGaps.reduce((sum, gap) => sum + parseFloat(gap.potential_value || '0'), 0),
+            topProducts: criticalGaps.slice(0, 3).map(gap => ({
+              productName: gap.product_name,
+              potentialValue: parseFloat(gap.potential_value || '0'),
+              category: gap.category_name
+            }))
+          },
+          medium: {
+            count: mediumGaps.length,
+            totalValue: mediumGaps.reduce((sum, gap) => sum + parseFloat(gap.potential_value || '0'), 0),
+            topProducts: mediumGaps.slice(0, 3).map(gap => ({
+              productName: gap.product_name,
+              potentialValue: parseFloat(gap.potential_value || '0'),
+              category: gap.category_name
+            }))
+          },
+          wellCovered: {
+            count: parseInt(summary.products_covered || '0'),
+            totalValue: parseFloat(summary.total_premium || '0'),
+            coverageRate: coveragePercentage
+          }
+        }
+      };
+      
+      res.json(portfolioOverview);
+    } catch (error) {
+      console.error('Error fetching customer portfolio overview:', error);
+      res.status(500).json({ error: 'Failed to fetch portfolio overview' });
+    }
+  });
+
+  // Get Opportunity Portfolio Overview
+  app.get('/api/degoudse/opportunities/:id/portfolio-overview', async (req, res) => {
+    try {
+      const opportunityId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      // Get opportunity basic info with customer
+      const opportunityResult = await envPool.query(`
+        SELECT o.title, o.description, c.name as customer_name, o.client_id
+        FROM degoudse.opportunities o
+        LEFT JOIN degoudse.customers c ON o.client_id = c.id
+        WHERE o.id = $1
+      `, [opportunityId]);
+      
+      if (opportunityResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Opportunity not found' });
+      }
+      
+      const opportunity = opportunityResult.rows[0];
+      const customerId = opportunity.client_id;
+      
+      // Get customer product assignments to analyze potential (using client_id if available)
+      let summary, categoryResult, gapResult;
+      
+      if (customerId) {
+        // Use customer data if available
+        const summaryResult = await envPool.query(`
+          SELECT 
+            COUNT(DISTINCT cpa.product_template_id) as products_covered,
+            COUNT(DISTINCT c.id) as categories_covered,
+            SUM(COALESCE(CASE 
+              WHEN cpa.custom_price IS NOT NULL THEN cpa.custom_price 
+              ELSE pt.average_price 
+            END, 0)) as total_premium,
+            COUNT(DISTINCT pt_all.id) as total_available_products
+          FROM degoudse.customer_product_assignments cpa
+          INNER JOIN degoudse.product_templates pt ON cpa.product_template_id = pt.id
+          LEFT JOIN degoudse.categories c ON pt.category_id = c.id
+          CROSS JOIN (SELECT id FROM degoudse.product_templates WHERE is_active = true) pt_all
+          WHERE cpa.customer_id = $1 AND cpa.is_active = true
+        `, [customerId]);
+        
+        summary = summaryResult.rows[0];
+        
+        // Get category coverage breakdown
+        const categoryRes = await envPool.query(`
+          SELECT 
+            c.id as categoryId,
+            c.name as categoryName,
+            c.color as categoryColor,
+            COUNT(DISTINCT cpa.product_template_id) as products_covered,
+            COUNT(DISTINCT pt.id) as total_products,
+            SUM(COALESCE(CASE 
+              WHEN cpa.custom_price IS NOT NULL THEN cpa.custom_price 
+              ELSE pt.average_price 
+            END, 0)) as current_premium,
+            ROUND((COUNT(DISTINCT cpa.product_template_id)::decimal / NULLIF(COUNT(DISTINCT pt.id), 0)) * 100, 1) as coverage_percentage
+          FROM degoudse.categories c
+          LEFT JOIN degoudse.product_templates pt ON pt.category_id = c.id AND pt.is_active = true
+          LEFT JOIN degoudse.customer_product_assignments cpa ON cpa.product_template_id = pt.id AND cpa.customer_id = $1 AND cpa.is_active = true
+          WHERE c.level = 1 AND c.is_active = true
+          GROUP BY c.id, c.name, c.color
+          ORDER BY coverage_percentage DESC NULLS LAST
+        `, [customerId]);
+        
+        categoryResult = categoryRes;
+        
+        // Calculate gap opportunities
+        const gapRes = await envPool.query(`
+          SELECT 
+            pt.name as product_name,
+            pt.average_price as potential_value,
+            c.name as category_name,
+            CASE 
+              WHEN pt.average_price >= 5000 THEN 'critical'
+              WHEN pt.average_price >= 2000 THEN 'medium'
+              ELSE 'low'
+            END as priority
+          FROM degoudse.product_templates pt
+          INNER JOIN degoudse.categories c ON pt.category_id = c.id
+          WHERE pt.id NOT IN (
+            SELECT DISTINCT cpa.product_template_id 
+            FROM degoudse.customer_product_assignments cpa 
+            WHERE cpa.customer_id = $1 AND cpa.is_active = true
+          )
+          AND pt.is_active = true
+          ORDER BY pt.average_price DESC
+        `, [customerId]);
+        
+        gapResult = gapRes;
+      } else {
+        // Default empty data if no customer linked
+        summary = {
+          products_covered: 0,
+          categories_covered: 0,
+          total_premium: 0,
+          total_available_products: 0
+        };
+        categoryResult = { rows: [] };
+        gapResult = { rows: [] };
+      }
+      
+      const coveragePercentage = summary.total_available_products > 0 
+        ? Math.round((summary.products_covered / summary.total_available_products) * 100)
+        : 0;
+      
+      // Calculate gap opportunities by priority
+      const criticalGaps = gapResult.rows.filter(gap => gap.priority === 'critical');
+      const mediumGaps = gapResult.rows.filter(gap => gap.priority === 'medium');
+      const lowGaps = gapResult.rows.filter(gap => gap.priority === 'low');
+      
+      const portfolioOverview = {
+        opportunityName: opportunity.title,
+        customerName: opportunity.customer_name || 'No customer linked',
+        summary: {
+          totalPremium: parseFloat(summary.total_premium || '0'),
+          productsCovered: parseInt(summary.products_covered || '0'),
+          totalProducts: parseInt(summary.total_available_products || '0'),
+          coveragePercentage,
+          categoriesCovered: parseInt(summary.categories_covered || '0'),
+          gapOpportunities: gapResult.rows.length
+        },
+        categoryBreakdown: categoryResult.rows.map(cat => ({
+          categoryId: cat.categoryid,
+          categoryName: cat.categoryname,
+          categoryColor: cat.categorycolor,
+          productsCovered: parseInt(cat.products_covered || '0'),
+          totalProducts: parseInt(cat.total_products || '0'),
+          coveragePercentage: parseFloat(cat.coverage_percentage || '0'),
+          currentPremium: parseFloat(cat.current_premium || '0'),
+          gapValue: 0
+        })),
+        gapAnalysis: {
+          critical: {
+            count: criticalGaps.length,
+            totalValue: criticalGaps.reduce((sum, gap) => sum + parseFloat(gap.potential_value || '0'), 0),
+            topProducts: criticalGaps.slice(0, 3).map(gap => ({
+              productName: gap.product_name,
+              potentialValue: parseFloat(gap.potential_value || '0'),
+              category: gap.category_name
+            }))
+          },
+          medium: {
+            count: mediumGaps.length,
+            totalValue: mediumGaps.reduce((sum, gap) => sum + parseFloat(gap.potential_value || '0'), 0),
+            topProducts: mediumGaps.slice(0, 3).map(gap => ({
+              productName: gap.product_name,
+              potentialValue: parseFloat(gap.potential_value || '0'),
+              category: gap.category_name
+            }))
+          },
+          wellCovered: {
+            count: parseInt(summary.products_covered || '0'),
+            totalValue: parseFloat(summary.total_premium || '0'),
+            coverageRate: coveragePercentage
+          }
+        }
+      };
+      
+      res.json(portfolioOverview);
+    } catch (error) {
+      console.error('Error fetching opportunity portfolio overview:', error);
+      res.status(500).json({ error: 'Failed to fetch portfolio overview' });
+    }
+  });
+
   // Create Customer Product Assignment
   app.post('/api/degoudse/customers/:id/product-assignments', async (req, res) => {
     try {
@@ -3861,6 +4168,143 @@ Keep the tone clear and professional. Focus on what will help the account manage
     } catch (error) {
       console.error('Error fetching partner product assignments:', error);
       res.status(500).json({ error: 'Failed to fetch partner product assignments' });
+    }
+  });
+
+  // Get Partner Portfolio Overview
+  app.get('/api/degoudse/partners/:id/portfolio-overview', async (req, res) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      // Get partner basic info
+      const partnerResult = await envPool.query(`
+        SELECT name FROM degoudse.partners WHERE id = $1
+      `, [partnerId]);
+      
+      if (partnerResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Partner not found' });
+      }
+      
+      const partnerName = partnerResult.rows[0].name;
+      
+      // Get portfolio summary metrics
+      const summaryResult = await envPool.query(`
+        SELECT 
+          COUNT(DISTINCT pp.product_id) as products_covered,
+          COUNT(DISTINCT c.id) as categories_covered,
+          SUM(COALESCE(p.premium_value, 0)) as total_premium,
+          COUNT(DISTINCT pt.id) as total_available_products
+        FROM degoudse.partner_products pp
+        INNER JOIN degoudse.products p ON pp.product_id = p.id
+        LEFT JOIN degoudse.categories c ON p.category_id = c.id
+        CROSS JOIN (SELECT COUNT(*) as id FROM degoudse.product_templates) pt
+        WHERE pp.partner_id = $1
+      `, [partnerId]);
+      
+      // Get category coverage breakdown
+      const categoryResult = await envPool.query(`
+        SELECT 
+          c.id as categoryId,
+          c.name as categoryName,
+          c.color as categoryColor,
+          COUNT(DISTINCT pp.product_id) as products_covered,
+          COUNT(DISTINCT pt.id) as total_products,
+          SUM(COALESCE(p.premium_value, 0)) as current_premium,
+          ROUND((COUNT(DISTINCT pp.product_id)::decimal / NULLIF(COUNT(DISTINCT pt.id), 0)) * 100, 1) as coverage_percentage
+        FROM degoudse.categories c
+        LEFT JOIN degoudse.product_templates pt ON pt.category_id = c.id
+        LEFT JOIN degoudse.products p ON p.category_id = c.id
+        LEFT JOIN degoudse.partner_products pp ON pp.product_id = p.id AND pp.partner_id = $1
+        WHERE c.level = 1 AND c.is_active = true
+        GROUP BY c.id, c.name, c.color
+        ORDER BY coverage_percentage DESC NULLS LAST
+      `, [partnerId]);
+      
+      // Calculate gap opportunities
+      const gapResult = await envPool.query(`
+        SELECT 
+          pt.name as product_name,
+          pt.average_price as potential_value,
+          c.name as category_name,
+          CASE 
+            WHEN pt.average_price >= 5000 THEN 'critical'
+            WHEN pt.average_price >= 2000 THEN 'medium'
+            ELSE 'low'
+          END as priority
+        FROM degoudse.product_templates pt
+        INNER JOIN degoudse.categories c ON pt.category_id = c.id
+        WHERE pt.id NOT IN (
+          SELECT DISTINCT p.id 
+          FROM degoudse.products p 
+          INNER JOIN degoudse.partner_products pp ON p.id = pp.product_id 
+          WHERE pp.partner_id = $1
+        )
+        AND pt.is_active = true
+        ORDER BY pt.average_price DESC
+      `, [partnerId]);
+      
+      const summary = summaryResult.rows[0];
+      const coveragePercentage = summary.total_available_products > 0 
+        ? Math.round((summary.products_covered / summary.total_available_products) * 100)
+        : 0;
+      
+      // Calculate gap opportunities by priority
+      const criticalGaps = gapResult.rows.filter(gap => gap.priority === 'critical');
+      const mediumGaps = gapResult.rows.filter(gap => gap.priority === 'medium');
+      const lowGaps = gapResult.rows.filter(gap => gap.priority === 'low');
+      
+      const portfolioOverview = {
+        partnerName,
+        summary: {
+          totalPremium: parseFloat(summary.total_premium || '0'),
+          productsCovered: parseInt(summary.products_covered || '0'),
+          totalProducts: parseInt(summary.total_available_products || '0'),
+          coveragePercentage,
+          categoriesCovered: parseInt(summary.categories_covered || '0'),
+          gapOpportunities: gapResult.rows.length
+        },
+        categoryBreakdown: categoryResult.rows.map(cat => ({
+          categoryId: cat.categoryid,
+          categoryName: cat.categoryname,
+          categoryColor: cat.categorycolor,
+          productsCovered: parseInt(cat.products_covered || '0'),
+          totalProducts: parseInt(cat.total_products || '0'),
+          coveragePercentage: parseFloat(cat.coverage_percentage || '0'),
+          currentPremium: parseFloat(cat.current_premium || '0'),
+          gapValue: 0 // Calculate based on missing products
+        })),
+        gapAnalysis: {
+          critical: {
+            count: criticalGaps.length,
+            totalValue: criticalGaps.reduce((sum, gap) => sum + parseFloat(gap.potential_value || '0'), 0),
+            topProducts: criticalGaps.slice(0, 3).map(gap => ({
+              productName: gap.product_name,
+              potentialValue: parseFloat(gap.potential_value || '0'),
+              category: gap.category_name
+            }))
+          },
+          medium: {
+            count: mediumGaps.length,
+            totalValue: mediumGaps.reduce((sum, gap) => sum + parseFloat(gap.potential_value || '0'), 0),
+            topProducts: mediumGaps.slice(0, 3).map(gap => ({
+              productName: gap.product_name,
+              potentialValue: parseFloat(gap.potential_value || '0'),
+              category: gap.category_name
+            }))
+          },
+          wellCovered: {
+            count: parseInt(summary.products_covered || '0'),
+            totalValue: parseFloat(summary.total_premium || '0'),
+            coverageRate: coveragePercentage
+          }
+        }
+      };
+      
+      res.json(portfolioOverview);
+    } catch (error) {
+      console.error('Error fetching partner portfolio overview:', error);
+      res.status(500).json({ error: 'Failed to fetch portfolio overview' });
     }
   });
 

@@ -1,0 +1,738 @@
+# User Story: Customer Analysis - Amazon Portfolio Dashboard
+
+## Epic: Customer-Specific Portfolio Analysis
+
+---
+
+## User Story 1: Customer Portfolio Overview Dashboard
+
+**As a** NN Account Manager**I want to** view a comprehensive overview of Amazon's NN insurance portfolio**So that** I can quickly assess their coverage levels, identify gaps, and prioritize cross-sell opportunities during client meetings
+
+### Acceptance Criteria:
+
+- Display customer name prominently in header ("NN Insurance Portfolio Analysis - Amazon")
+- Show 4 key metrics in summary cards:
+
+- Total Annual Premium (€2.4M)
+- Products Covered ratio (18/28 = 64%)
+- Gap Opportunities count (10)
+- Categories Covered count (4)
+
+
+
+- Include descriptive subtitle explaining the analysis scope
+- Use gradient background styling for visual appeal
+- Ensure responsive layout for mobile/tablet viewing
+
+
+### Technical Requirements:
+
+```typescript
+interface CustomerSummary {
+  customerId: string;
+  customerName: string;
+  totalPremium: number;
+  productsCovered: number;
+  totalProducts: number;
+  gapOpportunities: number;
+  categoriesCovered: number;
+  coveragePercentage: number;
+}
+```
+
+### API Endpoints:
+
+- `GET /api/customers/{customerId}/portfolio-summary`
+- Response: CustomerSummary object
+
+
+---
+
+## User Story 2: Category Coverage Visualization with Circular Progress
+
+**As a** NN Account Manager**I want to** see visual coverage percentages by product category with color-coded indicators**So that** I can instantly identify which categories need immediate attention
+
+### Acceptance Criteria:
+
+- Display 4 category cards in responsive grid:
+
+- Pensioen (75% coverage - Green)
+- Inkomen Collectief (67% coverage - Yellow)
+- Schade Zakelijk (71% coverage - Yellow)
+- Overige/Specialistisch (55% coverage - Red)
+
+
+
+- Each card shows:
+
+- Circular progress indicator (SVG-based)
+- Coverage percentage in center
+- Products covered ratio (e.g., "3/4 products")
+- Current premium amount
+- Gap opportunity value
+
+
+
+- Color coding logic:
+
+- Green: ≥70% coverage
+- Yellow: 50-69% coverage
+- Red: <50% coverage
+
+
+
+- Gap indicator badge for categories with <70% coverage
+- Hover effects with scale animation
+- Click functionality for drill-down
+
+
+### Technical Requirements:
+
+```typescript
+interface CategoryCoverage {
+  categoryId: string;
+  categoryName: string;
+  productsCovered: number;
+  totalProducts: number;
+  coveragePercentage: number;
+  currentPremium: number;
+  gapValue: number;
+  missingProducts: string[];
+  colorCode: 'green' | 'yellow' | 'red';
+}
+
+interface CircularProgressProps {
+  percentage: number;
+  size: number;
+  strokeWidth: number;
+  color: string;
+}
+```
+
+### Component Structure:
+
+```typescript
+// CategoryCoverageCard.tsx
+const CategoryCoverageCard: React.FC<{
+  category: CategoryCoverage;
+  onClick: (categoryId: string) => void;
+}> = ({ category, onClick }) => {
+  // SVG circular progress implementation
+  // Color-coded styling
+  // Gap indicator badge
+  // Hover animations
+};
+```
+
+---
+
+## User Story 3: Tabbed Category Deep-Dive Interface
+
+**As a** NN Account Manager**I want to** drill down into each category to see individual product coverage status**So that** I can understand exactly which products are covered and create targeted proposals for gaps
+
+### Acceptance Criteria:
+
+- Implement tabbed interface with 5 tabs:
+
+- Overview (default)
+- Pensioen
+- Inkomen Collectief
+- Schade Zakelijk
+- Overige/Specialistisch
+
+
+
+- Each category tab displays:
+
+- Category summary header with metrics
+- Grid of product cards showing coverage status
+- "Create Proposal" buttons for gap products
+
+
+
+- Product cards show:
+
+- Product name
+- Coverage status badge (✓ Covered / Gap)
+- Premium amount or potential value
+- Color-coded styling (green/red)
+
+
+
+- Category summary shows:
+
+- Products covered ratio
+- Total premium
+- Gap opportunity value
+
+
+
+
+
+### Technical Requirements:
+
+```typescript
+interface ProductCoverage {
+  productId: string;
+  productName: string;
+  categoryId: string;
+  status: 'covered' | 'gap';
+  currentPremium?: number;
+  potentialValue?: number;
+  policyNumber?: string;
+  renewalDate?: string;
+}
+
+interface CategoryDetail {
+  categoryId: string;
+  categoryName: string;
+  productsCovered: number;
+  totalProducts: number;
+  totalPremium: number;
+  gapOpportunity: number;
+  products: ProductCoverage[];
+}
+```
+
+### API Endpoints:
+
+- `GET /api/customers/{customerId}/categories/{categoryId}/products`
+- `POST /api/customers/{customerId}/proposals` (for gap products)
+
+
+---
+
+## User Story 4: Priority Gap Analysis Dashboard
+
+**As a** NN Account Manager**I want to** see gap opportunities prioritized by business value and urgency**So that** I can focus my sales efforts on the highest-impact opportunities
+
+### Acceptance Criteria:
+
+- Display 3 priority levels in separate cards:
+
+- 🚨 Critical Gaps (5 products missing)
+- ⚠️ Medium Priority (3 products)
+- ✅ Well Covered (18 products)
+
+
+
+- Each priority card shows:
+
+- Priority level with emoji indicator
+- Product count
+- Top 3 products with potential values
+- Total opportunity value
+
+
+
+- Critical gaps card:
+
+- Red color scheme
+- Highest potential value products
+- Immediate action emphasis
+
+
+
+- Well covered card:
+
+- Green color scheme
+- Total premium value
+- Coverage rate
+- Relationship strength indicator
+
+
+
+
+
+### Technical Requirements:
+
+```typescript
+interface GapPriority {
+  level: 'critical' | 'medium' | 'covered';
+  productCount: number;
+  totalValue: number;
+  topProducts: {
+    productName: string;
+    potentialValue: number;
+  }[];
+  description: string;
+}
+
+interface PriorityAnalysis {
+  customerId: string;
+  criticalGaps: GapPriority;
+  mediumPriority: GapPriority;
+  wellCovered: GapPriority;
+  lastUpdated: string;
+}
+```
+
+---
+
+## User Story 5: Product Master Data Management
+
+**As a** System Administrator**I want to** maintain the master catalog of NN insurance products by category**So that** coverage calculations remain accurate and new products can be tracked
+
+### Acceptance Criteria:
+
+- Maintain product catalog with hierarchical structure:
+
+- Categories → Products → Variants
+
+
+
+- Support CRUD operations on products:
+
+- Add new products to categories
+- Update product details
+- Deactivate discontinued products
+- Modify category assignments
+
+
+
+- Automatic recalculation of coverage percentages when catalog changes
+- Version control for product catalog changes
+- Audit trail for all modifications
+
+
+### Technical Requirements:
+
+```typescript
+interface ProductMaster {
+  productId: string;
+  productName: string;
+  categoryId: string;
+  isActive: boolean;
+  description: string;
+  targetMarket: string[];
+  averagePremium: number;
+  createdDate: string;
+  lastModified: string;
+  version: number;
+}
+
+interface CategoryMaster {
+  categoryId: string;
+  categoryName: string;
+  description: string;
+  sortOrder: number;
+  isActive: boolean;
+  products: ProductMaster[];
+}
+```
+
+### Database Schema:
+
+```sql
+-- Product Categories
+CREATE TABLE product_categories (
+  category_id VARCHAR(50) PRIMARY KEY,
+  category_name VARCHAR(100) NOT NULL,
+  description TEXT,
+  sort_order INT,
+  is_active BOOLEAN DEFAULT true,
+  created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Products Master
+CREATE TABLE products_master (
+  product_id VARCHAR(50) PRIMARY KEY,
+  product_name VARCHAR(100) NOT NULL,
+  category_id VARCHAR(50) REFERENCES product_categories(category_id),
+  description TEXT,
+  target_market JSONB,
+  average_premium DECIMAL(12,2),
+  is_active BOOLEAN DEFAULT true,
+  created_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  last_modified TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  version INT DEFAULT 1
+);
+```
+
+---
+
+## User Story 6: Customer Policy Data Integration
+
+**As a** NN Account Manager**I want to** see real-time customer policy data integrated with gap analysis**So that** premium amounts and coverage status reflect current business relationships
+
+### Acceptance Criteria:
+
+- Real-time integration with policy management system
+- Display actual policy details:
+
+- Policy numbers
+- Premium amounts
+- Effective dates
+- Renewal dates
+- Coverage limits
+
+
+
+- Handle multiple policies per product type
+- Show policy status (Active, Pending, Expired)
+- Calculate gap values based on:
+
+- Market pricing models
+- Customer risk profile
+- Historical conversion rates
+
+
+
+- Error handling for missing/incomplete data
+- Data refresh indicators and timestamps
+
+
+### Technical Requirements:
+
+```typescript
+interface CustomerPolicy {
+  policyId: string;
+  customerId: string;
+  productId: string;
+  policyNumber: string;
+  status: 'active' | 'pending' | 'expired' | 'cancelled';
+  premiumAmount: number;
+  effectiveDate: string;
+  renewalDate: string;
+  coverageDetails: Record<string, any>;
+  lastUpdated: string;
+}
+
+interface GapCalculation {
+  productId: string;
+  customerId: string;
+  potentialPremium: number;
+  conversionProbability: number;
+  marketRate: number;
+  customerRiskFactor: number;
+  calculationMethod: string;
+  lastCalculated: string;
+}
+```
+
+### API Integration:
+
+```typescript
+// Policy Management System Integration
+interface PolicyAPIResponse {
+  policies: CustomerPolicy[];
+  totalCount: number;
+  lastSyncDate: string;
+}
+
+// Gap Calculation Service
+interface GapCalculationService {
+  calculateGapValue(customerId: string, productId: string): Promise<number>;
+  getConversionProbability(customerId: string, productId: string): Promise<number>;
+  updateMarketRates(): Promise<void>;
+}
+```
+
+---
+
+## User Story 7: Responsive Design and Mobile Optimization
+
+**As a** NN Account Manager using various devices**I want to** access the customer analysis on desktop, tablet, and mobile devices**So that** I can review customer information during client meetings or while traveling
+
+### Acceptance Criteria:
+
+- Responsive breakpoints:
+
+- Mobile: <768px (single column layout)
+- Tablet: 768px-1024px (2-column layout)
+- Desktop: >1024px (4-column layout)
+
+
+
+- Touch-friendly interface:
+
+- Minimum 44px touch targets
+- Swipe gestures for tab navigation
+- Pull-to-refresh functionality
+
+
+
+- Performance optimization:
+
+- Lazy loading for category details
+- Image optimization
+- Minimal bundle size for mobile
+
+
+
+- Offline capability:
+
+- Cache critical customer data
+- Offline indicators
+- Sync when connection restored
+
+
+
+
+
+### Technical Requirements:
+
+```css
+/* Responsive Grid System */
+.category-grid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: 1fr; /* Mobile */
+}
+
+@media (min-width: 768px) {
+  .category-grid {
+    grid-template-columns: repeat(2, 1fr); /* Tablet */
+  }
+}
+
+@media (min-width: 1024px) {
+  .category-grid {
+    grid-template-columns: repeat(4, 1fr); /* Desktop */
+  }
+}
+```
+
+```typescript
+// Mobile-specific hooks
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+  
+  useEffect(() => {
+    const checkDevice = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    
+    checkDevice();
+    window.addEventListener('resize', checkDevice);
+    return () => window.removeEventListener('resize', checkDevice);
+  }, []);
+  
+  return isMobile;
+};
+```
+
+---
+
+## User Story 8: Export and Sharing Capabilities
+
+**As a** NN Account Manager**I want to** export customer analysis data and share insights with colleagues**So that** I can prepare for client meetings and collaborate with my team
+
+### Acceptance Criteria:
+
+- Export options:
+
+- PDF report with customer analysis
+- Excel spreadsheet with detailed data
+- PowerPoint slides for presentations
+
+
+
+- Sharing features:
+
+- Generate secure shareable links (24-hour expiration)
+- Email integration with customizable templates
+- Team collaboration comments
+
+
+
+- Report customization:
+
+- Select specific categories/products
+- Add custom notes and recommendations
+- Include/exclude sensitive data
+
+
+
+- Print optimization:
+
+- Print-friendly CSS
+- Page break optimization
+- Header/footer customization
+
+
+
+
+
+### Technical Requirements:
+
+```typescript
+interface ExportOptions {
+  format: 'pdf' | 'excel' | 'powerpoint';
+  includeCategories: string[];
+  includeProducts: string[];
+  includeNotes: boolean;
+  includeSensitiveData: boolean;
+  customNotes?: string;
+}
+
+interface ShareableLink {
+  linkId: string;
+  customerId: string;
+  expirationDate: string;
+  accessCount: number;
+  createdBy: string;
+  permissions: string[];
+}
+```
+
+### API Endpoints:
+
+```typescript
+// Export endpoints
+POST /api/customers/{customerId}/export
+Body: ExportOptions
+Response: { downloadUrl: string, expiresAt: string }
+
+// Sharing endpoints  
+POST /api/customers/{customerId}/share
+Body: { expirationHours: number, permissions: string[] }
+Response: ShareableLink
+
+GET /api/shared/{linkId}
+Response: Customer analysis data (if valid)
+```
+
+---
+
+## User Story 9: Real-time Data Updates and Notifications
+
+**As a** NN Account Manager**I want to** receive real-time updates when customer policy data changes**So that** my analysis always reflects the most current information
+
+### Acceptance Criteria:
+
+- Real-time data synchronization:
+
+- WebSocket connection for live updates
+- Automatic refresh when policy changes detected
+- Visual indicators for stale data
+
+
+
+- Notification system:
+
+- Toast notifications for data updates
+- Email alerts for significant changes
+- In-app notification center
+
+
+
+- Change tracking:
+
+- Highlight recently updated information
+- Show change history/audit trail
+- Compare before/after values
+
+
+
+- Conflict resolution:
+
+- Handle concurrent user modifications
+- Merge conflicts gracefully
+- User confirmation for overwriting changes
+
+
+
+
+
+### Technical Requirements:
+
+```typescript
+// WebSocket integration
+interface DataUpdateEvent {
+  eventType: 'policy_update' | 'premium_change' | 'coverage_change';
+  customerId: string;
+  affectedProducts: string[];
+  timestamp: string;
+  changes: Record<string, { old: any, new: any }>;
+}
+
+// Notification system
+interface Notification {
+  id: string;
+  type: 'info' | 'warning' | 'error' | 'success';
+  title: string;
+  message: string;
+  timestamp: string;
+  isRead: boolean;
+  actionUrl?: string;
+}
+```
+
+---
+
+## User Story 10: Performance and Caching Strategy
+
+**As a** System User**I want to** experience fast loading times and smooth interactions**So that** I can work efficiently without waiting for data to load
+
+### Acceptance Criteria:
+
+- Performance targets:
+
+- Initial page load: <2 seconds
+- Tab switching: <500ms
+- Data refresh: <1 second
+
+
+
+- Caching strategy:
+
+- Browser cache for static assets
+- Redis cache for frequently accessed data
+- CDN for global asset delivery
+
+
+
+- Loading states:
+
+- Skeleton screens during initial load
+- Progressive loading for large datasets
+- Optimistic updates for user actions
+
+
+
+- Error handling:
+
+- Graceful degradation for API failures
+- Retry mechanisms with exponential backoff
+- User-friendly error messages
+
+
+
+
+
+### Technical Requirements:
+
+```typescript
+// Caching configuration
+interface CacheConfig {
+  customerData: { ttl: 300 }; // 5 minutes
+  productCatalog: { ttl: 3600 }; // 1 hour
+  gapCalculations: { ttl: 1800 }; // 30 minutes
+}
+
+// Performance monitoring
+interface PerformanceMetrics {
+  pageLoadTime: number;
+  apiResponseTime: number;
+  renderTime: number;
+  cacheHitRate: number;
+}
+```
+
+---
+
+## Definition of Done:
+
+- All acceptance criteria met and tested
+- Unit tests written with >85% coverage
+- Integration tests with mock data
+- End-to-end tests for critical user flows
+- Performance testing meets targets
+- Cross-browser testing (Chrome, Firefox, Safari, Edge)
+- Mobile responsiveness verified on real devices
+- Accessibility compliance (WCAG 2.1 AA)
+- Security review completed
+- API documentation updated
+- User documentation created
+- Stakeholder approval obtained

@@ -18,6 +18,7 @@ import LogoUploadModal from "@/components/LogoUploadModal";
 import EntityAvatar from "@/components/EntityAvatar";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import { useToast } from "@/hooks/use-toast";
+import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTab";
 
 export default function CustomerDetailNew() {
   const { id } = useParams();
@@ -1408,12 +1409,10 @@ export default function CustomerDetailNew() {
 
             {/* Product Overview Tab */}
             {activeProductTab === "overview" && (
-              <div>
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-                  <p className="text-gray-500">Product overview coming soon...</p>
-                  <p className="text-sm text-gray-400 mt-2">Expected launch: Q2 2025</p>
-                </div>
-          </div>
+              <PortfolioOverviewTab 
+                entityType="customers" 
+                entityId={id || ""} 
+              />
             )}
 
             {/* Cross-sell Matrix Tab */}
