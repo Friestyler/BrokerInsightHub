@@ -979,18 +979,20 @@ export default function CustomerDetailNew() {
           </div>
           <div className="flex-1">
             <div className="flex items-center space-x-4 mb-1">
-              <h1 className="text-2xl font-bold text-gray-900">{customer.name}</h1>
+              <h1 className="text-2xl font-bold text-gray-900">{customer?.name || 'Loading...'}</h1>
               <div className="flex items-center space-x-2">
                 <Button 
                   variant="ghost" 
                   size="sm" 
                   className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded h-auto"
                   onClick={() => {
-                    setEditedCustomer({
-                      name: customer.name || '',
-                      industry: customer.industry || '',
-                      description: customer.description || ''
-                    });
+                    if (customer) {
+                      setEditedCustomer({
+                        name: customer.name || '',
+                        industry: customer.industry || '',
+                        description: customer.description || ''
+                      });
+                    }
                     setShowDetailsDialog(true);
                   }}
                 >
@@ -1000,7 +1002,7 @@ export default function CustomerDetailNew() {
               </div>
             </div>
             <div className="mt-1">
-              <span className="text-gray-600">{customer.description}</span>
+              <span className="text-gray-600">{customer?.description || ''}</span>
             </div>
           </div>
         </div>
