@@ -1165,7 +1165,7 @@ export default function PartnerDetail() {
                 <div className="w-4 h-4 bg-orange-500 rounded-sm mr-1.5 flex items-center justify-center">
                   <span className="text-white text-xs font-bold">NN</span>
                 </div>
-                View in Nationale Nederlanden
+                View in Deal Room
               </a>
             </div>
           )}
