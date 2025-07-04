@@ -335,13 +335,7 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
             <p className="text-gray-600">Comprehensive portfolio overview and gap analysis</p>
           </div>
         </div>
-        <Button 
-          onClick={handleModalOpen}
-          className="bg-[#5567E5] hover:bg-[#4556D4]"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Creëer Partner Kans
-        </Button>
+
       </div>
 
       {/* Key Metrics Summary Cards */}
