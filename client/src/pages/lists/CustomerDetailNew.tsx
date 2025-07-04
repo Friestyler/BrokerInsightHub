@@ -1049,52 +1049,68 @@ export default function CustomerDetailNew() {
             </div>
             
             {/* Collaborators Section */}
-            <div className="flex items-center space-x-3 mt-2">
-              <span className="text-sm text-gray-600 font-medium">Collaborators:</span>
-              <div className="flex items-center space-x-4">
-                {/* Internal users */}
-                <div className="flex items-center space-x-2">
-                  <div className="flex -space-x-1">
-                    {users && Array.isArray(users) && users.slice(0, 3).map((user: any, index: number) => {
-                      const initials = user.name ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'U';
-                      const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500'];
-                      return (
-                        <div 
-                          key={user.id} 
-                          className={`w-6 h-6 rounded-full ${colors[index % colors.length]} border-2 border-white flex items-center justify-center`}
-                          title={user.name}
-                        >
-                          <span className="text-xs font-medium text-white">{initials}</span>
-                        </div>
-                      );
-                    })}
+            <div className="flex items-center justify-between mt-2">
+              <div className="flex items-center space-x-3">
+                <span className="text-sm text-gray-600 font-medium">Collaborators:</span>
+                <div className="flex items-center space-x-4">
+                  {/* Internal users */}
+                  <div className="flex items-center space-x-2">
+                    <div className="flex -space-x-1">
+                      {users && Array.isArray(users) && users.slice(0, 3).map((user: any, index: number) => {
+                        const initials = user.name ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'U';
+                        const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500'];
+                        return (
+                          <div 
+                            key={user.id} 
+                            className={`w-6 h-6 rounded-full ${colors[index % colors.length]} border-2 border-white flex items-center justify-center cursor-pointer hover:scale-110 transition-transform`}
+                            title={`${user.name} - Click for Salesforce view`}
+                            onClick={() => window.open(`/iframe/customer/${id}`, '_blank')}
+                          >
+                            <span className="text-xs font-medium text-white">{initials}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <span className="text-xs text-gray-500 font-medium">Internal</span>
                   </div>
-                  <span className="text-xs text-gray-500 font-medium">Internal</span>
-                </div>
-                
-                {/* Separator */}
-                <div className="h-4 w-px bg-gray-300"></div>
-                
-                {/* External users */}
-                <div className="flex items-center space-x-2">
-                  <div className="flex -space-x-1">
-                    {users && Array.isArray(users) && users.slice(3, 5).map((user: any, index: number) => {
-                      const initials = user.name ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'U';
-                      const colors = ['bg-orange-500', 'bg-red-500'];
-                      return (
-                        <div 
-                          key={user.id} 
-                          className={`w-6 h-6 rounded-full ${colors[index % colors.length]} border-2 border-white flex items-center justify-center`}
-                          title={user.name}
-                        >
-                          <span className="text-xs font-medium text-white">{initials}</span>
-                        </div>
-                      );
-                    })}
+                  
+                  {/* Separator */}
+                  <div className="h-4 w-px bg-gray-300"></div>
+                  
+                  {/* External users */}
+                  <div className="flex items-center space-x-2">
+                    <div className="flex -space-x-1">
+                      {users && Array.isArray(users) && users.slice(3, 5).map((user: any, index: number) => {
+                        const initials = user.name ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'U';
+                        const colors = ['bg-orange-500', 'bg-red-500'];
+                        return (
+                          <div 
+                            key={user.id} 
+                            className={`w-6 h-6 rounded-full ${colors[index % colors.length]} border-2 border-white flex items-center justify-center cursor-pointer hover:scale-110 transition-transform`}
+                            title={`${user.name} - Click for Salesforce view`}
+                            onClick={() => window.open(`/iframe/customer/${id}`, '_blank')}
+                          >
+                            <span className="text-xs font-medium text-white">{initials}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    <span className="text-xs text-gray-500 font-medium">External</span>
                   </div>
-                  <span className="text-xs text-gray-500 font-medium">External</span>
                 </div>
               </div>
+              
+              {/* Salesforce iframe link */}
+              <button
+                onClick={() => window.open(`/iframe/customer/${id}`, '_blank')}
+                className="text-xs text-blue-600 hover:text-blue-800 hover:underline flex items-center transition-colors group"
+                title="Open Salesforce-friendly view"
+              >
+                <svg className="w-3 h-3 mr-1 group-hover:scale-110 transition-transform" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
+                </svg>
+                Salesforce view
+              </button>
             </div>
           </div>
         </div>

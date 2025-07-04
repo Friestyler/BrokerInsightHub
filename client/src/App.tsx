@@ -45,6 +45,10 @@ import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
 import SharedListView from "@/pages/shared/SharedListView";
 import PartnerView from "@/pages/PartnerView";
 
+// Import iframe components
+import PartnerIframeView from "@/pages/iframe/PartnerIframeView";
+import CustomerIframeView from "@/pages/iframe/CustomerIframeView";
+
 
 // Import campaign components
 import CampaignsOverview from "@/pages/campaigns/CampaignsOverview";
@@ -75,6 +79,10 @@ function Router() {
   <Route path="/broker-view/campaigns/edit/:campaignId" component={PartnerView} />
   <Route path="/broker-view/opportunity/:opportunityId" component={OpportunityDetailBrokerPOV} />
   <Route path="/broker-view/partner/:partnerId" component={PartnerDetailBrokerPOV} />
+
+  {/* Iframe routes for Salesforce integration */}
+  <Route path="/iframe/partner/:id" component={PartnerIframeView} />
+  <Route path="/iframe/customer/:id" component={CustomerIframeView} />
 
   {/* Main layout routes */}
   <Route>
