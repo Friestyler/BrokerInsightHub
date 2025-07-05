@@ -285,7 +285,7 @@ export default function PartnerIframeView() {
                                 <SelectValue placeholder="All categories" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="">All categories</SelectItem>
+                                <SelectItem value="all">All categories</SelectItem>
                                 <SelectItem value="life">Life Insurance</SelectItem>
                                 <SelectItem value="non-life">Non-Life Insurance</SelectItem>
                                 <SelectItem value="services">Services</SelectItem>
@@ -297,7 +297,7 @@ export default function PartnerIframeView() {
                                 <SelectValue placeholder="All prices" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="">All prices</SelectItem>
+                                <SelectItem value="all">All prices</SelectItem>
                                 <SelectItem value="0-100">€0 - €100</SelectItem>
                                 <SelectItem value="100-500">€100 - €500</SelectItem>
                                 <SelectItem value="500+">€500+</SelectItem>
@@ -622,7 +622,7 @@ export default function PartnerIframeView() {
                           <SelectValue placeholder="All statuses" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">All statuses</SelectItem>
+                          <SelectItem value="all">All statuses</SelectItem>
                           <SelectItem value="active">Active</SelectItem>
                           <SelectItem value="inactive">Inactive</SelectItem>
                           <SelectItem value="pending">Pending</SelectItem>
@@ -634,7 +634,7 @@ export default function PartnerIframeView() {
                           <SelectValue placeholder="All industries" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">All industries</SelectItem>
+                          <SelectItem value="all">All industries</SelectItem>
                           <SelectItem value="technology">Technology</SelectItem>
                           <SelectItem value="healthcare">Healthcare</SelectItem>
                           <SelectItem value="finance">Finance</SelectItem>
@@ -710,7 +710,7 @@ export default function PartnerIframeView() {
                           <SelectValue placeholder="All stages" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">All stages</SelectItem>
+                          <SelectItem value="all">All stages</SelectItem>
                           <SelectItem value="discovery">Discovery</SelectItem>
                           <SelectItem value="qualification">Qualification</SelectItem>
                           <SelectItem value="proposal">Proposal</SelectItem>
@@ -725,7 +725,7 @@ export default function PartnerIframeView() {
                           <SelectValue placeholder="All customers" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">All customers</SelectItem>
+                          <SelectItem value="all">All customers</SelectItem>
                           {relatedCustomers.map((customer: any) => (
                             <SelectItem key={customer.id} value={customer.name}>
                               {customer.name}
