@@ -7,6 +7,7 @@ import { Target, Sparkles } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTab";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
+import { IframeHeader } from "@/components/iframe/IframeHeader";
 
 export default function CustomerIframeView() {
   const { id } = useParams();
@@ -150,84 +151,23 @@ export default function CustomerIframeView() {
         borderRadius: '0 !important',
         overflow: 'visible'
       }}>
-      {/* Header section - clean and minimal for iframe */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4">
-        {/* Entity name and description like in screenshot */}
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-full bg-[#5567E5] flex items-center justify-center">
-              <span className="text-white font-semibold text-sm">
-                {customer?.name ? customer.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) : 'CU'}
-              </span>
-            </div>
-            <div>
-              <h1 className="text-xl font-semibold text-gray-900">{customer?.name || 'Customer'}</h1>
-              <p className="text-sm text-gray-600">Business customer with multiple insurance needs</p>
-            </div>
-          </div>
-          <Button className="bg-[#5567E5] hover:bg-[#4556D4] text-white text-sm">
-            Creëer Customer Kans
-          </Button>
-        </div>
+      {/* Shared IframeHeader component */}
+      <IframeHeader
+        entityType="customer"
+        entityName={customer?.name || 'Customer'}
+        entityDescription="Business customer with multiple insurance needs"
+        users={users || []}
+        onCreateOpportunity={handleCreateOpportunity}
+      />
 
-        {/* Collaborators section exactly like screenshot */}
-        <div className="flex items-center space-x-4 mb-4">
-          <span className="text-sm font-medium text-gray-700">Collaborators:</span>
-          
-          {/* Internal collaborators */}
-          <div className="flex items-center space-x-2">
-            <div className="flex -space-x-1">
-              {users && Array.isArray(users) && users.slice(0, 3).map((user: any, index: number) => {
-                const initials = user?.name ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'U';
-                const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500'];
-                return (
-                  <div 
-                    key={user?.id || index} 
-                    className={`w-8 h-8 rounded-full ${colors[index % colors.length]} border-2 border-white flex items-center justify-center cursor-pointer hover:scale-110 transition-transform`}
-                    title={user?.name || 'User'}
-                    onClick={() => window.location.href = `/iframe/customer/${id}`}
-                  >
-                    <span className="text-xs font-medium text-white">{initials}</span>
-                  </div>
-                );
-              })}
-            </div>
-            <span className="text-sm text-gray-500 font-medium">Internal</span>
-          </div>
-          
-          <div className="h-4 w-px bg-gray-300"></div>
-          
-          {/* External collaborators */}
-          <div className="flex items-center space-x-2">
-            <div className="flex -space-x-1">
-              {users && Array.isArray(users) && users.slice(3, 5).map((user: any, index: number) => {
-                const initials = user?.name ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'U';
-                const colors = ['bg-orange-500', 'bg-red-500'];
-                return (
-                  <div 
-                    key={user?.id || index} 
-                    className={`w-8 h-8 rounded-full ${colors[index % colors.length]} border-2 border-white flex items-center justify-center cursor-pointer hover:scale-110 transition-transform`}
-                    title={user?.name || 'User'}
-                    onClick={() => window.location.href = `/iframe/customer/${id}`}
-                  >
-                    <span className="text-xs font-medium text-white">{initials}</span>
-                  </div>
-                );
-              })}
-            </div>
-            <span className="text-sm text-gray-500 font-medium">External</span>
-          </div>
-        </div>
-
-        {/* Activity section with EXACT same layout and functionality as partner iframe */}
-        <div className="mt-4">
-          <PartnerActivityHub 
-            partnerId={parseInt(id || '18')} 
-            partnerName={customer?.name || 'Customer'} 
-            entityType="customer"
-            entityId={parseInt(id || '18')}
-          />
-        </div>
+      {/* Activity section with EXACT same layout and functionality as partner iframe */}
+      <div className="bg-white border-b border-gray-200 px-6 pt-0 pb-4">
+        <PartnerActivityHub 
+          partnerId={parseInt(id || '18')} 
+          partnerName={customer?.name || 'Customer'} 
+          entityType="customer"
+          entityId={parseInt(id || '18')}
+        />
       </div>
 
       {/* Main tabs exactly like screenshot */}
