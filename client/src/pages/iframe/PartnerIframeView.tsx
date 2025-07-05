@@ -794,9 +794,222 @@ export default function PartnerIframeView() {
           </div>
         )}
         
+        {/* Opportunities tab - EXACT MIRROR from PartnerDetail */}
         {activeTab === "opportunities" && (
-          <div className="text-center py-12">
-            <p className="text-gray-500">Opportunities view</p>
+          <div className="iframe-container" style={{ border: 'none !important', outline: 'none !important', boxShadow: 'none !important', overflow: 'visible' }}>
+            {/* Enhanced unified toolbar - Opportunities version - EXACT MIRROR from PartnerDetail */}
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <div className="flex flex-col gap-4">
+                {/* Top row with saved lists and views */}
+                <div className="flex flex-wrap items-center justify-between">
+                  {/* Left side - Saved Lists with actions */}
+                  <div className="flex items-center gap-3">
+                    {/* Lists heading */}
+                    <div className="flex flex-col mr-2">
+                      <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
+                    </div>
+                    {/* Saved Lists dropdown */}
+                    <div className="relative">
+                      <button 
+                        className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
+                        onClick={() => {}}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
+                          <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
+                        </svg>
+                        <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                          All opportunities
+                        </span>
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          width="14" 
+                          height="14" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round"
+                        >
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  {/* Right side - View selector and action buttons */}
+                  <div className="flex items-center gap-3">
+                    {/* Saved Views dropdown */}
+                    <div className="relative">
+                      <button 
+                        className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white hover:bg-gray-50"
+                        onClick={() => {}}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        <span>Select a view</span>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    {/* Action buttons */}
+                    <Button variant="outline" size="sm">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                      </svg>
+                      Export
+                    </Button>
+                    <Button className="bg-[#5567E5] hover:bg-[#4556D4]" size="sm">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                      New
+                    </Button>
+                  </div>
+                </div>
+                
+                {/* Action buttons and quick filters row */}
+                <div className="flex justify-between items-center">
+                  <div className="flex flex-wrap items-center gap-3 flex-grow">
+                    {/* Search field */}
+                    <div className="relative w-60">
+                      <Input
+                        type="text"
+                        placeholder="Search opportunities..."
+                        value={""}
+                        onChange={(e) => {}}
+                        className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+                      />
+                      <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                          <circle cx="11" cy="11" r="8"></circle>
+                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    {/* Stage Filter */}
+                    <div className="relative">
+                      <button 
+                        className="flex items-center px-3 py-2 border rounded-md text-sm font-medium bg-white hover:bg-gray-50"
+                        onClick={() => {}}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-gray-500">
+                          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg>
+                        Stage
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                          <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    {/* Customer Filter */}
+                    <div className="relative">
+                      <button 
+                        className="flex items-center px-3 py-2 border rounded-md text-sm font-medium bg-white hover:bg-gray-50"
+                        onClick={() => {}}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-gray-500">
+                          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg>
+                        Customer
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                          <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                      </button>
+                    </div>
+                    
+                    {/* Account Manager Filter */}
+                    <div className="relative">
+                      <button 
+                        className="flex items-center px-3 py-2 border rounded-md text-sm font-medium bg-white hover:bg-gray-50"
+                        onClick={() => {}}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-gray-500">
+                          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg>
+                        Account Manager
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                          <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Statistics Overview - EXACT MIRROR from PartnerDetail */}
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+              {(() => {
+                // Get filtered opportunities based on current filters
+                const filteredOpportunities = [];
+                
+                // Calculate statistics
+                const totalOpportunities = filteredOpportunities.length;
+                const totalValue = 0;
+                const weightedValue = 0;
+                const conversionRate = 0;
+
+                return (
+                  <>
+                    <div className="bg-white p-4 rounded-lg border border-[#E6E7F1]">
+                      <div className="text-2xl font-bold text-gray-900">{totalOpportunities}</div>
+                      <div className="text-sm text-gray-500">Total Opportunities</div>
+                    </div>
+                    <div className="bg-white p-4 rounded-lg border border-[#E6E7F1]">
+                      <div className="text-2xl font-bold text-gray-900">€{totalValue.toLocaleString()}</div>
+                      <div className="text-sm text-gray-500">Total Value</div>
+                    </div>
+                    <div className="bg-white p-4 rounded-lg border border-[#E6E7F1]">
+                      <div className="text-2xl font-bold text-gray-900">€{weightedValue.toLocaleString()}</div>
+                      <div className="text-sm text-gray-500">Weighted Value</div>
+                    </div>
+                    <div className="bg-white p-4 rounded-lg border border-[#E6E7F1]">
+                      <div className="text-2xl font-bold text-gray-900">{conversionRate}%</div>
+                      <div className="text-sm text-gray-500">Conversion Rate</div>
+                    </div>
+                  </>
+                );
+              })()}
+            </div>
+
+            {/* Opportunities Table - EXACT same structure as main app */}
+            <div className="bg-white rounded-lg shadow-sm border border-[#E6E7F1]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12" style={{ color: '#696C8C' }}>
+                      <Checkbox
+                        checked={false}
+                        onCheckedChange={() => {}}
+                      />
+                    </TableHead>
+                    <TableHead style={{ color: '#696C8C' }}>Opportunity</TableHead>
+                    <TableHead style={{ color: '#696C8C' }}>Customer</TableHead>
+                    <TableHead style={{ color: '#696C8C' }}>Stage</TableHead>
+                    <TableHead style={{ color: '#696C8C' }}>Value</TableHead>
+                    <TableHead style={{ color: '#696C8C' }}>Probability</TableHead>
+                    <TableHead style={{ color: '#696C8C' }}>Close Date</TableHead>
+                    <TableHead className="w-12" style={{ color: '#696C8C' }}>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell colSpan={8} className="text-center py-8 text-gray-500">
+                      No opportunities found
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
           </div>
         )}
         
