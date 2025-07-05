@@ -43,6 +43,24 @@ function LayoutComponent({ children }: LayoutProps) {
   const toggleSidebar = useCallback(() => {
     setSidebarCollapsed(prev => !prev);
   }, []);
+
+  // Handle profile picture click for Salesforce iframe
+  const handleProfileClick = useCallback(() => {
+    // Extract entity ID and type from current location
+    const partnerMatch = location.match(/\/lists\/partners\/(\d+)/);
+    const customerMatch = location.match(/\/lists\/customers\/(\d+)/);
+    
+    if (partnerMatch) {
+      const partnerId = partnerMatch[1];
+      window.open(`/iframe/partner/${partnerId}`, '_blank');
+    } else if (customerMatch) {
+      const customerId = customerMatch[1];
+      window.open(`/iframe/customer/${customerId}`, '_blank');
+    } else {
+      // For other pages, we could show a default iframe or do nothing
+      console.log('Profile clicked on page without specific entity context');
+    }
+  }, [location]);
   
   return (
     <div className="h-screen flex overflow-hidden">
@@ -76,7 +94,11 @@ function LayoutComponent({ children }: LayoutProps) {
               </svg>
             </button>
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-full overflow-hidden cursor-pointer hover:ring-2 hover:ring-indigo-300 transition-all">
+              <div 
+                className="w-8 h-8 rounded-full overflow-hidden cursor-pointer hover:ring-2 hover:ring-indigo-300 hover:scale-110 transition-all"
+                onClick={handleProfileClick}
+                title="Click for Salesforce view"
+              >
                 <img 
                   src={userAvatar} 
                   alt="User Avatar" 
