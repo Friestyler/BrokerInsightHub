@@ -205,7 +205,7 @@ export default function PartnerIframeView() {
                         <TableCell>
                           {assignment.contractEndDate ? new Date(assignment.contractEndDate).toLocaleDateString('en-GB') : '-'}
                         </TableCell>
-                        <TableCell>€{assignment.premiumValue?.toLocaleString() || 0}</TableCell>
+                        <TableCell>€{parseFloat(assignment.premiumValue || 0).toLocaleString()}</TableCell>
                         <TableCell>{assignment.premiumPercentage}%</TableCell>
                       </TableRow>
                     ))}

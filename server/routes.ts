@@ -4139,22 +4139,22 @@ Keep the tone clear and professional. Focus on what will help the account manage
       const result = await envPool.query(`
         SELECT 
           pp.id,
-          pp.partner_id as partnerId,
-          pp.product_id as productId,
-          pp.created_at as assignedAt,
+          pp.partner_id as "partnerId",
+          pp.product_id as "productId",
+          pp.created_at as "assignedAt",
           -- Product info
-          p.name as productName,
-          p.description as productDescription,
+          p.name as "productName",
+          p.description as "productDescription",
           p.category as category,
-          p.contract_start_date as contractStartDate,
-          p.contract_end_date as contractEndDate,
-          p.premium_value as premiumValue,
-          p.premium_percentage as premiumPercentage,
-          p.discount_percentage as discountPercentage,
-          p.total_value as totalValue,
+          p.contract_start_date as "contractStartDate",
+          p.contract_end_date as "contractEndDate",
+          p.premium_value as "premiumValue",
+          p.premium_percentage as "premiumPercentage",
+          p.discount_percentage as "discountPercentage",
+          p.total_value as "totalValue",
           -- Category info
-          c.name as categoryName,
-          c.color as categoryColor
+          c.name as "categoryName",
+          c.color as "categoryColor"
         FROM degoudse.partner_products pp
         INNER JOIN degoudse.products p ON pp.product_id = p.id
         LEFT JOIN degoudse.categories c ON p.category_id = c.id
