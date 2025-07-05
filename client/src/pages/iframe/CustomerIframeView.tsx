@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Target, Sparkles } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTab";
+import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 
 export default function CustomerIframeView() {
   const { id } = useParams();
@@ -13,6 +14,12 @@ export default function CustomerIframeView() {
   const [activeTab, setActiveTab] = useState("products");
   const [activeProductTab, setActiveProductTab] = useState("overview");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+
+  // Fetch specific customer data - EXACT same as main app
+  const { data: customer, isLoading: customerLoading } = useQuery({
+    queryKey: [`/api/customers/${id}`],
+    enabled: !!id,
+  });
 
   // Fetch all customers to find this specific customer - EXACT same as main app
   const { data: customers, isLoading: customersLoading } = useQuery({
@@ -51,12 +58,12 @@ export default function CustomerIframeView() {
     return <div className="p-6">Customer ID not found</div>;
   }
 
-  if (customerLoading) {
+  if (customerLoading || customersLoading) {
     return <div className="p-6">Loading...</div>;
   }
 
-  const opportunityCount = Array.isArray(opportunities) ? opportunities.length : 0;
-  const partnerCount = Array.isArray(partners) ? partners.length : 0;
+  const opportunityCount = Array.isArray(relatedOpportunities) ? relatedOpportunities.length : 0;
+  const partnerCount = Array.isArray(relatedPartners) ? relatedPartners.length : 0;
 
   const handleCreateOpportunity = () => {
     setIsCreateModalOpen(true);
@@ -270,7 +277,7 @@ export default function CustomerIframeView() {
           <div className="p-6">
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900">Customer Partners</h3>
-              {Array.isArray(partners) ? partners.map((partner: any) => (
+              {Array.isArray(relatedPartners) ? relatedPartners.map((partner: any) => (
                 <div key={partner?.id || Math.random()} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -294,7 +301,7 @@ export default function CustomerIframeView() {
           <div className="p-6">
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900">Customer Opportunities</h3>
-              {Array.isArray(opportunities) ? opportunities.map((opportunity: any) => (
+              {Array.isArray(relatedOpportunities) ? relatedOpportunities.map((opportunity: any) => (
                 <div key={opportunity?.id || Math.random()} className="border border-gray-200 rounded-lg p-4">
                   <div className="flex items-center justify-between">
                     <div>
@@ -320,6 +327,16 @@ export default function CustomerIframeView() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Activity section with EXACT same layout and functionality as partner iframe */}
+      <div className="border-t border-gray-200 pt-4">
+        <PartnerActivityHub 
+          partnerId={parseInt(id || '18')} 
+          partnerName={customer?.name || 'Customer'} 
+          entityType="customer"
+          entityId={parseInt(id || '18')}
+        />
       </div>
     </div>
   );
