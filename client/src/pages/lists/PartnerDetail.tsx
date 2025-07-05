@@ -3652,16 +3652,15 @@ export default function PartnerDetail() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {(() => {
                 // Get filtered products based on current filters
-                const filteredProducts = (relatedProducts as any[] || []).filter((product: any) => {
+                const filteredProducts = (assignedProducts as any[] || []).filter((product: any) => {
                   const matchesSearch = !productSearchText || 
-                    product.name?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                    product.description?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                    product.sku?.toLowerCase().includes(productSearchText.toLowerCase());
+                    product.productName?.toLowerCase().includes(productSearchText.toLowerCase()) ||
+                    product.productDescription?.toLowerCase().includes(productSearchText.toLowerCase());
                   
-                  const matchesCategory = !selectedProductCategory || product.category === selectedProductCategory;
+                  const matchesCategory = !selectedProductCategory || product.categoryName === selectedProductCategory;
                   
                   const matchesPrice = !selectedPriceRange || (() => {
-                    const price = parseFloat(product.price || '0');
+                    const price = parseFloat(product.premiumValue || '0');
                     switch(selectedPriceRange) {
                       case '€0 - €50K': return price >= 0 && price <= 50000;
                       case '€50K - €100K': return price > 50000 && price <= 100000;
@@ -3676,7 +3675,7 @@ export default function PartnerDetail() {
 
                 // Group products by category and calculate statistics
                 const categoryStats = filteredProducts.reduce((acc: any, product: any) => {
-                  const category = product.category || 'Other';
+                  const category = product.categoryName || 'Other';
                   if (!acc[category]) {
                     acc[category] = {
                       count: 0,
@@ -3685,7 +3684,7 @@ export default function PartnerDetail() {
                     };
                   }
                   acc[category].count += 1;
-                  acc[category].totalValue += parseFloat(product.price || '0');
+                  acc[category].totalValue += parseFloat(product.premiumValue || '0');
                   acc[category].products.push(product);
                   return acc;
                 }, {});
@@ -3709,24 +3708,23 @@ export default function PartnerDetail() {
 
             {/* Products Table Content */}
             <div className="space-y-6">
-              {productsLoading ? (
+              {assignmentsLoading ? (
                 <div className="flex justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
                 </div>
-              ) : relatedProducts && Array.isArray(relatedProducts) && relatedProducts.length > 0 ? (
+              ) : assignedProducts && Array.isArray(assignedProducts) && assignedProducts.length > 0 ? (
                 <div className="bg-white rounded-lg border border-gray-200">
                   <div className="px-6 py-4 border-b border-gray-200">
                     <h3 className="text-lg font-semibold text-gray-900">Products ({
-                      relatedProducts.filter((product: any) => {
+                      assignedProducts.filter((product: any) => {
                         const matchesSearch = !productSearchText || 
-                          product.name?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                          product.description?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                          product.sku?.toLowerCase().includes(productSearchText.toLowerCase());
+                          product.productName?.toLowerCase().includes(productSearchText.toLowerCase()) ||
+                          product.productDescription?.toLowerCase().includes(productSearchText.toLowerCase());
                         
                         const matchesCategory = !selectedProductCategory || product.category === selectedProductCategory;
                         
                         const matchesPrice = !selectedPriceRange || (() => {
-                          const price = parseFloat(product.price || '0');
+                          const price = parseFloat(product.premiumValue || '0');
                           switch(selectedPriceRange) {
                             case '€0 - €50K': return price >= 0 && price <= 50000;
                             case '€50K - €100K': return price > 50000 && price <= 100000;
@@ -3751,11 +3749,10 @@ export default function PartnerDetail() {
                             }`}>
                               <Checkbox 
                                 checked={
-                                  selectedProducts.length === relatedProducts.filter((product: any) => {
+                                  selectedProducts.length === assignedProducts.filter((product: any) => {
                                     const matchesSearch = !productSearchText || 
-                                      product.name?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                                      product.description?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                                      product.sku?.toLowerCase().includes(productSearchText.toLowerCase());
+                                      product.productName?.toLowerCase().includes(productSearchText.toLowerCase()) ||
+                                      product.productDescription?.toLowerCase().includes(productSearchText.toLowerCase());
                                     
                                     const matchesCategory = !selectedProductCategory || product.category === selectedProductCategory;
                                     
@@ -3794,11 +3791,10 @@ export default function PartnerDetail() {
                                   }).length > 0
                                 }
                                 onCheckedChange={(checked) => {
-                                  const filteredProducts = relatedProducts.filter((product: any) => {
+                                  const filteredProducts = assignedProducts.filter((product: any) => {
                                     const matchesSearch = !productSearchText || 
-                                      product.name?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                                      product.description?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                                      product.sku?.toLowerCase().includes(productSearchText.toLowerCase());
+                                      product.productName?.toLowerCase().includes(productSearchText.toLowerCase()) ||
+                                      product.productDescription?.toLowerCase().includes(productSearchText.toLowerCase());
                                     
                                     const matchesCategory = !selectedProductCategory || product.category === selectedProductCategory;
                                     
@@ -3833,12 +3829,11 @@ export default function PartnerDetail() {
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {relatedProducts
+                        {assignedProducts
                           .filter((product: any) => {
                             const matchesSearch = !productSearchText || 
-                              product.name?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                              product.description?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                              product.sku?.toLowerCase().includes(productSearchText.toLowerCase());
+                              product.productName?.toLowerCase().includes(productSearchText.toLowerCase()) ||
+                              product.productDescription?.toLowerCase().includes(productSearchText.toLowerCase());
                             
                             const matchesCategory = !selectedProductCategory || product.category === selectedProductCategory;
                             
@@ -3875,27 +3870,27 @@ export default function PartnerDetail() {
                               </TableCell>
                               <TableCell className="font-medium">
                                 <div>
-                                  <div className="font-semibold text-gray-900">{product.name}</div>
-                                  {product.description && (
-                                    <div className="text-sm text-gray-500 mt-1">{product.description}</div>
+                                  <div className="font-semibold text-gray-900">{product.productName}</div>
+                                  {product.productDescription && (
+                                    <div className="text-sm text-gray-500 mt-1">{product.productDescription}</div>
                                   )}
                                 </div>
                               </TableCell>
                               <TableCell>
-                                {product.category && (
+                                {product.categoryName && (
                                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    {product.category}
+                                    {product.categoryName}
                                   </span>
                                 )}
                               </TableCell>
                               <TableCell className="text-gray-600">
-                                {product.sku || '-'}
+                                {product.productId || '-'}
                               </TableCell>
                               <TableCell className="text-right">
-                                {product.price ? `€${parseFloat(product.price).toLocaleString()}` : '-'}
+                                {product.premiumValue ? `€${parseFloat(product.premiumValue).toLocaleString()}` : '-'}
                               </TableCell>
                               <TableCell className="text-gray-500">
-                                {product.created_at ? new Date(product.created_at).toLocaleDateString() : '-'}
+                                {product.contractStartDate ? new Date(product.contractStartDate).toLocaleDateString() : '-'}
                               </TableCell>
                             </TableRow>
                         ))}
