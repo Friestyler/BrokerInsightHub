@@ -33,10 +33,10 @@ export default function PartnerIframeView() {
     queryKey: ['/api/partners'],
   });
 
-  // Fetch related products for this partner - EXACT same as main app
-  const { data: relatedProducts, isLoading: productsLoading } = useQuery({
-    queryKey: [`/api/partners/${id}/products`],
-    enabled: !!id,
+  // Fetch assigned products for this partner - EXACT same as main app
+  const { data: assignedProducts, isLoading: assignmentsLoading } = useQuery({
+    queryKey: [`/api/degoudse/partners/${id}/product-assignments`],
+    enabled: !!id
   });
 
   // Fetch users for collaborators - EXACT same as main app
@@ -205,11 +205,11 @@ export default function PartnerIframeView() {
         </div>
 
         {/* Products Content - EXACT MIRROR */}
-        {productsLoading ? (
+        {assignmentsLoading ? (
           <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
           </div>
-        ) : relatedProducts && Array.isArray(relatedProducts) && relatedProducts.length > 0 ? (
+        ) : assignedProducts && Array.isArray(assignedProducts) && assignedProducts.length > 0 ? (
           <div className="bg-white rounded-lg shadow-sm mt-4">
             <Table>
               <TableHeader>
@@ -221,18 +221,18 @@ export default function PartnerIframeView() {
                   </TableHead>
                   <TableHead>Product Name</TableHead>
                   <TableHead>Category</TableHead>
-                  <TableHead>SKU</TableHead>
-                  <TableHead className="text-right">Price</TableHead>
+                  <TableHead>Product ID</TableHead>
+                  <TableHead className="text-right">Premium Value</TableHead>
                   <TableHead>Created</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {relatedProducts
+                {assignedProducts
                   .filter((product: any) => {
                     const matchesSearch = !productSearchText || 
-                      product.name?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                      product.description?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                      product.sku?.toLowerCase().includes(productSearchText.toLowerCase());
+                      product.productName?.toLowerCase().includes(productSearchText.toLowerCase()) ||
+                      product.productDescription?.toLowerCase().includes(productSearchText.toLowerCase()) ||
+                      product.productId?.toString().toLowerCase().includes(productSearchText.toLowerCase());
                     
                     return matchesSearch;
                   })
@@ -245,24 +245,24 @@ export default function PartnerIframeView() {
                       </TableCell>
                       <TableCell className="font-medium">
                         <div>
-                          <div className="font-semibold text-gray-900">{product.name}</div>
-                          {product.description && (
-                            <div className="text-sm text-gray-500 mt-1">{product.description}</div>
+                          <div className="font-semibold text-gray-900">{product.productName}</div>
+                          {product.productDescription && (
+                            <div className="text-sm text-gray-500 mt-1">{product.productDescription}</div>
                           )}
                         </div>
                       </TableCell>
                       <TableCell>
-                        {product.category && (
+                        {product.categoryName && (
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                            {product.category}
+                            {product.categoryName}
                           </span>
                         )}
                       </TableCell>
                       <TableCell className="text-gray-600">
-                        {product.sku || '-'}
+                        {product.productId || '-'}
                       </TableCell>
                       <TableCell className="text-right">
-                        {product.price ? `€${parseFloat(product.price).toLocaleString()}` : '-'}
+                        {product.premiumValue ? `€${parseFloat(product.premiumValue).toLocaleString()}` : '-'}
                       </TableCell>
                       <TableCell className="text-gray-500">
                         {product.created_at ? new Date(product.created_at).toLocaleDateString() : '-'}
