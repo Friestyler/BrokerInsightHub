@@ -159,15 +159,17 @@ export default function PartnerIframeView() {
         {/* Header with partner info and collaborators */}
         <IframeHeader 
           entityType="partner"
+          entityName={partner?.name || ""}
+          entityDescription={partner?.description || ""}
+          users={(users as any[]) || []}
+          onCreateOpportunity={() => {}}
           entityId={id || ""}
-          entityData={partner}
-          users={users}
         />
         
         {/* Activity Hub */}
         <div className="mb-6">
           <PartnerActivityHub 
-            partnerId={id || ""} 
+            partnerId={id || "1"} 
             partnerName={partner?.name || ""} 
           />
         </div>
@@ -585,10 +587,10 @@ export default function PartnerIframeView() {
                   <TableBody>
                     {relatedCustomers.map((customer: any) => (
                       <TableRow key={customer.id} className="hover:bg-gray-50">
-                        <TableCell className="font-medium">{customer.companyName}</TableCell>
-                        <TableCell>{customer.industry}</TableCell>
-                        <TableCell>{customer.location}</TableCell>
-                        <TableCell>€{customer.annualRevenue?.toLocaleString()}</TableCell>
+                        <TableCell className="font-medium">{customer.name}</TableCell>
+                        <TableCell>{customer.industry || '-'}</TableCell>
+                        <TableCell>{customer.location || '-'}</TableCell>
+                        <TableCell>{customer.annualRevenue ? `€${customer.annualRevenue?.toLocaleString()}` : '-'}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
