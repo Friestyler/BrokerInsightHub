@@ -78,38 +78,40 @@ export default function PartnerIframeView() {
   const renderProductSubtabs = () => {
     return (
       <div className="space-y-0">
-        {/* Product subtabs - EXACT replica from main app */}
-        <div className="flex space-x-6 border-b border-gray-200 -mt-6 px-6">
-          <button
-            onClick={() => setActiveProductTab("overview")}
-            className={`py-2 px-3 text-sm font-medium border-b-2 -mb-px ${
-              activeProductTab === "overview"
-                ? "border-[#5567E5] text-[#5567E5]"
-                : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            Overview
-          </button>
-          <button
-            onClick={() => setActiveProductTab("matrix")}
-            className={`py-2 px-3 text-sm font-medium border-b-2 -mb-px ${
-              activeProductTab === "matrix"
-                ? "border-[#5567E5] text-[#5567E5]"
-                : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            Matrix
-          </button>
-          <button
-            onClick={() => setActiveProductTab("list")}
-            className={`py-2 px-3 text-sm font-medium border-b-2 -mb-px ${
-              activeProductTab === "list"
-                ? "border-[#5567E5] text-[#5567E5]"
-                : "border-transparent text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            List
-          </button>
+        {/* Product subtabs - properly positioned */}
+        <div className="bg-white border-b border-gray-200 px-6 py-0">
+          <div className="flex space-x-6 -mb-px">
+            <button
+              onClick={() => setActiveProductTab("overview")}
+              className={`py-2 px-3 text-sm font-medium border-b-2 ${
+                activeProductTab === "overview"
+                  ? "border-[#5567E5] text-[#5567E5]"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveProductTab("matrix")}
+              className={`py-2 px-3 text-sm font-medium border-b-2 ${
+                activeProductTab === "matrix"
+                  ? "border-[#5567E5] text-[#5567E5]"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              Matrix
+            </button>
+            <button
+              onClick={() => setActiveProductTab("list")}
+              className={`py-2 px-3 text-sm font-medium border-b-2 ${
+                activeProductTab === "list"
+                  ? "border-[#5567E5] text-[#5567E5]"
+                  : "border-transparent text-gray-500 hover:text-gray-700"
+              }`}
+            >
+              List
+            </button>
+          </div>
         </div>
 
         {/* Product content based on selected subtab */}
@@ -247,18 +249,12 @@ export default function PartnerIframeView() {
           </div>
         </div>
 
-        {/* Activity section with EXACT same layout */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <ChevronRight className="w-4 h-4 text-gray-400" />
-            <span className="text-sm font-medium text-gray-700">Activity</span>
-            <span className="text-sm text-gray-500">5 pending</span>
-            <span className="text-sm text-gray-500">5 total</span>
-          </div>
-          <Button variant="outline" className="text-sm">
-            <Sparkles className="w-4 h-4 mr-2" />
-            Generate Next Best Action
-          </Button>
+        {/* Activity section with EXACT same layout and functionality */}
+        <div className="border-t border-gray-200 pt-4">
+          <PartnerActivityHub 
+            partnerId={parseInt(id || '1')} 
+            partnerName={partner?.name || 'Willis B.V'} 
+          />
         </div>
       </div>
 
@@ -309,7 +305,7 @@ export default function PartnerIframeView() {
       </div>
 
       {/* Content area */}
-      <div className="bg-white">
+      <div className="bg-white min-h-screen">
         {activeTab === "products" && renderProductSubtabs()}
 
         {activeTab === "customers" && (
