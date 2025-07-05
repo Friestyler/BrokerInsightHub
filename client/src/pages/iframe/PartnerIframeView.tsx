@@ -32,6 +32,7 @@ export default function PartnerIframeView() {
 
   // Bulk actions state - EXACT MIRROR from PartnerDetail
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
   const [showBulkActions, setShowBulkActions] = useState(false);
   const [showSaveToListModal, setShowSaveToListModal] = useState(false);
   const [listNameInput, setListNameInput] = useState("");
@@ -43,7 +44,7 @@ export default function PartnerIframeView() {
       const updated = prev.includes(productId) 
         ? prev.filter(id => id !== productId)
         : [...prev, productId];
-      setShowBulkActions(updated.length > 0);
+      setShowBulkActions(updated.length > 0 || selectedCustomers.length > 0);
       return updated;
     });
   };
@@ -52,19 +53,51 @@ export default function PartnerIframeView() {
     if (!assignedProducts) return;
     const allProductIds = assignedProducts.map((product: any) => product.id?.toString());
     setSelectedProducts(allProductIds);
-    setShowBulkActions(allProductIds.length > 0);
+    setShowBulkActions(allProductIds.length > 0 || selectedCustomers.length > 0);
   };
 
   const handleClearSelection = () => {
     setSelectedProducts([]);
+    setSelectedCustomers([]);
     setShowBulkActions(false);
   };
 
   const handleSaveToList = async () => {
-    // Implementation for saving to list
-    console.log('Save to list:', selectedProducts);
+    // Implementation for saving to list - handles both products and customers
+    console.log('Save to list:', { 
+      products: selectedProducts, 
+      customers: selectedCustomers,
+      listName: listNameInput,
+      listDescription: listDescriptionInput
+    });
     setShowSaveToListModal(false);
     handleClearSelection();
+  };
+
+  // Customer selection handlers - EXACT MIRROR from PartnerDetail
+  const handleSelectCustomer = (customerId: string) => {
+    setSelectedCustomers(prev => {
+      const updated = prev.includes(customerId) 
+        ? prev.filter(id => id !== customerId)
+        : [...prev, customerId];
+      setShowBulkActions(updated.length > 0 || selectedProducts.length > 0);
+      return updated;
+    });
+  };
+
+  const handleSelectAllCustomers = () => {
+    if (!relatedCustomers || !Array.isArray(relatedCustomers)) return;
+    
+    const allIds = relatedCustomers.map((customer: any) => customer.id.toString());
+    const allSelected = allIds.every((id: string) => selectedCustomers.includes(id));
+    
+    if (allSelected) {
+      setSelectedCustomers([]);
+      setShowBulkActions(selectedProducts.length > 0);
+    } else {
+      setSelectedCustomers(allIds);
+      setShowBulkActions(true);
+    }
   };
 
   // Fetch all partners to find this specific partner - EXACT same as main app
@@ -76,6 +109,12 @@ export default function PartnerIframeView() {
   const { data: assignedProducts, isLoading: assignmentsLoading } = useQuery({
     queryKey: [`/api/degoudse/partners/${id}/product-assignments`],
     enabled: !!id
+  });
+
+  // Fetch related customers for this partner - EXACT same as main app
+  const { data: relatedCustomers, isLoading: customersLoading } = useQuery({
+    queryKey: [`/api/partners/${id}/customers`],
+    enabled: !!id,
   });
 
   // Fetch users for collaborators - EXACT same as main app
@@ -487,10 +526,117 @@ export default function PartnerIframeView() {
           </div>
         )}
 
-        {/* Other tab contents as placeholders */}
+        {/* Customers tab - EXACT MIRROR from PartnerDetail */}
         {activeTab === "customers" && (
-          <div className="text-center py-12">
-            <p className="text-gray-500">Customers view</p>
+          <div className="iframe-container" style={{ border: 'none !important', outline: 'none !important', boxShadow: 'none !important', overflow: 'visible' }}>
+            
+            {/* Bulk actions bar - Appears when customers are selected */}
+            {selectedCustomers.length > 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 flex items-center justify-between">
+                <span className="text-sm text-blue-700">
+                  {selectedCustomers.length} customer(s) selected
+                </span>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowSaveToListModal(true)}
+                  >
+                    Add to list
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={handleClearSelection}
+                  >
+                    Clear selection
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {/* Customer Table - EXACT same structure as main app */}
+            <div className="bg-white rounded-lg shadow-sm border border-[#E6E7F1]">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12" style={{ color: '#696C8C' }}>
+                      <Checkbox
+                        checked={relatedCustomers && Array.isArray(relatedCustomers) && 
+                                 relatedCustomers.length > 0 && 
+                                 relatedCustomers.every((customer: any) => 
+                                   selectedCustomers.includes(customer.id.toString())
+                                 )}
+                        onCheckedChange={handleSelectAllCustomers}
+                      />
+                    </TableHead>
+                    <TableHead style={{ color: '#696C8C' }}>Customer Name</TableHead>
+                    <TableHead style={{ color: '#696C8C' }}>Industry</TableHead>
+                    <TableHead style={{ color: '#696C8C' }}>Status</TableHead>
+                    <TableHead style={{ color: '#696C8C' }}>Opportunities</TableHead>
+                    <TableHead style={{ color: '#696C8C' }}>Total Value</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {customersLoading ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8">
+                        Loading customers...
+                      </TableCell>
+                    </TableRow>
+                  ) : !relatedCustomers || !Array.isArray(relatedCustomers) || relatedCustomers.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6} className="text-center py-8 text-gray-500">
+                        No customers found
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    relatedCustomers.map((customer: any) => (
+                      <TableRow key={customer.id} className="group hover:bg-gray-50">
+                        <TableCell>
+                          <div className={`transition-opacity ${
+                            selectedCustomers.includes(customer.id.toString()) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                          }`}>
+                            <Checkbox 
+                              checked={selectedCustomers.includes(customer.id.toString())}
+                              onCheckedChange={() => handleSelectCustomer(customer.id.toString())}
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="font-medium text-blue-600">
+                            {customer.name || 'Unnamed Customer'}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-gray-900">
+                            {customer.industry || 'Not specified'}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`px-2 py-1 rounded-full text-xs ${
+                            customer.status === 'Active' ? 'bg-green-100 text-green-800' :
+                            customer.status === 'Inactive' ? 'bg-red-100 text-red-800' :
+                            customer.status === 'Prospect' ? 'bg-yellow-100 text-yellow-800' :
+                            'bg-gray-100 text-gray-800'
+                          }`}>
+                            {customer.status || 'Unknown'}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <span className="text-blue-600">
+                            {customer.opportunities_count || 0}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          €{customer.total_value ? Number(customer.total_value).toLocaleString() : '0'}
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  )}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         )}
         
