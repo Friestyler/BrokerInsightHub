@@ -84,7 +84,7 @@ export default function PartnerIframeView() {
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Categories</SelectItem>
+                  <SelectItem value="all">All Categories</SelectItem>
                   <SelectItem value="Life">Life</SelectItem>
                   <SelectItem value="Non-Life">Non-Life</SelectItem>
                   <SelectItem value="Services">Services</SelectItem>
@@ -96,7 +96,7 @@ export default function PartnerIframeView() {
                   <SelectValue placeholder="Price Range" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Prices</SelectItem>
+                  <SelectItem value="all">All Prices</SelectItem>
                   <SelectItem value="€0 - €50K">€0 - €50K</SelectItem>
                   <SelectItem value="€50K - €100K">€50K - €100K</SelectItem>
                   <SelectItem value="€100K+">€100K+</SelectItem>

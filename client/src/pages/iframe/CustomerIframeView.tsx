@@ -231,14 +231,14 @@ export default function CustomerIframeView() {
                     {/* Category Filter */}
                     <div className="relative">
                       <select className="h-8 px-3 py-1 border border-gray-300 bg-white rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
-                        <option value="">All Categories</option>
+                        <option value="all">All Categories</option>
                       </select>
                     </div>
 
                     {/* Price Range Filter */}
                     <div className="relative">
                       <select className="h-8 px-3 py-1 border border-gray-300 bg-white rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500">
-                        <option value="">All Prices</option>
+                        <option value="all">All Prices</option>
                         <option value="€0 - €50K">€0 - €50K</option>
                         <option value="€50K - €100K">€50K - €100K</option>
                         <option value="€100K - €150K">€100K - €150K</option>
