@@ -116,9 +116,7 @@ export function IframeHeader({ entityType, entityName, entityDescription, users,
           target="_blank"
           rel="noopener noreferrer"
           className="text-sm text-blue-600 font-medium hover:text-blue-800 transition-colors cursor-pointer"
-        >
-          View in Deal Room
-        </a>
+        >Partner View</a>
       </div>
     </div>
   );
