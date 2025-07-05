@@ -7,6 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { Target, Sparkles, Search } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTab";
@@ -27,6 +29,43 @@ export default function PartnerIframeView() {
   // Dropdown states - EXACT MIRROR from PartnerDetail
   const [showProductListsDropdown, setShowProductListsDropdown] = useState(false);
   const [showProductViewsDropdown, setShowProductViewsDropdown] = useState(false);
+
+  // Bulk actions state - EXACT MIRROR from PartnerDetail
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [showBulkActions, setShowBulkActions] = useState(false);
+  const [showSaveToListModal, setShowSaveToListModal] = useState(false);
+  const [listNameInput, setListNameInput] = useState("");
+  const [listDescriptionInput, setListDescriptionInput] = useState("");
+
+  // Bulk action handlers - EXACT MIRROR from PartnerDetail
+  const handleSelectProduct = (productId: string) => {
+    setSelectedProducts(prev => {
+      const updated = prev.includes(productId) 
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId];
+      setShowBulkActions(updated.length > 0);
+      return updated;
+    });
+  };
+
+  const handleSelectAll = () => {
+    if (!assignedProducts) return;
+    const allProductIds = assignedProducts.map((product: any) => product.id?.toString());
+    setSelectedProducts(allProductIds);
+    setShowBulkActions(allProductIds.length > 0);
+  };
+
+  const handleClearSelection = () => {
+    setSelectedProducts([]);
+    setShowBulkActions(false);
+  };
+
+  const handleSaveToList = async () => {
+    // Implementation for saving to list
+    console.log('Save to list:', selectedProducts);
+    setShowSaveToListModal(false);
+    handleClearSelection();
+  };
 
   // Fetch all partners to find this specific partner - EXACT same as main app
   const { data: partners, isLoading: partnersLoading } = useQuery({
@@ -204,6 +243,35 @@ export default function PartnerIframeView() {
           </div>
         </div>
 
+        {/* Bulk Actions Bar - EXACT MIRROR from PartnerDetail */}
+        {showBulkActions && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <span className="text-sm font-medium text-blue-900">
+                {selectedProducts.length} product{selectedProducts.length !== 1 ? 's' : ''} selected
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleClearSelection}
+                className="text-blue-700 border-blue-300 hover:bg-blue-100"
+              >
+                Clear selection
+              </Button>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button
+                variant="outline" 
+                size="sm"
+                onClick={() => setShowSaveToListModal(true)}
+                className="text-blue-700 border-blue-300 hover:bg-blue-100"
+              >
+                Add to list
+              </Button>
+            </div>
+          </div>
+        )}
+
         {/* Products Content - EXACT MIRROR */}
         {assignmentsLoading ? (
           <div className="flex justify-center py-8">
@@ -216,7 +284,10 @@ export default function PartnerIframeView() {
                 <TableRow>
                   <TableHead className="w-12 group">
                     <div className="transition-opacity opacity-0 group-hover:opacity-100">
-                      <Checkbox />
+                      <Checkbox 
+                        checked={assignedProducts && selectedProducts.length === assignedProducts.length && assignedProducts.length > 0}
+                        onCheckedChange={handleSelectAll}
+                      />
                     </div>
                   </TableHead>
                   <TableHead>Product Name</TableHead>
@@ -240,7 +311,10 @@ export default function PartnerIframeView() {
                     <TableRow key={product.id} className="group hover:bg-gray-50">
                       <TableCell>
                         <div className="transition-opacity opacity-0 group-hover:opacity-100">
-                          <Checkbox />
+                          <Checkbox 
+                            checked={selectedProducts.includes(product.id?.toString())}
+                            onCheckedChange={() => handleSelectProduct(product.id?.toString())}
+                          />
                         </div>
                       </TableCell>
                       <TableCell className="font-medium">
@@ -432,6 +506,47 @@ export default function PartnerIframeView() {
           </div>
         )}
       </div>
+
+      {/* Save to List Modal - EXACT MIRROR from PartnerDetail */}
+      <Dialog open={showSaveToListModal} onOpenChange={setShowSaveToListModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add to List</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="list-name" className="text-right">
+                Name
+              </label>
+              <Input
+                id="list-name"
+                value={listNameInput}
+                onChange={(e) => setListNameInput(e.target.value)}
+                className="col-span-3"
+                placeholder="Enter list name"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="list-description" className="text-right">
+                Description
+              </label>
+              <Textarea
+                id="list-description"
+                value={listDescriptionInput}
+                onChange={(e) => setListDescriptionInput(e.target.value)}
+                className="col-span-3"
+                placeholder="Enter list description (optional)"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveToListModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveToList}>Save List</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
