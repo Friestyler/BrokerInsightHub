@@ -75,12 +75,12 @@ export default function CustomerIframeView() {
     return (
       <div className="space-y-4">
         {/* Product subtabs - exact replica */}
-        <div className="flex space-x-6 border-b border-gray-200 mb-4">
+        <div className="flex space-x-6 mb-4">
           <button
             onClick={() => setActiveProductTab("overview")}
             className={`py-2 px-3 text-sm font-medium border-b-2 -mb-px ${
               activeProductTab === "overview"
-                ? "border-[#5567E5] text-[#5567E5]"
+                ? "border-blue-500 text-blue-600"
                 : "border-transparent text-gray-500 hover:text-gray-700"
             }`}
           >
@@ -90,7 +90,7 @@ export default function CustomerIframeView() {
             onClick={() => setActiveProductTab("matrix")}
             className={`py-2 px-3 text-sm font-medium border-b-2 -mb-px ${
               activeProductTab === "matrix"
-                ? "border-[#5567E5] text-[#5567E5]"
+                ? "border-blue-500 text-blue-600"
                 : "border-transparent text-gray-500 hover:text-gray-700"
             }`}
           >
@@ -100,7 +100,7 @@ export default function CustomerIframeView() {
             onClick={() => setActiveProductTab("list")}
             className={`py-2 px-3 text-sm font-medium border-b-2 -mb-px ${
               activeProductTab === "list"
-                ? "border-[#5567E5] text-[#5567E5]"
+                ? "border-blue-500 text-blue-600"
                 : "border-transparent text-gray-500 hover:text-gray-700"
             }`}
           >
@@ -161,7 +161,7 @@ export default function CustomerIframeView() {
       />
 
       {/* Activity section with EXACT same layout and functionality as partner iframe */}
-      <div className="bg-white border-b border-gray-200 px-6 pt-0 pb-4">
+      <div className="bg-white px-6 pt-0 pb-4">
         <PartnerActivityHub 
           partnerId={parseInt(id || '18')} 
           partnerName={customer?.name || 'Customer'} 
@@ -171,13 +171,13 @@ export default function CustomerIframeView() {
       </div>
 
       {/* Main tabs exactly like screenshot */}
-      <div className="bg-white border-b border-gray-200 px-6">
+      <div className="bg-white px-6">
         <div className="flex space-x-8">
           <button
             onClick={() => setActiveTab("products")}
             className={`py-3 px-1 border-b-2 font-medium text-sm ${
               activeTab === "products"
-                ? "border-[#5567E5] text-[#5567E5] bg-[#5567E5]/5"
+                ? "border-blue-500 text-blue-600"
                 : "border-transparent text-gray-500 hover:text-gray-700"
             }`}
           >
@@ -187,7 +187,7 @@ export default function CustomerIframeView() {
             onClick={() => setActiveTab("partners")}
             className={`py-3 px-1 border-b-2 font-medium text-sm ${
               activeTab === "partners"
-                ? "border-[#5567E5] text-[#5567E5] bg-[#5567E5]/5"
+                ? "border-blue-500 text-blue-600"
                 : "border-transparent text-gray-500 hover:text-gray-700"
             }`}
           >
@@ -197,7 +197,7 @@ export default function CustomerIframeView() {
             onClick={() => setActiveTab("opportunities")}
             className={`py-3 px-1 border-b-2 font-medium text-sm ${
               activeTab === "opportunities"
-                ? "border-[#5567E5] text-[#5567E5] bg-[#5567E5]/5"
+                ? "border-blue-500 text-blue-600"
                 : "border-transparent text-gray-500 hover:text-gray-700"
             }`}
           >
@@ -207,7 +207,7 @@ export default function CustomerIframeView() {
             onClick={() => setActiveTab("okr")}
             className={`py-3 px-1 border-b-2 font-medium text-sm ${
               activeTab === "okr"
-                ? "border-[#5567E5] text-[#5567E5] bg-[#5567E5]/5"
+                ? "border-blue-500 text-blue-600"
                 : "border-transparent text-gray-500 hover:text-gray-700"
             }`}
           >

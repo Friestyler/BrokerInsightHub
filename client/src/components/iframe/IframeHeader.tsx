@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Target } from "lucide-react";
+import { Target, Download } from "lucide-react";
 
 interface IframeHeaderProps {
   entityType: 'partner' | 'customer' | 'opportunity';
@@ -31,7 +31,13 @@ export function IframeHeader({ entityType, entityName, entityDescription, users,
   };
 
   return (
-    <div className="bg-white border-b border-gray-200 px-6 py-4">
+    <div className="bg-white px-6 py-4">
+      {/* Partner View link exactly like screenshot */}
+      <div className="flex items-center mb-4">
+        <Download className="w-4 h-4 text-orange-500 mr-2" />
+        <span className="text-sm text-orange-500 font-medium">Partner View</span>
+      </div>
+
       {/* Entity name and description like in screenshot */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
