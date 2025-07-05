@@ -115,7 +115,7 @@ export function IframeHeader({ entityType, entityName, entityDescription, users,
           href={`https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit.dev/broker-view/${entityType}/${entityId}?tab=opportunities&list=39`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm text-blue-600 font-medium hover:text-blue-800 transition-colors cursor-pointer"
+          className="text-sm text-blue-600 font-medium hover:text-blue-800 hover:underline transition-colors cursor-pointer"
         >Partner View</a>
       </div>
     </div>
