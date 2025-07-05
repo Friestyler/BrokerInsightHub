@@ -14,27 +14,37 @@ export default function CustomerIframeView() {
   const [activeProductTab, setActiveProductTab] = useState("overview");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
-  // Fetch customer data - exact same as main app
-  const { data: customer, isLoading: customerLoading } = useQuery({
-    queryKey: [`/api/${environment}/customers/${id}`],
+  // Fetch all customers to find this specific customer - EXACT same as main app
+  const { data: customers, isLoading: customersLoading } = useQuery({
+    queryKey: ['/api/customers'],
+  });
+
+  // Fetch related partners for this customer - EXACT same as main app
+  const { data: relatedPartners, isLoading: partnersLoading } = useQuery({
+    queryKey: [`/api/customers/${id}/partners`],
     enabled: !!id,
   });
 
-  // Fetch users for collaborators - exact same as main app
+  // Fetch related opportunities for this customer - EXACT same as main app
+  const { data: relatedOpportunities, isLoading: opportunitiesLoading } = useQuery({
+    queryKey: [`/api/customers/${id}/opportunities`],
+    enabled: !!id,
+  });
+
+  // Fetch users for collaborators - EXACT same as main app
   const { data: users } = useQuery({
-    queryKey: [`/api/${environment}/users`],
+    queryKey: ['/api/users'],
   });
 
-  // Fetch opportunities
-  const { data: opportunities } = useQuery({
-    queryKey: [`/api/${environment}/customers/${id}/opportunities`],
-    enabled: !!id,
+  // Customer Product Assignments - EXACT same as main app
+  const { data: assignedProducts, isLoading: assignmentsLoading } = useQuery({
+    queryKey: [`/api/degoudse/customers/${id}/product-assignments`],
+    enabled: !!id
   });
 
-  // Fetch partners
-  const { data: partners } = useQuery({
-    queryKey: [`/api/${environment}/customers/${id}/partners`],
-    enabled: !!id,
+  // Fetch OKR metrics - EXACT same as main app
+  const { data: metrics } = useQuery({
+    queryKey: ['/api/okr-metrics'],
   });
 
   if (!id) {
