@@ -23,6 +23,10 @@ export default function PartnerIframeView() {
   const [productSearchText, setProductSearchText] = useState("");
   const [selectedProductCategory, setSelectedProductCategory] = useState("");
   const [selectedPriceRange, setSelectedPriceRange] = useState("");
+  
+  // Dropdown states - EXACT MIRROR from PartnerDetail
+  const [showProductListsDropdown, setShowProductListsDropdown] = useState(false);
+  const [showProductViewsDropdown, setShowProductViewsDropdown] = useState(false);
 
   // Fetch all partners to find this specific partner - EXACT same as main app
   const { data: partners, isLoading: partnersLoading } = useQuery({
@@ -62,172 +66,225 @@ export default function PartnerIframeView() {
   const renderProductListTab = () => {
     return (
       <div className="iframe-container" style={{ border: 'none !important', outline: 'none !important', boxShadow: 'none !important', overflow: 'visible' }}>
-        <div className="space-y-4">
-          {/* List Toolbar - EXACT MIRROR of screenshot */}
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-gray-700">Lists</h3>
-            <div className="flex items-center space-x-4">
-              {/* Search */}
-              <div className="relative max-w-sm">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search products..."
-                  value={productSearchText}
-                  onChange={(e) => setProductSearchText(e.target.value)}
-                  className="pl-10 h-9"
-                />
+        {/* Enhanced unified toolbar - Products version - EXACT MIRROR from PartnerDetail */}
+        <div className="bg-white p-4 rounded-lg shadow-sm">
+          <div className="flex flex-col gap-4">
+            {/* Top row with saved lists and views */}
+            <div className="flex flex-wrap items-center justify-between">
+              {/* Left side - Saved Lists with actions */}
+              <div className="flex items-center gap-3">
+                {/* Lists heading */}
+                <div className="flex flex-col mr-2">
+                  <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
+                </div>
+                {/* Saved Lists dropdown */}
+                <div className="relative">
+                  <button 
+                    className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
+                    onClick={() => setShowProductListsDropdown(!showProductListsDropdown)}
+                  >
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
+                      <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
+                    </svg>
+                    <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                      All products
+                    </span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className={`transition-transform ${showProductListsDropdown ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  
+                  {/* Dropdown menu */}
+                  {showProductListsDropdown && (
+                    <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                      <div className="p-2">
+                        {/* Default "All products" option */}
+                        <button
+                          className="w-full text-left px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] bg-[#E1E4FB] text-[#3E4DC4]"
+                          onClick={() => {
+                            setShowProductListsDropdown(false);
+                          }}
+                        >
+                          <div className="flex items-center space-x-2">
+                            <span>All products</span>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
-              
-              {/* Filters */}
-              <Select value={selectedProductCategory} onValueChange={setSelectedProductCategory}>
-                <SelectTrigger className="w-[140px] h-9">
-                  <SelectValue placeholder="Category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="Life">Life</SelectItem>
-                  <SelectItem value="Non-Life">Non-Life</SelectItem>
-                  <SelectItem value="Services">Services</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={selectedPriceRange} onValueChange={setSelectedPriceRange}>
-                <SelectTrigger className="w-[140px] h-9">
-                  <SelectValue placeholder="Price Range" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Prices</SelectItem>
-                  <SelectItem value="€0 - €50K">€0 - €50K</SelectItem>
-                  <SelectItem value="€50K - €100K">€50K - €100K</SelectItem>
-                  <SelectItem value="€100K+">€100K+</SelectItem>
-                </SelectContent>
-              </Select>
+            </div>
+            
+            {/* Bottom row with search, views, and filters */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-3 flex-grow">
+                {/* Search field */}
+                <div className="relative w-60">
+                  <input
+                    type="text"
+                    placeholder="Search products..."
+                    value={productSearchText}
+                    onChange={(e) => setProductSearchText(e.target.value)}
+                    className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+                  />
+                  <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                  </button>
+                </div>
+                
+                {/* Saved Views Dropdown */}
+                <div className="relative">
+                  <button 
+                    className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white hover:bg-gray-50"
+                    onClick={() => setShowProductViewsDropdown(!showProductViewsDropdown)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <span className="text-gray-700">Select a view</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className={`transition-transform ${showProductViewsDropdown ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                </div>
+                
+                {/* Filters */}
+                <div className="relative">
+                  <button className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white hover:bg-gray-50">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    <span className="text-gray-700">Category</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
+                </div>
+                
+                <div className="relative">
+                  <button className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white hover:bg-gray-50">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+                      <line x1="12" y1="1" x2="12" y2="23"></line>
+                      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                    </svg>
+                    <span className="text-gray-700">Price Range</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
-
-          {/* Products List Content - EXACT MIRROR */}
-          <div className="space-y-6">
-            {productsLoading ? (
-              <div className="flex justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
-              </div>
-            ) : relatedProducts && Array.isArray(relatedProducts) && relatedProducts.length > 0 ? (
-              <div className="bg-white rounded-lg border border-gray-200">
-                <div className="px-6 py-4 border-b border-gray-200">
-                  <h3 className="text-lg font-semibold text-gray-900">Products ({
-                    relatedProducts.filter((product: any) => {
-                      const matchesSearch = !productSearchText || 
-                        product.name?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                        product.description?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                        product.sku?.toLowerCase().includes(productSearchText.toLowerCase());
-                      
-                      const matchesCategory = !selectedProductCategory || product.category === selectedProductCategory;
-                      
-                      const matchesPrice = !selectedPriceRange || (() => {
-                        const price = parseFloat(product.price || '0');
-                        switch(selectedPriceRange) {
-                          case '€0 - €50K': return price >= 0 && price <= 50000;
-                          case '€50K - €100K': return price > 50000 && price <= 100000;
-                          case '€100K+': return price > 100000;
-                          default: return true;
-                        }
-                      })();
-                      
-                      return matchesSearch && matchesCategory && matchesPrice;
-                    }).length
-                  })</h3>
-                  <p className="text-sm text-gray-600 mt-1">Products associated with this partner</p>
-                </div>
-                <div className="overflow-x-auto">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-12 group">
-                          <div className="transition-opacity opacity-0 group-hover:opacity-100">
-                            <Checkbox />
-                          </div>
-                        </TableHead>
-                        <TableHead>Product Name</TableHead>
-                        <TableHead>Category</TableHead>
-                        <TableHead>SKU</TableHead>
-                        <TableHead className="text-right">Price</TableHead>
-                        <TableHead>Created</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {relatedProducts
-                        .filter((product: any) => {
-                          const matchesSearch = !productSearchText || 
-                            product.name?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                            product.description?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                            product.sku?.toLowerCase().includes(productSearchText.toLowerCase());
-                          
-                          const matchesCategory = !selectedProductCategory || product.category === selectedProductCategory;
-                          
-                          const matchesPrice = !selectedPriceRange || (() => {
-                            const price = parseFloat(product.price || '0');
-                            switch(selectedPriceRange) {
-                              case '€0 - €50K': return price >= 0 && price <= 50000;
-                              case '€50K - €100K': return price > 50000 && price <= 100000;
-                              case '€100K+': return price > 100000;
-                              default: return true;
-                            }
-                          })();
-                          
-                          return matchesSearch && matchesCategory && matchesPrice;
-                        })
-                        .map((product: any) => (
-                          <TableRow key={product.id} className="group hover:bg-gray-50">
-                            <TableCell>
-                              <div className="transition-opacity opacity-0 group-hover:opacity-100">
-                                <Checkbox />
-                              </div>
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              <div>
-                                <div className="font-semibold text-gray-900">{product.name}</div>
-                                {product.description && (
-                                  <div className="text-sm text-gray-500 mt-1">{product.description}</div>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              {product.category && (
-                                <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                  {product.category}
-                                </span>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-gray-600">
-                              {product.sku || '-'}
-                            </TableCell>
-                            <TableCell className="text-right">
-                              {product.price ? `€${parseFloat(product.price).toLocaleString()}` : '-'}
-                            </TableCell>
-                            <TableCell className="text-gray-500">
-                              {product.created_at ? new Date(product.created_at).toLocaleDateString() : '-'}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                    <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                    <line x1="3" y1="6" x2="21" y2="6"/>
-                    <path d="M16 10a4 4 0 0 1-8 0"/>
-                  </svg>
-                </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
-                <p className="text-gray-500">No products are currently associated with this partner.</p>
-              </div>
-            )}
-          </div>
         </div>
+
+        {/* Products Content - EXACT MIRROR */}
+        {productsLoading ? (
+          <div className="flex justify-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+          </div>
+        ) : relatedProducts && Array.isArray(relatedProducts) && relatedProducts.length > 0 ? (
+          <div className="bg-white rounded-lg shadow-sm mt-4">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12 group">
+                    <div className="transition-opacity opacity-0 group-hover:opacity-100">
+                      <Checkbox />
+                    </div>
+                  </TableHead>
+                  <TableHead>Product Name</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>SKU</TableHead>
+                  <TableHead className="text-right">Price</TableHead>
+                  <TableHead>Created</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {relatedProducts
+                  .filter((product: any) => {
+                    const matchesSearch = !productSearchText || 
+                      product.name?.toLowerCase().includes(productSearchText.toLowerCase()) ||
+                      product.description?.toLowerCase().includes(productSearchText.toLowerCase()) ||
+                      product.sku?.toLowerCase().includes(productSearchText.toLowerCase());
+                    
+                    return matchesSearch;
+                  })
+                  .map((product: any) => (
+                    <TableRow key={product.id} className="group hover:bg-gray-50">
+                      <TableCell>
+                        <div className="transition-opacity opacity-0 group-hover:opacity-100">
+                          <Checkbox />
+                        </div>
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        <div>
+                          <div className="font-semibold text-gray-900">{product.name}</div>
+                          {product.description && (
+                            <div className="text-sm text-gray-500 mt-1">{product.description}</div>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        {product.category && (
+                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                            {product.category}
+                          </span>
+                        )}
+                      </TableCell>
+                      <TableCell className="text-gray-600">
+                        {product.sku || '-'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        {product.price ? `€${parseFloat(product.price).toLocaleString()}` : '-'}
+                      </TableCell>
+                      <TableCell className="text-gray-500">
+                        {product.created_at ? new Date(product.created_at).toLocaleDateString() : '-'}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+              </TableBody>
+            </Table>
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+                <line x1="3" y1="6" x2="21" y2="6"/>
+                <path d="M16 10a4 4 0 0 1-8 0"/>
+              </svg>
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+            <p className="text-gray-500">No products are currently associated with this partner.</p>
+          </div>
+        )}
       </div>
     );
   };
