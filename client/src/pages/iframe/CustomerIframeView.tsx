@@ -152,15 +152,21 @@ export default function CustomerIframeView() {
       }}>
       {/* Header section - clean and minimal for iframe */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
-        {/* Activity section like in screenshot */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm font-medium text-gray-700">Activity</span>
-            <span className="text-sm text-gray-500">5 pending</span>
-            <span className="text-sm text-gray-500">5 total</span>
+        {/* Entity name and description like in screenshot */}
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 rounded-full bg-[#5567E5] flex items-center justify-center">
+              <span className="text-white font-semibold text-sm">
+                {customer?.name ? customer.name.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2) : 'CU'}
+              </span>
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold text-gray-900">{customer?.name || 'Customer'}</h1>
+              <p className="text-sm text-gray-600">Business customer with multiple insurance needs</p>
+            </div>
           </div>
           <Button className="bg-[#5567E5] hover:bg-[#4556D4] text-white text-sm">
-            Generate Next Best Action
+            Creëer Customer Kans
           </Button>
         </div>
 
@@ -213,14 +219,15 @@ export default function CustomerIframeView() {
           </div>
         </div>
 
-        {/* Creëer Customer Kans button exactly like screenshot */}
-        <Button
-          onClick={handleCreateOpportunity}
-          className="bg-[#5567E5] hover:bg-[#4556D4] text-white w-full max-w-sm"
-        >
-          <Target className="w-4 h-4 mr-2" />
-          Creëer Customer Kans
-        </Button>
+        {/* Activity section with EXACT same layout and functionality as partner iframe */}
+        <div className="mt-4">
+          <PartnerActivityHub 
+            partnerId={parseInt(id || '18')} 
+            partnerName={customer?.name || 'Customer'} 
+            entityType="customer"
+            entityId={parseInt(id || '18')}
+          />
+        </div>
       </div>
 
       {/* Main tabs exactly like screenshot */}
@@ -327,16 +334,6 @@ export default function CustomerIframeView() {
             </div>
           </div>
         )}
-      </div>
-
-      {/* Activity section with EXACT same layout and functionality as partner iframe */}
-      <div className="border-t border-gray-200 pt-4">
-        <PartnerActivityHub 
-          partnerId={parseInt(id || '18')} 
-          partnerName={customer?.name || 'Customer'} 
-          entityType="customer"
-          entityId={parseInt(id || '18')}
-        />
       </div>
     </div>
   );
