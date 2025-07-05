@@ -665,7 +665,7 @@ export default function PartnerIframeView() {
             )}
 
             {/* Statistics Overview - EXACT MIRROR from PartnerDetail */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {(() => {
                 // Get filtered customers based on current filters
                 const filteredCustomers = (relatedCustomers as any[] || []);
@@ -700,7 +700,7 @@ export default function PartnerIframeView() {
             </div>
 
             {/* Customer Table - EXACT same structure as main app */}
-            <div className="bg-white rounded-lg shadow-sm border border-[#E6E7F1]">
+            <div className="bg-white rounded-lg shadow-sm">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -947,7 +947,7 @@ export default function PartnerIframeView() {
             </div>
 
             {/* Statistics Overview - EXACT MIRROR from PartnerDetail */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {(() => {
                 // Get filtered opportunities based on current filters
                 const filteredOpportunities = [];
@@ -982,7 +982,7 @@ export default function PartnerIframeView() {
             </div>
 
             {/* Opportunities Table - EXACT same structure as main app */}
-            <div className="bg-white rounded-lg shadow-sm border border-[#E6E7F1]">
+            <div className="bg-white rounded-lg shadow-sm">
               <Table>
                 <TableHeader>
                   <TableRow>
