@@ -265,8 +265,143 @@ export default function PartnerIframeView() {
                     </div>
                   )}
                   {activeProductTab === "list" && (
-                    <div className="text-center py-12 text-gray-500">
-                      Product list view coming soon
+                    <div>
+                      {/* EXACT MIRROR of main app product list functionality */}
+                      <div className="mb-6">
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-4">
+                            <div className="relative">
+                              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                              <Input
+                                placeholder="Search products..."
+                                value={productSearchText}
+                                onChange={(e) => setProductSearchText(e.target.value)}
+                                className="pl-10 w-64"
+                              />
+                            </div>
+                            
+                            <Select value={selectedProductCategory} onValueChange={setSelectedProductCategory}>
+                              <SelectTrigger className="w-48">
+                                <SelectValue placeholder="All categories" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="">All categories</SelectItem>
+                                <SelectItem value="life">Life Insurance</SelectItem>
+                                <SelectItem value="non-life">Non-Life Insurance</SelectItem>
+                                <SelectItem value="services">Services</SelectItem>
+                              </SelectContent>
+                            </Select>
+
+                            <Select value={selectedPriceRange} onValueChange={setSelectedPriceRange}>
+                              <SelectTrigger className="w-48">
+                                <SelectValue placeholder="All prices" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="">All prices</SelectItem>
+                                <SelectItem value="0-100">€0 - €100</SelectItem>
+                                <SelectItem value="100-500">€100 - €500</SelectItem>
+                                <SelectItem value="500+">€500+</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+
+                        {/* Product Table */}
+                        <div className="border border-gray-200 rounded-lg overflow-hidden">
+                          <Table>
+                            <TableHeader>
+                              <TableRow className="bg-gray-50">
+                                <TableHead className="w-12">
+                                  <Checkbox
+                                    checked={assignedProducts?.length > 0 && selectedProducts.length === assignedProducts.length}
+                                    onCheckedChange={(checked) => {
+                                      if (checked) {
+                                        setSelectedProducts(assignedProducts?.map((p: any) => p.id) || []);
+                                      } else {
+                                        setSelectedProducts([]);
+                                      }
+                                    }}
+                                  />
+                                </TableHead>
+                                <TableHead className="font-medium text-[#696C8C]">Product</TableHead>
+                                <TableHead className="font-medium text-[#696C8C]">Category</TableHead>
+                                <TableHead className="font-medium text-[#696C8C]">Provider</TableHead>
+                                <TableHead className="font-medium text-[#696C8C]">Premium</TableHead>
+                                <TableHead className="font-medium text-[#696C8C]">Premium %</TableHead>
+                                <TableHead className="font-medium text-[#696C8C]">Contract</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {(assignedProducts || []).map((product: any) => (
+                                <TableRow 
+                                  key={product.id} 
+                                  className={`hover:bg-gray-50 ${selectedProducts.includes(product.id) ? 'bg-blue-50' : ''}`}
+                                >
+                                  <TableCell>
+                                    <Checkbox
+                                      checked={selectedProducts.includes(product.id)}
+                                      onCheckedChange={(checked) => {
+                                        if (checked) {
+                                          setSelectedProducts(prev => [...prev, product.id]);
+                                        } else {
+                                          setSelectedProducts(prev => prev.filter(id => id !== product.id));
+                                        }
+                                      }}
+                                    />
+                                  </TableCell>
+                                  <TableCell className="font-medium">
+                                    <div>
+                                      <div className="font-medium text-gray-900">{product.name}</div>
+                                      <div className="text-sm text-gray-500">{product.description}</div>
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge variant="outline">{product.category_name || 'Insurance'}</Badge>
+                                  </TableCell>
+                                  <TableCell>{product.provider || 'De Goudse'}</TableCell>
+                                  <TableCell>€{(product.premium_value || 0).toLocaleString()}</TableCell>
+                                  <TableCell>{(product.premium_percentage || 0)}%</TableCell>
+                                  <TableCell>
+                                    <div className="text-sm">
+                                      <div>{new Date(product.contract_start_date || Date.now()).toLocaleDateString()}</div>
+                                      <div className="text-gray-500">to {new Date(product.contract_end_date || Date.now()).toLocaleDateString()}</div>
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+
+                        {/* Bulk Actions Bar */}
+                        {selectedProducts.length > 0 && (
+                          <div className="mt-4 bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-blue-900">
+                                  {selectedProducts.length} product{selectedProducts.length !== 1 ? 's' : ''} selected
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => setSelectedProducts([])}
+                                  className="text-blue-600 hover:text-blue-800"
+                                >
+                                  Clear selection
+                                </Button>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <Button variant="outline" size="sm" className="text-blue-600 border-blue-300">
+                                  Add to campaign
+                                </Button>
+                                <Button variant="outline" size="sm" className="text-blue-600 border-blue-300">
+                                  Create opportunity
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -468,16 +603,183 @@ export default function PartnerIframeView() {
 
             {activeTab === "customers" && (
               <div className="p-4">
-                <div className="text-center py-12 text-gray-500">
-                  Customer management functionality coming soon
+                {/* EXACT MIRROR of main app customers functionality */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <Input
+                          placeholder="Search customers..."
+                          value={customerSearchText}
+                          onChange={(e) => setCustomerSearchText(e.target.value)}
+                          className="pl-10 w-64"
+                        />
+                      </div>
+                      
+                      <Select value={selectedCustomerStatus} onValueChange={setSelectedCustomerStatus}>
+                        <SelectTrigger className="w-48">
+                          <SelectValue placeholder="All statuses" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">All statuses</SelectItem>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="inactive">Inactive</SelectItem>
+                          <SelectItem value="pending">Pending</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
+                        <SelectTrigger className="w-48">
+                          <SelectValue placeholder="All industries" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">All industries</SelectItem>
+                          <SelectItem value="technology">Technology</SelectItem>
+                          <SelectItem value="healthcare">Healthcare</SelectItem>
+                          <SelectItem value="finance">Finance</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Customer Table */}
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-gray-50">
+                          <TableHead className="w-12">
+                            <Checkbox />
+                          </TableHead>
+                          <TableHead className="font-medium text-[#696C8C]">Customer</TableHead>
+                          <TableHead className="font-medium text-[#696C8C]">Industry</TableHead>
+                          <TableHead className="font-medium text-[#696C8C]">Status</TableHead>
+                          <TableHead className="font-medium text-[#696C8C]">Opportunities</TableHead>
+                          <TableHead className="font-medium text-[#696C8C]">Value</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {relatedCustomers.map((customer: any) => (
+                          <TableRow key={customer.id} className="hover:bg-gray-50">
+                            <TableCell>
+                              <Checkbox />
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              <div>
+                                <div className="font-medium text-gray-900">{customer.name}</div>
+                                <div className="text-sm text-gray-500">{customer.description}</div>
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline">{customer.industry || 'Technology'}</Badge>
+                            </TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="border-green-500 text-green-700 bg-green-50">
+                                Active
+                              </Badge>
+                            </TableCell>
+                            <TableCell>{customer.opportunity_count || 0}</TableCell>
+                            <TableCell>€{(customer.total_value || 0).toLocaleString()}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
               </div>
             )}
 
             {activeTab === "opportunities" && (
               <div className="p-4">
-                <div className="text-center py-12 text-gray-500">
-                  Opportunity management functionality coming soon
+                {/* EXACT MIRROR of main app opportunities functionality */}
+                <div className="mb-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-4">
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                        <Input
+                          placeholder="Search opportunities..."
+                          value={filterText}
+                          onChange={(e) => setFilterText(e.target.value)}
+                          className="pl-10 w-64"
+                        />
+                      </div>
+                      
+                      <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                        <SelectTrigger className="w-48">
+                          <SelectValue placeholder="All stages" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">All stages</SelectItem>
+                          <SelectItem value="discovery">Discovery</SelectItem>
+                          <SelectItem value="qualification">Qualification</SelectItem>
+                          <SelectItem value="proposal">Proposal</SelectItem>
+                          <SelectItem value="negotiation">Negotiation</SelectItem>
+                          <SelectItem value="closed-won">Closed Won</SelectItem>
+                          <SelectItem value="closed-lost">Closed Lost</SelectItem>
+                        </SelectContent>
+                      </Select>
+
+                      <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
+                        <SelectTrigger className="w-48">
+                          <SelectValue placeholder="All customers" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">All customers</SelectItem>
+                          {relatedCustomers.map((customer: any) => (
+                            <SelectItem key={customer.id} value={customer.name}>
+                              {customer.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Opportunities Table */}
+                  <div className="border border-gray-200 rounded-lg overflow-hidden">
+                    <Table>
+                      <TableHeader>
+                        <TableRow className="bg-gray-50">
+                          <TableHead className="w-12">
+                            <Checkbox />
+                          </TableHead>
+                          <TableHead className="font-medium text-[#696C8C]">Opportunity</TableHead>
+                          <TableHead className="font-medium text-[#696C8C]">Customer</TableHead>
+                          <TableHead className="font-medium text-[#696C8C]">Stage</TableHead>
+                          <TableHead className="font-medium text-[#696C8C]">Value</TableHead>
+                          <TableHead className="font-medium text-[#696C8C]">Probability</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {relatedOpportunities.slice(0, 10).map((opportunity: any) => (
+                          <TableRow key={opportunity.id} className="hover:bg-gray-50">
+                            <TableCell>
+                              <Checkbox />
+                            </TableCell>
+                            <TableCell className="font-medium">
+                              <div>
+                                <div className="font-medium text-gray-900">{opportunity.title}</div>
+                                <div className="text-sm text-gray-500">{opportunity.insurance_description}</div>
+                              </div>
+                            </TableCell>
+                            <TableCell>{opportunity.customer_name}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className={
+                                opportunity.stage === 'closed-won' ? 'border-green-500 text-green-700 bg-green-50' :
+                                opportunity.stage === 'negotiation' ? 'border-blue-500 text-blue-700 bg-blue-50' :
+                                'border-gray-500 text-gray-700 bg-gray-50'
+                              }>
+                                {opportunity.stage?.replace('-', ' ').replace(/\b\w/g, (l: string) => l.toUpperCase()) || 'Discovery'}
+                              </Badge>
+                            </TableCell>
+                            <TableCell>€{(opportunity.estimated_value || 0).toLocaleString()}</TableCell>
+                            <TableCell>{(opportunity.probability || 0)}%</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
                 </div>
               </div>
             )}
