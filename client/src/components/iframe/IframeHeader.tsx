@@ -53,7 +53,6 @@ export function IframeHeader({ entityType, entityName, entityDescription, users,
           {getButtonText()}
         </Button>
       </div>
-
       {/* Collaborators section exactly like screenshot */}
       <div className="flex items-center space-x-4 mb-4">
         <span className="text-sm font-medium text-gray-700">Collaborators:</span>
@@ -102,7 +101,6 @@ export function IframeHeader({ entityType, entityName, entityDescription, users,
           <span className="text-sm text-gray-500 font-medium">External</span>
         </div>
       </div>
-
       {/* View in Deal Room link with NN logo - positioned just above Activity Hub */}
       <div className="flex items-center mb-4">
         <div className="w-6 h-6 mr-3 flex items-center justify-center">
@@ -112,7 +110,7 @@ export function IframeHeader({ entityType, entityName, entityDescription, users,
             className="w-full h-full object-contain"
           />
         </div>
-        <span className="text-sm text-blue-600 font-medium">View in Deal Room</span>
+        <span className="text-sm text-blue-600 font-medium">Partner View</span>
       </div>
     </div>
   );
