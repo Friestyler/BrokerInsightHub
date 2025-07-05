@@ -284,4 +284,39 @@
   [data-radix-select-content] {
     @apply bg-white border-[#D6D7E4] !important;
   }
+
+  /* Iframe border removal for Salesforce integration */
+  .iframe-container {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Remove borders from iframe body */
+  body.iframe-body {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  /* Remove borders on any iframe container */
+  html, body {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+  }
+
+  /* Iframe specific styling */
+  .iframe-wrapper {
+    border: none !important;
+    outline: none !important;
+    box-shadow: none !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+  }
 }
