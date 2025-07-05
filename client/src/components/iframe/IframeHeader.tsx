@@ -48,13 +48,6 @@ export function IframeHeader({ entityType, entityName, entityDescription, users,
           </div>
         </div>
         <div className="flex items-center space-x-3">
-          <Button 
-            onClick={onCreateOpportunity}
-            className="bg-[#5567E5] hover:bg-[#4556D4] text-white text-sm"
-          >
-            {getButtonText()}
-          </Button>
-          
           {/* NN Logo and Partner View link */}
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 bg-white rounded-md border border-gray-200 flex items-center justify-center">
@@ -73,6 +66,13 @@ export function IframeHeader({ entityType, entityName, entityDescription, users,
               Partner View
             </a>
           </div>
+          
+          <Button 
+            onClick={onCreateOpportunity}
+            className="bg-[#5567E5] hover:bg-[#4556D4] text-white text-sm"
+          >
+            {getButtonText()}
+          </Button>
         </div>
       </div>
       {/* Collaborators section exactly like screenshot */}
