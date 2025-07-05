@@ -255,10 +255,8 @@ export default function PartnerIframeView() {
                 <div className="p-4">
                   {activeProductTab === "overview" && (
                     <PortfolioOverviewTab 
-                      partnerId={parseInt(id || "1")}
-                      partnerName={partner?.name || ""}
-                      customerCount={relatedCustomers.length}
-                      opportunityCount={relatedOpportunities.length}
+                      entityType="partners"
+                      entityId={id || "1"}
                     />
                   )}
                   {activeProductTab === "matrix" && (
