@@ -169,8 +169,49 @@ export default function CustomerIframeView() {
 
         {activeProductTab === "list" && (
           <div className="p-4">
-            <div className="text-center py-8 text-gray-500">
-              <p>Product list view coming soon</p>
+            {/* EXACT same product assignment table from main app with authentic database fields */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">Product Assignments</h3>
+              {Array.isArray(assignedProducts) && assignedProducts.length > 0 ? (
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead style={{ color: '#696C8C' }}>Product Name</TableHead>
+                      <TableHead style={{ color: '#696C8C' }}>Description</TableHead>
+                      <TableHead style={{ color: '#696C8C' }}>Category</TableHead>
+                      <TableHead style={{ color: '#696C8C' }}>Contract Start</TableHead>
+                      <TableHead style={{ color: '#696C8C' }}>Contract End</TableHead>
+                      <TableHead style={{ color: '#696C8C' }}>Premium Value</TableHead>
+                      <TableHead style={{ color: '#696C8C' }}>Premium %</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {assignedProducts.map((assignment: any) => (
+                      <TableRow key={assignment.id}>
+                        <TableCell className="font-medium">{assignment.productName}</TableCell>
+                        <TableCell>{assignment.productDescription}</TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="capitalize">
+                            {assignment.categoryName || assignment.category}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          {assignment.contractStartDate ? new Date(assignment.contractStartDate).toLocaleDateString('en-GB') : '-'}
+                        </TableCell>
+                        <TableCell>
+                          {assignment.contractEndDate ? new Date(assignment.contractEndDate).toLocaleDateString('en-GB') : '-'}
+                        </TableCell>
+                        <TableCell>€{assignment.premiumValue?.toLocaleString() || 0}</TableCell>
+                        <TableCell>{assignment.premiumPercentage}%</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <p>No product assignments found for this customer</p>
+                </div>
+              )}
             </div>
           </div>
         )}

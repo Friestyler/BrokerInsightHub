@@ -173,30 +173,40 @@ export default function PartnerIframeView() {
 
         {activeProductTab === "list" && (
           <div className="p-4">
-            {/* EXACT same product assignment table from main app */}
+            {/* EXACT same product assignment table from main app with authentic database fields */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold text-gray-900">Product Assignments</h3>
               {Array.isArray(assignedProducts) && assignedProducts.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Product Name</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Provider</TableHead>
-                      <TableHead>Category</TableHead>
-                      <TableHead>Premium Value</TableHead>
+                      <TableHead style={{ color: '#696C8C' }}>Product Name</TableHead>
+                      <TableHead style={{ color: '#696C8C' }}>Description</TableHead>
+                      <TableHead style={{ color: '#696C8C' }}>Category</TableHead>
+                      <TableHead style={{ color: '#696C8C' }}>Contract Start</TableHead>
+                      <TableHead style={{ color: '#696C8C' }}>Contract End</TableHead>
+                      <TableHead style={{ color: '#696C8C' }}>Premium Value</TableHead>
+                      <TableHead style={{ color: '#696C8C' }}>Premium %</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {assignedProducts.map((product: any) => (
-                      <TableRow key={product.id}>
-                        <TableCell className="font-medium">{product.name || 'N/A'}</TableCell>
-                        <TableCell>{product.description || 'N/A'}</TableCell>
-                        <TableCell>{product.provider || 'N/A'}</TableCell>
+                    {assignedProducts.map((assignment: any) => (
+                      <TableRow key={assignment.id}>
+                        <TableCell className="font-medium">{assignment.productName}</TableCell>
+                        <TableCell>{assignment.productDescription}</TableCell>
                         <TableCell>
-                          <Badge variant="outline">{product.category || 'Uncategorized'}</Badge>
+                          <Badge variant="outline" className="capitalize">
+                            {assignment.categoryName || assignment.category}
+                          </Badge>
                         </TableCell>
-                        <TableCell>€{product.premium_value || 0}</TableCell>
+                        <TableCell>
+                          {assignment.contractStartDate ? new Date(assignment.contractStartDate).toLocaleDateString('en-GB') : '-'}
+                        </TableCell>
+                        <TableCell>
+                          {assignment.contractEndDate ? new Date(assignment.contractEndDate).toLocaleDateString('en-GB') : '-'}
+                        </TableCell>
+                        <TableCell>€{assignment.premiumValue?.toLocaleString() || 0}</TableCell>
+                        <TableCell>{assignment.premiumPercentage}%</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
