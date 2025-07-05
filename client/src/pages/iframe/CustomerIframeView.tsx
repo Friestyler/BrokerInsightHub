@@ -1,4 +1,4 @@
-import { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Target, Sparkles, Search } from "lucide-react";
+import { Target, Sparkles, Search, MoreVertical, Filter, Users, Copy, Trash2, TrendingUp, ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTab";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
@@ -25,6 +25,7 @@ export default function CustomerIframeView() {
   const [selectedTag, setSelectedTag] = useState('all');
   const [selectedUnit, setSelectedUnit] = useState('all');
   const [selectedRange, setSelectedRange] = useState('all');
+  const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
 
   // Fetch specific customer data - EXACT same as main app
   const { data: customer, isLoading: customerLoading } = useQuery({
@@ -36,6 +37,18 @@ export default function CustomerIframeView() {
   const { data: customers, isLoading: customersLoading } = useQuery({
     queryKey: ['/api/customers'],
   });
+
+  // OKR Plans queries - EXACT MIRROR
+  const { data: templateAssignments } = useQuery({
+    queryKey: [`/api/template-assignments/customer`],
+    enabled: !!id,
+  });
+
+  const { data: allMetrics } = useQuery({
+    queryKey: ['/api/okr-metrics'],
+  });
+
+
 
   // Fetch related partners for this customer - EXACT same as main app
   const { data: relatedPartners, isLoading: partnersLoading } = useQuery({
@@ -66,7 +79,7 @@ export default function CustomerIframeView() {
   });
 
   // Fetch OKR tags - EXACT same as main app
-  const { data: tags } = useQuery({
+  const { data: okrTags } = useQuery({
     queryKey: ['/api/okr-tags'],
   });
 
@@ -546,7 +559,7 @@ export default function CustomerIframeView() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Tags</SelectItem>
-                  {(tags as any[] || []).map((tag: any) => (
+                  {(okrTags as any[] || []).map((tag: any) => (
                     <SelectItem key={tag.id} value={tag.name}>
                       {tag.name}
                     </SelectItem>

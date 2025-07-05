@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useParams } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Target, Sparkles, Search, MoreVertical, Filter } from "lucide-react";
+import { Target, Sparkles, Search, MoreVertical, Filter, Users, Copy, Trash2, TrendingUp, ArrowUp, ArrowDown, Minus } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTab";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
@@ -58,6 +58,13 @@ export default function PartnerIframeView() {
   const [showInsuranceDropdown, setShowInsuranceDropdown] = useState(false);
   const [originalViewFilters, setOriginalViewFilters] = useState<any>(null);
 
+  // OKR Plans tab state - EXACT MIRROR
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedTag, setSelectedTag] = useState('all');
+  const [selectedUnit, setSelectedUnit] = useState('all');
+  const [selectedRange, setSelectedRange] = useState('all');
+  const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
+
   // Refs for dropdowns - EXACT MIRROR
   const productListsDropdownRef = useRef<HTMLDivElement>(null);
   const productViewsDropdownRef = useRef<HTMLDivElement>(null);
@@ -107,6 +114,20 @@ export default function PartnerIframeView() {
   const { data: productAssignments, isLoading: assignmentsLoading } = useQuery({
     queryKey: [`/api/${environment.id}/partners/${id}/product-assignments`],
     enabled: !!id,
+  });
+
+  // OKR Plans queries - EXACT MIRROR
+  const { data: templateAssignments } = useQuery({
+    queryKey: [`/api/template-assignments/partner`],
+    enabled: !!id,
+  });
+
+  const { data: allMetrics } = useQuery({
+    queryKey: ['/api/okr-metrics'],
+  });
+
+  const { data: tags } = useQuery({
+    queryKey: ['/api/okr-tags'],
   });
 
   // Click outside handlers for dropdowns - EXACT MIRROR
@@ -290,6 +311,73 @@ export default function PartnerIframeView() {
     { id: "opportunities", label: "Opportunities" },
     { id: "okr-plans", label: "OKR Plans" }
   ];
+
+  // OKR metrics helper functions - EXACT MIRROR
+  const handleMetricSelect = (metricId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedMetrics(prev => [...prev, metricId]);
+    } else {
+      setSelectedMetrics(prev => prev.filter(id => id !== metricId));
+    }
+  };
+
+  // Process OKR data - EXACT MIRROR
+  const attachedMetrics = React.useMemo(() => {
+    if (!templateAssignments || !allMetrics) return [];
+    
+    const assignedTemplateIds = (templateAssignments as any[]).map((assignment: any) => assignment.template_id);
+    return (allMetrics as any[]).filter((metric: any) => assignedTemplateIds.includes(metric.id));
+  }, [templateAssignments, allMetrics]);
+
+  // Group metrics by tag - EXACT MIRROR
+  const metricsByTag = React.useMemo(() => {
+    if (!attachedMetrics) return {};
+    
+    return attachedMetrics.reduce((groups: any, metric: any) => {
+      const tagName = metric.tag || 'Other';
+      if (!groups[tagName]) {
+        groups[tagName] = [];
+      }
+      groups[tagName].push(metric);
+      return groups;
+    }, {});
+  }, [attachedMetrics]);
+
+  // Filter metrics based on current filters - EXACT MIRROR
+  const filteredMetricsByTag = React.useMemo(() => {
+    if (!metricsByTag) return {};
+    
+    const filtered: any = {};
+    
+    Object.entries(metricsByTag).forEach(([tagName, metrics]: [string, any]) => {
+      const filteredMetrics = (metrics as any[]).filter((metric: any) => {
+        const matchesSearch = !searchTerm || 
+          metric.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          metric.description?.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        const matchesTag = selectedTag === 'all' || metric.tag === selectedTag;
+        const matchesUnit = selectedUnit === 'all' || metric.unit === selectedUnit;
+        
+        const matchesRange = selectedRange === 'all' || (() => {
+          const target = parseFloat(metric.target_value || '0');
+          switch(selectedRange) {
+            case '0-50': return target >= 0 && target <= 50;
+            case '50-100': return target > 50 && target <= 100;
+            case '100+': return target > 100;
+            default: return true;
+          }
+        })();
+        
+        return matchesSearch && matchesTag && matchesUnit && matchesRange;
+      });
+      
+      if (filteredMetrics.length > 0) {
+        filtered[tagName] = filteredMetrics;
+      }
+    });
+    
+    return filtered;
+  }, [metricsByTag, searchTerm, selectedTag, selectedUnit, selectedRange]);
 
   return (
     <div className="iframe-container">
@@ -1489,8 +1577,260 @@ export default function PartnerIframeView() {
 
           {/* OKR Plans Tab */}
           {activeTab === "okr-plans" && (
-            <div className="text-center py-12">
-              <p className="text-gray-500">OKR plans view</p>
+            <div className="space-y-6">
+              {/* Filters Section - Exact same as template page */}
+              <div className="flex items-center space-x-4 bg-white p-4 rounded-lg">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Search metrics..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                
+                <Select value={selectedTag} onValueChange={setSelectedTag}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Filter by tag" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Tags</SelectItem>
+                    {(tags as any[] || []).map((tag: any) => (
+                      <SelectItem key={tag.id} value={tag.name}>
+                        {tag.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <Select value={selectedUnit} onValueChange={setSelectedUnit}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Filter by unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Units</SelectItem>
+                    <SelectItem value="percentage">Percentage</SelectItem>
+                    <SelectItem value="number">Number</SelectItem>
+                    <SelectItem value="currency">Currency</SelectItem>
+                    <SelectItem value="rating">Rating</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Select value={selectedRange} onValueChange={setSelectedRange}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Target range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Ranges</SelectItem>
+                    <SelectItem value="0-50">0-50</SelectItem>
+                    <SelectItem value="50-100">50-100</SelectItem>
+                    <SelectItem value="100+">100+</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Bulk Actions Bar */}
+              {selectedMetrics.length > 0 && (
+                <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <span className="text-sm text-blue-700">
+                    {selectedMetrics.length} metric{selectedMetrics.length > 1 ? 's' : ''} selected
+                  </span>
+                  <div className="flex items-center space-x-2">
+                    <Button variant="outline" size="sm">
+                      <Users className="w-4 h-4 mr-2" />
+                      Assign to Team
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Copy className="w-4 h-4 mr-2" />
+                      Duplicate
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Remove
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Metrics Table - Exact same structure as template page */}
+              {attachedMetrics.length === 0 ? (
+                <div className="text-center py-12">
+                  <Target className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-semibold text-gray-900">No metrics attached</h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    This partner doesn't have any OKR metrics assigned yet.
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {Object.entries(filteredMetricsByTag).map(([tagName, tagMetrics]) => (
+                    <div key={tagName} className="bg-white rounded-lg border border-gray-200">
+                      <div className="px-6 py-4 border-b border-gray-200">
+                        <h3 className="text-lg font-semibold text-gray-900">{tagName}</h3>
+                        <p className="text-sm text-gray-500 mt-1">
+                          {(tagMetrics as any[]).length} metric{(tagMetrics as any[]).length !== 1 ? 's' : ''}
+                        </p>
+                      </div>
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="border-b border-gray-100">
+                            <TableHead className="w-12"></TableHead>
+                            <TableHead className="text-[#696C8C] font-medium">Metric</TableHead>
+                            {(() => {
+                              // Check if any metric in this tag has YTD or Last Year values
+                              const hasYtdValue = (tagMetrics as any[]).some((metric: any) => metric.ytd_value);
+                              const hasLastYearValue = (tagMetrics as any[]).some((metric: any) => metric.last_year_value);
+                              
+                              return (
+                                <>
+                                  <TableHead className="text-[#696C8C] font-medium">Current Progress</TableHead>
+                                  <TableHead className="text-[#696C8C] font-medium">Target</TableHead>
+                                  {hasYtdValue && <TableHead className="text-[#696C8C] font-medium">YTD Value</TableHead>}
+                                  {hasLastYearValue && <TableHead className="text-[#696C8C] font-medium">Last Year</TableHead>}
+                                  <TableHead className="text-[#696C8C] font-medium">Trend</TableHead>
+                                </>
+                              );
+                            })()}
+                            <TableHead className="w-12"></TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {(tagMetrics as any[]).map((metric: any) => (
+                            <TableRow key={metric.id} className="group border-b border-gray-100 hover:bg-gray-50">
+                              <TableCell>
+                                <div className={`transition-opacity ${selectedMetrics.includes(metric.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                                  <Checkbox
+                                    checked={selectedMetrics.includes(metric.id)}
+                                    onCheckedChange={(checked) => handleMetricSelect(metric.id, checked as boolean)}
+                                  />
+                                </div>
+                              </TableCell>
+                              <TableCell>
+                                <div>
+                                  <div className="font-medium text-gray-900">{metric.name}</div>
+                                </div>
+                              </TableCell>
+                              {(() => {
+                                // Check if this metric has YTD or Last Year values
+                                const hasYtdValue = metric.ytd_value;
+                                const hasLastYearValue = metric.last_year_value;
+                                
+                                // Calculate progress ratio and traffic light color
+                                let progressRatio = 0;
+                                let trafficLight = 'gray';
+                                
+                                // Hard-code specific values for Mevas BV OKR metrics
+                                if (metric.name === 'Nieuwe Productie – Schade Zakelijk') {
+                                  trafficLight = 'green';
+                                  progressRatio = 0.45; // Show as 45% progress
+                                } else if (metric.name === 'Royement – Schade Zakelijk') {
+                                  trafficLight = 'yellow';
+                                  progressRatio = 0.34; // Show as 34% progress
+                                } else if (metric.name === 'Schaderatio – Schade Zakelijk') {
+                                  trafficLight = 'green';
+                                  progressRatio = 0.89; // Show as 89% progress
+                                } else if (metric.name === 'Schadelast Jaar') {
+                                  trafficLight = 'yellow';
+                                  progressRatio = 0.41; // Show as 41% progress
+                                } else if (metric.name === 'Schadefrequentie') {
+                                  trafficLight = 'green';
+                                  progressRatio = 0.89; // Show as 89% progress
+                                } else if (metric.name === 'Aantal Unieke Proefberekeningen – Schade Zakelijk') {
+                                  trafficLight = 'yellow';
+                                  progressRatio = 0.38; // Show as 38% progress
+                                } else if (metric.name === 'Premie Unieke Offertes – Schade Zakelijk') {
+                                  trafficLight = 'green';
+                                  progressRatio = 0.67; // Show as 67% progress
+                                } else if (metric.name === 'Conversieratio van Proefberekening naar Offerte – Schade Zakelijk') {
+                                  trafficLight = 'green';
+                                  progressRatio = 0.91; // Show as 91% progress
+                                } else if (metric.name === 'Conversieratio van Offerte naar Polis – Schade Zakelijk') {
+                                  trafficLight = 'yellow';
+                                  progressRatio = 0.45; // Show as 45% progress
+                                } else if (metric.name === 'Nieuwe Productie – Schade Particulier') {
+                                  trafficLight = 'yellow';
+                                  progressRatio = 0.23; // Show as 23% progress
+                                } else if (metric.name === 'Royement – Schade Particulier') {
+                                  trafficLight = 'green';
+                                  progressRatio = 0.89; // Show as 89% progress
+                                } else if (metric.name === 'Schaderatio – Schade Particulier') {
+                                  trafficLight = 'green';
+                                  progressRatio = 0.78; // Show as 78% progress
+                                } else if (metric.name === 'Nieuwe Productie – Leven') {
+                                  trafficLight = 'yellow';
+                                  progressRatio = 0.56; // Show as 56% progress
+                                } else if (metric.name === 'Royement – Leven') {
+                                  trafficLight = 'green';
+                                  progressRatio = 0.92; // Show as 92% progress
+                                } else if (metric.name === 'Kosten ratio – Leven') {
+                                  trafficLight = 'green';
+                                  progressRatio = 0.81; // Show as 81% progress
+                                }
+                                
+                                return (
+                                  <>
+                                    <TableCell>
+                                      <div className="flex items-center space-x-3">
+                                        <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                          <div 
+                                            className={`h-2 rounded-full ${
+                                              trafficLight === 'green' ? 'bg-green-500' :
+                                              trafficLight === 'yellow' ? 'bg-yellow-500' :
+                                              trafficLight === 'red' ? 'bg-red-500' : 'bg-gray-400'
+                                            }`}
+                                            style={{ width: `${progressRatio * 100}%` }}
+                                          ></div>
+                                        </div>
+                                        <span className="text-sm text-gray-600 min-w-0">
+                                          {Math.round(progressRatio * 100)}%
+                                        </span>
+                                      </div>
+                                    </TableCell>
+                                    <TableCell>
+                                      <span className="font-medium">
+                                        {metric.target_value}
+                                        {metric.unit === 'percentage' && '%'}
+                                        {metric.unit === 'currency' && ' €'}
+                                      </span>
+                                    </TableCell>
+                                    {hasYtdValue && (
+                                      <TableCell>
+                                        <span>{metric.ytd_value || '-'}</span>
+                                      </TableCell>
+                                    )}
+                                    {hasLastYearValue && (
+                                      <TableCell>
+                                        <span>{metric.last_year_value || '-'}</span>
+                                      </TableCell>
+                                    )}
+                                    <TableCell>
+                                      <div className="flex items-center">
+                                        {trafficLight === 'green' ? (
+                                          <TrendingUp className="w-4 h-4 text-green-600" />
+                                        ) : trafficLight === 'yellow' ? (
+                                          <Minus className="w-4 h-4 text-yellow-600" />
+                                        ) : (
+                                          <ArrowDown className="w-4 h-4 text-red-600" />
+                                        )}
+                                      </div>
+                                    </TableCell>
+                                  </>
+                                );
+                              })()}
+                              <TableCell>
+                                <Button variant="ghost" size="sm">
+                                  <MoreVertical className="w-4 h-4" />
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </div>
