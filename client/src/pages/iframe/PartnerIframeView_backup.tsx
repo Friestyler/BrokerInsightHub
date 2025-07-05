@@ -65,17 +65,17 @@ export default function PartnerIframeView() {
         {/* Header with entity info and collaborators */}
         <IframeHeader
           entityType="partner" 
-          entityId={id || '1'}
+          entityId={id}
           entityName={partner.name}
           entityDescription={partner.description}
           onCreateOpportunity={handleCreateOpportunity}
-          users={(users as any[]) || []}
+          users={users}
         />
 
         {/* Activity Hub */}
         <div className="py-4">
           <PartnerActivityHub
-            partnerId={parseInt(id || '1')}
+            partnerId={parseInt(id)}
             partnerName={partner.name}
           />
         </div>
@@ -135,8 +135,7 @@ export default function PartnerIframeView() {
               {/* Product Subtab Content */}
               {activeProductTab === "overview" && (
                 <PortfolioOverviewTab
-                  entityType="partners"
-                  entityId={id || '1'}
+                  partner={partner}
                 />
               )}
 
