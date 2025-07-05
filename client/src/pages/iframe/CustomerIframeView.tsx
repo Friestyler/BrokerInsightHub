@@ -83,28 +83,72 @@ export default function CustomerIframeView() {
     queryKey: ['/api/okr-tags'],
   });
 
-  // Filter and group metrics exactly like main pages
-  const filteredMetrics = (metrics as any[] || []).filter((metric: any) => {
-    const matchesSearch = !searchTerm || 
-      metric.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      metric.description?.toLowerCase().includes(searchTerm.toLowerCase());
+  // Process OKR data - EXACT MIRROR
+  const attachedMetrics = React.useMemo(() => {
+    if (!templateAssignments || !allMetrics) return [];
     
-    const matchesTag = selectedTag === 'all' || metric.tags?.includes(selectedTag);
-    const matchesUnit = selectedUnit === 'all' || metric.unit === selectedUnit;
-    const matchesRange = selectedRange === 'all' || metric.time_range === selectedRange;
-    
-    return matchesSearch && matchesTag && matchesUnit && matchesRange;
-  });
+    const assignedTemplateIds = (templateAssignments as any[]).map((assignment: any) => assignment.template_id);
+    return (allMetrics as any[]).filter((metric: any) => assignedTemplateIds.includes(metric.id));
+  }, [templateAssignments, allMetrics]);
 
-  // Group metrics by tag exactly like main pages
-  const groupedMetrics = filteredMetrics.reduce((acc: any, metric: any) => {
-    const tag = metric.tags?.[0] || 'Untagged';
-    if (!acc[tag]) {
-      acc[tag] = [];
+  // Group metrics by tag - EXACT MIRROR
+  const metricsByTag = React.useMemo(() => {
+    if (!attachedMetrics) return {};
+    
+    return attachedMetrics.reduce((groups: any, metric: any) => {
+      const tagName = metric.tag || 'Other';
+      if (!groups[tagName]) {
+        groups[tagName] = [];
+      }
+      groups[tagName].push(metric);
+      return groups;
+    }, {});
+  }, [attachedMetrics]);
+
+  // Filter metrics based on current filters - EXACT MIRROR
+  const filteredMetricsByTag = React.useMemo(() => {
+    if (!metricsByTag) return {};
+    
+    const filtered: any = {};
+    
+    Object.entries(metricsByTag).forEach(([tagName, metrics]: [string, any]) => {
+      const filteredMetrics = (metrics as any[]).filter((metric: any) => {
+        const matchesSearch = !searchTerm || 
+          metric.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          metric.description?.toLowerCase().includes(searchTerm.toLowerCase());
+        
+        const matchesTag = selectedTag === 'all' || metric.tag === selectedTag;
+        const matchesUnit = selectedUnit === 'all' || metric.unit === selectedUnit;
+        
+        const matchesRange = selectedRange === 'all' || (() => {
+          const target = parseFloat(metric.target_value || '0');
+          switch(selectedRange) {
+            case '0-50': return target >= 0 && target <= 50;
+            case '50-100': return target > 50 && target <= 100;
+            case '100+': return target > 100;
+            default: return true;
+          }
+        })();
+        
+        return matchesSearch && matchesTag && matchesUnit && matchesRange;
+      });
+      
+      if (filteredMetrics.length > 0) {
+        filtered[tagName] = filteredMetrics;
+      }
+    });
+    
+    return filtered;
+  }, [metricsByTag, searchTerm, selectedTag, selectedUnit, selectedRange]);
+
+  // OKR metrics helper functions - EXACT MIRROR
+  const handleMetricSelect = (metricId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedMetrics(prev => [...prev, metricId]);
+    } else {
+      setSelectedMetrics(prev => prev.filter(id => id !== metricId));
     }
-    acc[tag].push(metric);
-    return acc;
-  }, {});
+  };
 
   if (!id) {
     return <div className="p-6">Customer ID not found</div>;
@@ -540,9 +584,9 @@ export default function CustomerIframeView() {
         )}
 
         {activeTab === "okr" && (
-          <div className="space-y-6">
-            {/* Filters Section - Exact same as main page */}
-            <div className="flex items-center space-x-4 bg-white p-4 rounded-lg">
+          <div className="p-6 space-y-6">
+            {/* Filters Section - EXACT MIRROR */}
+            <div className="flex items-center space-x-4">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
                 <Input
@@ -555,7 +599,7 @@ export default function CustomerIframeView() {
               
               <Select value={selectedTag} onValueChange={setSelectedTag}>
                 <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Filter by tag" />
+                  <SelectValue placeholder="All Tags" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Tags</SelectItem>
@@ -569,112 +613,121 @@ export default function CustomerIframeView() {
               
               <Select value={selectedUnit} onValueChange={setSelectedUnit}>
                 <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Filter by unit" />
+                  <SelectValue placeholder="All Units" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Units</SelectItem>
-                  <SelectItem value="number">Number</SelectItem>
                   <SelectItem value="percentage">Percentage</SelectItem>
+                  <SelectItem value="number">Number</SelectItem>
                   <SelectItem value="currency">Currency</SelectItem>
-                  <SelectItem value="days">Days</SelectItem>
+                  <SelectItem value="rating">Rating</SelectItem>
                 </SelectContent>
               </Select>
               
               <Select value={selectedRange} onValueChange={setSelectedRange}>
                 <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Filter by range" />
+                  <SelectValue placeholder="All Ranges" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Ranges</SelectItem>
-                  <SelectItem value="Q1 2024">Q1 2024</SelectItem>
-                  <SelectItem value="Q2 2024">Q2 2024</SelectItem>
-                  <SelectItem value="Q3 2024">Q3 2024</SelectItem>
-                  <SelectItem value="Q4 2024">Q4 2024</SelectItem>
-                  <SelectItem value="Annual 2024">Annual 2024</SelectItem>
+                  <SelectItem value="0-50">0-50</SelectItem>
+                  <SelectItem value="50-100">50-100</SelectItem>
+                  <SelectItem value="100+">100+</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
-            {/* Grouped Metrics Display */}
+            {/* Metrics Display - EXACT screenshot table layout */}
             <div className="space-y-6">
-              {Object.entries(groupedMetrics).map(([tagName, tagMetrics]) => (
-                <div key={tagName} className="bg-white rounded-lg border border-gray-200">
-                  <div className="p-4 bg-gray-50 border-b border-gray-200">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center space-x-3">
-                        <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                          {tagName}
-                        </Badge>
-                        <span className="text-sm text-gray-500">
-                          ({(tagMetrics as any[]).length} metric{(tagMetrics as any[]).length !== 1 ? 's' : ''})
-                        </span>
-                      </div>
-                    </div>
+              {Object.entries(filteredMetricsByTag).map(([tagName, tagMetrics]) => (
+                <div key={tagName} className="bg-white">
+                  <div className="mb-4">
+                    <Badge 
+                      className={`px-3 py-1 text-sm font-medium rounded-full ${
+                        tagName === 'Customer Satisfaction' ? 'bg-blue-100 text-blue-800' :
+                        tagName === 'Risk Management' ? 'bg-red-100 text-red-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}
+                    >
+                      {tagName}
+                    </Badge>
+                    <span className="ml-2 text-sm text-gray-500">
+                      ({(tagMetrics as any[]).length} metric{(tagMetrics as any[]).length !== 1 ? 's' : ''})
+                    </span>
                   </div>
                   
-                  <div className="divide-y divide-gray-200">
-                    {(tagMetrics as any[]).map((metric: any) => (
-                      <div key={metric.id} className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-b border-gray-200">
+                        <TableHead className="text-[#696C8C] font-medium">Name</TableHead>
+                        <TableHead className="text-[#696C8C] font-medium">Realized</TableHead>
+                        <TableHead className="text-[#696C8C] font-medium">Target</TableHead>
+                        <TableHead className="text-[#696C8C] font-medium">Progress</TableHead>
+                        <TableHead className="text-[#696C8C] font-medium">Status</TableHead>
+                        <TableHead className="w-12"></TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {(tagMetrics as any[]).map((metric: any) => (
+                        <TableRow key={metric.id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <TableCell>
+                            <div className="font-medium text-gray-900">{metric.name}</div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <span className="text-gray-900">
+                                {metric.current_value || 0}
+                              </span>
+                              <span className="ml-1 text-gray-500 text-sm">
+                                {metric.unit === 'percentage' ? 'percent' : metric.unit}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <span className="text-gray-900">
+                                {metric.target_value || 0}
+                              </span>
+                              <span className="ml-1 text-gray-500 text-sm">
+                                {metric.unit === 'percentage' ? 'percent' : metric.unit}
+                              </span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
                             <div className="flex items-center space-x-3">
-                              <h3 className="text-sm font-medium text-gray-900">{metric.name}</h3>
-                              <Badge variant="outline" className="text-xs">
-                                {metric.unit}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-gray-500 mt-1">{metric.description}</p>
-                          </div>
-                          
-                          <div className="flex items-center space-x-8">
-                            <div className="text-center">
-                              <p className="text-sm font-medium text-gray-900">
-                                {metric.realized || 0} {metric.unit === 'percentage' ? '%' : ''}
-                              </p>
-                              <p className="text-xs text-gray-500">Realized</p>
-                            </div>
-                            
-                            <div className="text-center">
-                              <p className="text-sm font-medium text-gray-900">
-                                {metric.target || 0} {metric.unit === 'percentage' ? '%' : ''}
-                              </p>
-                              <p className="text-xs text-gray-500">Target</p>
-                            </div>
-                            
-                            <div className="text-center">
-                              <div className="flex items-center space-x-2">
-                                <div className="w-16 bg-gray-200 rounded-full h-2">
-                                  <div 
-                                    className="bg-blue-600 h-2 rounded-full" 
-                                    style={{ 
-                                      width: `${Math.min(100, ((metric.realized || 0) / (metric.target || 1)) * 100)}%` 
-                                    }}
-                                  ></div>
-                                </div>
-                                <span className="text-sm font-medium text-gray-900">
-                                  {Math.round(((metric.realized || 0) / (metric.target || 1)) * 100)}%
-                                </span>
+                              <div className="flex-1 bg-gray-200 rounded-full h-2 max-w-[100px]">
+                                <div 
+                                  className="h-2 rounded-full bg-blue-500"
+                                  style={{ 
+                                    width: `${Math.min(100, ((metric.current_value || 0) / (metric.target_value || 1)) * 100)}%` 
+                                  }}
+                                ></div>
                               </div>
-                              <p className="text-xs text-gray-500">Progress</p>
+                              <span className="text-sm text-gray-600 min-w-0">
+                                {Math.round(((metric.current_value || 0) / (metric.target_value || 1)) * 100)}%
+                              </span>
                             </div>
-                            
-                            <div className="text-center">
-                              <div className={`w-3 h-3 rounded-full ${
-                                ((metric.realized || 0) / (metric.target || 1)) >= 0.9 ? 'bg-green-500' : 
-                                ((metric.realized || 0) / (metric.target || 1)) >= 0.7 ? 'bg-yellow-500' : 'bg-red-500'
-                              }`}></div>
-                              <p className="text-xs text-gray-500 mt-1">Status</p>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className={`w-3 h-3 rounded-full ${
+                              ((metric.current_value || 0) / (metric.target_value || 1)) >= 0.9 ? 'bg-green-500' : 
+                              ((metric.current_value || 0) / (metric.target_value || 1)) >= 0.7 ? 'bg-yellow-500' : 'bg-red-500'
+                            }`}></div>
+                          </TableCell>
+                          <TableCell>
+                            <Button variant="ghost" size="sm">
+                              <MoreVertical className="w-4 h-4" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               ))}
               
-              {Object.keys(groupedMetrics).length === 0 && (
-                <div className="text-center py-12 bg-white rounded-lg border border-gray-200">
+              {Object.keys(filteredMetricsByTag).length === 0 && (
+                <div className="text-center py-12">
                   <Target className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No metrics found</h3>
                   <p className="text-sm text-gray-500">

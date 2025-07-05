@@ -305,22 +305,6 @@ export default function PartnerIframeView() {
     return <div className="p-6">Partner not found</div>;
   }
 
-  const tabs = [
-    { id: "products", label: "Products" },
-    { id: "customers", label: "Customers" },
-    { id: "opportunities", label: "Opportunities" },
-    { id: "okr-plans", label: "OKR Plans" }
-  ];
-
-  // OKR metrics helper functions - EXACT MIRROR
-  const handleMetricSelect = (metricId: number, checked: boolean) => {
-    if (checked) {
-      setSelectedMetrics(prev => [...prev, metricId]);
-    } else {
-      setSelectedMetrics(prev => prev.filter(id => id !== metricId));
-    }
-  };
-
   // Process OKR data - EXACT MIRROR
   const attachedMetrics = React.useMemo(() => {
     if (!templateAssignments || !allMetrics) return [];
@@ -378,6 +362,22 @@ export default function PartnerIframeView() {
     
     return filtered;
   }, [metricsByTag, searchTerm, selectedTag, selectedUnit, selectedRange]);
+
+  const tabs = [
+    { id: "products", label: "Products" },
+    { id: "customers", label: "Customers" },
+    { id: "opportunities", label: "Opportunities" },
+    { id: "okr-plans", label: "OKR Plans" }
+  ];
+
+  // OKR metrics helper functions - EXACT MIRROR
+  const handleMetricSelect = (metricId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedMetrics(prev => [...prev, metricId]);
+    } else {
+      setSelectedMetrics(prev => prev.filter(id => id !== metricId));
+    }
+  };
 
   return (
     <div className="iframe-container">
