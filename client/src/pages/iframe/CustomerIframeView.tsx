@@ -74,38 +74,40 @@ export default function CustomerIframeView() {
   const renderProductSubtabs = () => {
     return (
       <div className="space-y-4">
-        {/* Product subtabs - same styling as main app */}
-        <div className="flex space-x-1 mb-4">
-          <button
-            onClick={() => setActiveProductTab("overview")}
-            className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-md ${
-              activeProductTab === "overview"
-                ? "bg-[#E1E4FB] text-[#3E4DC4]"
-                : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
-            }`}
-          >
-            Overview
-          </button>
-          <button
-            onClick={() => setActiveProductTab("matrix")}
-            className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-md ${
-              activeProductTab === "matrix"
-                ? "bg-[#E1E4FB] text-[#3E4DC4]"
-                : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
-            }`}
-          >
-            Matrix
-          </button>
-          <button
-            onClick={() => setActiveProductTab("list")}
-            className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-md ${
-              activeProductTab === "list"
-                ? "bg-[#E1E4FB] text-[#3E4DC4]"
-                : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
-            }`}
-          >
-            List
-          </button>
+        {/* Product subtabs - with proper spacing and blue underlines */}
+        <div className="bg-white px-6 py-4 border-b border-gray-200 mb-4">
+          <div className="flex space-x-1">
+            <button
+              onClick={() => setActiveProductTab("overview")}
+              className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-md border-b-2 ${
+                activeProductTab === "overview"
+                  ? "bg-[#E1E4FB] text-[#3E4DC4] border-blue-500"
+                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5] border-transparent"
+              }`}
+            >
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveProductTab("matrix")}
+              className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-md border-b-2 ${
+                activeProductTab === "matrix"
+                  ? "bg-[#E1E4FB] text-[#3E4DC4] border-blue-500"
+                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5] border-transparent"
+              }`}
+            >
+              Matrix
+            </button>
+            <button
+              onClick={() => setActiveProductTab("list")}
+              className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-md border-b-2 ${
+                activeProductTab === "list"
+                  ? "bg-[#E1E4FB] text-[#3E4DC4] border-blue-500"
+                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5] border-transparent"
+              }`}
+            >
+              List
+            </button>
+          </div>
         </div>
 
         {/* Product content based on selected subtab */}

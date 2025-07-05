@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import { Target, Download } from "lucide-react";
+import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
 
 interface IframeHeaderProps {
   entityType: 'partner' | 'customer' | 'opportunity';
@@ -103,9 +104,13 @@ export function IframeHeader({ entityType, entityName, entityDescription, users,
       </div>
 
       {/* View in Deal Room link with NN logo - positioned just above Activity Hub */}
-      <div className="flex items-center mb-4 bg-gray-50 p-3 rounded-lg">
-        <div className="w-6 h-6 bg-orange-500 rounded flex items-center justify-center mr-3">
-          <span className="text-white font-bold text-xs">NN</span>
+      <div className="flex items-center mb-4">
+        <div className="w-6 h-6 mr-3 flex items-center justify-center">
+          <img 
+            src={nnLogo} 
+            alt="Nationale Nederlanden Logo"
+            className="w-full h-full object-contain"
+          />
         </div>
         <span className="text-sm text-blue-600 font-medium">View in Deal Room</span>
       </div>
