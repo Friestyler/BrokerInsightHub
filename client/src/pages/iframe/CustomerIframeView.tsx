@@ -160,6 +160,7 @@ export default function CustomerIframeView() {
         entityDescription="Business customer with multiple insurance needs"
         users={users || []}
         onCreateOpportunity={handleCreateOpportunity}
+        entityId={id || '18'}
       />
 
       {/* Activity section with EXACT same layout and functionality as partner iframe */}

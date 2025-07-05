@@ -196,6 +196,7 @@ export default function PartnerIframeView() {
         entityDescription={`${partner?.description || 'Large insurance brokerage with focus on commercial lines'} • ${partner?.type || 'Broker'}`}
         users={users || []}
         onCreateOpportunity={handleCreateOpportunity}
+        entityId={id || '1'}
       />
 
       {/* Activity section with EXACT same layout and functionality */}

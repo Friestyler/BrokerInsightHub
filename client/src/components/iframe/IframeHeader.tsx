@@ -8,9 +8,10 @@ interface IframeHeaderProps {
   entityDescription: string;
   users: any[];
   onCreateOpportunity: () => void;
+  entityId?: string | number;
 }
 
-export function IframeHeader({ entityType, entityName, entityDescription, users, onCreateOpportunity }: IframeHeaderProps) {
+export function IframeHeader({ entityType, entityName, entityDescription, users, onCreateOpportunity, entityId = 1 }: IframeHeaderProps) {
   const getEntityInitials = () => {
     if (entityName) {
       return entityName.split(' ').map((n: string) => n[0]).join('').toUpperCase().slice(0, 2);
@@ -110,7 +111,14 @@ export function IframeHeader({ entityType, entityName, entityDescription, users,
             className="w-full h-full object-contain"
           />
         </div>
-        <span className="text-sm text-blue-600 font-medium">Partner View</span>
+        <a 
+          href={`https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit.dev/broker-view/${entityType}/${entityId}?tab=opportunities&list=39`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-sm text-blue-600 font-medium hover:text-blue-800 transition-colors cursor-pointer"
+        >
+          View in Deal Room
+        </a>
       </div>
     </div>
   );
