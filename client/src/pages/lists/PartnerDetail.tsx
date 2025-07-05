@@ -1173,7 +1173,7 @@ export default function PartnerDetail() {
                               key={user.id} 
                               className={`w-6 h-6 rounded-full ${colors[index % colors.length]} border-2 border-white flex items-center justify-center cursor-pointer hover:scale-110 transition-transform`}
                               title={`${user.name} - Click for Salesforce view`}
-                              onClick={() => window.open(`/iframe/partner/${id}`, '_blank')}
+                              onClick={() => window.location.href = `/iframe/partner/${id}`}
                             >
                               <span className="text-xs font-medium text-white">{initials}</span>
                             </div>
@@ -1197,7 +1197,7 @@ export default function PartnerDetail() {
                               key={user.id} 
                               className={`w-6 h-6 rounded-full ${colors[index % colors.length]} border-2 border-white flex items-center justify-center cursor-pointer hover:scale-110 transition-transform`}
                               title={`${user.name} - Click for Salesforce view`}
-                              onClick={() => window.open(`/iframe/partner/${id}`, '_blank')}
+                              onClick={() => window.location.href = `/iframe/partner/${id}`}
                             >
                               <span className="text-xs font-medium text-white">{initials}</span>
                             </div>

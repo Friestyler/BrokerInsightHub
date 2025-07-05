@@ -52,10 +52,10 @@ function LayoutComponent({ children }: LayoutProps) {
     
     if (partnerMatch) {
       const partnerId = partnerMatch[1];
-      window.open(`/iframe/partner/${partnerId}`, '_blank');
+      window.location.href = `/iframe/partner/${partnerId}`;
     } else if (customerMatch) {
       const customerId = customerMatch[1];
-      window.open(`/iframe/customer/${customerId}`, '_blank');
+      window.location.href = `/iframe/customer/${customerId}`;
     } else {
       // For other pages, we could show a default iframe or do nothing
       console.log('Profile clicked on page without specific entity context');
