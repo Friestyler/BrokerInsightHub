@@ -528,7 +528,7 @@ export default function PartnerIframeView() {
 
         {/* Customers tab - EXACT MIRROR from PartnerDetail */}
         {activeTab === "customers" && (
-          <div className="iframe-container" style={{ border: 'none !important', outline: 'none !important', boxShadow: 'none !important', overflow: 'visible' }}>
+          <div className="iframe-container space-y-4" style={{ border: 'none !important', outline: 'none !important', boxShadow: 'none !important', overflow: 'visible' }}>
             {/* Enhanced unified toolbar - Customers version - EXACT MIRROR from PartnerDetail */}
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <div className="space-y-4">
@@ -796,7 +796,7 @@ export default function PartnerIframeView() {
         
         {/* Opportunities tab - EXACT MIRROR from PartnerDetail */}
         {activeTab === "opportunities" && (
-          <div className="iframe-container" style={{ border: 'none !important', outline: 'none !important', boxShadow: 'none !important', overflow: 'visible' }}>
+          <div className="iframe-container space-y-4" style={{ border: 'none !important', outline: 'none !important', boxShadow: 'none !important', overflow: 'visible' }}>
             {/* Enhanced unified toolbar - Opportunities version - EXACT MIRROR from PartnerDetail */}
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <div className="flex flex-col gap-4">
