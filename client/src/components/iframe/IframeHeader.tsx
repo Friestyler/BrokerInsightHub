@@ -47,12 +47,33 @@ export function IframeHeader({ entityType, entityName, entityDescription, users,
             <p className="text-sm text-gray-600">{entityDescription}</p>
           </div>
         </div>
-        <Button 
-          onClick={onCreateOpportunity}
-          className="bg-[#5567E5] hover:bg-[#4556D4] text-white text-sm"
-        >
-          {getButtonText()}
-        </Button>
+        <div className="flex items-center space-x-3">
+          <Button 
+            onClick={onCreateOpportunity}
+            className="bg-[#5567E5] hover:bg-[#4556D4] text-white text-sm"
+          >
+            {getButtonText()}
+          </Button>
+          
+          {/* NN Logo and Partner View link */}
+          <div className="flex items-center space-x-2">
+            <div className="w-8 h-8 bg-white rounded-md border border-gray-200 flex items-center justify-center">
+              <img 
+                src={nnLogo} 
+                alt="Nationale Nederlanden Logo"
+                className="w-full h-full object-contain"
+              />
+            </div>
+            <a 
+              href={`https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit.dev/broker-view/${entityType}/${entityId}?tab=opportunities&list=39`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-sm text-blue-600 font-medium hover:text-blue-800 hover:underline transition-colors cursor-pointer"
+            >
+              Partner View
+            </a>
+          </div>
+        </div>
       </div>
       {/* Collaborators section exactly like screenshot */}
       <div className="flex items-center space-x-4 mb-4">
@@ -102,22 +123,7 @@ export function IframeHeader({ entityType, entityName, entityDescription, users,
           <span className="text-sm text-gray-500 font-medium">External</span>
         </div>
       </div>
-      {/* View in Deal Room link with NN logo - positioned just above Activity Hub */}
-      <div className="flex items-center mb-4">
-        <div className="w-6 h-6 mr-3 flex items-center justify-center">
-          <img 
-            src={nnLogo} 
-            alt="Nationale Nederlanden Logo"
-            className="w-full h-full object-contain"
-          />
-        </div>
-        <a 
-          href={`https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit.dev/broker-view/${entityType}/${entityId}?tab=opportunities&list=39`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-sm text-blue-600 font-medium hover:text-blue-800 hover:underline transition-colors cursor-pointer"
-        >Partner View</a>
-      </div>
+
     </div>
   );
 }
