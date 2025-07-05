@@ -32,12 +32,6 @@ export function IframeHeader({ entityType, entityName, entityDescription, users,
 
   return (
     <div className="bg-white px-6 py-4">
-      {/* Partner View link exactly like screenshot */}
-      <div className="flex items-center mb-4">
-        <Download className="w-4 h-4 text-orange-500 mr-2" />
-        <span className="text-sm text-orange-500 font-medium">Partner View</span>
-      </div>
-
       {/* Entity name and description like in screenshot */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
@@ -106,6 +100,14 @@ export function IframeHeader({ entityType, entityName, entityDescription, users,
           </div>
           <span className="text-sm text-gray-500 font-medium">External</span>
         </div>
+      </div>
+
+      {/* View in Deal Room link with NN logo - positioned just above Activity Hub */}
+      <div className="flex items-center mb-4 bg-gray-50 p-3 rounded-lg">
+        <div className="w-6 h-6 bg-orange-500 rounded flex items-center justify-center mr-3">
+          <span className="text-white font-bold text-xs">NN</span>
+        </div>
+        <span className="text-sm text-blue-600 font-medium">View in Deal Room</span>
       </div>
     </div>
   );

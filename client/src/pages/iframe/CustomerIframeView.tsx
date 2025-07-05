@@ -74,34 +74,34 @@ export default function CustomerIframeView() {
   const renderProductSubtabs = () => {
     return (
       <div className="space-y-4">
-        {/* Product subtabs - exact replica */}
-        <div className="flex space-x-6 mb-4">
+        {/* Product subtabs - same styling as main app */}
+        <div className="flex space-x-1 mb-4">
           <button
             onClick={() => setActiveProductTab("overview")}
-            className={`py-2 px-3 text-sm font-medium border-b-2 -mb-px ${
+            className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-md ${
               activeProductTab === "overview"
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "bg-[#E1E4FB] text-[#3E4DC4]"
+                : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
             }`}
           >
             Overview
           </button>
           <button
             onClick={() => setActiveProductTab("matrix")}
-            className={`py-2 px-3 text-sm font-medium border-b-2 -mb-px ${
+            className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-md ${
               activeProductTab === "matrix"
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "bg-[#E1E4FB] text-[#3E4DC4]"
+                : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
             }`}
           >
             Matrix
           </button>
           <button
             onClick={() => setActiveProductTab("list")}
-            className={`py-2 px-3 text-sm font-medium border-b-2 -mb-px ${
+            className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-md ${
               activeProductTab === "list"
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "bg-[#E1E4FB] text-[#3E4DC4]"
+                : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
             }`}
           >
             List
@@ -170,45 +170,45 @@ export default function CustomerIframeView() {
         />
       </div>
 
-      {/* Main tabs exactly like screenshot */}
+      {/* Main tabs exactly like partner detail page */}
       <div className="bg-white px-6">
-        <div className="flex space-x-8">
+        <div className="flex space-x-2">
           <button
             onClick={() => setActiveTab("products")}
-            className={`py-3 px-1 border-b-2 font-medium text-sm ${
+            className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
               activeTab === "products"
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "bg-[#E1E4FB] text-[#3E4DC4]"
+                : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
             }`}
           >
             Products (0)
           </button>
           <button
             onClick={() => setActiveTab("partners")}
-            className={`py-3 px-1 border-b-2 font-medium text-sm ${
+            className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
               activeTab === "partners"
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "bg-[#E1E4FB] text-[#3E4DC4]"
+                : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
             }`}
           >
             Partners ({partnerCount})
           </button>
           <button
             onClick={() => setActiveTab("opportunities")}
-            className={`py-3 px-1 border-b-2 font-medium text-sm ${
+            className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
               activeTab === "opportunities"
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "bg-[#E1E4FB] text-[#3E4DC4]"
+                : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
             }`}
           >
             Opportunities ({opportunityCount})
           </button>
           <button
             onClick={() => setActiveTab("okr")}
-            className={`py-3 px-1 border-b-2 font-medium text-sm ${
+            className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
               activeTab === "okr"
-                ? "border-blue-500 text-blue-600"
-                : "border-transparent text-gray-500 hover:text-gray-700"
+                ? "bg-[#E1E4FB] text-[#3E4DC4]"
+                : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
             }`}
           >
             OKR plans
