@@ -208,12 +208,27 @@ export default function ProductTemplates() {
   });
 
   // Fetch categories and build main category structure
-  const { data: categories = [] } = useQuery({
+  const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useQuery({
     queryKey: ['/api/product-categories'],
+  });
+
+  // Debug logging
+  console.log('DEBUG - Categories API Response:', {
+    categories,
+    categoriesLoading,
+    categoriesError,
+    categoriesLength: categories?.length
   });
 
   // Build main categories structure from working components
   const mainCategories = useMemo(() => {
+    console.log('DEBUG - Building main categories:', {
+      categoriesCount: categories?.length,
+      productTemplatesCount: productTemplates?.length,
+      sampleCategory: categories?.[0],
+      sampleProduct: productTemplates?.[0]
+    });
+
     if (!categories || !productTemplates) return [];
     
     const mainCategoryMap = new Map();
@@ -221,6 +236,7 @@ export default function ProductTemplates() {
     // First pass: identify main categories (those without parent_id)
     categories.forEach((category: any) => {
       if (!category.parent_id) {
+        console.log('DEBUG - Adding main category:', category.name);
         mainCategoryMap.set(category.name, {
           id: category.id,
           name: category.name,
@@ -230,15 +246,26 @@ export default function ProductTemplates() {
       }
     });
     
+    console.log('DEBUG - Main category map after first pass:', Array.from(mainCategoryMap.keys()));
+    
     // Second pass: assign products to main categories using parent_category_name
     productTemplates.forEach((product: any) => {
       const mainCategoryName = product.parent_category_name || product.parentCategoryName;
+      console.log('DEBUG - Product category mapping:', {
+        productName: product.name,
+        parent_category_name: product.parent_category_name,
+        parentCategoryName: product.parentCategoryName,
+        finalCategoryName: mainCategoryName
+      });
+      
       if (mainCategoryName && mainCategoryMap.has(mainCategoryName)) {
         mainCategoryMap.get(mainCategoryName).products.push(product);
       }
     });
     
-    return Array.from(mainCategoryMap.values());
+    const result = Array.from(mainCategoryMap.values());
+    console.log('DEBUG - Final main categories:', result);
+    return result;
   }, [categories, productTemplates]);
 
   // Fetch vendors for dropdown
