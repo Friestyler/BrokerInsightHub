@@ -954,6 +954,18 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                 <Sparkles className="h-3 w-3 mr-1" />
                 {generateActionsMutation.isPending ? 'Generating...' : 'Generate Next Best Action'}
               </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  // Placeholder for Smart Cross Sell functionality
+                  console.log('Smart Cross Sell clicked');
+                }}
+                className="text-xs text-gray-600 hover:text-blue-600"
+              >
+                <Brain className="h-3 w-3 mr-1" />
+                Smart Cross Sell
+              </Button>
             </div>
           )}
         </div>
