@@ -1590,17 +1590,7 @@ export default function CustomerDetailNew() {
               />
             )}
 
-            {/* Cross-sell Matrix Tab */}
-            {activeProductTab === "matrix" && (
-              <WhiteSpaceMatrix 
-                entityType="customer" 
-                entityId={id || ""} 
-                entityName={customer?.name}
-                onCreateOpportunity={() => setIsOpportunityModalOpen(true)}
-                onCreateCampaign={() => {/* Campaign creation logic */}}
-                onCreateList={() => {/* List creation logic */}}
-              />
-            )}
+
 
             {/* List Tab */}
             {activeProductTab === "list" && (
