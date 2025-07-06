@@ -681,12 +681,28 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
 
   // Generate AI actions
   const generateActionsMutation = useMutation({
-    mutationFn: () => 
-      fetch(`/api/${currentEnv}/partners/${partnerId}/generate-actions`, {
-        method: 'POST'
-      }).then(res => res.json()),
+    mutationFn: async () => {
+      const actualEntityType = entityType === 'opportunity' ? 'customers' : `${entityType}s`;
+      const actualEntityId = entityType === 'opportunity' ? entityId : (entityId || partnerId);
+      const url = `/api/degoudse/${actualEntityType}/${actualEntityId}/generate-actions`;
+      
+      console.log('Generate Actions API call:', { url, entityType, entityId, partnerId });
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Generate Actions API error:', errorText);
+        throw new Error(`API error: ${response.status} - ${errorText}`);
+      }
+      
+      return response.json();
+    },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/next-actions`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/degoudse/partners/${partnerId}/next-actions`] });
       // Auto-expand and switch to actions tab
       setIsCollapsed(false);
       setSelectedActivityType('actions');
@@ -696,9 +712,10 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
       toast({ title: 'AI recommendations generated successfully' });
     },
     onError: (error: any) => {
+      console.error('Generate Actions error:', error);
       toast({ 
         title: 'Failed to generate AI recommendations', 
-        description: 'Please check your OpenAI API configuration',
+        description: error.message || 'Please check your API configuration',
         variant: 'destructive' 
       });
     }
@@ -762,11 +779,28 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
 
   // Smart Cross Sell AI analysis
   const smartCrossSellMutation = useMutation({
-    mutationFn: () => 
-      fetch(`/api/${currentEnv}/${entityType}s/${entityId || partnerId}/smart-cross-sell`, {
-        method: 'POST'
-      }).then(res => res.json()),
+    mutationFn: async () => {
+      const actualEntityType = entityType === 'opportunity' ? 'customers' : `${entityType}s`;
+      const actualEntityId = entityType === 'opportunity' ? entityId : (entityId || partnerId);
+      const url = `/api/degoudse/${actualEntityType}/${actualEntityId}/smart-cross-sell`;
+      
+      console.log('Smart Cross Sell API call:', { url, entityType, entityId, partnerId });
+      
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('Smart Cross Sell API error:', errorText);
+        throw new Error(`API error: ${response.status} - ${errorText}`);
+      }
+      
+      return response.json();
+    },
     onSuccess: (data) => {
+      console.log('Smart Cross Sell success:', data);
       setCrossSellAnalysis(data);
       setIsGeneratingCrossSell(false);
       // Switch to Smart Cross Sell tab (replace meeting tab)
@@ -774,10 +808,11 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
       toast({ title: 'Smart Cross Sell analysis completed' });
     },
     onError: (error: any) => {
+      console.error('Smart Cross Sell error:', error);
       setIsGeneratingCrossSell(false);
       toast({ 
         title: 'Failed to generate cross-sell analysis', 
-        description: 'Please check your OpenAI API configuration',
+        description: error.message || 'Please check your API configuration',
         variant: 'destructive' 
       });
     }
