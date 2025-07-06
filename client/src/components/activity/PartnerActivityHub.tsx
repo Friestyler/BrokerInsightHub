@@ -99,7 +99,7 @@ const activityTypes = [
   { value: 'comment', label: 'Comments', icon: MessageSquare, color: 'text-blue-600' },
   { value: 'attachment', label: 'Documents', icon: Paperclip, color: 'text-purple-600' },
   { value: 'actions', label: 'Next Best Actions', icon: Sparkles, color: 'text-purple-600' },
-  { value: 'meeting', label: 'Prepare a Meeting', icon: Calendar, color: 'text-orange-600' }
+  { value: 'meeting', label: 'Smart Cross Sell', icon: Calendar, color: 'text-orange-600' }
 ];
 
 const priorityColors = {
