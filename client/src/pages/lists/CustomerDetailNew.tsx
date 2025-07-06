@@ -685,11 +685,7 @@ export default function CustomerDetailNew() {
 
 
 
-  // Customer Product Assignments
-  const { data: assignedProducts, isLoading: assignmentsLoading, refetch: refetchAssignments } = useQuery({
-    queryKey: [`/api/customers/${customerId}/product-assignments`],
-    enabled: isValidId
-  });
+  // Remove duplicate product assignments query - using relatedProducts instead
 
   // Mutations
   const queryClient = useQueryClient();
@@ -1485,15 +1481,14 @@ export default function CustomerDetailNew() {
               </div>
             )}
 
-            {/* List Tab - Enhanced Category View */}
+            {/* List Tab */}
             {activeProductTab === "list" && (
               <div>
-                {/* Product Categories Group by Parent Categories */}
+                {/* Products grouped by category */}
                 {relatedProducts && relatedProducts.length > 0 ? (
                   <div className="space-y-6">
                     {/* Group products by parent category */}
                     {(() => {
-                      // Group products by parent category using correct API response structure
                       const groupedProducts = relatedProducts.reduce((acc: any, product: any) => {
                         const parentCategory = product.parent_category_name || 'Other';
                         if (!acc[parentCategory]) {
@@ -1507,18 +1502,12 @@ export default function CustomerDetailNew() {
                         const productCount = products.length;
                         const totalValue = products.reduce((sum: number, p: any) => sum + (parseFloat(p.premium_value) || 0), 0);
                         
-                        // Get category color from first product in group
-                        const categoryColor = products[0]?.category_color || '#3B82F6';
-                        
                         return (
                           <div key={parentCategory} className="bg-[#F8F9FB] border border-[#E6E7F1] rounded-xl p-4">
                             {/* Category Header */}
                             <div className="flex items-center justify-between mb-4">
                               <div className="flex items-center space-x-3">
-                                <div 
-                                  className="w-3 h-3 rounded-full"
-                                  style={{ backgroundColor: categoryColor }}
-                                ></div>
+                                <div className="w-3 h-3 rounded-full bg-blue-500"></div>
                                 <h3 className="text-lg font-semibold text-[#282A3F]">
                                   {parentCategory} ({productCount})
                                 </h3>
@@ -1577,7 +1566,7 @@ export default function CustomerDetailNew() {
                                       )}
                                       
                                       {contractEndDate && (
-                                        <div className="flex items-center gap-1 text-xs">
+                                        <div className="text-xs">
                                           <span className={`font-medium ${
                                             isExpired ? 'text-red-600' : 
                                             isExpiringSoon ? 'text-orange-600' : 
@@ -1587,9 +1576,7 @@ export default function CustomerDetailNew() {
                                              isExpiringSoon ? 'Expiring Soon' : 
                                              `${Math.ceil((contractEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365))} years left`}
                                           </span>
-                                          <span className="text-gray-500">
-                                            Expiry Date
-                                          </span>
+                                          <span className="text-gray-500 ml-1">Expiry Date</span>
                                         </div>
                                       )}
                                     </div>
