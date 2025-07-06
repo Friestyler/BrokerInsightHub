@@ -1795,16 +1795,126 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envId = req.params.envId;
       const partnerId = parseInt(req.params.id);
       
-      const actionsResult = await db.execute(sql`
-        SELECT * FROM ${sql.identifier(envId)}.next_best_actions 
-        WHERE partner_id = ${partnerId}
-        ORDER BY priority DESC, created_at DESC
-      `);
-      
-      res.json(actionsResult.rows);
+      // Return empty array for now since we generate actions on-demand
+      // Actions are created when user clicks "Generate Next Best Action"
+      res.json([]);
     } catch (error) {
       console.error('Error fetching next best actions:', error);
       res.status(500).json({ error: 'Failed to fetch next best actions' });
+    }
+  });
+
+  // Generate AI actions for a partner
+  app.post('/api/:envId/partners/:id/generate-actions', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const partnerId = parseInt(req.params.id);
+      
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({ error: 'OpenAI API key not configured' });
+      }
+
+      console.log(`Generating AI actions for partner ${partnerId}`);
+
+      // Get partner basic information
+      const partnerResult = await pool.query(`
+        SELECT * FROM degoudse.partners WHERE id = $1
+      `, [partnerId]);
+
+      if (partnerResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Partner not found' });
+      }
+
+      const partner = partnerResult.rows[0];
+
+      // Get current tasks and activities
+      const tasksResult = await pool.query(`
+        SELECT * FROM degoudse.activity_tasks 
+        WHERE partner_id = $1 AND completed = false
+        ORDER BY created_at DESC
+        LIMIT 10
+      `, [partnerId]);
+
+      // Get recent opportunities
+      const opportunitiesResult = await pool.query(`
+        SELECT * FROM degoudse.opportunities 
+        WHERE partner_id = $1
+        ORDER BY created_at DESC
+        LIMIT 5
+      `, [partnerId]);
+
+      const actionData = {
+        partner: {
+          name: partner.name,
+          description: partner.description,
+          status: partner.status,
+          region: partner.region
+        },
+        currentTasks: tasksResult.rows,
+        recentOpportunities: opportunitiesResult.rows,
+        timestamp: new Date().toISOString()
+      };
+
+      const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [
+            {
+              role: "system",
+              content: `You are an AI assistant helping generate next best actions for insurance account managers. Generate 3-5 actionable recommendations based on the partner's current status, tasks, and opportunities.
+
+Respond with JSON in this exact format:
+{
+  "actions": [
+    {
+      "id": 1,
+      "title": "Action Title",
+      "description": "Detailed description of what needs to be done",
+      "priority": "High|Medium|Low",
+      "category": "Follow-up|Analysis|Meeting|Documentation|Outreach",
+      "timeframe": "Today|This Week|This Month",
+      "reasoning": "Why this action is important"
+    }
+  ]
+}
+
+Focus on practical, actionable steps the account manager can take immediately.`
+            },
+            {
+              role: "user",
+              content: `Generate next best actions for partner at ${new Date().toISOString()}\n\n${JSON.stringify(actionData, null, 2)}`
+            }
+          ],
+          response_format: { type: "json_object" },
+          max_tokens: 1500,
+          temperature: 0.7
+        })
+      });
+
+      if (!openaiResponse.ok) {
+        const errorData = await openaiResponse.text();
+        console.error('OpenAI API error:', errorData);
+        return res.status(500).json({ error: 'Failed to generate AI actions' });
+      }
+
+      const aiResult = await openaiResponse.json();
+      const actions = JSON.parse(aiResult.choices[0].message.content);
+
+      console.log('=== GENERATED AI ACTIONS ===');
+      console.log(`Partner: ${partner.name}`);
+      console.log('Actions:', actions);
+      console.log('=== END ACTIONS ===');
+
+      res.json(actions);
+
+    } catch (error) {
+      console.error('Error generating AI actions:', error);
+      res.status(500).json({ error: 'Failed to generate AI actions' });
     }
   });
 
