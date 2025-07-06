@@ -1843,15 +1843,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LIMIT 5
       `, [partnerId]);
 
+      // Get customer portfolio for context
+      const customersResult = await pool.query(`
+        SELECT c.*, COUNT(o.id) as opportunity_count
+        FROM degoudse.customers c
+        LEFT JOIN degoudse.opportunities o ON c.id = o.customer_id
+        WHERE c.partner_id = $1
+        GROUP BY c.id
+        ORDER BY opportunity_count DESC
+        LIMIT 10
+      `, [partnerId]);
+
+      // Get recent completed tasks for performance analysis
+      const completedTasksResult = await pool.query(`
+        SELECT * FROM degoudse.activity_tasks 
+        WHERE partner_id = $1 AND completed = true
+        ORDER BY updated_at DESC
+        LIMIT 5
+      `, [partnerId]);
+
+      // Fetch real-time market data about the company
+      let marketIntelligence = null;
+      try {
+        const searchQuery = `${partner.name} insurance broker Netherlands news 2024 2025`;
+        
+        const webSearchResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: "gpt-4o",
+            messages: [
+              {
+                role: "system",
+                content: "You are a market intelligence analyst. Provide recent market context and industry insights for insurance companies and brokers in the Netherlands. Focus on market trends, regulatory changes, competitive landscape, and business opportunities."
+              },
+              {
+                role: "user",
+                content: `Provide market intelligence and recent industry context for ${partner.name}, an insurance broker in the Netherlands. Include market trends, regulatory changes, competitive positioning, and potential business opportunities in the Dutch insurance market for 2024-2025.`
+              }
+            ],
+            max_tokens: 800,
+            temperature: 0.7
+          })
+        });
+
+        if (webSearchResponse.ok) {
+          const webResult = await webSearchResponse.json();
+          marketIntelligence = webResult.choices[0].message.content;
+        }
+      } catch (error) {
+        console.log('Market intelligence fetch failed, continuing without external data');
+      }
+
       const actionData = {
         partner: {
           name: partner.name,
           description: partner.description,
           status: partner.status,
-          region: partner.region
+          region: partner.region,
+          id: partner.id
         },
         currentTasks: tasksResult.rows,
+        completedTasks: completedTasksResult.rows,
         recentOpportunities: opportunitiesResult.rows,
+        customerPortfolio: customersResult.rows,
+        marketIntelligence: marketIntelligence,
         timestamp: new Date().toISOString()
       };
 
@@ -1866,24 +1925,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
           messages: [
             {
               role: "system",
-              content: `You are an AI assistant helping generate next best actions for insurance account managers. Generate 3-5 actionable recommendations based on the partner's current status, tasks, and opportunities.
+              content: `You are an expert insurance market analyst and account management strategist. Generate 4-6 highly actionable next best actions for insurance account managers based on comprehensive partner analysis, market intelligence, and portfolio insights.
+
+Analyze the partner's:
+- Current task performance and completion patterns
+- Customer portfolio composition and opportunity trends
+- Market positioning and competitive landscape
+- Recent industry developments and regulatory changes
+- Growth opportunities and potential risks
 
 Respond with JSON in this exact format:
 {
+  "marketSummary": "Brief 2-3 sentence summary of current market context and partner positioning",
   "actions": [
     {
       "id": 1,
       "title": "Action Title",
-      "description": "Detailed description of what needs to be done",
+      "description": "Detailed actionable description with specific steps and expected outcomes",
       "priority": "High|Medium|Low",
-      "category": "Follow-up|Analysis|Meeting|Documentation|Outreach",
-      "timeframe": "Today|This Week|This Month",
-      "reasoning": "Why this action is important"
+      "category": "Strategic|Operational|Relationship|Analysis|Compliance|Growth",
+      "timeframe": "This Week|This Month|Next Quarter",
+      "reasoning": "Strategic rationale with market context and business impact",
+      "expectedOutcome": "Specific measurable result or benefit"
     }
   ]
 }
 
-Focus on practical, actionable steps the account manager can take immediately.`
+Prioritize actions that:
+1. Address immediate business-critical tasks and deadlines
+2. Capitalize on current market opportunities and trends
+3. Strengthen partner relationships and portfolio growth
+4. Ensure regulatory compliance and risk mitigation
+5. Leverage competitive advantages and market positioning`
             },
             {
               role: "user",
@@ -3604,6 +3677,51 @@ Keep the tone clear and professional. Focus on what will help the account manage
         }
       };
 
+      // Fetch real-time market intelligence for enhanced analysis
+      let marketIntelligence = null;
+      try {
+        const marketSearchQuery = entity.industry 
+          ? `${entity.industry} insurance market trends Netherlands 2024 2025 opportunities`
+          : `insurance broker market trends Netherlands 2024 2025 cross-sell opportunities`;
+        
+        const marketResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: "gpt-4o",
+            messages: [
+              {
+                role: "system",
+                content: "You are a Dutch insurance market intelligence analyst. Provide current market trends, regulatory changes, competitive landscape insights, and growth opportunities for insurance companies in the Netherlands."
+              },
+              {
+                role: "user",
+                content: `Provide market intelligence for ${entity.name} in the Dutch insurance market. Focus on: 1) Current market trends in ${entity.industry || 'insurance brokerage'}, 2) Regulatory changes affecting cross-sell opportunities, 3) Competitive positioning insights, 4) Growth opportunities in insurance product categories, 5) Customer behavior trends for 2024-2025.`
+              }
+            ],
+            max_tokens: 600,
+            temperature: 0.7
+          })
+        });
+
+        if (marketResponse.ok) {
+          const marketResult = await marketResponse.json();
+          marketIntelligence = marketResult.choices[0].message.content;
+        }
+      } catch (error) {
+        console.log('Market intelligence fetch failed, continuing with portfolio analysis only');
+      }
+
+      // Enhanced cross-sell data with market intelligence
+      const enhancedCrossSellData = {
+        ...crossSellData,
+        marketIntelligence: marketIntelligence,
+        analysisTimestamp: new Date().toISOString()
+      };
+
       // Send to OpenAI for Smart Cross Sell analysis
       const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
@@ -3676,7 +3794,24 @@ Focus on realistic, data-driven insights. Use actual product names and categorie
             },
             {
               role: "user",
-              content: `Smart Cross Sell analysis request at ${new Date().toISOString()}\n\n${JSON.stringify(crossSellData, null, 2)}`
+              content: `Enhanced Smart Cross Sell analysis request at ${new Date().toISOString()}
+
+Entity Profile:
+${JSON.stringify(enhancedCrossSellData.entity, null, 2)}
+
+Current Product Portfolio:
+${JSON.stringify(enhancedCrossSellData.currentProducts, null, 2)}
+
+Available Products for Cross-Sell:
+${JSON.stringify(enhancedCrossSellData.availableProducts, null, 2)}
+
+Market Intelligence & Industry Context:
+${enhancedCrossSellData.marketIntelligence || 'Market intelligence unavailable - focus on portfolio analysis'}
+
+Market Context & Opportunities:
+${JSON.stringify(enhancedCrossSellData.marketContext, null, 2)}
+
+Generate highly actionable cross-sell recommendations that leverage both portfolio gaps and current market intelligence. Prioritize opportunities that align with market trends and competitive positioning.`
             }
           ]
         })

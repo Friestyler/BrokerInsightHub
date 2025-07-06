@@ -1739,8 +1739,23 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                   <p className="text-xs text-gray-400 mt-1">Generate new recommendations with the AI button above</p>
                 </div>
               ) : (
-                <div className="space-y-2">
-                  {actions.slice(0, 5).map((action: NextBestAction, index: number) => (
+                <div className="space-y-4">
+                  {/* Market Summary (if available) */}
+                  {actions[0]?.marketSummary && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Target className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm font-medium text-blue-900">Market Intelligence</span>
+                      </div>
+                      <p className="text-xs text-blue-800">
+                        {actions[0].marketSummary}
+                      </p>
+                    </div>
+                  )}
+                  
+                  {/* Actions List */}
+                  <div className="space-y-2">
+                    {actions.slice(0, 5).map((action: NextBestAction, index: number) => (
                     <div 
                       key={action.id} 
                       className={`p-3 bg-white border rounded-lg transition-all duration-300 ${
@@ -1805,7 +1820,8 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                         </Button>
                       </div>
                     </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
               )}
             </div>
@@ -1906,13 +1922,27 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                               <div className="flex-1">
                                 <div className="text-sm font-medium text-gray-900">{opportunity.productName}</div>
                                 <div className="text-xs text-gray-600 mt-1">{opportunity.reasoning}</div>
-                                <div className="flex items-center gap-2 mt-2">
-                                  <span className="text-xs text-green-700 bg-green-100 px-2 py-1 rounded">
-                                    {opportunity.confidence}% confidence
-                                  </span>
-                                  <span className="text-xs text-blue-700 bg-blue-100 px-2 py-1 rounded">
-                                    €{opportunity.estimatedValue?.toLocaleString() || 'TBD'}
-                                  </span>
+                                <div className="flex items-center justify-between mt-2">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs text-green-700 bg-green-100 px-2 py-1 rounded">
+                                      {opportunity.confidence}% confidence
+                                    </span>
+                                    <span className="text-xs text-blue-700 bg-blue-100 px-2 py-1 rounded">
+                                      €{opportunity.estimatedValue?.toLocaleString() || 'TBD'}
+                                    </span>
+                                  </div>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="text-xs h-6 px-2 border-green-300 text-green-700 hover:bg-green-50"
+                                    onClick={() => {
+                                      // Create opportunity with cross-sell data
+                                      console.log('Creating opportunity for:', opportunity.productName);
+                                    }}
+                                  >
+                                    <Plus className="h-3 w-3 mr-1" />
+                                    Create Opportunity
+                                  </Button>
                                 </div>
                               </div>
                             </div>
