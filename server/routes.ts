@@ -4213,6 +4213,9 @@ Keep the tone clear and professional. Focus on what will help the account manage
           -- Category info
           c.name as "categoryName",
           c.color as "categoryColor",
+          -- Parent category info for main category grouping
+          parent_cat.name as "parentCategoryName",
+          parent_cat.color as "parentCategoryColor",
           -- Contract date ranges
           MIN(cp.contract_start_date) as "earliestContractStart",
           MAX(cp.contract_end_date) as "latestContractEnd",
@@ -4222,8 +4225,9 @@ Keep the tone clear and professional. Focus on what will help the account manage
         INNER JOIN degoudse.products p ON cp.product_id = p.id
         INNER JOIN degoudse.partner_customers pc ON cp.customer_id = pc.customer_id
         LEFT JOIN degoudse.categories c ON p.category_id = c.id
+        LEFT JOIN degoudse.categories parent_cat ON c.parent_id = parent_cat.id
         WHERE pc.partner_id = $1
-        GROUP BY p.id, p.name, p.description, p.category, c.name, c.color
+        GROUP BY p.id, p.name, p.description, p.category, c.name, c.color, parent_cat.name, parent_cat.color
         ORDER BY COUNT(DISTINCT cp.customer_id) DESC, SUM(cp.premium_value) DESC
       `, [partnerId]);
       
