@@ -1112,193 +1112,101 @@ export default function ProductTemplates() {
       </div>
 
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="animate-pulse">
+        <div className="space-y-6">
+          {[...Array(3)].map((_, i) => (
+            <Card key={i} className="animate-pulse border-[#E6E7F1]">
               <CardHeader>
-                <div className="h-4 bg-gray-200 rounded w-3/4"></div>
-                <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                <div className="h-6 bg-gray-200 rounded w-1/4"></div>
+                <div className="h-4 bg-gray-200 rounded w-1/6"></div>
               </CardHeader>
               <CardContent>
-                <div className="space-y-2">
-                  <div className="h-3 bg-gray-200 rounded"></div>
-                  <div className="h-3 bg-gray-200 rounded w-2/3"></div>
+                <div className="space-y-4">
+                  <div className="h-16 bg-gray-200 rounded"></div>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
-      ) : filteredTemplates.length === 0 ? (
+      ) : mainCategories.length === 0 ? (
         <Card>
           <CardContent className="text-center py-12">
             <div className="text-gray-500">
-              {searchTerm ? "No templates found matching your search." : "No products found. Add your first product to get started."}
+              No products found. Add your first product to get started.
             </div>
           </CardContent>
         </Card>
       ) : (
-        <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12">
-                    <div className={`transition-opacity ${
-                      selectedTemplates.length > 0 ? 'opacity-100' : 'opacity-0'
-                    }`}>
-                      <Checkbox 
-                        checked={selectedTemplates.length === filteredTemplates.length && filteredTemplates.length > 0}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedTemplates(filteredTemplates.map((template: ProductTemplate) => template.id));
-                          } else {
-                            setSelectedTemplates([]);
-                          }
-                        }}
-                      />
+        <div className="space-y-6">
+          {mainCategories
+            .filter((category: any) => {
+              if (selectedCategoryFilter === "all") return true;
+              return category.name === selectedCategoryFilter;
+            })
+            .map((category: any) => (
+            <Card key={category.id} className="border-[#E6E7F1]">
+              <CardHeader className="pb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div 
+                      className="w-4 h-4 rounded-full" 
+                      style={{ backgroundColor: category.color }}
+                    />
+                    <div>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        {category.name} ({category.productCount})
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        Total value: €{category.products.reduce((sum: number, p: any) => sum + (p.premium_value || 0), 0).toLocaleString()}
+                      </p>
                     </div>
-                  </TableHead>
-                  <TableHead className="w-8"></TableHead>
-                  <TableHead className="min-w-[100px] text-[#696C8C]">Product ID</TableHead>
-                  <TableHead className="min-w-[200px] text-[#696C8C]">Name</TableHead>
-                  <TableHead className="min-w-[250px] text-[#696C8C]">Description</TableHead>
-                  <TableHead className="min-w-[150px] text-[#696C8C]">Category</TableHead>
-                  <TableHead className="min-w-[120px] text-[#696C8C]">Provider</TableHead>
-                  <TableHead className="min-w-[100px] text-[#696C8C]">Average Price</TableHead>
-                  <TableHead className="min-w-[100px] text-[#696C8C]">Premium %</TableHead>
-                  <TableHead className="min-w-[100px] text-[#696C8C]">Discount %</TableHead>
-                  <TableHead className="min-w-[80px] text-[#696C8C]">Partners</TableHead>
-                  <TableHead className="min-w-[80px] text-[#696C8C]">Customers</TableHead>
-                  <TableHead className="min-w-[100px] text-[#696C8C]">Opportunities</TableHead>
-                  <TableHead className="w-12 text-[#696C8C]">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredTemplates.map((template: ProductTemplate) => (
-                  <TableRow 
-                    key={template.id} 
-                    className={`hover:bg-gray-50 ${
-                      selectedTemplates.includes(template.id) ? 'bg-blue-50' : ''
-                    }`}
-                  >
-                    <TableCell>
-                      <div className={`transition-opacity ${
-                        selectedTemplates.includes(template.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                      }`}>
-                        <Checkbox 
-                          checked={selectedTemplates.includes(template.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedTemplates([...selectedTemplates, template.id]);
-                            } else {
-                              setSelectedTemplates(selectedTemplates.filter(id => id !== template.id));
-                            }
-                          }}
-                        />
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {category.products.map((product: any) => (
+                    <div key={product.id} className="bg-gray-50 rounded-lg p-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          <h4 className="font-medium text-gray-900 mb-1">
+                            {product.name}
+                          </h4>
+                          <p className="text-sm text-gray-600 mb-3">
+                            {product.description}
+                          </p>
+                          <div className="flex items-center gap-6 text-sm">
+                            <div className="flex items-center gap-2">
+                              <span className="text-blue-600 font-medium">{product.customers || 0}</span>
+                              <span className="text-gray-500">Customers</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-green-600 font-medium">€{(product.premium_value || 0).toLocaleString()}</span>
+                              <span className="text-gray-500">Total Premium</span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-purple-600 font-medium">€{Math.round((product.premium_value || 0) / Math.max(product.customers || 1, 1)).toLocaleString()}</span>
+                              <span className="text-gray-500">Avg Premium</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="text-right text-sm text-gray-500">
+                          {product.contract_end_date && (
+                            <>
+                              <div>{new Date(product.contract_end_date).toLocaleDateString()}</div>
+                              <div className="text-xs">
+                                {Math.ceil((new Date(product.contract_end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24 * 365))} years left
+                              </div>
+                              <div className="text-xs">Latest Expiry</div>
+                            </>
+                          )}
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      {(template as ProductTemplateWithCategory).categoryIcon && renderCategoryIcon((template as ProductTemplateWithCategory).categoryIcon)}
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-900 font-mono">
-                        {template.productId || '-'}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="font-medium text-gray-900">
-                        {template.name}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-600 max-w-[250px] truncate">
-                        {template.description || '-'}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {(template as any).parent_category_name || (template as any).parentCategoryName ? (
-                        <Badge 
-                          variant="outline" 
-                          className="text-xs"
-                          style={{
-                            borderColor: (template as any).categoryColor || '#E6E7F1',
-                            backgroundColor: `${(template as any).categoryColor || '#E6E7F1'}10`,
-                            color: (template as any).categoryColor || '#6B7280'
-                          }}
-                        >
-                          {(template as any).parent_category_name || (template as any).parentCategoryName}
-                        </Badge>
-                      ) : (
-                        <span className="text-gray-400">-</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-900">
-                        {template.providerName || '-'}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-900">
-                        {template.averagePrice ? formatCurrency(template.averagePrice) : '-'}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-900">
-                        {template.premiumPercentage ? formatPercentage(template.premiumPercentage) : '-'}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-gray-900">
-                        {template.discountPercentage ? formatPercentage(template.discountPercentage) : '-'}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="inline-flex items-center justify-center w-8 h-6 bg-purple-100 text-purple-800 text-xs font-medium rounded-full">
-                        {(template as ProductTemplateWithCategory).partnerCount || 0}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div 
-                        className="inline-flex items-center justify-center w-8 h-6 bg-blue-100 text-blue-800 text-xs font-medium rounded-full cursor-pointer hover:bg-blue-200 transition-colors"
-                        onClick={() => {
-                          if ((template as ProductTemplateWithCategory).customerCount && (template as ProductTemplateWithCategory).customerCount > 0) {
-                            setSelectedProductForCustomers(template.id);
-                            setCustomerPopupOpen(true);
-                          }
-                        }}
-                      >
-                        {(template as ProductTemplateWithCategory).customerCount || 0}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-center">
-                      <div className="inline-flex items-center justify-center w-8 h-6 bg-green-100 text-green-800 text-xs font-medium rounded-full">
-                        {(template as ProductTemplateWithCategory).opportunityCount || 0}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            <MoreVertical className="h-4 w-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem onClick={() => handleEdit(template)}>
-                            <Edit className="h-4 w-4 mr-2" />
-                            Edit
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleDelete(template)} className="text-red-600">
-                            <Trash2 className="h-4 w-4 mr-2" />
-                            Delete
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          ))}
         </div>
       )}
 
