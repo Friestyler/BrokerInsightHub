@@ -3763,63 +3763,61 @@ Keep the tone clear and professional. Focus on what will help the account manage
       
       const customerName = customerResult.rows[0].name;
       
-      // Get portfolio summary metrics using correct customer_product_assignments table
+      // Get portfolio summary metrics - use actual customer_products table like product assignments
       const summaryResult = await envPool.query(`
         SELECT 
-          COUNT(DISTINCT cpa.product_template_id) as products_covered,
-          COUNT(DISTINCT c.id) as categories_covered,
-          SUM(COALESCE(CASE 
-            WHEN cpa.custom_price IS NOT NULL THEN cpa.custom_price 
-            ELSE pt.average_price 
-          END, 0)) as total_premium,
-          (SELECT COUNT(*) FROM degoudse.product_templates WHERE is_active = true) as total_available_products
-        FROM degoudse.customer_product_assignments cpa
-        INNER JOIN degoudse.product_templates pt ON cpa.product_template_id = pt.id
-        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
-        WHERE cpa.customer_id = $1 AND cpa.is_active = true
+          COUNT(DISTINCT cp.product_id) as products_covered,
+          COUNT(DISTINCT parent_cat.id) as categories_covered,
+          SUM(COALESCE(cp.premium_value, 0)) as total_premium,
+          (SELECT COUNT(*) FROM degoudse.products) as total_available_products
+        FROM degoudse.customer_products cp
+        INNER JOIN degoudse.products p ON cp.product_id = p.id
+        LEFT JOIN degoudse.categories c ON p.category_id = c.id
+        LEFT JOIN degoudse.categories parent_cat ON c.parent_id = parent_cat.id
+        WHERE cp.customer_id = $1
       `, [customerId]);
       
-      // Get category coverage breakdown using customer_product_assignments
+      // Get category coverage breakdown - use same approach as working query
       const categoryResult = await envPool.query(`
         SELECT 
-          c.id as categoryId,
-          c.name as categoryName,
-          c.color as categoryColor,
-          COUNT(DISTINCT cpa.product_template_id) as products_covered,
-          COUNT(DISTINCT pt.id) as total_products,
-          SUM(COALESCE(CASE 
-            WHEN cpa.custom_price IS NOT NULL THEN cpa.custom_price 
-            ELSE pt.average_price 
-          END, 0)) as current_premium,
-          ROUND((COUNT(DISTINCT cpa.product_template_id)::decimal / NULLIF(COUNT(DISTINCT pt.id), 0)) * 100, 1) as coverage_percentage
-        FROM degoudse.categories c
-        LEFT JOIN degoudse.product_templates pt ON pt.category_id = c.id AND pt.is_active = true
-        LEFT JOIN degoudse.customer_product_assignments cpa ON cpa.product_template_id = pt.id AND cpa.customer_id = $1 AND cpa.is_active = true
-        WHERE c.level = 1 AND c.is_active = true
-        GROUP BY c.id, c.name, c.color
+          parent_cat.id as categoryId,
+          parent_cat.name as categoryName,
+          parent_cat.color as categoryColor,
+          COUNT(DISTINCT cp.product_id) as products_covered,
+          COUNT(DISTINCT p.id) as total_products,
+          COALESCE(SUM(cp.premium_value), 0) as current_premium,
+          ROUND(
+            (COUNT(DISTINCT cp.product_id)::decimal / NULLIF(COUNT(DISTINCT p.id), 0)) * 100, 1
+          ) as coverage_percentage
+        FROM degoudse.categories parent_cat
+        LEFT JOIN degoudse.categories c ON c.parent_id = parent_cat.id
+        LEFT JOIN degoudse.products p ON p.category_id = c.id
+        LEFT JOIN degoudse.customer_products cp ON cp.product_id = p.id AND cp.customer_id = $1
+        WHERE parent_cat.level = 1
+        GROUP BY parent_cat.id, parent_cat.name, parent_cat.color
         ORDER BY coverage_percentage DESC NULLS LAST
       `, [customerId]);
       
-      // Calculate gap opportunities using product_templates not assigned to this customer
+      // Calculate gap opportunities using products not assigned to this customer
       const gapResult = await envPool.query(`
         SELECT 
-          pt.name as product_name,
-          pt.average_price as potential_value,
-          c.name as category_name,
+          p.name as product_name,
+          p.premium_value as potential_value,
+          parent_cat.name as category_name,
           CASE 
-            WHEN pt.average_price >= 5000 THEN 'critical'
-            WHEN pt.average_price >= 2000 THEN 'medium'
+            WHEN p.premium_value >= 5000 THEN 'critical'
+            WHEN p.premium_value >= 2000 THEN 'medium'
             ELSE 'low'
           END as priority
-        FROM degoudse.product_templates pt
-        INNER JOIN degoudse.categories c ON pt.category_id = c.id
-        WHERE pt.id NOT IN (
-          SELECT DISTINCT cpa.product_template_id 
-          FROM degoudse.customer_product_assignments cpa 
-          WHERE cpa.customer_id = $1 AND cpa.is_active = true
+        FROM degoudse.products p
+        INNER JOIN degoudse.categories c ON p.category_id = c.id
+        LEFT JOIN degoudse.categories parent_cat ON c.parent_id = parent_cat.id
+        WHERE p.id NOT IN (
+          SELECT DISTINCT cp.product_id 
+          FROM degoudse.customer_products cp 
+          WHERE cp.customer_id = $1
         )
-        AND pt.is_active = true
-        ORDER BY pt.average_price DESC
+        ORDER BY p.premium_value DESC
       `, [customerId]);
       
       const summary = summaryResult.rows[0];
@@ -3850,7 +3848,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
           totalProducts: parseInt(cat.total_products || '0'),
           coveragePercentage: parseFloat(cat.coverage_percentage || '0'),
           currentPremium: parseFloat(cat.current_premium || '0'),
-          gapValue: parseFloat(cat.gap_value || '0')
+          gapValue: 0 // Will calculate properly later if needed
         })),
         gapAnalysis: {
           critical: {
