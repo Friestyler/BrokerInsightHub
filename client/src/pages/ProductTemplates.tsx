@@ -187,31 +187,19 @@ export default function ProductTemplates() {
     return colorMap[color] || 'blue';
   };
 
-  // Function to render categories hierarchically
-  const renderCategoriesHierarchy = (categories: any[], level = 0): React.ReactElement[] => {
-    const result: React.ReactElement[] = [];
-    
-    const rootCategories = categories.filter((cat: any) => !cat.parent_id);
-    const getSubcategories = (parentId: number) => 
-      categories.filter((cat: any) => cat.parent_id === parentId);
-    
-    const renderCategory = (category: any, currentLevel: number) => {
-      result.push(
-        <SelectItem key={category.id} value={category.name} level={currentLevel}>
-          <div className="flex items-center">
-            {category.name}
-          </div>
-        </SelectItem>
-      );
-      
-      // Recursively render subcategories
-      const subcategories = getSubcategories(category.id);
-      subcategories.forEach(subcat => renderCategory(subcat, currentLevel + 1));
-    };
-    
-    rootCategories.forEach(category => renderCategory(category, level));
-    
-    return result;
+  // Simplified category rendering - main categories only
+  const renderMainCategories = () => {
+    return mainCategories.map((category: any) => (
+      <SelectItem key={category.id} value={category.name}>
+        <div className="flex items-center gap-2">
+          <div 
+            className="w-3 h-3 rounded-full" 
+            style={{ backgroundColor: category.color }}
+          />
+          {category.name}
+        </div>
+      </SelectItem>
+    ));
   };
 
   // Fetch product catalogue
@@ -219,10 +207,13 @@ export default function ProductTemplates() {
     queryKey: ['/api/products'],
   });
 
-  // Fetch categories for dropdown
-  const { data: categories = [] } = useQuery({
+  // Fetch main categories only (parent categories)
+  const { data: allCategories = [] } = useQuery({
     queryKey: ['/api/categories'],
   });
+  
+  // Get only main categories (no parent_id) for filtering
+  const mainCategories = allCategories.filter((cat: any) => !cat.parent_id);
 
   // Fetch vendors for dropdown
   const { data: vendors = [] } = useQuery({
@@ -463,7 +454,7 @@ export default function ProductTemplates() {
     });
   };
 
-  // Helper functions for categories
+  // Simplified category helpers - only main categories
   const toggleCategoryExpansion = (categoryId: number) => {
     setExpandedCategories(prev => {
       const newSet = new Set(prev);
@@ -477,15 +468,11 @@ export default function ProductTemplates() {
   };
 
   const getSubcategories = (parentId: number) => {
-    return (categories as any[])?.filter((cat: any) => cat.parent_id === parentId) || [];
-  };
-
-  const getRootCategories = () => {
-    return (categories as any[])?.filter((cat: any) => !cat.parent_id) || [];
+    return allCategories?.filter((cat: any) => cat.parent_id === parentId) || [];
   };
 
   const getSubcategoryCount = (parentId: number) => {
-    return (categories as any[])?.filter((cat: any) => cat.parent_id === parentId)?.length || 0;
+    return allCategories?.filter((cat: any) => cat.parent_id === parentId)?.length || 0;
   };
 
   // Handlers for category dialogs
@@ -798,7 +785,7 @@ export default function ProductTemplates() {
 
           {/* Badge-based Category Tree */}
           <div className="space-y-4">
-            {getRootCategories().map((category: any) => (
+            {mainCategories.map((category: any) => (
               <div key={category.id}>
                 <Collapsible 
                   open={expandedCategories.has(category.id)}
@@ -1072,7 +1059,7 @@ export default function ProductTemplates() {
           >
             All ({(productTemplates as any[]).length})
           </Button>
-          {categories && getRootCategories().map((category: any) => {
+          {mainCategories.map((category: any) => {
             const categoryProductCount = (productTemplates as any[]).filter(
               (template: any) => (template.parent_category_name || template.parentCategoryName) === category.name
             ).length;
