@@ -2659,52 +2659,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const partnerId = parseInt(req.params.id);
       const envPool = pool;
-      
-      // Get products from all customers associated with this partner
+      // Get products through proper product assignments, not through opportunities
       const result = await envPool.query(`
-        SELECT DISTINCT 
-          p.id, 
-          p.name, 
-          p.description, 
-          p.category,
-          p.contract_start_date,
-          p.contract_end_date,
-          p.premium_value,
-          p.premium_percentage,
-          p.discount_percentage,
-          p.created_at, 
-          p.updated_at,
-          c.name as category_name,
-          c.color as category_color,
-          parent.name as parent_category_name
+        SELECT DISTINCT p.id, p.name, p.description, p.category,
+               p.created_at, p.updated_at
         FROM degoudse.products p
-        INNER JOIN degoudse.customer_products cp ON p.id = cp.product_id
-        INNER JOIN degoudse.customers cust ON cp.customer_id = cust.id
-        INNER JOIN degoudse.partner_customers pc ON cust.id = pc.customer_id
-        LEFT JOIN degoudse.categories c ON p.category_id = c.id
-        LEFT JOIN degoudse.categories parent ON c.parent_id = parent.id
-        WHERE pc.partner_id = $1
-        ORDER BY parent.name, c.name, p.name
+        INNER JOIN degoudse.partner_products pp ON p.id = pp.product_id
+        WHERE pp.partner_id = $1
+        ORDER BY p.name
       `, [partnerId]);
       
       const products = result.rows.map((product: any) => ({
         id: product.id,
         name: product.name,
         description: product.description,
-        category: product.category || product.category_name,
-        category_name: product.category_name,
-        parent_category_name: product.parent_category_name,
-        category_color: product.category_color,
-        contract_start_date: product.contract_start_date,
-        contract_end_date: product.contract_end_date,
-        premium_value: product.premium_value,
-        premium_percentage: product.premium_percentage,
-        discount_percentage: product.discount_percentage,
+        category: product.category,
         created_at: product.created_at,
         updated_at: product.updated_at
       }));
       
-      console.log(`Returning ${products.length} products for partner ${partnerId} from all associated customers`);
       res.json(products);
     } catch (error) {
       console.error('Error fetching De Goudse partner products:', error);
@@ -2829,7 +2802,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get products for a specific customer in De Goudse environment (using same structure as main Products page)
+  // Get products for a specific customer in De Goudse environment
   app.get('/api/degoudse/customers/:id/products', async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
@@ -2837,48 +2810,32 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid customer ID' });
       }
       const envPool = pool;
-      
-      // Use exact same database structure as main Products page
       const result = await envPool.query(`
-        SELECT 
-          p.id,
-          p.name,
-          p.description,
-          p.contract_start_date,
-          p.contract_end_date,
-          p.premium_value,
-          p.premium_percentage,
-          p.discount_percentage,
-          p.created_at,
-          p.updated_at,
-          c.name as category_name,
-          c.color as category_color,
-          parent.name as parent_category_name
+        SELECT DISTINCT p.*, v.name as vendor_name
         FROM degoudse.products p
-        INNER JOIN degoudse.customer_products cp ON p.id = cp.product_id
-        LEFT JOIN degoudse.categories c ON p.category_id = c.id
-        LEFT JOIN degoudse.categories parent ON c.parent_id = parent.id
-        WHERE cp.customer_id = $1
-        ORDER BY parent.name, c.name, p.name
+        LEFT JOIN degoudse.vendors v ON p.vendor_id = v.id
+        INNER JOIN degoudse.product_customers pc ON p.id = pc.product_id
+        WHERE pc.customer_id = $1
+        ORDER BY p.category, p.name
       `, [customerId]);
       
       const products = result.rows.map((product: any) => ({
         id: product.id,
         name: product.name,
         description: product.description,
-        contract_start_date: product.contract_start_date,
-        contract_end_date: product.contract_end_date,
+        type: product.type,
+        category: product.category,
         premium_value: product.premium_value,
         premium_percentage: product.premium_percentage,
         discount_percentage: product.discount_percentage,
-        category_name: product.category_name,
-        category_color: product.category_color,
-        parent_category_name: product.parent_category_name,
-        created_at: product.created_at,
-        updated_at: product.updated_at
+        contract_start_date: product.contract_start_date,
+        contract_end_date: product.contract_end_date,
+        vendorName: product.vendor_name,
+        status: product.status || 'Active',
+        createdAt: product.created_at,
+        updatedAt: product.updated_at
       }));
       
-      console.log(`Returning ${products.length} products for customer ${customerId}`);
       res.json(products);
     } catch (error) {
       console.error('Error fetching De Goudse customer products:', error);
@@ -4211,7 +4168,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
 
   // Partner Product Assignments API endpoints
 
-  // Get Partner Product Assignments (aggregated from all partner customers)
+  // Get Partner Product Assignments
   app.get('/api/degoudse/partners/:id/product-assignments', async (req, res) => {
     try {
       const partnerId = parseInt(req.params.id);
@@ -4219,10 +4176,10 @@ Keep the tone clear and professional. Focus on what will help the account manage
       
       const result = await envPool.query(`
         SELECT 
-          ROW_NUMBER() OVER (ORDER BY p.id) as id,
-          $1 as "partnerId",
-          p.id as "productId",
-          MIN(cp.created_at) as "assignedAt",
+          pp.id,
+          pp.partner_id as "partnerId",
+          pp.product_id as "productId",
+          pp.created_at as "assignedAt",
           -- Product info
           p.name as "productName",
           p.description as "productDescription",
@@ -4232,24 +4189,15 @@ Keep the tone clear and professional. Focus on what will help the account manage
           p.premium_value as "premiumValue",
           p.premium_percentage as "premiumPercentage",
           p.discount_percentage as "discountPercentage",
-          null as "totalValue",
+          p.total_value as "totalValue",
           -- Category info
           c.name as "categoryName",
-          c.color as "categoryColor",
-          parent.name as "parentCategoryName",
-          -- Aggregated customer count
-          COUNT(DISTINCT cust.id) as "customerCount"
-        FROM degoudse.products p
-        INNER JOIN degoudse.customer_products cp ON p.id = cp.product_id
-        INNER JOIN degoudse.customers cust ON cp.customer_id = cust.id
-        INNER JOIN degoudse.partner_customers pc ON cust.id = pc.customer_id
+          c.color as "categoryColor"
+        FROM degoudse.partner_products pp
+        INNER JOIN degoudse.products p ON pp.product_id = p.id
         LEFT JOIN degoudse.categories c ON p.category_id = c.id
-        LEFT JOIN degoudse.categories parent ON c.parent_id = parent.id
-        WHERE pc.partner_id = $1
-        GROUP BY p.id, p.name, p.description, p.category, p.contract_start_date, 
-                 p.contract_end_date, p.premium_value, p.premium_percentage, 
-                 p.discount_percentage, c.name, c.color, parent.name
-        ORDER BY parent.name, c.name, p.name
+        WHERE pp.partner_id = $1
+        ORDER BY pp.created_at DESC
       `, [partnerId]);
       
       console.log(`Returning ${result.rows.length} product assignments for partner ${partnerId}`);
