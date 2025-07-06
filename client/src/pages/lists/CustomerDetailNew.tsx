@@ -19,6 +19,7 @@ import EntityAvatar from "@/components/EntityAvatar";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import { useToast } from "@/hooks/use-toast";
 import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTab";
+import { CustomerProductsDisplay } from "@/components/customer/CustomerProductsDisplay";
 
 export default function CustomerDetailNew() {
   const { id } = useParams();
@@ -1461,9 +1462,8 @@ export default function CustomerDetailNew() {
 
             {/* Product Overview Tab */}
             {activeProductTab === "overview" && (
-              <PortfolioOverviewTab 
-                entityType="customers" 
-                entityId={id || ""} 
+              <CustomerProductsDisplay 
+                customerId={id || ""} 
               />
             )}
 
