@@ -82,7 +82,7 @@ export default function PartnerIframeView() {
 
   // Fetch assigned products - EXACT same as main app
   const { data: assignedProducts, isLoading: productsLoading } = useQuery({
-    queryKey: [`/api/${environment.id}/partners/${id}/assignedProducts`],
+    queryKey: [`/api/${environment.id}/partners/${id}/product-assignments`],
   });
 
   // Fetch users data
@@ -160,6 +160,22 @@ export default function PartnerIframeView() {
     
     return filtered;
   }, [metricsByTag, searchTerm, selectedTag, selectedUnit, selectedRange]);
+
+  // Filter products based on search and category
+  const filteredProducts = React.useMemo(() => {
+    if (!Array.isArray(assignedProducts)) return [];
+    
+    return assignedProducts.filter((product: any) => {
+      const matchesSearch = !productSearchText || 
+        product.productName?.toLowerCase().includes(productSearchText.toLowerCase()) ||
+        product.productDescription?.toLowerCase().includes(productSearchText.toLowerCase());
+      
+      const matchesCategory = selectedProductCategory === 'all' || 
+        product.categoryName?.toLowerCase().includes(selectedProductCategory.toLowerCase());
+      
+      return matchesSearch && matchesCategory;
+    });
+  }, [assignedProducts, productSearchText, selectedProductCategory]);
 
   if (partnersLoading) {
     return <div className="p-6">Loading...</div>;
@@ -313,10 +329,10 @@ export default function PartnerIframeView() {
                               <TableRow className="bg-gray-50">
                                 <TableHead className="w-12">
                                   <Checkbox
-                                    checked={assignedProducts?.length > 0 && selectedProducts.length === assignedProducts.length}
+                                    checked={filteredProducts.length > 0 && selectedProducts.length === filteredProducts.length}
                                     onCheckedChange={(checked) => {
                                       if (checked) {
-                                        setSelectedProducts(assignedProducts?.map((p: any) => p.id) || []);
+                                        setSelectedProducts(filteredProducts.map((p: any) => p.id));
                                       } else {
                                         setSelectedProducts([]);
                                       }
@@ -332,7 +348,7 @@ export default function PartnerIframeView() {
                               </TableRow>
                             </TableHeader>
                             <TableBody>
-                              {(assignedProducts || []).map((product: any) => (
+                              {filteredProducts.map((product: any) => (
                                 <TableRow 
                                   key={product.id} 
                                   className={`hover:bg-gray-50 ${selectedProducts.includes(product.id) ? 'bg-blue-50' : ''}`}
@@ -351,20 +367,20 @@ export default function PartnerIframeView() {
                                   </TableCell>
                                   <TableCell className="font-medium">
                                     <div>
-                                      <div className="font-medium text-gray-900">{product.name}</div>
-                                      <div className="text-sm text-gray-500">{product.description}</div>
+                                      <div className="font-medium text-gray-900">{product.productName}</div>
+                                      <div className="text-sm text-gray-500">{product.productDescription}</div>
                                     </div>
                                   </TableCell>
                                   <TableCell>
-                                    <Badge variant="outline">{product.category_name || 'Insurance'}</Badge>
+                                    <Badge variant="outline">{product.categoryName || 'Insurance'}</Badge>
                                   </TableCell>
                                   <TableCell>{product.provider || 'De Goudse'}</TableCell>
-                                  <TableCell>€{(product.premium_value || 0).toLocaleString()}</TableCell>
-                                  <TableCell>{(product.premium_percentage || 0)}%</TableCell>
+                                  <TableCell>€{(product.premiumValue || 0).toLocaleString()}</TableCell>
+                                  <TableCell>{(product.premiumPercentage || 0)}%</TableCell>
                                   <TableCell>
                                     <div className="text-sm">
-                                      <div>{new Date(product.contract_start_date || Date.now()).toLocaleDateString()}</div>
-                                      <div className="text-gray-500">to {new Date(product.contract_end_date || Date.now()).toLocaleDateString()}</div>
+                                      <div>{new Date(product.contractStartDate || Date.now()).toLocaleDateString()}</div>
+                                      <div className="text-gray-500">to {new Date(product.contractEndDate || Date.now()).toLocaleDateString()}</div>
                                     </div>
                                   </TableCell>
                                 </TableRow>
