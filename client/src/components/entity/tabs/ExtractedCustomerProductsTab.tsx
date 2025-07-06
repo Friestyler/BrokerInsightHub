@@ -218,8 +218,16 @@ export function ExtractedCustomerProductsTab({ customerId, className = "", isIfr
         if (a.isBlindSpot !== b.isBlindSpot) {
           return a.isBlindSpot ? 1 : -1;
         }
+        // Within same group, sort by product count descending (most products first)
         return b.productCount - a.productCount;
       });
+    
+    // Debug logging to understand what's happening
+    console.log('Categories with product counts:', filteredMainCategories.map(cat => ({
+      name: cat.name,
+      productCount: cat.productCount,
+      isBlindSpot: cat.isBlindSpot
+    })));
     
     return filteredMainCategories;
   }, [categories, assignedProducts, selectedCategories]);
