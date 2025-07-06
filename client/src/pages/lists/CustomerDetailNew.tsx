@@ -1570,151 +1570,168 @@ export default function CustomerDetailNew() {
                     </div>
                   </div>
 
-                  {/* Category Tags - matching Willis format */}
+                  {/* Dynamic Category Tags - Shows all categories including blind spots */}
                   <div className="flex gap-2 flex-wrap">
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
-                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                      Inkomen Collectief <span className="bg-blue-200 text-blue-800 px-1.5 py-0.5 rounded-full text-xs ml-1">3</span>
-                    </div>
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm">
-                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
-                      Pensioen <span className="bg-purple-200 text-purple-800 px-1.5 py-0.5 rounded-full text-xs ml-1">2</span>
-                    </div>
-                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-sm">
-                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
-                      Schade Zakelijk <span className="bg-orange-200 text-orange-800 px-1.5 py-0.5 rounded-full text-xs ml-1">1</span>
-                    </div>
+                    {Array.isArray(categories) && categories.map((category: any) => {
+                      const categoryProducts = assignedProducts?.filter((product: any) => 
+                        product.category === category.name ||
+                        product.categoryName === category.name ||
+                        product.productCategoryName === category.name
+                      ) || [];
+                      
+                      const productCount = categoryProducts.length;
+                      const isBlindSpot = productCount === 0;
+                      
+                      const categoryInfo = getCategoryInfo(category.name);
+                      const colorClasses = isBlindSpot 
+                        ? 'bg-gray-100 text-gray-500 border-gray-200'
+                        : categoryInfo.color === 'green' ? 'bg-green-50 text-green-700 border-green-200' :
+                          categoryInfo.color === 'blue' ? 'bg-blue-50 text-blue-700 border-blue-200' :
+                          categoryInfo.color === 'purple' ? 'bg-purple-50 text-purple-700 border-purple-200' :
+                          categoryInfo.color === 'orange' ? 'bg-orange-50 text-orange-700 border-orange-200' :
+                          categoryInfo.color === 'red' ? 'bg-red-50 text-red-700 border-red-200' :
+                          'bg-gray-50 text-gray-700 border-gray-200';
+                      
+                      const dotColor = isBlindSpot 
+                        ? 'bg-gray-400'
+                        : categoryInfo.color === 'green' ? 'bg-green-500' :
+                          categoryInfo.color === 'blue' ? 'bg-blue-500' :
+                          categoryInfo.color === 'purple' ? 'bg-purple-500' :
+                          categoryInfo.color === 'orange' ? 'bg-orange-500' :
+                          categoryInfo.color === 'red' ? 'bg-red-500' :
+                          'bg-gray-500';
+                      
+                      const badgeColor = isBlindSpot
+                        ? 'bg-gray-200 text-gray-600'
+                        : categoryInfo.color === 'green' ? 'bg-green-200 text-green-800' :
+                          categoryInfo.color === 'blue' ? 'bg-blue-200 text-blue-800' :
+                          categoryInfo.color === 'purple' ? 'bg-purple-200 text-purple-800' :
+                          categoryInfo.color === 'orange' ? 'bg-orange-200 text-orange-800' :
+                          categoryInfo.color === 'red' ? 'bg-red-200 text-red-800' :
+                          'bg-gray-200 text-gray-800';
+                      
+                      return (
+                        <div 
+                          key={category.id}
+                          className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm border ${colorClasses} ${isBlindSpot ? 'opacity-60' : ''}`}
+                        >
+                          <div className={`w-2 h-2 rounded-full ${dotColor}`}></div>
+                          {category.name} 
+                          {isBlindSpot ? (
+                            <span className={`px-1.5 py-0.5 rounded-full text-xs ml-1 ${badgeColor}`}>
+                              Blind spot
+                            </span>
+                          ) : (
+                            <span className={`px-1.5 py-0.5 rounded-full text-xs ml-1 ${badgeColor}`}>
+                              {productCount}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })}
                   </div>
 
-                  {/* Products by Category - EXACT Willis structure */}
-                  {assignedProducts && assignedProducts.length > 0 ? (
+                  {/* Products by Category - Dynamic structure showing all categories */}
+                  {Array.isArray(categories) && categories.length > 0 ? (
                     <div className="space-y-6">
-                      {/* Pensioen Category */}
-                      <div className="bg-white rounded-lg border border-gray-200">
-                        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
-                            <h3 className="text-lg font-semibold text-gray-900">Pensioen (2)</h3>
-                          </div>
-                          <div className="text-sm text-gray-500">Total value: €120,015</div>
-                        </div>
-                        <div className="space-y-0">
-                          {assignedProducts
-                            .filter((product: any) => product.category === 'Pensioen')
-                            .map((product: any) => (
-                            <div key={product.productid || product.id} className="flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
-                              <div className="flex-1">
-                                <h4 className="font-medium text-gray-900">{product.productname}</h4>
-                                <p className="text-sm text-gray-600">{product.productdescription}</p>
-                              </div>
-                              <div className="flex items-center gap-8 text-right">
-                                <div className="text-right">
-                                  <div className="font-semibold text-purple-600">
-                                    €{product.customprice ? parseFloat(product.customprice).toLocaleString() : '0'}
-                                  </div>
-                                  <div className="text-sm text-gray-500">Premium</div>
-                                </div>
-                                <div className="text-right">
-                                  <div className="text-sm text-gray-700">
-                                    {product.customercontractenddate ? new Date(product.customercontractenddate).toLocaleDateString('en-GB') : '-'}
-                                  </div>
-                                  <div className="text-sm text-gray-500">
-                                    {new Date(product.customercontractenddate) < new Date() ? 'Expired' :
-                                     new Date(product.customercontractenddate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) ? 'Expiring Soon' :
-                                     `${Math.ceil((new Date(product.customercontractenddate).getTime() - new Date().getTime()) / (1000 * 3600 * 24 * 365))} years left`}
-                                  </div>
-                                  <div className="text-sm text-gray-500">Expiry Date</div>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                      {categories.map((category: any) => {
+                        const categoryProducts = assignedProducts?.filter((product: any) => 
+                          product.category === category.name ||
+                          product.categoryName === category.name ||
+                          product.productCategoryName === category.name
+                        ) || [];
+                        
+                        const categoryInfo = getCategoryInfo(category.name);
+                        const totalValue = categoryProducts.reduce((sum: number, product: any) => 
+                          sum + parseFloat(product.customprice || product.premiumValue || '0'), 0
+                        );
+                        
+                        const isBlindSpot = categoryProducts.length === 0;
+                        
+                        const headerColor = isBlindSpot 
+                          ? 'bg-gray-100'
+                          : categoryInfo.color === 'green' ? 'bg-green-50' :
+                            categoryInfo.color === 'blue' ? 'bg-blue-50' :
+                            categoryInfo.color === 'purple' ? 'bg-purple-50' :
+                            categoryInfo.color === 'orange' ? 'bg-orange-50' :
+                            categoryInfo.color === 'red' ? 'bg-red-50' :
+                            'bg-gray-50';
+                        
+                        const dotColor = isBlindSpot 
+                          ? 'bg-gray-400'
+                          : categoryInfo.color === 'green' ? 'bg-green-500' :
+                            categoryInfo.color === 'blue' ? 'bg-blue-500' :
+                            categoryInfo.color === 'purple' ? 'bg-purple-500' :
+                            categoryInfo.color === 'orange' ? 'bg-orange-500' :
+                            categoryInfo.color === 'red' ? 'bg-red-500' :
+                            'bg-gray-500';
+                        
+                        const textColor = isBlindSpot 
+                          ? 'text-gray-600'
+                          : categoryInfo.color === 'green' ? 'text-green-600' :
+                            categoryInfo.color === 'blue' ? 'text-blue-600' :
+                            categoryInfo.color === 'purple' ? 'text-purple-600' :
+                            categoryInfo.color === 'orange' ? 'text-orange-600' :
+                            categoryInfo.color === 'red' ? 'text-red-600' :
+                            'text-gray-600';
 
-                      {/* Schade Zakelijk Category */}
-                      <div className="bg-white rounded-lg border border-gray-200">
-                        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                            <h3 className="text-lg font-semibold text-gray-900">Schade Zakelijk (1)</h3>
-                          </div>
-                          <div className="text-sm text-gray-500">Total value: €2,934</div>
-                        </div>
-                        <div className="space-y-0">
-                          {assignedProducts
-                            .filter((product: any) => product.category === 'Schade Zakelijk')
-                            .map((product: any) => (
-                            <div key={product.productid || product.id} className="flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
-                              <div className="flex-1">
-                                <h4 className="font-medium text-gray-900">{product.productname}</h4>
-                                <p className="text-sm text-gray-600">{product.productdescription}</p>
+                        return (
+                          <div key={category.id} className={`bg-white rounded-lg border border-gray-200 ${isBlindSpot ? 'opacity-70' : ''}`}>
+                            <div className={`p-4 border-b border-gray-200 flex items-center justify-between ${headerColor}`}>
+                              <div className="flex items-center gap-3">
+                                <div className={`w-3 h-3 rounded-full ${dotColor}`}></div>
+                                <h3 className="text-lg font-semibold text-gray-900">
+                                  {category.name} ({categoryProducts.length})
+                                  {isBlindSpot && <span className="text-sm font-normal text-gray-500 ml-2">• Blind spot</span>}
+                                </h3>
                               </div>
-                              <div className="flex items-center gap-8 text-right">
-                                <div className="text-right">
-                                  <div className="font-semibold text-orange-600">
-                                    €{product.customprice ? parseFloat(product.customprice).toLocaleString() : '0'}
-                                  </div>
-                                  <div className="text-sm text-gray-500">Premium</div>
-                                </div>
-                                <div className="text-right">
-                                  <div className="text-sm text-gray-700">
-                                    {product.customercontractenddate ? new Date(product.customercontractenddate).toLocaleDateString('en-GB') : '-'}
-                                  </div>
-                                  <div className="text-sm text-gray-500">
-                                    {new Date(product.customercontractenddate) < new Date() ? 'Expired' :
-                                     new Date(product.customercontractenddate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) ? 'Expiring Soon' :
-                                     `${Math.ceil((new Date(product.customercontractenddate).getTime() - new Date().getTime()) / (1000 * 3600 * 24 * 365))} years left`}
-                                  </div>
-                                  <div className="text-sm text-gray-500">Expiry Date</div>
-                                </div>
+                              <div className="text-sm text-gray-500">
+                                {isBlindSpot ? 'No products assigned' : `Total value: €${totalValue.toLocaleString()}`}
                               </div>
                             </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Inkomen Collectief Category */}
-                      <div className="bg-white rounded-lg border border-gray-200">
-                        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                            <h3 className="text-lg font-semibold text-gray-900">Inkomen Collectief (3)</h3>
-                          </div>
-                          <div className="text-sm text-gray-500">Total value: €138,356</div>
-                        </div>
-                        <div className="space-y-0">
-                          {assignedProducts
-                            .filter((product: any) => product.category === 'Inkomen Collectief')
-                            .map((product: any) => (
-                            <div key={product.productid || product.id} className="flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
-                              <div className="flex-1">
-                                <h4 className="font-medium text-gray-900">{product.productname}</h4>
-                                <p className="text-sm text-gray-600">{product.productdescription}</p>
-                              </div>
-                              <div className="flex items-center gap-8 text-right">
-                                <div className="text-right">
-                                  <div className="font-semibold text-blue-600">
-                                    €{product.customprice ? parseFloat(product.customprice).toLocaleString() : '0'}
-                                  </div>
-                                  <div className="text-sm text-gray-500">Premium</div>
+                            
+                            {/* Products within this category */}
+                            <div className="space-y-0">
+                              {isBlindSpot ? (
+                                <div className="p-6 text-center text-gray-500">
+                                  <div className="mb-2">No products in this category</div>
+                                  <div className="text-sm">Consider adding products to expand coverage</div>
                                 </div>
-                                <div className="text-right">
-                                  <div className="text-sm text-gray-700">
-                                    {product.customercontractenddate ? new Date(product.customercontractenddate).toLocaleDateString('en-GB') : '-'}
+                              ) : (
+                                categoryProducts.map((product: any) => (
+                                  <div key={product.productid || product.id} className="flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
+                                    <div className="flex-1">
+                                      <h4 className="font-medium text-gray-900">{product.productname}</h4>
+                                      <p className="text-sm text-gray-600">{product.productdescription}</p>
+                                    </div>
+                                    <div className="flex items-center gap-8 text-right">
+                                      <div className="text-right">
+                                        <div className={`font-semibold ${textColor}`}>
+                                          €{product.customprice ? parseFloat(product.customprice).toLocaleString() : '0'}
+                                        </div>
+                                        <div className="text-sm text-gray-500">Premium</div>
+                                      </div>
+                                      <div className="text-right">
+                                        <div className="text-sm text-gray-700">
+                                          {product.customercontractenddate ? new Date(product.customercontractenddate).toLocaleDateString('en-GB') : '-'}
+                                        </div>
+                                        <div className="text-sm text-gray-500">
+                                          {product.customercontractenddate && new Date(product.customercontractenddate) < new Date() ? 'Expired' :
+                                           product.customercontractenddate && new Date(product.customercontractenddate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) ? 'Expiring Soon' :
+                                           product.customercontractenddate ? `${Math.ceil((new Date(product.customercontractenddate).getTime() - new Date().getTime()) / (1000 * 3600 * 24 * 365))} years left` : '-'}
+                                        </div>
+                                        <div className="text-sm text-gray-500">Expiry Date</div>
+                                      </div>
+                                    </div>
                                   </div>
-                                  <div className="text-sm text-gray-500">
-                                    {new Date(product.customercontractenddate) < new Date() ? 'Expired' :
-                                     new Date(product.customercontractenddate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) ? 'Expiring Soon' :
-                                     `${Math.ceil((new Date(product.customercontractenddate).getTime() - new Date().getTime()) / (1000 * 3600 * 24 * 365))} years left`}
-                                  </div>
-                                  <div className="text-sm text-gray-500">Expiry Date</div>
-                                </div>
-                              </div>
+                                ))
+                              )}
                             </div>
-                          ))}
-                        </div>
-                      </div>
+                          </div>
+                        );
+                      })}
                     </div>
+
                   ) : (
                     <div className="bg-white border border-[#E6E7F1] rounded-lg p-16 text-center">
                       <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
