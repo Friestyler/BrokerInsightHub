@@ -1170,11 +1170,11 @@ export default function PartnerDetail() {
                         className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center transition-colors"
                       >
                         <img 
-                          src="/attached_assets/NN_Group_logo_1751474283145.jpeg" 
+                          src="/attached_assets/NN.AS_1751813752232.png" 
                           alt="NN Group" 
                           className="w-4 h-4 rounded-sm mr-1.5 object-cover"
                         />
-                        View in Deal Room
+                        Partner View
                       </a>
                     )}
                   </div>
