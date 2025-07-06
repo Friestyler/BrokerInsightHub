@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, ChevronDown, ChevronUp, ChevronRight, Shield, TrendingUp, Clock, AlertTriangle, Target, Zap, Briefcase, Plane, PiggyBank, Scale, DollarSign, CheckCircle, ArrowUp, Filter, Crown } from "lucide-react";
+import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, ChevronDown, ChevronUp, ChevronRight, Shield, TrendingUp, Clock, AlertTriangle, Target, Zap, Briefcase, Plane, PiggyBank, Scale, DollarSign, CheckCircle, ArrowUp, Filter, Crown, FileText } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import LogoUploadModal from "@/components/LogoUploadModal";
 import EntityAvatar from "@/components/EntityAvatar";
@@ -1472,6 +1472,79 @@ export default function CustomerDetailNew() {
         )}
 
         {activeTab === "products" && (
+          <div>
+            {/* Product Subtabs Navigation */}
+            <div className="border-b border-gray-200 mb-3 -mt-6">
+              <nav className="flex space-x-1">
+                <button 
+                  onClick={() => setActiveProductTab("overview")}
+                  className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md ${
+                    activeProductTab === "overview" 
+                      ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
+                      : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                  }`}
+                >
+                  Overview
+                </button>
+                <button 
+                  onClick={() => setActiveProductTab("matrix")}
+                  className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md ${
+                    activeProductTab === "matrix" 
+                      ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
+                      : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                  }`}
+                >
+                  Matrix
+                </button>
+                <button 
+                  onClick={() => setActiveProductTab("list")}
+                  className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md ${
+                    activeProductTab === "list" 
+                      ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
+                      : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                  }`}
+                >
+                  List
+                </button>
+              </nav>
+            </div>
+
+            {/* Product Overview Tab */}
+            {activeProductTab === "overview" && (
+              <PortfolioOverviewTab 
+                entityType="customers" 
+                entityId={id || ""} 
+              />
+            )}
+
+            {/* Cross-sell Matrix Tab - ONLY this tab uses WhiteSpaceMatrix */}
+            {activeProductTab === "matrix" && (
+              <WhiteSpaceMatrix 
+                entityType="customer" 
+                entityId={id || ""} 
+                entityName={customer?.name}
+                onCreateOpportunity={() => setIsOpportunityModalOpen(true)}
+                onCreateCampaign={() => {/* Campaign creation logic */}}
+                onCreateList={() => {/* List creation logic */}}
+              />
+            )}
+
+            {/* List Tab - Keep existing functionality */}
+            {activeProductTab === "list" && (
+              <div>
+                <div className="p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 text-center">
+                  <div className="text-gray-400 mb-2">
+                    <FileText className="w-12 h-12 mx-auto mb-3" />
+                  </div>
+                  <p className="text-gray-600 font-medium mb-1">Product Lists Coming Soon</p>
+                  <p className="text-sm text-gray-500">View and manage all product assignments in detailed list format</p>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "products_DISABLED" && (
           <div>
             {/* Product Subtabs Navigation */}
             <div className="border-b border-gray-200 mb-3 -mt-6">

@@ -3316,6 +3316,18 @@ export default function PartnerDetail() {
               />
             )}
 
+            {/* Cross-sell Matrix Tab - ONLY this tab uses WhiteSpaceMatrix */}
+            {activeProductTab === "matrix" && (
+              <WhiteSpaceMatrix 
+                entityType="partner" 
+                entityId={id || ""} 
+                entityName={partner?.name}
+                onCreateOpportunity={() => setIsOpportunityModalOpen(true)}
+                onCreateCampaign={() => {/* Campaign creation logic */}}
+                onCreateList={() => {/* List creation logic */}}
+              />
+            )}
+
             {/* List Tab */}
             {activeProductTab === "list" && (
               <div>
