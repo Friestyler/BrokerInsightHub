@@ -207,66 +207,43 @@ export default function ProductTemplates() {
     queryKey: ['/api/products'],
   });
 
-  // Fetch categories and build main category structure
-  const { data: categories = [], isLoading: categoriesLoading, error: categoriesError } = useQuery({
+  // Fetch product categories using the working pattern
+  const { data: categories = [] } = useQuery({
     queryKey: ['/api/product-categories'],
   });
 
-  // Debug logging
-  console.log('DEBUG - Categories API Response:', {
-    categories,
-    categoriesLoading,
-    categoriesError,
-    categoriesLength: categories?.length
-  });
+  // Create main categories structure exactly like ProductListsTab.tsx
+  const mainCategoriesData = useMemo(() => {
+    if (!productTemplates || !categories) return [];
 
-  // Build main categories structure from working components
-  const mainCategories = useMemo(() => {
-    console.log('DEBUG - Building main categories:', {
-      categoriesCount: categories?.length,
-      productTemplatesCount: productTemplates?.length,
-      sampleCategory: categories?.[0],
-      sampleProduct: productTemplates?.[0]
-    });
+    const mainCategories = new Map();
 
-    if (!categories || !productTemplates) return [];
+    // Get all main categories (no parent_id)
+    const rootCategories = categories.filter((cat: any) => !cat.parent_id);
     
-    const mainCategoryMap = new Map();
-    
-    // First pass: identify main categories (those without parent_id)
-    categories.forEach((category: any) => {
-      if (!category.parent_id) {
-        console.log('DEBUG - Adding main category:', category.name);
-        mainCategoryMap.set(category.name, {
+    rootCategories.forEach((category: any) => {
+      // Find products that belong to this main category
+      const categoryProducts = productTemplates.filter((product: any) => 
+        product.parent_category_name === category.name
+      );
+      
+      if (!mainCategories.has(category.name)) {
+        mainCategories.set(category.name, {
           id: category.id,
           name: category.name,
           color: category.color || '#6b7280',
-          products: []
+          products: categoryProducts,
+          productCount: categoryProducts.length,
+          isBlindSpot: categoryProducts.length === 0
         });
       }
     });
-    
-    console.log('DEBUG - Main category map after first pass:', Array.from(mainCategoryMap.keys()));
-    
-    // Second pass: assign products to main categories using parent_category_name
-    productTemplates.forEach((product: any) => {
-      const mainCategoryName = product.parent_category_name || product.parentCategoryName;
-      console.log('DEBUG - Product category mapping:', {
-        productName: product.name,
-        parent_category_name: product.parent_category_name,
-        parentCategoryName: product.parentCategoryName,
-        finalCategoryName: mainCategoryName
-      });
-      
-      if (mainCategoryName && mainCategoryMap.has(mainCategoryName)) {
-        mainCategoryMap.get(mainCategoryName).products.push(product);
-      }
-    });
-    
-    const result = Array.from(mainCategoryMap.values());
-    console.log('DEBUG - Final main categories:', result);
-    return result;
-  }, [categories, productTemplates]);
+
+    return Array.from(mainCategories.values());
+  }, [productTemplates, categories]);
+
+  // Extract simple list for filter pills
+  const mainCategories = mainCategoriesData;
 
   // Fetch vendors for dropdown
   const { data: vendors = [] } = useQuery({
