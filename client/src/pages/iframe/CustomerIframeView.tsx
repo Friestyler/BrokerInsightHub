@@ -17,7 +17,7 @@ export default function CustomerIframeView() {
 
   // Direct iframe to the actual customer detail page
   // This ensures 100% mirroring with zero maintenance
-  const iframeUrl = `/customers/${id}?iframe=true`;
+  const iframeUrl = `/customers/detail/${id}?iframe=true`;
 
   return (
     <div className="h-full w-full">

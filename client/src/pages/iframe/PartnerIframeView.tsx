@@ -17,7 +17,7 @@ export default function PartnerIframeView() {
 
   // Direct iframe to the actual partner detail page
   // This ensures 100% mirroring with zero maintenance
-  const iframeUrl = `/partners/${id}?iframe=true`;
+  const iframeUrl = `/partners/detail/${id}?iframe=true`;
 
   return (
     <div className="h-full w-full">
