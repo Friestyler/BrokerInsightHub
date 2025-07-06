@@ -3714,17 +3714,17 @@ Keep the tone clear and professional. Focus on what will help the account manage
         SELECT 
           cp.customer_id as customerId,
           cp.product_id as productId,
-          p.name as productName,
-          p.description as productDescription,
+          p.name as productname,
+          p.description as productdescription,
           v.name as providerName,
-          cp.premium_value as customPrice,
+          cp.premium_value as customprice,
           cp.premium_percentage as customPremiumPercentage,
           cp.discount_percentage as customDiscountPercentage,
-          cp.contract_start_date as customerContractStartDate,
-          cp.contract_end_date as customerContractEndDate,
+          cp.contract_start_date as customercontractstartdate,
+          cp.contract_end_date as customercontractenddate,
           cp.status,
           -- Category info
-          c.name as category,
+          p.category as category,
           c.color as categoryColor,
           -- Customer count per product
           (SELECT COUNT(DISTINCT cp2.customer_id) 

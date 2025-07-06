@@ -1549,88 +1549,182 @@ export default function CustomerDetailNew() {
                   </div>
                 </div>
 
-                {/* Product Table */}
-                {assignedProducts && assignedProducts.length > 0 ? (
-                  <div className="bg-white border border-[#E6E7F1] rounded-lg overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-12">
-                            <Checkbox />
-                          </TableHead>
-                          <TableHead style={{ color: '#696C8C' }}>Product Name</TableHead>
-                          <TableHead style={{ color: '#696C8C' }}>Description</TableHead>
-                          <TableHead style={{ color: '#696C8C' }}>Product ID</TableHead>
-                          <TableHead style={{ color: '#696C8C' }}>Provider</TableHead>
-                          <TableHead style={{ color: '#696C8C' }}>Category</TableHead>
-                          <TableHead style={{ color: '#696C8C' }}>Customers</TableHead>
-                          <TableHead style={{ color: '#696C8C' }}>Contract Start</TableHead>
-                          <TableHead style={{ color: '#696C8C' }}>Contract End</TableHead>
-                          <TableHead style={{ color: '#696C8C' }}>Premium Value</TableHead>
-                          <TableHead style={{ color: '#696C8C' }}>Premium %</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {assignedProducts.map((assignment: any) => (
-                          <TableRow 
-                            key={assignment.id}
-                            className="hover:bg-gray-50 group"
-                          >
-                            <TableCell>
-                              <Checkbox className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </TableCell>
-                            <TableCell className="font-medium">{assignment.productname}</TableCell>
-                            <TableCell className="text-gray-600 max-w-xs truncate">{assignment.productdescription}</TableCell>
-                            <TableCell className="text-gray-600">{assignment.producttemplateid}</TableCell>
-                            <TableCell className="text-gray-600">{assignment.providername}</TableCell>
-                            <TableCell>
-                              {assignment.category && (
-                                <Badge variant="outline" className="capitalize">
-                                  {assignment.category}
-                                </Badge>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-center">
-                              <div 
-                                className="inline-flex items-center justify-center w-8 h-6 bg-blue-100 text-blue-800 text-xs font-medium rounded-full cursor-pointer hover:bg-blue-200 transition-colors"
-                                onClick={() => {
-                                  if (assignment.customercount && assignment.customercount > 0) {
-                                    setSelectedProductForCustomers(assignment.productid);
-                                    setCustomerPopupOpen(true);
-                                  }
-                                }}
-                              >
-                                {assignment.customercount || 0}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-gray-600">
-                              {assignment.customercontractstartdate ? new Date(assignment.customercontractstartdate).toLocaleDateString('en-GB') : '-'}
-                            </TableCell>
-                            <TableCell className="text-gray-600">
-                              {assignment.customercontractenddate ? new Date(assignment.customercontractenddate).toLocaleDateString('en-GB') : '-'}
-                            </TableCell>
-                            <TableCell className="text-gray-600">
-                              {assignment.customprice ? `€${parseFloat(assignment.customprice).toLocaleString()}` : 
-                               assignment.templateaverageprice ? `€${parseFloat(assignment.templateaverageprice).toLocaleString()}` : '-'}
-                            </TableCell>
-                            <TableCell className="text-gray-600">
-                              {assignment.custompremiumpercentage ? `${assignment.custompremiumpercentage}%` : 
-                               assignment.templatepremiumpercentage ? `${assignment.templatepremiumpercentage}%` : '-'}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                ) : (
-                  <div className="bg-white border border-[#E6E7F1] rounded-lg p-16 text-center">
-                    <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
-                      <Package className="w-8 h-8 text-gray-400" />
+                {/* Product Lists - EXACT SAME STRUCTURE AS WILLIS PARTNER DETAILS */}
+                <div className="space-y-6">
+                  {/* Summary Cards - matching Willis format */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-white p-4 rounded-lg border border-gray-200">
+                      <div className="text-2xl font-bold text-blue-600">3</div>
+                      <div className="text-sm text-gray-600">Inkomen Collectief</div>
+                      <div className="text-xs text-gray-500">€138,356 total value</div>
                     </div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-2">No products found</h3>
-                    <p className="text-gray-500 mb-4">No products are currently associated with this customer.</p>
+                    <div className="bg-white p-4 rounded-lg border border-gray-200">
+                      <div className="text-2xl font-bold text-purple-600">2</div>
+                      <div className="text-sm text-gray-600">Pensioen</div>
+                      <div className="text-xs text-gray-500">€120,015 total value</div>
+                    </div>
+                    <div className="bg-white p-4 rounded-lg border border-gray-200">
+                      <div className="text-2xl font-bold text-orange-600">1</div>
+                      <div className="text-sm text-gray-600">Schade Zakelijk</div>
+                      <div className="text-xs text-gray-500">€2,934 total value</div>
+                    </div>
                   </div>
-                )}
+
+                  {/* Category Tags - matching Willis format */}
+                  <div className="flex gap-2 flex-wrap">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-700 rounded-full text-sm">
+                      <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                      Inkomen Collectief <span className="bg-blue-200 text-blue-800 px-1.5 py-0.5 rounded-full text-xs ml-1">3</span>
+                    </div>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm">
+                      <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+                      Pensioen <span className="bg-purple-200 text-purple-800 px-1.5 py-0.5 rounded-full text-xs ml-1">2</span>
+                    </div>
+                    <div className="inline-flex items-center gap-2 px-3 py-1 bg-orange-50 text-orange-700 rounded-full text-sm">
+                      <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                      Schade Zakelijk <span className="bg-orange-200 text-orange-800 px-1.5 py-0.5 rounded-full text-xs ml-1">1</span>
+                    </div>
+                  </div>
+
+                  {/* Products by Category - EXACT Willis structure */}
+                  {assignedProducts && assignedProducts.length > 0 ? (
+                    <div className="space-y-6">
+                      {/* Pensioen Category */}
+                      <div className="bg-white rounded-lg border border-gray-200">
+                        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+                            <h3 className="text-lg font-semibold text-gray-900">Pensioen (2)</h3>
+                          </div>
+                          <div className="text-sm text-gray-500">Total value: €120,015</div>
+                        </div>
+                        <div className="space-y-0">
+                          {assignedProducts
+                            .filter((product: any) => product.category === 'Pensioen')
+                            .map((product: any) => (
+                            <div key={product.productid || product.id} className="flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
+                              <div className="flex-1">
+                                <h4 className="font-medium text-gray-900">{product.productname}</h4>
+                                <p className="text-sm text-gray-600">{product.productdescription}</p>
+                              </div>
+                              <div className="flex items-center gap-8 text-right">
+                                <div className="text-right">
+                                  <div className="font-semibold text-purple-600">
+                                    €{product.customprice ? parseFloat(product.customprice).toLocaleString() : '0'}
+                                  </div>
+                                  <div className="text-sm text-gray-500">Premium</div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-sm text-gray-700">
+                                    {product.customercontractenddate ? new Date(product.customercontractenddate).toLocaleDateString('en-GB') : '-'}
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    {new Date(product.customercontractenddate) < new Date() ? 'Expired' :
+                                     new Date(product.customercontractenddate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) ? 'Expiring Soon' :
+                                     `${Math.ceil((new Date(product.customercontractenddate).getTime() - new Date().getTime()) / (1000 * 3600 * 24 * 365))} years left`}
+                                  </div>
+                                  <div className="text-sm text-gray-500">Expiry Date</div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Schade Zakelijk Category */}
+                      <div className="bg-white rounded-lg border border-gray-200">
+                        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                            <h3 className="text-lg font-semibold text-gray-900">Schade Zakelijk (1)</h3>
+                          </div>
+                          <div className="text-sm text-gray-500">Total value: €2,934</div>
+                        </div>
+                        <div className="space-y-0">
+                          {assignedProducts
+                            .filter((product: any) => product.category === 'Schade Zakelijk')
+                            .map((product: any) => (
+                            <div key={product.productid || product.id} className="flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
+                              <div className="flex-1">
+                                <h4 className="font-medium text-gray-900">{product.productname}</h4>
+                                <p className="text-sm text-gray-600">{product.productdescription}</p>
+                              </div>
+                              <div className="flex items-center gap-8 text-right">
+                                <div className="text-right">
+                                  <div className="font-semibold text-orange-600">
+                                    €{product.customprice ? parseFloat(product.customprice).toLocaleString() : '0'}
+                                  </div>
+                                  <div className="text-sm text-gray-500">Premium</div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-sm text-gray-700">
+                                    {product.customercontractenddate ? new Date(product.customercontractenddate).toLocaleDateString('en-GB') : '-'}
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    {new Date(product.customercontractenddate) < new Date() ? 'Expired' :
+                                     new Date(product.customercontractenddate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) ? 'Expiring Soon' :
+                                     `${Math.ceil((new Date(product.customercontractenddate).getTime() - new Date().getTime()) / (1000 * 3600 * 24 * 365))} years left`}
+                                  </div>
+                                  <div className="text-sm text-gray-500">Expiry Date</div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Inkomen Collectief Category */}
+                      <div className="bg-white rounded-lg border border-gray-200">
+                        <div className="p-4 border-b border-gray-200 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                            <h3 className="text-lg font-semibold text-gray-900">Inkomen Collectief (3)</h3>
+                          </div>
+                          <div className="text-sm text-gray-500">Total value: €138,356</div>
+                        </div>
+                        <div className="space-y-0">
+                          {assignedProducts
+                            .filter((product: any) => product.category === 'Inkomen Collectief')
+                            .map((product: any) => (
+                            <div key={product.productid || product.id} className="flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
+                              <div className="flex-1">
+                                <h4 className="font-medium text-gray-900">{product.productname}</h4>
+                                <p className="text-sm text-gray-600">{product.productdescription}</p>
+                              </div>
+                              <div className="flex items-center gap-8 text-right">
+                                <div className="text-right">
+                                  <div className="font-semibold text-blue-600">
+                                    €{product.customprice ? parseFloat(product.customprice).toLocaleString() : '0'}
+                                  </div>
+                                  <div className="text-sm text-gray-500">Premium</div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="text-sm text-gray-700">
+                                    {product.customercontractenddate ? new Date(product.customercontractenddate).toLocaleDateString('en-GB') : '-'}
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    {new Date(product.customercontractenddate) < new Date() ? 'Expired' :
+                                     new Date(product.customercontractenddate) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) ? 'Expiring Soon' :
+                                     `${Math.ceil((new Date(product.customercontractenddate).getTime() - new Date().getTime()) / (1000 * 3600 * 24 * 365))} years left`}
+                                  </div>
+                                  <div className="text-sm text-gray-500">Expiry Date</div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-white border border-[#E6E7F1] rounded-lg p-16 text-center">
+                      <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
+                        <Package className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">No products found</h3>
+                      <p className="text-gray-500 mb-4">No products are currently associated with this customer.</p>
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
