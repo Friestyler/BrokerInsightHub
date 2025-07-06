@@ -1847,8 +1847,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const customersResult = await pool.query(`
         SELECT c.*, COUNT(o.id) as opportunity_count
         FROM degoudse.customers c
-        LEFT JOIN degoudse.opportunities o ON c.id = o.customer_id
-        WHERE c.partner_id = $1
+        INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
+        LEFT JOIN degoudse.opportunities o ON c.id = o."clientId"
+        WHERE pc.partner_id = $1
         GROUP BY c.id
         ORDER BY opportunity_count DESC
         LIMIT 10
