@@ -209,7 +209,7 @@ export default function ProductTemplates() {
 
   // Fetch categories and build main category structure
   const { data: categories = [] } = useQuery({
-    queryKey: ['/api/categories'],
+    queryKey: ['/api/product-categories'],
   });
 
   // Build main categories structure from working components
@@ -494,11 +494,11 @@ export default function ProductTemplates() {
   };
 
   const getSubcategories = (parentId: number) => {
-    return allCategories?.filter((cat: any) => cat.parent_id === parentId) || [];
+    return categories?.filter((cat: any) => cat.parent_id === parentId) || [];
   };
 
   const getSubcategoryCount = (parentId: number) => {
-    return allCategories?.filter((cat: any) => cat.parent_id === parentId)?.length || 0;
+    return categories?.filter((cat: any) => cat.parent_id === parentId)?.length || 0;
   };
 
   // Handlers for category dialogs
