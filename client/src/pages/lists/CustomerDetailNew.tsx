@@ -1074,7 +1074,7 @@ export default function CustomerDetailNew() {
                 onClick={() => setIsOpportunityModalOpen(true)}
               >
                 <Target className="w-4 h-4 mr-2" />
-                Creëer Customer Kans
+                Creëer Kans
               </Button>
             </div>
             <div className="mt-1">
