@@ -442,6 +442,8 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
   // Meeting preparation states
   const [meetingBriefing, setMeetingBriefing] = useState<any>(null);
   const [isPreparingMeeting, setIsPreparingMeeting] = useState(false);
+  const [crossSellAnalysis, setCrossSellAnalysis] = useState<any>(null);
+  const [isGeneratingCrossSell, setIsGeneratingCrossSell] = useState(false);
 
   // Timeline scroll ref for auto-scrolling to bottom
   const timelineScrollRef = useRef<HTMLDivElement>(null);
@@ -758,6 +760,29 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
     }
   });
 
+  // Smart Cross Sell AI analysis
+  const smartCrossSellMutation = useMutation({
+    mutationFn: () => 
+      fetch(`/api/${currentEnv}/${entityType}s/${entityId || partnerId}/smart-cross-sell`, {
+        method: 'POST'
+      }).then(res => res.json()),
+    onSuccess: (data) => {
+      setCrossSellAnalysis(data);
+      setIsGeneratingCrossSell(false);
+      // Switch to Smart Cross Sell tab (replace meeting tab)
+      setSelectedActivityType('meeting');
+      toast({ title: 'Smart Cross Sell analysis completed' });
+    },
+    onError: (error: any) => {
+      setIsGeneratingCrossSell(false);
+      toast({ 
+        title: 'Failed to generate cross-sell analysis', 
+        description: 'Please check your OpenAI API configuration',
+        variant: 'destructive' 
+      });
+    }
+  });
+
   // Load latest saved meeting briefing
   const { data: savedMeetingBriefing } = useQuery({
     queryKey: [`/api/${currentEnv}/partners/${partnerId}/latest-meeting-briefing`],
@@ -958,13 +983,15 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                 variant="ghost"
                 size="sm"
                 onClick={() => {
-                  // Placeholder for Smart Cross Sell functionality
-                  console.log('Smart Cross Sell clicked');
+                  setCrossSellAnalysis(null); // Clear previous analysis
+                  setIsGeneratingCrossSell(true);
+                  smartCrossSellMutation.mutate();
                 }}
+                disabled={smartCrossSellMutation.isPending}
                 className="text-xs text-gray-600 hover:text-blue-600"
               >
                 <Brain className="h-3 w-3 mr-1" />
-                Smart Cross Sell
+                {smartCrossSellMutation.isPending ? 'Analyzing...' : 'Smart Cross Sell'}
               </Button>
             </div>
           )}
@@ -1749,22 +1776,26 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
             </div>
           )}
 
-          {/* Prepare a Meeting */}
+          {/* Smart Cross Sell */}
           {selectedActivityType === 'meeting' && (
             <div className="space-y-4">
-              {!meetingBriefing ? (
+              {!crossSellAnalysis ? (
                 <div className="text-center py-8">
                   <div className="flex flex-col items-center gap-4">
-                    <Brain className="h-12 w-12 text-orange-400" />
+                    <Brain className="h-12 w-12 text-blue-500" />
                     <div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">AI Meeting Preparation</h3>
-                      <p className="text-sm text-gray-600 mb-4">Generate intelligent briefing with OKR analysis and opportunity insights</p>
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">Smart Cross Sell Analysis</h3>
+                      <p className="text-sm text-gray-600 mb-4">AI-powered product portfolio analysis to identify cross-selling opportunities</p>
                       <Button 
-                        onClick={handlePrepareMeeting}
-                        disabled={prepareMeetingMutation.isPending}
-                        className="bg-orange-600 hover:bg-orange-700"
+                        onClick={() => {
+                          setCrossSellAnalysis(null);
+                          setIsGeneratingCrossSell(true);
+                          smartCrossSellMutation.mutate();
+                        }}
+                        disabled={smartCrossSellMutation.isPending}
+                        className="bg-blue-600 hover:bg-blue-700"
                       >
-                        {prepareMeetingMutation.isPending ? (
+                        {smartCrossSellMutation.isPending ? (
                           <>
                             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                             Analyzing...
@@ -1772,7 +1803,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                         ) : (
                           <>
                             <Brain className="h-4 w-4 mr-2" />
-                            Prepare Meeting Briefing
+                            Generate Cross Sell Analysis
                           </>
                         )}
                       </Button>
@@ -1784,183 +1815,145 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                   {/* Header */}
                   <div className="flex items-center justify-between border-b border-gray-200 pb-4">
                     <div className="flex items-center gap-3">
-                      <Brain className="h-5 w-5 text-orange-500" />
-                      <h3 className="text-lg font-semibold text-gray-900">Meeting Briefing: {meetingBriefing.partner}</h3>
+                      <Brain className="h-5 w-5 text-blue-500" />
+                      <h3 className="text-lg font-semibold text-gray-900">Smart Cross Sell Analysis: {crossSellAnalysis.entityName}</h3>
                     </div>
                     <div className="flex items-center gap-2">
                       <Button 
                         variant="outline" 
                         size="sm"
-                        onClick={handleSaveMeetingBriefing}
-                        disabled={saveMeetingBriefingMutation.isPending}
-                      >
-                        {saveMeetingBriefingMutation.isPending ? (
-                          <>
-                            <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-gray-600 mr-2"></div>
-                            Saving...
-                          </>
-                        ) : (
-                          'Save'
-                        )}
-                      </Button>
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        onClick={handlePrepareMeeting}
-                        disabled={prepareMeetingMutation.isPending}
+                        onClick={() => {
+                          setCrossSellAnalysis(null);
+                          setIsGeneratingCrossSell(true);
+                          smartCrossSellMutation.mutate();
+                        }}
+                        disabled={smartCrossSellMutation.isPending}
                       >
                         <Brain className="h-4 w-4 mr-2" />
-                        Create New Briefing
+                        Generate New Analysis
                       </Button>
                     </div>
                   </div>
 
                   {/* Summary */}
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                    <h4 className="font-medium text-blue-900 mb-2">Executive Summary</h4>
+                    <h4 className="font-medium text-blue-900 mb-2">Analysis Summary</h4>
                     <p className="text-sm text-blue-800 leading-relaxed">
-                      {(() => {
-                        const actualOkrCount = meetingBriefing.dataUsed?.okrs || 0;
-                        const actualOpportunityCount = meetingBriefing.dataUsed?.opportunities || 0;
-                        
-                        // If no meaningful data, provide appropriate summary
-                        if (actualOkrCount === 0 && actualOpportunityCount === 0) {
-                          return `${meetingBriefing.partner} currently has limited data available. This would be a good opportunity to discuss setting up OKRs and exploring new business opportunities.`;
-                        }
-                        
-                        const lines = meetingBriefing.briefing.split('\n');
-                        // Look for summary paragraph (first substantial paragraph or line with "summary")
-                        const summaryLine = lines.find((line: string) => 
-                          (line.includes('summary') || line.includes('Summary')) && line.length > 20
-                        ) || lines.find((line: string) => 
-                          line.trim().length > 50 && !line.includes('**') && !line.startsWith('- ')
-                        );
-                        return summaryLine?.replace(/^-?\s*(summary:?)?/i, '').trim() || `Meeting preparation complete for ${meetingBriefing.partner} with ${actualOkrCount} OKR${actualOkrCount !== 1 ? 's' : ''} and ${actualOpportunityCount} opportunit${actualOpportunityCount !== 1 ? 'ies' : 'y'} to review.`;
-                      })()}
+                      {crossSellAnalysis.summary || `AI analysis complete for ${crossSellAnalysis.entityName} with ${crossSellAnalysis.currentProducts?.length || 0} current products and ${crossSellAnalysis.opportunities?.length || 0} cross-sell opportunities identified.`}
                     </p>
                   </div>
 
                   {/* Content Sections */}
                   <div className="grid gap-6">
-                    {/* Top 3 OKRs */}
+                    {/* Top Cross-Sell Opportunities */}
                     <div className="bg-white border border-gray-200 rounded-lg p-5">
                       <div className="flex items-center gap-2 mb-4">
                         <Target className="h-5 w-5 text-green-500" />
-                        <h4 className="font-semibold text-gray-900">Top 3 OKRs to Review</h4>
+                        <h4 className="font-semibold text-gray-900">Top Cross-Sell Opportunities</h4>
                       </div>
                       <div className="space-y-3">
-                        {(() => {
-                          const actualOkrCount = meetingBriefing.dataUsed?.okrs || 0;
-                          
-                          if (actualOkrCount === 0) {
-                            return (
-                              <div className="text-center py-6 text-gray-500">
-                                <Target className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                                <p className="text-sm">No OKRs available for this partner at the moment.</p>
-                              </div>
-                            );
-                          }
-                          
-                          // Look for OKR section in the AI response
-                          const lines = meetingBriefing.briefing.split('\n');
-                          const okrSectionStart = lines.findIndex((line: string) => 
-                            line.toLowerCase().includes('okr') && line.includes('**')
-                          );
-                          
-                          if (okrSectionStart === -1) {
-                            return (
-                              <div className="text-center py-6 text-gray-500">
-                                <Target className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                                <p className="text-sm">No OKR insights generated.</p>
-                              </div>
-                            );
-                          }
-                          
-                          // Extract bullet points from OKR section
-                          const okrItems = lines.slice(okrSectionStart + 1)
-                            .filter((line: string) => line.trim().startsWith('- '))
-                            .slice(0, Math.min(actualOkrCount, 3));
-                          
-                          return okrItems.map((item: string, index: number) => (
+                        {crossSellAnalysis.opportunities && crossSellAnalysis.opportunities.length > 0 ? (
+                          crossSellAnalysis.opportunities.slice(0, 3).map((opportunity: any, index: number) => (
                             <div key={index} className="flex items-start gap-3 p-3 bg-green-50 rounded-md">
-                              <Check className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
-                              <div className="text-sm text-gray-700">
-                                {renderMarkdownText(item.replace('- ', ''))}
+                              <Target className="h-4 w-4 text-green-600 mt-0.5 flex-shrink-0" />
+                              <div className="flex-1">
+                                <div className="text-sm font-medium text-gray-900">{opportunity.productName}</div>
+                                <div className="text-xs text-gray-600 mt-1">{opportunity.reasoning}</div>
+                                <div className="flex items-center gap-2 mt-2">
+                                  <span className="text-xs text-green-700 bg-green-100 px-2 py-1 rounded">
+                                    {opportunity.confidence}% confidence
+                                  </span>
+                                  <span className="text-xs text-blue-700 bg-blue-100 px-2 py-1 rounded">
+                                    €{opportunity.estimatedValue?.toLocaleString() || 'TBD'}
+                                  </span>
+                                </div>
                               </div>
                             </div>
-                          ));
-                        })()}
+                          ))
+                        ) : (
+                          <div className="text-center py-6 text-gray-500">
+                            <Target className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                            <p className="text-sm">No cross-sell opportunities identified.</p>
+                          </div>
+                        )}
                       </div>
                     </div>
 
-                    {/* Top 3 Opportunity Types */}
+                    {/* Current Product Portfolio */}
                     <div className="bg-white border border-gray-200 rounded-lg p-5">
                       <div className="flex items-center gap-2 mb-4">
                         <MessageSquare className="h-5 w-5 text-blue-500" />
-                        <h4 className="font-semibold text-gray-900">Top 3 Opportunity Types to Discuss</h4>
+                        <h4 className="font-semibold text-gray-900">Current Product Portfolio</h4>
                       </div>
                       <div className="space-y-3">
-                        {meetingBriefing.briefing.split('\n').filter((line: string) => 
-                          line.trim().startsWith('- **') && line.includes('Zonnepanelen')
-                        ).map((item: string, index: number) => (
-                          <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-md">
-                            <MessageSquare className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
-                            <div className="text-sm text-gray-700">
-                              {renderMarkdownText(item.replace('- ', ''))}
+                        {crossSellAnalysis.currentProducts && crossSellAnalysis.currentProducts.length > 0 ? (
+                          crossSellAnalysis.currentProducts.map((product: any, index: number) => (
+                            <div key={index} className="flex items-start gap-3 p-3 bg-blue-50 rounded-md">
+                              <MessageSquare className="h-4 w-4 text-blue-600 mt-0.5 flex-shrink-0" />
+                              <div className="flex-1">
+                                <div className="text-sm font-medium text-gray-900">{product.name}</div>
+                                <div className="text-xs text-gray-600 mt-1">{product.category}</div>
+                                {product.premiumValue && (
+                                  <div className="text-xs text-blue-700 mt-1">€{product.premiumValue.toLocaleString()}/year</div>
+                                )}
+                              </div>
                             </div>
+                          ))
+                        ) : (
+                          <div className="text-center py-6 text-gray-500">
+                            <MessageSquare className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                            <p className="text-sm">No current products identified.</p>
                           </div>
-                        ))}
+                        )}
                       </div>
                     </div>
 
-                    {/* Recommendations */}
+                    {/* AI Recommendations & Actions */}
                     <div className="bg-white border border-gray-200 rounded-lg p-5">
                       <div className="flex items-center gap-2 mb-4">
                         <CheckSquare className="h-5 w-5 text-purple-500" />
-                        <h4 className="font-semibold text-gray-900">Meeting Recommendations</h4>
+                        <h4 className="font-semibold text-gray-900">AI Recommendations & Actions</h4>
                       </div>
-                      <div className="space-y-2">
-                        {(() => {
-                          const lines = meetingBriefing.briefing.split('\n');
-                          
-                          // Find recommendations section and extract bullet points
-                          const recommendationsStart = lines.findIndex((line: string) => 
-                            line.toLowerCase().includes('recommendation') || 
-                            line.toLowerCase().includes('meeting recommendation')
-                          );
-                          
-                          if (recommendationsStart === -1) {
-                            // Fallback: look for bullet points that don't contain ** (not OKRs/opportunities)
-                            return lines.filter((line: string) => 
-                              line.trim().startsWith('- ') && 
-                              !line.includes('**') && 
-                              line.length > 15 &&
-                              !line.toLowerCase().includes('okr') &&
-                              !line.toLowerCase().includes('opportunity')
-                            ).slice(0, 3).map((item: string, index: number) => (
-                              <div key={index} className="flex items-start gap-3 p-2">
-                                <CheckSquare className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
-                                <span className="text-sm text-gray-700">{renderMarkdownText(item.replace('- ', ''))}</span>
-                              </div>
-                            ));
-                          }
-                          
-                          // Extract bullet points after recommendations header
-                          const recommendationItems = lines.slice(recommendationsStart + 1)
-                            .filter((line: string) => line.trim().startsWith('- '))
-                            .slice(0, 3);
-                            
-                          return recommendationItems.map((item: string, index: number) => (
-                            <div key={index} className="flex items-start gap-3 p-2">
+                      <div className="space-y-3">
+                        {crossSellAnalysis.recommendations && crossSellAnalysis.recommendations.length > 0 ? (
+                          crossSellAnalysis.recommendations.map((recommendation: any, index: number) => (
+                            <div key={index} className="flex items-start gap-3 p-3 bg-purple-50 rounded-md">
                               <CheckSquare className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
-                              <span className="text-sm text-gray-700">{renderMarkdownText(item.replace('- ', ''))}</span>
+                              <div className="flex-1">
+                                <div className="text-sm text-gray-700">{recommendation.text}</div>
+                                {recommendation.action && (
+                                  <Button 
+                                    size="sm" 
+                                    className="mt-2 bg-purple-600 hover:bg-purple-700"
+                                    onClick={() => {
+                                      // Handle action - create opportunity, add to campaign, etc.
+                                      console.log('Action clicked:', recommendation.action);
+                                    }}
+                                  >
+                                    {recommendation.action}
+                                  </Button>
+                                )}
+                              </div>
                             </div>
-                          ));
-                        })()}
+                          ))
+                        ) : (
+                          <div className="space-y-2">
+                            <div className="flex items-start gap-3 p-2">
+                              <CheckSquare className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                              <span className="text-sm text-gray-700">Review product portfolio for coverage gaps</span>
+                            </div>
+                            <div className="flex items-start gap-3 p-2">
+                              <CheckSquare className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                              <span className="text-sm text-gray-700">Schedule follow-up meeting to discuss expansion opportunities</span>
+                            </div>
+                            <div className="flex items-start gap-3 p-2">
+                              <CheckSquare className="h-4 w-4 text-purple-600 mt-0.5 flex-shrink-0" />
+                              <span className="text-sm text-gray-700">Prepare customized product recommendations based on entity profile</span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
-
-
                   </div>
                 </div>
               )}

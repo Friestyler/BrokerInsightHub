@@ -3339,6 +3339,242 @@ Keep the tone clear and professional. Focus on what will help the account manage
     }
   });
 
+  // Smart Cross Sell AI analysis endpoint
+  app.post('/api/degoudse/:entityType/:id/smart-cross-sell', async (req: Request, res: Response) => {
+    try {
+      const entityType = req.params.entityType; // 'partners' or 'customers'
+      const entityId = parseInt(req.params.id);
+      
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({ error: 'OpenAI API key not configured' });
+      }
+
+      console.log(`Generating Smart Cross Sell analysis for ${entityType} ${entityId}`);
+
+      // Get entity basic information
+      const entityResult = await pool.query(`
+        SELECT * FROM degoudse.${entityType} WHERE id = $1
+      `, [entityId]);
+
+      if (entityResult.rows.length === 0) {
+        return res.status(404).json({ error: `${entityType.slice(0, -1)} not found` });
+      }
+
+      const entity = entityResult.rows[0];
+
+      // Get product assignments for this entity
+      const productAssignmentsResult = await pool.query(`
+        SELECT 
+          pa.*,
+          p.name as product_name,
+          p.description as product_description,
+          c.name as parent_category_name,
+          c.color as category_color
+        FROM degoudse.product_assignments pa
+        LEFT JOIN degoudse.products p ON pa.productid = p.productid
+        LEFT JOIN degoudse.categories c ON p.parent_category_name = c.name
+        WHERE pa.${entityType === 'partners' ? 'partnerid' : 'customerid'} = $1
+        ORDER BY pa.premium_value DESC
+      `, [entityId]);
+
+      // Get all available products (to identify gaps)
+      const allProductsResult = await pool.query(`
+        SELECT 
+          p.*,
+          c.name as parent_category_name,
+          c.color as category_color
+        FROM degoudse.products p
+        LEFT JOIN degoudse.categories c ON p.parent_category_name = c.name
+        ORDER BY p.productid
+      `);
+
+      // Get market context - related opportunities and trends
+      const opportunitiesResult = await pool.query(`
+        SELECT 
+          o.*,
+          c.name as customer_name,
+          p.name as partner_name
+        FROM degoudse.opportunities o
+        LEFT JOIN degoudse.customers c ON o.clientId = c.id
+        LEFT JOIN degoudse.partners p ON o.partnerId = p.id
+        WHERE ${entityType === 'partners' ? 'o.partnerId' : 'o.clientId'} = $1
+        ORDER BY o.estimatedValue DESC
+        LIMIT 10
+      `, [entityId]);
+
+      // Get related partners/customers for market context
+      const relatedEntitiesResult = entityType === 'partners' 
+        ? await pool.query(`
+            SELECT c.* FROM degoudse.customers c 
+            JOIN degoudse.partner_customers pc ON c.id = pc.customer_id 
+            WHERE pc.partner_id = $1 
+            LIMIT 5
+          `, [entityId])
+        : await pool.query(`
+            SELECT p.* FROM degoudse.partners p 
+            JOIN degoudse.partner_customers pc ON p.id = pc.partner_id 
+            WHERE pc.customer_id = $1 
+            LIMIT 5
+          `, [entityId]);
+
+      // Structure data for AI analysis
+      const crossSellData = {
+        entity: {
+          type: entityType.slice(0, -1),
+          name: entity.name,
+          description: entity.description,
+          industry: entity.industry,
+          location: entity.location,
+          region: entity.region,
+          status: entity.status
+        },
+        currentProducts: productAssignmentsResult.rows.map(pa => ({
+          id: pa.productid,
+          name: pa.product_name,
+          description: pa.product_description,
+          category: pa.parent_category_name,
+          premiumValue: pa.premium_value,
+          premiumPercentage: pa.premium_percentage,
+          discountPercentage: pa.discount_percentage,
+          contractStart: pa.contract_start_date,
+          contractEnd: pa.contract_end_date
+        })),
+        availableProducts: allProductsResult.rows.map(p => ({
+          id: p.productid,
+          name: p.name,
+          description: p.description,
+          category: p.parent_category_name,
+          provider: p.provider,
+          averagePrice: p.average_price,
+          premiumPercentage: p.premium_percentage
+        })),
+        opportunities: opportunitiesResult.rows.map(o => ({
+          title: o.title,
+          stage: o.stage,
+          estimatedValue: o.estimated_value,
+          probability: o.probability,
+          insuranceType: o.insurance_description,
+          relatedEntity: entityType === 'partners' ? o.customer_name : o.partner_name
+        })),
+        marketContext: {
+          relatedEntities: relatedEntitiesResult.rows.map(e => ({
+            name: e.name,
+            industry: e.industry,
+            description: e.description
+          })),
+          totalOpportunities: opportunitiesResult.rows.length,
+          totalOpportunityValue: opportunitiesResult.rows.reduce((sum, o) => sum + (o.estimated_value || 0), 0)
+        }
+      };
+
+      // Send to OpenAI for Smart Cross Sell analysis
+      const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          temperature: 0.7,
+          response_format: { type: "json_object" },
+          messages: [
+            {
+              role: "system",
+              content: `You are an AI insurance cross-selling specialist analyzing product portfolios to identify growth opportunities.
+
+Current analysis timestamp: ${new Date().toISOString()}
+
+You will receive:
+- Entity information (${entityType.slice(0, -1)} details)
+- Current product portfolio with premiums and contract details
+- Available products in the catalog
+- Existing opportunities and market context
+
+Your task is to identify the top 3 cross-selling opportunities with actionable insights.
+
+For each opportunity, analyze:
+1. Product gaps in current portfolio
+2. Market context and industry trends
+3. Revenue potential and strategic value
+4. Implementation feasibility and timeline
+
+Respond with JSON in this exact format:
+{
+  "analysis": {
+    "entityName": "entity name",
+    "entityType": "${entityType.slice(0, -1)}",
+    "portfolioSummary": "brief current portfolio overview",
+    "marketContext": "relevant market insights"
+  },
+  "opportunities": [
+    {
+      "id": 1,
+      "title": "Opportunity Title",
+      "description": "Detailed opportunity description",
+      "productName": "Specific product to cross-sell",
+      "category": "Insurance category",
+      "priority": "High|Medium|Low",
+      "revenueLabel": "€XX,XXX potential",
+      "revenueAmount": 15000,
+      "probability": 75,
+      "reasoning": "Why this is a good opportunity",
+      "timeframe": "3-6 months",
+      "riskLevel": "Low|Medium|High",
+      "actionableSteps": [
+        "First action step",
+        "Second action step",
+        "Third action step"
+      ]
+    }
+  ],
+  "summary": {
+    "totalPotential": 45000,
+    "highPriorityCount": 2,
+    "recommendedFocus": "Main strategic recommendation"
+  }
+}
+
+Focus on realistic, data-driven insights. Use actual product names and categories from the data provided.`
+            },
+            {
+              role: "user",
+              content: `Smart Cross Sell analysis request at ${new Date().toISOString()}\n\n${JSON.stringify(crossSellData, null, 2)}`
+            }
+          ]
+        })
+      });
+
+      if (!openaiResponse.ok) {
+        const errorData = await openaiResponse.text();
+        console.error('OpenAI API error:', errorData);
+        return res.status(500).json({ error: 'Failed to generate cross-sell analysis' });
+      }
+
+      const aiResult = await openaiResponse.json();
+      const analysis = JSON.parse(aiResult.choices[0].message.content);
+
+      console.log('=== SMART CROSS SELL ANALYSIS ===');
+      console.log(`Entity: ${entity.name} (${entityType})`);
+      console.log('Analysis:', analysis);
+      console.log('=== END ANALYSIS ===');
+
+      res.json({
+        ...analysis,
+        dataUsed: {
+          currentProducts: crossSellData.currentProducts.length,
+          availableProducts: crossSellData.availableProducts.length,
+          opportunities: crossSellData.opportunities.length,
+          relatedEntities: crossSellData.marketContext.relatedEntities.length
+        }
+      });
+
+    } catch (error) {
+      console.error('Error generating Smart Cross Sell analysis:', error);
+      res.status(500).json({ error: 'Failed to generate cross-sell analysis' });
+    }
+  });
+
   // Save meeting briefing endpoint
   app.post('/api/degoudse/partners/:id/save-meeting-briefing', async (req: Request, res: Response) => {
     try {
