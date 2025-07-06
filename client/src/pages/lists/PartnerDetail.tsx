@@ -3677,7 +3677,7 @@ export default function PartnerDetail() {
                     product.productName?.toLowerCase().includes(productSearchText.toLowerCase()) ||
                     product.productDescription?.toLowerCase().includes(productSearchText.toLowerCase());
                   
-                  const matchesCategory = !selectedProductCategory || product.categoryName === selectedProductCategory;
+                  const matchesCategory = !selectedProductCategory || product.parent_category_name === selectedProductCategory;
                   
                   const matchesPrice = !selectedPriceRange || (() => {
                     const price = parseFloat(product.totalPremiumValue || product.avgPremiumValue || '0');
@@ -3693,9 +3693,9 @@ export default function PartnerDetail() {
                   return matchesSearch && matchesCategory && matchesPrice;
                 });
 
-                // Group products by category and calculate statistics
+                // Group products by MAIN category and calculate statistics
                 const categoryStats = filteredProducts.reduce((acc: any, product: any) => {
-                  const category = product.categoryName || 'Other';
+                  const category = product.parent_category_name || 'Other';
                   if (!acc[category]) {
                     acc[category] = {
                       count: 0,
@@ -3739,7 +3739,7 @@ export default function PartnerDetail() {
                     product.productName?.toLowerCase().includes(productSearchText.toLowerCase()) ||
                     product.productDescription?.toLowerCase().includes(productSearchText.toLowerCase());
                   
-                  const matchesCategory = !selectedProductCategory || product.categoryName === selectedProductCategory;
+                  const matchesCategory = !selectedProductCategory || product.parent_category_name === selectedProductCategory;
                   
                   const matchesPrice = !selectedPriceRange || (() => {
                     const price = parseFloat(product.totalPremiumValue || product.avgPremiumValue || '0');
@@ -3755,9 +3755,9 @@ export default function PartnerDetail() {
                   return matchesSearch && matchesCategory && matchesPrice;
                 });
 
-                // Group products by category
+                // Group products by MAIN category (parent_category_name)
                 const productsByCategory = filteredProducts.reduce((acc: any, product: any) => {
-                  const category = product.categoryName || 'Uncategorized';
+                  const category = product.parent_category_name || 'Uncategorized';
                   if (!acc[category]) {
                     acc[category] = [];
                   }
