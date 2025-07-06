@@ -1231,7 +1231,7 @@ export default function PartnerDetail() {
             </div>
             
             {/* Header Action Buttons */}
-            <div className="flex items-center space-x-3">
+            <div className="flex flex-col items-end space-y-2">
               {/* Willis Partner Link - positioned above Creëer Partner Kans */}
               {parseInt(id!) === 1 && (
                 <a
