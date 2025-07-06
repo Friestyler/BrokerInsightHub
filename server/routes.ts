@@ -7479,9 +7479,13 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       console.log(`Returning categories from ${envId} database`);
       
       const result = await envPool.query(`
-        SELECT * FROM ${envId}.categories 
-        WHERE is_active = true
-        ORDER BY level ASC, created_at DESC, name ASC
+        SELECT 
+          c.*,
+          p.name as parent_category_name
+        FROM ${envId}.categories c
+        LEFT JOIN ${envId}.categories p ON c.parent_id = p.id
+        WHERE c.is_active = true
+        ORDER BY c.level ASC, c.created_at DESC, c.name ASC
       `);
       
       res.json(result.rows);

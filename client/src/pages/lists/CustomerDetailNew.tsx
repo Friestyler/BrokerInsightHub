@@ -1598,34 +1598,60 @@ export default function CustomerDetailNew() {
                   {/* Willis-Style Main Category Tags */}
                   <div className="flex gap-2 flex-wrap">
                     {(() => {
-                      // Group categories by parent/main category level
+                      // Group products by their main category 
                       const mainCategories = new Map();
                       
-                      if (Array.isArray(categories)) {
+                      if (Array.isArray(assignedProducts) && Array.isArray(categories)) {
+                        // First, create a mapping of subcategory name to main category
+                        const subcategoryToMainCategory = new Map();
                         categories.forEach((category: any) => {
-                          // Determine main category name (parent category or self if no parent)
                           const mainCategoryName = category.parent_category_name || category.name;
+                          subcategoryToMainCategory.set(category.name, {
+                            mainCategoryName,
+                            color: category.color || 'blue'
+                          });
+                        });
+                        
+                        // Group products by their main category
+                        assignedProducts.forEach((product: any) => {
+                          const productSubcategory = product.category || product.categoryName || product.productCategoryName;
+                          const mainCategoryInfo = subcategoryToMainCategory.get(productSubcategory);
                           
-                          // Count products for this specific category
-                          const categoryProducts = assignedProducts?.filter((product: any) => 
-                            product.category === category.name ||
-                            product.categoryName === category.name ||
-                            product.productCategoryName === category.name
-                          ) || [];
-                          
-                          // Add to main category group
-                          if (!mainCategories.has(mainCategoryName)) {
-                            mainCategories.set(mainCategoryName, {
-                              name: mainCategoryName,
-                              productCount: 0,
-                              subcategories: [],
-                              color: category.color || 'blue'
-                            });
+                          if (mainCategoryInfo) {
+                            const mainCategoryName = mainCategoryInfo.mainCategoryName;
+                            
+                            if (!mainCategories.has(mainCategoryName)) {
+                              mainCategories.set(mainCategoryName, {
+                                name: mainCategoryName,
+                                productCount: 0,
+                                subcategories: [],
+                                color: mainCategoryInfo.color
+                              });
+                            }
+                            
+                            const mainCategory = mainCategories.get(mainCategoryName);
+                            mainCategory.productCount += 1;
+                            
+                            // Add subcategory to list if not already present
+                            if (!mainCategory.subcategories.includes(productSubcategory)) {
+                              mainCategory.subcategories.push(productSubcategory);
+                            }
                           }
-                          
-                          const mainCategory = mainCategories.get(mainCategoryName);
-                          mainCategory.productCount += categoryProducts.length;
-                          mainCategory.subcategories.push(category.name);
+                        });
+                        
+                        // Also add main categories that have no products (blind spots)
+                        categories.forEach((category: any) => {
+                          if (!category.parent_category_name) {
+                            // This is a main category
+                            if (!mainCategories.has(category.name)) {
+                              mainCategories.set(category.name, {
+                                name: category.name,
+                                productCount: 0,
+                                subcategories: [],
+                                color: category.color || 'blue'
+                              });
+                            }
+                          }
                         });
                       }
                       
