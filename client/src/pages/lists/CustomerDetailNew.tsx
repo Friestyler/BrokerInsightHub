@@ -1015,11 +1015,22 @@ export default function CustomerDetailNew() {
       {(
         <div className="px-6 py-4">
           <div className="flex items-center mb-4">
-            <Link href={backUrl}>
-              <Button variant="ghost" size="sm" className="mr-4 p-2 group hover:bg-[#F5F6FE]">
+            {!isIframeMode ? (
+              <Link href={backUrl}>
+                <Button variant="ghost" size="sm" className="mr-4 p-2 group hover:bg-[#F5F6FE]">
+                  <ArrowLeft className="w-4 h-4 group-hover:text-[#5567E5]" />
+                </Button>
+              </Link>
+            ) : (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="mr-4 p-2 group hover:bg-[#F5F6FE]"
+                onClick={() => window.history.back()}
+              >
                 <ArrowLeft className="w-4 h-4 group-hover:text-[#5567E5]" />
               </Button>
-            </Link>
+            )}
           {/* Customer Logo */}
           <div className="flex-shrink-0 mr-4">
             <button
