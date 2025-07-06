@@ -1,0 +1,36 @@
+  at div
+    at PartnerDetail (https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit.dev/src/pages/lists/PartnerDetail.tsx:45:18)
+    at Route (https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=4463a4a7:265:16)
+    at Switch (https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=4463a4a7:321:17)
+    at div
+    at div
+    at div
+    at LayoutComponent (https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit.dev/src/components/Layout.tsx:25:28)
+    at Route (https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=4463a4a7:265:16)
+    at Switch (https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=4463a4a7:321:17)
+    at Router
+    at Provider (https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-3RXG37ZK.js?v=4463a4a7:38:15)
+    at TooltipProvider (https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=4463a4a7:64:5)
+    at EnvironmentProvider (https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit.dev/src/contexts/EnvironmentContext.tsx:53:39)
+    at QueryClientProvider (https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=4463a4a7:2805:3)
+    at App (https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit.dev/src/App.tsx?v=cepx576JywL6Jj2MYt2o9:405:49)
+printWarning @ react_jsx-dev-runtime.js?v=4463a4a7:64
+error @ react_jsx-dev-runtime.js?v=4463a4a7:48
+validateExplicitKey @ react_jsx-dev-runtime.js?v=4463a4a7:724
+validateChildKeys @ react_jsx-dev-runtime.js?v=4463a4a7:737
+jsxWithValidation @ react_jsx-dev-runtime.js?v=4463a4a7:855
+(anonymous) @ PartnerDetail.tsx:3741
+(anonymous) @ PartnerDetail.tsx:3713
+PartnerDetail @ PartnerDetail.tsx:3851
+renderWithHooks @ chunk-276SZO74.js?v=4463a4a7:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=4463a4a7:14582
+beginWork @ chunk-276SZO74.js?v=4463a4a7:15924
+beginWork$1 @ chunk-276SZO74.js?v=4463a4a7:19753
+performUnitOfWork @ chunk-276SZO74.js?v=4463a4a7:19198
+workLoopSync @ chunk-276SZO74.js?v=4463a4a7:19137
+renderRootSync @ chunk-276SZO74.js?v=4463a4a7:19116
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=4463a4a7:18874
+flushSyncCallbacks @ chunk-276SZO74.js?v=4463a4a7:9119
+(anonymous) @ chunk-276SZO74.js?v=4463a4a7:18627Understand this error
+1:1 Unchecked runtime.lastError: The message port closed before a response was received.Understand this error
+1:1 Unchecked runtime.lastError: The message port closed before a response was received.Understand this error

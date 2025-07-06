@@ -3714,8 +3714,6 @@ export default function PartnerDetail() {
                           const category = mainCategories.find((cat: any) => cat.name === categoryName);
                           const categoryColor = category?.color || '#6B7280';
                           
-                          console.log('Category Debug:', { categoryName, category, categoryColor });
-                          
                           return (
                             <div key={categoryName} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                               <div 
@@ -3732,7 +3730,13 @@ export default function PartnerDetail() {
                                       {categoryName} ({products.length})
                                     </h3>
                                   </div>
-                                  <div className="text-sm font-medium" style={{ color: categoryColor }}>
+                                  <div 
+                                    className="text-sm"
+                                    style={{ 
+                                      color: categoryColor, 
+                                      fontWeight: '600'
+                                    }}
+                                  >
                                     Total value: €{products.reduce((sum: number, p: any) => sum + parseFloat(p.totalPremiumValue || p.avgPremiumValue || '0'), 0).toLocaleString()}
                                   </div>
                                 </div>
