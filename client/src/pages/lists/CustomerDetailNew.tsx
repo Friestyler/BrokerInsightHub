@@ -30,6 +30,10 @@ export default function CustomerDetailNew() {
   const [backUrl, setBackUrl] = useState("/customers");
   const [backLabel, setBackLabel] = useState("Back to Customers");
 
+  // Detect iframe mode
+  const urlParams = new URLSearchParams(window.location.search);
+  const isIframeMode = urlParams.get('iframe') === 'true';
+
   // Error boundary for runtime safety
   const [hasError, setHasError] = useState(false);
   
@@ -1007,14 +1011,15 @@ export default function CustomerDetailNew() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header section */}
-      <div className="px-6 py-4">
-        <div className="flex items-center mb-4">
-          <Link href={backUrl}>
-            <Button variant="ghost" size="sm" className="mr-4 p-2 group hover:bg-[#F5F6FE]">
-              <ArrowLeft className="w-4 h-4 group-hover:text-[#5567E5]" />
-            </Button>
-          </Link>
+      {/* Header section - hide navigation when in iframe mode */}
+      {!isIframeMode && (
+        <div className="px-6 py-4">
+          <div className="flex items-center mb-4">
+            <Link href={backUrl}>
+              <Button variant="ghost" size="sm" className="mr-4 p-2 group hover:bg-[#F5F6FE]">
+                <ArrowLeft className="w-4 h-4 group-hover:text-[#5567E5]" />
+              </Button>
+            </Link>
           {/* Customer Logo */}
           <div className="flex-shrink-0 mr-4">
             <button
@@ -1184,7 +1189,8 @@ export default function CustomerDetailNew() {
 
           </nav>
         </div>
-      </div>
+        </div>
+      )}
 
       {/* Content area */}
       <div className="px-6 py-6">

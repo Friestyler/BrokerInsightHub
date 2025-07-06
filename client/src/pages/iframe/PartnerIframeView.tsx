@@ -1,6 +1,5 @@
 import React from "react";
 import { useParams } from "wouter";
-import { EntityDetailWrapper } from "@/components/entity/EntityDetailWrapper";
 
 export default function PartnerIframeView() {
   const { id } = useParams();
@@ -16,14 +15,18 @@ export default function PartnerIframeView() {
     );
   }
 
+  // Direct iframe to the actual partner detail page
+  // This ensures 100% mirroring with zero maintenance
+  const iframeUrl = `/partners/${id}?iframe=true`;
+
   return (
-    <EntityDetailWrapper
-      entityType="partner"
-      entityId={id}
-      isIframeMode={true}
-      defaultTab="products"
-      className="h-full"
-      availableTabs={['products', 'overview', 'activity']}
-    />
+    <div className="h-full w-full">
+      <iframe
+        src={iframeUrl}
+        className="w-full h-full border-0"
+        title={`Partner ${id} Details`}
+        sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
+      />
+    </div>
   );
 }

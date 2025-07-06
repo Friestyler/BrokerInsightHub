@@ -31,9 +31,10 @@ export default function PartnerDetail() {
   // Detect if we're in broker view
   const isBrokerView = location.startsWith('/broker-view');
   
-  // Check URL parameters for tab selection
+  // Check URL parameters for tab selection and iframe mode
   const urlParams = new URLSearchParams(window.location.search);
   const tabParam = urlParams.get('tab');
+  const isIframeMode = urlParams.get('iframe') === 'true';
   const [activeTab, setActiveTab] = useState(tabParam || "products");
   const [activeProductTab, setActiveProductTab] = useState("overview");
   const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
@@ -1103,8 +1104,9 @@ export default function PartnerDetail() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header */}
-      <div className="bg-white">
+      {/* Header - hide when in iframe mode */}
+      {!isIframeMode && (
+        <div className="bg-white">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-4">
@@ -1317,7 +1319,8 @@ export default function PartnerDetail() {
             </nav>
           </div>
         </div>
-      </div>
+        </div>
+      )}
       {/* Content area */}
       <div className="px-6 py-6 bg-white">
         {activeTab === "okr-plans" && (
