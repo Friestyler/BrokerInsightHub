@@ -1011,8 +1011,8 @@ export default function CustomerDetailNew() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header section - hide navigation when in iframe mode */}
-      {!isIframeMode && (
+      {/* Header section */}
+      {(
         <div className="px-6 py-4">
           <div className="flex items-center mb-4">
             <Link href={backUrl}>

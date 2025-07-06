@@ -1104,8 +1104,8 @@ export default function PartnerDetail() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Header - hide when in iframe mode */}
-      {!isIframeMode && (
+      {/* Header */}
+      {(
         <div className="bg-white">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between mb-4">
