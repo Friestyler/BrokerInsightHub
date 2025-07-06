@@ -3677,7 +3677,7 @@ export default function PartnerDetail() {
                     product.productName?.toLowerCase().includes(productSearchText.toLowerCase()) ||
                     product.productDescription?.toLowerCase().includes(productSearchText.toLowerCase());
                   
-                  const matchesCategory = !selectedProductCategory || product.parent_category_name === selectedProductCategory;
+                  const matchesCategory = !selectedProductCategory || product.parentCategoryName === selectedProductCategory;
                   
                   const matchesPrice = !selectedPriceRange || (() => {
                     const price = parseFloat(product.totalPremiumValue || product.avgPremiumValue || '0');
@@ -3695,7 +3695,7 @@ export default function PartnerDetail() {
 
                 // Group products by MAIN category and calculate statistics
                 const categoryStats = filteredProducts.reduce((acc: any, product: any) => {
-                  const category = product.parent_category_name || 'Other';
+                  const category = product.parentCategoryName || 'Other';
                   if (!acc[category]) {
                     acc[category] = {
                       count: 0,
@@ -3739,7 +3739,7 @@ export default function PartnerDetail() {
                     product.productName?.toLowerCase().includes(productSearchText.toLowerCase()) ||
                     product.productDescription?.toLowerCase().includes(productSearchText.toLowerCase());
                   
-                  const matchesCategory = !selectedProductCategory || product.parent_category_name === selectedProductCategory;
+                  const matchesCategory = !selectedProductCategory || product.parentCategoryName === selectedProductCategory;
                   
                   const matchesPrice = !selectedPriceRange || (() => {
                     const price = parseFloat(product.totalPremiumValue || product.avgPremiumValue || '0');
@@ -3755,9 +3755,9 @@ export default function PartnerDetail() {
                   return matchesSearch && matchesCategory && matchesPrice;
                 });
 
-                // Group products by MAIN category (parent_category_name)
+                // Group products by MAIN category (parentCategoryName)
                 const productsByCategory = filteredProducts.reduce((acc: any, product: any) => {
-                  const category = product.parent_category_name || 'Uncategorized';
+                  const category = product.parentCategoryName || 'Uncategorized';
                   if (!acc[category]) {
                     acc[category] = [];
                   }
