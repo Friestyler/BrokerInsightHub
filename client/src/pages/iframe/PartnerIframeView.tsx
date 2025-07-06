@@ -233,7 +233,7 @@ export default function PartnerIframeView() {
               onClick={() => setActiveTab("products")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === "products"
-                  ? "bg-blue-100 text-blue-700"
+                  ? "bg-[#E6E7F1] text-[#5567E5]"
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
@@ -243,7 +243,7 @@ export default function PartnerIframeView() {
               onClick={() => setActiveTab("customers")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === "customers"
-                  ? "bg-blue-100 text-blue-700"
+                  ? "bg-[#E6E7F1] text-[#5567E5]"
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
@@ -253,7 +253,7 @@ export default function PartnerIframeView() {
               onClick={() => setActiveTab("opportunities")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === "opportunities"
-                  ? "bg-blue-100 text-blue-700"
+                  ? "bg-[#E6E7F1] text-[#5567E5]"
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
@@ -263,7 +263,7 @@ export default function PartnerIframeView() {
               onClick={() => setActiveTab("okr-plans")}
               className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 activeTab === "okr-plans"
-                  ? "bg-blue-100 text-blue-700"
+                  ? "bg-[#E6E7F1] text-[#5567E5]"
                   : "text-gray-600 hover:bg-gray-100"
               }`}
             >
@@ -271,11 +271,11 @@ export default function PartnerIframeView() {
             </button>
           </nav>
 
-          <div className="py-4">
+          <div className="py-2">
             {activeTab === "products" && (
               <div>
-                {/* Product subtabs with seamless flow */}
-                <div className="flex px-6 mb-4">
+                {/* Product subtabs with blue underline when selected */}
+                <div className="flex px-6 mb-4 border-b border-gray-200">
                   {[
                     { id: "overview", label: "Overview" },
                     { id: "matrix", label: "Matrix" },
@@ -284,10 +284,10 @@ export default function PartnerIframeView() {
                     <button
                       key={subtab.id}
                       onClick={() => setActiveProductTab(subtab.id)}
-                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors mr-2 ${
+                      className={`px-4 py-3 text-sm font-medium transition-colors mr-4 border-b-2 -mb-px ${
                         activeProductTab === subtab.id
-                          ? "bg-blue-100 text-blue-700"
-                          : "text-gray-600 hover:bg-gray-100"
+                          ? "text-[#5567E5] border-[#5567E5]"
+                          : "text-gray-600 hover:text-[#5567E5] border-transparent"
                       }`}
                     >
                       {subtab.label}
