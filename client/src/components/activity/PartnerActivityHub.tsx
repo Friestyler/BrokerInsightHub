@@ -1874,8 +1874,20 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                     <h4 className="font-medium text-blue-900 mb-2">Analysis Summary</h4>
                     <p className="text-sm text-blue-800 leading-relaxed">
-                      {crossSellAnalysis.summary || `AI analysis complete for ${crossSellAnalysis.entityName} with ${crossSellAnalysis.currentProducts?.length || 0} current products and ${crossSellAnalysis.opportunities?.length || 0} cross-sell opportunities identified.`}
+                      {crossSellAnalysis.summary?.recommendedFocus || `AI analysis complete for ${crossSellAnalysis.entityName} with ${crossSellAnalysis.currentProducts?.length || 0} current products and ${crossSellAnalysis.opportunities?.length || 0} cross-sell opportunities identified.`}
                     </p>
+                    {crossSellAnalysis.summary && (
+                      <div className="mt-3 grid grid-cols-2 gap-4 text-sm">
+                        <div className="flex items-center justify-between">
+                          <span className="text-blue-700">Total Revenue Potential:</span>
+                          <span className="font-semibold text-blue-900">€{crossSellAnalysis.summary.totalPotential?.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center justify-between">
+                          <span className="text-blue-700">High Priority Opportunities:</span>
+                          <span className="font-semibold text-blue-900">{crossSellAnalysis.summary.highPriorityCount}</span>
+                        </div>
+                      </div>
+                    )}
                   </div>
 
                   {/* Content Sections */}
