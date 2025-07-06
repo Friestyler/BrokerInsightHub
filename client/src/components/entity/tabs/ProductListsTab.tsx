@@ -147,7 +147,7 @@ export function ProductListsTab({ className = "" }: ProductListsTabProps) {
   const filteredMainCategories = useMemo(() => {
     if (!mainCategoriesData) return [];
     
-    return mainCategoriesData
+    let filtered = mainCategoriesData
       .filter(category => 
         selectedCategories.length === 0 || selectedCategories.includes(category.name)
       )
@@ -159,6 +159,16 @@ export function ProductListsTab({ className = "" }: ProductListsTabProps) {
           product.productdescription?.toLowerCase().includes(searchText.toLowerCase())
         )
       }));
+    
+    // Sort: categories with products first, then empty categories at bottom
+    filtered.sort((a, b) => {
+      if (a.isBlindSpot !== b.isBlindSpot) {
+        return a.isBlindSpot ? 1 : -1;
+      }
+      return b.productCount - a.productCount;
+    });
+    
+    return filtered;
   }, [mainCategoriesData, selectedCategories, searchText]);
 
   return (

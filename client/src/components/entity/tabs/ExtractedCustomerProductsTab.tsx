@@ -203,11 +203,23 @@ export function ExtractedCustomerProductsTab({ customerId, className = "", isIfr
       );
     });
     
-    // Filter by selected categories
+    // Filter by selected categories and sort properly
     const filteredMainCategories = Array.from(mainCategories.entries())
-      .filter(([name, data]) => 
-        selectedCategories.length === 0 || selectedCategories.includes(name)
-      );
+      .map(([name, data]) => ({
+        ...data,
+        productCount: data.products.length,
+        isBlindSpot: data.products.length === 0
+      }))
+      .filter((category) => 
+        selectedCategories.length === 0 || selectedCategories.includes(category.name)
+      )
+      .sort((a, b) => {
+        // Categories with products first, then empty categories at bottom
+        if (a.isBlindSpot !== b.isBlindSpot) {
+          return a.isBlindSpot ? 1 : -1;
+        }
+        return b.productCount - a.productCount;
+      });
     
     return filteredMainCategories;
   }, [categories, assignedProducts, selectedCategories]);
@@ -283,8 +295,8 @@ export function ExtractedCustomerProductsTab({ customerId, className = "", isIfr
       {/* Product Categories Display - EXACT MIRROR from CustomerDetailNew.tsx */}
       <div className="space-y-6">
         {filteredMainCategories.length > 0 ? (
-          filteredMainCategories.map(([mainCategoryName, mainCategoryData]: [string, any]) => {
-            const isBlindSpot = mainCategoryData.products.length === 0;
+          filteredMainCategories.map((mainCategory: any) => {
+            const isBlindSpot = mainCategory.products.length === 0;
             
             // Get Willis-style colors for this main category
             const getMainCategoryColor = (categoryName: string) => {
@@ -296,7 +308,7 @@ export function ExtractedCustomerProductsTab({ customerId, className = "", isIfr
               return 'blue';
             };
             
-            const categoryColor = getMainCategoryColor(mainCategoryName);
+            const categoryColor = getMainCategoryColor(mainCategory.name);
             
             const headerColor = isBlindSpot 
               ? 'bg-gray-100'
@@ -323,17 +335,17 @@ export function ExtractedCustomerProductsTab({ customerId, className = "", isIfr
                 'text-gray-600';
 
             return (
-              <div key={mainCategoryName} className={`bg-white rounded-lg border border-gray-200 ${isBlindSpot ? 'opacity-70' : ''}`}>
+              <div key={mainCategory.name} className={`bg-white rounded-lg border border-gray-200 ${isBlindSpot ? 'opacity-70' : ''}`}>
                 <div className={`p-4 border-b border-gray-200 flex items-center justify-between ${headerColor}`}>
                   <div className="flex items-center gap-3">
                     <div className={`w-3 h-3 rounded-full ${dotColor}`}></div>
                     <h3 className="text-lg font-semibold text-gray-900">
-                      {mainCategoryName} ({mainCategoryData.products.length})
+                      {mainCategory.name} ({mainCategory.products.length})
                       {isBlindSpot && <span className="text-sm font-normal text-gray-500 ml-2">• Blind spot</span>}
                     </h3>
                   </div>
                   <div className="text-sm text-gray-500">
-                    {isBlindSpot ? 'No products assigned' : `Total value: €${mainCategoryData.totalValue.toLocaleString()}`}
+                    {isBlindSpot ? 'No products assigned' : `Total value: €${mainCategory.totalValue.toLocaleString()}`}
                   </div>
                 </div>
                 
@@ -345,7 +357,7 @@ export function ExtractedCustomerProductsTab({ customerId, className = "", isIfr
                       <div className="text-sm">Consider adding products to expand coverage</div>
                     </div>
                   ) : (
-                    mainCategoryData.products.map((product: any) => (
+                    mainCategory.products.map((product: any) => (
                       <div key={product.productid || product.id} className="flex items-center justify-between p-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50">
                         <div className="flex-1">
                           <h4 className="font-medium text-gray-900">{product.productname}</h4>
