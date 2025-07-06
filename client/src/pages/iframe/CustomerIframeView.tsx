@@ -20,10 +20,11 @@ export default function CustomerIframeView() {
   const iframeUrl = `/lists/customers/${id}?iframe=true`;
 
   return (
-    <div className="h-full w-full">
+    <div className="w-full" style={{ height: '100vh' }}>
       <iframe
         src={iframeUrl}
-        className="w-full h-full border-0"
+        className="w-full border-0"
+        style={{ height: '100vh', minHeight: '800px' }}
         title={`Customer ${id} Details`}
         sandbox="allow-same-origin allow-scripts allow-forms allow-popups"
       />
