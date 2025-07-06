@@ -40,7 +40,10 @@ import {
   Globe, 
   Lock, 
   Star, 
-  CheckCircle 
+  CheckCircle,
+  X,
+  Calendar,
+  Euro 
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
@@ -61,6 +64,21 @@ interface ProductTemplateWithCategory extends ProductTemplate {
   partnerCount?: number;
   customerCount?: number;
   opportunityCount?: number;
+}
+
+// Interface for product customers
+interface ProductCustomer {
+  id: number;
+  name: string;
+  description?: string;
+  status: string;
+  contract_start_date: string;
+  contract_end_date: string;
+  premium_value: number;
+  premium_percentage: number;
+  discount_percentage: number;
+  contract_status: string;
+  contract_created_at: string;
 }
 
 // Icon mapping for category icons
@@ -141,6 +159,10 @@ export default function ProductTemplates() {
   const [newCategoryIcon, setNewCategoryIcon] = useState("");
   const [newSubcategoryIcon, setNewSubcategoryIcon] = useState("");
   const [editCategoryIcon, setEditCategoryIcon] = useState("");
+  
+  // Customer popup states
+  const [customerPopupOpen, setCustomerPopupOpen] = useState(false);
+  const [selectedProductForCustomers, setSelectedProductForCustomers] = useState<number | null>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -194,7 +216,7 @@ export default function ProductTemplates() {
 
   // Fetch product catalogue
   const { data: productTemplates = [], isLoading } = useQuery<ProductTemplateWithCategory[]>({
-    queryKey: ['/api/product-templates'],
+    queryKey: ['/api/products'],
   });
 
   // Fetch categories for dropdown
@@ -205,6 +227,12 @@ export default function ProductTemplates() {
   // Fetch vendors for dropdown
   const { data: vendors = [] } = useQuery({
     queryKey: ['/api/vendors'],
+  });
+
+  // Fetch customers for selected product
+  const { data: productCustomers = [], isLoading: customersLoading } = useQuery<ProductCustomer[]>({
+    queryKey: [`/api/products/${selectedProductForCustomers}/customers`],
+    enabled: !!selectedProductForCustomers,
   });
 
   // Create product catalogue mutation
@@ -1205,7 +1233,15 @@ export default function ProductTemplates() {
                       </div>
                     </TableCell>
                     <TableCell className="text-center">
-                      <div className="inline-flex items-center justify-center w-8 h-6 bg-blue-100 text-blue-800 text-xs font-medium rounded-full">
+                      <div 
+                        className="inline-flex items-center justify-center w-8 h-6 bg-blue-100 text-blue-800 text-xs font-medium rounded-full cursor-pointer hover:bg-blue-200 transition-colors"
+                        onClick={() => {
+                          if ((template as ProductTemplateWithCategory).customerCount && (template as ProductTemplateWithCategory).customerCount > 0) {
+                            setSelectedProductForCustomers(template.id);
+                            setCustomerPopupOpen(true);
+                          }
+                        }}
+                      >
                         {(template as ProductTemplateWithCategory).customerCount || 0}
                       </div>
                     </TableCell>
@@ -1451,6 +1487,101 @@ export default function ProductTemplates() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Customer Popup Dialog */}
+      <Dialog open={customerPopupOpen} onOpenChange={setCustomerPopupOpen}>
+        <DialogContent className="max-w-4xl bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-[#282A3F] flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Product Customers
+              {selectedProductForCustomers && (
+                <span className="text-sm font-normal text-gray-500">
+                  - {productTemplates.find(p => p.id === selectedProductForCustomers)?.name}
+                </span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="max-h-96 overflow-y-auto">
+            {customersLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-gray-500">Loading customers...</div>
+              </div>
+            ) : productCustomers.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">No customers found for this product</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {productCustomers.map((customer: ProductCustomer) => (
+                  <div key={customer.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-[#282A3F]">{customer.name}</h4>
+                        {customer.description && (
+                          <p className="text-sm text-gray-600 mt-1">{customer.description}</p>
+                        )}
+                        <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            {new Date(customer.contract_start_date).toLocaleDateString()} - {new Date(customer.contract_end_date).toLocaleDateString()}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Euro className="h-3 w-3" />
+                            €{customer.premium_value.toLocaleString()}
+                          </div>
+                          <div className="text-xs">
+                            {customer.premium_percentage}% premium
+                          </div>
+                          {customer.discount_percentage > 0 && (
+                            <div className="text-green-600 text-xs">
+                              {customer.discount_percentage}% discount
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <Badge 
+                          variant={customer.status === 'active' ? 'green' : customer.status === 'inactive' ? 'gray' : 'amber'}
+                          className="text-xs"
+                        >
+                          {customer.status}
+                        </Badge>
+                        <Badge 
+                          variant={
+                            new Date(customer.contract_end_date) < new Date() ? 'red' :
+                            new Date(customer.contract_end_date) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) ? 'amber' :
+                            'green'
+                          }
+                          className="text-xs"
+                        >
+                          {new Date(customer.contract_end_date) < new Date() ? 'Expired' :
+                           new Date(customer.contract_end_date) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) ? 'Expiring Soon' :
+                           'Active'}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setCustomerPopupOpen(false);
+                setSelectedProductForCustomers(null);
+              }}
+            >
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

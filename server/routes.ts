@@ -3592,7 +3592,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
           pc.id as categoryId,
           pc.name as category_name,
           parent.name as parent_category_name,
-          null as category_color,
+          pc.color as category_color,
           null as provider,
           null as providerName,
           null as providerType,
@@ -3616,14 +3616,19 @@ Keep the tone clear and professional. Focus on what will help the account manage
           null as customer_name,
           null as partner_name,
           p.vendor_id as vendorId,
-          0 as customerCount,
+          COALESCE(cp_count.customer_count, 0) as customerCount,
           0 as partnerCount,
           0 as opportunityCount,
           p.created_at as createdAt,
           p.updated_at as updatedAt
         FROM degoudse.products p
-        LEFT JOIN degoudse.product_categories pc ON p.category_id = pc.id
-        LEFT JOIN degoudse.product_categories parent ON pc.parent_id = parent.id
+        LEFT JOIN degoudse.categories pc ON p.category_id = pc.id
+        LEFT JOIN degoudse.categories parent ON pc.parent_id = parent.id
+        LEFT JOIN (
+          SELECT product_id, COUNT(DISTINCT customer_id) as customer_count
+          FROM degoudse.customer_products
+          GROUP BY product_id
+        ) cp_count ON p.id = cp_count.product_id
         ORDER BY parent.name, pc.name, p.name
       `);
       console.log(`Returning ${result.rows.length} products from De Goudse database`);
@@ -3631,6 +3636,38 @@ Keep the tone clear and professional. Focus on what will help the account manage
     } catch (error) {
       console.error('De Goudse products API error:', error);
       res.status(500).json({ message: 'Failed to fetch products for De Goudse environment' });
+    }
+  });
+
+  // Get customers for a specific product
+  app.get('/api/degoudse/products/:id/customers', async (req, res) => {
+    try {
+      const productId = parseInt(req.params.id);
+      const envPool = pool;
+      const result = await envPool.query(`
+        SELECT 
+          c.id,
+          c.name,
+          c.description,
+          c.status,
+          cp.contract_start_date,
+          cp.contract_end_date,
+          cp.premium_value,
+          cp.premium_percentage,
+          cp.discount_percentage,
+          cp.status as contract_status,
+          cp.created_at as contract_created_at
+        FROM degoudse.customers c
+        JOIN degoudse.customer_products cp ON c.id = cp.customer_id
+        WHERE cp.product_id = $1
+        ORDER BY c.name
+      `, [productId]);
+      
+      console.log(`Returning ${result.rows.length} customers for product ${productId}`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching product customers:', error);
+      res.status(500).json({ message: 'Failed to fetch product customers' });
     }
   });
 
