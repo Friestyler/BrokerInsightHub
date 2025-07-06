@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, ChevronDown, ChevronRight, Shield, TrendingUp, Clock, AlertTriangle, Target, Zap, Briefcase, Plane, PiggyBank, Scale, DollarSign, CheckCircle, ArrowUp, Filter } from "lucide-react";
+import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, ChevronDown, ChevronRight, Shield, TrendingUp, Clock, AlertTriangle, Target, Zap, Briefcase, Plane, PiggyBank, Scale, DollarSign, CheckCircle, ArrowUp, Filter, Calendar, Euro } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import LogoUploadModal from "@/components/LogoUploadModal";
 import EntityAvatar from "@/components/EntityAvatar";
@@ -1485,118 +1485,122 @@ export default function CustomerDetailNew() {
               </div>
             )}
 
-            {/* List Tab */}
+            {/* List Tab - Enhanced Category View */}
             {activeProductTab === "list" && (
               <div>
-                <div className="mb-6">
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">Lists</h2>
-                  
-                  {/* Filter Row */}
-                  <div className="flex items-center space-x-4 mb-4">
-                    <Select defaultValue="all-products">
-                      <SelectTrigger className="w-48 h-9">
-                        <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 bg-blue-500 rounded-sm flex items-center justify-center">
-                            <div className="w-2 h-2 bg-white rounded-sm"></div>
-                          </div>
-                          <SelectValue />
-                        </div>
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all-products">All products</SelectItem>
-                        <SelectItem value="active-products">Active products</SelectItem>
-                        <SelectItem value="expiring-products">Expiring products</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    
-                    <div className="relative flex-1 max-w-sm">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                      <Input
-                        placeholder="Search products..."
-                        className="pl-10 h-9"
-                      />
-                    </div>
-                    
-                    <Select defaultValue="view">
-                      <SelectTrigger className="w-40 h-9">
-                        <SelectValue placeholder="Select a view" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="view">Select a view</SelectItem>
-                        <SelectItem value="default">Default view</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    
-                    <Button variant="outline" size="sm" className="h-9">
-                      <Filter className="w-4 h-4 mr-2" />
-                      Category
-                    </Button>
-                    
-                    <Button variant="outline" size="sm" className="h-9">
-                      <DollarSign className="w-4 h-4 mr-2" />
-                      Price Range
-                    </Button>
-                  </div>
-                </div>
+                {/* Product Categories Group by Parent Categories */}
+                {relatedProducts && relatedProducts.length > 0 ? (
+                  <div className="space-y-6">
+                    {/* Group products by parent category */}
+                    {(() => {
+                      // Group products by parent category
+                      const groupedProducts = relatedProducts.reduce((acc: any, product: any) => {
+                        const parentCategory = product.parent_category_name || 'Other';
+                        if (!acc[parentCategory]) {
+                          acc[parentCategory] = [];
+                        }
+                        acc[parentCategory].push(product);
+                        return acc;
+                      }, {});
 
-                {/* Product Table */}
-                {assignedProducts && assignedProducts.length > 0 ? (
-                  <div className="bg-white border border-[#E6E7F1] rounded-lg overflow-hidden">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-12">
-                            <Checkbox />
-                          </TableHead>
-                          <TableHead style={{ color: '#696C8C' }}>Product Name</TableHead>
-                          <TableHead style={{ color: '#696C8C' }}>Description</TableHead>
-                          <TableHead style={{ color: '#696C8C' }}>Product ID</TableHead>
-                          <TableHead style={{ color: '#696C8C' }}>Provider</TableHead>
-                          <TableHead style={{ color: '#696C8C' }}>Category</TableHead>
-                          <TableHead style={{ color: '#696C8C' }}>Contract Start</TableHead>
-                          <TableHead style={{ color: '#696C8C' }}>Contract End</TableHead>
-                          <TableHead style={{ color: '#696C8C' }}>Premium Value</TableHead>
-                          <TableHead style={{ color: '#696C8C' }}>Premium %</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {assignedProducts.map((assignment: any) => (
-                          <TableRow 
-                            key={assignment.id}
-                            className="hover:bg-gray-50 group"
-                          >
-                            <TableCell>
-                              <Checkbox className="opacity-0 group-hover:opacity-100 transition-opacity" />
-                            </TableCell>
-                            <TableCell className="font-medium">{assignment.productname}</TableCell>
-                            <TableCell className="text-gray-600 max-w-xs truncate">{assignment.productdescription}</TableCell>
-                            <TableCell className="text-gray-600">{assignment.producttemplateid}</TableCell>
-                            <TableCell className="text-gray-600">{assignment.providername}</TableCell>
-                            <TableCell>
-                              {assignment.category && (
-                                <Badge variant="outline" className="capitalize">
-                                  {assignment.category}
-                                </Badge>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-gray-600">
-                              {assignment.customercontractstartdate ? new Date(assignment.customercontractstartdate).toLocaleDateString('en-GB') : '-'}
-                            </TableCell>
-                            <TableCell className="text-gray-600">
-                              {assignment.customercontractenddate ? new Date(assignment.customercontractenddate).toLocaleDateString('en-GB') : '-'}
-                            </TableCell>
-                            <TableCell className="text-gray-600">
-                              {assignment.customprice ? `€${parseFloat(assignment.customprice).toLocaleString()}` : 
-                               assignment.templateaverageprice ? `€${parseFloat(assignment.templateaverageprice).toLocaleString()}` : '-'}
-                            </TableCell>
-                            <TableCell className="text-gray-600">
-                              {assignment.custompremiumpercentage ? `${assignment.custompremiumpercentage}%` : 
-                               assignment.templatepremiumpercentage ? `${assignment.templatepremiumpercentage}%` : '-'}
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                      return Object.entries(groupedProducts).map(([parentCategory, products]: [string, any]) => {
+                        const productCount = products.length;
+                        const totalValue = products.reduce((sum: number, p: any) => sum + (parseFloat(p.premium_value) || 0), 0);
+                        
+                        // Get category color from first product in group
+                        const categoryColor = products[0]?.category_color || '#3B82F6';
+                        
+                        return (
+                          <div key={parentCategory} className="bg-[#F8F9FB] border border-[#E6E7F1] rounded-xl p-4">
+                            {/* Category Header */}
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="flex items-center space-x-3">
+                                <div 
+                                  className="w-3 h-3 rounded-full"
+                                  style={{ backgroundColor: categoryColor }}
+                                ></div>
+                                <h3 className="text-lg font-semibold text-[#282A3F]">
+                                  {parentCategory} ({productCount})
+                                </h3>
+                              </div>
+                              <div className="text-sm text-[#696C8C]">
+                                Total value: €{totalValue.toLocaleString()}
+                              </div>
+                            </div>
+
+                            {/* Products List */}
+                            <div className="space-y-3">
+                              {products.map((product: any) => {
+                                const contractEndDate = product.contract_end_date ? new Date(product.contract_end_date) : null;
+                                const now = new Date();
+                                const isExpired = contractEndDate && contractEndDate < now;
+                                const isExpiringSoon = contractEndDate && contractEndDate > now && contractEndDate < new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+                                
+                                return (
+                                  <div key={product.id} className="flex items-center justify-between p-4 bg-white border border-[#E6E7F1] rounded-lg">
+                                    <div className="flex-1">
+                                      <h4 className="font-medium text-[#282A3F]">{product.name}</h4>
+                                      {product.description && (
+                                        <p className="text-sm text-gray-600 mt-1">{product.description}</p>
+                                      )}
+                                      <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                                        {product.contract_start_date && product.contract_end_date && (
+                                          <div className="flex items-center gap-1">
+                                            <Calendar className="h-3 w-3" />
+                                            {new Date(product.contract_start_date).toLocaleDateString()} - {new Date(product.contract_end_date).toLocaleDateString()}
+                                          </div>
+                                        )}
+                                        {product.premium_value && (
+                                          <div className="flex items-center gap-1">
+                                            <Euro className="h-3 w-3" />
+                                            €{parseFloat(product.premium_value).toLocaleString()}
+                                          </div>
+                                        )}
+                                        {product.premium_percentage && (
+                                          <div className="text-xs">
+                                            {product.premium_percentage}% premium
+                                          </div>
+                                        )}
+                                        {product.discount_percentage > 0 && (
+                                          <div className="text-green-600 text-xs">
+                                            {product.discount_percentage}% discount
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                    
+                                    <div className="flex flex-col items-end gap-1">
+                                      {product.category_name && (
+                                        <Badge variant="outline" className="text-xs">
+                                          {product.category_name}
+                                        </Badge>
+                                      )}
+                                      
+                                      {contractEndDate && (
+                                        <div className="flex items-center gap-1 text-xs">
+                                          <span className={`font-medium ${
+                                            isExpired ? 'text-red-600' : 
+                                            isExpiringSoon ? 'text-orange-600' : 
+                                            'text-green-600'
+                                          }`}>
+                                            {isExpired ? 'Expired' : 
+                                             isExpiringSoon ? 'Expiring Soon' : 
+                                             `${Math.ceil((contractEndDate.getTime() - now.getTime()) / (1000 * 60 * 60 * 24 * 365))} years left`}
+                                          </span>
+                                          <span className="text-gray-500">
+                                            Expiry Date
+                                          </span>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
                   </div>
                 ) : (
                   <div className="bg-white border border-[#E6E7F1] rounded-lg p-16 text-center">
