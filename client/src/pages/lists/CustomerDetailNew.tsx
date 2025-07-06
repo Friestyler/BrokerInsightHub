@@ -19,6 +19,7 @@ import EntityAvatar from "@/components/EntityAvatar";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import { useToast } from "@/hooks/use-toast";
 import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTab";
+import WhiteSpaceMatrix from "@/components/entity/WhiteSpaceMatrix";
 
 export default function CustomerDetailNew() {
   const { id } = useParams();
@@ -1518,16 +1519,14 @@ export default function CustomerDetailNew() {
 
             {/* Cross-sell Matrix Tab */}
             {activeProductTab === "matrix" && (
-              <div className="bg-white border border-[#E6E7F1] rounded-xl p-4">
-                <h2 className="text-xl font-bold text-gray-900 mb-4">Cross-sell Matrix</h2>
-                <p className="text-gray-600 mb-3">
-                  Analyze cross-selling opportunities based on customer's current product portfolio
-                </p>
-                <div className="bg-gray-50 border border-gray-200 rounded-lg p-6 text-center">
-                  <p className="text-gray-500">Cross-sell matrix analysis coming soon...</p>
-                  <p className="text-sm text-gray-400 mt-2">Expected launch: Q2 2025</p>
-                </div>
-              </div>
+              <WhiteSpaceMatrix 
+                entityType="customer" 
+                entityId={id || ""} 
+                entityName={customer?.name}
+                onCreateOpportunity={() => setIsOpportunityModalOpen(true)}
+                onCreateCampaign={() => {/* Campaign creation logic */}}
+                onCreateList={() => {/* List creation logic */}}
+              />
             )}
 
             {/* List Tab */}

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Search, Package, ChevronDown, ChevronRight, DollarSign } from "lucide-react";
+import WhiteSpaceMatrix from "@/components/entity/WhiteSpaceMatrix";
 
 interface ExtractedCustomerProductsTabProps {
   customerId: string;
