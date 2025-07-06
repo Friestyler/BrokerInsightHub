@@ -207,13 +207,39 @@ export default function ProductTemplates() {
     queryKey: ['/api/products'],
   });
 
-  // Fetch main categories only (parent categories)
-  const { data: allCategories = [] } = useQuery({
+  // Fetch categories and build main category structure
+  const { data: categories = [] } = useQuery({
     queryKey: ['/api/categories'],
   });
-  
-  // Get only main categories (no parent_id) for filtering
-  const mainCategories = allCategories.filter((cat: any) => !cat.parent_id);
+
+  // Build main categories structure from working components
+  const mainCategories = useMemo(() => {
+    if (!categories || !productTemplates) return [];
+    
+    const mainCategoryMap = new Map();
+    
+    // First pass: identify main categories (those without parent_id)
+    categories.forEach((category: any) => {
+      if (!category.parent_id) {
+        mainCategoryMap.set(category.name, {
+          id: category.id,
+          name: category.name,
+          color: category.color || '#6b7280',
+          products: []
+        });
+      }
+    });
+    
+    // Second pass: assign products to main categories using parent_category_name
+    productTemplates.forEach((product: any) => {
+      const mainCategoryName = product.parent_category_name || product.parentCategoryName;
+      if (mainCategoryName && mainCategoryMap.has(mainCategoryName)) {
+        mainCategoryMap.get(mainCategoryName).products.push(product);
+      }
+    });
+    
+    return Array.from(mainCategoryMap.values());
+  }, [categories, productTemplates]);
 
   // Fetch vendors for dropdown
   const { data: vendors = [] } = useQuery({
@@ -1060,9 +1086,7 @@ export default function ProductTemplates() {
             All ({(productTemplates as any[]).length})
           </Button>
           {mainCategories.map((category: any) => {
-            const categoryProductCount = (productTemplates as any[]).filter(
-              (template: any) => (template.parent_category_name || template.parentCategoryName) === category.name
-            ).length;
+            const categoryProductCount = category.products.length;
             
             return (
               <Button
