@@ -4200,28 +4200,31 @@ Keep the tone clear and professional. Focus on what will help the account manage
       
       const result = await envPool.query(`
         SELECT 
-          pp.id,
-          pp.partner_id as "partnerId",
-          pp.product_id as "productId",
-          pp.created_at as "assignedAt",
-          -- Product info
+          p.id as "productId",
           p.name as "productName",
-          p.description as "productDescription",
+          p.description as "productDescription", 
           p.category as category,
-          p.contract_start_date as "contractStartDate",
-          p.contract_end_date as "contractEndDate",
-          p.premium_value as "premiumValue",
-          p.premium_percentage as "premiumPercentage",
-          p.discount_percentage as "discountPercentage",
-          p.total_value as "totalValue",
+          -- Aggregated values from all partner's customers
+          COUNT(DISTINCT cp.customer_id) as "customerCount",
+          SUM(cp.premium_value) as "totalPremiumValue",
+          AVG(cp.premium_value) as "avgPremiumValue",
+          AVG(cp.premium_percentage) as "avgPremiumPercentage",
+          AVG(cp.discount_percentage) as "avgDiscountPercentage",
           -- Category info
           c.name as "categoryName",
-          c.color as "categoryColor"
-        FROM degoudse.partner_products pp
-        INNER JOIN degoudse.products p ON pp.product_id = p.id
+          c.color as "categoryColor",
+          -- Contract date ranges
+          MIN(cp.contract_start_date) as "earliestContractStart",
+          MAX(cp.contract_end_date) as "latestContractEnd",
+          -- Status summary
+          STRING_AGG(DISTINCT cp.status, ', ') as "statusSummary"
+        FROM degoudse.customer_products cp
+        INNER JOIN degoudse.products p ON cp.product_id = p.id
+        INNER JOIN degoudse.partner_customers pc ON cp.customer_id = pc.customer_id
         LEFT JOIN degoudse.categories c ON p.category_id = c.id
-        WHERE pp.partner_id = $1
-        ORDER BY pp.created_at DESC
+        WHERE pc.partner_id = $1
+        GROUP BY p.id, p.name, p.description, p.category, c.name, c.color
+        ORDER BY COUNT(DISTINCT cp.customer_id) DESC, SUM(cp.premium_value) DESC
       `, [partnerId]);
       
       console.log(`Returning ${result.rows.length} product assignments for partner ${partnerId}`);

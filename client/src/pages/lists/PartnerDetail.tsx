@@ -3665,7 +3665,7 @@ export default function PartnerDetail() {
                   const matchesCategory = !selectedProductCategory || product.categoryName === selectedProductCategory;
                   
                   const matchesPrice = !selectedPriceRange || (() => {
-                    const price = parseFloat(product.premiumValue || '0');
+                    const price = parseFloat(product.totalPremiumValue || product.avgPremiumValue || '0');
                     switch(selectedPriceRange) {
                       case '€0 - €50K': return price >= 0 && price <= 50000;
                       case '€50K - €100K': return price > 50000 && price <= 100000;
@@ -3689,7 +3689,7 @@ export default function PartnerDetail() {
                     };
                   }
                   acc[category].count += 1;
-                  acc[category].totalValue += parseFloat(product.premiumValue || '0');
+                  acc[category].totalValue += parseFloat(product.totalPremiumValue || product.avgPremiumValue || '0');
                   acc[category].products.push(product);
                   return acc;
                 }, {});
@@ -3727,7 +3727,7 @@ export default function PartnerDetail() {
                   const matchesCategory = !selectedProductCategory || product.categoryName === selectedProductCategory;
                   
                   const matchesPrice = !selectedPriceRange || (() => {
-                    const price = parseFloat(product.premiumValue || '0');
+                    const price = parseFloat(product.totalPremiumValue || product.avgPremiumValue || '0');
                     switch(selectedPriceRange) {
                       case '€0 - €50K': return price >= 0 && price <= 50000;
                       case '€50K - €100K': return price > 50000 && price <= 100000;
@@ -3840,7 +3840,7 @@ export default function PartnerDetail() {
                                     </h3>
                                   </div>
                                   <div className="text-sm text-gray-600">
-                                    Total value: €{products.reduce((sum: number, p: any) => sum + parseFloat(p.premiumValue || '0'), 0).toLocaleString()}
+                                    Total value: €{products.reduce((sum: number, p: any) => sum + parseFloat(p.totalPremiumValue || p.avgPremiumValue || '0'), 0).toLocaleString()}
                                   </div>
                                 </div>
                               </div>
@@ -3848,12 +3848,12 @@ export default function PartnerDetail() {
                               <div className="divide-y divide-gray-100">
                                 {products
                                   .sort((a: any, b: any) => {
-                                    const daysA = calculateDaysUntilExpiry(a.contractEndDate);
-                                    const daysB = calculateDaysUntilExpiry(b.contractEndDate);
-                                    if (daysA === null && daysB === null) return 0;
-                                    if (daysA === null) return 1;
-                                    if (daysB === null) return -1;
-                                    return daysA - daysB;
+                                    // Sort by customer count descending, then by total premium value descending
+                                    const customerCountDiff = (parseInt(b.customerCount) || 0) - (parseInt(a.customerCount) || 0);
+                                    if (customerCountDiff !== 0) return customerCountDiff;
+                                    
+                                    const totalValueDiff = (parseFloat(b.totalPremiumValue) || 0) - (parseFloat(a.totalPremiumValue) || 0);
+                                    return totalValueDiff;
                                   })
                                   .map((product: any) => {
                                     const daysUntilExpiry = calculateDaysUntilExpiry(product.contractEndDate);
@@ -3888,31 +3888,48 @@ export default function PartnerDetail() {
                                                 
                                                 <div className="flex items-center space-x-6 text-sm">
                                                   <div className="text-right">
-                                                    <div className="font-medium text-gray-900">
-                                                      {product.premiumValue ? `€${parseFloat(product.premiumValue).toLocaleString()}` : '-'}
+                                                    <div className="font-medium text-blue-600">
+                                                      {product.customerCount || 0}
                                                     </div>
-                                                    <div className="text-gray-500">Premium</div>
+                                                    <div className="text-gray-500">Customers</div>
                                                   </div>
                                                   
                                                   <div className="text-right">
-                                                    <div className={getExpiryClass(daysUntilExpiry)}>
-                                                      {product.contractEndDate ? (
+                                                    <div className="font-medium text-green-600">
+                                                      {product.totalPremiumValue ? `€${parseFloat(product.totalPremiumValue).toLocaleString()}` : '-'}
+                                                    </div>
+                                                    <div className="text-gray-500">Total Premium</div>
+                                                  </div>
+                                                  
+                                                  <div className="text-right">
+                                                    <div className="font-medium text-purple-600">
+                                                      {product.avgPremiumValue ? `€${parseFloat(product.avgPremiumValue).toLocaleString()}` : '-'}
+                                                    </div>
+                                                    <div className="text-gray-500">Avg Premium</div>
+                                                  </div>
+                                                  
+                                                  <div className="text-right">
+                                                    <div className={getExpiryClass(calculateDaysUntilExpiry(product.latestContractEnd))}>
+                                                      {product.latestContractEnd ? (
                                                         <>
-                                                          {new Date(product.contractEndDate).toLocaleDateString()}
-                                                          {daysUntilExpiry !== null && (
-                                                            <div className="text-xs mt-1">
-                                                              {daysUntilExpiry < 0 ? 'Expired' : 
-                                                               daysUntilExpiry <= 30 ? `${daysUntilExpiry} days left` :
-                                                               daysUntilExpiry <= 90 ? `${Math.floor(daysUntilExpiry/30)} months left` :
-                                                               `${Math.floor(daysUntilExpiry/365)} years left`}
-                                                            </div>
-                                                          )}
+                                                          {new Date(product.latestContractEnd).toLocaleDateString()}
+                                                          {(() => {
+                                                            const days = calculateDaysUntilExpiry(product.latestContractEnd);
+                                                            return days !== null && (
+                                                              <div className="text-xs mt-1">
+                                                                {days < 0 ? 'Expired' : 
+                                                                 days <= 30 ? `${days} days left` :
+                                                                 days <= 90 ? `${Math.floor(days/30)} months left` :
+                                                                 `${Math.floor(days/365)} years left`}
+                                                              </div>
+                                                            );
+                                                          })()}
                                                         </>
                                                       ) : (
                                                         '-'
                                                       )}
                                                     </div>
-                                                    <div className="text-gray-500">Expiry Date</div>
+                                                    <div className="text-gray-500">Latest Expiry</div>
                                                   </div>
                                                 </div>
                                               </div>
