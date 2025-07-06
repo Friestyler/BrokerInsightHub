@@ -1232,6 +1232,18 @@ export default function PartnerDetail() {
             
             {/* Header Action Buttons */}
             <div className="flex items-center space-x-3">
+              {/* Willis Partner Link - positioned above Creëer Partner Kans */}
+              {parseInt(id!) === 1 && (
+                <a
+                  href="/broker-view/partner/1?tab=opportunities&list=39"
+                  className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center transition-colors"
+                >
+                  <div className="w-4 h-4 bg-orange-500 rounded-sm mr-1.5 flex items-center justify-center">
+                    <span className="text-white text-xs font-bold">NN</span>
+                  </div>
+                  View in Deal Room
+                </a>
+              )}
               <Button 
                 className="bg-[#5567E5] hover:bg-[#4556D4] text-white"
                 onClick={() => setIsOpportunityModalOpen(true)}
@@ -1242,21 +1254,6 @@ export default function PartnerDetail() {
             </div>
           </div>
           
-          {/* Willis Partner Link - positioned above Activity Hub */}
-          {parseInt(id!) === 1 && (
-            <div className="mb-4">
-              <a
-                href="/broker-view/partner/1?tab=opportunities&list=39"
-                className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center transition-colors"
-              >
-                <div className="w-4 h-4 bg-orange-500 rounded-sm mr-1.5 flex items-center justify-center">
-                  <span className="text-white text-xs font-bold">NN</span>
-                </div>
-                View in Deal Room
-              </a>
-            </div>
-          )}
-
           {/* Activity Hub */}
           <PartnerActivityHub partnerId={parseInt(id!)} partnerName={partner?.name || 'Partner'} />
 
