@@ -231,40 +231,40 @@ export default function PartnerIframeView() {
           <nav className="flex gap-2 p-4">
             <button
               onClick={() => setActiveTab("products")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
                 activeTab === "products"
-                  ? "bg-[#E6E7F1] text-[#5567E5]"
-                  : "text-gray-600 hover:bg-gray-100"
+                  ? "bg-[#E1E4FB] text-[#3E4DC4]"
+                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
               }`}
             >
               Products ({Array.isArray(assignedProducts) ? assignedProducts.length : 0})
             </button>
             <button
               onClick={() => setActiveTab("customers")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
                 activeTab === "customers"
-                  ? "bg-[#E6E7F1] text-[#5567E5]"
-                  : "text-gray-600 hover:bg-gray-100"
+                  ? "bg-[#E1E4FB] text-[#3E4DC4]"
+                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
               }`}
             >
               Customers ({Array.isArray(relatedCustomers) ? relatedCustomers.length : 0})
             </button>
             <button
               onClick={() => setActiveTab("opportunities")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
                 activeTab === "opportunities"
-                  ? "bg-[#E6E7F1] text-[#5567E5]"
-                  : "text-gray-600 hover:bg-gray-100"
+                  ? "bg-[#E1E4FB] text-[#3E4DC4]"
+                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
               }`}
             >
               Opportunities ({Array.isArray(relatedOpportunities) ? relatedOpportunities.length : 0})
             </button>
             <button
               onClick={() => setActiveTab("okr-plans")}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
                 activeTab === "okr-plans"
-                  ? "bg-[#E6E7F1] text-[#5567E5]"
-                  : "text-gray-600 hover:bg-gray-100"
+                  ? "bg-[#E1E4FB] text-[#3E4DC4]"
+                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
               }`}
             >
               OKR plans
