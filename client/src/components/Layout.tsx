@@ -17,6 +17,16 @@ function LayoutComponent({ children }: LayoutProps) {
   const [location] = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   
+  // Check if we're in iframe mode
+  const isIframeMode = useMemo(() => {
+    return new URLSearchParams(window.location.search).has('iframe');
+  }, [location]);
+  
+  // If iframe mode, render only the children without any layout
+  if (isIframeMode) {
+    return <>{children}</>;
+  }
+  
   // Memoize environment-dependent values
   const environmentId = useMemo(() => environment.id, [environment.id]);
   
