@@ -399,9 +399,10 @@ export default function ProductTemplates() {
       template.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       template.category?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    // Category filter
+    // Category filter - use parent_category_name for filtering
+    const parentCategoryName = (template as any).parent_category_name || (template as any).parentCategoryName;
     const matchesCategory = selectedCategoryFilter === "all" || 
-      template.category === selectedCategoryFilter;
+      parentCategoryName === selectedCategoryFilter;
     
     return matchesSearch && matchesCategory;
   });
@@ -1058,31 +1059,40 @@ export default function ProductTemplates() {
                 className="pl-10"
               />
             </div>
-            
-            <div className="min-w-[200px]">
-              <Select value={selectedCategoryFilter} onValueChange={setSelectedCategoryFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Filter by category" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All categories</SelectItem>
-                  {categories && renderCategoriesHierarchy(categories as any[])}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {selectedCategoryFilter !== "all" && (
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => setSelectedCategoryFilter("all")}
-              >
-                Clear filter
-              </Button>
-            )}
           </div>
-          
-
+        </div>
+        
+        {/* Category Filter Pills */}
+        <div className="flex flex-wrap gap-2 mt-4">
+          <Button
+            variant={selectedCategoryFilter === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setSelectedCategoryFilter("all")}
+            className="h-8 px-3"
+          >
+            All ({(productTemplates as any[]).length})
+          </Button>
+          {categories && getRootCategories().map((category: any) => {
+            const categoryProductCount = (productTemplates as any[]).filter(
+              (template: any) => (template.parent_category_name || template.parentCategoryName) === category.name
+            ).length;
+            
+            return (
+              <Button
+                key={category.id}
+                variant={selectedCategoryFilter === category.name ? "default" : "outline"}
+                size="sm"
+                onClick={() => setSelectedCategoryFilter(category.name)}
+                className="h-8 px-3 gap-2"
+              >
+                <div 
+                  className="w-2 h-2 rounded-full" 
+                  style={{ backgroundColor: category.color }}
+                />
+                {category.name} ({categoryProductCount})
+              </Button>
+            );
+          })}
         </div>
       </div>
 
@@ -1191,7 +1201,7 @@ export default function ProductTemplates() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      {template.category ? (
+                      {(template as any).parent_category_name || (template as any).parentCategoryName ? (
                         <Badge 
                           variant="outline" 
                           className="text-xs"
@@ -1201,7 +1211,7 @@ export default function ProductTemplates() {
                             color: (template as any).categoryColor || '#6B7280'
                           }}
                         >
-                          {template.category}
+                          {(template as any).parent_category_name || (template as any).parentCategoryName}
                         </Badge>
                       ) : (
                         <span className="text-gray-400">-</span>
