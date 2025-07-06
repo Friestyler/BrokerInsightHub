@@ -3363,19 +3363,46 @@ Keep the tone clear and professional. Focus on what will help the account manage
       const entity = entityResult.rows[0];
 
       // Get product assignments for this entity
-      const productAssignmentsResult = await pool.query(`
-        SELECT 
-          pa.*,
-          p.name as product_name,
-          p.description as product_description,
-          c.name as parent_category_name,
-          c.color as category_color
-        FROM degoudse.product_assignments pa
-        LEFT JOIN degoudse.products p ON pa.productid = p.productid
-        LEFT JOIN degoudse.categories c ON p.parent_category_name = c.name
-        WHERE pa.${entityType === 'partners' ? 'partnerid' : 'customerid'} = $1
-        ORDER BY pa.premium_value DESC
-      `, [entityId]);
+      let productAssignmentsResult;
+      if (entityType === 'partners') {
+        productAssignmentsResult = await pool.query(`
+          SELECT 
+            pa.*,
+            p.name as product_name,
+            p.description as product_description,
+            c.name as parent_category_name,
+            c.color as category_color,
+            p.premium_value,
+            p.premium_percentage,
+            p.discount_percentage,
+            p.contract_start_date,
+            p.contract_end_date
+          FROM degoudse.partner_products pa
+          LEFT JOIN degoudse.products p ON pa.product_id = p.id
+          LEFT JOIN degoudse.categories c ON p.category = c.name
+          WHERE pa.partner_id = $1
+          ORDER BY p.premium_value DESC
+        `, [entityId]);
+      } else {
+        productAssignmentsResult = await pool.query(`
+          SELECT 
+            pa.*,
+            pt.name as product_name,
+            pt.description as product_description,
+            c.name as parent_category_name,
+            c.color as category_color,
+            pa.custom_price as premium_value,
+            pa.custom_premium_percentage as premium_percentage,
+            pa.custom_discount_percentage as discount_percentage,
+            pa.customer_contract_start_date as contract_start_date,
+            pa.customer_contract_end_date as contract_end_date
+          FROM degoudse.customer_product_assignments pa
+          LEFT JOIN degoudse.product_templates pt ON pa.product_template_id = pt.id
+          LEFT JOIN degoudse.categories c ON pt.category = c.name
+          WHERE pa.customer_id = $1 AND pa.is_active = true
+          ORDER BY pa.custom_price DESC
+        `, [entityId]);
+      }
 
       // Get all available products (to identify gaps)
       const allProductsResult = await pool.query(`
@@ -3384,8 +3411,8 @@ Keep the tone clear and professional. Focus on what will help the account manage
           c.name as parent_category_name,
           c.color as category_color
         FROM degoudse.products p
-        LEFT JOIN degoudse.categories c ON p.parent_category_name = c.name
-        ORDER BY p.productid
+        LEFT JOIN degoudse.categories c ON p.category = c.name
+        ORDER BY p.id
       `);
 
       // Get market context - related opportunities and trends
@@ -3395,10 +3422,10 @@ Keep the tone clear and professional. Focus on what will help the account manage
           c.name as customer_name,
           p.name as partner_name
         FROM degoudse.opportunities o
-        LEFT JOIN degoudse.customers c ON o.clientId = c.id
-        LEFT JOIN degoudse.partners p ON o.partnerId = p.id
-        WHERE ${entityType === 'partners' ? 'o.partnerId' : 'o.clientId'} = $1
-        ORDER BY o.estimatedValue DESC
+        LEFT JOIN degoudse.customers c ON o.client_id = c.id
+        LEFT JOIN degoudse.partners p ON o.partner_id = p.id
+        WHERE ${entityType === 'partners' ? 'o.partner_id' : 'o.client_id'} = $1
+        ORDER BY o.estimated_value DESC
         LIMIT 10
       `, [entityId]);
 
@@ -3429,23 +3456,23 @@ Keep the tone clear and professional. Focus on what will help the account manage
           status: entity.status
         },
         currentProducts: productAssignmentsResult.rows.map(pa => ({
-          id: pa.productid,
+          id: entityType === 'partners' ? pa.product_id : pa.product_template_id,
           name: pa.product_name,
           description: pa.product_description,
           category: pa.parent_category_name,
-          premiumValue: pa.premium_value,
-          premiumPercentage: pa.premium_percentage,
-          discountPercentage: pa.discount_percentage,
-          contractStart: pa.contract_start_date,
-          contractEnd: pa.contract_end_date
+          premiumValue: pa.premium_value || pa.custom_price,
+          premiumPercentage: pa.premium_percentage || pa.custom_premium_percentage,
+          discountPercentage: pa.discount_percentage || pa.custom_discount_percentage,
+          contractStart: pa.contract_start_date || pa.customer_contract_start_date,
+          contractEnd: pa.contract_end_date || pa.customer_contract_end_date
         })),
         availableProducts: allProductsResult.rows.map(p => ({
-          id: p.productid,
+          id: p.id,
           name: p.name,
           description: p.description,
           category: p.parent_category_name,
-          provider: p.provider,
-          averagePrice: p.average_price,
+          provider: p.vendor_id, // products table uses vendor_id instead of provider_name
+          averagePrice: p.total_value, // using total_value as price reference
           premiumPercentage: p.premium_percentage
         })),
         opportunities: opportunitiesResult.rows.map(o => ({
