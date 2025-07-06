@@ -226,29 +226,56 @@ export default function PartnerIframeView() {
           />
         </div>
 
-        {/* Main Tabs - Clean blue design for iframe */}
+        {/* Main Tabs - EXACT UX/UI with blue background and counts */}
         <div className="bg-white rounded-lg shadow-sm">
-          <nav className="flex border-b border-gray-200 px-6">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`py-4 px-6 text-sm font-medium border-b-2 -mb-px ${
-                  activeTab === tab.id
-                    ? "border-blue-500 text-blue-600"
-                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-                }`}
-              >
-                {tab.label}
-              </button>
-            ))}
+          <nav className="flex gap-2 p-4">
+            <button
+              onClick={() => setActiveTab("products")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === "products"
+                  ? "bg-blue-100 text-blue-700"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              Products ({Array.isArray(assignedProducts) ? assignedProducts.length : 0})
+            </button>
+            <button
+              onClick={() => setActiveTab("customers")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === "customers"
+                  ? "bg-blue-100 text-blue-700"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              Customers ({Array.isArray(relatedCustomers) ? relatedCustomers.length : 0})
+            </button>
+            <button
+              onClick={() => setActiveTab("opportunities")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === "opportunities"
+                  ? "bg-blue-100 text-blue-700"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              Opportunities ({Array.isArray(relatedOpportunities) ? relatedOpportunities.length : 0})
+            </button>
+            <button
+              onClick={() => setActiveTab("okr-plans")}
+              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
+                activeTab === "okr-plans"
+                  ? "bg-blue-100 text-blue-700"
+                  : "text-gray-600 hover:bg-gray-100"
+              }`}
+            >
+              OKR plans
+            </button>
           </nav>
 
           <div className="py-4">
             {activeTab === "products" && (
               <div>
                 {/* Product subtabs with seamless flow */}
-                <div className="flex border-b border-blue-500 px-6 mb-4">
+                <div className="flex px-6 mb-4">
                   {[
                     { id: "overview", label: "Overview" },
                     { id: "matrix", label: "Matrix" },
@@ -257,10 +284,10 @@ export default function PartnerIframeView() {
                     <button
                       key={subtab.id}
                       onClick={() => setActiveProductTab(subtab.id)}
-                      className={`py-2 px-3 text-sm font-medium border-b-2 -mb-px ${
+                      className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors mr-2 ${
                         activeProductTab === subtab.id
-                          ? "border-blue-500 text-blue-600"
-                          : "border-transparent text-gray-600 hover:text-blue-600"
+                          ? "bg-blue-100 text-blue-700"
+                          : "text-gray-600 hover:bg-gray-100"
                       }`}
                     >
                       {subtab.label}
