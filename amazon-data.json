@@ -1,0 +1,58 @@
+[
+  [
+    "Customer",
+    "Category",
+    "Product Sub Category",
+    "Value",
+    "EXPDATUM"
+  ],
+  [
+    "Amazon",
+    "Pensioen",
+    "NN PPP",
+    153.921,
+    46023
+  ],
+  [
+    "Amazon",
+    "Inkomen Collectief",
+    "WGA ERD",
+    340000,
+    46388
+  ],
+  [
+    "Amazon",
+    "Inkomen Collectief",
+    "WGA Hiaat",
+    243432,
+    46023
+  ],
+  [
+    "Amazon",
+    "Inkomen Collectief",
+    "WIA Excedent",
+    425.473,
+    45669
+  ],
+  [
+    "Amazon",
+    "Schade Zakelijk",
+    "Transport-Goederen",
+    29340,
+    45669
+  ],
+  [
+    "Amazon",
+    "Inkomen Collectief",
+    "WIA Excedent",
+    153.921,
+    45669
+  ],
+  [
+    "Amazon",
+    "Pensioen",
+    "PPPc",
+    1200000,
+    46023
+  ]
+]
