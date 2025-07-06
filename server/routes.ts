@@ -2829,7 +2829,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get products for a specific customer in De Goudse environment
+  // Get products for a specific customer in De Goudse environment (using same structure as main Products page)
   app.get('/api/degoudse/customers/:id/products', async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
@@ -2837,32 +2837,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid customer ID' });
       }
       const envPool = pool;
+      
+      // Use exact same database structure as main Products page
       const result = await envPool.query(`
-        SELECT DISTINCT p.*, v.name as vendor_name
+        SELECT 
+          p.id,
+          p.name,
+          p.description,
+          p.contract_start_date,
+          p.contract_end_date,
+          p.premium_value,
+          p.premium_percentage,
+          p.discount_percentage,
+          p.created_at,
+          p.updated_at,
+          c.name as category_name,
+          c.color as category_color,
+          parent.name as parent_category_name
         FROM degoudse.products p
-        LEFT JOIN degoudse.vendors v ON p.vendor_id = v.id
-        INNER JOIN degoudse.product_customers pc ON p.id = pc.product_id
-        WHERE pc.customer_id = $1
-        ORDER BY p.category, p.name
+        INNER JOIN degoudse.customer_products cp ON p.id = cp.product_id
+        LEFT JOIN degoudse.categories c ON p.category_id = c.id
+        LEFT JOIN degoudse.categories parent ON c.parent_id = parent.id
+        WHERE cp.customer_id = $1
+        ORDER BY parent.name, c.name, p.name
       `, [customerId]);
       
       const products = result.rows.map((product: any) => ({
         id: product.id,
         name: product.name,
         description: product.description,
-        type: product.type,
-        category: product.category,
+        contract_start_date: product.contract_start_date,
+        contract_end_date: product.contract_end_date,
         premium_value: product.premium_value,
         premium_percentage: product.premium_percentage,
         discount_percentage: product.discount_percentage,
-        contract_start_date: product.contract_start_date,
-        contract_end_date: product.contract_end_date,
-        vendorName: product.vendor_name,
-        status: product.status || 'Active',
-        createdAt: product.created_at,
-        updatedAt: product.updated_at
+        category_name: product.category_name,
+        category_color: product.category_color,
+        parent_category_name: product.parent_category_name,
+        created_at: product.created_at,
+        updated_at: product.updated_at
       }));
       
+      console.log(`Returning ${products.length} products for customer ${customerId}`);
       res.json(products);
     } catch (error) {
       console.error('Error fetching De Goudse customer products:', error);

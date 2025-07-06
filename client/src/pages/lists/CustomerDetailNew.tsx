@@ -1493,7 +1493,7 @@ export default function CustomerDetailNew() {
                   <div className="space-y-6">
                     {/* Group products by parent category */}
                     {(() => {
-                      // Group products by parent category
+                      // Group products by parent category using correct API response structure
                       const groupedProducts = relatedProducts.reduce((acc: any, product: any) => {
                         const parentCategory = product.parent_category_name || 'Other';
                         if (!acc[parentCategory]) {
