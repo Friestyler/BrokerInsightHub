@@ -29,6 +29,7 @@ export default function CustomerDetailNew() {
   const [activeProductTab, setActiveProductTab] = useState("overview");
   const [backUrl, setBackUrl] = useState("/customers");
   const [backLabel, setBackLabel] = useState("Back to Customers");
+  const [isOpportunityModalOpen, setIsOpportunityModalOpen] = useState(false);
 
   // Detect iframe mode
   const urlParams = new URLSearchParams(window.location.search);
@@ -1044,28 +1045,37 @@ export default function CustomerDetailNew() {
             </button>
           </div>
           <div className="flex-1">
-            <div className="flex items-center space-x-4 mb-1">
-              <h1 className="text-2xl font-bold text-gray-900">{customer?.name || 'Loading...'}</h1>
-              <div className="flex items-center space-x-2">
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded h-auto"
-                  onClick={() => {
-                    if (customer && typeof customer === 'object') {
-                      setEditedCustomer({
-                        name: customer.name || '',
-                        industry: customer.industry || '',
-                        description: customer.description || ''
-                      });
-                    }
-                    setShowDetailsDialog(true);
-                  }}
-                >
-                  Details
-                </Button>
-                <span className="text-sm text-gray-500">Type: <span className="text-blue-600">Customer</span></span>
+            <div className="flex items-center justify-between mb-1">
+              <div className="flex items-center space-x-4">
+                <h1 className="text-2xl font-bold text-gray-900">{customer?.name || 'Loading...'}</h1>
+                <div className="flex items-center space-x-2">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded h-auto"
+                    onClick={() => {
+                      if (customer && typeof customer === 'object') {
+                        setEditedCustomer({
+                          name: customer.name || '',
+                          industry: customer.industry || '',
+                          description: customer.description || ''
+                        });
+                      }
+                      setShowDetailsDialog(true);
+                    }}
+                  >
+                    Details
+                  </Button>
+                  <span className="text-sm text-gray-500">Type: <span className="text-blue-600">Customer</span></span>
+                </div>
               </div>
+              <Button 
+                className="bg-[#5567E5] hover:bg-[#4556D4] text-white"
+                onClick={() => setIsOpportunityModalOpen(true)}
+              >
+                <Target className="w-4 h-4 mr-2" />
+                Creëer Customer Kans
+              </Button>
             </div>
             <div className="mt-1">
               <span className="text-gray-600">{customer?.description || ''}</span>
@@ -2176,6 +2186,16 @@ export default function CustomerDetailNew() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Opportunity Creation Modal - Using PortfolioOverviewTab modal */}
+      {isOpportunityModalOpen && (
+        <PortfolioOverviewTab 
+          entityType="customers" 
+          entityId={id!}
+          isModalOpen={isOpportunityModalOpen}
+          onModalClose={() => setIsOpportunityModalOpen(false)}
+        />
+      )}
     </div>
   );
 }
