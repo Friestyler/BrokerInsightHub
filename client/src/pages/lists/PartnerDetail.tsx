@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Copy, Users, Trash2, MoreHorizontal, MoreVertical, MessageSquare, ArrowLeft, Plus, Mail, Calendar, Clock, Play, Pause, AlertCircle, CheckCircle, Eye, Edit, Filter, Package, Target } from "lucide-react";
+import { Search, Copy, Users, Trash2, MoreHorizontal, MoreVertical, MessageSquare, ArrowLeft, Plus, Mail, Calendar, Clock, Play, Pause, AlertCircle, CheckCircle, Eye, Edit, Filter, Package, Target, Crown } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
@@ -1172,7 +1172,6 @@ export default function PartnerDetail() {
                     >
                       Details
                     </Button>
-                    <span className="text-sm text-gray-500">Owner: <span className="text-blue-600">{partner.owner_name || 'Not assigned'}</span></span>
                   </div>
                 </div>
                 
@@ -1183,7 +1182,18 @@ export default function PartnerDetail() {
                     {/* Internal users */}
                     <div className="flex items-center space-x-2">
                       <div className="flex -space-x-1">
-                        {users && Array.isArray(users) && users.slice(0, 3).map((user: any, index: number) => {
+                        {/* Owner first with crown */}
+                        {partner.owner_name && (
+                          <div 
+                            className="relative w-6 h-6 rounded-full bg-yellow-500 border-2 border-white flex items-center justify-center cursor-pointer hover:scale-110 transition-transform"
+                            title={`${partner.owner_name} (Owner) - Click for Salesforce view`}
+                            onClick={() => window.location.href = `/iframe/partner/${id}`}
+                          >
+                            <Crown className="w-3 h-3 text-white" />
+                          </div>
+                        )}
+                        {/* Other internal users */}
+                        {users && Array.isArray(users) && users.slice(0, partner.owner_name ? 2 : 3).map((user: any, index: number) => {
                           const initials = user.name ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'U';
                           const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500'];
                           return (

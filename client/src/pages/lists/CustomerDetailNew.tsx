@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, ChevronDown, ChevronUp, ChevronRight, Shield, TrendingUp, Clock, AlertTriangle, Target, Zap, Briefcase, Plane, PiggyBank, Scale, DollarSign, CheckCircle, ArrowUp, Filter } from "lucide-react";
+import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, ChevronDown, ChevronUp, ChevronRight, Shield, TrendingUp, Clock, AlertTriangle, Target, Zap, Briefcase, Plane, PiggyBank, Scale, DollarSign, CheckCircle, ArrowUp, Filter, Crown } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import LogoUploadModal from "@/components/LogoUploadModal";
 import EntityAvatar from "@/components/EntityAvatar";
@@ -1087,7 +1087,18 @@ export default function CustomerDetailNew() {
                 {/* Internal users */}
                 <div className="flex items-center space-x-2">
                   <div className="flex -space-x-1">
-                    {users && Array.isArray(users) && users.slice(0, 3).map((user: any, index: number) => {
+                    {/* Owner first with crown */}
+                    {customer?.owner_name && (
+                      <div 
+                        className="relative w-6 h-6 rounded-full bg-yellow-500 border-2 border-white flex items-center justify-center cursor-pointer hover:scale-110 transition-transform"
+                        title={`${customer.owner_name} (Owner) - Click for Salesforce view`}
+                        onClick={() => window.location.href = `/iframe/customer/${id}`}
+                      >
+                        <Crown className="w-3 h-3 text-white" />
+                      </div>
+                    )}
+                    {/* Other internal users */}
+                    {users && Array.isArray(users) && users.slice(0, customer?.owner_name ? 2 : 3).map((user: any, index: number) => {
                       const initials = user.name ? user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'U';
                       const colors = ['bg-blue-500', 'bg-green-500', 'bg-purple-500'];
                       return (
