@@ -2521,6 +2521,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get customers for a specific product
+  app.get('/api/degoudse/products/:id/customers', async (req, res) => {
+    try {
+      const productId = parseInt(req.params.id);
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        SELECT 
+          c.id,
+          c.name,
+          c.description,
+          cp.premium_value,
+          cp.premium_percentage,
+          cp.discount_percentage,
+          cp.contract_start_date,
+          cp.contract_end_date,
+          cp.status
+        FROM degoudse.customers c
+        INNER JOIN degoudse.customer_products cp ON c.id = cp.customer_id
+        WHERE cp.product_id = $1
+        ORDER BY c.name ASC
+      `, [productId]);
+      
+      console.log(`Returning ${result.rows.length} customers for product ${productId}`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching product customers:', error);
+      res.status(500).json({ error: 'Failed to fetch product customers' });
+    }
+  });
+
   // De Goudse relationship endpoints
   app.get('/api/degoudse/partners/:id/customers', async (req, res) => {
     try {
@@ -3681,37 +3712,30 @@ Keep the tone clear and professional. Focus on what will help the account manage
       
       const result = await envPool.query(`
         SELECT 
-          cpa.id,
-          cpa.customer_id as customerId,
-          cpa.product_template_id as productTemplateId,
-          cpa.custom_price as customPrice,
-          cpa.custom_discount as customDiscount,
-          cpa.custom_discount_percentage as customDiscountPercentage,
-          cpa.custom_premium_percentage as customPremiumPercentage,
-          cpa.customer_contract_start_date as customerContractStartDate,
-          cpa.customer_contract_end_date as customerContractEndDate,
-          cpa.notes,
-          cpa.assigned_at as assignedAt,
-          cpa.is_active as isActive,
-          -- Product Template info
-          pt.name as productName,
-          pt.description as productDescription,
-          pt.average_price as templateAveragePrice,
-          pt.discount as templateDiscount,
-          pt.discount_percentage as templateDiscountPercentage,
-          pt.premium_percentage as templatePremiumPercentage,
-          pt.provider_name as providerName,
+          cp.customer_id as customerId,
+          cp.product_id as productId,
+          p.name as productName,
+          p.description as productDescription,
+          v.name as providerName,
+          cp.premium_value as customPrice,
+          cp.premium_percentage as customPremiumPercentage,
+          cp.discount_percentage as customDiscountPercentage,
+          cp.contract_start_date as customerContractStartDate,
+          cp.contract_end_date as customerContractEndDate,
+          cp.status,
           -- Category info
           c.name as category,
           c.color as categoryColor,
-          -- User info
-          u.name as assignedByName
-        FROM degoudse.customer_product_assignments cpa
-        INNER JOIN degoudse.product_templates pt ON cpa.product_template_id = pt.id
-        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
-        LEFT JOIN degoudse.users u ON cpa.assigned_by = u.id
-        WHERE cpa.customer_id = $1 AND cpa.is_active = true
-        ORDER BY cpa.assigned_at DESC
+          -- Customer count per product
+          (SELECT COUNT(DISTINCT cp2.customer_id) 
+           FROM degoudse.customer_products cp2 
+           WHERE cp2.product_id = p.id) as customerCount
+        FROM degoudse.customer_products cp
+        INNER JOIN degoudse.products p ON cp.product_id = p.id
+        LEFT JOIN degoudse.categories c ON p.category_id = c.id
+        LEFT JOIN degoudse.vendors v ON p.vendor_id = v.id
+        WHERE cp.customer_id = $1
+        ORDER BY p.name ASC
       `, [customerId]);
       
       console.log(`Returning ${result.rows.length} product assignments for customer ${customerId}`);

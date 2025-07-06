@@ -85,6 +85,10 @@ export default function CustomerDetailNew() {
   const [selectedTooltipProducts, setSelectedTooltipProducts] = useState<any[]>([]);
   const [tooltipCategoryName, setTooltipCategoryName] = useState('');
   
+  // Customer popup states for products
+  const [customerPopupOpen, setCustomerPopupOpen] = useState(false);
+  const [selectedProductForCustomers, setSelectedProductForCustomers] = useState<number | null>(null);
+  
   const toggleCategory = (category: string) => {
     setSelectedCategories(prev => 
       prev.includes(category) 
@@ -689,6 +693,12 @@ export default function CustomerDetailNew() {
   const { data: assignedProducts, isLoading: assignmentsLoading, refetch: refetchAssignments } = useQuery({
     queryKey: [`/api/customers/${customerId}/product-assignments`],
     enabled: isValidId
+  });
+
+  // Fetch customers for selected product
+  const { data: productCustomers = [], isLoading: productCustomersLoading } = useQuery({
+    queryKey: [`/api/products/${selectedProductForCustomers}/customers`],
+    enabled: !!selectedProductForCustomers
   });
 
   // Mutations
@@ -1553,6 +1563,7 @@ export default function CustomerDetailNew() {
                           <TableHead style={{ color: '#696C8C' }}>Product ID</TableHead>
                           <TableHead style={{ color: '#696C8C' }}>Provider</TableHead>
                           <TableHead style={{ color: '#696C8C' }}>Category</TableHead>
+                          <TableHead style={{ color: '#696C8C' }}>Customers</TableHead>
                           <TableHead style={{ color: '#696C8C' }}>Contract Start</TableHead>
                           <TableHead style={{ color: '#696C8C' }}>Contract End</TableHead>
                           <TableHead style={{ color: '#696C8C' }}>Premium Value</TableHead>
@@ -1578,6 +1589,19 @@ export default function CustomerDetailNew() {
                                   {assignment.category}
                                 </Badge>
                               )}
+                            </TableCell>
+                            <TableCell className="text-center">
+                              <div 
+                                className="inline-flex items-center justify-center w-8 h-6 bg-blue-100 text-blue-800 text-xs font-medium rounded-full cursor-pointer hover:bg-blue-200 transition-colors"
+                                onClick={() => {
+                                  if (assignment.customercount && assignment.customercount > 0) {
+                                    setSelectedProductForCustomers(assignment.productid);
+                                    setCustomerPopupOpen(true);
+                                  }
+                                }}
+                              >
+                                {assignment.customercount || 0}
+                              </div>
                             </TableCell>
                             <TableCell className="text-gray-600">
                               {assignment.customercontractstartdate ? new Date(assignment.customercontractstartdate).toLocaleDateString('en-GB') : '-'}
@@ -1748,6 +1772,101 @@ export default function CustomerDetailNew() {
               className="bg-[#5567E5] hover:bg-[#4556D4]"
             >
               Create opportunity list
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Customer Popup Dialog */}
+      <Dialog open={customerPopupOpen} onOpenChange={setCustomerPopupOpen}>
+        <DialogContent className="max-w-4xl bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-[#282A3F] flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Product Customers
+              {selectedProductForCustomers && (
+                <span className="text-sm font-normal text-gray-500">
+                  - {assignedProducts?.find((p: any) => p.productid === selectedProductForCustomers)?.productname}
+                </span>
+              )}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="max-h-96 overflow-y-auto">
+            {productCustomersLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="text-gray-500">Loading customers...</div>
+              </div>
+            ) : productCustomers.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">No customers found for this product</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {productCustomers.map((customer: any) => (
+                  <div key={customer.id} className="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-[#282A3F]">{customer.name}</h4>
+                        {customer.description && (
+                          <p className="text-sm text-gray-600 mt-1">{customer.description}</p>
+                        )}
+                        <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {new Date(customer.contract_start_date).toLocaleDateString()} - {new Date(customer.contract_end_date).toLocaleDateString()}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <DollarSign className="h-3 w-3" />
+                            €{customer.premium_value.toLocaleString()}
+                          </div>
+                          <div className="text-xs">
+                            {customer.premium_percentage}% premium
+                          </div>
+                          {customer.discount_percentage > 0 && (
+                            <div className="text-green-600 text-xs">
+                              {customer.discount_percentage}% discount
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-1">
+                        <Badge 
+                          variant={customer.status === 'active' ? 'green' : customer.status === 'inactive' ? 'gray' : 'amber'}
+                          className="text-xs"
+                        >
+                          {customer.status}
+                        </Badge>
+                        <Badge 
+                          variant={
+                            new Date(customer.contract_end_date) < new Date() ? 'red' :
+                            new Date(customer.contract_end_date) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) ? 'amber' :
+                            'green'
+                          }
+                          className="text-xs"
+                        >
+                          {new Date(customer.contract_end_date) < new Date() ? 'Expired' :
+                           new Date(customer.contract_end_date) < new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) ? 'Expiring Soon' :
+                           'Active'}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setCustomerPopupOpen(false);
+                setSelectedProductForCustomers(null);
+              }}
+            >
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>
