@@ -3333,100 +3333,99 @@ export default function PartnerDetail() {
               <div>
                 {/* Enhanced unified toolbar - Products version */}
                 <div className="bg-white p-4 rounded-lg shadow-sm">
-              <div className="flex flex-col gap-4">
-                {/* Top row with saved lists and views */}
-                <div className="flex flex-wrap items-center justify-between">
-                  {/* Left side - Saved Lists with actions */}
-                  <div className="flex items-center gap-3">
-                    {/* Lists heading */}
-                    <div className="flex flex-col mr-2">
-                      <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
-                    </div>
-                    {/* Saved Lists dropdown */}
-                    <div className="relative">
-                      <button 
-                        className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
-                        onClick={() => setShowProductListsDropdown(!showProductListsDropdown)}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
-                          <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
-                        </svg>
-                        <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                          {activeProductList ? activeProductList.name : 'All products'}
-                        </span>
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          width="14" 
-                          height="14" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2" 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          className={`transition-transform ${showProductListsDropdown ? 'rotate-180' : ''}`}
-                        >
-                          <polyline points="6 9 12 15 18 9" />
-                        </svg>
-                      </button>
-                      
-                      {/* Dropdown menu */}
-                      {showProductListsDropdown && (
-                        <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                          <div className="p-2">
-                            {/* Default "All products" option */}
-                            <button
-                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
-                                !activeProductList ? 'bg-[#E1E4FB] text-[#3E4DC4]' : 'text-gray-700'
-                              }`}
-                              onClick={() => {
-                                setActiveProductList(null);
-                                setShowProductListsDropdown(false);
-                              }}
-                            >
-                              <div className="flex items-center space-x-2">
-                                <span>All products</span>
-                              </div>
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </div>
+              {/* Single row with all controls */}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                {/* Left side - Lists heading and saved lists dropdown */}
+                <div className="flex items-center gap-3">
+                  {/* Lists heading */}
+                  <span className="text-base font-semibold text-gray-800">Lists</span>
                   
-                  {/* Export and New Product buttons are now hidden from Products tab */}
+                  {/* Saved Lists dropdown */}
+                  <div className="relative">
+                    <button 
+                      className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
+                      onClick={() => setShowProductListsDropdown(!showProductListsDropdown)}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
+                        <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
+                      </svg>
+                      <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                        {activeProductList ? activeProductList.name : 'All products'}
+                      </span>
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="14" 
+                        height="14" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        className={`transition-transform ${showProductListsDropdown ? 'rotate-180' : ''}`}
+                      >
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </button>
+                    
+                    {/* Dropdown menu */}
+                    {showProductListsDropdown && (
+                      <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                        <div className="p-2">
+                          {/* Default "All products" option */}
+                          <button
+                            className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
+                              !activeProductList ? 'bg-[#E1E4FB] text-[#3E4DC4]' : 'text-gray-700'
+                            }`}
+                            onClick={() => {
+                              setActiveProductList(null);
+                              setShowProductListsDropdown(false);
+                            }}
+                          >
+                            <div className="flex items-center space-x-2">
+                              <span>All products</span>
+                            </div>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
-                {/* Bottom row with search, views, and filters */}
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex flex-wrap items-center gap-3 flex-grow">
-                    {/* Search field */}
-                    <div className="relative w-60">
-                      <input
-                        type="text"
-                        placeholder="Search products..."
-                        value={productSearchText}
-                        onChange={(e) => setProductSearchText(e.target.value)}
-                        className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
-                      />
-                      <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                          <circle cx="11" cy="11" r="8"></circle>
-                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                        </svg>
-                      </button>
-                    </div>
-                    
-                    {/* Saved Views Dropdown */}
-                    <div className="relative">
-                      <button 
-                        className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white hover:bg-gray-50"
-                        onClick={() => setShowProductViewsDropdown(!showProductViewsDropdown)}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
-                          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                        </svg>
-                        <span className="text-gray-700">{activeProductView ? activeProductView.name : "Select a view"}</span>
+                {/* Right side - Search and category filter */}
+                <div className="flex flex-wrap items-center gap-3 flex-grow justify-end">
+                  {/* Search field */}
+                  <div className="relative w-60">
+                    <input
+                      type="text"
+                      placeholder="Search products..."
+                      value={productSearchText}
+                      onChange={(e) => setProductSearchText(e.target.value)}
+                      className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+                    />
+                    <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  {/* Category Filter Dropdown */}
+                  <div className="relative">
+                    <button 
+                      className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                        selectedProductCategory 
+                          ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
+                          : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                      }`}
+                      onClick={() => setShowProductCategoryDropdown(!showProductCategoryDropdown)}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                      </svg>
+                      <span>{selectedProductCategory ? `Category: ${selectedProductCategory}` : 'Category'}</span>
+                      {selectedProductCategory && (
                         <svg 
                           xmlns="http://www.w3.org/2000/svg" 
                           width="14" 
@@ -3437,187 +3436,51 @@ export default function PartnerDetail() {
                           strokeWidth="2" 
                           strokeLinecap="round" 
                           strokeLinejoin="round" 
-                          className={`transition-transform ${showProductViewsDropdown ? 'rotate-180' : ''}`}
+                          className="ml-2 hover:bg-indigo-100 rounded-full p-0.5 cursor-pointer"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedProductCategory("");
+                          }}
                         >
-                          <polyline points="6 9 12 15 18 9" />
+                          <path d="M18 6L6 18"></path>
+                          <path d="M6 6l12 12"></path>
                         </svg>
-                      </button>
-                      
-                      {/* Saved Views dropdown menu */}
-                      {showProductViewsDropdown && (
-                        <div className="absolute z-50 mt-1 w-64 rounded-md border border-slate-200 bg-white shadow-md">
-                          <div className="p-2 border-b">
-                            <div className="p-2 text-sm text-slate-500">No saved views available</div>
-                          </div>
-                          <div className="p-2 border-t">
-                            <button 
-                              className="flex w-full items-center p-2 text-sm rounded-md text-indigo-600 hover:bg-indigo-50"
-                              onClick={() => {
-                                setShowProductViewsDropdown(false);
-                                setActiveProductView(null);
-                                setProductSearchText('');
-                                setSelectedProductCategory('');
-                                setSelectedPriceRange('');
-                              }}
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                                <path d="M18 6L6 18"></path>
-                                <path d="M6 6l12 12"></path>
-                              </svg>
-                              Clear filters
-                            </button>
-                          </div>
-                        </div>
                       )}
-                    </div>
+                    </button>
                     
-                    {/* Filter buttons */}
-                    <div className="flex items-center gap-2 ml-3">
-                      {/* Category Filter Dropdown */}
-                      <div className="relative">
-                        <button 
-                          className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
-                            selectedProductCategory 
-                              ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
-                              : 'border-gray-300 text-gray-700 hover:border-gray-400'
-                          }`}
-                          onClick={() => setShowProductCategoryDropdown(!showProductCategoryDropdown)}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                          </svg>
-                          <span>{selectedProductCategory ? `Category: ${selectedProductCategory}` : 'Category'}</span>
+                    {showProductCategoryDropdown && (
+                      <div className="absolute z-50 mt-1 w-48 rounded-md border border-gray-200 bg-white shadow-lg">
+                        <div className="p-1">
                           {selectedProductCategory && (
-                            <svg 
-                              xmlns="http://www.w3.org/2000/svg" 
-                              width="14" 
-                              height="14" 
-                              viewBox="0 0 24 24" 
-                              fill="none" 
-                              stroke="currentColor" 
-                              strokeWidth="2" 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round" 
-                              className="ml-2 hover:bg-indigo-100 rounded-full p-0.5 cursor-pointer"
-                              onClick={(e) => {
-                                e.stopPropagation();
+                            <button
+                              className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-md"
+                              onClick={() => {
                                 setSelectedProductCategory("");
+                                setShowProductCategoryDropdown(false);
                               }}
                             >
-                              <path d="M18 6L6 18"></path>
-                              <path d="M6 6l12 12"></path>
-                            </svg>
+                              Clear filter
+                            </button>
                           )}
-                        </button>
-                        
-                        {showProductCategoryDropdown && (
-                          <div className="absolute z-50 mt-1 w-48 rounded-md border border-gray-200 bg-white shadow-lg">
-                            <div className="p-1">
-                              {selectedProductCategory && (
-                                <button
-                                  className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-md"
-                                  onClick={() => {
-                                    setSelectedProductCategory("");
-                                    setShowProductCategoryDropdown(false);
-                                  }}
-                                >
-                                  Clear filter
-                                </button>
-                              )}
-                              {['Property', 'Liability', 'Cyber', 'Auto', 'Workers Comp', 'Marine', 'Executive'].map((category) => (
-                                <button
-                                  key={category}
-                                  className={`w-full text-left px-3 py-2 text-sm rounded-md ${
-                                    selectedProductCategory === category 
-                                      ? 'bg-indigo-50 text-indigo-700' 
-                                      : 'text-gray-700 hover:bg-gray-50'
-                                  }`}
-                                  onClick={() => {
-                                    setSelectedProductCategory(category);
-                                    setShowProductCategoryDropdown(false);
-                                  }}
-                                >
-                                  {category}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                      
-                      {/* Price Range Filter Dropdown */}
-                      <div className="relative">
-                        <button 
-                          className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
-                            selectedPriceRange 
-                              ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
-                              : 'border-gray-300 text-gray-700 hover:border-gray-400'
-                          }`}
-                          onClick={() => setShowPriceRangeDropdown(!showPriceRangeDropdown)}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                            <line x1="12" y1="1" x2="12" y2="23"></line>
-                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                          </svg>
-                          <span>{selectedPriceRange ? `Price: ${selectedPriceRange}` : 'Price Range'}</span>
-                          {selectedPriceRange && (
-                            <svg 
-                              xmlns="http://www.w3.org/2000/svg" 
-                              width="14" 
-                              height="14" 
-                              viewBox="0 0 24 24" 
-                              fill="none" 
-                              stroke="currentColor" 
-                              strokeWidth="2" 
-                              strokeLinecap="round" 
-                              strokeLinejoin="round" 
-                              className="ml-2 hover:bg-indigo-100 rounded-full p-0.5 cursor-pointer"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setSelectedPriceRange("");
+                          {['Property', 'Liability', 'Cyber', 'Auto', 'Workers Comp', 'Marine', 'Executive'].map((category) => (
+                            <button
+                              key={category}
+                              className={`w-full text-left px-3 py-2 text-sm rounded-md ${
+                                selectedProductCategory === category 
+                                  ? 'bg-indigo-50 text-indigo-700' 
+                                  : 'text-gray-700 hover:bg-gray-50'
+                              }`}
+                              onClick={() => {
+                                setSelectedProductCategory(category);
+                                setShowProductCategoryDropdown(false);
                               }}
                             >
-                              <path d="M18 6L6 18"></path>
-                              <path d="M6 6l12 12"></path>
-                            </svg>
-                          )}
-                        </button>
-                        
-                        {showPriceRangeDropdown && (
-                          <div className="absolute z-50 mt-1 w-48 rounded-md border border-gray-200 bg-white shadow-lg">
-                            <div className="p-1">
-                              {selectedPriceRange && (
-                                <button
-                                  className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-md"
-                                  onClick={() => {
-                                    setSelectedPriceRange("");
-                                    setShowPriceRangeDropdown(false);
-                                  }}
-                                >
-                                  Clear filter
-                                </button>
-                              )}
-                              {['€0 - €50K', '€50K - €100K', '€100K - €150K', '€150K+'].map((range) => (
-                                <button
-                                  key={range}
-                                  className={`w-full text-left px-3 py-2 text-sm rounded-md ${
-                                    selectedPriceRange === range 
-                                      ? 'bg-indigo-50 text-indigo-700' 
-                                      : 'text-gray-700 hover:bg-gray-50'
-                                  }`}
-                                  onClick={() => {
-                                    setSelectedPriceRange(range);
-                                    setShowPriceRangeDropdown(false);
-                                  }}
-                                >
-                                  {range}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        )}
+                              {category}
+                            </button>
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -3867,7 +3730,7 @@ export default function PartnerDetail() {
                                       {categoryName} ({products.length})
                                     </h3>
                                   </div>
-                                  <div className="text-sm text-gray-600">
+                                  <div className="text-sm font-medium" style={{ color: categoryColor }}>
                                     Total value: €{products.reduce((sum: number, p: any) => sum + parseFloat(p.totalPremiumValue || p.avgPremiumValue || '0'), 0).toLocaleString()}
                                   </div>
                                 </div>
