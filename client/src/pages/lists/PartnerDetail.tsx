@@ -3714,6 +3714,8 @@ export default function PartnerDetail() {
                           const category = mainCategories.find((cat: any) => cat.name === categoryName);
                           const categoryColor = category?.color || '#6B7280';
                           
+                          console.log('Category Debug:', { categoryName, category, categoryColor });
+                          
                           return (
                             <div key={categoryName} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
                               <div 
