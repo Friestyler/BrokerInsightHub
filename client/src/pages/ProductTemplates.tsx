@@ -323,10 +323,10 @@ export default function ProductTemplates() {
   // Category mutations
   const createCategoryMutation = useMutation({
     mutationFn: async (data: { name: string; color: string; icon?: string; description?: string; parentId?: number }) => {
-      return apiRequest('POST', '/api/categories', data);
+      return apiRequest('POST', '/api/product-categories', data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/product-categories'] });
       setCreateCategoryDialogOpen(false);
       setCreateSubcategoryDialogOpen(false);
       setSelectedParentCategory(null);
@@ -350,10 +350,10 @@ export default function ProductTemplates() {
 
   const updateCategoryMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      return apiRequest('PUT', `/api/categories/${id}`, data);
+      return apiRequest('PUT', `/api/product-categories/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/product-categories'] });
       setEditCategoryDialogOpen(false);
       setSelectedCategory(null);
       setEditCategoryColor("#3B82F6");
@@ -374,10 +374,10 @@ export default function ProductTemplates() {
 
   const deleteCategoryMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest('DELETE', `/api/categories/${id}`);
+      return apiRequest('DELETE', `/api/product-categories/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/product-categories'] });
       setDeleteCategoryDialogOpen(false);
       setSelectedCategory(null);
       toast({
