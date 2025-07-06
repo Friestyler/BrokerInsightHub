@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, ChevronDown, ChevronRight, Shield, TrendingUp, Clock, AlertTriangle, Target, Zap, Briefcase, Plane, PiggyBank, Scale, DollarSign, CheckCircle, ArrowUp, Filter } from "lucide-react";
+import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, ChevronDown, ChevronUp, ChevronRight, Shield, TrendingUp, Clock, AlertTriangle, Target, Zap, Briefcase, Plane, PiggyBank, Scale, DollarSign, CheckCircle, ArrowUp, Filter } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import LogoUploadModal from "@/components/LogoUploadModal";
 import EntityAvatar from "@/components/EntityAvatar";
@@ -32,6 +32,19 @@ export default function CustomerDetailNew() {
 
   // Error boundary for runtime safety
   const [hasError, setHasError] = useState(false);
+  
+  // Category navigation state
+  const [showAllCategories, setShowAllCategories] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  
+  // Toggle category selection for filtering
+  const toggleCategory = (categoryName: string) => {
+    setSelectedCategories(prev => 
+      prev.includes(categoryName) 
+        ? prev.filter(name => name !== categoryName)
+        : [...prev, categoryName]
+    );
+  };
 
   useEffect(() => {
     const handleError = (event: ErrorEvent) => {
@@ -75,8 +88,7 @@ export default function CustomerDetailNew() {
   // OKR metrics state management
   const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
   
-  // Product dashboard filters
-  const [selectedCategories, setSelectedCategories] = useState<string[]>(['Life Insurance', 'Non-Life Insurance', 'Services']);
+  // Product dashboard filters  
   const [categoryDropdownOpen, setCategoryDropdownOpen] = useState(false);
   
   // Tooltip and product list dialog state
@@ -89,13 +101,7 @@ export default function CustomerDetailNew() {
   const [customerPopupOpen, setCustomerPopupOpen] = useState(false);
   const [selectedProductForCustomers, setSelectedProductForCustomers] = useState<number | null>(null);
   
-  const toggleCategory = (category: string) => {
-    setSelectedCategories(prev => 
-      prev.includes(category) 
-        ? prev.filter(c => c !== category)
-        : [...prev, category]
-    );
-  };
+
 
   // Get category info from database with fallback colors
   const getCategoryInfo = (categoryName: string) => {
@@ -1570,71 +1576,149 @@ export default function CustomerDetailNew() {
                     </div>
                   </div>
 
-                  {/* Dynamic Category Tags - Shows all categories including blind spots */}
+                  {/* Elegant Category Navigation with Collapsing - Willis Style */}
                   <div className="flex gap-2 flex-wrap">
-                    {Array.isArray(categories) && categories.map((category: any) => {
-                      const categoryProducts = assignedProducts?.filter((product: any) => 
-                        product.category === category.name ||
-                        product.categoryName === category.name ||
-                        product.productCategoryName === category.name
-                      ) || [];
+                    {(() => {
+                      // Get categories with product counts
+                      const categoriesWithProducts = Array.isArray(categories) ? categories.map((category: any) => {
+                        const categoryProducts = assignedProducts?.filter((product: any) => 
+                          product.category === category.name ||
+                          product.categoryName === category.name ||
+                          product.productCategoryName === category.name
+                        ) || [];
+                        
+                        return {
+                          ...category,
+                          productCount: categoryProducts.length,
+                          isBlindSpot: categoryProducts.length === 0
+                        };
+                      }) : [];
                       
-                      const productCount = categoryProducts.length;
-                      const isBlindSpot = productCount === 0;
+                      // Sort: categories with products first, then blind spots
+                      const sortedCategories = categoriesWithProducts.sort((a, b) => {
+                        if (a.productCount > 0 && b.productCount === 0) return -1;
+                        if (a.productCount === 0 && b.productCount > 0) return 1;
+                        return b.productCount - a.productCount;
+                      });
                       
-                      const categoryInfo = getCategoryInfo(category.name);
-                      const colorClasses = isBlindSpot 
-                        ? 'bg-gray-100 text-gray-500 border-gray-200'
-                        : categoryInfo.color === 'green' ? 'bg-green-50 text-green-700 border-green-200' :
-                          categoryInfo.color === 'blue' ? 'bg-blue-50 text-blue-700 border-blue-200' :
-                          categoryInfo.color === 'purple' ? 'bg-purple-50 text-purple-700 border-purple-200' :
-                          categoryInfo.color === 'orange' ? 'bg-orange-50 text-orange-700 border-orange-200' :
-                          categoryInfo.color === 'red' ? 'bg-red-50 text-red-700 border-red-200' :
-                          'bg-gray-50 text-gray-700 border-gray-200';
+                      // Show first 4 categories, then collapse the rest
+                      const visibleCategories = sortedCategories.slice(0, 4);
+                      const hiddenCategories = sortedCategories.slice(4);
                       
-                      const dotColor = isBlindSpot 
-                        ? 'bg-gray-400'
-                        : categoryInfo.color === 'green' ? 'bg-green-500' :
-                          categoryInfo.color === 'blue' ? 'bg-blue-500' :
-                          categoryInfo.color === 'purple' ? 'bg-purple-500' :
-                          categoryInfo.color === 'orange' ? 'bg-orange-500' :
-                          categoryInfo.color === 'red' ? 'bg-red-500' :
-                          'bg-gray-500';
-                      
-                      const badgeColor = isBlindSpot
-                        ? 'bg-gray-200 text-gray-600'
-                        : categoryInfo.color === 'green' ? 'bg-green-200 text-green-800' :
-                          categoryInfo.color === 'blue' ? 'bg-blue-200 text-blue-800' :
-                          categoryInfo.color === 'purple' ? 'bg-purple-200 text-purple-800' :
-                          categoryInfo.color === 'orange' ? 'bg-orange-200 text-orange-800' :
-                          categoryInfo.color === 'red' ? 'bg-red-200 text-red-800' :
-                          'bg-gray-200 text-gray-800';
+                      const renderCategoryTag = (category: any) => {
+                        const categoryInfo = getCategoryInfo(category.name);
+                        const isBlindSpot = category.isBlindSpot;
+                        const isSelected = selectedCategories.includes(category.name);
+                        
+                        // Use exact Willis color scheme
+                        const getWillisColors = (color: string, isBlindSpot: boolean, isSelected: boolean) => {
+                          if (isBlindSpot) {
+                            return {
+                              bg: 'bg-gray-100',
+                              text: 'text-gray-500',
+                              border: 'border-gray-200',
+                              dot: 'bg-gray-400',
+                              badge: 'bg-gray-200 text-gray-600'
+                            };
+                          }
+                          
+                          const colorMap: any = {
+                            'green': {
+                              bg: isSelected ? 'bg-green-100' : 'bg-green-50',
+                              text: 'text-green-700',
+                              border: 'border-green-200',
+                              dot: 'bg-green-500',
+                              badge: 'bg-green-200 text-green-800'
+                            },
+                            'blue': {
+                              bg: isSelected ? 'bg-blue-100' : 'bg-blue-50',
+                              text: 'text-blue-700',
+                              border: 'border-blue-200',
+                              dot: 'bg-blue-500',
+                              badge: 'bg-blue-200 text-blue-800'
+                            },
+                            'purple': {
+                              bg: isSelected ? 'bg-purple-100' : 'bg-purple-50',
+                              text: 'text-purple-700',
+                              border: 'border-purple-200',
+                              dot: 'bg-purple-500',
+                              badge: 'bg-purple-200 text-purple-800'
+                            },
+                            'orange': {
+                              bg: isSelected ? 'bg-orange-100' : 'bg-orange-50',
+                              text: 'text-orange-700',
+                              border: 'border-orange-200',
+                              dot: 'bg-orange-500',
+                              badge: 'bg-orange-200 text-orange-800'
+                            }
+                          };
+                          
+                          return colorMap[color] || colorMap['blue'];
+                        };
+                        
+                        const colors = getWillisColors(categoryInfo.color, isBlindSpot, isSelected);
+                        
+                        return (
+                          <button
+                            key={category.id}
+                            onClick={() => toggleCategory(category.name)}
+                            className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm border transition-all duration-200 hover:shadow-sm ${colors.bg} ${colors.text} ${colors.border} ${isBlindSpot ? 'opacity-70' : ''} ${isSelected ? 'ring-1 ring-blue-500' : ''}`}
+                          >
+                            <div className={`w-2 h-2 rounded-full ${colors.dot}`}></div>
+                            {category.name}
+                            {isBlindSpot ? (
+                              <span className={`px-1.5 py-0.5 rounded-full text-xs ml-1 ${colors.badge}`}>
+                                Blind spot
+                              </span>
+                            ) : (
+                              <span className={`px-1.5 py-0.5 rounded-full text-xs ml-1 ${colors.badge}`}>
+                                {category.productCount}
+                              </span>
+                            )}
+                          </button>
+                        );
+                      };
                       
                       return (
-                        <div 
-                          key={category.id}
-                          className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm border ${colorClasses} ${isBlindSpot ? 'opacity-60' : ''}`}
-                        >
-                          <div className={`w-2 h-2 rounded-full ${dotColor}`}></div>
-                          {category.name} 
-                          {isBlindSpot ? (
-                            <span className={`px-1.5 py-0.5 rounded-full text-xs ml-1 ${badgeColor}`}>
-                              Blind spot
-                            </span>
-                          ) : (
-                            <span className={`px-1.5 py-0.5 rounded-full text-xs ml-1 ${badgeColor}`}>
-                              {productCount}
-                            </span>
+                        <>
+                          {/* Always visible categories */}
+                          {visibleCategories.map(renderCategoryTag)}
+                          
+                          {/* Collapsible additional categories */}
+                          {showAllCategories && hiddenCategories.map(renderCategoryTag)}
+                          
+                          {/* Show more/less button */}
+                          {hiddenCategories.length > 0 && (
+                            <button
+                              onClick={() => setShowAllCategories(!showAllCategories)}
+                              className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm border border-gray-200 bg-white text-gray-600 hover:bg-gray-50 transition-all duration-200"
+                            >
+                              {showAllCategories ? (
+                                <>
+                                  <ChevronUp className="w-3 h-3" />
+                                  Show less
+                                </>
+                              ) : (
+                                <>
+                                  <ChevronDown className="w-3 h-3" />
+                                  +{hiddenCategories.length} more
+                                </>
+                              )}
+                            </button>
                           )}
-                        </div>
+                        </>
                       );
-                    })}
+                    })()}
                   </div>
 
-                  {/* Products by Category - Dynamic structure showing all categories */}
+                  {/* Products by Category - Dynamic structure showing filtered categories */}
                   {Array.isArray(categories) && categories.length > 0 ? (
                     <div className="space-y-6">
-                      {categories.map((category: any) => {
+                      {categories
+                        .filter((category: any) => 
+                          selectedCategories.length === 0 || selectedCategories.includes(category.name)
+                        )
+                        .map((category: any) => {
                         const categoryProducts = assignedProducts?.filter((product: any) => 
                           product.category === category.name ||
                           product.categoryName === category.name ||
