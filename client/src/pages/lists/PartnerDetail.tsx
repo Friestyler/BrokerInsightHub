@@ -968,6 +968,11 @@ export default function PartnerDetail() {
     queryKey: ['/api/okr-tags'],
   });
 
+  // Fetch all categories for blind spot analysis
+  const { data: allCategories } = useQuery({
+    queryKey: [`/api/categories`],
+  });
+
   // Create comment mutation
   const createCommentMutation = useMutation({
     mutationFn: async (data: { content: string; visible_to_partner: boolean; entityType: string; entityId: number; assignedTo?: string; metricId?: number }) => {
@@ -3706,211 +3711,234 @@ export default function PartnerDetail() {
               })()}
             </div>
 
-            {/* Products Table Content */}
+            {/* Enhanced Category-Grouped Products View */}
             <div className="space-y-6">
               {assignmentsLoading ? (
                 <div className="flex justify-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
                 </div>
-              ) : assignedProducts && Array.isArray(assignedProducts) && assignedProducts.length > 0 ? (
-                <div className="bg-white rounded-lg border border-gray-200">
-                  <div className="px-6 py-4 border-b border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900">Products ({
-                      assignedProducts.filter((product: any) => {
-                        const matchesSearch = !productSearchText || 
-                          product.productName?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                          product.productDescription?.toLowerCase().includes(productSearchText.toLowerCase());
+              ) : (() => {
+                // Filter assigned products
+                const filteredProducts = (assignedProducts as any[] || []).filter((product: any) => {
+                  const matchesSearch = !productSearchText || 
+                    product.productName?.toLowerCase().includes(productSearchText.toLowerCase()) ||
+                    product.productDescription?.toLowerCase().includes(productSearchText.toLowerCase());
+                  
+                  const matchesCategory = !selectedProductCategory || product.categoryName === selectedProductCategory;
+                  
+                  const matchesPrice = !selectedPriceRange || (() => {
+                    const price = parseFloat(product.premiumValue || '0');
+                    switch(selectedPriceRange) {
+                      case '€0 - €50K': return price >= 0 && price <= 50000;
+                      case '€50K - €100K': return price > 50000 && price <= 100000;
+                      case '€100K - €150K': return price > 100000 && price <= 150000;
+                      case '€150K+': return price > 150000;
+                      default: return true;
+                    }
+                  })();
+                  
+                  return matchesSearch && matchesCategory && matchesPrice;
+                });
+
+                // Group products by category
+                const productsByCategory = filteredProducts.reduce((acc: any, product: any) => {
+                  const category = product.categoryName || 'Uncategorized';
+                  if (!acc[category]) {
+                    acc[category] = [];
+                  }
+                  acc[category].push(product);
+                  return acc;
+                }, {});
+
+                // Get all main categories to show blind spots
+                const mainCategories = Array.isArray(allCategories) ? 
+                  allCategories.filter((cat: any) => cat.level === 1) : [];
+
+                // Calculate days until expiry for priority sorting
+                const calculateDaysUntilExpiry = (endDate: string) => {
+                  if (!endDate) return null;
+                  const today = new Date();
+                  const expiry = new Date(endDate);
+                  const diffTime = expiry.getTime() - today.getTime();
+                  return Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                };
+
+                // Get expiry urgency class
+                const getExpiryClass = (days: number | null) => {
+                  if (days === null) return 'text-gray-500';
+                  if (days < 0) return 'text-red-600 font-semibold';
+                  if (days <= 30) return 'text-orange-600 font-semibold';
+                  if (days <= 90) return 'text-yellow-600 font-medium';
+                  return 'text-gray-600';
+                };
+
+                return (
+                  <div className="space-y-4">
+                    {/* Category Navigation Tags */}
+                    <div className="flex flex-wrap gap-2 p-4 bg-gray-50 rounded-lg">
+                      {mainCategories.map((category: any) => {
+                        const hasProducts = productsByCategory[category.name] && productsByCategory[category.name].length > 0;
+                        const productCount = hasProducts ? productsByCategory[category.name].length : 0;
                         
-                        const matchesCategory = !selectedProductCategory || product.category === selectedProductCategory;
-                        
-                        const matchesPrice = !selectedPriceRange || (() => {
-                          const price = parseFloat(product.premiumValue || '0');
-                          switch(selectedPriceRange) {
-                            case '€0 - €50K': return price >= 0 && price <= 50000;
-                            case '€50K - €100K': return price > 50000 && price <= 100000;
-                            case '€100K - €150K': return price > 100000 && price <= 150000;
-                            case '€150K+': return price > 150000;
-                            default: return true;
-                          }
-                        })();
-                        
-                        return matchesSearch && matchesCategory && matchesPrice;
-                      }).length
-                    })</h3>
-                    <p className="text-sm text-gray-600 mt-1">Products associated with this partner</p>
-                  </div>
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead className="w-12 group">
-                            <div className={`transition-opacity ${
-                              selectedProducts.length > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                        return (
+                          <button
+                            key={category.id}
+                            onClick={() => {
+                              setSelectedProductCategory(selectedProductCategory === category.name ? '' : category.name);
+                            }}
+                            className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+                              selectedProductCategory === category.name
+                                ? 'text-white'
+                                : hasProducts
+                                  ? 'bg-white text-gray-800 hover:bg-gray-100 border border-gray-200'
+                                  : 'bg-gray-100 text-gray-400 border border-gray-200 opacity-60'
+                            }`}
+                            style={{
+                              backgroundColor: selectedProductCategory === category.name ? category.color : undefined,
+                              borderColor: hasProducts ? category.color : undefined
+                            }}
+                          >
+                            <div
+                              className="w-2 h-2 rounded-full mr-2"
+                              style={{ backgroundColor: category.color }}
+                            />
+                            {category.name}
+                            <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${
+                              hasProducts ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-500'
                             }`}>
-                              <Checkbox 
-                                checked={
-                                  selectedProducts.length === assignedProducts.filter((product: any) => {
-                                    const matchesSearch = !productSearchText || 
-                                      product.productName?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                                      product.productDescription?.toLowerCase().includes(productSearchText.toLowerCase());
+                              {productCount}
+                            </span>
+                            {!hasProducts && (
+                              <span className="ml-1 text-xs opacity-60">• Blind spot</span>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
+
+                    {/* Products by Category */}
+                    {Object.keys(productsByCategory).length > 0 ? (
+                      <div className="space-y-6">
+                        {Object.entries(productsByCategory).map(([categoryName, products]: [string, any]) => {
+                          const category = mainCategories.find((cat: any) => cat.name === categoryName);
+                          const categoryColor = category?.color || '#6B7280';
+                          
+                          return (
+                            <div key={categoryName} className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+                              <div 
+                                className="px-6 py-4 border-b border-gray-200"
+                                style={{ backgroundColor: `${categoryColor}15` }}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center">
+                                    <div
+                                      className="w-4 h-4 rounded-full mr-3"
+                                      style={{ backgroundColor: categoryColor }}
+                                    />
+                                    <h3 className="text-lg font-semibold text-gray-900">
+                                      {categoryName} ({products.length})
+                                    </h3>
+                                  </div>
+                                  <div className="text-sm text-gray-600">
+                                    Total value: €{products.reduce((sum: number, p: any) => sum + parseFloat(p.premiumValue || '0'), 0).toLocaleString()}
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              <div className="divide-y divide-gray-100">
+                                {products
+                                  .sort((a: any, b: any) => {
+                                    const daysA = calculateDaysUntilExpiry(a.contractEndDate);
+                                    const daysB = calculateDaysUntilExpiry(b.contractEndDate);
+                                    if (daysA === null && daysB === null) return 0;
+                                    if (daysA === null) return 1;
+                                    if (daysB === null) return -1;
+                                    return daysA - daysB;
+                                  })
+                                  .map((product: any) => {
+                                    const daysUntilExpiry = calculateDaysUntilExpiry(product.contractEndDate);
                                     
-                                    const matchesCategory = !selectedProductCategory || product.category === selectedProductCategory;
-                                    
-                                    const matchesPrice = !selectedPriceRange || (() => {
-                                      const price = parseFloat(product.price || '0');
-                                      switch(selectedPriceRange) {
-                                        case '€0 - €50K': return price >= 0 && price <= 50000;
-                                        case '€50K - €100K': return price > 50000 && price <= 100000;
-                                        case '€100K - €150K': return price > 100000 && price <= 150000;
-                                        case '€150K+': return price > 150000;
-                                        default: return true;
-                                      }
-                                    })();
-                                    
-                                    return matchesSearch && matchesCategory && matchesPrice;
-                                  }).length && relatedProducts.filter((product: any) => {
-                                    const matchesSearch = !productSearchText || 
-                                      product.name?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                                      product.description?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                                      product.sku?.toLowerCase().includes(productSearchText.toLowerCase());
-                                    
-                                    const matchesCategory = !selectedProductCategory || product.category === selectedProductCategory;
-                                    
-                                    const matchesPrice = !selectedPriceRange || (() => {
-                                      const price = parseFloat(product.price || '0');
-                                      switch(selectedPriceRange) {
-                                        case '€0 - €50K': return price >= 0 && price <= 50000;
-                                        case '€50K - €100K': return price > 50000 && price <= 100000;
-                                        case '€100K - €150K': return price > 100000 && price <= 150000;
-                                        case '€150K+': return price > 150000;
-                                        default: return true;
-                                      }
-                                    })();
-                                    
-                                    return matchesSearch && matchesCategory && matchesPrice;
-                                  }).length > 0
-                                }
-                                onCheckedChange={(checked) => {
-                                  const filteredProducts = assignedProducts.filter((product: any) => {
-                                    const matchesSearch = !productSearchText || 
-                                      product.productName?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                                      product.productDescription?.toLowerCase().includes(productSearchText.toLowerCase());
-                                    
-                                    const matchesCategory = !selectedProductCategory || product.category === selectedProductCategory;
-                                    
-                                    const matchesPrice = !selectedPriceRange || (() => {
-                                      const price = parseFloat(product.price || '0');
-                                      switch(selectedPriceRange) {
-                                        case '€0 - €50K': return price >= 0 && price <= 50000;
-                                        case '€50K - €100K': return price > 50000 && price <= 100000;
-                                        case '€100K - €150K': return price > 100000 && price <= 150000;
-                                        case '€150K+': return price > 150000;
-                                        default: return true;
-                                      }
-                                    })();
-                                    
-                                    return matchesSearch && matchesCategory && matchesPrice;
-                                  });
-                                  
-                                  if (checked) {
-                                    setSelectedProducts(filteredProducts.map((product: any) => product.id));
-                                  } else {
-                                    setSelectedProducts([]);
-                                  }
-                                }}
-                              />
+                                    return (
+                                      <div key={product.id} className="px-6 py-4 hover:bg-gray-50 group">
+                                        <div className="flex items-center justify-between">
+                                          <div className="flex items-center flex-1">
+                                            <div className={`transition-opacity ${
+                                              selectedProducts.includes(product.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                                            } mr-3`}>
+                                              <Checkbox 
+                                                checked={selectedProducts.includes(product.id)}
+                                                onCheckedChange={(checked) => {
+                                                  if (checked) {
+                                                    setSelectedProducts([...selectedProducts, product.id]);
+                                                  } else {
+                                                    setSelectedProducts(selectedProducts.filter(id => id !== product.id));
+                                                  }
+                                                }}
+                                              />
+                                            </div>
+                                            
+                                            <div className="flex-1">
+                                              <div className="flex items-center justify-between">
+                                                <div>
+                                                  <div className="font-semibold text-gray-900">{product.productName}</div>
+                                                  {product.productDescription && (
+                                                    <div className="text-sm text-gray-500 mt-1">{product.productDescription}</div>
+                                                  )}
+                                                </div>
+                                                
+                                                <div className="flex items-center space-x-6 text-sm">
+                                                  <div className="text-right">
+                                                    <div className="font-medium text-gray-900">
+                                                      {product.premiumValue ? `€${parseFloat(product.premiumValue).toLocaleString()}` : '-'}
+                                                    </div>
+                                                    <div className="text-gray-500">Premium</div>
+                                                  </div>
+                                                  
+                                                  <div className="text-right">
+                                                    <div className={getExpiryClass(daysUntilExpiry)}>
+                                                      {product.contractEndDate ? (
+                                                        <>
+                                                          {new Date(product.contractEndDate).toLocaleDateString()}
+                                                          {daysUntilExpiry !== null && (
+                                                            <div className="text-xs mt-1">
+                                                              {daysUntilExpiry < 0 ? 'Expired' : 
+                                                               daysUntilExpiry <= 30 ? `${daysUntilExpiry} days left` :
+                                                               daysUntilExpiry <= 90 ? `${Math.floor(daysUntilExpiry/30)} months left` :
+                                                               `${Math.floor(daysUntilExpiry/365)} years left`}
+                                                            </div>
+                                                          )}
+                                                        </>
+                                                      ) : (
+                                                        '-'
+                                                      )}
+                                                    </div>
+                                                    <div className="text-gray-500">Expiry Date</div>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                              </div>
                             </div>
-                          </TableHead>
-                          <TableHead>Product Name</TableHead>
-                          <TableHead>Category</TableHead>
-                          <TableHead>SKU</TableHead>
-                          <TableHead className="text-right">Price</TableHead>
-                          <TableHead>Created</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {assignedProducts
-                          .filter((product: any) => {
-                            const matchesSearch = !productSearchText || 
-                              product.productName?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                              product.productDescription?.toLowerCase().includes(productSearchText.toLowerCase());
-                            
-                            const matchesCategory = !selectedProductCategory || product.category === selectedProductCategory;
-                            
-                            const matchesPrice = !selectedPriceRange || (() => {
-                              const price = parseFloat(product.price || '0');
-                              switch(selectedPriceRange) {
-                                case '€0 - €50K': return price >= 0 && price <= 50000;
-                                case '€50K - €100K': return price > 50000 && price <= 100000;
-                                case '€100K - €150K': return price > 100000 && price <= 150000;
-                                case '€150K+': return price > 150000;
-                                default: return true;
-                              }
-                            })();
-                            
-                            return matchesSearch && matchesCategory && matchesPrice;
-                          })
-                          .map((product: any) => (
-                            <TableRow key={product.id} className="group hover:bg-gray-50">
-                              <TableCell>
-                                <div className={`transition-opacity ${
-                                  selectedProducts.includes(product.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-                                }`}>
-                                  <Checkbox 
-                                    checked={selectedProducts.includes(product.id)}
-                                    onCheckedChange={(checked) => {
-                                      if (checked) {
-                                        setSelectedProducts([...selectedProducts, product.id]);
-                                      } else {
-                                        setSelectedProducts(selectedProducts.filter(id => id !== product.id));
-                                      }
-                                    }}
-                                  />
-                                </div>
-                              </TableCell>
-                              <TableCell className="font-medium">
-                                <div>
-                                  <div className="font-semibold text-gray-900">{product.productName}</div>
-                                  {product.productDescription && (
-                                    <div className="text-sm text-gray-500 mt-1">{product.productDescription}</div>
-                                  )}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                {product.categoryName && (
-                                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                                    {product.categoryName}
-                                  </span>
-                                )}
-                              </TableCell>
-                              <TableCell className="text-gray-600">
-                                {product.productId || '-'}
-                              </TableCell>
-                              <TableCell className="text-right">
-                                {product.premiumValue ? `€${parseFloat(product.premiumValue).toLocaleString()}` : '-'}
-                              </TableCell>
-                              <TableCell className="text-gray-500">
-                                {product.contractStartDate ? new Date(product.contractStartDate).toLocaleDateString() : '-'}
-                              </TableCell>
-                            </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div className="text-center py-12">
+                        <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                          <Package className="w-8 h-8 text-gray-400" />
+                        </div>
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
+                        <p className="text-gray-500">No products match your current filters.</p>
+                      </div>
+                    )}
                   </div>
-                </div>
-              ) : (
-                <div className="text-center py-12">
-                  <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                      <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                      <line x1="3" y1="6" x2="21" y2="6"/>
-                      <path d="M16 10a4 4 0 0 1-8 0"/>
-                    </svg>
-                  </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No products found</h3>
-                  <p className="text-gray-500">No products are currently associated with this partner.</p>
-                </div>
-              )}
+                );
+              })()}
             </div>
               </div>
             )}
