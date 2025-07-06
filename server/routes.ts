@@ -2659,12 +2659,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const partnerId = parseInt(req.params.id);
       const envPool = pool;
+      // Get products through proper product assignments, not through opportunities
       const result = await envPool.query(`
         SELECT DISTINCT p.id, p.name, p.description, p.category,
                p.created_at, p.updated_at
         FROM degoudse.products p
-        INNER JOIN degoudse.opportunities o ON p.id = o.product_id
-        WHERE o.partner_id = $1
+        INNER JOIN degoudse.partner_products pp ON p.id = pp.product_id
+        WHERE pp.partner_id = $1
         ORDER BY p.name
       `, [partnerId]);
       
