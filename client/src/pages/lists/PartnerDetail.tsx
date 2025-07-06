@@ -1163,6 +1163,20 @@ export default function PartnerDetail() {
                     >
                       Details
                     </Button>
+                    {/* Willis Partner Link - positioned next to Details button */}
+                    {parseInt(id!) === 1 && (
+                      <a
+                        href="/broker-view/partner/1?tab=opportunities&list=39"
+                        className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center transition-colors"
+                      >
+                        <img 
+                          src="/attached_assets/NN_Group_logo_1751474283145.jpeg" 
+                          alt="NN Group" 
+                          className="w-4 h-4 rounded-sm mr-1.5 object-cover"
+                        />
+                        View in Deal Room
+                      </a>
+                    )}
                   </div>
                 </div>
                 
@@ -1231,19 +1245,7 @@ export default function PartnerDetail() {
             </div>
             
             {/* Header Action Buttons */}
-            <div className="flex flex-col items-end space-y-2">
-              {/* Willis Partner Link - positioned above Creëer Partner Kans */}
-              {parseInt(id!) === 1 && (
-                <a
-                  href="/broker-view/partner/1?tab=opportunities&list=39"
-                  className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center transition-colors"
-                >
-                  <div className="w-4 h-4 bg-orange-500 rounded-sm mr-1.5 flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">NN</span>
-                  </div>
-                  View in Deal Room
-                </a>
-              )}
+            <div className="flex items-center space-x-3">
               <Button 
                 className="bg-[#5567E5] hover:bg-[#4556D4] text-white"
                 onClick={() => setIsOpportunityModalOpen(true)}
