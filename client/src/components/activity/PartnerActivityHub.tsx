@@ -952,7 +952,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                 className="text-xs text-gray-600 hover:text-purple-600"
               >
                 <Sparkles className="h-3 w-3 mr-1" />
-                {generateActionsMutation.isPending ? 'Generating...' : 'Generate Next Best Action'}
+                {generateActionsMutation.isPending ? 'Generating...' : 'Next Best Action'}
               </Button>
               <Button
                 variant="ghost"
