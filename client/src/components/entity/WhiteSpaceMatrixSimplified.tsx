@@ -500,84 +500,48 @@ export function WhiteSpaceMatrix({
         </Card>
       )}
 
-      {/* Overview Cards */}
-      {!selectedCell ? (
-        <Card className="border-2 border-gray-200">
+      {/* Selected Cell Detail */}
+      {selectedCellData && (
+        <Card className="border-2 border-blue-200">
           <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
-              <CardTitle className="text-lg">Total Overview</CardTitle>
+              <CardTitle className="text-lg">
+                Cross-sell Analysis: {selectedCellData.fromCategory} → {selectedCellData.toCategory}
+              </CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => {setSelectedCell(null); setSelectedCellData(null);}}>
+                <X className="h-4 w-4" />
+              </Button>
             </div>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-4 gap-4">
               <div>
-                <div className="text-sm text-gray-600 mb-1">Segment: All segments • 5,127 customers</div>
-              </div>
-              <div className="text-center">
+                <div className="text-sm text-gray-600 mb-1">Conversion Rate</div>
                 <div className="text-2xl font-bold text-blue-600">
-                  12,450
+                  {(selectedCellData.conversionRate * 100).toFixed(1)}%
                 </div>
-                <div className="text-sm text-gray-600">Total potential customers</div>
               </div>
-              <div className="text-center">
+              <div>
+                <div className="text-sm text-gray-600 mb-1">Benchmark</div>
+                <div className="text-2xl font-bold text-gray-600">
+                  {(selectedCellData.benchmark * 100).toFixed(1)}%
+                </div>
+              </div>
+              <div>
+                <div className="text-sm text-gray-600 mb-1">Potential Customers</div>
                 <div className="text-2xl font-bold text-purple-600">
-                  €2.8M
+                  {selectedCellData.potentialCustomers.toLocaleString()}
                 </div>
-                <div className="text-sm text-gray-600">Total max. potential</div>
               </div>
-              <div className="text-center">
+              <div>
+                <div className="text-sm text-gray-600 mb-1">Revenue Potential</div>
                 <div className="text-2xl font-bold text-green-600">
-                  €{Math.round((12450 * conversionRate[0]) / 100 * 0.15)}K
+                  €{Math.round(selectedCellData.revenue / 1000)}K
                 </div>
-                <div className="text-sm text-gray-600">At {conversionRate[0]}% conversion</div>
               </div>
             </div>
           </CardContent>
         </Card>
-      ) : (
-        /* Selected Cell Detail */
-        selectedCellData && (
-          <Card className="border-2 border-blue-200">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-lg">
-                  Cross-sell Analysis: {selectedCellData.fromCategory} → {selectedCellData.toCategory}
-                </CardTitle>
-                <Button variant="ghost" size="sm" onClick={() => {setSelectedCell(null); setSelectedCellData(null);}}>
-                  <X className="h-4 w-4" />
-                </Button>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-4 gap-4">
-                <div>
-                  <div className="text-sm text-gray-600 mb-1">Conversion Rate</div>
-                  <div className="text-2xl font-bold text-blue-600">
-                    {(selectedCellData.conversionRate * 100).toFixed(1)}%
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-600 mb-1">Benchmark</div>
-                  <div className="text-2xl font-bold text-gray-600">
-                    {(selectedCellData.benchmark * 100).toFixed(1)}%
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-600 mb-1">Potential Customers</div>
-                  <div className="text-2xl font-bold text-purple-600">
-                    {selectedCellData.potentialCustomers.toLocaleString()}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-sm text-gray-600 mb-1">Revenue Potential</div>
-                  <div className="text-2xl font-bold text-green-600">
-                    €{Math.round(selectedCellData.revenue / 1000)}K
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )
       )}
 
       {/* Action Bar - simplified version matching screenshot */}
