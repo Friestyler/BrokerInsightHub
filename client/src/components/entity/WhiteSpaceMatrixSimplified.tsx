@@ -115,33 +115,39 @@ export function WhiteSpaceMatrix({
     // Generate consistent hash for reproducible data
     const hash = from.charCodeAt(0) + to.charCodeAt(0) + from.length + to.length;
     
-    // Benchmark: actual coverage percentage of customers with both product categories
-    const benchmarkHash = (from.charCodeAt(0) * 7 + to.charCodeAt(0) * 11) % 100;
-    const benchmark = 0.15 + (benchmarkHash % 35) / 100; // 15-50% realistic coverage
+    // Static benchmark value set by user (from conversion rate slider)
+    const userBenchmark = conversionRate[0] / 100; // User's benchmark from slider
     
-    // User's conversion rate from slider
-    const userConversionRate = conversionRate[0] / 100; // Convert from percentage
+    // Current coverage: calculated percentage of customers that have both products
+    const coverageHash = (from.charCodeAt(0) * 3 + to.charCodeAt(0) * 5) % 100;
+    const currentCoverage = 0.10 + (coverageHash % 40) / 100; // 10-50% current coverage
     
-    // Potential customers and revenue calculation
-    const potentialCustomers = 50 + (hash % 200);
-    const potentialRevenue = potentialCustomers * (1000 + (hash % 3000)) * userConversionRate;
+    // Total potential customers for this cross-sell
+    const totalCustomers = 100 + (hash % 300);
     
-    // Priority based on how conversion rate compares to benchmark
-    const conversionVsBenchmark = userConversionRate / benchmark;
+    // Missing coverage customers (those who could be targeted)
+    const missingCoverageCustomers = Math.round(totalCustomers * (1 - currentCoverage));
+    
+    // Potential revenue from selling to missing coverage using conversion rate
+    const potentialRevenue = missingCoverageCustomers * userBenchmark * (2000 + (hash % 4000));
+    
+    // Priority based on how current coverage compares to user's benchmark
+    const coverageVsBenchmark = currentCoverage / userBenchmark;
     let priority = 'low';
-    if (conversionVsBenchmark >= 2.0) priority = 'high';      // 2x benchmark or more
-    else if (conversionVsBenchmark >= 1.5) priority = 'medium'; // 1.5x benchmark
-    else if (conversionVsBenchmark >= 1.0) priority = 'medium'; // At benchmark
+    if (coverageVsBenchmark < 0.5) priority = 'high';        // Much below benchmark - high opportunity
+    else if (coverageVsBenchmark < 0.8) priority = 'medium'; // Below benchmark - medium opportunity
+    else if (coverageVsBenchmark < 1.2) priority = 'medium'; // Near benchmark
     
     return {
       fromCategory: from,
       toCategory: to,
-      conversionRate: userConversionRate,
-      benchmark,
+      currentCoverage,
+      benchmark: userBenchmark,
       revenue: potentialRevenue,
-      potentialCustomers,
+      potentialCustomers: missingCoverageCustomers,
+      totalCustomers,
       priority,
-      conversionVsBenchmark
+      coverageVsBenchmark
     };
   };
 
@@ -152,14 +158,14 @@ export function WhiteSpaceMatrix({
     }
   };
 
-  const getCellColor = (conversionRate: number, benchmark: number) => {
-    // Color based on how conversion rate compares to benchmark
-    const ratio = conversionRate / benchmark;
-    if (ratio >= 2.0) return 'bg-emerald-100 hover:bg-emerald-200 border-emerald-300'; // 2x or more above benchmark
-    if (ratio >= 1.5) return 'bg-green-100 hover:bg-green-200 border-green-300';       // 1.5x above benchmark  
-    if (ratio >= 1.0) return 'bg-amber-100 hover:bg-amber-200 border-amber-300';       // At or slightly above benchmark
-    if (ratio >= 0.7) return 'bg-orange-100 hover:bg-orange-200 border-orange-300';    // Below benchmark
-    return 'bg-red-100 hover:bg-red-200 border-red-300';                              // Significantly below benchmark
+  const getCellColor = (currentCoverage: number, benchmark: number) => {
+    // Color based on how current coverage compares to benchmark
+    const ratio = currentCoverage / benchmark;
+    if (ratio >= 1.2) return 'bg-emerald-100 hover:bg-emerald-200 border-emerald-300'; // Above benchmark - good coverage
+    if (ratio >= 1.0) return 'bg-green-100 hover:bg-green-200 border-green-300';       // At benchmark - meeting target
+    if (ratio >= 0.8) return 'bg-amber-100 hover:bg-amber-200 border-amber-300';       // Near benchmark - minor opportunity
+    if (ratio >= 0.5) return 'bg-orange-100 hover:bg-orange-200 border-orange-300';    // Below benchmark - opportunity
+    return 'bg-red-100 hover:bg-red-200 border-red-300';                              // Much below benchmark - high opportunity
   };
 
   return (
@@ -518,19 +524,19 @@ export function WhiteSpaceMatrix({
           <CardContent>
             <div className="grid grid-cols-4 gap-4">
               <div>
-                <div className="text-sm text-gray-600 mb-1">Conversion Rate</div>
+                <div className="text-sm text-gray-600 mb-1">Current Coverage</div>
                 <div className="text-2xl font-bold text-blue-600">
-                  {(selectedCellData.conversionRate * 100).toFixed(1)}%
+                  {(selectedCellData.currentCoverage * 100).toFixed(1)}%
                 </div>
               </div>
               <div>
-                <div className="text-sm text-gray-600 mb-1">Benchmark</div>
+                <div className="text-sm text-gray-600 mb-1">Target Benchmark</div>
                 <div className="text-2xl font-bold text-gray-600">
                   {(selectedCellData.benchmark * 100).toFixed(1)}%
                 </div>
               </div>
               <div>
-                <div className="text-sm text-gray-600 mb-1">Potential Customers</div>
+                <div className="text-sm text-gray-600 mb-1">Missing Coverage</div>
                 <div className="text-2xl font-bold text-purple-600">
                   {selectedCellData.potentialCustomers.toLocaleString()}
                 </div>
@@ -552,11 +558,11 @@ export function WhiteSpaceMatrix({
           <div className="flex items-center gap-3">
             <div className={`w-2.5 h-2.5 rounded-full ${
               (() => {
-                const ratio = selectedCellData.conversionRate / selectedCellData.benchmark;
-                if (ratio >= 2.0) return 'bg-emerald-500';
-                if (ratio >= 1.5) return 'bg-green-500';
-                if (ratio >= 1.0) return 'bg-amber-500';
-                if (ratio >= 0.7) return 'bg-orange-500';
+                const ratio = selectedCellData.currentCoverage / selectedCellData.benchmark;
+                if (ratio >= 1.2) return 'bg-emerald-500';
+                if (ratio >= 1.0) return 'bg-green-500';
+                if (ratio >= 0.8) return 'bg-amber-500';
+                if (ratio >= 0.5) return 'bg-orange-500';
                 return 'bg-red-500';
               })()
             }`} />
@@ -650,7 +656,7 @@ export function WhiteSpaceMatrix({
                         return (
                           <td key={toCategoryId} className="p-1">
                             <div 
-                              className={`h-20 rounded border cursor-pointer transition-all duration-200 p-2 ${getCellColor(cellData.conversionRate, cellData.benchmark)} ${
+                              className={`h-20 rounded border cursor-pointer transition-all duration-200 p-2 ${getCellColor(cellData.currentCoverage, cellData.benchmark)} ${
                                 selectedCellData?.fromCategory === (fromCategory?.name || fromCategoryId) && selectedCellData?.toCategory === (toCategory?.name || toCategoryId)
                                   ? 'ring-2 ring-blue-500 ring-offset-1' 
                                   : ''
@@ -659,13 +665,13 @@ export function WhiteSpaceMatrix({
                             >
                               <div className="text-center h-full flex flex-col justify-center">
                                 <div className="text-lg font-bold text-gray-900">
-                                  {(cellData.conversionRate * 100).toFixed(0)}%
+                                  {(cellData.currentCoverage * 100).toFixed(0)}%
                                 </div>
                                 <div className="text-xs text-gray-600">
-                                  vs {(cellData.benchmark * 100).toFixed(0)}%
+                                  vs {(cellData.benchmark * 100).toFixed(0)}% target
                                 </div>
                                 <div className="text-xs text-gray-500 mt-1">
-                                  {cellData.potentialCustomers} customers
+                                  {cellData.potentialCustomers} missing
                                 </div>
                                 <div className="text-xs text-green-600 font-medium">
                                   €{Math.round(cellData.revenue / 1000)}k potential
