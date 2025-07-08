@@ -115,9 +115,154 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
     comments: ''
   });
 
+  // Smart Cross Sell states
+  const [activeAnalysis, setActiveAnalysis] = useState<'customer' | 'strategic' | 'custom' | null>(null);
+  const [analysisResults, setAnalysisResults] = useState<any[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState('');
 
+  // Analysis functions
+  const runCustomerAnalysis = async () => {
+    setIsAnalyzing(true);
+    setActiveAnalysis('customer');
+    
+    try {
+      // Simulate API call - replace with actual endpoint
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const mockResults = [
+        {
+          id: 1,
+          name: "Amazon CS Netherlands B.V.",
+          description: "E-commerce technology platform",
+          opportunities: 3,
+          totalPremium: "€296,128",
+          avgPremium: "€98,709",
+          crossSellPotential: "€45,200",
+          products: ["Cyber Security Dekking", "Bedrijfsschade Continuïteit", "Aansprakelijkheid Professionals"]
+        },
+        {
+          id: 2,
+          name: "Tech Innovations B.V.",
+          description: "Software development company",
+          opportunities: 2,
+          totalPremium: "€177,638",
+          avgPremium: "€88,819",
+          crossSellPotential: "€32,800",
+          products: ["Cyber Security Dekking", "Bedrijfsschade Continuïteit"]
+        },
+        {
+          id: 3,
+          name: "Modern Building Co.",
+          description: "Construction and real estate",
+          opportunities: 4,
+          totalPremium: "€92,468",
+          avgPremium: "€23,117",
+          crossSellPotential: "€28,500",
+          products: ["Aansprakelijkheid Professionals", "Bedrijfsschade Continuïteit", "Cyber Security Dekking", "Woonverzekering Plus"]
+        }
+      ];
+      
+      setAnalysisResults(mockResults);
+    } catch (error) {
+      console.error('Error running customer analysis:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
+  const runStrategicAnalysis = async () => {
+    setIsAnalyzing(true);
+    setActiveAnalysis('strategic');
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const mockResults = [
+        {
+          id: 1,
+          name: "Cyber Insurance Expansion",
+          description: "Growing demand for cyber insurance due to increasing digital threats",
+          priority: "High",
+          probability: "85%",
+          totalPremium: "€75,117",
+          avgPremium: "€37,559",
+          crossSellPotential: "€23,123",
+          products: ["Cyber Security Dekking", "Data Protection Plus"]
+        },
+        {
+          id: 2,
+          name: "ESG Insurance Products",
+          description: "Capitalize on growing demand for ESG-compliant products",
+          priority: "High",
+          probability: "80%",
+          totalPremium: "€354,348",
+          avgPremium: "€88,587",
+          crossSellPotential: "€23,075",
+          products: ["Bewust Pensioen Plus Regeling", "Duurzame Bedrijfsverzekering"]
+        },
+        {
+          id: 3,
+          name: "SME Insurance Solutions",
+          description: "Tailored insurance packages for SMEs addressing specific business risks",
+          priority: "Medium",
+          probability: "70%",
+          totalPremium: "€612,032",
+          avgPremium: "€87,433",
+          crossSellPotential: "€12,826",
+          products: ["Bedrijfsschade Continuïteit", "KMO Pakket Plus", "Aansprakelijkheid Professionals"]
+        }
+      ];
+      
+      setAnalysisResults(mockResults);
+    } catch (error) {
+      console.error('Error running strategic analysis:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
+  const runCustomAnalysis = async () => {
+    if (!customPrompt.trim()) return;
+    
+    setIsAnalyzing(true);
+    setActiveAnalysis('custom');
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const mockResults = [
+        {
+          id: 1,
+          name: "Renewable Energy Insurance",
+          description: "Insurance solutions for solar and wind energy projects",
+          priority: "High",
+          probability: "75%",
+          totalPremium: "€444,372",
+          avgPremium: "€88,874",
+          crossSellPotential: "€35,600",
+          products: ["Technische Verzekering", "Aansprakelijkheid Professionals", "Bedrijfsschade Continuïteit"]
+        },
+        {
+          id: 2,
+          name: "Construction Tech Solutions",
+          description: "Specialized coverage for construction technology companies",
+          priority: "Medium",
+          probability: "65%",
+          totalPremium: "€641,351",
+          avgPremium: "€106,892",
+          crossSellPotential: "€28,200",
+          products: ["Cyber Security Dekking", "Technische Verzekering", "Aansprakelijkheid Professionals"]
+        }
+      ];
+      
+      setAnalysisResults(mockResults);
+    } catch (error) {
+      console.error('Error running custom analysis:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const { data: portfolioData, isLoading } = useQuery<PortfolioData>({
     queryKey: [`/api/${envId}/${entityType}/${entityId}/portfolio-overview`],
@@ -672,6 +817,250 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
         </div>
       )}
 
+      {/* Smart Cross Sell Section */}
+      <div className="space-y-6 mt-8">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold text-gray-900">Smart Cross Sell</h2>
+          {activeAnalysis && (
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setActiveAnalysis(null);
+                setAnalysisResults([]);
+              }}
+              className="text-sm"
+            >
+              Back to overview
+            </Button>
+          )}
+        </div>
+        
+        {!activeAnalysis ? (
+          // Summary Cards
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Customer Cross-Sell Opportunities */}
+            <Card 
+              className="border border-[#E6E7F1] bg-white p-6 cursor-pointer hover:shadow-md transition-shadow"
+              onClick={runCustomerAnalysis}
+            >
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center text-[#282A3F] text-lg">
+                  <Target className="w-5 h-5 mr-2 text-[#5567E5]" />
+                  Customer Cross-Sell Opportunities
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-sm text-gray-600 mb-4">
+                  AI analysis of your customer portfolio to identify high-value cross-sell opportunities
+                </div>
+                
+                <div className="text-center py-8">
+                  <div className="text-4xl font-bold text-[#5567E5] mb-2">€106,500</div>
+                  <div className="text-sm text-gray-500">Total potential identified</div>
+                  <div className="text-sm text-gray-500 mt-1">3 customers with opportunities</div>
+                </div>
+
+                <div className="pt-4 border-t border-[#E6E7F1]">
+                  <div className="flex items-center justify-center text-sm text-[#5567E5] font-medium">
+                    <Play className="w-4 h-4 mr-2" />
+                    Click to analyze
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Strategic Opportunities Analysis */}
+            <Card 
+              className="border border-[#E6E7F1] bg-white p-6 cursor-pointer hover:shadow-md transition-shadow"
+              onClick={runStrategicAnalysis}
+            >
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center text-[#282A3F] text-lg">
+                  <TrendingUp className="w-5 h-5 mr-2 text-[#5567E5]" />
+                  Strategic Opportunities
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-sm text-gray-600 mb-4">
+                  AI-powered market analysis combined with portfolio context to identify strategic growth opportunities
+                </div>
+                
+                <div className="text-center py-8">
+                  <div className="text-4xl font-bold text-[#5567E5] mb-2">€59,024</div>
+                  <div className="text-sm text-gray-500">Strategic value potential</div>
+                  <div className="text-sm text-gray-500 mt-1">3 high-priority opportunities</div>
+                </div>
+
+                <div className="pt-4 border-t border-[#E6E7F1]">
+                  <div className="flex items-center justify-center text-sm text-[#5567E5] font-medium">
+                    <Play className="w-4 h-4 mr-2" />
+                    Click to analyze
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Custom Prompt Analysis */}
+            <Card className="border border-[#E6E7F1] bg-white p-6">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center text-[#282A3F] text-lg">
+                  <Zap className="w-5 h-5 mr-2 text-[#5567E5]" />
+                  Custom Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-sm text-gray-600 mb-4">
+                  Generate custom cross-sell opportunities based on your specific prompt and portfolio analysis
+                </div>
+                
+                <div className="space-y-3">
+                  <Textarea
+                    placeholder="Describe what type of cross-sell opportunities you want to explore... (e.g., 'Focus on renewable energy insurance for construction companies')"
+                    className="min-h-[100px] resize-none border-[#E6E7F1] focus:border-[#5567E5] focus:ring-[#5567E5]"
+                    value={customPrompt}
+                    onChange={(e) => setCustomPrompt(e.target.value)}
+                  />
+                  
+                  <Button 
+                    className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white"
+                    onClick={runCustomAnalysis}
+                    disabled={!customPrompt.trim()}
+                  >
+                    <Zap className="w-4 h-4 mr-2" />
+                    Generate custom analysis
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          // Analysis Results
+          <div className="space-y-6">
+            {isAnalyzing ? (
+              <div className="text-center py-12">
+                <div className="inline-flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#5567E5]"></div>
+                  <span className="text-lg text-gray-600">Analyzing portfolio...</span>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Analysis Header */}
+                <div className="bg-[#F8F9FA] rounded-lg p-4 border border-[#E6E7F1]">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-[#282A3F] text-lg">
+                        {activeAnalysis === 'customer' && 'Customer Cross-Sell Analysis'}
+                        {activeAnalysis === 'strategic' && 'Strategic Opportunities Analysis'}
+                        {activeAnalysis === 'custom' && 'Custom Analysis Results'}
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {activeAnalysis === 'customer' && 'Customers with highest cross-sell potential'}
+                        {activeAnalysis === 'strategic' && 'Market-driven strategic opportunities'}
+                        {activeAnalysis === 'custom' && `Results based on: "${customPrompt}"`}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-[#5567E5]">{analysisResults.length}</div>
+                      <div className="text-sm text-gray-500">opportunities</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Structured Results List - Similar to Product Categories */}
+                <div className="bg-white rounded-lg border border-[#E6E7F1]">
+                  <div className="p-4 border-b border-[#E6E7F1]">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-[#282A3F] text-lg">
+                        {activeAnalysis === 'customer' && `Customer Opportunities (${analysisResults.length})`}
+                        {activeAnalysis === 'strategic' && `Strategic Opportunities (${analysisResults.length})`}
+                        {activeAnalysis === 'custom' && `Custom Analysis (${analysisResults.length})`}
+                      </h3>
+                      <div className="text-sm text-gray-500">
+                        Total value: {analysisResults.reduce((sum, result) => {
+                          const value = parseInt(result.crossSellPotential.replace(/[€,]/g, ''));
+                          return sum + value;
+                        }, 0).toLocaleString('nl-NL', { style: 'currency', currency: 'EUR' })}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="divide-y divide-[#E6E7F1]">
+                    {analysisResults.map((result, index) => (
+                      <div key={result.id} className="p-6 hover:bg-[#F8F9FA] transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <div className="w-3 h-3 bg-[#5567E5] rounded-full"></div>
+                              <h4 className="font-semibold text-[#282A3F] text-lg">{result.name}</h4>
+                              {result.priority && (
+                                <Badge 
+                                  variant="outline" 
+                                  className={
+                                    result.priority === 'High' 
+                                      ? 'bg-red-50 text-red-600 border-red-200' 
+                                      : 'bg-yellow-50 text-yellow-600 border-yellow-200'
+                                  }
+                                >
+                                  {result.priority}
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-600 mb-3">{result.description}</p>
+                            
+                            <div className="flex flex-wrap gap-2 mb-3">
+                              {result.products.map((product: string, idx: number) => (
+                                <Badge key={idx} variant="outline" className="text-xs bg-[#F8F9FA] text-gray-700">
+                                  {product}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="text-right space-y-2 ml-6">
+                            <div className="grid grid-cols-3 gap-6 text-center">
+                              <div>
+                                <div className="text-lg font-semibold text-[#5567E5]">
+                                  {activeAnalysis === 'customer' ? result.opportunities : result.probability}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {activeAnalysis === 'customer' ? 'Opportunities' : 'Probability'}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="text-lg font-semibold text-green-600">{result.totalPremium}</div>
+                                <div className="text-xs text-gray-500">Total Premium</div>
+                              </div>
+                              <div>
+                                <div className="text-lg font-semibold text-[#5567E5]">{result.avgPremium}</div>
+                                <div className="text-xs text-gray-500">Avg Premium</div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center justify-between pt-2 border-t border-[#E6E7F1]">
+                              <div className="text-sm text-gray-600">
+                                Potential: <span className="font-semibold text-[#5567E5]">{result.crossSellPotential}</span>
+                              </div>
+                              <Button 
+                                size="sm"
+                                className="bg-[#5567E5] hover:bg-[#4556D4] text-white ml-4"
+                                onClick={() => setIsModalOpen(true)}
+                              >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Creëer kans
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </div>
 
       {/* Creëer Kans Modal */}
       <Dialog open={modalOpen} onOpenChange={setModalOpen}>
