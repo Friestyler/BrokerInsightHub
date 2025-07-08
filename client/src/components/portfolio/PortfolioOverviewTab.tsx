@@ -514,76 +514,41 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
           const categoryTagStyle = getCategoryTagStyle(category.categoryColor, category.categoryName);
           
           return (
-            <Card key={category.categoryId} className="border border-[#E6E7F1] bg-white relative overflow-hidden transition-all duration-300 hover:shadow-lg">
-              {/* Gap count indicator */}
-              {gapCount > 0 && (
-                <div className="absolute top-3 right-3 text-xs font-medium text-gray-600">
-                  {gapCount} gaps
-                </div>
-              )}
-              
-              <CardContent className="p-6 text-center">
-                {/* Clean Circular Progress */}
-                <div className="relative w-20 h-20 mx-auto mb-4">
-                  <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 80 80">
-                    {/* Background circle */}
-                    <circle
-                      cx="40"
-                      cy="40"
-                      r="32"
-                      stroke="#E5E7EB"
-                      strokeWidth="6"
-                      fill="none"
+            <Card key={category.categoryId} className="border border-[#E6E7F1] bg-white">
+              <CardContent className="p-6">
+                {/* Clean List-style Layout */}
+                <div className="flex items-center justify-between">
+                  {/* Left side - Category info with bullet and name */}
+                  <div className="flex items-center space-x-3">
+                    <div
+                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: category.categoryColor }}
                     />
-                    {/* Progress circle with coverage performance color */}
-                    <circle
-                      cx="40"
-                      cy="40"
-                      r="32"
-                      stroke={coverageCircleColor}
-                      strokeWidth="6"
-                      fill="none"
-                      strokeDasharray={`${2 * Math.PI * 32}`}
-                      strokeDashoffset={`${2 * Math.PI * 32 * (1 - Math.min(category.coveragePercentage, 100) / 100)}`}
-                      strokeLinecap="round"
-                      className="transition-all duration-700 ease-out"
-                    />
-                  </svg>
-                  {/* Percentage text */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-lg font-bold text-gray-900">
+                    <div>
+                      <div className="text-lg font-bold text-gray-900">
+                        {category.categoryName}
+                      </div>
+                      <div className="text-sm text-gray-600">
+                        {category.productsCovered} of {category.totalProducts} products
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Right side - Coverage percentage and value */}
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-gray-900 mb-1">
                       {Math.round(category.coveragePercentage)}%
-                    </span>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {formatCurrency(category.currentPremium)} total value
+                    </div>
+                    {gapCount > 0 && (
+                      <div className="text-xs text-gray-500 mt-1">
+                        {gapCount} gaps • {formatCurrency(gapValue)} potential
+                      </div>
+                    )}
                   </div>
                 </div>
-                
-                {/* Category Name with Colored Bullet */}
-                <div className="mb-3 flex items-center justify-center space-x-2">
-                  <div
-                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: category.categoryColor }}
-                  />
-                  <span className="text-sm font-bold text-gray-700">
-                    {category.categoryName}
-                  </span>
-                </div>
-                
-                {/* Product Count */}
-                <p className="text-sm text-gray-600 mb-2">
-                  {category.productsCovered} of {category.totalProducts} products
-                </p>
-                
-                {/* Current Value */}
-                <p className="text-lg font-bold text-gray-900">
-                  {formatCurrency(category.currentPremium)}
-                </p>
-                
-                {/* Gap Information - subtle display */}
-                {gapCount > 0 && (
-                  <p className="text-xs text-gray-500 mt-2">
-                    Potential: {formatCurrency(gapValue)}
-                  </p>
-                )}
               </CardContent>
             </Card>
           );
