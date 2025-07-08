@@ -517,7 +517,8 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
           // Calculate customer coverage percentage: % of customers that have at least 1 product in this category
           const productsInCategory = productAssignments?.filter(p => p.parentCategoryName === category.categoryName) || [];
           const uniqueCustomersInCategory = new Set(productsInCategory.map(p => p.customerId)).size;
-          const totalCustomers = portfolioData?.summary?.totalCustomers || new Set(productAssignments?.map(p => p.customerId) || []).size;
+          // Get total unique customers across all product assignments for this partner
+          const totalCustomers = new Set(productAssignments?.map(p => p.customerId) || []).size;
           const customerCoveragePercentage = totalCustomers > 0 ? (uniqueCustomersInCategory / totalCustomers) * 100 : 0;
           
           const coverageCircleColor = getCoverageCircleColor(customerCoveragePercentage);
