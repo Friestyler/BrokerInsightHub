@@ -3544,33 +3544,16 @@ export default function PartnerDetail() {
               </div>
             )}
 
-            {/* Product Statistics Cards by Category */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {/* Integrated Category Overview & Filter Tags */}
+            <div className="bg-white rounded-lg border border-[#E6E7F1] p-6">
               {(() => {
-                // Get filtered products based on current filters
-                const filteredProducts = (assignedProducts as any[] || []).filter((product: any) => {
-                  const matchesSearch = !productSearchText || 
-                    product.productName?.toLowerCase().includes(productSearchText.toLowerCase()) ||
-                    product.productDescription?.toLowerCase().includes(productSearchText.toLowerCase());
-                  
-                  const matchesCategory = !selectedProductCategory || product.parentCategoryName === selectedProductCategory;
-                  
-                  const matchesPrice = !selectedPriceRange || (() => {
-                    const price = parseFloat(product.totalPremiumValue || product.avgPremiumValue || '0');
-                    switch(selectedPriceRange) {
-                      case '€0 - €50K': return price >= 0 && price <= 50000;
-                      case '€50K - €100K': return price > 50000 && price <= 100000;
-                      case '€100K - €150K': return price > 100000 && price <= 150000;
-                      case '€150K+': return price > 150000;
-                      default: return true;
-                    }
-                  })();
-                  
-                  return matchesSearch && matchesCategory && matchesPrice;
-                });
+                // Get all products for statistics calculation
+                const allProducts = (assignedProducts as any[] || []);
+                const mainCategories = Array.isArray(allCategories) ? 
+                  allCategories.filter((cat: any) => cat.level === 1) : [];
 
-                // Group products by MAIN category and calculate statistics
-                const categoryStats = filteredProducts.reduce((acc: any, product: any) => {
+                // Calculate statistics for each category
+                const categoryStats = allProducts.reduce((acc: any, product: any) => {
                   const category = product.parentCategoryName || 'Other';
                   if (!acc[category]) {
                     acc[category] = {
@@ -3585,20 +3568,97 @@ export default function PartnerDetail() {
                   return acc;
                 }, {});
 
-                // Get top 4 categories by product count
-                const topCategories = Object.entries(categoryStats)
-                  .sort(([,a]: any, [,b]: any) => b.count - a.count)
-                  .slice(0, 4);
-
-                return topCategories.map(([category, stats]: any) => (
-                  <div key={category} className="bg-white p-4 rounded-md border border-gray-200">
-                    <div className="text-xl font-semibold text-[#282A3F]">{stats.count}</div>
-                    <div className="text-sm text-gray-500">{category}</div>
-                    <div className="text-xs text-gray-400 mt-1">
-                      €{stats.totalValue.toLocaleString()} total value
+                return (
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold text-gray-900">Product Categories</h3>
+                    
+                    {/* Interactive Category Filter Cards */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      {mainCategories.map((category: any) => {
+                        const stats = categoryStats[category.name] || { count: 0, totalValue: 0 };
+                        const isSelected = selectedProductCategory === category.name;
+                        const isActive = stats.count > 0;
+                        
+                        return (
+                          <button
+                            key={category.id}
+                            onClick={() => {
+                              setSelectedProductCategory(isSelected ? '' : category.name);
+                            }}
+                            className={`text-left p-4 rounded-lg border-2 transition-all duration-200 ${
+                              isSelected
+                                ? 'border-[#5567E5] bg-[#5567E5]/5 shadow-lg transform scale-105'
+                                : isActive
+                                  ? 'border-gray-200 bg-white hover:border-[#5567E5] hover:shadow-md'
+                                  : 'border-gray-100 bg-gray-50 opacity-60'
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center space-x-2">
+                                <div
+                                  className="w-3 h-3 rounded-full"
+                                  style={{ backgroundColor: category.color }}
+                                />
+                                <span className={`text-sm font-medium ${
+                                  isSelected ? 'text-[#5567E5]' : 'text-gray-700'
+                                }`}>
+                                  {category.name}
+                                </span>
+                              </div>
+                              {isSelected && (
+                                <div className="w-5 h-5 rounded-full bg-[#5567E5] flex items-center justify-center">
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                  </svg>
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div className="space-y-1">
+                              <div className={`text-2xl font-bold ${
+                                isSelected ? 'text-[#5567E5]' : isActive ? 'text-gray-900' : 'text-gray-400'
+                              }`}>
+                                {stats.count}
+                              </div>
+                              <div className={`text-xs ${
+                                isActive ? 'text-gray-600' : 'text-gray-400'
+                              }`}>
+                                €{stats.totalValue.toLocaleString()} total value
+                              </div>
+                              
+                              {!isActive && (
+                                <div className="text-xs text-orange-500 mt-2">
+                                  • Gap opportunity
+                                </div>
+                              )}
+                            </div>
+                          </button>
+                        );
+                      })}
                     </div>
+                    
+                    {/* Show totals when no filter is selected */}
+                    {!selectedProductCategory && (
+                      <div className="mt-4 p-4 bg-gray-50 rounded-lg">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-700">Total Portfolio</span>
+                          <div className="flex items-center space-x-6 text-sm">
+                            <div>
+                              <span className="font-semibold text-gray-900">{allProducts.length}</span>
+                              <span className="text-gray-500 ml-1">products</span>
+                            </div>
+                            <div>
+                              <span className="font-semibold text-gray-900">
+                                €{Object.values(categoryStats).reduce((sum: number, cat: any) => sum + cat.totalValue, 0).toLocaleString()}
+                              </span>
+                              <span className="text-gray-500 ml-1">total value</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
-                ));
+                );
               })()}
             </div>
 
@@ -3665,47 +3725,6 @@ export default function PartnerDetail() {
 
                 return (
                   <div className="space-y-4">
-                    {/* Category Navigation Tags */}
-                    <div className="flex flex-wrap gap-2 p-4 bg-gray-50 rounded-lg">
-                      {mainCategories.map((category: any) => {
-                        const hasProducts = productsByCategory[category.name] && productsByCategory[category.name].length > 0;
-                        const productCount = hasProducts ? productsByCategory[category.name].length : 0;
-                        
-                        return (
-                          <button
-                            key={category.id}
-                            onClick={() => {
-                              setSelectedProductCategory(selectedProductCategory === category.name ? '' : category.name);
-                            }}
-                            className={`inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                              selectedProductCategory === category.name
-                                ? 'text-white'
-                                : hasProducts
-                                  ? 'bg-white text-gray-800 hover:bg-gray-100 border border-gray-200'
-                                  : 'bg-gray-100 text-gray-400 border border-gray-200 opacity-60'
-                            }`}
-                            style={{
-                              backgroundColor: selectedProductCategory === category.name ? category.color : undefined,
-                              borderColor: hasProducts ? category.color : undefined
-                            }}
-                          >
-                            <div
-                              className="w-2 h-2 rounded-full mr-2"
-                              style={{ backgroundColor: category.color }}
-                            />
-                            {category.name}
-                            <span className={`ml-2 text-xs px-1.5 py-0.5 rounded-full ${
-                              hasProducts ? 'bg-green-100 text-green-800' : 'bg-gray-200 text-gray-500'
-                            }`}>
-                              {productCount}
-                            </span>
-                            {!hasProducts && (
-                              <span className="ml-1 text-xs opacity-60">• Blind spot</span>
-                            )}
-                          </button>
-                        );
-                      })}
-                    </div>
 
                     {/* Products by Category */}
                     {Object.keys(productsByCategory).length > 0 ? (
