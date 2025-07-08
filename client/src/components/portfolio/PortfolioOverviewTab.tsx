@@ -312,16 +312,60 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
 
   const getCoverageColor = (percentage: number) => {
     if (percentage >= 80) return 'text-green-600';
-    if (percentage >= 60) return 'text-blue-600';
-    if (percentage >= 40) return 'text-yellow-600';
+    if (percentage >= 30) return 'text-orange-600';
     return 'text-red-600';
   };
 
   const getCoverageProgressColor = (percentage: number) => {
     if (percentage >= 80) return 'bg-green-500';
-    if (percentage >= 60) return 'bg-blue-500';
-    if (percentage >= 40) return 'bg-yellow-500';
+    if (percentage >= 30) return 'bg-orange-500';
     return 'bg-red-500';
+  };
+
+  // Apple/Google style color system that blends category color with coverage performance
+  const getCategoryColorWithCoverage = (categoryColor: string, coveragePercentage: number) => {
+    // Map category colors to their base values for consistency
+    const categoryColorMap: { [key: string]: string } = {
+      'Blue': '#3B82F6',
+      'Green': '#10B981',
+      'Orange': '#F59E0B',
+      'Purple': '#8B5CF6',
+      'Red': '#EF4444',
+      'Cyan': '#06B6D4',
+      'Lime': '#84CC16',
+      'Amber': '#F59E0B',
+      'Pink': '#EC4899',
+      'Gray': '#6B7280'
+    };
+
+    // Get the base category color
+    const baseColor = categoryColorMap[categoryColor] || categoryColor || '#6B7280';
+    
+    // Create coverage performance overlay
+    if (coveragePercentage >= 80) {
+      // High coverage - use vibrant version of category color
+      return baseColor;
+    } else if (coveragePercentage >= 30) {
+      // Medium coverage - blend with orange/amber
+      return '#F59E0B'; // Use consistent orange for medium coverage
+    } else {
+      // Low coverage - use red tone
+      return '#EF4444'; // Use consistent red for low coverage
+    }
+  };
+
+  // Get background color for the circular progress cards
+  const getCategoryBackgroundColor = (categoryColor: string, coveragePercentage: number) => {
+    if (coveragePercentage >= 80) {
+      // High coverage - light green background
+      return 'bg-green-50';
+    } else if (coveragePercentage >= 30) {
+      // Medium coverage - light orange background
+      return 'bg-orange-50';
+    } else {
+      // Low coverage - light red background
+      return 'bg-red-50';
+    }
   };
 
   return (
@@ -338,12 +382,14 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
 
       </div>
 
-      {/* Key Metrics Summary Cards */}
+      {/* Key Metrics Summary Cards - Apollo Style */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border border-[#E6E7F1]">
+        <Card className="border border-[#E6E7F1] bg-white hover:shadow-lg transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex items-center">
-              <DollarSign className="w-8 h-8 text-green-600 bg-green-100 rounded-lg p-2" />
+              <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
+                <DollarSign className="w-6 h-6 text-green-600" />
+              </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Total Premium</p>
                 <p className="text-2xl font-bold text-gray-900">
@@ -354,10 +400,12 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
           </CardContent>
         </Card>
 
-        <Card className="border border-[#E6E7F1]">
+        <Card className="border border-[#E6E7F1] bg-white hover:shadow-lg transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex items-center">
-              <Package className="w-8 h-8 text-blue-600 bg-blue-100 rounded-lg p-2" />
+              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
+                <Package className="w-6 h-6 text-blue-600" />
+              </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Products Covered</p>
                 <p className="text-2xl font-bold text-gray-900">
@@ -368,10 +416,18 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
           </CardContent>
         </Card>
 
-        <Card className="border border-[#E6E7F1]">
+        <Card className="border border-[#E6E7F1] bg-white hover:shadow-lg transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex items-center">
-              <Target className="w-8 h-8 text-purple-600 bg-purple-100 rounded-lg p-2" />
+              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
+                portfolioData.summary.coveragePercentage >= 80 ? 'bg-green-50' :
+                portfolioData.summary.coveragePercentage >= 30 ? 'bg-orange-50' : 'bg-red-50'
+              }`}>
+                <Target className={`w-6 h-6 ${
+                  portfolioData.summary.coveragePercentage >= 80 ? 'text-green-600' :
+                  portfolioData.summary.coveragePercentage >= 30 ? 'text-orange-600' : 'text-red-600'
+                }`} />
+              </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Coverage Rate</p>
                 <p className={`text-2xl font-bold ${getCoverageColor(portfolioData.summary.coveragePercentage)}`}>
@@ -382,10 +438,12 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
           </CardContent>
         </Card>
 
-        <Card className="border border-[#E6E7F1]">
+        <Card className="border border-[#E6E7F1] bg-white hover:shadow-lg transition-all duration-300">
           <CardContent className="p-6">
             <div className="flex items-center">
-              <TrendingUp className="w-8 h-8 text-orange-600 bg-orange-100 rounded-lg p-2" />
+              <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
+                <TrendingUp className="w-6 h-6 text-amber-600" />
+              </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">Gap Opportunities</p>
                 <p className="text-2xl font-bold text-gray-900">
@@ -402,57 +460,91 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
         {portfolioData.categoryBreakdown.map((category) => {
           const gapCount = Math.max(0, category.totalProducts - category.productsCovered);
           const gapValue = category.gapValue || (gapCount * 50000); // Estimate gap value
+          const coverageColor = getCategoryColorWithCoverage(category.categoryColor, category.coveragePercentage);
+          const backgroundColorClass = getCategoryBackgroundColor(category.categoryColor, category.coveragePercentage);
           
           return (
-            <Card key={category.categoryId} className="border border-[#E6E7F1] bg-white relative overflow-hidden">
-              {/* Gap notification badge */}
-              {gapCount > 0 && (
-                <div className="absolute top-3 right-3 bg-red-500 text-white text-xs rounded-full w-6 h-6 flex items-center justify-center font-medium">
-                  {gapCount}
-                </div>
-              )}
+            <Card key={category.categoryId} className={`border border-[#E6E7F1] ${backgroundColorClass} relative overflow-hidden transition-all duration-300 hover:shadow-lg`}>
+              {/* Coverage status indicator */}
+              <div className="absolute top-3 right-3 flex items-center gap-1">
+                {category.coveragePercentage >= 80 && (
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                )}
+                {category.coveragePercentage >= 30 && category.coveragePercentage < 80 && (
+                  <div className="w-2 h-2 bg-orange-500 rounded-full"></div>
+                )}
+                {category.coveragePercentage < 30 && (
+                  <div className="w-2 h-2 bg-red-500 rounded-full"></div>
+                )}
+                {gapCount > 0 && (
+                  <span className="text-xs font-medium text-gray-600 ml-1">
+                    {gapCount}
+                  </span>
+                )}
+              </div>
               
               <CardContent className="p-6 text-center">
-                {/* Circular Progress */}
-                <div className="relative w-20 h-20 mx-auto mb-4">
-                  <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 80 80">
+                {/* Enhanced Circular Progress with Apollo-style design */}
+                <div className="relative w-24 h-24 mx-auto mb-4">
+                  <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 96 96">
                     {/* Background circle */}
                     <circle
-                      cx="40"
-                      cy="40"
-                      r="32"
+                      cx="48"
+                      cy="48"
+                      r="38"
                       stroke="#E5E7EB"
-                      strokeWidth="8"
+                      strokeWidth="6"
                       fill="none"
                     />
-                    {/* Progress circle */}
+                    {/* Progress circle with dynamic color */}
                     <circle
-                      cx="40"
-                      cy="40"
-                      r="32"
-                      stroke={category.categoryColor || '#6B7280'}
-                      strokeWidth="8"
+                      cx="48"
+                      cy="48"
+                      r="38"
+                      stroke={coverageColor}
+                      strokeWidth="6"
                       fill="none"
-                      strokeDasharray={`${2 * Math.PI * 32}`}
-                      strokeDashoffset={`${2 * Math.PI * 32 * (1 - Math.min(category.coveragePercentage, 100) / 100)}`}
+                      strokeDasharray={`${2 * Math.PI * 38}`}
+                      strokeDashoffset={`${2 * Math.PI * 38 * (1 - Math.min(category.coveragePercentage, 100) / 100)}`}
                       strokeLinecap="round"
-                      className="transition-all duration-500"
+                      className="transition-all duration-700 ease-out"
                     />
+                    {/* Subtle glow effect for high coverage */}
+                    {category.coveragePercentage >= 80 && (
+                      <circle
+                        cx="48"
+                        cy="48"
+                        r="38"
+                        stroke={coverageColor}
+                        strokeWidth="2"
+                        fill="none"
+                        strokeDasharray={`${2 * Math.PI * 38}`}
+                        strokeDashoffset={`${2 * Math.PI * 38 * (1 - Math.min(category.coveragePercentage, 100) / 100)}`}
+                        strokeLinecap="round"
+                        className="opacity-30 transition-all duration-700 ease-out"
+                      />
+                    )}
                   </svg>
-                  {/* Percentage text */}
+                  {/* Percentage text with dynamic color */}
                   <div className="absolute inset-0 flex items-center justify-center">
-                    <span className="text-lg font-bold text-gray-900">
+                    <span className={`text-xl font-bold ${getCoverageColor(category.coveragePercentage)}`}>
                       {Math.round(category.coveragePercentage)}%
                     </span>
                   </div>
                 </div>
                 
-                {/* Category Name */}
-                <h3 className="font-semibold text-gray-900 mb-2">{category.categoryName}</h3>
+                {/* Category Name with subtle color indicator */}
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <div 
+                    className="w-3 h-3 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: category.categoryColor || '#6B7280' }}
+                  ></div>
+                  <h3 className="font-semibold text-gray-900 text-sm">{category.categoryName}</h3>
+                </div>
                 
                 {/* Product Count */}
                 <p className="text-sm text-gray-600 mb-2">
-                  {category.productsCovered}/{category.totalProducts} products
+                  {category.productsCovered} of {category.totalProducts} products
                 </p>
                 
                 {/* Current Value */}
@@ -460,12 +552,24 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                   {formatCurrency(category.currentPremium)}
                 </p>
                 
-                {/* Gap Information */}
-                {gapCount > 0 && (
-                  <p className="text-sm text-gray-600">
-                    Gap: {formatCurrency(gapValue)}
-                  </p>
-                )}
+                {/* Performance Status */}
+                <div className="mt-2">
+                  {category.coveragePercentage >= 80 && (
+                    <Badge variant="outline" className="bg-green-100 text-green-800 border-green-200">
+                      Excellent
+                    </Badge>
+                  )}
+                  {category.coveragePercentage >= 30 && category.coveragePercentage < 80 && (
+                    <Badge variant="outline" className="bg-orange-100 text-orange-800 border-orange-200">
+                      Improving
+                    </Badge>
+                  )}
+                  {category.coveragePercentage < 30 && (
+                    <Badge variant="outline" className="bg-red-100 text-red-800 border-red-200">
+                      Needs Attention
+                    </Badge>
+                  )}
+                </div>
               </CardContent>
             </Card>
           );
