@@ -513,7 +513,14 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
           .map((category) => {
           const gapCount = Math.max(0, category.totalProducts - category.productsCovered);
           const gapValue = category.gapValue || (gapCount * 50000); // Estimate gap value
-          const coverageCircleColor = getCoverageCircleColor(category.coveragePercentage);
+          
+          // Calculate customer coverage percentage: % of customers that have at least 1 product in this category
+          const productsInCategory = productAssignments?.filter(p => p.parentCategoryName === category.categoryName) || [];
+          const uniqueCustomersInCategory = new Set(productsInCategory.map(p => p.customerId)).size;
+          const totalCustomers = portfolioData?.summary?.totalCustomers || new Set(productAssignments?.map(p => p.customerId) || []).size;
+          const customerCoveragePercentage = totalCustomers > 0 ? (uniqueCustomersInCategory / totalCustomers) * 100 : 0;
+          
+          const coverageCircleColor = getCoverageCircleColor(customerCoveragePercentage);
           const categoryTagStyle = getCategoryTagStyle(category.categoryColor, category.categoryName);
           
           const isSelected = categoryFilter === category.categoryName;
@@ -568,7 +575,7 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                       strokeWidth="6"
                       fill="none"
                       strokeDasharray={`${2 * Math.PI * 32}`}
-                      strokeDashoffset={`${2 * Math.PI * 32 * (1 - Math.min(category.coveragePercentage, 100) / 100)}`}
+                      strokeDashoffset={`${2 * Math.PI * 32 * (1 - Math.min(customerCoveragePercentage, 100) / 100)}`}
                       strokeLinecap="round"
                       className="transition-all duration-700 ease-out"
                     />
@@ -576,14 +583,14 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                   {/* Percentage text */}
                   <div className="absolute inset-0 flex items-center justify-center">
                     <span className="text-lg font-bold text-gray-900">
-                      {Math.round(category.coveragePercentage)}%
+                      {Math.round(customerCoveragePercentage)}%
                     </span>
                   </div>
                 </div>
                 
-                {/* Product Count */}
+                {/* Customer Coverage Info */}
                 <p className="text-sm text-gray-600 mb-2">
-                  {category.productsCovered} of {category.totalProducts} products
+                  {uniqueCustomersInCategory} of {totalCustomers} customers
                 </p>
                 
                 {/* Current Value */}
