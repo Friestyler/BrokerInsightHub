@@ -19,7 +19,7 @@ import EntityAvatar from "@/components/EntityAvatar";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import { useToast } from "@/hooks/use-toast";
 import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTab";
-import WhiteSpaceMatrix from "@/components/entity/WhiteSpaceMatrix";
+import { WhiteSpaceMatrix } from "@/components/entity/WhiteSpaceMatrixSimplified";
 
 export default function CustomerDetailNew() {
   const { id } = useParams();

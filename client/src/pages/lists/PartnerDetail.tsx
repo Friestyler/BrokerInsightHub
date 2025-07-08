@@ -22,7 +22,7 @@ import LogoUploadModal from "@/components/LogoUploadModal";
 import EntityAvatar from "@/components/EntityAvatar";
 import PartnerCampaignsView from "@/components/campaigns/PartnerCampaignsView";
 import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTab";
-import WhiteSpaceMatrix from "@/components/entity/WhiteSpaceMatrix";
+import { WhiteSpaceMatrix } from "@/components/entity/WhiteSpaceMatrixSimplified";
 import nnLogo from "@assets/NN.AS_1751813752232.png";
 
 export default function PartnerDetail() {
