@@ -334,7 +334,12 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
   };
 
   // Get category tag styling based on category color
-  const getCategoryTagStyle = (categoryColor: string) => {
+  const getCategoryTagStyle = (categoryColor: string, categoryName?: string) => {
+    // Special handling for "Schade Zakelijk" - always show as blue
+    if (categoryName === 'Schade Zakelijk') {
+      return 'bg-blue-100 text-blue-800 border-blue-200';
+    }
+    
     // Handle both color names and hex values
     const colorMap: { [key: string]: string } = {
       // Color names
@@ -342,7 +347,7 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
       'Green': 'bg-green-100 text-green-800 border-green-200',
       'Orange': 'bg-orange-100 text-orange-800 border-orange-200',
       'Purple': 'bg-purple-100 text-purple-800 border-purple-200',
-      'Red': 'bg-red-100 text-red-800 border-red-200',
+      'Red': 'bg-blue-100 text-blue-800 border-blue-200', // Changed red to blue to avoid confusion
       'Cyan': 'bg-cyan-100 text-cyan-800 border-cyan-200',
       'Lime': 'bg-lime-100 text-lime-800 border-lime-200',
       'Amber': 'bg-amber-100 text-amber-800 border-amber-200',
@@ -353,10 +358,9 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
       '#10B981': 'bg-green-100 text-green-800 border-green-200', // Green
       '#F59E0B': 'bg-orange-100 text-orange-800 border-orange-200', // Orange
       '#8B5CF6': 'bg-purple-100 text-purple-800 border-purple-200', // Purple
-      '#EF4444': 'bg-red-100 text-red-800 border-red-200', // Red
+      '#EF4444': 'bg-blue-100 text-blue-800 border-blue-200', // Changed red to blue
       '#06B6D4': 'bg-cyan-100 text-cyan-800 border-cyan-200', // Cyan
       '#84CC16': 'bg-lime-100 text-lime-800 border-lime-200', // Lime
-      '#F59E0B': 'bg-amber-100 text-amber-800 border-amber-200', // Amber
       '#EC4899': 'bg-pink-100 text-pink-800 border-pink-200', // Pink
       '#6B7280': 'bg-gray-100 text-gray-800 border-gray-200' // Gray
     };
@@ -381,6 +385,10 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
       }
       if (hex.includes('8b5cf6') || hex.includes('7c3aed') || hex.includes('6d28d9')) {
         return 'bg-purple-100 text-purple-800 border-purple-200';
+      }
+      // Map red hex colors to blue to avoid confusion
+      if (hex.includes('ef4444') || hex.includes('dc2626') || hex.includes('b91c1c')) {
+        return 'bg-blue-100 text-blue-800 border-blue-200';
       }
     }
     
@@ -481,7 +489,7 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
           const gapCount = Math.max(0, category.totalProducts - category.productsCovered);
           const gapValue = category.gapValue || (gapCount * 50000); // Estimate gap value
           const coverageCircleColor = getCoverageCircleColor(category.coveragePercentage);
-          const categoryTagStyle = getCategoryTagStyle(category.categoryColor);
+          const categoryTagStyle = getCategoryTagStyle(category.categoryColor, category.categoryName);
           
           return (
             <Card key={category.categoryId} className="border border-[#E6E7F1] bg-white relative overflow-hidden transition-all duration-300 hover:shadow-lg">
@@ -532,12 +540,6 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                   <Badge variant="outline" className={`${categoryTagStyle} text-xs font-medium`}>
                     {category.categoryName}
                   </Badge>
-                  {/* Debug: show actual color value */}
-                  {process.env.NODE_ENV === 'development' && (
-                    <div className="text-xs text-gray-400 mt-1">
-                      Color: {category.categoryColor || 'undefined'}
-                    </div>
-                  )}
                 </div>
                 
                 {/* Product Count */}
