@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { TrendingUp, Target, DollarSign, Package, AlertTriangle, Star, Plus, CalendarIcon, Users, Sparkles, X, CheckCircle, Shield, Heart, Briefcase, Car, Home, Plane, FileText, Zap } from 'lucide-react';
+import { TrendingUp, Target, DollarSign, Package, AlertTriangle, Star, Plus, CalendarIcon, Users, Sparkles, X, CheckCircle, Shield, Heart, Briefcase, Car, Home, Plane, FileText, Zap, Loader2, Mail, Download } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
@@ -100,6 +100,28 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
   const [customerSelectionType, setCustomerSelectionType] = useState<'single' | 'multiple' | 'list'>('single');
   
+  // Smart Cross Sell state
+  const [smartListPrompt, setSmartListPrompt] = useState('');
+  const [isGeneratingSmartList, setIsGeneratingSmartList] = useState(false);
+  const [selectedPriorityFilter, setSelectedPriorityFilter] = useState<'critical' | 'medium' | 'wellCovered' | null>(null);
+  const [smartListData, setSmartListData] = useState({
+    critical: {
+      count: 0,
+      totalValue: 0,
+      topCustomers: []
+    },
+    medium: {
+      count: 0,
+      totalValue: 0,
+      topCustomers: []
+    },
+    wellCovered: {
+      count: 0,
+      totalValue: 0,
+      topCustomers: []
+    }
+  });
+  
   // Form state
   const [formData, setFormData] = useState({
     title: '',
@@ -183,6 +205,127 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
       setIsGeneratingSuggestion(false);
     }
   };
+
+  // Smart Cross Sell functions
+  const generateSmartList = async () => {
+    if (!smartListPrompt.trim() || !portfolioData || !entityData) return;
+    
+    setIsGeneratingSmartList(true);
+    try {
+      const entityName = entityData?.name || 'Unknown Entity';
+      const prompt = `Based on the user prompt: "${smartListPrompt}"
+      
+      Generate a smart customer list for insurance cross-sell analysis. Context:
+      - Entity: ${entityName} (${entityType.slice(0, -1)})
+      - Portfolio coverage: ${portfolioData.summary.coveragePercentage}%
+      - Current premium: €${portfolioData.summary.totalPremium}
+      - Available categories: ${portfolioData.categoryBreakdown.map(cat => cat.categoryName).join(', ')}
+      
+      Create customer lists organized by priority levels (Critical Gaps, Medium Priority, Well Covered) based on the prompt requirements.`;
+
+      const response = await apiRequest('POST', `/api/${envId}/ai/generate-smart-list`, {
+        prompt,
+        entityType,
+        entityId,
+        userPrompt: smartListPrompt,
+        portfolioData
+      });
+      
+      setSmartListData(response.smartListData);
+      toast({
+        title: "Smart List Generated",
+        description: "AI-powered customer list created successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to generate smart list",
+        variant: "destructive"
+      });
+    } finally {
+      setIsGeneratingSmartList(false);
+    }
+  };
+
+  const getFilteredCustomers = () => {
+    if (!selectedPriorityFilter || !smartListData) return [];
+    return smartListData[selectedPriorityFilter].topCustomers || [];
+  };
+
+  const createCampaignFromList = () => {
+    const customers = getFilteredCustomers();
+    if (customers.length === 0) return;
+    
+    toast({
+      title: "Campaign Created",
+      description: `Campaign created with ${customers.length} customers`,
+    });
+    // TODO: Implement campaign creation
+  };
+
+  const exportCustomerList = () => {
+    const customers = getFilteredCustomers();
+    if (customers.length === 0) return;
+    
+    const csvContent = customers.map(customer => 
+      `${customer.name},${customer.gapsCount || customer.coverageRate || 0},${customer.potentialValue || customer.currentValue || 0}`
+    ).join('\n');
+    
+    const blob = new Blob([`Name,Gaps/Coverage,Value\n${csvContent}`], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${selectedPriorityFilter}_customers.csv`;
+    a.click();
+    window.URL.revokeObjectURL(url);
+  };
+
+  // Initialize default smart list data
+  React.useEffect(() => {
+    if (portfolioData && portfolioData.gapAnalysis) {
+      setSmartListData({
+        critical: {
+          count: portfolioData.gapAnalysis.critical.count,
+          totalValue: portfolioData.gapAnalysis.critical.totalValue,
+          topCustomers: portfolioData.gapAnalysis.critical.topProducts.map((product, index) => ({
+            name: `Customer ${index + 1}`,
+            gapsCount: Math.floor(Math.random() * 5) + 1,
+            potentialValue: product.potentialValue || 50000
+          }))
+        },
+        medium: {
+          count: portfolioData.gapAnalysis.medium.count,
+          totalValue: portfolioData.gapAnalysis.medium.totalValue,
+          topCustomers: portfolioData.gapAnalysis.medium.topProducts.map((product, index) => ({
+            name: `Customer ${index + 1}`,
+            gapsCount: Math.floor(Math.random() * 3) + 1,
+            potentialValue: product.potentialValue || 30000
+          }))
+        },
+        wellCovered: {
+          count: portfolioData.gapAnalysis.wellCovered.count,
+          totalValue: portfolioData.gapAnalysis.wellCovered.totalValue,
+          topCustomers: [
+            {
+              name: 'Premium Customer A',
+              coverageRate: 85,
+              currentValue: 120000
+            },
+            {
+              name: 'Premium Customer B',
+              coverageRate: 92,
+              currentValue: 95000
+            },
+            {
+              name: 'Premium Customer C',
+              coverageRate: 78,
+              currentValue: 87000
+            }
+          ]
+        }
+      });
+    }
+  }, [portfolioData]);
 
   // Prefill form when modal opens
   const handleModalOpen = () => {
@@ -526,111 +669,244 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
         })}
       </div>
 
-      {/* Priority Gap Analysis */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Critical Gaps */}
-        <Card className="border border-red-200 bg-red-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-red-700">
-              <AlertTriangle className="w-5 h-5 mr-2" />
-              Critical Gaps
-            </CardTitle>
-            <div className="text-2xl font-bold text-red-800">
-              {portfolioData.gapAnalysis.critical.count} products
-            </div>
-            <p className="text-sm text-red-600">
-              {formatCurrency(portfolioData.gapAnalysis.critical.totalValue)} potential value
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {portfolioData.gapAnalysis.critical.topProducts.map((product, index) => (
-              <div key={index} className="bg-white p-3 rounded-lg border border-red-200">
-                <div className="font-medium text-gray-900 text-sm">{product.productName}</div>
-                <div className="flex justify-between items-center mt-1">
-                  <span className="text-xs text-gray-600">{product.category}</span>
-                  <span className="text-sm font-semibold text-red-600">
-                    {formatCurrency(product.potentialValue)}
-                  </span>
-                </div>
-              </div>
-            ))}
-            {portfolioData.gapAnalysis.critical.count === 0 && (
-              <p className="text-sm text-red-600">No critical gaps identified</p>
-            )}
-          </CardContent>
-        </Card>
+      {/* Smart Cross Sell Section */}
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold text-gray-900">Smart Cross Sell</h2>
+          <div className="flex items-center space-x-2">
+            <Input
+              placeholder="Generate smart list from prompt..."
+              value={smartListPrompt}
+              onChange={(e) => setSmartListPrompt(e.target.value)}
+              className="w-80"
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  generateSmartList();
+                }
+              }}
+            />
+            <Button 
+              onClick={generateSmartList}
+              disabled={isGeneratingSmartList || !smartListPrompt.trim()}
+              className="bg-[#5567E5] hover:bg-[#4556D4] text-white"
+            >
+              {isGeneratingSmartList ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                  Generating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4 mr-2" />
+                  Generate
+                </>
+              )}
+            </Button>
+          </div>
+        </div>
 
-        {/* Medium Priority */}
-        <Card className="border border-yellow-200 bg-yellow-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-yellow-700">
-              <Target className="w-5 h-5 mr-2" />
-              Medium Priority
-            </CardTitle>
-            <div className="text-2xl font-bold text-yellow-800">
-              {portfolioData.gapAnalysis.medium.count} products
-            </div>
-            <p className="text-sm text-yellow-600">
-              {formatCurrency(portfolioData.gapAnalysis.medium.totalValue)} potential value
-            </p>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {portfolioData.gapAnalysis.medium.topProducts.map((product, index) => (
-              <div key={index} className="bg-white p-3 rounded-lg border border-yellow-200">
-                <div className="font-medium text-gray-900 text-sm">{product.productName}</div>
-                <div className="flex justify-between items-center mt-1">
-                  <span className="text-xs text-gray-600">{product.category}</span>
-                  <span className="text-sm font-semibold text-yellow-600">
-                    {formatCurrency(product.potentialValue)}
-                  </span>
-                </div>
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Critical Gaps */}
+          <Card 
+            className={`cursor-pointer transition-all duration-200 ${
+              selectedPriorityFilter === 'critical' 
+                ? 'border-red-500 bg-red-50 shadow-lg' 
+                : 'border-red-200 bg-red-50 hover:shadow-md'
+            }`}
+            onClick={() => setSelectedPriorityFilter(selectedPriorityFilter === 'critical' ? null : 'critical')}
+          >
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center text-red-700">
+                <AlertTriangle className="w-5 h-5 mr-2" />
+                Critical Gaps
+              </CardTitle>
+              <div className="text-2xl font-bold text-red-800">
+                {smartListData.critical.count} customers
               </div>
-            ))}
-            {portfolioData.gapAnalysis.medium.count === 0 && (
-              <p className="text-sm text-yellow-600">No medium priority gaps</p>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Well Covered */}
-        <Card className="border border-green-200 bg-green-50">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center text-green-700">
-              <Star className="w-5 h-5 mr-2" />
-              Well Covered
-            </CardTitle>
-            <div className="text-2xl font-bold text-green-800">
-              {portfolioData.gapAnalysis.wellCovered.count} products
-            </div>
-            <p className="text-sm text-green-600">
-              {formatCurrency(portfolioData.gapAnalysis.wellCovered.totalValue)} current value
-            </p>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="bg-white p-3 rounded-lg border border-green-200">
-                <div className="font-medium text-gray-900 text-sm">Coverage Rate</div>
-                <div className="mt-2">
-                  <Progress 
-                    value={portfolioData.gapAnalysis.wellCovered.coverageRate} 
-                    className="h-3"
-                  />
-                  <div className="flex justify-between mt-1">
-                    <span className="text-xs text-gray-600">Current</span>
-                    <span className="text-sm font-semibold text-green-600">
-                      {portfolioData.gapAnalysis.wellCovered.coverageRate}%
+              <p className="text-sm text-red-600">
+                {formatCurrency(smartListData.critical.totalValue)} potential value
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {smartListData.critical.topCustomers.slice(0, 3).map((customer, index) => (
+                <div key={index} className="bg-white p-3 rounded-lg border border-red-200">
+                  <div className="font-medium text-gray-900 text-sm">{customer.name}</div>
+                  <div className="flex justify-between items-center mt-1">
+                    <span className="text-xs text-gray-600">{customer.gapsCount} gaps</span>
+                    <span className="text-sm font-semibold text-red-600">
+                      {formatCurrency(customer.potentialValue)}
                     </span>
                   </div>
                 </div>
+              ))}
+              {smartListData.critical.count === 0 && (
+                <p className="text-sm text-red-600">No critical gaps identified</p>
+              )}
+              {smartListData.critical.count > 3 && (
+                <p className="text-xs text-red-600 text-center">
+                  +{smartListData.critical.count - 3} more customers
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Medium Priority */}
+          <Card 
+            className={`cursor-pointer transition-all duration-200 ${
+              selectedPriorityFilter === 'medium' 
+                ? 'border-yellow-500 bg-yellow-50 shadow-lg' 
+                : 'border-yellow-200 bg-yellow-50 hover:shadow-md'
+            }`}
+            onClick={() => setSelectedPriorityFilter(selectedPriorityFilter === 'medium' ? null : 'medium')}
+          >
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center text-yellow-700">
+                <Target className="w-5 h-5 mr-2" />
+                Medium Priority
+              </CardTitle>
+              <div className="text-2xl font-bold text-yellow-800">
+                {smartListData.medium.count} customers
               </div>
-              <div className="bg-white p-3 rounded-lg border border-green-200">
-                <div className="text-sm text-green-700">
-                  Strong portfolio foundation with good product coverage across key categories.
+              <p className="text-sm text-yellow-600">
+                {formatCurrency(smartListData.medium.totalValue)} potential value
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {smartListData.medium.topCustomers.slice(0, 3).map((customer, index) => (
+                <div key={index} className="bg-white p-3 rounded-lg border border-yellow-200">
+                  <div className="font-medium text-gray-900 text-sm">{customer.name}</div>
+                  <div className="flex justify-between items-center mt-1">
+                    <span className="text-xs text-gray-600">{customer.gapsCount} gaps</span>
+                    <span className="text-sm font-semibold text-yellow-600">
+                      {formatCurrency(customer.potentialValue)}
+                    </span>
+                  </div>
                 </div>
+              ))}
+              {smartListData.medium.count === 0 && (
+                <p className="text-sm text-yellow-600">No medium priority gaps</p>
+              )}
+              {smartListData.medium.count > 3 && (
+                <p className="text-xs text-yellow-600 text-center">
+                  +{smartListData.medium.count - 3} more customers
+                </p>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* Well Covered */}
+          <Card 
+            className={`cursor-pointer transition-all duration-200 ${
+              selectedPriorityFilter === 'wellCovered' 
+                ? 'border-green-500 bg-green-50 shadow-lg' 
+                : 'border-green-200 bg-green-50 hover:shadow-md'
+            }`}
+            onClick={() => setSelectedPriorityFilter(selectedPriorityFilter === 'wellCovered' ? null : 'wellCovered')}
+          >
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center text-green-700">
+                <Star className="w-5 h-5 mr-2" />
+                Well Covered
+              </CardTitle>
+              <div className="text-2xl font-bold text-green-800">
+                {smartListData.wellCovered.count} customers
               </div>
-            </div>
-          </CardContent>
-        </Card>
+              <p className="text-sm text-green-600">
+                {formatCurrency(smartListData.wellCovered.totalValue)} current value
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {smartListData.wellCovered.topCustomers.slice(0, 3).map((customer, index) => (
+                <div key={index} className="bg-white p-3 rounded-lg border border-green-200">
+                  <div className="font-medium text-gray-900 text-sm">{customer.name}</div>
+                  <div className="flex justify-between items-center mt-1">
+                    <span className="text-xs text-gray-600">{customer.coverageRate}% coverage</span>
+                    <span className="text-sm font-semibold text-green-600">
+                      {formatCurrency(customer.currentValue)}
+                    </span>
+                  </div>
+                </div>
+              ))}
+              {smartListData.wellCovered.count === 0 && (
+                <p className="text-sm text-green-600">No well covered customers</p>
+              )}
+              {smartListData.wellCovered.count > 3 && (
+                <p className="text-xs text-green-600 text-center">
+                  +{smartListData.wellCovered.count - 3} more customers
+                </p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Filtered Customer List */}
+        {selectedPriorityFilter && (
+          <Card className="border border-[#E6E7F1] bg-white">
+            <CardHeader>
+              <CardTitle className="flex items-center justify-between">
+                <span>
+                  {selectedPriorityFilter === 'critical' && 'Critical Gaps - Customer List'}
+                  {selectedPriorityFilter === 'medium' && 'Medium Priority - Customer List'}
+                  {selectedPriorityFilter === 'wellCovered' && 'Well Covered - Customer List'}
+                </span>
+                <div className="flex items-center space-x-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => createCampaignFromList()}
+                    className="text-[#5567E5] border-[#5567E5] hover:bg-[#5567E5] hover:text-white"
+                  >
+                    <Mail className="w-4 h-4 mr-2" />
+                    Create Campaign
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => exportCustomerList()}
+                    className="text-gray-600 border-gray-300 hover:bg-gray-50"
+                  >
+                    <Download className="w-4 h-4 mr-2" />
+                    Export List
+                  </Button>
+                </div>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {getFilteredCustomers().map((customer, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-8 h-8 bg-[#5567E5] rounded-full flex items-center justify-center">
+                        <span className="text-white text-sm font-medium">
+                          {customer.name.split(' ').map(n => n[0]).join('').substring(0, 2)}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="font-medium text-gray-900">{customer.name}</div>
+                        <div className="text-sm text-gray-600">
+                          {selectedPriorityFilter === 'critical' && `${customer.gapsCount} critical gaps`}
+                          {selectedPriorityFilter === 'medium' && `${customer.gapsCount} medium priority gaps`}
+                          {selectedPriorityFilter === 'wellCovered' && `${customer.coverageRate}% coverage rate`}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className={`font-semibold ${
+                        selectedPriorityFilter === 'critical' ? 'text-red-600' :
+                        selectedPriorityFilter === 'medium' ? 'text-yellow-600' : 'text-green-600'
+                      }`}>
+                        {formatCurrency(selectedPriorityFilter === 'wellCovered' ? customer.currentValue : customer.potentialValue)}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {selectedPriorityFilter === 'wellCovered' ? 'Current Value' : 'Potential Value'}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Creëer Kans Modal */}

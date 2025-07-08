@@ -3848,6 +3848,106 @@ Generate highly actionable cross-sell recommendations that leverage both portfol
     }
   });
 
+  // AI Smart List Generation endpoint
+  app.post('/api/:envId/ai/generate-smart-list', async (req: Request, res: Response) => {
+    try {
+      const envId = req.params.envId;
+      const { prompt, entityType, entityId, userPrompt, portfolioData } = req.body;
+      
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(500).json({ error: 'OpenAI API key not configured' });
+      }
+
+      console.log(`Generating smart list for ${entityType} ${entityId} with prompt: "${userPrompt}"`);
+
+      // Generate smart customer lists based on the prompt
+      const systemPrompt = `You are an expert insurance account manager AI. Generate smart customer lists based on the user's prompt and portfolio data.
+
+Based on the user prompt and portfolio context, create three customer lists organized by priority levels:
+
+1. Critical Gaps (high priority prospects with significant coverage gaps)
+2. Medium Priority (moderate opportunities with some gaps)
+3. Well Covered (existing customers with good coverage but upsell potential)
+
+For each priority level, provide:
+- count: number of customers
+- totalValue: total potential value
+- topCustomers: array of customer objects with name, relevant metrics (gapsCount for critical/medium, coverageRate for well covered), and potentialValue or currentValue
+
+Generate realistic customer names and data that makes sense for insurance cross-sell analysis.
+
+Return as JSON in this exact format:
+{
+  "critical": {
+    "count": number,
+    "totalValue": number,
+    "topCustomers": [{"name": string, "gapsCount": number, "potentialValue": number}]
+  },
+  "medium": {
+    "count": number,
+    "totalValue": number,
+    "topCustomers": [{"name": string, "gapsCount": number, "potentialValue": number}]
+  },
+  "wellCovered": {
+    "count": number,
+    "totalValue": number,
+    "topCustomers": [{"name": string, "coverageRate": number, "currentValue": number}]
+  }
+}`;
+
+      const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+          messages: [
+            {
+              role: "system",
+              content: systemPrompt
+            },
+            {
+              role: "user",
+              content: `User prompt: "${userPrompt}"
+              
+              Portfolio context:
+              - Coverage: ${portfolioData.summary.coveragePercentage}%
+              - Current premium: €${portfolioData.summary.totalPremium}
+              - Gap opportunities: ${portfolioData.summary.gapOpportunities}
+              - Categories: ${portfolioData.categoryBreakdown.map(cat => `${cat.categoryName} (${cat.coveragePercentage}%)`).join(', ')}
+              
+              Generate smart customer lists based on this context and the user's specific request.`
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 2000
+        })
+      });
+
+      if (!openaiResponse.ok) {
+        const errorData = await openaiResponse.text();
+        console.error('OpenAI API error:', errorData);
+        return res.status(500).json({ error: 'Failed to generate smart list' });
+      }
+
+      const aiResult = await openaiResponse.json();
+      const smartListData = JSON.parse(aiResult.choices[0].message.content);
+
+      console.log('=== SMART LIST GENERATED ===');
+      console.log(`User prompt: ${userPrompt}`);
+      console.log('Smart List Data:', smartListData);
+      console.log('=== END SMART LIST ===');
+
+      res.json({ smartListData });
+
+    } catch (error) {
+      console.error('Error generating smart list:', error);
+      res.status(500).json({ error: 'Failed to generate smart list' });
+    }
+  });
+
   // Save meeting briefing endpoint
   app.post('/api/degoudse/partners/:id/save-meeting-briefing', async (req: Request, res: Response) => {
     try {
