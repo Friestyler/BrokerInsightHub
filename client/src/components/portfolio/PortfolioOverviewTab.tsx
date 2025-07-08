@@ -438,9 +438,9 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {portfolioData.categoryBreakdown
           .sort((a, b) => {
-            // Sort "Overige / Specialistische Producten" to the end
-            if (a.categoryName === "Overige / Specialistische Producten") return 1;
-            if (b.categoryName === "Overige / Specialistische Producten") return -1;
+            // Sort "Overige" or "Overige / Specialistische Producten" to the end
+            if (a.categoryName === "Overige" || a.categoryName === "Overige / Specialistische Producten") return 1;
+            if (b.categoryName === "Overige" || b.categoryName === "Overige / Specialistische Producten") return -1;
             return 0;
           })
           .map((category) => {
