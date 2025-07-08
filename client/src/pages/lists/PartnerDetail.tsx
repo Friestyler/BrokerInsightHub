@@ -3331,107 +3331,7 @@ export default function PartnerDetail() {
             {/* List Tab */}
             {activeProductTab === "list" && (
               <div>
-                {/* Enhanced unified toolbar - Products version */}
-                <div className="bg-white p-4 rounded-lg shadow-sm">
-              {/* Single row with all controls */}
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                {/* Left side - Empty for clean layout */}
-                <div className="flex items-center gap-3">
-                </div>
-                
-                {/* Right side - Search and category filter */}
-                <div className="flex flex-wrap items-center gap-3 flex-grow justify-end">
-                  {/* Search field */}
-                  <div className="relative w-60">
-                    <input
-                      type="text"
-                      placeholder="Search products..."
-                      value={productSearchText}
-                      onChange={(e) => setProductSearchText(e.target.value)}
-                      className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
-                    />
-                    <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                      </svg>
-                    </button>
-                  </div>
-                  
-                  {/* Category Filter Dropdown */}
-                  <div className="relative">
-                    <button 
-                      className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
-                        selectedProductCategory 
-                          ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
-                          : 'border-gray-300 text-gray-700 hover:border-gray-400'
-                      }`}
-                      onClick={() => setShowProductCategoryDropdown(!showProductCategoryDropdown)}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                      </svg>
-                      <span>{selectedProductCategory ? `Category: ${selectedProductCategory}` : 'Category'}</span>
-                      {selectedProductCategory && (
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          width="14" 
-                          height="14" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2" 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          className="ml-2 hover:bg-indigo-100 rounded-full p-0.5 cursor-pointer"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setSelectedProductCategory("");
-                          }}
-                        >
-                          <path d="M18 6L6 18"></path>
-                          <path d="M6 6l12 12"></path>
-                        </svg>
-                      )}
-                    </button>
-                    
-                    {showProductCategoryDropdown && (
-                      <div className="absolute z-50 mt-1 w-48 rounded-md border border-gray-200 bg-white shadow-lg">
-                        <div className="p-1">
-                          {selectedProductCategory && (
-                            <button
-                              className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-md"
-                              onClick={() => {
-                                setSelectedProductCategory("");
-                                setShowProductCategoryDropdown(false);
-                              }}
-                            >
-                              Clear filter
-                            </button>
-                          )}
-                          {['Property', 'Liability', 'Cyber', 'Auto', 'Workers Comp', 'Marine', 'Executive'].map((category) => (
-                            <button
-                              key={category}
-                              className={`w-full text-left px-3 py-2 text-sm rounded-md ${
-                                selectedProductCategory === category 
-                                  ? 'bg-indigo-50 text-indigo-700' 
-                                  : 'text-gray-700 hover:bg-gray-50'
-                              }`}
-                              onClick={() => {
-                                setSelectedProductCategory(category);
-                                setShowProductCategoryDropdown(false);
-                              }}
-                            >
-                              {category}
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
+
 
             {/* Bulk actions bar for products - only visible when products are selected */}
             {selectedProducts.length > 0 && (
@@ -3517,7 +3417,101 @@ export default function PartnerDetail() {
 
                 return (
                   <div className="space-y-4">
-                    <h3 className="text-lg font-semibold text-gray-900">Product Categories</h3>
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-semibold text-gray-900">Product Categories</h3>
+                      
+                      {/* Search and Filter Controls */}
+                      <div className="flex items-center gap-3">
+                        {/* Search field */}
+                        <div className="relative w-60">
+                          <input
+                            type="text"
+                            placeholder="Search products..."
+                            value={productSearchText}
+                            onChange={(e) => setProductSearchText(e.target.value)}
+                            className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+                          />
+                          <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                              <circle cx="11" cy="11" r="8"></circle>
+                              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                          </button>
+                        </div>
+                        
+                        {/* Category Filter Dropdown */}
+                        <div className="relative">
+                          <button 
+                            className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                              selectedProductCategory 
+                                ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
+                                : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                            }`}
+                            onClick={() => setShowProductCategoryDropdown(!showProductCategoryDropdown)}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                            </svg>
+                            <span>{selectedProductCategory ? `Category: ${selectedProductCategory}` : 'Category'}</span>
+                            {selectedProductCategory && (
+                              <svg 
+                                xmlns="http://www.w3.org/2000/svg" 
+                                width="14" 
+                                height="14" 
+                                viewBox="0 0 24 24" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                strokeWidth="2" 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round" 
+                                className="ml-2 hover:bg-indigo-100 rounded-full p-0.5 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedProductCategory("");
+                                }}
+                              >
+                                <path d="M18 6L6 18"></path>
+                                <path d="M6 6l12 12"></path>
+                              </svg>
+                            )}
+                          </button>
+                          
+                          {showProductCategoryDropdown && (
+                            <div className="absolute z-50 mt-1 w-48 rounded-md border border-gray-200 bg-white shadow-lg">
+                              <div className="p-1">
+                                {selectedProductCategory && (
+                                  <button
+                                    className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-md"
+                                    onClick={() => {
+                                      setSelectedProductCategory("");
+                                      setShowProductCategoryDropdown(false);
+                                    }}
+                                  >
+                                    Clear filter
+                                  </button>
+                                )}
+                                {['Property', 'Liability', 'Cyber', 'Auto', 'Workers Comp', 'Marine', 'Executive'].map((category) => (
+                                  <button
+                                    key={category}
+                                    className={`w-full text-left px-3 py-2 text-sm rounded-md ${
+                                      selectedProductCategory === category 
+                                        ? 'bg-indigo-50 text-indigo-700' 
+                                        : 'text-gray-700 hover:bg-gray-50'
+                                    }`}
+                                    onClick={() => {
+                                      setSelectedProductCategory(category);
+                                      setShowProductCategoryDropdown(false);
+                                    }}
+                                  >
+                                    {category}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
                     
                     {/* Interactive Category Filter Cards */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
