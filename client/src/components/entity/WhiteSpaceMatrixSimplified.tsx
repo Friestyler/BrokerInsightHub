@@ -48,7 +48,7 @@ export function WhiteSpaceMatrix({
   const [selectedVerticalProducts, setSelectedVerticalProducts] = useState<string[]>([]);
   const [selectedCell, setSelectedCell] = useState<string | null>(null);
   const [selectedCellData, setSelectedCellData] = useState<SelectedCellData | null>(null);
-  const [showProductConfig, setShowProductConfig] = useState(true);
+  const [showProductConfig, setShowProductConfig] = useState(false);
   const [showBenchmarkConfig, setShowBenchmarkConfig] = useState(false);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const [collapsedSubcategories, setCollapsedSubcategories] = useState<Set<string>>(new Set());
