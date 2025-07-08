@@ -523,6 +523,17 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
               )}
               
               <CardContent className="p-6 text-center">
+                {/* Category Name with Colored Bullet - moved to top */}
+                <div className="mb-4 flex items-center justify-center space-x-2">
+                  <div
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: category.categoryColor }}
+                  />
+                  <span className="text-sm font-bold text-gray-700">
+                    {category.categoryName}
+                  </span>
+                </div>
+                
                 {/* Clean Circular Progress */}
                 <div className="relative w-20 h-20 mx-auto mb-4">
                   <svg className="w-20 h-20 transform -rotate-90" viewBox="0 0 80 80">
@@ -555,17 +566,6 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                       {Math.round(category.coveragePercentage)}%
                     </span>
                   </div>
-                </div>
-                
-                {/* Category Name with Colored Bullet */}
-                <div className="mb-3 flex items-center justify-center space-x-2">
-                  <div
-                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: category.categoryColor }}
-                  />
-                  <span className="text-sm font-bold text-gray-700">
-                    {category.categoryName}
-                  </span>
                 </div>
                 
                 {/* Product Count */}
