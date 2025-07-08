@@ -3335,61 +3335,8 @@ export default function PartnerDetail() {
                 <div className="bg-white p-4 rounded-lg shadow-sm">
               {/* Single row with all controls */}
               <div className="flex flex-wrap items-center justify-between gap-3">
-                {/* Left side - Lists heading and saved lists dropdown */}
+                {/* Left side - Empty for clean layout */}
                 <div className="flex items-center gap-3">
-                  {/* Lists heading */}
-                  <span className="text-base font-semibold text-gray-800">Lists</span>
-                  
-                  {/* Saved Lists dropdown */}
-                  <div className="relative">
-                    <button 
-                      className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
-                      onClick={() => setShowProductListsDropdown(!showProductListsDropdown)}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
-                        <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
-                      </svg>
-                      <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                        {activeProductList ? activeProductList.name : 'All products'}
-                      </span>
-                      <svg 
-                        xmlns="http://www.w3.org/2000/svg" 
-                        width="14" 
-                        height="14" 
-                        viewBox="0 0 24 24" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="2" 
-                        strokeLinecap="round" 
-                        strokeLinejoin="round" 
-                        className={`transition-transform ${showProductListsDropdown ? 'rotate-180' : ''}`}
-                      >
-                        <polyline points="6 9 12 15 18 9" />
-                      </svg>
-                    </button>
-                    
-                    {/* Dropdown menu */}
-                    {showProductListsDropdown && (
-                      <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                        <div className="p-2">
-                          {/* Default "All products" option */}
-                          <button
-                            className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
-                              !activeProductList ? 'bg-[#E1E4FB] text-[#3E4DC4]' : 'text-gray-700'
-                            }`}
-                            onClick={() => {
-                              setActiveProductList(null);
-                              setShowProductListsDropdown(false);
-                            }}
-                          >
-                            <div className="flex items-center space-x-2">
-                              <span>All products</span>
-                            </div>
-                          </button>
-                        </div>
-                      </div>
-                    )}
-                  </div>
                 </div>
                 
                 {/* Right side - Search and category filter */}
