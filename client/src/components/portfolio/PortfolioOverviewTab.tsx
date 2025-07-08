@@ -83,6 +83,10 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
   // Modal state
   const [isModalOpen, setIsModalOpen] = useState(false);
   
+  // Filter state for category selection
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [showProductsList, setShowProductsList] = useState(false);
+  
   // Use external modal state if provided, otherwise use internal state
   const modalOpen = externalModalOpen !== undefined ? externalModalOpen : isModalOpen;
   const setModalOpen = externalModalClose !== undefined ? 
@@ -294,6 +298,28 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
     queryKey: [`/api/${envId}/saved-lists?entity_type=customers`],
     enabled: isModalOpen
   });
+
+  // Fetch products for list view
+  const { data: entityProducts } = useQuery({
+    queryKey: [`/api/${envId}/${entityType}/${entityId}/products`],
+    enabled: !!entityId && showProductsList
+  });
+
+  // Filter products based on selected categories
+  const filteredProducts = entityProducts?.filter(product => {
+    if (selectedCategories.length === 0) return true;
+    return selectedCategories.includes(product.categoryName);
+  }) || [];
+
+  // Toggle category selection
+  const toggleCategory = (categoryName: string) => {
+    setSelectedCategories(prev => 
+      prev.includes(categoryName) 
+        ? prev.filter(name => name !== categoryName)
+        : [...prev, categoryName]
+    );
+    setShowProductsList(true);
+  };
 
   // AI suggestion generation
   const generateAISuggestion = async () => {
@@ -600,8 +626,18 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
           const coverageCircleColor = getCoverageCircleColor(category.coveragePercentage);
           const categoryTagStyle = getCategoryTagStyle(category.categoryColor, category.categoryName);
           
+          const isSelected = selectedCategories.includes(category.categoryName);
+          
           return (
-            <Card key={category.categoryId} className="border border-[#E6E7F1] bg-white relative overflow-hidden transition-all duration-300 hover:shadow-lg">
+            <Card 
+              key={category.categoryId} 
+              className={`border bg-white relative overflow-hidden transition-all duration-300 hover:shadow-lg cursor-pointer ${
+                isSelected 
+                  ? 'border-[#5567E5] bg-[#F5F6FE] shadow-md' 
+                  : 'border-[#E6E7F1] hover:border-[#D1D5DB]'
+              }`}
+              onClick={() => toggleCategory(category.categoryName)}
+            >
               {/* Gap count indicator moved to bottom right */}
               {gapCount > 0 && (
                 <div className="absolute bottom-3 right-3 text-xs font-medium text-gray-600">
@@ -676,6 +712,110 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
           );
         })}
       </div>
+
+      {/* Product List Section - Only show when categories are selected */}
+      {showProductsList && (
+        <div className="space-y-4 mt-8">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-semibold text-gray-900">
+              Products
+              {selectedCategories.length > 0 && (
+                <span className="ml-2 text-sm font-normal text-gray-500">
+                  {selectedCategories.length === 1 ? 
+                    `in ${selectedCategories[0]}` : 
+                    `in ${selectedCategories.length} categories`
+                  }
+                </span>
+              )}
+            </h3>
+            <div className="flex items-center space-x-2">
+              {selectedCategories.length > 0 && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedCategories([]);
+                    setShowProductsList(false);
+                  }}
+                >
+                  Clear filters
+                </Button>
+              )}
+              <span className="text-sm text-gray-500">
+                {filteredProducts.length} products
+              </span>
+            </div>
+          </div>
+
+          {/* Selected Category Tags */}
+          {selectedCategories.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {selectedCategories.map(category => (
+                <Badge 
+                  key={category} 
+                  variant="secondary" 
+                  className="bg-[#F5F6FE] text-[#5567E5] border-[#E1E4FB] hover:bg-[#E1E4FB]"
+                >
+                  {category}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="ml-2 h-auto p-0 hover:bg-transparent"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      toggleCategory(category);
+                    }}
+                  >
+                    <X className="w-3 h-3" />
+                  </Button>
+                </Badge>
+              ))}
+            </div>
+          )}
+
+          {/* Product List */}
+          <div className="bg-white border border-[#E6E7F1] rounded-lg">
+            {filteredProducts.length > 0 ? (
+              <div className="divide-y divide-[#E6E7F1]">
+                {filteredProducts.map((product, index) => (
+                  <div key={product.id} className="p-4 hover:bg-gray-50 transition-colors">
+                    <div className="flex items-center justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3">
+                          <h4 className="font-medium text-gray-900">{product.name}</h4>
+                          <Badge variant="outline" className="text-xs">
+                            {product.categoryName}
+                          </Badge>
+                        </div>
+                        {product.description && (
+                          <p className="text-sm text-gray-500 mt-1">{product.description}</p>
+                        )}
+                        <div className="flex items-center space-x-4 mt-2 text-xs text-gray-500">
+                          <span>ID: {product.productId}</span>
+                          <span>Provider: {product.provider}</span>
+                          {product.premiumValue && (
+                            <span>Premium: {formatCurrency(product.premiumValue)}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <Button variant="outline" size="sm">
+                          View Details
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="p-8 text-center text-gray-500">
+                <Package className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                <p>No products found in selected categories</p>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Smart Cross Sell Section */}
       <div className="space-y-6 mt-8">
