@@ -507,7 +507,14 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
 
       {/* Category Coverage Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {portfolioData.categoryBreakdown.map((category) => {
+        {portfolioData.categoryBreakdown
+          .sort((a, b) => {
+            // Sort "Overige / Specialistische Producten" to the end
+            if (a.categoryName === "Overige / Specialistische Producten") return 1;
+            if (b.categoryName === "Overige / Specialistische Producten") return -1;
+            return 0;
+          })
+          .map((category) => {
           const gapCount = Math.max(0, category.totalProducts - category.productsCovered);
           const gapValue = category.gapValue || (gapCount * 50000); // Estimate gap value
           const coverageCircleColor = getCoverageCircleColor(category.coveragePercentage);
@@ -515,9 +522,9 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
           
           return (
             <Card key={category.categoryId} className="border border-[#E6E7F1] bg-white relative overflow-hidden transition-all duration-300 hover:shadow-lg">
-              {/* Gap count indicator */}
+              {/* Gap count indicator moved to bottom right */}
               {gapCount > 0 && (
-                <div className="absolute top-3 right-3 text-xs font-medium text-gray-600">
+                <div className="absolute bottom-3 right-3 text-xs font-medium text-gray-600">
                   {gapCount} gaps
                 </div>
               )}
@@ -530,7 +537,7 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                     style={{ backgroundColor: category.categoryColor }}
                   />
                   <span className="text-sm font-bold text-gray-700">
-                    {category.categoryName}
+                    {category.categoryName === "Overige / Specialistische Producten" ? "Overige" : category.categoryName}
                   </span>
                 </div>
                 
