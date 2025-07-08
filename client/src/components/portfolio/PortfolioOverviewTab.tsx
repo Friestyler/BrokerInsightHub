@@ -432,78 +432,7 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
   return (
     <div className="space-y-6 p-6">
 
-      {/* Key Metrics Summary Cards - Apollo Style */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="border border-[#E6E7F1] bg-white hover:shadow-lg transition-all duration-300">
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-green-50 rounded-xl flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-green-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Total Premium</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(portfolioData.summary.totalPremium)}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card className="border border-[#E6E7F1] bg-white hover:shadow-lg transition-all duration-300">
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-blue-50 rounded-xl flex items-center justify-center">
-                <Package className="w-6 h-6 text-blue-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Products Covered</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {portfolioData.summary.productsCovered} / {portfolioData.summary.totalProducts}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-[#E6E7F1] bg-white hover:shadow-lg transition-all duration-300">
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${
-                portfolioData.summary.coveragePercentage >= 80 ? 'bg-green-50' :
-                portfolioData.summary.coveragePercentage >= 30 ? 'bg-orange-50' : 'bg-red-50'
-              }`}>
-                <Target className={`w-6 h-6 ${
-                  portfolioData.summary.coveragePercentage >= 80 ? 'text-green-600' :
-                  portfolioData.summary.coveragePercentage >= 30 ? 'text-orange-600' : 'text-red-600'
-                }`} />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Coverage Rate</p>
-                <p className={`text-2xl font-bold ${getCoverageColor(portfolioData.summary.coveragePercentage)}`}>
-                  {portfolioData.summary.coveragePercentage}%
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-[#E6E7F1] bg-white hover:shadow-lg transition-all duration-300">
-          <CardContent className="p-6">
-            <div className="flex items-center">
-              <div className="w-12 h-12 bg-amber-50 rounded-xl flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-amber-600" />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">Gap Opportunities</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {portfolioData.summary.gapOpportunities}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Category Coverage Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
