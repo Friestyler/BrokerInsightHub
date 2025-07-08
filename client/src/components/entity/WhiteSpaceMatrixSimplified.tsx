@@ -112,35 +112,36 @@ export function WhiteSpaceMatrix({
   const generateMatrixData = (from: string, to: string) => {
     if (from === to) return null;
     
-    // Generate consistent hash-based conversion rate (10-89%)
+    // Generate consistent hash for reproducible data
     const hash = from.charCodeAt(0) + to.charCodeAt(0) + from.length + to.length;
-    const baseConversionRate = 0.10 + (hash % 80) / 100; // 10-89%
     
-    // Apply user's conversion rate adjustment
-    const userConversionRate = conversionRate[0] / 100; // Convert from percentage
-    const adjustedConversionRate = Math.min(0.95, Math.max(0.05, baseConversionRate * (userConversionRate / 0.20))); // Adjust based on 20% baseline
-    
-    // Generate benchmark (independent market baseline)
+    // Benchmark: actual coverage percentage of customers with both product categories
     const benchmarkHash = (from.charCodeAt(0) * 7 + to.charCodeAt(0) * 11) % 100;
-    const benchmark = 0.30 + (benchmarkHash % 40) / 100; // 30-70%
+    const benchmark = 0.15 + (benchmarkHash % 35) / 100; // 15-50% realistic coverage
     
+    // User's conversion rate from slider
+    const userConversionRate = conversionRate[0] / 100; // Convert from percentage
+    
+    // Potential customers and revenue calculation
     const potentialCustomers = 50 + (hash % 200);
-    const adjustedRevenue = potentialCustomers * (1000 + (hash % 3000)) * adjustedConversionRate;
+    const potentialRevenue = potentialCustomers * (1000 + (hash % 3000)) * userConversionRate;
     
-    // Priority based on adjusted conversion rate
+    // Priority based on how conversion rate compares to benchmark
+    const conversionVsBenchmark = userConversionRate / benchmark;
     let priority = 'low';
-    if (adjustedConversionRate >= 0.70) priority = 'high';
-    else if (adjustedConversionRate >= 0.55) priority = 'medium';
-    else if (adjustedConversionRate >= 0.40) priority = 'medium';
+    if (conversionVsBenchmark >= 2.0) priority = 'high';      // 2x benchmark or more
+    else if (conversionVsBenchmark >= 1.5) priority = 'medium'; // 1.5x benchmark
+    else if (conversionVsBenchmark >= 1.0) priority = 'medium'; // At benchmark
     
     return {
       fromCategory: from,
       toCategory: to,
-      conversionRate: adjustedConversionRate,
+      conversionRate: userConversionRate,
       benchmark,
-      revenue: adjustedRevenue,
+      revenue: potentialRevenue,
       potentialCustomers,
-      priority
+      priority,
+      conversionVsBenchmark
     };
   };
 
