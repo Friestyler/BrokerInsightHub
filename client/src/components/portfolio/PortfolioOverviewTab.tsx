@@ -481,11 +481,7 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
           const categoryTagStyle = getCategoryTagStyle(category.categoryColor, category.categoryName);
           
           return (
-            <Card 
-              key={category.categoryId} 
-              className="bg-white relative overflow-hidden transition-all duration-300 hover:shadow-lg border-2"
-              style={{ borderColor: category.categoryColor || '#E6E7F1' }}
-            >
+            <Card key={category.categoryId} className="border border-[#E6E7F1] bg-white relative overflow-hidden transition-all duration-300 hover:shadow-lg">
               {/* Gap count indicator */}
               {gapCount > 0 && (
                 <div className="absolute top-3 right-3 text-xs font-medium text-gray-600">
