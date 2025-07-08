@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { TrendingUp, Target, DollarSign, Package, AlertTriangle, Star, Plus, CalendarIcon, Users, Sparkles, X, CheckCircle } from 'lucide-react';
+import { TrendingUp, Target, DollarSign, Package, AlertTriangle, Star, Plus, CalendarIcon, Users, Sparkles, X, CheckCircle, Shield, Heart, Briefcase, Car, Home, Plane, FileText, Zap } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
@@ -333,6 +333,39 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
     }
   };
 
+  // Helper function to get category-specific icon
+  const getCategoryIcon = (categoryName: string) => {
+    const name = categoryName.toLowerCase();
+    
+    if (name.includes('pensioen') || name.includes('pension')) {
+      return Heart; // Life/Pension insurance
+    }
+    if (name.includes('schade') || name.includes('damage') || name.includes('zakelijk') || name.includes('business')) {
+      return Briefcase; // Business insurance
+    }
+    if (name.includes('inkomen') || name.includes('income') || name.includes('collectief') || name.includes('collective')) {
+      return Shield; // Income/Collective insurance
+    }
+    if (name.includes('auto') || name.includes('car') || name.includes('vehicle')) {
+      return Car; // Auto insurance
+    }
+    if (name.includes('woon') || name.includes('home') || name.includes('huis') || name.includes('house')) {
+      return Home; // Home insurance
+    }
+    if (name.includes('reis') || name.includes('travel')) {
+      return Plane; // Travel insurance
+    }
+    if (name.includes('overige') || name.includes('other') || name.includes('specialistische')) {
+      return FileText; // Other/Specialized products
+    }
+    if (name.includes('services') || name.includes('diensten')) {
+      return Zap; // Services
+    }
+    
+    // Default fallback
+    return Shield;
+  };
+
   // Get category tag styling based on category color
   const getCategoryTagStyle = (categoryColor: string, categoryName?: string) => {
     // Special handling for "Schade Zakelijk" - always show as blue
@@ -524,12 +557,17 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                   </div>
                 </div>
                 
-                {/* Category Name with Colored Dot */}
+                {/* Category Name with Colored Icon */}
                 <div className="mb-3 flex items-center justify-center space-x-2">
-                  <div
-                    className="w-2 h-2 rounded-full"
-                    style={{ backgroundColor: category.categoryColor }}
-                  />
+                  {(() => {
+                    const IconComponent = getCategoryIcon(category.categoryName);
+                    return (
+                      <IconComponent
+                        className="w-4 h-4"
+                        style={{ color: category.categoryColor }}
+                      />
+                    );
+                  })()}
                   <span className="text-sm font-medium text-gray-700">
                     {category.categoryName}
                   </span>
