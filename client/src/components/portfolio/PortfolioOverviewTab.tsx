@@ -197,6 +197,20 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
     setShowProductsList(true);
   };
 
+  // Handle product selection
+  const handleProductSelection = (productId: string, isChecked: boolean) => {
+    if (isChecked) {
+      setSelectedProducts(prev => [...prev, productId]);
+    } else {
+      setSelectedProducts(prev => prev.filter(id => id !== productId));
+    }
+  };
+
+  // Clear selected products when category filter changes
+  useEffect(() => {
+    setSelectedProducts([]);
+  }, [categoryFilter]);
+
   // AI suggestion generation
   const generateAISuggestion = async () => {
     if (!entityData || !portfolioData) return;
@@ -672,31 +686,73 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
 
                   {/* Products in Category */}
                   <div className="divide-y divide-[#E6E7F1]">
-                    {products.map((product) => (
-                      <div key={product.productId} className="px-6 py-4 hover:bg-gray-50 transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center space-x-3">
-                              <h4 className="font-medium text-gray-900">{product.productName}</h4>
+                    {products.map((product) => {
+                      const contractEnd = product.latestContractEnd ? new Date(product.latestContractEnd) : null;
+                      const today = new Date();
+                      const isExpired = contractEnd && contractEnd < today;
+                      const yearsLeft = contractEnd ? Math.max(0, Math.ceil((contractEnd.getTime() - today.getTime()) / (365.25 * 24 * 60 * 60 * 1000))) : 0;
+                      
+                      return (
+                        <div key={product.productId} className="px-6 py-4 hover:bg-gray-50 transition-colors">
+                          <div className="flex items-start justify-between">
+                            <div className="flex items-start space-x-3">
+                              {/* Checkbox - only show when category is selected */}
+                              {categoryFilter !== 'all' && (
+                                <input
+                                  type="checkbox"
+                                  className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                                  checked={selectedProducts.includes(product.productId.toString())}
+                                  onChange={(e) => {
+                                    handleProductSelection(product.productId.toString(), e.target.checked);
+                                  }}
+                                />
+                              )}
+                              
+                              <div className="flex-1">
+                                <h4 className="font-semibold text-gray-900 mb-1">{product.productName}</h4>
+                                {product.productDescription && (
+                                  <p className="text-sm text-gray-500 mb-3">{product.productDescription}</p>
+                                )}
+                              </div>
                             </div>
-                            {product.productDescription && (
-                              <p className="text-sm text-gray-500 mt-1">{product.productDescription}</p>
-                            )}
-                            <div className="flex items-center space-x-6 mt-2 text-sm text-gray-500">
-                              <span>{product.customerCount || 0} Customers</span>
-                              <span>Total Premium: {formatCurrency(parseInt(product.totalPremiumValue) || 0)}</span>
-                              <span>Avg Premium: {formatCurrency(parseFloat(product.avgPremiumValue) || 0)}</span>
-                              <span className="text-right">
-                                {product.latestContractEnd ? 
-                                  `${new Date(product.latestContractEnd).toLocaleDateString('en-GB')} | Latest Expiry` :
-                                  'No contract end date'
-                                }
-                              </span>
+                            
+                            {/* Right side data points */}
+                            <div className="flex items-center space-x-8 text-sm">
+                              <div className="text-center">
+                                <div className="font-semibold text-blue-600">{product.customerCount || 0}</div>
+                                <div className="text-gray-500">Customers</div>
+                              </div>
+                              
+                              <div className="text-center">
+                                <div className="font-semibold text-green-600">{formatCurrency(parseInt(product.totalPremiumValue) || 0)}</div>
+                                <div className="text-gray-500">Total Premium</div>
+                              </div>
+                              
+                              <div className="text-center">
+                                <div className="font-semibold text-purple-600">{formatCurrency(parseFloat(product.avgPremiumValue) || 0)}</div>
+                                <div className="text-gray-500">Avg Premium</div>
+                              </div>
+                              
+                              <div className="text-center min-w-[100px]">
+                                {contractEnd ? (
+                                  <>
+                                    <div className={`font-semibold ${isExpired ? 'text-red-600' : 'text-gray-900'}`}>
+                                      {contractEnd.toLocaleDateString('en-GB')}
+                                    </div>
+                                    <div className={`text-sm ${isExpired ? 'text-red-600' : 'text-gray-500'}`}>
+                                      {isExpired ? 'Expired' : `${yearsLeft} years left`}
+                                    </div>
+                                    <div className="text-xs text-gray-400">Latest Expiry</div>
+                                  </>
+                                ) : (
+                                  <div className="text-gray-500">No expiry date</div>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               ))}
