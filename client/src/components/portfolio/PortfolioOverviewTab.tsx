@@ -185,11 +185,15 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
 
   // Toggle category selection
   const toggleCategory = (categoryName: string) => {
-    setSelectedCategories(prev => 
-      prev.includes(categoryName) 
-        ? prev.filter(name => name !== categoryName)
-        : [...prev, categoryName]
-    );
+    if (categoryFilter === categoryName) {
+      // If clicking on the same category, clear the filter
+      setCategoryFilter('all');
+      setSelectedCategories([]);
+    } else {
+      // If clicking on a different category, set it as the filter
+      setCategoryFilter(categoryName);
+      setSelectedCategories([categoryName]);
+    }
     setShowProductsList(true);
   };
 
@@ -498,7 +502,7 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
           const coverageCircleColor = getCoverageCircleColor(category.coveragePercentage);
           const categoryTagStyle = getCategoryTagStyle(category.categoryColor, category.categoryName);
           
-          const isSelected = selectedCategories.includes(category.categoryName);
+          const isSelected = categoryFilter === category.categoryName;
           
           return (
             <Card 
@@ -602,6 +606,18 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                 className="pl-10 w-80"
               />
             </div>
+            {/* Category filter badge */}
+            {categoryFilter !== 'all' && (
+              <div className="flex items-center space-x-2 bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm">
+                <span>Category: {categoryFilter}</span>
+                <button
+                  onClick={() => setCategoryFilter('all')}
+                  className="ml-1 text-blue-600 hover:text-blue-800"
+                >
+                  ×
+                </button>
+              </div>
+            )}
             <Select value={categoryFilter} onValueChange={setCategoryFilter}>
               <SelectTrigger className="w-48">
                 <SelectValue placeholder="Category" />
