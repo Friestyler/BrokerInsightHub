@@ -827,76 +827,94 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                   </div>
                 </div>
 
-                {/* Structured Results List */}
-                <div className="space-y-4">
-                  {analysisResults.map((result, index) => (
-                    <div key={result.id} className="bg-white rounded-lg border border-[#E6E7F1] p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-[#5567E5] rounded-full flex items-center justify-center">
-                            <span className="text-white font-medium">{index + 1}</span>
-                          </div>
-                          <div>
-                            <h4 className="font-semibold text-[#282A3F] text-lg">{result.name}</h4>
-                            <p className="text-sm text-gray-600">{result.description}</p>
-                          </div>
-                        </div>
-                        {result.priority && (
-                          <Badge 
-                            variant="outline" 
-                            className={
-                              result.priority === 'High' 
-                                ? 'bg-red-50 text-red-600 border-red-200' 
-                                : 'bg-yellow-50 text-yellow-600 border-yellow-200'
-                            }
-                          >
-                            {result.priority}
-                          </Badge>
-                        )}
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-                        <div className="text-center p-3 bg-[#F8F9FA] rounded-lg">
-                          <div className="text-lg font-semibold text-[#282A3F]">
-                            {activeAnalysis === 'customer' ? result.opportunities : result.probability}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {activeAnalysis === 'customer' ? 'Opportunities' : 'Probability'}
-                          </div>
-                        </div>
-                        <div className="text-center p-3 bg-[#F8F9FA] rounded-lg">
-                          <div className="text-lg font-semibold text-[#5567E5]">{result.totalPremium}</div>
-                          <div className="text-sm text-gray-500">Total Premium</div>
-                        </div>
-                        <div className="text-center p-3 bg-[#F8F9FA] rounded-lg">
-                          <div className="text-lg font-semibold text-[#5567E5]">{result.crossSellPotential}</div>
-                          <div className="text-sm text-gray-500">Cross-sell Potential</div>
-                        </div>
-                      </div>
-
-                      <div className="mb-4">
-                        <div className="text-sm font-medium text-gray-700 mb-2">Recommended Products:</div>
-                        <div className="flex flex-wrap gap-2">
-                          {result.products.map((product: string, idx: number) => (
-                            <Badge key={idx} variant="outline" className="text-xs">
-                              {product}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between pt-4 border-t border-[#E6E7F1]">
-                        <div className="text-sm text-gray-600">Avg Premium: {result.avgPremium}</div>
-                        <Button 
-                          className="bg-[#5567E5] hover:bg-[#4556D4] text-white"
-                          onClick={() => setIsModalOpen(true)}
-                        >
-                          <Plus className="w-4 h-4 mr-2" />
-                          Creëer kans
-                        </Button>
+                {/* Structured Results List - Similar to Product Categories */}
+                <div className="bg-white rounded-lg border border-[#E6E7F1]">
+                  <div className="p-4 border-b border-[#E6E7F1]">
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-semibold text-[#282A3F] text-lg">
+                        {activeAnalysis === 'customer' && `Customer Opportunities (${analysisResults.length})`}
+                        {activeAnalysis === 'strategic' && `Strategic Opportunities (${analysisResults.length})`}
+                        {activeAnalysis === 'custom' && `Custom Analysis (${analysisResults.length})`}
+                      </h3>
+                      <div className="text-sm text-gray-500">
+                        Total value: {analysisResults.reduce((sum, result) => {
+                          const value = parseInt(result.crossSellPotential.replace(/[€,]/g, ''));
+                          return sum + value;
+                        }, 0).toLocaleString('nl-NL', { style: 'currency', currency: 'EUR' })}
                       </div>
                     </div>
-                  ))}
+                  </div>
+
+                  <div className="divide-y divide-[#E6E7F1]">
+                    {analysisResults.map((result, index) => (
+                      <div key={result.id} className="p-6 hover:bg-[#F8F9FA] transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-3 mb-2">
+                              <div className="w-3 h-3 bg-[#5567E5] rounded-full"></div>
+                              <h4 className="font-semibold text-[#282A3F] text-lg">{result.name}</h4>
+                              {result.priority && (
+                                <Badge 
+                                  variant="outline" 
+                                  className={
+                                    result.priority === 'High' 
+                                      ? 'bg-red-50 text-red-600 border-red-200' 
+                                      : 'bg-yellow-50 text-yellow-600 border-yellow-200'
+                                  }
+                                >
+                                  {result.priority}
+                                </Badge>
+                              )}
+                            </div>
+                            <p className="text-sm text-gray-600 mb-3">{result.description}</p>
+                            
+                            <div className="flex flex-wrap gap-2 mb-3">
+                              {result.products.map((product: string, idx: number) => (
+                                <Badge key={idx} variant="outline" className="text-xs bg-[#F8F9FA] text-gray-700">
+                                  {product}
+                                </Badge>
+                              ))}
+                            </div>
+                          </div>
+
+                          <div className="text-right space-y-2 ml-6">
+                            <div className="grid grid-cols-3 gap-6 text-center">
+                              <div>
+                                <div className="text-lg font-semibold text-[#5567E5]">
+                                  {activeAnalysis === 'customer' ? result.opportunities : result.probability}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {activeAnalysis === 'customer' ? 'Opportunities' : 'Probability'}
+                                </div>
+                              </div>
+                              <div>
+                                <div className="text-lg font-semibold text-green-600">{result.totalPremium}</div>
+                                <div className="text-xs text-gray-500">Total Premium</div>
+                              </div>
+                              <div>
+                                <div className="text-lg font-semibold text-[#5567E5]">{result.avgPremium}</div>
+                                <div className="text-xs text-gray-500">Avg Premium</div>
+                              </div>
+                            </div>
+                            
+                            <div className="flex items-center justify-between pt-2 border-t border-[#E6E7F1]">
+                              <div className="text-sm text-gray-600">
+                                Potential: <span className="font-semibold text-[#5567E5]">{result.crossSellPotential}</span>
+                              </div>
+                              <Button 
+                                size="sm"
+                                className="bg-[#5567E5] hover:bg-[#4556D4] text-white ml-4"
+                                onClick={() => setIsModalOpen(true)}
+                              >
+                                <Plus className="w-4 h-4 mr-2" />
+                                Creëer kans
+                              </Button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </>
             )}
