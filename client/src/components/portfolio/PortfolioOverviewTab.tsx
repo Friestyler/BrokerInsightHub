@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { TrendingUp, Target, DollarSign, Package, AlertTriangle, Star, Plus, CalendarIcon, Users, X, CheckCircle, Shield, Heart, Briefcase, Car, Home, Plane, FileText, Zap } from 'lucide-react';
+import { TrendingUp, Target, DollarSign, Package, AlertTriangle, Star, Plus, CalendarIcon, Users, X, CheckCircle, Shield, Heart, Briefcase, Car, Home, Plane, FileText, Zap, Play } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
@@ -110,6 +110,155 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
     insuranceType: '',
     comments: ''
   });
+
+  // Smart Cross Sell states
+  const [activeAnalysis, setActiveAnalysis] = useState<'customer' | 'strategic' | 'custom' | null>(null);
+  const [analysisResults, setAnalysisResults] = useState<any[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState('');
+
+  // Analysis functions
+  const runCustomerAnalysis = async () => {
+    setIsAnalyzing(true);
+    setActiveAnalysis('customer');
+    
+    try {
+      // Simulate API call - replace with actual endpoint
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const mockResults = [
+        {
+          id: 1,
+          name: "Amazon CS Netherlands B.V.",
+          description: "E-commerce technology platform",
+          opportunities: 3,
+          totalPremium: "€296,128",
+          avgPremium: "€98,709",
+          crossSellPotential: "€45,200",
+          products: ["Cyber Security Dekking", "Bedrijfsschade Continuïteit", "Aansprakelijkheid Professionals"]
+        },
+        {
+          id: 2,
+          name: "Tech Innovations B.V.",
+          description: "Software development company",
+          opportunities: 2,
+          totalPremium: "€177,638",
+          avgPremium: "€88,819",
+          crossSellPotential: "€32,800",
+          products: ["Cyber Security Dekking", "Bedrijfsschade Continuïteit"]
+        },
+        {
+          id: 3,
+          name: "Modern Building Co.",
+          description: "Construction and real estate",
+          opportunities: 4,
+          totalPremium: "€92,468",
+          avgPremium: "€23,117",
+          crossSellPotential: "€28,500",
+          products: ["Aansprakelijkheid Professionals", "Bedrijfsschade Continuïteit", "Cyber Security Dekking", "Woonverzekering Plus"]
+        }
+      ];
+      
+      setAnalysisResults(mockResults);
+    } catch (error) {
+      console.error('Error running customer analysis:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const runStrategicAnalysis = async () => {
+    setIsAnalyzing(true);
+    setActiveAnalysis('strategic');
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const mockResults = [
+        {
+          id: 1,
+          name: "Cyber Insurance Expansion",
+          description: "Growing demand for cyber insurance due to increasing digital threats",
+          priority: "High",
+          probability: "85%",
+          totalPremium: "€75,117",
+          avgPremium: "€37,559",
+          crossSellPotential: "€23,123",
+          products: ["Cyber Security Dekking", "Data Protection Plus"]
+        },
+        {
+          id: 2,
+          name: "ESG Insurance Products",
+          description: "Capitalize on growing demand for ESG-compliant products",
+          priority: "High",
+          probability: "80%",
+          totalPremium: "€354,348",
+          avgPremium: "€88,587",
+          crossSellPotential: "€23,075",
+          products: ["Bewust Pensioen Plus Regeling", "Duurzame Bedrijfsverzekering"]
+        },
+        {
+          id: 3,
+          name: "SME Insurance Solutions",
+          description: "Tailored insurance packages for SMEs addressing specific business risks",
+          priority: "Medium",
+          probability: "70%",
+          totalPremium: "€612,032",
+          avgPremium: "€87,433",
+          crossSellPotential: "€12,826",
+          products: ["Bedrijfsschade Continuïteit", "KMO Pakket Plus", "Aansprakelijkheid Professionals"]
+        }
+      ];
+      
+      setAnalysisResults(mockResults);
+    } catch (error) {
+      console.error('Error running strategic analysis:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const runCustomAnalysis = async () => {
+    if (!customPrompt.trim()) return;
+    
+    setIsAnalyzing(true);
+    setActiveAnalysis('custom');
+    
+    try {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const mockResults = [
+        {
+          id: 1,
+          name: "Renewable Energy Insurance",
+          description: "Insurance solutions for solar and wind energy projects",
+          priority: "High",
+          probability: "75%",
+          totalPremium: "€444,372",
+          avgPremium: "€88,874",
+          crossSellPotential: "€35,600",
+          products: ["Technische Verzekering", "Aansprakelijkheid Professionals", "Bedrijfsschade Continuïteit"]
+        },
+        {
+          id: 2,
+          name: "Construction Tech Solutions",
+          description: "Specialized coverage for construction technology companies",
+          priority: "Medium",
+          probability: "65%",
+          totalPremium: "€641,351",
+          avgPremium: "€106,892",
+          crossSellPotential: "€28,200",
+          products: ["Cyber Security Dekking", "Technische Verzekering", "Aansprakelijkheid Professionals"]
+        }
+      ];
+      
+      setAnalysisResults(mockResults);
+    } catch (error) {
+      console.error('Error running custom analysis:', error);
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
 
   const { data: portfolioData, isLoading } = useQuery<PortfolioData>({
     queryKey: [`/api/${envId}/${entityType}/${entityId}/portfolio-overview`],
@@ -530,231 +679,229 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
 
       {/* Smart Cross Sell Section */}
       <div className="space-y-6 mt-8">
-        <h2 className="text-lg font-semibold text-gray-900 mb-6">Smart Cross Sell</h2>
-        
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Customer Cross-Sell Opportunities */}
-          <Card className="border border-[#E6E7F1] bg-white p-6">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center text-[#282A3F] text-lg">
-                <Target className="w-5 h-5 mr-2 text-[#5567E5]" />
-                Customer Cross-Sell Opportunities
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-sm text-gray-600 mb-4">
-                AI analysis of your customer portfolio to identify high-value cross-sell opportunities
-              </div>
-              
-              {/* Placeholder Customer List */}
-              <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-[#F8F9FA] rounded-lg border border-[#E6E7F1]">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-[#5567E5] rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm font-medium">AC</span>
-                    </div>
-                    <div>
-                      <div className="font-medium text-[#282A3F] text-sm">Amazon CS Netherlands</div>
-                      <div className="text-xs text-gray-500">3 cross-sell opportunities</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-[#5567E5] text-sm">€45,200</div>
-                    <div className="text-xs text-gray-500">potential</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-[#F8F9FA] rounded-lg border border-[#E6E7F1]">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-[#5567E5] rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm font-medium">TI</span>
-                    </div>
-                    <div>
-                      <div className="font-medium text-[#282A3F] text-sm">Tech Innovations B.V.</div>
-                      <div className="text-xs text-gray-500">2 cross-sell opportunities</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-[#5567E5] text-sm">€32,800</div>
-                    <div className="text-xs text-gray-500">potential</div>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between p-3 bg-[#F8F9FA] rounded-lg border border-[#E6E7F1]">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-8 h-8 bg-[#5567E5] rounded-full flex items-center justify-center">
-                      <span className="text-white text-sm font-medium">MB</span>
-                    </div>
-                    <div>
-                      <div className="font-medium text-[#282A3F] text-sm">Modern Building Co.</div>
-                      <div className="text-xs text-gray-500">4 cross-sell opportunities</div>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <div className="font-semibold text-[#5567E5] text-sm">€28,500</div>
-                    <div className="text-xs text-gray-500">potential</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-[#E6E7F1]">
-                <div className="flex items-center justify-between text-sm mb-3">
-                  <span className="text-gray-600">Total Potential:</span>
-                  <span className="font-semibold text-[#282A3F]">€106,500</span>
-                </div>
-                <Button 
-                  className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white"
-                  onClick={() => setModalOpen(true)}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Creëer kans from opportunities
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Strategic Opportunities Analysis */}
-          <Card className="border border-[#E6E7F1] bg-white p-6">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center text-[#282A3F] text-lg">
-                <TrendingUp className="w-5 h-5 mr-2 text-[#5567E5]" />
-                Strategic Opportunities
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-sm text-gray-600 mb-4">
-                AI-powered market analysis combined with portfolio context to identify strategic growth opportunities
-              </div>
-              
-              {/* Strategic Opportunity Cards */}
-              <div className="space-y-3">
-                <div className="p-3 bg-[#F8F9FA] rounded-lg border border-[#E6E7F1]">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">High</Badge>
-                      <span className="text-sm font-medium text-[#282A3F]">Cyber Insurance Expansion</span>
-                    </div>
-                    <span className="text-sm font-semibold text-[#5567E5]">€23,123</span>
-                  </div>
-                  <p className="text-xs text-gray-600 mb-2">
-                    Growing demand for cyber insurance due to increasing digital threats and regulatory emphasis on cybersecurity
-                  </p>
-                  <div className="text-xs text-gray-500">
-                    <strong>Product:</strong> Cyber Security Dekking • <strong>Probability:</strong> 85%
-                  </div>
-                </div>
-
-                <div className="p-3 bg-[#F8F9FA] rounded-lg border border-[#E6E7F1]">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">High</Badge>
-                      <span className="text-sm font-medium text-[#282A3F]">ESG Insurance Products</span>
-                    </div>
-                    <span className="text-sm font-semibold text-[#5567E5]">€23,075</span>
-                  </div>
-                  <p className="text-xs text-gray-600 mb-2">
-                    Capitalize on growing demand for ESG-compliant products with sustainable investment focus
-                  </p>
-                  <div className="text-xs text-gray-500">
-                    <strong>Product:</strong> Bewust Pensioen Plus • <strong>Probability:</strong> 80%
-                  </div>
-                </div>
-
-                <div className="p-3 bg-[#F8F9FA] rounded-lg border border-[#E6E7F1]">
-                  <div className="flex items-start justify-between mb-2">
-                    <div className="flex items-center space-x-2">
-                      <Badge variant="outline" className="bg-yellow-50 text-yellow-600 border-yellow-200">Medium</Badge>
-                      <span className="text-sm font-medium text-[#282A3F]">SME Insurance Solutions</span>
-                    </div>
-                    <span className="text-sm font-semibold text-[#5567E5]">€12,826</span>
-                  </div>
-                  <p className="text-xs text-gray-600 mb-2">
-                    Tailored insurance packages for SMEs addressing specific business risks and improving retention
-                  </p>
-                  <div className="text-xs text-gray-500">
-                    <strong>Product:</strong> Bedrijfsschade Continuïteit • <strong>Probability:</strong> 70%
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-[#E6E7F1]">
-                <div className="flex items-center justify-between text-sm mb-3">
-                  <span className="text-gray-600">Total Strategic Value:</span>
-                  <span className="font-semibold text-[#282A3F]">€59,024</span>
-                </div>
-                <Button 
-                  className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white"
-                  onClick={() => setModalOpen(true)}
-                >
-                  <Target className="w-4 h-4 mr-2" />
-                  Creëer strategic opportunity
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Custom Prompt Analysis */}
-          <Card className="border border-[#E6E7F1] bg-white p-6">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center text-[#282A3F] text-lg">
-                <Zap className="w-5 h-5 mr-2 text-[#5567E5]" />
-                Custom Analysis
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="text-sm text-gray-600 mb-4">
-                Generate custom cross-sell opportunities based on your specific prompt and portfolio analysis
-              </div>
-              
-              {/* Custom Prompt Input */}
-              <div className="space-y-3">
-                <Textarea
-                  placeholder="Describe what type of cross-sell opportunities you want to explore... (e.g., 'Focus on renewable energy insurance for construction companies')"
-                  className="min-h-[100px] resize-none border-[#E6E7F1] focus:border-[#5567E5] focus:ring-[#5567E5]"
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                />
-                
-                <Button 
-                  className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white"
-                  disabled={!formData.description.trim()}
-                >
-                  <Zap className="w-4 h-4 mr-2" />
-                  Generate custom analysis
-                </Button>
-              </div>
-
-              {/* Sample Results Preview */}
-              <div className="mt-4 p-3 bg-[#F8F9FA] rounded-lg border border-[#E6E7F1]">
-                <div className="text-xs text-gray-500 mb-2">Sample result format:</div>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-[#282A3F]">Opportunity Title</span>
-                    <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">High</Badge>
-                  </div>
-                  <p className="text-xs text-gray-600">
-                    AI reasoning explaining why this is a relevant opportunity based on your prompt
-                  </p>
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-gray-500">Product match</span>
-                    <span className="font-semibold text-[#5567E5]">€X,XXX potential</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-4 border-t border-[#E6E7F1]">
-                <Button 
-                  className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white"
-                  onClick={() => setModalOpen(true)}
-                  disabled={!formData.description.trim()}
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Creëer kans from analysis
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-lg font-semibold text-gray-900">Smart Cross Sell</h2>
+          {activeAnalysis && (
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setActiveAnalysis(null);
+                setAnalysisResults([]);
+              }}
+              className="text-sm"
+            >
+              Back to overview
+            </Button>
+          )}
         </div>
+        
+        {!activeAnalysis ? (
+          // Summary Cards
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Customer Cross-Sell Opportunities */}
+            <Card 
+              className="border border-[#E6E7F1] bg-white p-6 cursor-pointer hover:shadow-md transition-shadow"
+              onClick={runCustomerAnalysis}
+            >
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center text-[#282A3F] text-lg">
+                  <Target className="w-5 h-5 mr-2 text-[#5567E5]" />
+                  Customer Cross-Sell Opportunities
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-sm text-gray-600 mb-4">
+                  AI analysis of your customer portfolio to identify high-value cross-sell opportunities
+                </div>
+                
+                <div className="text-center py-8">
+                  <div className="text-4xl font-bold text-[#5567E5] mb-2">€106,500</div>
+                  <div className="text-sm text-gray-500">Total potential identified</div>
+                  <div className="text-sm text-gray-500 mt-1">3 customers with opportunities</div>
+                </div>
+
+                <div className="pt-4 border-t border-[#E6E7F1]">
+                  <div className="flex items-center justify-center text-sm text-[#5567E5] font-medium">
+                    <Play className="w-4 h-4 mr-2" />
+                    Click to analyze
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Strategic Opportunities Analysis */}
+            <Card 
+              className="border border-[#E6E7F1] bg-white p-6 cursor-pointer hover:shadow-md transition-shadow"
+              onClick={runStrategicAnalysis}
+            >
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center text-[#282A3F] text-lg">
+                  <TrendingUp className="w-5 h-5 mr-2 text-[#5567E5]" />
+                  Strategic Opportunities
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-sm text-gray-600 mb-4">
+                  AI-powered market analysis combined with portfolio context to identify strategic growth opportunities
+                </div>
+                
+                <div className="text-center py-8">
+                  <div className="text-4xl font-bold text-[#5567E5] mb-2">€59,024</div>
+                  <div className="text-sm text-gray-500">Strategic value potential</div>
+                  <div className="text-sm text-gray-500 mt-1">3 high-priority opportunities</div>
+                </div>
+
+                <div className="pt-4 border-t border-[#E6E7F1]">
+                  <div className="flex items-center justify-center text-sm text-[#5567E5] font-medium">
+                    <Play className="w-4 h-4 mr-2" />
+                    Click to analyze
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Custom Prompt Analysis */}
+            <Card className="border border-[#E6E7F1] bg-white p-6">
+              <CardHeader className="pb-4">
+                <CardTitle className="flex items-center text-[#282A3F] text-lg">
+                  <Zap className="w-5 h-5 mr-2 text-[#5567E5]" />
+                  Custom Analysis
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="text-sm text-gray-600 mb-4">
+                  Generate custom cross-sell opportunities based on your specific prompt and portfolio analysis
+                </div>
+                
+                <div className="space-y-3">
+                  <Textarea
+                    placeholder="Describe what type of cross-sell opportunities you want to explore... (e.g., 'Focus on renewable energy insurance for construction companies')"
+                    className="min-h-[100px] resize-none border-[#E6E7F1] focus:border-[#5567E5] focus:ring-[#5567E5]"
+                    value={customPrompt}
+                    onChange={(e) => setCustomPrompt(e.target.value)}
+                  />
+                  
+                  <Button 
+                    className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white"
+                    onClick={runCustomAnalysis}
+                    disabled={!customPrompt.trim()}
+                  >
+                    <Zap className="w-4 h-4 mr-2" />
+                    Generate custom analysis
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        ) : (
+          // Analysis Results
+          <div className="space-y-6">
+            {isAnalyzing ? (
+              <div className="text-center py-12">
+                <div className="inline-flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-[#5567E5]"></div>
+                  <span className="text-lg text-gray-600">Analyzing portfolio...</span>
+                </div>
+              </div>
+            ) : (
+              <>
+                {/* Analysis Header */}
+                <div className="bg-[#F8F9FA] rounded-lg p-4 border border-[#E6E7F1]">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="font-semibold text-[#282A3F] text-lg">
+                        {activeAnalysis === 'customer' && 'Customer Cross-Sell Analysis'}
+                        {activeAnalysis === 'strategic' && 'Strategic Opportunities Analysis'}
+                        {activeAnalysis === 'custom' && 'Custom Analysis Results'}
+                      </h3>
+                      <p className="text-sm text-gray-600 mt-1">
+                        {activeAnalysis === 'customer' && 'Customers with highest cross-sell potential'}
+                        {activeAnalysis === 'strategic' && 'Market-driven strategic opportunities'}
+                        {activeAnalysis === 'custom' && `Results based on: "${customPrompt}"`}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-2xl font-bold text-[#5567E5]">{analysisResults.length}</div>
+                      <div className="text-sm text-gray-500">opportunities</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Structured Results List */}
+                <div className="space-y-4">
+                  {analysisResults.map((result, index) => (
+                    <div key={result.id} className="bg-white rounded-lg border border-[#E6E7F1] p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-[#5567E5] rounded-full flex items-center justify-center">
+                            <span className="text-white font-medium">{index + 1}</span>
+                          </div>
+                          <div>
+                            <h4 className="font-semibold text-[#282A3F] text-lg">{result.name}</h4>
+                            <p className="text-sm text-gray-600">{result.description}</p>
+                          </div>
+                        </div>
+                        {result.priority && (
+                          <Badge 
+                            variant="outline" 
+                            className={
+                              result.priority === 'High' 
+                                ? 'bg-red-50 text-red-600 border-red-200' 
+                                : 'bg-yellow-50 text-yellow-600 border-yellow-200'
+                            }
+                          >
+                            {result.priority}
+                          </Badge>
+                        )}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                        <div className="text-center p-3 bg-[#F8F9FA] rounded-lg">
+                          <div className="text-lg font-semibold text-[#282A3F]">
+                            {activeAnalysis === 'customer' ? result.opportunities : result.probability}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {activeAnalysis === 'customer' ? 'Opportunities' : 'Probability'}
+                          </div>
+                        </div>
+                        <div className="text-center p-3 bg-[#F8F9FA] rounded-lg">
+                          <div className="text-lg font-semibold text-[#5567E5]">{result.totalPremium}</div>
+                          <div className="text-sm text-gray-500">Total Premium</div>
+                        </div>
+                        <div className="text-center p-3 bg-[#F8F9FA] rounded-lg">
+                          <div className="text-lg font-semibold text-[#5567E5]">{result.crossSellPotential}</div>
+                          <div className="text-sm text-gray-500">Cross-sell Potential</div>
+                        </div>
+                      </div>
+
+                      <div className="mb-4">
+                        <div className="text-sm font-medium text-gray-700 mb-2">Recommended Products:</div>
+                        <div className="flex flex-wrap gap-2">
+                          {result.products.map((product: string, idx: number) => (
+                            <Badge key={idx} variant="outline" className="text-xs">
+                              {product}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-4 border-t border-[#E6E7F1]">
+                        <div className="text-sm text-gray-600">Avg Premium: {result.avgPremium}</div>
+                        <Button 
+                          className="bg-[#5567E5] hover:bg-[#4556D4] text-white"
+                          onClick={() => setIsModalOpen(true)}
+                        >
+                          <Plus className="w-4 h-4 mr-2" />
+                          Creëer kans
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Creëer Kans Modal */}
