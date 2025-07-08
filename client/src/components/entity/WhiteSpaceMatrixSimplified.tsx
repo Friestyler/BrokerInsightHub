@@ -115,8 +115,12 @@ export function WhiteSpaceMatrix({
     // Generate consistent hash for reproducible data
     const hash = from.charCodeAt(0) + to.charCodeAt(0) + from.length + to.length;
     
-    // Static benchmark value set by user (from conversion rate slider)
-    const userBenchmark = conversionRate[0] / 100; // User's benchmark from slider
+    // Static benchmark value (independent reference point)
+    const benchmarkHash = (from.charCodeAt(0) * 7 + to.charCodeAt(0) * 11) % 100;
+    const staticBenchmark = 0.25 + (benchmarkHash % 30) / 100; // 25-55% static benchmark
+    
+    // User's conversion rate from slider (for potential calculations only)
+    const userConversionRate = conversionRate[0] / 100;
     
     // Current coverage: calculated percentage of customers that have both products
     const coverageHash = (from.charCodeAt(0) * 3 + to.charCodeAt(0) * 5) % 100;
@@ -129,10 +133,10 @@ export function WhiteSpaceMatrix({
     const missingCoverageCustomers = Math.round(totalCustomers * (1 - currentCoverage));
     
     // Potential revenue from selling to missing coverage using conversion rate
-    const potentialRevenue = missingCoverageCustomers * userBenchmark * (2000 + (hash % 4000));
+    const potentialRevenue = missingCoverageCustomers * userConversionRate * (2000 + (hash % 4000));
     
-    // Priority based on how current coverage compares to user's benchmark
-    const coverageVsBenchmark = currentCoverage / userBenchmark;
+    // Priority based on how current coverage compares to static benchmark
+    const coverageVsBenchmark = currentCoverage / staticBenchmark;
     let priority = 'low';
     if (coverageVsBenchmark < 0.5) priority = 'high';        // Much below benchmark - high opportunity
     else if (coverageVsBenchmark < 0.8) priority = 'medium'; // Below benchmark - medium opportunity
@@ -142,7 +146,7 @@ export function WhiteSpaceMatrix({
       fromCategory: from,
       toCategory: to,
       currentCoverage,
-      benchmark: userBenchmark,
+      benchmark: staticBenchmark,
       revenue: potentialRevenue,
       potentialCustomers: missingCoverageCustomers,
       totalCustomers,
