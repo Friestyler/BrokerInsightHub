@@ -310,6 +310,87 @@ export default function WhiteSpaceMatrix({
         </CardContent>
       </Card>
 
+      {/* Action Bar - appears when cell is selected - matching multi-select pattern */}
+      {selectedCellData && (
+        <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
+          <div className="flex items-center">
+            <div className="flex items-center gap-3">
+              <div className={`w-3 h-3 rounded-full ${
+                (selectedCellData.conversionRate * 100) >= 70 ? 'bg-emerald-500' :
+                (selectedCellData.conversionRate * 100) >= 55 ? 'bg-green-500' :
+                (selectedCellData.conversionRate * 100) >= 40 ? 'bg-amber-500' :
+                (selectedCellData.conversionRate * 100) >= 25 ? 'bg-orange-500' : 'bg-red-500'
+              }`} />
+              <span className="text-indigo-700 font-medium mr-2">
+                {selectedCellData.fromCategory} → {selectedCellData.toCategory}
+              </span>
+              <Badge variant="outline" className="text-xs">
+                {selectedCellData.priority.charAt(0).toUpperCase() + selectedCellData.priority.slice(1)} Priority
+              </Badge>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="text-gray-600 ml-3"
+              onClick={() => setSelectedCellData(null)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+              </svg>
+              Clear selection
+            </Button>
+            
+            {/* Metrics Display */}
+            <div className="flex items-center gap-4 ml-6 text-sm">
+              <div className="flex items-center gap-1">
+                <span className="text-gray-600">Conversion:</span>
+                <span className="font-semibold text-blue-600">
+                  {(selectedCellData.conversionRate * 100).toFixed(1)}%
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-gray-600">vs Benchmark:</span>
+                <span className="font-semibold text-gray-700">
+                  {(selectedCellData.benchmark * 100).toFixed(1)}%
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-gray-600">Potential:</span>
+                <span className="font-semibold text-green-600">
+                  €{Math.round(selectedCellData.revenue / 1000)}k
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-gray-600">Customers:</span>
+                <span className="font-semibold text-gray-700">
+                  {selectedCellData.potentialCustomers}
+                </span>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button 
+              onClick={onCreateOpportunity} 
+              className="bg-[#5567E5] hover:bg-[#4456D4] text-white"
+              size="sm"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Creëer Kans
+            </Button>
+            <Button variant="outline" size="sm" onClick={onCreateCampaign}>
+              <Zap className="w-4 h-4 mr-2" />
+              Campaign
+            </Button>
+            <Button variant="outline" size="sm" onClick={onCreateList}>
+              <Users className="w-4 h-4 mr-2" />
+              Add to List
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Matrix Display */}
       {selectedHorizontalCategories.length > 0 && selectedVerticalCategories.length > 0 ? (
         <Card>
@@ -395,83 +476,83 @@ export default function WhiteSpaceMatrix({
         </Card>
       )}
 
-      {/* Action Bar - appears when cell is selected */}
+      {/* Action Bar - appears when cell is selected - matching multi-select pattern */}
       {selectedCellData && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-xl z-50 backdrop-blur-sm transition-all duration-300 ease-in-out">
-          <div className="max-w-7xl mx-auto px-6 py-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-8">
-                <div className="flex items-center gap-3">
-                  <div className={`w-3 h-3 rounded-full ${
-                    (selectedCellData.conversionRate * 100) >= 70 ? 'bg-emerald-500' :
-                    (selectedCellData.conversionRate * 100) >= 55 ? 'bg-green-500' :
-                    (selectedCellData.conversionRate * 100) >= 40 ? 'bg-amber-500' :
-                    (selectedCellData.conversionRate * 100) >= 25 ? 'bg-orange-500' : 'bg-red-500'
-                  }`} />
-                  <span className="font-semibold text-gray-900 text-lg">
-                    {selectedCellData.fromCategory} → {selectedCellData.toCategory}
-                  </span>
-                  <Badge variant="outline" className="ml-2">
-                    {selectedCellData.priority.charAt(0).toUpperCase() + selectedCellData.priority.slice(1)} Priority
-                  </Badge>
-                </div>
-                
-                <div className="flex items-center gap-6 text-sm">
-                  <div className="flex flex-col items-center">
-                    <span className="text-2xl font-bold text-blue-600">
-                      {(selectedCellData.conversionRate * 100).toFixed(1)}%
-                    </span>
-                    <span className="text-xs text-gray-500">Conversion Rate</span>
-                  </div>
-                  <div className="w-px h-8 bg-gray-200"></div>
-                  <div className="flex flex-col items-center">
-                    <span className="text-lg font-semibold text-gray-700">
-                      {(selectedCellData.benchmark * 100).toFixed(1)}%
-                    </span>
-                    <span className="text-xs text-gray-500">Market Benchmark</span>
-                  </div>
-                  <div className="w-px h-8 bg-gray-200"></div>
-                  <div className="flex flex-col items-center">
-                    <span className="text-lg font-semibold text-green-600">
-                      €{Math.round(selectedCellData.revenue / 1000)}k
-                    </span>
-                    <span className="text-xs text-gray-500">Revenue Potential</span>
-                  </div>
-                  <div className="w-px h-8 bg-gray-200"></div>
-                  <div className="flex flex-col items-center">
-                    <span className="text-lg font-semibold text-gray-700">
-                      {selectedCellData.potentialCustomers}
-                    </span>
-                    <span className="text-xs text-gray-500">Target Customers</span>
-                  </div>
-                </div>
+        <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
+          <div className="flex items-center">
+            <div className="flex items-center gap-3">
+              <div className={`w-3 h-3 rounded-full ${
+                (selectedCellData.conversionRate * 100) >= 70 ? 'bg-emerald-500' :
+                (selectedCellData.conversionRate * 100) >= 55 ? 'bg-green-500' :
+                (selectedCellData.conversionRate * 100) >= 40 ? 'bg-amber-500' :
+                (selectedCellData.conversionRate * 100) >= 25 ? 'bg-orange-500' : 'bg-red-500'
+              }`} />
+              <span className="text-indigo-700 font-medium mr-2">
+                {selectedCellData.fromCategory} → {selectedCellData.toCategory}
+              </span>
+              <Badge variant="outline" className="text-xs">
+                {selectedCellData.priority.charAt(0).toUpperCase() + selectedCellData.priority.slice(1)} Priority
+              </Badge>
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="text-gray-600 ml-3"
+              onClick={() => setSelectedCellData(null)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+              </svg>
+              Clear selection
+            </Button>
+            
+            {/* Metrics Display */}
+            <div className="flex items-center gap-4 ml-6 text-sm">
+              <div className="flex items-center gap-1">
+                <span className="text-gray-600">Conversion:</span>
+                <span className="font-semibold text-blue-600">
+                  {(selectedCellData.conversionRate * 100).toFixed(1)}%
+                </span>
               </div>
-              
-              <div className="flex items-center gap-3">
-                <Button 
-                  onClick={onCreateOpportunity} 
-                  className="bg-[#5567E5] hover:bg-[#4456D4] text-white px-6 py-2 shadow-md"
-                >
-                  <Plus className="w-4 h-4 mr-2" />
-                  Creëer Kans
-                </Button>
-                <Button variant="outline" onClick={onCreateCampaign} className="shadow-sm">
-                  <Zap className="w-4 h-4 mr-2" />
-                  Campaign
-                </Button>
-                <Button variant="outline" onClick={onCreateList} className="shadow-sm">
-                  <Users className="w-4 h-4 mr-2" />
-                  Add to List
-                </Button>
-                <Button 
-                  variant="ghost" 
-                  onClick={() => setSelectedCellData(null)}
-                  className="text-gray-400 hover:text-gray-600 ml-2"
-                >
-                  <span className="text-xl">×</span>
-                </Button>
+              <div className="flex items-center gap-1">
+                <span className="text-gray-600">vs Benchmark:</span>
+                <span className="font-semibold text-gray-700">
+                  {(selectedCellData.benchmark * 100).toFixed(1)}%
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-gray-600">Potential:</span>
+                <span className="font-semibold text-green-600">
+                  €{Math.round(selectedCellData.revenue / 1000)}k
+                </span>
+              </div>
+              <div className="flex items-center gap-1">
+                <span className="text-gray-600">Customers:</span>
+                <span className="font-semibold text-gray-700">
+                  {selectedCellData.potentialCustomers}
+                </span>
               </div>
             </div>
+          </div>
+          
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button 
+              onClick={onCreateOpportunity} 
+              className="bg-[#5567E5] hover:bg-[#4456D4] text-white"
+              size="sm"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Creëer Kans
+            </Button>
+            <Button variant="outline" size="sm" onClick={onCreateCampaign}>
+              <Zap className="w-4 h-4 mr-2" />
+              Campaign
+            </Button>
+            <Button variant="outline" size="sm" onClick={onCreateList}>
+              <Users className="w-4 h-4 mr-2" />
+              Add to List
+            </Button>
           </div>
         </div>
       )}
