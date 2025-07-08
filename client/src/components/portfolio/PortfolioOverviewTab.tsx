@@ -138,6 +138,12 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
     enabled: isModalOpen
   });
 
+  // Fetch product assignments for the list display
+  const { data: productAssignments } = useQuery({
+    queryKey: [`/api/${envId}/${entityType}/${entityId}/product-assignments`],
+    enabled: !!entityId
+  });
+
   // Fetch users for mentions
   const { data: users } = useQuery({
     queryKey: [`/api/${envId}/users`],
@@ -156,26 +162,20 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
     enabled: isModalOpen
   });
 
-  // Fetch products for list view
-  const { data: entityProducts } = useQuery({
-    queryKey: [`/api/${envId}/${entityType}/${entityId}/products`],
-    enabled: !!entityId
-  });
-
   // Filter products based on search term and category filter
-  const filteredProducts = entityProducts?.filter(product => {
+  const filteredProducts = productAssignments?.filter(product => {
     const matchesSearch = !searchTerm || 
-      product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description?.toLowerCase().includes(searchTerm.toLowerCase());
+      product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.productDescription?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesCategory = categoryFilter === 'all' || product.categoryName === categoryFilter;
+    const matchesCategory = categoryFilter === 'all' || product.parentCategoryName === categoryFilter;
     
     return matchesSearch && matchesCategory;
   }) || [];
 
-  // Group products by category
+  // Group products by parent category (main categories)
   const productsByCategory = filteredProducts.reduce((acc: Record<string, any[]>, product) => {
-    const category = product.categoryName || 'Other';
+    const category = product.parentCategoryName || 'Other';
     if (!acc[category]) {
       acc[category] = [];
     }
@@ -608,9 +608,9 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {portfolioData?.categoryBreakdown?.map((category) => (
-                  <SelectItem key={category.categoryId} value={category.categoryName}>
-                    {category.categoryName}
+                {[...new Set(productAssignments?.map(p => p.parentCategoryName).filter(Boolean))].map((categoryName) => (
+                  <SelectItem key={categoryName} value={categoryName}>
+                    {categoryName}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -624,7 +624,7 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
           <div className="flex items-center space-x-6">
             <span>{filteredProducts.length} products</span>
             <span className="font-semibold">
-              {formatCurrency(filteredProducts.reduce((sum, p) => sum + (p.premiumValue || 0), 0))} total value
+              {formatCurrency(filteredProducts.reduce((sum, p) => sum + (parseInt(p.totalPremiumValue) || 0), 0))} total value
             </span>
           </div>
         </div>
@@ -642,39 +642,37 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                       <div
                         className="w-3 h-3 rounded-full"
                         style={{
-                          backgroundColor: portfolioData?.categoryBreakdown?.find(
-                            cat => cat.categoryName === categoryName
-                          )?.categoryColor || '#6B7280'
+                          backgroundColor: products[0]?.parentCategoryColor || '#6B7280'
                         }}
                       />
                       <span className="font-medium text-gray-900">
-                        {categoryName === "Overige / Specialistische Producten" ? "Overige" : categoryName} ({products.length})
+                        {categoryName} ({products.length})
                       </span>
                     </div>
                     <div className="text-sm text-gray-600">
-                      Total value: {formatCurrency(products.reduce((sum, p) => sum + (p.premiumValue || 0), 0))}
+                      Total value: {formatCurrency(products.reduce((sum, p) => sum + (parseInt(p.totalPremiumValue) || 0), 0))}
                     </div>
                   </div>
 
                   {/* Products in Category */}
                   <div className="divide-y divide-[#E6E7F1]">
                     {products.map((product) => (
-                      <div key={product.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
+                      <div key={product.productId} className="px-6 py-4 hover:bg-gray-50 transition-colors">
                         <div className="flex items-center justify-between">
                           <div className="flex-1">
                             <div className="flex items-center space-x-3">
-                              <h4 className="font-medium text-gray-900">{product.name}</h4>
+                              <h4 className="font-medium text-gray-900">{product.productName}</h4>
                             </div>
-                            {product.description && (
-                              <p className="text-sm text-gray-500 mt-1">{product.description}</p>
+                            {product.productDescription && (
+                              <p className="text-sm text-gray-500 mt-1">{product.productDescription}</p>
                             )}
                             <div className="flex items-center space-x-6 mt-2 text-sm text-gray-500">
                               <span>{product.customerCount || 0} Customers</span>
-                              <span>Total Premium: {formatCurrency(product.premiumValue || 0)}</span>
-                              <span>Avg Premium: {formatCurrency(product.avgPremium || 0)}</span>
+                              <span>Total Premium: {formatCurrency(parseInt(product.totalPremiumValue) || 0)}</span>
+                              <span>Avg Premium: {formatCurrency(parseFloat(product.avgPremiumValue) || 0)}</span>
                               <span className="text-right">
-                                {product.contractEndDate ? 
-                                  `${new Date(product.contractEndDate).toLocaleDateString('en-GB')} | 0 years left | Latest Expiry` :
+                                {product.latestContractEnd ? 
+                                  `${new Date(product.latestContractEnd).toLocaleDateString('en-GB')} | Latest Expiry` :
                                   'No contract end date'
                                 }
                               </span>
