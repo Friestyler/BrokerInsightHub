@@ -514,12 +514,10 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
           const gapCount = Math.max(0, category.totalProducts - category.productsCovered);
           const gapValue = category.gapValue || (gapCount * 50000); // Estimate gap value
           
-          // Calculate customer coverage percentage: % of customers that have at least 1 product in this category
-          const productsInCategory = productAssignments?.filter(p => p.parentCategoryName === category.categoryName) || [];
-          const uniqueCustomersInCategory = new Set(productsInCategory.map(p => p.customerId)).size;
-          // Get total unique customers across all product assignments for this partner
-          const totalCustomers = new Set(productAssignments?.map(p => p.customerId) || []).size;
-          const customerCoveragePercentage = totalCustomers > 0 ? (uniqueCustomersInCategory / totalCustomers) * 100 : 0;
+          // Use API data for customer coverage (API returns customers with products in this category)
+          const uniqueCustomersInCategory = category.productsCovered; // API returns customer count with products in this category
+          const totalCustomers = category.totalProducts; // API returns total customer count
+          const customerCoveragePercentage = category.coveragePercentage; // API returns calculated percentage
           
           const coverageCircleColor = getCoverageCircleColor(customerCoveragePercentage);
           const categoryTagStyle = getCategoryTagStyle(category.categoryColor, category.categoryName);
