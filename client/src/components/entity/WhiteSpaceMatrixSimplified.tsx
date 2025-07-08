@@ -286,7 +286,7 @@ export function WhiteSpaceMatrix({
                         if (!cellData) {
                           return (
                             <td key={toCategory} className="p-1">
-                              <div className="h-16 bg-gray-100 rounded border flex items-center justify-center">
+                              <div className="h-20 bg-gray-100 rounded border flex items-center justify-center">
                                 <span className="text-xs text-gray-400">—</span>
                               </div>
                             </td>
@@ -296,19 +296,25 @@ export function WhiteSpaceMatrix({
                         return (
                           <td key={toCategory} className="p-1">
                             <div 
-                              className={`h-16 rounded border cursor-pointer transition-all duration-200 p-2 ${getCellColor(cellData.conversionRate)} ${
+                              className={`h-20 rounded border cursor-pointer transition-all duration-200 p-2 ${getCellColor(cellData.conversionRate)} ${
                                 selectedCellData?.fromCategory === fromCategory && selectedCellData?.toCategory === toCategory
                                   ? 'ring-2 ring-blue-500 ring-offset-1' 
                                   : ''
                               }`}
                               onClick={() => handleCellClick(fromCategory, toCategory)}
                             >
-                              <div className="text-center">
-                                <div className="text-sm font-bold text-gray-900">
+                              <div className="text-center h-full flex flex-col justify-center">
+                                <div className="text-lg font-bold text-gray-900">
                                   {(cellData.conversionRate * 100).toFixed(0)}%
                                 </div>
                                 <div className="text-xs text-gray-600">
                                   vs {(cellData.benchmark * 100).toFixed(0)}%
+                                </div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {cellData.potentialCustomers} customers
+                                </div>
+                                <div className="text-xs text-green-600 font-medium">
+                                  €{Math.round(cellData.revenue / 1000)}k potential
                                 </div>
                               </div>
                             </div>
