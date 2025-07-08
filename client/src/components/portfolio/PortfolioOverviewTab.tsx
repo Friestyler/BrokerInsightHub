@@ -557,18 +557,13 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                   </div>
                 </div>
                 
-                {/* Category Name with Colored Icon */}
+                {/* Category Name with Colored Bullet */}
                 <div className="mb-3 flex items-center justify-center space-x-2">
-                  {(() => {
-                    const IconComponent = getCategoryIcon(category.categoryName);
-                    return (
-                      <IconComponent
-                        className="w-4 h-4"
-                        style={{ color: category.categoryColor }}
-                      />
-                    );
-                  })()}
-                  <span className="text-sm font-medium text-gray-700">
+                  <div
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: category.categoryColor }}
+                  />
+                  <span className="text-sm font-bold text-gray-700">
                     {category.categoryName}
                   </span>
                 </div>
