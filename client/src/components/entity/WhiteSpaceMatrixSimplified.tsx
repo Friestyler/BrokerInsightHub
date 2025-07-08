@@ -98,33 +98,47 @@ export function WhiteSpaceMatrix({
     }
   }, [categories]);
 
+  // Force update matrix when conversion rate changes
+  useEffect(() => {
+    console.log('Conversion rate changed:', conversionRate[0]);
+    // Clear selected cell to force recalculation
+    if (selectedCellData) {
+      const newCellData = generateMatrixData(selectedCellData.fromCategory, selectedCellData.toCategory);
+      setSelectedCellData(newCellData);
+    }
+  }, [conversionRate]);
+
   // Generate matrix data with conversion rates
   const generateMatrixData = (from: string, to: string) => {
     if (from === to) return null;
     
     // Generate consistent hash-based conversion rate (10-89%)
     const hash = from.charCodeAt(0) + to.charCodeAt(0) + from.length + to.length;
-    const conversionRate = 0.10 + (hash % 80) / 100; // 10-89%
+    const baseConversionRate = 0.10 + (hash % 80) / 100; // 10-89%
+    
+    // Apply user's conversion rate adjustment
+    const userConversionRate = conversionRate[0] / 100; // Convert from percentage
+    const adjustedConversionRate = Math.min(0.95, Math.max(0.05, baseConversionRate * (userConversionRate / 0.20))); // Adjust based on 20% baseline
     
     // Generate benchmark (independent market baseline)
     const benchmarkHash = (from.charCodeAt(0) * 7 + to.charCodeAt(0) * 11) % 100;
     const benchmark = 0.30 + (benchmarkHash % 40) / 100; // 30-70%
     
     const potentialCustomers = 50 + (hash % 200);
-    const revenue = potentialCustomers * (1000 + (hash % 3000));
+    const adjustedRevenue = potentialCustomers * (1000 + (hash % 3000)) * adjustedConversionRate;
     
-    // Priority based on conversion rate
+    // Priority based on adjusted conversion rate
     let priority = 'low';
-    if (conversionRate >= 0.70) priority = 'high';
-    else if (conversionRate >= 0.55) priority = 'medium';
-    else if (conversionRate >= 0.40) priority = 'medium';
+    if (adjustedConversionRate >= 0.70) priority = 'high';
+    else if (adjustedConversionRate >= 0.55) priority = 'medium';
+    else if (adjustedConversionRate >= 0.40) priority = 'medium';
     
     return {
       fromCategory: from,
       toCategory: to,
-      conversionRate,
+      conversionRate: adjustedConversionRate,
       benchmark,
-      revenue,
+      revenue: adjustedRevenue,
       potentialCustomers,
       priority
     };
