@@ -127,35 +127,47 @@ export default function WhiteSpaceMatrix({
 
   const hierarchicalItems = createHierarchicalItems();
 
-  // Generate realistic matrix data based on actual insurance categories
+  // Generate realistic matrix data based on actual insurance categories - matching Portfolio Insights logic
   const generateMatrixData = (): MatrixCell[] => {
     const matrixData: MatrixCell[] = [];
     
     selectedHorizontalCategories.forEach(fromCategory => {
       selectedVerticalCategories.forEach(toCategory => {
         if (fromCategory !== toCategory) {
-          const key = `${fromCategory}-${toCategory}`;
+          // Create consistent hash-based calculation like Portfolio Insights
+          const fromHash = fromCategory.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+          const toHash = toCategory.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+          const hashValue = (fromHash * 37 + toHash * 41) % 100;
           
-          // Create realistic conversion rates based on insurance product relationships
-          let baseRate = 0.20; // Base 20% conversion rate
+          // Generate varied distribution for better visual contrast - matching Portfolio Insights
+          let baseRate: number;
+          if (hashValue < 15) {
+            baseRate = 10 + (hashValue % 15); // Low: 10-24%
+          } else if (hashValue < 35) {
+            baseRate = 25 + (hashValue % 15); // Medium-low: 25-39%
+          } else if (hashValue < 60) {
+            baseRate = 40 + (hashValue % 15); // Medium: 40-54%
+          } else if (hashValue < 80) {
+            baseRate = 55 + (hashValue % 15); // Good: 55-69%
+          } else {
+            baseRate = 70 + (hashValue % 20); // High: 70-89%
+          }
           
-          // Adjust rates based on category relationships
-          if (fromCategory === "Pensioen" && toCategory === "Inkomen Collectief") baseRate = 0.45;
-          if (fromCategory === "Inkomen Collectief" && toCategory === "Pensioen") baseRate = 0.38;
-          if (fromCategory === "Schade Zakelijk" && toCategory === "Inkomen Collectief") baseRate = 0.32;
-          if (fromCategory === "Pensioen" && toCategory === "Schade Zakelijk") baseRate = 0.25;
+          const conversionRate = baseRate / 100; // Convert to decimal
           
-          const variation = (Math.random() - 0.5) * 0.2; // ±10% variation
-          const conversionRate = Math.max(0.05, Math.min(0.70, baseRate + variation));
+          // Calculate benchmark as a realistic market benchmark (usually different from actual rate)
+          const benchmark = Math.max(0.15, (baseRate + ((fromHash - toHash) % 20) - 10)) / 100;
           
-          const benchmark = conversionRate * (0.7 + Math.random() * 0.4) * benchmarkAdjustment; // 70-110% of conversion rate
-          const potentialCustomers = Math.floor(Math.random() * 40) + 15;
-          const avgDealSize = fromCategory === "Pensioen" ? 2500 : fromCategory === "Schade Zakelijk" ? 1800 : 1200;
-          const revenue = potentialCustomers * avgDealSize * (0.8 + Math.random() * 0.4);
+          // Calculate other metrics
+          const potentialCustomers = 30 + ((fromHash + toHash * 2) % 180);
+          const avgDealSize = fromCategory === "Pensioen" ? 3500 : fromCategory === "Schade Zakelijk" ? 2800 : 1800;
+          const revenue = Math.floor(potentialCustomers * avgDealSize * (0.8 + (hashValue % 40) / 100));
           
+          // Priority based on how much actual rate exceeds benchmark
           let priority: "high" | "medium" | "low" = "low";
-          if (conversionRate > benchmark + 0.1) priority = "high";
-          else if (conversionRate > benchmark - 0.05) priority = "medium";
+          const diff = conversionRate - benchmark;
+          if (diff > 0.15) priority = "high";
+          else if (diff > 0.05) priority = "medium";
           
           matrixData.push({
             fromCategory,
@@ -175,14 +187,14 @@ export default function WhiteSpaceMatrix({
 
   const matrixData = generateMatrixData();
 
-  // Get color for cell based on performance vs benchmark
+  // Get color for cell based on conversion rate - matching Portfolio Insights logic
   const getCellColor = (cell: MatrixCell) => {
-    const diff = cell.conversionRate - cell.benchmark;
-    if (diff > 0.15) return "bg-emerald-100 border-emerald-300 text-emerald-800";
-    if (diff > 0.05) return "bg-green-100 border-green-300 text-green-800";
-    if (diff > -0.05) return "bg-amber-100 border-amber-300 text-amber-800";
-    if (diff > -0.15) return "bg-orange-100 border-orange-300 text-orange-800";
-    return "bg-red-100 border-red-300 text-red-800";
+    const rate = cell.conversionRate * 100; // Convert to percentage for comparison
+    if (rate >= 70) return 'bg-emerald-50 border-emerald-100 text-emerald-800'; // High potential - soft emerald
+    if (rate >= 55) return 'bg-green-50 border-green-100 text-green-800'; // Good potential - subtle green
+    if (rate >= 40) return 'bg-amber-50 border-amber-100 text-amber-800'; // Medium potential - soft amber
+    if (rate >= 25) return 'bg-orange-50 border-orange-100 text-orange-800'; // Lower potential - soft orange
+    return 'bg-red-50 border-red-100 text-red-800'; // Low potential - soft red
   };
 
   return (
@@ -349,17 +361,20 @@ export default function WhiteSpaceMatrix({
                           }`}
                           onClick={() => setSelectedCellData(cell)}
                         >
-                          <div className="text-xs font-bold mb-1">
-                            {(cell.conversionRate * 100).toFixed(1)}%
-                          </div>
-                          <div className="text-xs opacity-75 mb-1">
-                            vs {(cell.benchmark * 100).toFixed(1)}%
-                          </div>
-                          <div className="text-xs font-medium">
-                            {cell.potentialCustomers} customers
-                          </div>
-                          <div className="text-xs opacity-75">
-                            €{Math.round(cell.revenue / 1000)}k potential
+                          <div className="space-y-1">
+                            <div className="text-sm font-bold">
+                              {(cell.conversionRate * 100).toFixed(1)}%
+                            </div>
+                            <div className="text-xs opacity-80">
+                              vs {(cell.benchmark * 100).toFixed(1)}%
+                            </div>
+                            <div className="border-t border-current opacity-20 my-1"></div>
+                            <div className="text-xs font-medium">
+                              {cell.potentialCustomers} customers
+                            </div>
+                            <div className="text-xs opacity-80">
+                              €{Math.round(cell.revenue / 1000)}k value
+                            </div>
                           </div>
                         </div>
                       );
@@ -382,41 +397,52 @@ export default function WhiteSpaceMatrix({
 
       {/* Action Bar - appears when cell is selected */}
       {selectedCellData && (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
-          <div className="max-w-7xl mx-auto px-4 py-4">
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-xl z-50 backdrop-blur-sm transition-all duration-300 ease-in-out">
+          <div className="max-w-7xl mx-auto px-6 py-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-6">
-                <div className="flex items-center gap-2">
-                  <Target className="w-5 h-5 text-[#5567E5]" />
-                  <span className="font-semibold text-gray-900">
+              <div className="flex items-center gap-8">
+                <div className="flex items-center gap-3">
+                  <div className={`w-3 h-3 rounded-full ${
+                    (selectedCellData.conversionRate * 100) >= 70 ? 'bg-emerald-500' :
+                    (selectedCellData.conversionRate * 100) >= 55 ? 'bg-green-500' :
+                    (selectedCellData.conversionRate * 100) >= 40 ? 'bg-amber-500' :
+                    (selectedCellData.conversionRate * 100) >= 25 ? 'bg-orange-500' : 'bg-red-500'
+                  }`} />
+                  <span className="font-semibold text-gray-900 text-lg">
                     {selectedCellData.fromCategory} → {selectedCellData.toCategory}
                   </span>
+                  <Badge variant="outline" className="ml-2">
+                    {selectedCellData.priority.charAt(0).toUpperCase() + selectedCellData.priority.slice(1)} Priority
+                  </Badge>
                 </div>
                 
-                <div className="flex items-center gap-4 text-sm">
-                  <div className="flex items-center gap-1">
-                    <span className="text-gray-600">Conversion:</span>
-                    <span className="font-semibold text-blue-600">
+                <div className="flex items-center gap-6 text-sm">
+                  <div className="flex flex-col items-center">
+                    <span className="text-2xl font-bold text-blue-600">
                       {(selectedCellData.conversionRate * 100).toFixed(1)}%
                     </span>
+                    <span className="text-xs text-gray-500">Conversion Rate</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-gray-600">Benchmark:</span>
-                    <span className="font-semibold text-gray-700">
+                  <div className="w-px h-8 bg-gray-200"></div>
+                  <div className="flex flex-col items-center">
+                    <span className="text-lg font-semibold text-gray-700">
                       {(selectedCellData.benchmark * 100).toFixed(1)}%
                     </span>
+                    <span className="text-xs text-gray-500">Market Benchmark</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-gray-600">Potential:</span>
-                    <span className="font-semibold text-green-600">
+                  <div className="w-px h-8 bg-gray-200"></div>
+                  <div className="flex flex-col items-center">
+                    <span className="text-lg font-semibold text-green-600">
                       €{Math.round(selectedCellData.revenue / 1000)}k
                     </span>
+                    <span className="text-xs text-gray-500">Revenue Potential</span>
                   </div>
-                  <div className="flex items-center gap-1">
-                    <span className="text-gray-600">Customers:</span>
-                    <span className="font-semibold text-gray-700">
+                  <div className="w-px h-8 bg-gray-200"></div>
+                  <div className="flex flex-col items-center">
+                    <span className="text-lg font-semibold text-gray-700">
                       {selectedCellData.potentialCustomers}
                     </span>
+                    <span className="text-xs text-gray-500">Target Customers</span>
                   </div>
                 </div>
               </div>
@@ -424,25 +450,25 @@ export default function WhiteSpaceMatrix({
               <div className="flex items-center gap-3">
                 <Button 
                   onClick={onCreateOpportunity} 
-                  className="bg-[#5567E5] hover:bg-[#4456D4] text-white"
+                  className="bg-[#5567E5] hover:bg-[#4456D4] text-white px-6 py-2 shadow-md"
                 >
                   <Plus className="w-4 h-4 mr-2" />
                   Creëer Kans
                 </Button>
-                <Button variant="outline" onClick={onCreateCampaign}>
+                <Button variant="outline" onClick={onCreateCampaign} className="shadow-sm">
                   <Zap className="w-4 h-4 mr-2" />
                   Campaign
                 </Button>
-                <Button variant="outline" onClick={onCreateList}>
+                <Button variant="outline" onClick={onCreateList} className="shadow-sm">
                   <Users className="w-4 h-4 mr-2" />
                   Add to List
                 </Button>
                 <Button 
                   variant="ghost" 
                   onClick={() => setSelectedCellData(null)}
-                  className="text-gray-500 hover:text-gray-700"
+                  className="text-gray-400 hover:text-gray-600 ml-2"
                 >
-                  ×
+                  <span className="text-xl">×</span>
                 </Button>
               </div>
             </div>
