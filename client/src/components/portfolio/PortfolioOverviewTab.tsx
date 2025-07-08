@@ -481,7 +481,11 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
           const categoryTagStyle = getCategoryTagStyle(category.categoryColor, category.categoryName);
           
           return (
-            <Card key={category.categoryId} className="border border-[#E6E7F1] bg-white relative overflow-hidden transition-all duration-300 hover:shadow-lg">
+            <Card 
+              key={category.categoryId} 
+              className="bg-white relative overflow-hidden transition-all duration-300 hover:shadow-lg border-2"
+              style={{ borderColor: category.categoryColor || '#E6E7F1' }}
+            >
               {/* Gap count indicator */}
               {gapCount > 0 && (
                 <div className="absolute top-3 right-3 text-xs font-medium text-gray-600">
@@ -524,11 +528,15 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                   </div>
                 </div>
                 
-                {/* Category Name as Colored Tag */}
-                <div className="mb-3">
-                  <Badge variant="outline" className={`${categoryTagStyle} text-xs font-medium`}>
+                {/* Category Name with Colored Dot */}
+                <div className="mb-3 flex items-center justify-center space-x-2">
+                  <div
+                    className="w-2 h-2 rounded-full"
+                    style={{ backgroundColor: category.categoryColor }}
+                  />
+                  <span className="text-sm font-medium text-gray-700">
                     {category.categoryName}
-                  </Badge>
+                  </span>
                 </div>
                 
                 {/* Product Count */}
