@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Copy, Users, Trash2, MoreHorizontal, MoreVertical, MessageSquare, ArrowLeft, Plus, Mail, Calendar, Clock, Play, Pause, AlertCircle, CheckCircle, Eye, Edit, Filter, Package, Target, Crown } from "lucide-react";
+import { Search, Copy, Users, Trash2, MoreHorizontal, MoreVertical, MessageSquare, ArrowLeft, Plus, Mail, Calendar, Clock, Play, Pause, AlertCircle, CheckCircle, Eye, Edit, Filter, Package, Target, Crown, Bot } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
@@ -3296,24 +3296,16 @@ export default function PartnerDetail() {
                 >
                   Matrix
                 </button>
-                <button 
-                  onClick={() => setActiveProductTab("list")}
-                  className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md ${
-                    activeProductTab === "list" 
-                      ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
-                      : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
-                  }`}
-                >
-                  List
-                </button>
+
                 <button 
                   onClick={() => setActiveProductTab("smart-cross-sell")}
-                  className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md ${
+                  className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md flex items-center gap-2 ${
                     activeProductTab === "smart-cross-sell" 
                       ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
                       : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
                   }`}
                 >
+                  <Bot className="w-4 h-4" />
                   Smart Cross Sell
                 </button>
               </nav>
@@ -3339,8 +3331,8 @@ export default function PartnerDetail() {
               />
             )}
 
-            {/* List Tab */}
-            {activeProductTab === "list" && (
+            {/* List Tab - REMOVED */}
+            {false && activeProductTab === "list" && (
               <div>
 
 

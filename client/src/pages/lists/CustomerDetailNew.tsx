@@ -12,7 +12,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, ChevronDown, ChevronUp, ChevronRight, Shield, TrendingUp, Clock, AlertTriangle, Target, Zap, Briefcase, Plane, PiggyBank, Scale, DollarSign, CheckCircle, ArrowUp, Filter, Crown, FileText } from "lucide-react";
+import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, Package, ChevronDown, ChevronUp, ChevronRight, Shield, TrendingUp, Clock, AlertTriangle, Target, Zap, Briefcase, Plane, PiggyBank, Scale, DollarSign, CheckCircle, ArrowUp, Filter, Crown, FileText, Bot } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import LogoUploadModal from "@/components/LogoUploadModal";
 import EntityAvatar from "@/components/EntityAvatar";
@@ -1498,23 +1498,14 @@ export default function CustomerDetailNew() {
                   Matrix
                 </button>
                 <button 
-                  onClick={() => setActiveProductTab("list")}
-                  className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md ${
-                    activeProductTab === "list" 
-                      ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
-                      : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
-                  }`}
-                >
-                  List
-                </button>
-                <button 
                   onClick={() => setActiveProductTab("smart-cross-sell")}
-                  className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md ${
+                  className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md flex items-center gap-2 ${
                     activeProductTab === "smart-cross-sell" 
                       ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
                       : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
                   }`}
                 >
+                  <Bot className="w-4 h-4" />
                   Smart Cross Sell
                 </button>
               </nav>
@@ -1540,18 +1531,7 @@ export default function CustomerDetailNew() {
               />
             )}
 
-            {/* List Tab - Keep existing functionality */}
-            {activeProductTab === "list" && (
-              <div>
-                <div className="p-8 bg-gray-50 rounded-lg border-2 border-dashed border-gray-200 text-center">
-                  <div className="text-gray-400 mb-2">
-                    <FileText className="w-12 h-12 mx-auto mb-3" />
-                  </div>
-                  <p className="text-gray-600 font-medium mb-1">Product Lists Coming Soon</p>
-                  <p className="text-sm text-gray-500">View and manage all product assignments in detailed list format</p>
-                </div>
-              </div>
-            )}
+
 
             {/* Smart Cross Sell Tab */}
             {activeProductTab === "smart-cross-sell" && (
