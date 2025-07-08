@@ -4807,16 +4807,16 @@ Return as JSON in this exact format:
       
       const result = await envPool.query(`
         SELECT 
-          p.id as "productId",
-          p.name as "productName",
-          p.description as "productDescription", 
-          p.category as category,
+          pt.id as "productId",
+          pt.name as "productName",
+          pt.description as "productDescription", 
+          pt.category as category,
           -- Aggregated values from all partner's customers
-          COUNT(DISTINCT cp.customer_id) as "customerCount",
-          SUM(cp.premium_value) as "totalPremiumValue",
-          AVG(cp.premium_value) as "avgPremiumValue",
-          AVG(cp.premium_percentage) as "avgPremiumPercentage",
-          AVG(cp.discount_percentage) as "avgDiscountPercentage",
+          COUNT(DISTINCT cpa.customer_id) as "customerCount",
+          SUM(pt.premium_value) as "totalPremiumValue",
+          AVG(pt.premium_value) as "avgPremiumValue",
+          AVG(pt.premium_percentage) as "avgPremiumPercentage",
+          AVG(pt.discount_percentage) as "avgDiscountPercentage",
           -- Category info
           c.name as "categoryName",
           c.color as "categoryColor",
@@ -4824,18 +4824,18 @@ Return as JSON in this exact format:
           parent_cat.name as "parentCategoryName",
           parent_cat.color as "parentCategoryColor",
           -- Contract date ranges
-          MIN(cp.contract_start_date) as "earliestContractStart",
-          MAX(cp.contract_end_date) as "latestContractEnd",
+          MIN(pt.contract_start_date) as "earliestContractStart",
+          MAX(pt.contract_end_date) as "latestContractEnd",
           -- Status summary
-          STRING_AGG(DISTINCT cp.status, ', ') as "statusSummary"
-        FROM degoudse.customer_products cp
-        INNER JOIN degoudse.products p ON cp.product_id = p.id
-        INNER JOIN degoudse.partner_customers pc ON cp.customer_id = pc.customer_id
-        LEFT JOIN degoudse.categories c ON p.category_id = c.id
-        LEFT JOIN degoudse.categories parent_cat ON c.parent_id = parent_cat.id
-        WHERE pc.partner_id = $1
-        GROUP BY p.id, p.name, p.description, p.category, c.name, c.color, parent_cat.name, parent_cat.color
-        ORDER BY COUNT(DISTINCT cp.customer_id) DESC, SUM(cp.premium_value) DESC
+          'Active' as "statusSummary"
+        FROM degoudse.customer_product_assignments cpa
+        INNER JOIN degoudse.product_templates pt ON cpa.product_template_id = pt.id
+        INNER JOIN degoudse.partner_customers pc ON cpa.customer_id = pc.customer_id
+        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
+        LEFT JOIN degoudse.categories parent_cat ON c.parent_id = parent_cat.id OR c.id = parent_cat.id
+        WHERE pc.partner_id = $1 AND cpa.is_active = true
+        GROUP BY pt.id, pt.name, pt.description, pt.category, c.name, c.color, parent_cat.name, parent_cat.color
+        ORDER BY COUNT(DISTINCT cpa.customer_id) DESC, SUM(pt.premium_value) DESC
       `, [partnerId]);
       
       console.log(`Returning ${result.rows.length} product assignments for partner ${partnerId}`);
@@ -4863,91 +4863,71 @@ Return as JSON in this exact format:
       
       const partnerName = partnerResult.rows[0].name;
       
-      // Get portfolio summary metrics - use actual customer_products through partner relationships
+      // Get portfolio summary metrics - use actual customer_product_assignments through partner relationships
       const summaryResult = await envPool.query(`
         SELECT 
-          COUNT(DISTINCT cp.product_id) as products_covered,
+          COUNT(DISTINCT cpa.product_template_id) as products_covered,
           COUNT(DISTINCT parent_cat.id) as categories_covered,
-          SUM(COALESCE(cp.premium_value, 0)) as total_premium,
-          (SELECT COUNT(*) FROM degoudse.products) as total_available_products
-        FROM degoudse.customer_products cp
-        INNER JOIN degoudse.partner_customers pc ON cp.customer_id = pc.customer_id
-        INNER JOIN degoudse.products p ON cp.product_id = p.id
-        LEFT JOIN degoudse.categories c ON p.category_id = c.id
-        LEFT JOIN degoudse.categories parent_cat ON c.parent_id = parent_cat.id
-        WHERE pc.partner_id = $1
+          SUM(COALESCE(pt.premium_value, 0)) as total_premium,
+          (SELECT COUNT(*) FROM degoudse.product_templates) as total_available_products
+        FROM degoudse.customer_product_assignments cpa
+        INNER JOIN degoudse.partner_customers pc ON cpa.customer_id = pc.customer_id
+        INNER JOIN degoudse.product_templates pt ON cpa.product_template_id = pt.id
+        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
+        LEFT JOIN degoudse.categories parent_cat ON c.parent_id = parent_cat.id OR c.id = parent_cat.id
+        WHERE pc.partner_id = $1 AND cpa.is_active = true
       `, [partnerId]);
       
-      // Get category coverage breakdown - simplified direct approach
+      // Get category coverage breakdown - customer coverage per category
       const categoryResult = await envPool.query(`
-        SELECT 
-          parent_cat.id as categoryId,
-          parent_cat.name as categoryName,
-          parent_cat.color as categoryColor,
-          (
-            SELECT COUNT(DISTINCT cp.product_id)
-            FROM degoudse.customer_products cp
-            INNER JOIN degoudse.products p ON cp.product_id = p.id
-            INNER JOIN degoudse.partner_customers pc ON cp.customer_id = pc.customer_id
-            INNER JOIN degoudse.categories c ON p.category_id = c.id
-            WHERE c.parent_id = parent_cat.id AND pc.partner_id = $1
-          ) as products_covered,
-          (
-            SELECT COUNT(DISTINCT p.id)
-            FROM degoudse.products p
-            INNER JOIN degoudse.categories c ON p.category_id = c.id
-            WHERE c.parent_id = parent_cat.id
-          ) as total_products,
-          (
-            SELECT COALESCE(SUM(cp.premium_value), 0)
-            FROM degoudse.customer_products cp
-            INNER JOIN degoudse.products p ON cp.product_id = p.id
-            INNER JOIN degoudse.partner_customers pc ON cp.customer_id = pc.customer_id
-            INNER JOIN degoudse.categories c ON p.category_id = c.id
-            WHERE c.parent_id = parent_cat.id AND pc.partner_id = $1
-          ) as current_premium,
-          ROUND(
-            (
-              (SELECT COUNT(DISTINCT cp.product_id)
-               FROM degoudse.customer_products cp
-               INNER JOIN degoudse.products p ON cp.product_id = p.id
-               INNER JOIN degoudse.partner_customers pc ON cp.customer_id = pc.customer_id
-               INNER JOIN degoudse.categories c ON p.category_id = c.id
-               WHERE c.parent_id = parent_cat.id AND pc.partner_id = $1)::decimal / 
-              NULLIF((
-                SELECT COUNT(DISTINCT p.id)
-                FROM degoudse.products p
-                INNER JOIN degoudse.categories c ON p.category_id = c.id
-                WHERE c.parent_id = parent_cat.id
-              ), 0)
-            ) * 100, 1
-          ) as coverage_percentage
-        FROM degoudse.categories parent_cat
-        WHERE parent_cat.level = 1
-        ORDER BY coverage_percentage DESC NULLS LAST
+        WITH partner_customers AS (
+          SELECT DISTINCT customer_id 
+          FROM degoudse.partner_customers 
+          WHERE partner_id = $1
+        ),
+        category_coverage AS (
+          SELECT 
+            parent_cat.id as categoryId,
+            parent_cat.name as categoryName,
+            parent_cat.color as categoryColor,
+            COUNT(DISTINCT cpa.customer_id) as customers_with_products,
+            (SELECT COUNT(*) FROM partner_customers) as total_customers,
+            COALESCE(SUM(pt.premium_value), 0) as current_premium,
+            ROUND(COUNT(DISTINCT cpa.customer_id) * 100.0 / (SELECT COUNT(*) FROM partner_customers), 1) as coverage_percentage
+          FROM degoudse.categories parent_cat
+          LEFT JOIN degoudse.categories c ON c.parent_id = parent_cat.id OR c.id = parent_cat.id
+          LEFT JOIN degoudse.product_templates pt ON pt.category_id = c.id
+          LEFT JOIN degoudse.customer_product_assignments cpa ON cpa.product_template_id = pt.id
+            AND cpa.customer_id IN (SELECT customer_id FROM partner_customers)
+            AND cpa.is_active = true
+          WHERE parent_cat.parent_id IS NULL
+          GROUP BY parent_cat.id, parent_cat.name, parent_cat.color
+        )
+        SELECT * FROM category_coverage
+        ORDER BY coverage_percentage DESC
       `, [partnerId]);
       
       // Calculate gap opportunities using products not assigned to this partner's customers
       const gapResult = await envPool.query(`
         SELECT 
-          p.name as product_name,
-          p.premium_value as potential_value,
+          pt.name as product_name,
+          pt.premium_value as potential_value,
           parent_cat.name as category_name,
           CASE 
-            WHEN p.premium_value >= 5000 THEN 'critical'
-            WHEN p.premium_value >= 2000 THEN 'medium'
+            WHEN pt.premium_value >= 5000 THEN 'critical'
+            WHEN pt.premium_value >= 2000 THEN 'medium'
             ELSE 'low'
           END as priority
-        FROM degoudse.products p
-        INNER JOIN degoudse.categories c ON p.category_id = c.id
-        LEFT JOIN degoudse.categories parent_cat ON c.parent_id = parent_cat.id
-        WHERE p.id NOT IN (
-          SELECT DISTINCT cp.product_id 
-          FROM degoudse.customer_products cp
-          INNER JOIN degoudse.partner_customers pc ON cp.customer_id = pc.customer_id
-          WHERE pc.partner_id = $1
+        FROM degoudse.product_templates pt
+        INNER JOIN degoudse.categories c ON pt.category_id = c.id
+        LEFT JOIN degoudse.categories parent_cat ON c.parent_id = parent_cat.id OR c.id = parent_cat.id
+        WHERE pt.id NOT IN (
+          SELECT DISTINCT cpa.product_template_id 
+          FROM degoudse.customer_product_assignments cpa
+          INNER JOIN degoudse.partner_customers pc ON cpa.customer_id = pc.customer_id
+          WHERE pc.partner_id = $1 AND cpa.is_active = true
         )
-        ORDER BY p.premium_value DESC
+        ORDER BY pt.premium_value DESC
       `, [partnerId]);
       
       const summary = summaryResult.rows[0];
