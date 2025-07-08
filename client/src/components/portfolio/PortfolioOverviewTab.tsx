@@ -514,28 +514,27 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
           const categoryTagStyle = getCategoryTagStyle(category.categoryColor, category.categoryName);
           
           return (
-            <Card key={category.categoryId} className="border border-[#E6E7F1] bg-white transition-all duration-300 hover:shadow-lg">
+            <Card key={category.categoryId} className="border border-[#E6E7F1] bg-white relative overflow-hidden transition-all duration-300 hover:shadow-lg">
+              {/* Gap count indicator in top right */}
+              {gapCount > 0 && (
+                <div className="absolute top-3 right-3 text-xs font-medium text-gray-600">
+                  {gapCount} gaps
+                </div>
+              )}
+              
               <CardContent className="p-5">
-                {/* Clean organized layout with circular progress */}
-                <div className="flex items-start justify-between mb-4">
-                  {/* Left side - Category name with colored bullet */}
-                  <div className="flex items-center space-x-2">
-                    <div
-                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
-                      style={{ backgroundColor: category.categoryColor }}
-                    />
-                    <div className="text-base font-bold text-gray-900">
-                      {category.categoryName}
-                    </div>
-                  </div>
-                  
-                  {/* Right side - Large percentage display */}
-                  <div className="text-2xl font-bold text-gray-900">
-                    {Math.round(category.coveragePercentage)}%
+                {/* Category name with colored bullet */}
+                <div className="flex items-center space-x-2 mb-4">
+                  <div
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: category.categoryColor }}
+                  />
+                  <div className="text-base font-bold text-gray-900">
+                    {category.categoryName}
                   </div>
                 </div>
 
-                {/* Center - Clean Circular Progress */}
+                {/* Center - Clean Circular Progress with percentage inside */}
                 <div className="flex justify-center mb-4">
                   <div className="relative w-16 h-16">
                     <svg className="w-16 h-16 transform -rotate-90" viewBox="0 0 64 64">
@@ -562,6 +561,12 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                         className="transition-all duration-700 ease-out"
                       />
                     </svg>
+                    {/* Percentage text inside circle */}
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <span className="text-lg font-bold text-gray-900">
+                        {Math.round(category.coveragePercentage)}%
+                      </span>
+                    </div>
                   </div>
                 </div>
                 
