@@ -335,7 +335,9 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
 
   // Get category tag styling based on category color
   const getCategoryTagStyle = (categoryColor: string) => {
+    // Handle both color names and hex values
     const colorMap: { [key: string]: string } = {
+      // Color names
       'Blue': 'bg-blue-100 text-blue-800 border-blue-200',
       'Green': 'bg-green-100 text-green-800 border-green-200',
       'Orange': 'bg-orange-100 text-orange-800 border-orange-200',
@@ -345,10 +347,45 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
       'Lime': 'bg-lime-100 text-lime-800 border-lime-200',
       'Amber': 'bg-amber-100 text-amber-800 border-amber-200',
       'Pink': 'bg-pink-100 text-pink-800 border-pink-200',
-      'Gray': 'bg-gray-100 text-gray-800 border-gray-200'
+      'Gray': 'bg-gray-100 text-gray-800 border-gray-200',
+      // Hex color mappings for common insurance category colors
+      '#3B82F6': 'bg-blue-100 text-blue-800 border-blue-200', // Blue
+      '#10B981': 'bg-green-100 text-green-800 border-green-200', // Green
+      '#F59E0B': 'bg-orange-100 text-orange-800 border-orange-200', // Orange
+      '#8B5CF6': 'bg-purple-100 text-purple-800 border-purple-200', // Purple
+      '#EF4444': 'bg-red-100 text-red-800 border-red-200', // Red
+      '#06B6D4': 'bg-cyan-100 text-cyan-800 border-cyan-200', // Cyan
+      '#84CC16': 'bg-lime-100 text-lime-800 border-lime-200', // Lime
+      '#F59E0B': 'bg-amber-100 text-amber-800 border-amber-200', // Amber
+      '#EC4899': 'bg-pink-100 text-pink-800 border-pink-200', // Pink
+      '#6B7280': 'bg-gray-100 text-gray-800 border-gray-200' // Gray
     };
     
-    return colorMap[categoryColor] || 'bg-gray-100 text-gray-800 border-gray-200';
+    // First try exact match
+    if (colorMap[categoryColor]) {
+      return colorMap[categoryColor];
+    }
+    
+    // If not found, try to map based on color hue for hex colors
+    if (categoryColor?.startsWith('#')) {
+      // Simple color mapping based on hex values
+      const hex = categoryColor.toLowerCase();
+      if (hex.includes('3b82f6') || hex.includes('2563eb') || hex.includes('1d4ed8')) {
+        return 'bg-blue-100 text-blue-800 border-blue-200';
+      }
+      if (hex.includes('10b981') || hex.includes('059669') || hex.includes('047857')) {
+        return 'bg-green-100 text-green-800 border-green-200';
+      }
+      if (hex.includes('f59e0b') || hex.includes('d97706') || hex.includes('b45309')) {
+        return 'bg-orange-100 text-orange-800 border-orange-200';
+      }
+      if (hex.includes('8b5cf6') || hex.includes('7c3aed') || hex.includes('6d28d9')) {
+        return 'bg-purple-100 text-purple-800 border-purple-200';
+      }
+    }
+    
+    // Default fallback
+    return 'bg-blue-100 text-blue-800 border-blue-200';
   };
 
   return (
@@ -495,6 +532,12 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                   <Badge variant="outline" className={`${categoryTagStyle} text-xs font-medium`}>
                     {category.categoryName}
                   </Badge>
+                  {/* Debug: show actual color value */}
+                  {process.env.NODE_ENV === 'development' && (
+                    <div className="text-xs text-gray-400 mt-1">
+                      Color: {category.categoryColor || 'undefined'}
+                    </div>
+                  )}
                 </div>
                 
                 {/* Product Count */}
