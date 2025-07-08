@@ -152,13 +152,14 @@ export function WhiteSpaceMatrix({
     }
   };
 
-  const getCellColor = (conversionRate: number) => {
-    const percentage = conversionRate * 100;
-    if (percentage >= 70) return 'bg-emerald-100 hover:bg-emerald-200 border-emerald-300';
-    if (percentage >= 55) return 'bg-green-100 hover:bg-green-200 border-green-300';
-    if (percentage >= 40) return 'bg-amber-100 hover:bg-amber-200 border-amber-300';
-    if (percentage >= 25) return 'bg-orange-100 hover:bg-orange-200 border-orange-300';
-    return 'bg-red-100 hover:bg-red-200 border-red-300';
+  const getCellColor = (conversionRate: number, benchmark: number) => {
+    // Color based on how conversion rate compares to benchmark
+    const ratio = conversionRate / benchmark;
+    if (ratio >= 2.0) return 'bg-emerald-100 hover:bg-emerald-200 border-emerald-300'; // 2x or more above benchmark
+    if (ratio >= 1.5) return 'bg-green-100 hover:bg-green-200 border-green-300';       // 1.5x above benchmark  
+    if (ratio >= 1.0) return 'bg-amber-100 hover:bg-amber-200 border-amber-300';       // At or slightly above benchmark
+    if (ratio >= 0.7) return 'bg-orange-100 hover:bg-orange-200 border-orange-300';    // Below benchmark
+    return 'bg-red-100 hover:bg-red-200 border-red-300';                              // Significantly below benchmark
   };
 
   return (
@@ -550,10 +551,14 @@ export function WhiteSpaceMatrix({
         <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
           <div className="flex items-center gap-3">
             <div className={`w-2.5 h-2.5 rounded-full ${
-              (selectedCellData.conversionRate * 100) >= 70 ? 'bg-emerald-500' :
-              (selectedCellData.conversionRate * 100) >= 55 ? 'bg-green-500' :
-              (selectedCellData.conversionRate * 100) >= 40 ? 'bg-amber-500' :
-              (selectedCellData.conversionRate * 100) >= 25 ? 'bg-orange-500' : 'bg-red-500'
+              (() => {
+                const ratio = selectedCellData.conversionRate / selectedCellData.benchmark;
+                if (ratio >= 2.0) return 'bg-emerald-500';
+                if (ratio >= 1.5) return 'bg-green-500';
+                if (ratio >= 1.0) return 'bg-amber-500';
+                if (ratio >= 0.7) return 'bg-orange-500';
+                return 'bg-red-500';
+              })()
             }`} />
             <span className="text-gray-900 font-medium">
               {selectedCellData.fromCategory} → {selectedCellData.toCategory}
@@ -645,7 +650,7 @@ export function WhiteSpaceMatrix({
                         return (
                           <td key={toCategoryId} className="p-1">
                             <div 
-                              className={`h-20 rounded border cursor-pointer transition-all duration-200 p-2 ${getCellColor(cellData.conversionRate)} ${
+                              className={`h-20 rounded border cursor-pointer transition-all duration-200 p-2 ${getCellColor(cellData.conversionRate, cellData.benchmark)} ${
                                 selectedCellData?.fromCategory === (fromCategory?.name || fromCategoryId) && selectedCellData?.toCategory === (toCategory?.name || toCategoryId)
                                   ? 'ring-2 ring-blue-500 ring-offset-1' 
                                   : ''
