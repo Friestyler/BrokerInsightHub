@@ -4,7 +4,10 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Plus, Zap, Users, Settings } from 'lucide-react';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Plus, Zap, Users, Settings, ChevronDown } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { useEnvironment } from '@/contexts/EnvironmentContext';
 
 interface Category {
   id: number;
@@ -39,26 +42,33 @@ export function WhiteSpaceMatrix({
   onCreateCampaign, 
   onCreateList 
 }: WhiteSpaceMatrixProps) {
-  const [categories, setCategories] = useState<Category[]>([]);
+  const { environment } = useEnvironment();
   const [selectedHorizontalCategories, setSelectedHorizontalCategories] = useState<string[]>([]);
   const [selectedVerticalCategories, setSelectedVerticalCategories] = useState<string[]>([]);
   const [selectedCellData, setSelectedCellData] = useState<SelectedCellData | null>(null);
   const [showConfigPanels, setShowConfigPanels] = useState(false);
 
-  // Create hierarchical items for dropdown
-  const hierarchicalItems = categories.map(cat => ({
-    id: cat.id,
-    name: cat.name,
-    color: cat.color,
-    level: cat.level
-  }));
+  // Fetch categories from API
+  const { data: categoriesData = [] } = useQuery({
+    queryKey: ['/api/categories'],
+    queryFn: async () => {
+      const response = await fetch(`/api/${environment}/categories`);
+      if (!response.ok) throw new Error('Failed to fetch categories');
+      return response.json();
+    }
+  });
 
-  // Initialize with main categories
+  // Filter to main categories only (level 1)
+  const categories = categoriesData.filter((cat: Category) => cat.level === 1);
+
+  // Initialize with main categories when data loads
   useEffect(() => {
-    const mainCategories = ['Pensioen', 'Inkomen Collectief', 'Schade Zakelijk', 'Overige'];
-    setSelectedHorizontalCategories(mainCategories);
-    setSelectedVerticalCategories(mainCategories);
-  }, []);
+    if (categories.length > 0) {
+      const mainCategoryNames = categories.map(cat => cat.name);
+      setSelectedHorizontalCategories(mainCategoryNames);
+      setSelectedVerticalCategories(mainCategoryNames);
+    }
+  }, [categories]);
 
   // Generate matrix data with conversion rates
   const generateMatrixData = (from: string, to: string) => {
@@ -122,81 +132,75 @@ export function WhiteSpaceMatrix({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label className="text-xs font-medium">Horizontal Axis (From)</Label>
-              <Select onValueChange={(value) => {
-                if (!selectedHorizontalCategories.includes(value)) {
-                  setSelectedHorizontalCategories([...selectedHorizontalCategories, value]);
-                }
-              }}>
-                <SelectTrigger className="h-8 text-sm">
-                  <SelectValue placeholder="Select categories..." />
+              <Select value="" onValueChange={() => {}}>
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue>
+                    {selectedHorizontalCategories.length > 0 
+                      ? `${selectedHorizontalCategories.length} categories selected`
+                      : "Select categories..."
+                    }
+                  </SelectValue>
+                  <ChevronDown className="h-4 w-4 opacity-50" />
                 </SelectTrigger>
                 <SelectContent className="max-h-64">
-                  {hierarchicalItems.map((item: any) => (
-                    <SelectItem key={item.id} value={item.name}>
-                      <div className="flex items-center gap-2" style={{ paddingLeft: `${(item.level - 1) * 16}px` }}>
-                        <div 
-                          className="w-2 h-2 rounded-full" 
-                          style={{ backgroundColor: item.color }}
-                        />
-                        <span className="text-sm">{item.name}</span>
-                      </div>
-                    </SelectItem>
+                  {categories.map((cat) => (
+                    <div key={cat.id} className="flex items-center space-x-2 px-2 py-1.5 hover:bg-gray-50 cursor-pointer"
+                         onClick={() => {
+                           setSelectedHorizontalCategories(prev => 
+                             prev.includes(cat.name) 
+                               ? prev.filter(c => c !== cat.name)
+                               : [...prev, cat.name]
+                           );
+                         }}>
+                      <Checkbox 
+                        checked={selectedHorizontalCategories.includes(cat.name)}
+                        readOnly
+                      />
+                      <div 
+                        className="w-2.5 h-2.5 rounded-full" 
+                        style={{ backgroundColor: cat.color }}
+                      />
+                      <span className="text-sm">{cat.name}</span>
+                    </div>
                   ))}
                 </SelectContent>
               </Select>
-              <div className="flex flex-wrap gap-1">
-                {selectedHorizontalCategories.map(category => (
-                  <Badge 
-                    key={category} 
-                    variant="secondary" 
-                    className="text-xs cursor-pointer"
-                    onClick={() => setSelectedHorizontalCategories(prev => 
-                      prev.filter(c => c !== category)
-                    )}
-                  >
-                    {category} ×
-                  </Badge>
-                ))}
-              </div>
             </div>
             <div className="space-y-2">
               <Label className="text-xs font-medium">Vertical Axis (To)</Label>
-              <Select onValueChange={(value) => {
-                if (!selectedVerticalCategories.includes(value)) {
-                  setSelectedVerticalCategories([...selectedVerticalCategories, value]);
-                }
-              }}>
-                <SelectTrigger className="h-8 text-sm">
-                  <SelectValue placeholder="Select categories..." />
+              <Select value="" onValueChange={() => {}}>
+                <SelectTrigger className="h-9 text-sm">
+                  <SelectValue>
+                    {selectedVerticalCategories.length > 0 
+                      ? `${selectedVerticalCategories.length} categories selected`
+                      : "Select categories..."
+                    }
+                  </SelectValue>
+                  <ChevronDown className="h-4 w-4 opacity-50" />
                 </SelectTrigger>
                 <SelectContent className="max-h-64">
-                  {hierarchicalItems.map((item: any) => (
-                    <SelectItem key={item.id} value={item.name}>
-                      <div className="flex items-center gap-2" style={{ paddingLeft: `${(item.level - 1) * 16}px` }}>
-                        <div 
-                          className="w-2 h-2 rounded-full" 
-                          style={{ backgroundColor: item.color }}
-                        />
-                        <span className="text-sm">{item.name}</span>
-                      </div>
-                    </SelectItem>
+                  {categories.map((cat) => (
+                    <div key={cat.id} className="flex items-center space-x-2 px-2 py-1.5 hover:bg-gray-50 cursor-pointer"
+                         onClick={() => {
+                           setSelectedVerticalCategories(prev => 
+                             prev.includes(cat.name) 
+                               ? prev.filter(c => c !== cat.name)
+                               : [...prev, cat.name]
+                           );
+                         }}>
+                      <Checkbox 
+                        checked={selectedVerticalCategories.includes(cat.name)}
+                        readOnly
+                      />
+                      <div 
+                        className="w-2.5 h-2.5 rounded-full" 
+                        style={{ backgroundColor: cat.color }}
+                      />
+                      <span className="text-sm">{cat.name}</span>
+                    </div>
                   ))}
                 </SelectContent>
               </Select>
-              <div className="flex flex-wrap gap-1">
-                {selectedVerticalCategories.map(category => (
-                  <Badge 
-                    key={category} 
-                    variant="secondary" 
-                    className="text-xs cursor-pointer"
-                    onClick={() => setSelectedVerticalCategories(prev => 
-                      prev.filter(c => c !== category)
-                    )}
-                  >
-                    {category} ×
-                  </Badge>
-                ))}
-              </div>
             </div>
           </div>
         </CardContent>
