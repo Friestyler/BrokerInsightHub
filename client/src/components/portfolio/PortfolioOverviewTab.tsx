@@ -844,7 +844,7 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                   disabled={isGeneratingSuggestion || !portfolioData}
                   className="text-[#5567E5] border-[#5567E5] hover:bg-[#5567E5] hover:text-white"
                 >
-                  <Sparkles className="w-4 h-4 mr-1" />
+                  <Zap className="w-4 h-4 mr-1" />
                   {isGeneratingSuggestion ? 'Genereren...' : 'AI suggestie'}
                 </Button>
               </div>
