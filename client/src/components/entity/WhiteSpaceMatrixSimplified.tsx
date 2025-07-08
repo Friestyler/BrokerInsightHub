@@ -4,8 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Plus, Zap, Users, Settings, ChevronDown } from 'lucide-react';
+import { Plus, Zap, Users, Settings, ChevronDown, ChevronRight, X } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { useEnvironment } from '@/contexts/EnvironmentContext';
 
@@ -15,6 +14,8 @@ interface Category {
   color: string;
   level: number;
   parent_id?: number;
+  child_count?: number;
+  subcategories?: Category[];
 }
 
 interface WhiteSpaceMatrixProps {
@@ -43,33 +44,55 @@ export function WhiteSpaceMatrix({
   onCreateList 
 }: WhiteSpaceMatrixProps) {
   const { environment } = useEnvironment();
-  const [selectedHorizontalCategories, setSelectedHorizontalCategories] = useState<string[]>([]);
-  const [selectedVerticalCategories, setSelectedVerticalCategories] = useState<string[]>([]);
+  const [selectedHorizontalProducts, setSelectedHorizontalProducts] = useState<string[]>([]);
+  const [selectedVerticalProducts, setSelectedVerticalProducts] = useState<string[]>([]);
+  const [selectedCell, setSelectedCell] = useState<string | null>(null);
   const [selectedCellData, setSelectedCellData] = useState<SelectedCellData | null>(null);
-  const [showConfigPanels, setShowConfigPanels] = useState(false);
+  const [showProductConfig, setShowProductConfig] = useState(false);
+  const [showBenchmarkConfig, setShowBenchmarkConfig] = useState(false);
+  const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
+  const [collapsedSubcategories, setCollapsedSubcategories] = useState<Set<string>>(new Set());
+  const [conversionRate, setConversionRate] = useState([20]);
 
-  // Fetch categories from API
-  const { data: categoriesData = [] } = useQuery({
-    queryKey: ['/api/categories'],
+  // Fetch hierarchical categories from API
+  const { data: categories = [], isLoading: hierarchicalLoading } = useQuery({
+    queryKey: ['/api/categories-hierarchical'],
     queryFn: async () => {
-      const response = await fetch(`/api/${environment}/categories`);
+      const response = await fetch(`/api/${environment}/categories-hierarchical`);
       if (!response.ok) throw new Error('Failed to fetch categories');
       return response.json();
     }
   });
 
-  // Get all categories and subcategories for selection, but start with main categories
-  const allCategories = categoriesData || [];
-  const mainCategories = allCategories.filter((cat: Category) => cat.level === 1);
+  // Helper functions for collapse/expand
+  const toggleCategoryCollapse = (categoryId: string) => {
+    const newCollapsed = new Set(collapsedCategories);
+    if (newCollapsed.has(categoryId)) {
+      newCollapsed.delete(categoryId);
+    } else {
+      newCollapsed.add(categoryId);
+    }
+    setCollapsedCategories(newCollapsed);
+  };
+
+  const toggleSubcategoryCollapse = (subcategoryId: string) => {
+    const newCollapsed = new Set(collapsedSubcategories);
+    if (newCollapsed.has(subcategoryId)) {
+      newCollapsed.delete(subcategoryId);
+    } else {
+      newCollapsed.add(subcategoryId);
+    }
+    setCollapsedSubcategories(newCollapsed);
+  };
 
   // Initialize with main categories when data loads
   useEffect(() => {
-    if (mainCategories.length > 0) {
-      const mainCategoryNames = mainCategories.map(cat => cat.name);
-      setSelectedHorizontalCategories(mainCategoryNames);
-      setSelectedVerticalCategories(mainCategoryNames);
+    if (categories.length > 0) {
+      const mainCategoryIds = categories.map((cat: Category) => cat.id.toString());
+      setSelectedHorizontalProducts(mainCategoryIds);
+      setSelectedVerticalProducts(mainCategoryIds);
     }
-  }, [mainCategories]);
+  }, [categories]);
 
   // Generate matrix data with conversion rates
   const generateMatrixData = (from: string, to: string) => {
@@ -120,104 +143,418 @@ export function WhiteSpaceMatrix({
   };
 
   return (
-    <div className="space-y-4">
-      {/* Category Selection */}
-      <Card className="mb-4">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Matrix Configuration</CardTitle>
-          <CardDescription>
-            Select categories for cross-sell analysis
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label className="text-xs font-medium">Horizontal Axis (From)</Label>
-              <Select value="" onValueChange={() => {}}>
-                <SelectTrigger className="h-9 text-sm">
-                  <SelectValue>
-                    {selectedHorizontalCategories.length > 0 
-                      ? `${selectedHorizontalCategories.length} categories selected`
-                      : "Select categories..."
-                    }
-                  </SelectValue>
-                  <ChevronDown className="h-4 w-4 opacity-50" />
-                </SelectTrigger>
-                <SelectContent className="max-h-64">
-                  {allCategories.map((cat) => (
-                    <div 
-                      key={cat.id} 
-                      className="flex items-center space-x-2 px-2 py-1.5 hover:bg-gray-50 cursor-pointer"
-                      style={{ paddingLeft: `${8 + (cat.level - 1) * 16}px` }}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setSelectedHorizontalCategories(prev => 
-                          prev.includes(cat.name) 
-                            ? prev.filter(c => c !== cat.name)
-                            : [...prev, cat.name]
-                        );
-                      }}
-                    >
-                      <Checkbox 
-                        checked={selectedHorizontalCategories.includes(cat.name)}
-                        readOnly
-                      />
-                      <div 
-                        className="w-2.5 h-2.5 rounded-full" 
-                        style={{ backgroundColor: cat.color }}
-                      />
-                      <span className="text-sm">{cat.name}</span>
-                    </div>
-                  ))}
-                </SelectContent>
-              </Select>
+    <div className="w-full space-y-4">
+      {/* Top Toolbar - Customer Segment */}
+      <div className="flex items-center justify-between bg-gray-50 rounded-lg p-3">
+        <div className="flex items-center gap-4">
+          <Label className="text-sm font-medium">Customer Segment</Label>
+          <Select defaultValue="all">
+            <SelectTrigger className="w-48 bg-white">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All segments... (5,127)</SelectItem>
+              <SelectItem value="young">Young families (1,234)</SelectItem>
+              <SelectItem value="business">Business owners (892)</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Label className="text-sm font-medium">Conversion rate: {conversionRate[0]}%</Label>
+          <input
+            type="range"
+            min="10"
+            max="50"
+            value={conversionRate[0]}
+            onChange={(e) => setConversionRate([parseInt(e.target.value)])}
+            className="w-24"
+          />
+          
+          <span className="text-sm text-gray-600">All segments - 5,127 customers</span>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          <Button 
+            variant={showBenchmarkConfig ? "default" : "outline"} 
+            size="sm"
+            onClick={() => setShowBenchmarkConfig(!showBenchmarkConfig)}
+          >
+            Benchmarks
+          </Button>
+          <Button 
+            variant={showProductConfig ? "default" : "outline"} 
+            size="sm"
+            onClick={() => setShowProductConfig(!showProductConfig)}
+          >
+            Products
+          </Button>
+        </div>
+      </div>
+
+      {/* Product Configuration Panel */}
+      {showProductConfig && (
+        <Card className="border-2 border-purple-200">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Product Configuration</CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => setShowProductConfig(false)}>
+                <X className="h-4 w-4" />
+              </Button>
             </div>
-            <div className="space-y-2">
-              <Label className="text-xs font-medium">Vertical Axis (To)</Label>
-              <Select value="" onValueChange={() => {}}>
-                <SelectTrigger className="h-9 text-sm">
-                  <SelectValue>
-                    {selectedVerticalCategories.length > 0 
-                      ? `${selectedVerticalCategories.length} categories selected`
-                      : "Select categories..."
-                    }
-                  </SelectValue>
-                  <ChevronDown className="h-4 w-4 opacity-50" />
-                </SelectTrigger>
-                <SelectContent className="max-h-64">
-                  {allCategories.map((cat) => (
-                    <div 
-                      key={cat.id} 
-                      className="flex items-center space-x-2 px-2 py-1.5 hover:bg-gray-50 cursor-pointer"
-                      style={{ paddingLeft: `${8 + (cat.level - 1) * 16}px` }}
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        setSelectedVerticalCategories(prev => 
-                          prev.includes(cat.name) 
-                            ? prev.filter(c => c !== cat.name)
-                            : [...prev, cat.name]
-                        );
-                      }}
-                    >
-                      <Checkbox 
-                        checked={selectedVerticalCategories.includes(cat.name)}
-                        readOnly
-                      />
-                      <div 
-                        className="w-2.5 h-2.5 rounded-full" 
-                        style={{ backgroundColor: cat.color }}
-                      />
-                      <span className="text-sm">{cat.name}</span>
-                    </div>
-                  ))}
-                </SelectContent>
-              </Select>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-6">
+              {/* Horizontal Axis */}
+              <div>
+                <h4 className="font-medium mb-3">Horizontal Axis ({selectedHorizontalProducts.length} selected)</h4>
+                <div className="space-y-1 max-h-80 overflow-y-auto bg-gray-50 rounded-lg p-3">
+                  {hierarchicalLoading ? (
+                    <div className="text-sm text-gray-500">Loading categories...</div>
+                  ) : (
+                    categories.map((category: Category) => {
+                      const categoryId = category.id.toString();
+                      const isCategoryCollapsed = collapsedCategories.has(categoryId);
+                      
+                      return (
+                        <div key={`h-cat-${category.id}`} className="space-y-1">
+                          {/* Main Category */}
+                          <div className="flex items-center space-x-2 p-2 rounded hover:bg-white group">
+                            <button
+                              onClick={() => toggleCategoryCollapse(categoryId)}
+                              className="p-1 hover:bg-gray-200 rounded"
+                            >
+                              {isCategoryCollapsed ? (
+                                <ChevronRight className="h-3 w-3 text-gray-500" />
+                              ) : (
+                                <ChevronDown className="h-3 w-3 text-gray-500" />
+                              )}
+                            </button>
+                            <label className="flex items-center space-x-3 flex-1 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={selectedHorizontalProducts.includes(categoryId)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedHorizontalProducts([...selectedHorizontalProducts, categoryId]);
+                                  } else {
+                                    setSelectedHorizontalProducts(selectedHorizontalProducts.filter(p => p !== categoryId));
+                                  }
+                                }}
+                                className="rounded"
+                              />
+                              <div 
+                                className="w-3 h-3 rounded-full flex-shrink-0" 
+                                style={{ backgroundColor: category.color }}
+                              />
+                              <div className="flex-1">
+                                <span className="text-sm font-semibold text-gray-900">{category.name}</span>
+                                <div className="text-xs text-gray-500">{category.child_count || 0} subcategories</div>
+                              </div>
+                            </label>
+                          </div>
+
+                          {/* Subcategories */}
+                          {!isCategoryCollapsed && category.subcategories && category.subcategories.map((sub: Category) => {
+                            const subId = sub.id.toString();
+                            const isSubCollapsed = collapsedSubcategories.has(subId);
+                            
+                            return (
+                              <div key={`h-sub-${sub.id}`} className="ml-6 space-y-1">
+                                <div className="flex items-center space-x-2 p-1.5 rounded hover:bg-white group">
+                                  <button
+                                    onClick={() => toggleSubcategoryCollapse(subId)}
+                                    className="p-1 hover:bg-gray-200 rounded"
+                                  >
+                                    {sub.child_count && sub.child_count > 0 ? (
+                                      isSubCollapsed ? (
+                                        <ChevronRight className="h-3 w-3 text-gray-500" />
+                                      ) : (
+                                        <ChevronDown className="h-3 w-3 text-gray-500" />
+                                      )
+                                    ) : (
+                                      <div className="h-3 w-3" />
+                                    )}
+                                  </button>
+                                  <label className="flex items-center space-x-3 flex-1 cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedHorizontalProducts.includes(subId)}
+                                      onChange={(e) => {
+                                        if (e.target.checked) {
+                                          setSelectedHorizontalProducts([...selectedHorizontalProducts, subId]);
+                                        } else {
+                                          setSelectedHorizontalProducts(selectedHorizontalProducts.filter(p => p !== subId));
+                                        }
+                                      }}
+                                      className="rounded"
+                                    />
+                                    <div 
+                                      className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
+                                      style={{ backgroundColor: sub.color || category.color }}
+                                    />
+                                    <div className="flex-1">
+                                      <span className="text-sm font-medium text-gray-800">{sub.name}</span>
+                                      {sub.child_count && sub.child_count > 0 && (
+                                        <div className="text-xs text-gray-500">{sub.child_count} sub-subcategories</div>
+                                      )}
+                                    </div>
+                                  </label>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
+
+              {/* Vertical Axis */}
+              <div>
+                <h4 className="font-medium mb-3">Vertical Axis ({selectedVerticalProducts.length} selected)</h4>
+                <div className="space-y-1 max-h-80 overflow-y-auto bg-gray-50 rounded-lg p-3">
+                  {hierarchicalLoading ? (
+                    <div className="text-sm text-gray-500">Loading categories...</div>
+                  ) : (
+                    categories.map((category: Category) => {
+                      const categoryId = category.id.toString();
+                      const isCategoryCollapsed = collapsedCategories.has(categoryId);
+                      
+                      return (
+                        <div key={`v-cat-${category.id}`} className="space-y-1">
+                          {/* Main Category */}
+                          <div className="flex items-center space-x-2 p-2 rounded hover:bg-white group">
+                            <button
+                              onClick={() => toggleCategoryCollapse(categoryId)}
+                              className="p-1 hover:bg-gray-200 rounded"
+                            >
+                              {isCategoryCollapsed ? (
+                                <ChevronRight className="h-3 w-3 text-gray-500" />
+                              ) : (
+                                <ChevronDown className="h-3 w-3 text-gray-500" />
+                              )}
+                            </button>
+                            <label className="flex items-center space-x-3 flex-1 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={selectedVerticalProducts.includes(categoryId)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedVerticalProducts([...selectedVerticalProducts, categoryId]);
+                                  } else {
+                                    setSelectedVerticalProducts(selectedVerticalProducts.filter(p => p !== categoryId));
+                                  }
+                                }}
+                                className="rounded"
+                              />
+                              <div 
+                                className="w-3 h-3 rounded-full flex-shrink-0" 
+                                style={{ backgroundColor: category.color }}
+                              />
+                              <div className="flex-1">
+                                <span className="text-sm font-semibold text-gray-900">{category.name}</span>
+                                <div className="text-xs text-gray-500">{category.child_count || 0} subcategories</div>
+                              </div>
+                            </label>
+                          </div>
+
+                          {/* Subcategories */}
+                          {!isCategoryCollapsed && category.subcategories && category.subcategories.map((sub: Category) => {
+                            const subId = sub.id.toString();
+                            const isSubCollapsed = collapsedSubcategories.has(subId);
+                            
+                            return (
+                              <div key={`v-sub-${sub.id}`} className="ml-6 space-y-1">
+                                <div className="flex items-center space-x-2 p-1.5 rounded hover:bg-white group">
+                                  <button
+                                    onClick={() => toggleSubcategoryCollapse(subId)}
+                                    className="p-1 hover:bg-gray-200 rounded"
+                                  >
+                                    {sub.child_count && sub.child_count > 0 ? (
+                                      isSubCollapsed ? (
+                                        <ChevronRight className="h-3 w-3 text-gray-500" />
+                                      ) : (
+                                        <ChevronDown className="h-3 w-3 text-gray-500" />
+                                      )
+                                    ) : (
+                                      <div className="h-3 w-3" />
+                                    )}
+                                  </button>
+                                  <label className="flex items-center space-x-3 flex-1 cursor-pointer">
+                                    <input
+                                      type="checkbox"
+                                      checked={selectedVerticalProducts.includes(subId)}
+                                      onChange={(e) => {
+                                        if (e.target.checked) {
+                                          setSelectedVerticalProducts([...selectedVerticalProducts, subId]);
+                                        } else {
+                                          setSelectedVerticalProducts(selectedVerticalProducts.filter(p => p !== subId));
+                                        }
+                                      }}
+                                      className="rounded"
+                                    />
+                                    <div 
+                                      className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
+                                      style={{ backgroundColor: sub.color || category.color }}
+                                    />
+                                    <div className="flex-1">
+                                      <span className="text-sm font-medium text-gray-800">{sub.name}</span>
+                                      {sub.child_count && sub.child_count > 0 && (
+                                        <div className="text-xs text-gray-500">{sub.child_count} sub-subcategories</div>
+                                      )}
+                                    </div>
+                                  </label>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Benchmark Configuration Panel */}
+      {showBenchmarkConfig && (
+        <Card className="border-2 border-purple-200">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Benchmark Configuration</CardTitle>
+              <Button variant="ghost" size="sm" onClick={() => setShowBenchmarkConfig(false)}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              <div className="flex items-center justify-between p-2 border rounded">
+                <span className="text-sm font-medium">Life → Non-Life</span>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="number"
+                    defaultValue={45}
+                    className="w-16 px-2 py-1 text-sm border rounded"
+                    min="0"
+                    max="100"
+                  />
+                  <span className="text-xs text-gray-500">%</span>
+                </div>
+              </div>
+              <div className="flex items-center justify-between p-2 border rounded">
+                <span className="text-sm font-medium">Non-Life → Life</span>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="number"
+                    defaultValue={60}
+                    className="w-16 px-2 py-1 text-sm border rounded"
+                    min="0"
+                    max="100"
+                  />
+                  <span className="text-xs text-gray-500">%</span>
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center justify-between p-2 bg-gray-50 rounded">
+              <span className="text-sm font-medium">Default Benchmark (%)</span>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="number"
+                  defaultValue={50}
+                  className="w-16 px-2 py-1 text-sm border rounded"
+                  min="0"
+                  max="100"
+                />
+                <span className="text-xs text-gray-500">%</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Overview Cards */}
+      {!selectedCell ? (
+        <Card className="border-2 border-gray-200">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-lg">Total Overview</CardTitle>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-4 gap-4">
+              <div>
+                <div className="text-sm text-gray-600 mb-1">Segment: All segments • 5,127 customers</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-blue-600">
+                  12,450
+                </div>
+                <div className="text-sm text-gray-600">Total potential customers</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-purple-600">
+                  €2.8M
+                </div>
+                <div className="text-sm text-gray-600">Total max. potential</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-green-600">
+                  €{Math.round((12450 * conversionRate[0]) / 100 * 0.15)}K
+                </div>
+                <div className="text-sm text-gray-600">At {conversionRate[0]}% conversion</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      ) : (
+        /* Selected Cell Detail */
+        selectedCellData && (
+          <Card className="border-2 border-blue-200">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-lg">
+                  Cross-sell Analysis: {selectedCellData.fromCategory} → {selectedCellData.toCategory}
+                </CardTitle>
+                <Button variant="ghost" size="sm" onClick={() => {setSelectedCell(null); setSelectedCellData(null);}}>
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-4 gap-4">
+                <div>
+                  <div className="text-sm text-gray-600 mb-1">Conversion Rate</div>
+                  <div className="text-2xl font-bold text-blue-600">
+                    {(selectedCellData.conversionRate * 100).toFixed(1)}%
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-600 mb-1">Benchmark</div>
+                  <div className="text-2xl font-bold text-gray-600">
+                    {(selectedCellData.benchmark * 100).toFixed(1)}%
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-600 mb-1">Potential Customers</div>
+                  <div className="text-2xl font-bold text-purple-600">
+                    {selectedCellData.potentialCustomers.toLocaleString()}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-sm text-gray-600 mb-1">Revenue Potential</div>
+                  <div className="text-2xl font-bold text-green-600">
+                    €{Math.round(selectedCellData.revenue / 1000)}K
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )
+      )}
 
       {/* Action Bar - simplified version matching screenshot */}
       {selectedCellData && (
@@ -271,7 +608,7 @@ export function WhiteSpaceMatrix({
       )}
 
       {/* Matrix Display */}
-      {selectedHorizontalCategories.length > 0 && selectedVerticalCategories.length > 0 ? (
+      {selectedHorizontalProducts.length > 0 && selectedVerticalProducts.length > 0 ? (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-lg">Cross-sell Analysis Matrix</CardTitle>
@@ -285,24 +622,30 @@ export function WhiteSpaceMatrix({
                 <thead>
                   <tr>
                     <th className="p-2 text-left text-xs font-medium text-gray-500 border-b"></th>
-                    {selectedVerticalCategories.map(category => (
-                      <th key={category} className="p-2 text-center text-xs font-medium text-gray-500 border-b min-w-[120px]">
-                        {category}
-                      </th>
-                    ))}
+                    {selectedVerticalProducts.map(categoryId => {
+                      const category = categories.find(cat => cat.id.toString() === categoryId);
+                      return (
+                        <th key={categoryId} className="p-2 text-center text-xs font-medium text-gray-500 border-b min-w-[120px]">
+                          {category?.name || categoryId}
+                        </th>
+                      );
+                    })}
                   </tr>
                 </thead>
                 <tbody>
-                  {selectedHorizontalCategories.map(fromCategory => (
-                    <tr key={fromCategory}>
-                      <td className="p-2 text-left text-xs font-medium text-gray-700 border-r min-w-[100px]">
-                        {fromCategory}
-                      </td>
-                      {selectedVerticalCategories.map(toCategory => {
-                        const cellData = generateMatrixData(fromCategory, toCategory);
-                        if (!cellData) {
-                          return (
-                            <td key={toCategory} className="p-1">
+                  {selectedHorizontalProducts.map(fromCategoryId => {
+                    const fromCategory = categories.find(cat => cat.id.toString() === fromCategoryId);
+                    return (
+                      <tr key={fromCategoryId}>
+                        <td className="p-2 text-left text-xs font-medium text-gray-700 border-r min-w-[100px]">
+                          {fromCategory?.name || fromCategoryId}
+                        </td>
+                        {selectedVerticalProducts.map(toCategoryId => {
+                          const toCategory = categories.find(cat => cat.id.toString() === toCategoryId);
+                          const cellData = generateMatrixData(fromCategory?.name || fromCategoryId, toCategory?.name || toCategoryId);
+                          if (!cellData) {
+                            return (
+                              <td key={toCategoryId} className="p-1">
                               <div className="h-20 bg-gray-100 rounded border flex items-center justify-center">
                                 <span className="text-xs text-gray-400">—</span>
                               </div>
@@ -311,14 +654,14 @@ export function WhiteSpaceMatrix({
                         }
                         
                         return (
-                          <td key={toCategory} className="p-1">
+                          <td key={toCategoryId} className="p-1">
                             <div 
                               className={`h-20 rounded border cursor-pointer transition-all duration-200 p-2 ${getCellColor(cellData.conversionRate)} ${
-                                selectedCellData?.fromCategory === fromCategory && selectedCellData?.toCategory === toCategory
+                                selectedCellData?.fromCategory === (fromCategory?.name || fromCategoryId) && selectedCellData?.toCategory === (toCategory?.name || toCategoryId)
                                   ? 'ring-2 ring-blue-500 ring-offset-1' 
                                   : ''
                               }`}
-                              onClick={() => handleCellClick(fromCategory, toCategory)}
+                              onClick={() => handleCellClick(fromCategory?.name || fromCategoryId, toCategory?.name || toCategoryId)}
                             >
                               <div className="text-center h-full flex flex-col justify-center">
                                 <div className="text-lg font-bold text-gray-900">
@@ -337,9 +680,10 @@ export function WhiteSpaceMatrix({
                             </div>
                           </td>
                         );
-                      })}
-                    </tr>
-                  ))}
+                        })}
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
