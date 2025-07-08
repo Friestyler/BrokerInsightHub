@@ -4954,8 +4954,8 @@ Return as JSON in this exact format:
           categoryId: cat.categoryid,
           categoryName: cat.categoryname,
           categoryColor: cat.categorycolor,
-          productsCovered: parseInt(cat.products_covered || '0'),
-          totalProducts: parseInt(cat.total_products || '0'),
+          productsCovered: parseInt(cat.customers_with_products || '0'),
+          totalProducts: parseInt(cat.total_customers || '0'),
           coveragePercentage: parseFloat(cat.coverage_percentage || '0'),
           currentPremium: parseFloat(cat.current_premium || '0'),
           gapValue: 0 // Will calculate properly later if needed
