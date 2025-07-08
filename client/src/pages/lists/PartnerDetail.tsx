@@ -23,6 +23,7 @@ import EntityAvatar from "@/components/EntityAvatar";
 import PartnerCampaignsView from "@/components/campaigns/PartnerCampaignsView";
 import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTab";
 import { WhiteSpaceMatrix } from "@/components/entity/WhiteSpaceMatrixSimplified";
+import { SmartCrossSell } from "@/components/portfolio/SmartCrossSell";
 import nnLogo from "@assets/NN.AS_1751813752232.png";
 
 export default function PartnerDetail() {
@@ -3305,6 +3306,16 @@ export default function PartnerDetail() {
                 >
                   List
                 </button>
+                <button 
+                  onClick={() => setActiveProductTab("smart-cross-sell")}
+                  className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md ${
+                    activeProductTab === "smart-cross-sell" 
+                      ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
+                      : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                  }`}
+                >
+                  Smart Cross Sell
+                </button>
               </nav>
             </div>
 
@@ -3821,6 +3832,14 @@ export default function PartnerDetail() {
 
 
           </div>
+        )}
+
+        {activeTab === "products" && activeProductTab === "smart-cross-sell" && (
+          <SmartCrossSell 
+            entityType="partners" 
+            entityId={id || ""} 
+            onCreateOpportunity={() => setIsOpportunityModalOpen(true)}
+          />
         )}
 
         {activeTab === "contacts" && (

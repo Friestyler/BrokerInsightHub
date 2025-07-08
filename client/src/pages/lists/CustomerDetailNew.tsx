@@ -20,6 +20,7 @@ import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import { useToast } from "@/hooks/use-toast";
 import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTab";
 import { WhiteSpaceMatrix } from "@/components/entity/WhiteSpaceMatrixSimplified";
+import { SmartCrossSell } from "@/components/portfolio/SmartCrossSell";
 
 export default function CustomerDetailNew() {
   const { id } = useParams();
@@ -1506,6 +1507,16 @@ export default function CustomerDetailNew() {
                 >
                   List
                 </button>
+                <button 
+                  onClick={() => setActiveProductTab("smart-cross-sell")}
+                  className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md ${
+                    activeProductTab === "smart-cross-sell" 
+                      ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
+                      : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                  }`}
+                >
+                  Smart Cross Sell
+                </button>
               </nav>
             </div>
 
@@ -1540,6 +1551,15 @@ export default function CustomerDetailNew() {
                   <p className="text-sm text-gray-500">View and manage all product assignments in detailed list format</p>
                 </div>
               </div>
+            )}
+
+            {/* Smart Cross Sell Tab */}
+            {activeProductTab === "smart-cross-sell" && (
+              <SmartCrossSell 
+                entityType="customers" 
+                entityId={id || ""} 
+                onCreateOpportunity={() => setIsOpportunityModalOpen(true)}
+              />
             )}
           </div>
         )}
