@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
-import { Target, TrendingUp, Users, DollarSign, Zap, Plus, Filter, Settings } from "lucide-react";
+import { Target, TrendingUp, Users, DollarSign, Zap, Plus, Filter, Settings, ChevronDown, ChevronRight } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 
 interface WhiteSpaceMatrixProps {
@@ -59,6 +59,8 @@ export default function WhiteSpaceMatrix({
   const [selectedCellData, setSelectedCellData] = useState<MatrixCell | null>(null);
   const [conversionRates, setConversionRates] = useState<{[key: string]: number}>({});
   const [benchmarkAdjustment, setBenchmarkAdjustment] = useState<number>(1);
+  const [expandedCategories, setExpandedCategories] = useState<Set<number>>(new Set());
+  const [isInitialized, setIsInitialized] = useState(false);
 
   // Fetch categories
   const { data: categories = [] } = useQuery<Category[]>({
@@ -79,6 +81,51 @@ export default function WhiteSpaceMatrix({
   const getSubcategories = (parentId: number) => {
     return categories.filter((cat: any) => cat.parent_id === parentId);
   };
+
+  // Auto-initialize with main categories when data loads
+  useEffect(() => {
+    if (mainCategories.length > 0 && !isInitialized) {
+      const mainCategoryNames = mainCategories.map((cat: any) => cat.name);
+      setSelectedHorizontalCategories(mainCategoryNames);
+      setSelectedVerticalCategories(mainCategoryNames);
+      setIsInitialized(true);
+    }
+  }, [mainCategories, isInitialized]);
+
+  // Create hierarchical structure for category selection
+  const createHierarchicalItems = () => {
+    const items: any[] = [];
+    
+    mainCategories.forEach((category: any) => {
+      // Add main category
+      items.push({
+        id: `category-${category.id}`,
+        name: category.name,
+        color: category.color,
+        level: 1,
+        type: 'category',
+        categoryId: category.id
+      });
+      
+      // Add subcategories
+      const subcategories = getSubcategories(category.id);
+      subcategories.forEach((subcat: any) => {
+        items.push({
+          id: `subcategory-${subcat.id}`,
+          name: subcat.name,
+          color: subcat.color,
+          level: 2,
+          type: 'subcategory',
+          parentId: category.id,
+          categoryId: subcat.id
+        });
+      });
+    });
+    
+    return items;
+  };
+
+  const hierarchicalItems = createHierarchicalItems();
 
   // Generate realistic matrix data based on actual insurance categories
   const generateMatrixData = (): MatrixCell[] => {
@@ -178,15 +225,15 @@ export default function WhiteSpaceMatrix({
                 <SelectTrigger className="h-8 text-sm">
                   <SelectValue placeholder="Select categories..." />
                 </SelectTrigger>
-                <SelectContent>
-                  {mainCategories.map((category: any) => (
-                    <SelectItem key={category.id} value={category.name}>
-                      <div className="flex items-center gap-2">
+                <SelectContent className="max-h-64">
+                  {hierarchicalItems.map((item: any) => (
+                    <SelectItem key={item.id} value={item.name}>
+                      <div className="flex items-center gap-2" style={{ paddingLeft: `${(item.level - 1) * 16}px` }}>
                         <div 
                           className="w-2 h-2 rounded-full" 
-                          style={{ backgroundColor: category.color }}
+                          style={{ backgroundColor: item.color }}
                         />
-                        <span className="text-sm">{category.name}</span>
+                        <span className="text-sm">{item.name}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -218,15 +265,15 @@ export default function WhiteSpaceMatrix({
                 <SelectTrigger className="h-8 text-sm">
                   <SelectValue placeholder="Select categories..." />
                 </SelectTrigger>
-                <SelectContent>
-                  {mainCategories.map((category: any) => (
-                    <SelectItem key={category.id} value={category.name}>
-                      <div className="flex items-center gap-2">
+                <SelectContent className="max-h-64">
+                  {hierarchicalItems.map((item: any) => (
+                    <SelectItem key={item.id} value={item.name}>
+                      <div className="flex items-center gap-2" style={{ paddingLeft: `${(item.level - 1) * 16}px` }}>
                         <div 
                           className="w-2 h-2 rounded-full" 
-                          style={{ backgroundColor: category.color }}
+                          style={{ backgroundColor: item.color }}
                         />
-                        <span className="text-sm">{category.name}</span>
+                        <span className="text-sm">{item.name}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -296,14 +343,23 @@ export default function WhiteSpaceMatrix({
                       return (
                         <div 
                           key={toCategory}
-                          className={`p-1 border rounded cursor-pointer transition-all hover:shadow-md ${getCellColor(cell)}`}
+                          className={`p-2 border rounded cursor-pointer transition-all hover:shadow-md ${getCellColor(cell)} ${
+                            selectedCellData?.fromCategory === cell.fromCategory && 
+                            selectedCellData?.toCategory === cell.toCategory ? 'ring-2 ring-blue-500' : ''
+                          }`}
                           onClick={() => setSelectedCellData(cell)}
                         >
-                          <div className="text-xs font-medium">
+                          <div className="text-xs font-bold mb-1">
                             {(cell.conversionRate * 100).toFixed(1)}%
                           </div>
-                          <div className="text-xs opacity-75">
+                          <div className="text-xs opacity-75 mb-1">
                             vs {(cell.benchmark * 100).toFixed(1)}%
+                          </div>
+                          <div className="text-xs font-medium">
+                            {cell.potentialCustomers} customers
+                          </div>
+                          <div className="text-xs opacity-75">
+                            €{Math.round(cell.revenue / 1000)}k potential
                           </div>
                         </div>
                       );
@@ -324,53 +380,74 @@ export default function WhiteSpaceMatrix({
         </Card>
       )}
 
-      {/* Selected Cell Details */}
+      {/* Action Bar - appears when cell is selected */}
       {selectedCellData && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-lg flex items-center gap-2">
-              <Target className="w-4 h-4" />
-              {selectedCellData.fromCategory} → {selectedCellData.toCategory}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="pt-0">
-            <div className="grid grid-cols-3 gap-3 mb-4">
-              <div className="text-center p-3 bg-blue-50 rounded-lg">
-                <div className="text-lg font-bold text-blue-600">
-                  {(selectedCellData.conversionRate * 100).toFixed(1)}%
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 shadow-lg z-50">
+          <div className="max-w-7xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-6">
+                <div className="flex items-center gap-2">
+                  <Target className="w-5 h-5 text-[#5567E5]" />
+                  <span className="font-semibold text-gray-900">
+                    {selectedCellData.fromCategory} → {selectedCellData.toCategory}
+                  </span>
                 </div>
-                <div className="text-xs text-blue-700">Conversion Rate</div>
+                
+                <div className="flex items-center gap-4 text-sm">
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-600">Conversion:</span>
+                    <span className="font-semibold text-blue-600">
+                      {(selectedCellData.conversionRate * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-600">Benchmark:</span>
+                    <span className="font-semibold text-gray-700">
+                      {(selectedCellData.benchmark * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-600">Potential:</span>
+                    <span className="font-semibold text-green-600">
+                      €{Math.round(selectedCellData.revenue / 1000)}k
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-gray-600">Customers:</span>
+                    <span className="font-semibold text-gray-700">
+                      {selectedCellData.potentialCustomers}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <div className="text-center p-3 bg-gray-50 rounded-lg">
-                <div className="text-lg font-bold text-gray-600">
-                  {(selectedCellData.benchmark * 100).toFixed(1)}%
-                </div>
-                <div className="text-xs text-gray-700">Benchmark</div>
-              </div>
-              <div className="text-center p-3 bg-green-50 rounded-lg">
-                <div className="text-lg font-bold text-green-600">
-                  €{Math.round(selectedCellData.revenue / 1000)}k
-                </div>
-                <div className="text-xs text-green-700">Revenue Potential</div>
+              
+              <div className="flex items-center gap-3">
+                <Button 
+                  onClick={onCreateOpportunity} 
+                  className="bg-[#5567E5] hover:bg-[#4456D4] text-white"
+                >
+                  <Plus className="w-4 h-4 mr-2" />
+                  Creëer Kans
+                </Button>
+                <Button variant="outline" onClick={onCreateCampaign}>
+                  <Zap className="w-4 h-4 mr-2" />
+                  Campaign
+                </Button>
+                <Button variant="outline" onClick={onCreateList}>
+                  <Users className="w-4 h-4 mr-2" />
+                  Add to List
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setSelectedCellData(null)}
+                  className="text-gray-500 hover:text-gray-700"
+                >
+                  ×
+                </Button>
               </div>
             </div>
-            
-            <div className="flex gap-2">
-              <Button onClick={onCreateOpportunity} size="sm" className="flex-1">
-                <Plus className="w-3 h-3 mr-1" />
-                Create Opportunity
-              </Button>
-              <Button variant="outline" onClick={onCreateCampaign} size="sm" className="flex-1">
-                <Zap className="w-3 h-3 mr-1" />
-                Campaign
-              </Button>
-              <Button variant="outline" onClick={onCreateList} size="sm" className="flex-1">
-                <Users className="w-3 h-3 mr-1" />
-                Add to List
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );
