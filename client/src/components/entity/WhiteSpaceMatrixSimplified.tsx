@@ -48,7 +48,7 @@ export function WhiteSpaceMatrix({
   const [selectedVerticalProducts, setSelectedVerticalProducts] = useState<string[]>([]);
   const [selectedCell, setSelectedCell] = useState<string | null>(null);
   const [selectedCellData, setSelectedCellData] = useState<SelectedCellData | null>(null);
-  const [showProductConfig, setShowProductConfig] = useState(false);
+  const [showProductConfig, setShowProductConfig] = useState(true);
   const [showBenchmarkConfig, setShowBenchmarkConfig] = useState(false);
   const [collapsedCategories, setCollapsedCategories] = useState<Set<string>>(new Set());
   const [collapsedSubcategories, setCollapsedSubcategories] = useState<Set<string>>(new Set());
@@ -56,11 +56,13 @@ export function WhiteSpaceMatrix({
 
   // Fetch hierarchical categories from API
   const { data: categories = [], isLoading: hierarchicalLoading } = useQuery({
-    queryKey: ['/api/categories-hierarchical'],
+    queryKey: ['categories-hierarchical', entityType, entityId],
     queryFn: async () => {
-      const response = await fetch(`/api/${environment}/categories-hierarchical`);
+      const response = await fetch(`/api/degoudse/categories-hierarchical`);
       if (!response.ok) throw new Error('Failed to fetch categories');
-      return response.json();
+      const data = await response.json();
+      console.log('Categories loaded for Matrix:', data);
+      return data;
     }
   });
 
@@ -233,6 +235,7 @@ export function WhiteSpaceMatrix({
                                 type="checkbox"
                                 checked={selectedHorizontalProducts.includes(categoryId)}
                                 onChange={(e) => {
+                                  console.log('Horizontal checkbox clicked:', categoryId, e.target.checked);
                                   if (e.target.checked) {
                                     setSelectedHorizontalProducts([...selectedHorizontalProducts, categoryId]);
                                   } else {
@@ -339,6 +342,7 @@ export function WhiteSpaceMatrix({
                                 type="checkbox"
                                 checked={selectedVerticalProducts.includes(categoryId)}
                                 onChange={(e) => {
+                                  console.log('Vertical checkbox clicked:', categoryId, e.target.checked);
                                   if (e.target.checked) {
                                     setSelectedVerticalProducts([...selectedVerticalProducts, categoryId]);
                                   } else {
