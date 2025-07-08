@@ -58,17 +58,18 @@ export function WhiteSpaceMatrix({
     }
   });
 
-  // Filter to main categories only (level 1)
-  const categories = categoriesData.filter((cat: Category) => cat.level === 1);
+  // Get all categories and subcategories for selection, but start with main categories
+  const allCategories = categoriesData || [];
+  const mainCategories = allCategories.filter((cat: Category) => cat.level === 1);
 
   // Initialize with main categories when data loads
   useEffect(() => {
-    if (categories.length > 0) {
-      const mainCategoryNames = categories.map(cat => cat.name);
+    if (mainCategories.length > 0) {
+      const mainCategoryNames = mainCategories.map(cat => cat.name);
       setSelectedHorizontalCategories(mainCategoryNames);
       setSelectedVerticalCategories(mainCategoryNames);
     }
-  }, [categories]);
+  }, [mainCategories]);
 
   // Generate matrix data with conversion rates
   const generateMatrixData = (from: string, to: string) => {
@@ -143,15 +144,21 @@ export function WhiteSpaceMatrix({
                   <ChevronDown className="h-4 w-4 opacity-50" />
                 </SelectTrigger>
                 <SelectContent className="max-h-64">
-                  {categories.map((cat) => (
-                    <div key={cat.id} className="flex items-center space-x-2 px-2 py-1.5 hover:bg-gray-50 cursor-pointer"
-                         onClick={() => {
-                           setSelectedHorizontalCategories(prev => 
-                             prev.includes(cat.name) 
-                               ? prev.filter(c => c !== cat.name)
-                               : [...prev, cat.name]
-                           );
-                         }}>
+                  {allCategories.map((cat) => (
+                    <div 
+                      key={cat.id} 
+                      className="flex items-center space-x-2 px-2 py-1.5 hover:bg-gray-50 cursor-pointer"
+                      style={{ paddingLeft: `${8 + (cat.level - 1) * 16}px` }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setSelectedHorizontalCategories(prev => 
+                          prev.includes(cat.name) 
+                            ? prev.filter(c => c !== cat.name)
+                            : [...prev, cat.name]
+                        );
+                      }}
+                    >
                       <Checkbox 
                         checked={selectedHorizontalCategories.includes(cat.name)}
                         readOnly
@@ -179,15 +186,21 @@ export function WhiteSpaceMatrix({
                   <ChevronDown className="h-4 w-4 opacity-50" />
                 </SelectTrigger>
                 <SelectContent className="max-h-64">
-                  {categories.map((cat) => (
-                    <div key={cat.id} className="flex items-center space-x-2 px-2 py-1.5 hover:bg-gray-50 cursor-pointer"
-                         onClick={() => {
-                           setSelectedVerticalCategories(prev => 
-                             prev.includes(cat.name) 
-                               ? prev.filter(c => c !== cat.name)
-                               : [...prev, cat.name]
-                           );
-                         }}>
+                  {allCategories.map((cat) => (
+                    <div 
+                      key={cat.id} 
+                      className="flex items-center space-x-2 px-2 py-1.5 hover:bg-gray-50 cursor-pointer"
+                      style={{ paddingLeft: `${8 + (cat.level - 1) * 16}px` }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setSelectedVerticalCategories(prev => 
+                          prev.includes(cat.name) 
+                            ? prev.filter(c => c !== cat.name)
+                            : [...prev, cat.name]
+                        );
+                      }}
+                    >
                       <Checkbox 
                         checked={selectedVerticalCategories.includes(cat.name)}
                         readOnly
