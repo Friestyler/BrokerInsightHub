@@ -58,10 +58,12 @@ export function WhiteSpaceMatrix({
   const { data: categories = [], isLoading: hierarchicalLoading } = useQuery({
     queryKey: ['categories-hierarchical', entityType, entityId],
     queryFn: async () => {
-      const response = await fetch(`/api/degoudse/categories-hierarchical`);
+      const response = await fetch(`/api/degoudse/product-categories`);
       if (!response.ok) throw new Error('Failed to fetch categories');
       const data = await response.json();
       console.log('Categories loaded for Matrix:', data);
+      console.log('Categories array length:', data.length);
+      console.log('Categories structure:', data.map((c: any) => ({ id: c.id, name: c.name, level: c.level })));
       return data;
     }
   });
@@ -211,6 +213,8 @@ export function WhiteSpaceMatrix({
                 <div className="space-y-1 max-h-80 overflow-y-auto bg-gray-50 rounded-lg p-3">
                   {hierarchicalLoading ? (
                     <div className="text-sm text-gray-500">Loading categories...</div>
+                  ) : categories.length === 0 ? (
+                    <div className="text-sm text-gray-500">No categories found</div>
                   ) : (
                     categories.map((category: Category) => {
                       const categoryId = category.id.toString();
@@ -318,6 +322,8 @@ export function WhiteSpaceMatrix({
                 <div className="space-y-1 max-h-80 overflow-y-auto bg-gray-50 rounded-lg p-3">
                   {hierarchicalLoading ? (
                     <div className="text-sm text-gray-500">Loading categories...</div>
+                  ) : categories.length === 0 ? (
+                    <div className="text-sm text-gray-500">No categories found</div>
                   ) : (
                     categories.map((category: Category) => {
                       const categoryId = category.id.toString();
