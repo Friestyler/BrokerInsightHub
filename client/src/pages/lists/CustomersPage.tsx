@@ -116,7 +116,7 @@ const useCustomersData = (page: number = 1, limit: number = 100) => {
   });
 };
 
-// Hooks for saved lists and views
+// Hooks for saved lists and segment views
 const useSavedLists = () => {
   return useQuery({
     queryKey: ['/api/saved-lists', 'customers'],
@@ -139,7 +139,7 @@ const useCreateSavedList = () => {
   });
 };
 
-const useSavedViews = () => {
+const useSavedSegmentViews = () => {
   return useQuery({
     queryKey: ['/api/saved-views', 'customers'],
     queryFn: () => apiRequest('GET', '/api/saved-views?entity_type=customers'),
@@ -147,7 +147,7 @@ const useSavedViews = () => {
   });
 };
 
-const useCreateSavedView = () => {
+const useCreateSavedSegmentView = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (newView: any) => {
@@ -198,15 +198,15 @@ export default function CustomersPageClean() {
   const [showListsDropdown, setShowListsDropdown] = useState(false);
   const [activeList, setActiveList] = useState<any>(null);
   
-  // Views state
+  // Segment Views state
   const [activeView, setActiveView] = useState<any>(null);
-  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
-  const [viewNameInput, setViewNameInput] = useState('');
+  const [showSaveSegmentViewModal, setShowSaveSegmentViewModal] = useState(false);
+  const [segmentViewNameInput, setSegmentViewNameInput] = useState('');
   
   // Account Mapping state
   const [showAccountMappingModal, setShowAccountMappingModal] = useState(false);
   const [selectedMappingFields, setSelectedMappingFields] = useState<string[]>([]);
-  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
+  const [showSegmentViewsDropdown, setShowSegmentViewsDropdown] = useState(false);
   
   // Filter dropdown states
   const [showStatusFilter, setShowStatusFilter] = useState(false);
@@ -284,8 +284,8 @@ export default function CustomersPageClean() {
   
   const { data: savedListsData = [], isLoading: savedListsLoading } = useSavedLists();
   const createSavedListMutation = useCreateSavedList();
-  const { data: savedViewsData = [], isLoading: savedViewsLoading } = useSavedViews();
-  const createSavedViewMutation = useCreateSavedView();
+  const { data: savedViewsData = [], isLoading: savedViewsLoading } = useSavedSegmentViews();
+  const createSavedViewMutation = useCreateSavedSegmentView();
 
   // Filter saved lists to only show customer-related lists (client-side filtering)
   const customerSavedListsData = savedListsData.filter((list: any) => 
@@ -571,7 +571,7 @@ export default function CustomersPageClean() {
               </div>
             </div>
             
-            {/* Bottom row with search, views, and filters */}
+            {/* Bottom row with search, segment views, and filters */}
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-wrap items-center gap-3 flex-grow">
                 {/* Search field */}
@@ -591,17 +591,17 @@ export default function CustomersPageClean() {
                   </button>
                 </div>
                 
-                {/* Saved Views Dropdown */}
+                {/* Saved Segment Views Dropdown */}
                 <div className="relative">
                   <button 
                     className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white hover:bg-gray-50"
-                    onClick={() => setShowViewsDropdown(!showViewsDropdown)}
+                    onClick={() => setShowSegmentViewsDropdown(!showSegmentViewsDropdown)}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
                       <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                     </svg>
                     <span className="text-gray-700">
-                      {activeView ? activeView.name : 'Select a view'}
+                      {activeView ? activeView.name : 'Select a segment view'}
                     </span>
                     <svg 
                       xmlns="http://www.w3.org/2000/svg" 
@@ -613,13 +613,13 @@ export default function CustomersPageClean() {
                       strokeWidth="2" 
                       strokeLinecap="round" 
                       strokeLinejoin="round" 
-                      className={`transition-transform ${showViewsDropdown ? 'rotate-180' : ''}`}
+                      className={`transition-transform ${showSegmentViewsDropdown ? 'rotate-180' : ''}`}
                     >
                       <polyline points="6 9 12 15 18 9" />
                     </svg>
                   </button>
                   
-                  {showViewsDropdown && (
+                  {showSegmentViewsDropdown && (
                     <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                       <div className="py-1 max-h-64 overflow-y-auto">
                         {savedViewsData.map((view: any) => (
@@ -635,7 +635,7 @@ export default function CustomersPageClean() {
                                 size: filters.size || [],
                                 status: filters.status || []
                               });
-                              setShowViewsDropdown(false);
+                              setShowSegmentViewsDropdown(false);
                             }}
                           >
                             <span>{view.name}</span>
@@ -644,7 +644,7 @@ export default function CustomersPageClean() {
                         
                         {savedViewsData.length === 0 && (
                           <div className="px-3 py-2 text-sm text-gray-500 italic">
-                            No saved views yet. Apply filters and save your first view.
+                            No saved segment views yet. Apply filters and save your first segment view.
                           </div>
                         )}
                       </div>
@@ -652,7 +652,7 @@ export default function CustomersPageClean() {
                   )}
                 </div>
                 
-                {/* Filter buttons next to the views dropdown */}
+                {/* Filter buttons next to the segment views dropdown */}
                 <div className="flex items-center gap-2 ml-3">
                   {/* Status Filter */}
                   <div className="relative">
@@ -796,17 +796,17 @@ export default function CustomersPageClean() {
                   </div>
                 </div>
                 
-                {/* Save View button - appears when filters are applied */}
+                {/* Save Segment View button - appears when filters are applied */}
                 {(searchTerm || activeFilters.industry.length > 0 || activeFilters.size.length > 0 || activeFilters.status.length > 0) && (
                   <Button
-                    onClick={() => setShowSaveViewModal(true)}
+                    onClick={() => setShowSaveSegmentViewModal(true)}
                     className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm"
                     size="sm"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                       <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                     </svg>
-                    Save View
+                    Save Segment View
                   </Button>
                 )}
               </div>
@@ -1258,26 +1258,26 @@ export default function CustomersPageClean() {
           </DialogContent>
         </Dialog>
 
-        {/* Save View Modal */}
-        <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
+        {/* Save Segment View Modal */}
+        <Dialog open={showSaveSegmentViewModal} onOpenChange={setShowSaveSegmentViewModal}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>Save Current View</DialogTitle>
+              <DialogTitle>Save Current Segment View</DialogTitle>
               <DialogDescription>
-                Save your current search and filter settings as a view you can quickly access later.
+                Save your current search and filter settings as a segment view you can quickly access later.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="view-name" className="text-right">
+                <Label htmlFor="segment-view-name" className="text-right">
                   Name
                 </Label>
                 <Input
-                  id="view-name"
-                  value={viewNameInput}
-                  onChange={(e) => setViewNameInput(e.target.value)}
+                  id="segment-view-name"
+                  value={segmentViewNameInput}
+                  onChange={(e) => setSegmentViewNameInput(e.target.value)}
                   className="col-span-3"
-                  placeholder="Enter view name..."
+                  placeholder="Enter segment view name..."
                 />
               </div>
             </div>
@@ -1285,9 +1285,9 @@ export default function CustomersPageClean() {
               <Button 
                 type="submit" 
                 onClick={async () => {
-                  if (viewNameInput.trim()) {
+                  if (segmentViewNameInput.trim()) {
                     await createSavedViewMutation.mutateAsync({
-                      name: viewNameInput.trim(),
+                      name: segmentViewNameInput.trim(),
                       entity_type: 'customers',
                       filters: {
                         search: searchTerm,
@@ -1297,17 +1297,17 @@ export default function CustomersPageClean() {
                       },
                       is_shared: false
                     });
-                    setViewNameInput('');
-                    setShowSaveViewModal(false);
+                    setSegmentViewNameInput('');
+                    setShowSaveSegmentViewModal(false);
                     toast({
-                      title: "View Saved",
-                      description: `"${viewNameInput.trim()}" has been saved successfully.`,
+                      title: "Segment View Saved",
+                      description: `"${segmentViewNameInput.trim()}" has been saved successfully.`,
                     });
                   }
                 }}
-                disabled={createSavedViewMutation.isPending || !viewNameInput.trim()}
+                disabled={createSavedViewMutation.isPending || !segmentViewNameInput.trim()}
               >
-                {createSavedViewMutation.isPending ? 'Saving...' : 'Save View'}
+                {createSavedViewMutation.isPending ? 'Saving...' : 'Save Segment View'}
               </Button>
             </DialogFooter>
           </DialogContent>

@@ -1253,7 +1253,7 @@ function OpportunitiesTable() {
                 </button>
               </div>
               
-              {/* Views dropdown - next to search field */}
+              {/* Segment Views dropdown - next to search field */}
               <div className="relative filter-dropdown">
                 <button 
                   className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium ${activeView ? 'bg-indigo-50 border-indigo-400 text-indigo-700' : 'border-gray-300 hover:border-gray-400'}`}
@@ -1263,7 +1263,7 @@ function OpportunitiesTable() {
                     <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
                     <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
                   </svg>
-                  <span className="max-w-[120px] truncate">{activeView ? activeView.name : 'Views'}</span>
+                  <span className="max-w-[120px] truncate">{activeView ? activeView.name : 'Segment Views'}</span>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     width="14" 
@@ -1280,11 +1280,11 @@ function OpportunitiesTable() {
                   </svg>
                 </button>
                 
-                {/* Saved Views dropdown menu */}
+                {/* Saved Segment Views dropdown menu */}
                 {showViewsDropdown && (
                   <div className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-md">
                     <div className="p-2 border-b">
-                      <div className="text-xs font-medium mb-2 text-gray-500">SAVED VIEWS</div>
+                      <div className="text-xs font-medium mb-2 text-gray-500">SAVED SEGMENT VIEWS</div>
                       {savedViewsData.map((view: any) => (
                         <div 
                           key={view.id}
@@ -1328,7 +1328,7 @@ function OpportunitiesTable() {
                             <path d="M18 6L6 18"></path>
                             <path d="M6 6l12 12"></path>
                           </svg>
-                          Clear view
+                          Clear segment view
                         </button>
                       </div>
                     )}
@@ -1779,7 +1779,7 @@ function OpportunitiesTable() {
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                   </svg>
-                  Save View
+                  Save Segment View
                 </Button>
                 <button 
                   onClick={() => {

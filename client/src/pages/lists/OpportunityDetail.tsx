@@ -717,12 +717,12 @@ export default function OpportunityDetail() {
                 {/* Views and filters section */}
                 <div className="flex flex-wrap items-center justify-between">
                   <div className="flex items-center gap-4">
-                    {/* Views heading */}
+                    {/* Segment Views heading */}
                     <div className="flex flex-col mr-2">
-                      <span className="text-base font-semibold text-gray-800 mb-2">Views</span>
+                      <span className="text-base font-semibold text-gray-800 mb-2">Segment Views</span>
                     </div>
                     
-                    {/* Saved Views Dropdown - placeholder */}
+                    {/* Saved Segment Views Dropdown - placeholder */}
                     <div className="relative">
                       <button 
                         className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white hover:bg-gray-50"
@@ -730,7 +730,7 @@ export default function OpportunityDetail() {
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
                           <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                         </svg>
-                        <span className="text-gray-700">Default view</span>
+                        <span className="text-gray-700">Default segment view</span>
                         <svg 
                           xmlns="http://www.w3.org/2000/svg" 
                           width="14" 

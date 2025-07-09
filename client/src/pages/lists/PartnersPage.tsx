@@ -54,7 +54,7 @@ const usePartnersData = () => {
   });
 };
 
-// Hooks for saved lists and views
+// Hooks for saved lists and segment views
 const useSavedLists = () => {
   return useQuery({
     queryKey: ['/api/saved-lists', 'partners'],
@@ -274,7 +274,7 @@ interface SavedList {
   isDefault?: boolean; // Flag for system-generated default lists that can't be edited/deleted
 }
 
-// Define interface for saved views (filter combinations)
+// Define interface for saved segment views (filter combinations)
 interface SavedView {
   id: string;
   name: string;
@@ -456,7 +456,7 @@ function PartnersTable() {
     }
   });
   
-  // Fetch saved views from database
+  // Fetch saved segment views from database
   const { data: savedViewsData = [], isLoading: savedViewsLoading } = useSavedViews();
   const createSavedViewMutation = useCreateSavedView();
   const updateSavedViewMutation = useUpdateSavedView();
@@ -476,7 +476,7 @@ function PartnersTable() {
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
   const [viewNameInput, setViewNameInput] = useState('');
   
-  // Ref for views dropdown to handle outside clicks
+  // Ref for segment views dropdown to handle outside clicks
   const viewsDropdownRef = useRef<HTMLDivElement>(null);
   const viewsButtonRef = useRef<HTMLButtonElement>(null);
   
@@ -1057,7 +1057,7 @@ function PartnersTable() {
             </div>
           </div>
           
-          {/* Top row with search, views dropdown and filter buttons */}
+          {/* Top row with search, segment views dropdown and filter buttons */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-3">
               {/* Search field */}
@@ -1077,7 +1077,7 @@ function PartnersTable() {
                 </button>
               </div>
               
-              {/* Saved Views Dropdown */}
+              {/* Saved Segment Views Dropdown */}
               <div className="relative">
                 <button 
                   ref={viewsButtonRef}
@@ -1092,7 +1092,7 @@ function PartnersTable() {
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
                     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                   </svg>
-                  <span className="text-gray-700">{activeView ? activeView.name : "Select a view"}</span>
+                  <span className="text-gray-700">{activeView ? activeView.name : "Select a segment view"}</span>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     width="14" 
@@ -1109,7 +1109,7 @@ function PartnersTable() {
                   </svg>
                 </button>
                 
-                {/* Saved Views dropdown menu */}
+                {/* Saved Segment Views dropdown menu */}
                 {showViewsDropdown && (
                   <div ref={viewsDropdownRef} className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-md">
                     <div className="p-2 border-b">
@@ -1156,7 +1156,7 @@ function PartnersTable() {
                             <path d="M18 6L6 18"></path>
                             <path d="M6 6l12 12"></path>
                           </svg>
-                          Clear view
+                          Clear segment view
                         </button>
                       </div>
                     )}
@@ -1398,14 +1398,14 @@ function PartnersTable() {
                                   });
                                   
                                   toast({
-                                    title: "View Updated",
-                                    description: "Your changes have been saved to the current view"
+                                    title: "Segment View Updated",
+                                    description: "Your changes have been saved to the current segment view"
                                   });
                                 },
                                 onError: () => {
                                   toast({
                                     title: "Error",
-                                    description: "Failed to update view. Please try again.",
+                                    description: "Failed to update segment view. Please try again.",
                                     variant: "destructive"
                                   });
                                 }
@@ -1433,7 +1433,7 @@ function PartnersTable() {
                             <polyline points="17 21 17 13 7 13 7 21"></polyline>
                             <polyline points="7 3 7 8 15 8"></polyline>
                           </svg>
-                          <span className="text-[#3E4DC4] font-medium">Save as new view</span>
+                          <span className="text-[#3E4DC4] font-medium">Save as new segment view</span>
                         </button>
                       </>
                     )}
@@ -1450,7 +1450,7 @@ function PartnersTable() {
                           <polyline points="17 21 17 13 7 13 7 21"></polyline>
                           <polyline points="7 3 7 8 15 8"></polyline>
                         </svg>
-                        <span className="text-[#3E4DC4] font-medium">Save as new view</span>
+                        <span className="text-[#3E4DC4] font-medium">Save as new segment view</span>
                       </button>
                     )}
                   </div>
@@ -1884,18 +1884,18 @@ function PartnersTable() {
         }}>
         <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-[32px]">
           <DialogHeader>
-            <DialogTitle>Save as new view</DialogTitle>
+            <DialogTitle>Save as new segment view</DialogTitle>
             <DialogDescription className="text-sm text-[#282A3F]">
-              Save your current filter settings as a new view that you can easily access later. Views store filter combinations but not specific partner selections.
+              Save your current filter settings as a new segment view that you can easily access later. Segment views store filter combinations but not specific partner selections.
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="viewName">View Name<span className="text-red-500">*</span></Label>
+              <Label htmlFor="viewName">Segment View Name<span className="text-red-500">*</span></Label>
               <Input 
                 id="viewName" 
-                placeholder="Enter a name for this view"
+                placeholder="Enter a name for this segment view"
                 maxLength={50}
                 value={viewNameInput}
                 onChange={(e) => setViewNameInput(e.target.value)}
@@ -1904,7 +1904,7 @@ function PartnersTable() {
             </div>
             
             <div className="bg-[#EBEEFB] p-4 rounded-md border border-[#D4D9F3]">
-              <div className="text-sm font-medium mb-2 text-[#282A3F]">Filters saved in this view</div>
+              <div className="text-sm font-medium mb-2 text-[#282A3F]">Filters saved in this segment view</div>
               <div className="space-y-2">
                 {selectedStatus && (
                   <div className="flex items-center text-sm">
@@ -1945,7 +1945,7 @@ function PartnersTable() {
                 if (!viewName) {
                   toast({
                     title: "Name Required",
-                    description: "Please provide a name for this view",
+                    description: "Please provide a name for this segment view",
                     variant: "destructive"
                   });
                   return;
@@ -1959,7 +1959,7 @@ function PartnersTable() {
                 if (isDuplicate) {
                   toast({
                     title: "Duplicate Name",
-                    description: "A view with this name already exists. Please choose a different name.",
+                    description: "A segment view with this name already exists. Please choose a different name.",
                     variant: "destructive"
                   });
                   return;
@@ -2005,14 +2005,14 @@ function PartnersTable() {
                 });
                 
                 toast({
-                  title: "View Saved",
-                  description: "Your new view has been saved successfully"
+                  title: "Segment View Saved",
+                  description: "Your new segment view has been saved successfully"
                 });
                 
                 setShowSaveViewModal(false);
               }}
             >
-              Save View
+              Save Segment View
             </Button>
           </DialogFooter>
         </DialogContent>

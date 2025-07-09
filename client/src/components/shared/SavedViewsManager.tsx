@@ -96,7 +96,7 @@ export function SavedViewsManager({
 
   return (
     <div className="flex items-center gap-2">
-      {/* Views Dropdown */}
+      {/* Segment View Dropdown */}
       <Select 
         value={selectedView?.id?.toString() || 'default'}
         onValueChange={(value) => {
@@ -141,25 +141,25 @@ export function SavedViewsManager({
             className="flex items-center gap-2"
           >
             <Plus className="h-4 w-4" />
-            Save view
+            Save segment view
           </Button>
         </DialogTrigger>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Save Current View</DialogTitle>
+            <DialogTitle>Save Current Segment View</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="text-sm text-gray-600">
               <Filter className="h-4 w-4 inline mr-2" />
-              Current filters will be saved with this view
+              Current filters will be saved with this segment view
             </div>
             <div>
-              <Label htmlFor="view-name">View Name</Label>
+              <Label htmlFor="view-name">Segment View Name</Label>
               <Input
                 id="view-name"
                 value={newViewName}
                 onChange={(e) => setNewViewName(e.target.value)}
-                placeholder="Enter view name"
+                placeholder="Enter segment view name"
               />
             </div>
             <div>
@@ -168,7 +168,7 @@ export function SavedViewsManager({
                 id="view-description"
                 value={newViewDescription}
                 onChange={(e) => setNewViewDescription(e.target.value)}
-                placeholder="Enter view description"
+                placeholder="Enter segment view description"
               />
             </div>
             <div className="flex items-center space-x-2">

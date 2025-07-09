@@ -121,7 +121,7 @@ export function EntityListManager({
 
   return (
     <div className="space-y-6">
-      {/* Header with Lists and Views */}
+      {/* Header with Lists and Segment Views */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <h2 className="text-2xl font-bold">
@@ -130,7 +130,7 @@ export function EntityListManager({
         </div>
       </div>
 
-      {/* Lists and Views Management */}
+      {/* Lists and Segment Views Management */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
           <SavedListsManager
