@@ -444,8 +444,8 @@ function OpportunitiesTable() {
 
   
   // Database-driven filter options extracted from opportunities data
-  const statusOptions = Array.from(new Set(opportunities.map((opp: any) => opp.status).filter(Boolean))).sort();
-  const typeOptions = Array.from(new Set(opportunities.map((opp: any) => opp.type).filter(Boolean))).sort();
+  const statusOptions = Array.from(new Set(opportunities.map((opp: any) => opp.status || '').filter(Boolean))).sort();
+  const typeOptions = Array.from(new Set(opportunities.map((opp: any) => opp.type || '').filter(Boolean))).sort();
   const customerOptions = Array.from(new Set(opportunities.map((opp: any) => opp.clientName || opp.customerName).filter(Boolean))).sort();
   const partnerOptions = Array.from(new Set(opportunities.map((opp: any) => opp.partnerName).filter(Boolean))).sort();
   const stageOptions = Array.from(new Set(opportunities.map((opp: any) => opp.stage).filter(Boolean))).sort();
@@ -789,13 +789,13 @@ function OpportunitiesTable() {
         searchCustomerName.toLowerCase().includes(filterText.toLowerCase()) ||
         searchPartnerName.toLowerCase().includes(filterText.toLowerCase());
         
-      // Status filter (from UI or active list/view)
-      const activeStatus = selectedStatus !== 'all' ? selectedStatus : activeList?.filters.status || activeView?.filters.status;
-      const matchesStatus = !activeStatus || opportunity.status === activeStatus;
+      // Status filter - simplified logic (handle null values)
+      const oppStatus = opportunity.status || '';
+      const matchesStatus = selectedStatus === 'all' || oppStatus === selectedStatus;
       
-      // Type filter (from UI or active list/view)
-      const activeType = selectedType !== 'all' ? selectedType : activeList?.filters.type || activeView?.filters.type;
-      const matchesType = !activeType || opportunity.type === activeType;
+      // Type filter - simplified logic (handle null values)
+      const oppType = opportunity.type || '';
+      const matchesType = selectedType === 'all' || oppType === selectedType;
       
       // Customer filter
       const filterCustomerName = opportunity.clientName || opportunity.customerName || '';
