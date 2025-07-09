@@ -2,6 +2,7 @@ import { useState, useEffect, createContext, useContext, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { FieldsSelector } from '@/components/shared/FieldsSelector';
 
 // Create a context for list editing state
 interface ListEditingContextType {
@@ -314,6 +315,24 @@ function PartnersTable() {
   const [selectedPartners, setSelectedPartners] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
+  
+  // Column visibility state
+  const [visibleColumns, setVisibleColumns] = useState<string[]>([
+    'name', 'industry', 'size', 'region', 'status', 'customers', 'opportunities', 'contacts', 'template'
+  ]);
+  
+  // Field definitions for column visibility
+  const fieldDefinitions = [
+    { key: 'name', label: 'Partner', required: true },
+    { key: 'industry', label: 'Industry' },
+    { key: 'size', label: 'Size' },
+    { key: 'region', label: 'Region' },
+    { key: 'status', label: 'Status' },
+    { key: 'customers', label: 'Customers' },
+    { key: 'opportunities', label: 'Opportunities' },
+    { key: 'contacts', label: 'Contacts' },
+    { key: 'template', label: 'Template' }
+  ];
   
   // Dropdown state for filters
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
@@ -1330,6 +1349,14 @@ function PartnersTable() {
                   </div>
                 )}
               </div>
+              
+              {/* Fields Selector */}
+              <FieldsSelector
+                fields={fieldDefinitions}
+                visibleFields={visibleColumns}
+                onFieldsChange={setVisibleColumns}
+                className="ml-2"
+              />
               
               {/* Action buttons - only shown when filters have changed from an existing view or no view is selected */}
               {/* Determine if filters have changed from the active view */}
@@ -2353,87 +2380,105 @@ function PartnersTable() {
                   />
                 </div>
               </th>
-              <SortableTableHead 
-                sortKey="name" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[250px]"
-              >
-                Partner
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="industry" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[120px]"
-              >
-                Industry
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="size" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[120px]"
-              >
-                Size
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="region" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[120px]"
-              >
-                Region
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="status" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[120px]"
-              >
-                Status
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="customers" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[120px]"
-              >
-                Customers
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="opportunities" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[120px]"
-              >
-                Opportunities
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="contacts" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[120px]"
-              >
-                Contacts
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="template" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[120px]"
-              >
-                Template
-              </SortableTableHead>
+              {visibleColumns.includes('name') && (
+                <SortableTableHead 
+                  sortKey="name" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[250px]"
+                >
+                  Partner
+                </SortableTableHead>
+              )}
+              {visibleColumns.includes('industry') && (
+                <SortableTableHead 
+                  sortKey="industry" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[120px]"
+                >
+                  Industry
+                </SortableTableHead>
+              )}
+              {visibleColumns.includes('size') && (
+                <SortableTableHead 
+                  sortKey="size" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[120px]"
+                >
+                  Size
+                </SortableTableHead>
+              )}
+              {visibleColumns.includes('region') && (
+                <SortableTableHead 
+                  sortKey="region" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[120px]"
+                >
+                  Region
+                </SortableTableHead>
+              )}
+              {visibleColumns.includes('status') && (
+                <SortableTableHead 
+                  sortKey="status" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[120px]"
+                >
+                  Status
+                </SortableTableHead>
+              )}
+              {visibleColumns.includes('customers') && (
+                <SortableTableHead 
+                  sortKey="customers" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[120px]"
+                >
+                  Customers
+                </SortableTableHead>
+              )}
+              {visibleColumns.includes('opportunities') && (
+                <SortableTableHead 
+                  sortKey="opportunities" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[120px]"
+                >
+                  Opportunities
+                </SortableTableHead>
+              )}
+              {visibleColumns.includes('contacts') && (
+                <SortableTableHead 
+                  sortKey="contacts" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[120px]"
+                >
+                  Contacts
+                </SortableTableHead>
+              )}
+              {visibleColumns.includes('template') && (
+                <SortableTableHead 
+                  sortKey="template" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[120px]"
+                >
+                  Template
+                </SortableTableHead>
+              )}
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
@@ -2473,54 +2518,72 @@ function PartnersTable() {
                     }}
                   />
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
-                  <div className="flex items-center">
-                    <EntityAvatar
-                      entityType="partner"
-                      entityId={partner.id}
-                      fallbackText={partner.initials}
-                      className="mr-3"
-                      size="md"
-                    />
-                    <Link href={`/lists/partners/${partner.id}`} className="font-medium text-gray-900 hover:text-indigo-700">{partner.name}</Link>
-                  </div>
-                </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.industry}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">{partner.size}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">{partner.region}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  <Badge variant={partner.status === 'active' ? 'outline' : 'secondary'} className="capitalize">
-                    {partner.status}
-                  </Badge>
-                </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  <Link 
-                    href={`/lists/partners/${partner.id}?tab=customers`} 
-                    className="text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer"
-                  >
-                    {partner.customers || 0}
-                  </Link>
-                </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  <Link 
-                    href={`/lists/partners/${partner.id}?tab=opportunities`} 
-                    className="text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer"
-                  >
-                    {partner.opportunities || 0}
-                  </Link>
-                </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  {partner.contacts || 0}
-                </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  <TemplateBadges partnerId={partner.id} templateAssignments={templateAssignments} okrTags={okrTags} />
-                </td>
+                {visibleColumns.includes('name') && (
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
+                    <div className="flex items-center">
+                      <EntityAvatar
+                        entityType="partner"
+                        entityId={partner.id}
+                        fallbackText={partner.initials}
+                        className="mr-3"
+                        size="md"
+                      />
+                      <Link href={`/lists/partners/${partner.id}`} className="font-medium text-gray-900 hover:text-indigo-700">{partner.name}</Link>
+                    </div>
+                  </td>
+                )}
+                {visibleColumns.includes('industry') && (
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.industry}</td>
+                )}
+                {visibleColumns.includes('size') && (
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">{partner.size}</td>
+                )}
+                {visibleColumns.includes('region') && (
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">{partner.region}</td>
+                )}
+                {visibleColumns.includes('status') && (
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                    <Badge variant={partner.status === 'active' ? 'outline' : 'secondary'} className="capitalize">
+                      {partner.status}
+                    </Badge>
+                  </td>
+                )}
+                {visibleColumns.includes('customers') && (
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                    <Link 
+                      href={`/lists/partners/${partner.id}?tab=customers`} 
+                      className="text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer"
+                    >
+                      {partner.customers || 0}
+                    </Link>
+                  </td>
+                )}
+                {visibleColumns.includes('opportunities') && (
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                    <Link 
+                      href={`/lists/partners/${partner.id}?tab=opportunities`} 
+                      className="text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer"
+                    >
+                      {partner.opportunities || 0}
+                    </Link>
+                  </td>
+                )}
+                {visibleColumns.includes('contacts') && (
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                    {partner.contacts || 0}
+                  </td>
+                )}
+                {visibleColumns.includes('template') && (
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                    <TemplateBadges partnerId={partner.id} templateAssignments={templateAssignments} okrTags={okrTags} />
+                  </td>
+                )}
               </tr>
             ))}
             
             {displayedPartners.length === 0 && !isEditingList && (
               <tr>
-                <td colSpan={10} className="py-10 text-center">
+                <td colSpan={visibleColumns.length + 1} className="py-10 text-center">
                   <div className="flex flex-col items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
                       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
