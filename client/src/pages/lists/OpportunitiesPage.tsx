@@ -32,6 +32,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ShareModal } from "@/components/ShareModal";
+import { FieldsSelector } from "@/components/shared/FieldsSelector";
 
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
 
@@ -440,6 +441,11 @@ function OpportunitiesTable() {
   const [bulkStatusValue, setBulkStatusValue] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
+  
+  // Column visibility state
+  const [visibleColumns, setVisibleColumns] = useState([
+    'opportunity', 'customer', 'partner', 'stage', 'value', 'probability', 'template'
+  ]);
   
 
   
@@ -1220,6 +1226,20 @@ function OpportunitiesTable() {
                 </Button>
               )}
               
+              <FieldsSelector
+                fields={[
+                  { key: 'opportunity', label: 'Opportunity', required: true },
+                  { key: 'customer', label: 'Customer', required: false },
+                  { key: 'partner', label: 'Partner', required: false },
+                  { key: 'stage', label: 'Stage', required: false },
+                  { key: 'value', label: 'Value', required: false },
+                  { key: 'probability', label: 'Probability', required: false },
+                  { key: 'template', label: 'Template', required: false }
+                ]}
+                visibleFields={visibleColumns}
+                onFieldsChange={setVisibleColumns}
+              />
+              
               <Button variant="outline" size="sm" className="hidden md:flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -1846,123 +1866,79 @@ function OpportunitiesTable() {
                   onChange={toggleSelectAll}
                 />
               </th>
-              <SortableTableHead 
-                sortKey="title" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[200px]"
-              >
-                Opportunity
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="clientName" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[120px]"
-              >
-                Customer
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="productCount" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[80px]"
-              >
-                Product
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="partnerName" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[120px]"
-              >
-                Partner
-              </SortableTableHead>
-
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px] bg-white">
-                <div className="flex items-center text-[#696C8C] text-[14px] font-medium">Contacts</div>
-              </th>
-              <SortableTableHead 
-                sortKey="startDate" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[110px]"
-              >
-                Start Date
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="insuranceDescription" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[150px]"
-              >
-                Insurance Description
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="stage" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[100px]"
-              >
-                Stage
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="estimatedValue" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[100px]"
-              >
-                Value
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="probability" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[90px]"
-              >
-                Probability
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="status" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[100px]"
-              >
-                Status
-              </SortableTableHead>
-              <SortableTableHead 
-                sortKey="type" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[100px]"
-              >
-                Type
-              </SortableTableHead>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[100px] bg-white">
-                <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
-                  Template
-                </div>
-              </th>
-              <SortableTableHead 
-                sortKey="expectedCloseDate" 
-                currentSortKey={tableSortConfig.key} 
-                currentDirection={tableSortConfig.direction} 
-                onSort={handleSort} 
-                className="w-[110px]"
-              >
-                Close Date
-              </SortableTableHead>
+              {visibleColumns.includes('opportunity') && (
+                <SortableTableHead 
+                  sortKey="title" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[200px]"
+                >
+                  Opportunity
+                </SortableTableHead>
+              )}
+              {visibleColumns.includes('customer') && (
+                <SortableTableHead 
+                  sortKey="clientName" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[120px]"
+                >
+                  Customer
+                </SortableTableHead>
+              )}
+              {visibleColumns.includes('partner') && (
+                <SortableTableHead 
+                  sortKey="partnerName" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[120px]"
+                >
+                  Partner
+                </SortableTableHead>
+              )}
+              {visibleColumns.includes('stage') && (
+                <SortableTableHead 
+                  sortKey="stage" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[100px]"
+                >
+                  Stage
+                </SortableTableHead>
+              )}
+              {visibleColumns.includes('value') && (
+                <SortableTableHead 
+                  sortKey="estimatedValue" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[100px]"
+                >
+                  Value
+                </SortableTableHead>
+              )}
+              {visibleColumns.includes('probability') && (
+                <SortableTableHead 
+                  sortKey="probability" 
+                  currentSortKey={tableSortConfig.key} 
+                  currentDirection={tableSortConfig.direction} 
+                  onSort={handleSort} 
+                  className="w-[90px]"
+                >
+                  Probability
+                </SortableTableHead>
+              )}
+              {visibleColumns.includes('template') && (
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[100px] bg-white">
+                  <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
+                    Template
+                  </div>
+                </th>
+              )}
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
@@ -1989,109 +1965,76 @@ function OpportunitiesTable() {
                     onChange={() => toggleSelectOpportunity(opportunity.id)}
                   />
                 </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[200px]">
-                  <div className="max-w-[180px]">
-                    <div className="font-medium text-gray-900 truncate">
-                      {opportunity.title}
+                {visibleColumns.includes('opportunity') && (
+                  <td className="px-3 py-4 text-sm text-gray-900 w-[200px]">
+                    <div className="max-w-[180px]">
+                      <div className="font-medium text-gray-900 truncate">
+                        {opportunity.title}
+                      </div>
+                      <div className="text-gray-500 text-xs truncate">
+                        {opportunity.description}
+                      </div>
                     </div>
-                    <div className="text-gray-500 text-xs truncate">
-                      {opportunity.description}
-                    </div>
-                  </div>
-                </td>
-                <td className="px-3 py-4 text-sm w-[120px] truncate">
-                  {(opportunity.clientName || opportunity.customerName) ? (
-                    <a 
-                      href={`/lists/customers/${opportunity.clientId || opportunity.customerId}`}
-                      className="text-indigo-600 hover:text-indigo-500 truncate block"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Store current location in session storage for back navigation
-                        sessionStorage.setItem('previousLocation', window.location.pathname + window.location.search);
-                      }}
-                    >
-                      {opportunity.clientName || opportunity.customerName}
-                    </a>
-                  ) : (
-                    <span className="text-gray-400">-</span>
-                  )}
-                </td>
-                <td className="px-3 py-4 text-sm w-[80px]">
-                  <a 
-                    href={`/lists/opportunities/${opportunity.id}?tab=products`}
-                    className="text-gray-900 hover:text-indigo-600 cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Store current location in session storage for back navigation
-                      sessionStorage.setItem('previousLocation', window.location.pathname + window.location.search);
-                    }}
-                  >
-                    {opportunity.productCount || 0}
-                  </a>
-                </td>
-                <td className="px-3 py-4 text-sm w-[80px]">
-                  <a 
-                    href={`/lists/opportunities/${opportunity.id}?tab=products`}
-                    className="text-gray-900 hover:text-indigo-600 cursor-pointer"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // Store current location in session storage for back navigation
-                      sessionStorage.setItem('previousLocation', window.location.pathname + window.location.search);
-                    }}
-                  >
-                    {opportunity.productCount || 0}
-                  </a>
-                </td>
-                <td className="px-3 py-4 text-sm w-[120px] truncate">
-                  {opportunity.partnerName ? (
-                    <a 
-                      href={`/lists/partners/${opportunity.partnerId}`}
-                      className="text-indigo-600 hover:text-indigo-500 truncate block"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // Store current location in session storage for back navigation
-                        sessionStorage.setItem('previousLocation', window.location.pathname + window.location.search);
-                      }}
-                    >
-                      {opportunity.partnerName}
-                    </a>
-                  ) : (
-                    <span className="text-gray-400">-</span>
-                  )}
-                </td>
-
-                <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
-                  <span className="text-gray-500 text-xs">0</span>
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[110px]">
-                  {opportunity.startDate ? new Date(opportunity.startDate).toLocaleDateString() : '-'}
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[150px] truncate">
-                  {opportunity.insuranceDescription || '-'}
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
-                  {opportunity.stage || '-'}
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
-                  {formatCurrency(opportunity.estimated_value || 0)}
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[90px]">
-                  {opportunity.probability}%
-                </td>
-                <td className="px-3 py-4 text-sm w-[100px]">
-                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeVariant(opportunity.status)}`}>
-                    {opportunity.status}
-                  </span>
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
-                  {opportunity.type || 'General'}
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
-                  <TemplateBadges opportunityId={opportunity.id} />
-                </td>
-                <td className="px-3 py-4 text-sm text-gray-900 w-[110px]">
-                  {opportunity.expectedCloseDate ? new Date(opportunity.expectedCloseDate).toLocaleDateString() : opportunity.closeDate || '-'}
-                </td>
+                  </td>
+                )}
+                {visibleColumns.includes('customer') && (
+                  <td className="px-3 py-4 text-sm w-[120px] truncate">
+                    {(opportunity.clientName || opportunity.customerName) ? (
+                      <a 
+                        href={`/lists/customers/${opportunity.clientId || opportunity.customerId}`}
+                        className="text-indigo-600 hover:text-indigo-500 truncate block"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Store current location in session storage for back navigation
+                          sessionStorage.setItem('previousLocation', window.location.pathname + window.location.search);
+                        }}
+                      >
+                        {opportunity.clientName || opportunity.customerName}
+                      </a>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
+                )}
+                {visibleColumns.includes('partner') && (
+                  <td className="px-3 py-4 text-sm w-[120px] truncate">
+                    {opportunity.partnerName ? (
+                      <a 
+                        href={`/lists/partners/${opportunity.partnerId}`}
+                        className="text-indigo-600 hover:text-indigo-500 truncate block"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Store current location in session storage for back navigation
+                          sessionStorage.setItem('previousLocation', window.location.pathname + window.location.search);
+                        }}
+                      >
+                        {opportunity.partnerName}
+                      </a>
+                    ) : (
+                      <span className="text-gray-400">-</span>
+                    )}
+                  </td>
+                )}
+                {visibleColumns.includes('stage') && (
+                  <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
+                    {opportunity.stage || '-'}
+                  </td>
+                )}
+                {visibleColumns.includes('value') && (
+                  <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
+                    {formatCurrency(opportunity.estimated_value || 0)}
+                  </td>
+                )}
+                {visibleColumns.includes('probability') && (
+                  <td className="px-3 py-4 text-sm text-gray-900 w-[90px]">
+                    {opportunity.probability}%
+                  </td>
+                )}
+                {visibleColumns.includes('template') && (
+                  <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
+                    <TemplateBadges opportunityId={opportunity.id} />
+                  </td>
+                )}
               </tr>
             ))}
           </tbody>

@@ -51,6 +51,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { FieldsSelector } from "@/components/shared/FieldsSelector";
 
 // Calculate total value from ALL opportunities linked to customers (not just displayed page)
 function calculateCustomerTotalValue(customers: any[], opportunities: any[] = []): number {
@@ -221,6 +222,11 @@ export default function CustomersPageClean() {
   const [selectedIndustry, setSelectedIndustry] = useState('all');
   const [selectedSize, setSelectedSize] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
+
+  // Column visibility state
+  const [visibleColumns, setVisibleColumns] = useState([
+    'customer', 'product', 'partner', 'industry', 'type', 'status', 'value', 'template'
+  ]);
 
   // Update active filters when new filter states change
   useEffect(() => {
@@ -570,6 +576,20 @@ export default function CustomersPageClean() {
               
               {/* Right-side action buttons */}
               <div className="flex items-center gap-2">
+                <FieldsSelector
+                  fields={[
+                    { key: 'customer', label: 'Customer', required: true },
+                    { key: 'product', label: 'Product', required: false },
+                    { key: 'partner', label: 'Partner', required: false },
+                    { key: 'industry', label: 'Industry', required: false },
+                    { key: 'type', label: 'Type', required: false },
+                    { key: 'status', label: 'Status', required: false },
+                    { key: 'value', label: 'Value', required: false },
+                    { key: 'template', label: 'Template', required: false }
+                  ]}
+                  visibleFields={visibleColumns}
+                  onFieldsChange={setVisibleColumns}
+                />
                 <button 
                   className={`flex items-center gap-2 px-4 py-2 text-white rounded-md transition-colors font-medium text-[14px] pl-[12px] pr-[12px] ${isEditingList ? 'bg-[#8B98F9] cursor-not-allowed' : 'bg-[#5567E5] hover:bg-[#4556D4]'}`}
                   onClick={() => {
@@ -1011,65 +1031,79 @@ export default function CustomersPageClean() {
                     </svg>
                   </div>
                 </th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                  <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
-                    Product
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                      <path d="M8 9l4-4 4 4"></path>
-                      <path d="M16 15l-4 4-4-4"></path>
-                    </svg>
-                  </div>
-                </th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C] pt-[12px] pb-[12px]">
-                  <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
-                    Partner
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                      <path d="M8 9l4-4 4 4"></path>
-                      <path d="M16 15l-4 4-4-4"></path>
-                    </svg>
-                  </div>
-                </th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C] pt-[12px] pb-[12px]">
-                  <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
-                    Industry
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                      <path d="M8 9l4-4 4 4"></path>
-                      <path d="M16 15l-4 4-4-4"></path>
-                    </svg>
-                  </div>
-                </th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C]">
-                  <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
-                    Type
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                      <path d="M8 9l4-4 4 4"></path>
-                      <path d="M16 15l-4 4-4-4"></path>
-                    </svg>
-                  </div>
-                </th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                  <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
-                    Status
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                      <path d="M8 9l4-4 4 4"></path>
-                      <path d="M16 15l-4 4-4-4"></path>
-                    </svg>
-                  </div>
-                </th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                  <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
-                    Value
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                      <path d="M8 9l4-4 4 4"></path>
-                      <path d="M16 15l-4 4-4-4"></path>
-                    </svg>
-                  </div>
-                </th>
-                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                  <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
-                    Template
-                  </div>
-                </th>
+                {visibleColumns.includes('product') && (
+                  <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                    <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
+                      Product
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                        <path d="M8 9l4-4 4 4"></path>
+                        <path d="M16 15l-4 4-4-4"></path>
+                      </svg>
+                    </div>
+                  </th>
+                )}
+                {visibleColumns.includes('partner') && (
+                  <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C] pt-[12px] pb-[12px]">
+                    <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
+                      Partner
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                        <path d="M8 9l4-4 4 4"></path>
+                        <path d="M16 15l-4 4-4-4"></path>
+                      </svg>
+                    </div>
+                  </th>
+                )}
+                {visibleColumns.includes('industry') && (
+                  <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C] pt-[12px] pb-[12px]">
+                    <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
+                      Industry
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                        <path d="M8 9l4-4 4 4"></path>
+                        <path d="M16 15l-4 4-4-4"></path>
+                      </svg>
+                    </div>
+                  </th>
+                )}
+                {visibleColumns.includes('type') && (
+                  <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C]">
+                    <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
+                      Type
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                        <path d="M8 9l4-4 4 4"></path>
+                        <path d="M16 15l-4 4-4-4"></path>
+                      </svg>
+                    </div>
+                  </th>
+                )}
+                {visibleColumns.includes('status') && (
+                  <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                    <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
+                      Status
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                        <path d="M8 9l4-4 4 4"></path>
+                        <path d="M16 15l-4 4-4-4"></path>
+                      </svg>
+                    </div>
+                  </th>
+                )}
+                {visibleColumns.includes('value') && (
+                  <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                    <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
+                      Value
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                        <path d="M8 9l4-4 4 4"></path>
+                        <path d="M16 15l-4 4-4-4"></path>
+                      </svg>
+                    </div>
+                  </th>
+                )}
+                {visibleColumns.includes('template') && (
+                  <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                    <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
+                      Template
+                    </div>
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="bg-white">
@@ -1098,53 +1132,67 @@ export default function CustomersPageClean() {
                       <Link href={`/lists/customers/${customer.id}`} className="font-medium text-gray-900 hover:text-indigo-700">{customer.name}</Link>
                     </div>
                   </td>
-                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm text-gray-900">
-                    {customer.productCount || 0}
-                  </td>
-                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                    <div className="flex flex-col space-y-1">
-                      {customer.partnerNames ? (
-                        <div className="flex flex-wrap gap-1">
-                          {customer.partnerNames.split(', ').map((partnerName: string, index: number) => {
-                            const partnerIds = customer.partnerIds ? customer.partnerIds.split(',') : [];
-                            const partnerId = partnerIds[index] || '1';
-                            return (
-                              <Link 
-                                key={index}
-                                href={`/lists/partners/${partnerId}`}
-                                className="text-indigo-600 hover:text-indigo-800 hover:underline"
-                              >
-                                {partnerName}{index < customer.partnerNames.split(', ').length - 1 ? ',' : ''}
-                              </Link>
-                            );
-                          })}
+                  {visibleColumns.includes('product') && (
+                    <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm text-gray-900">
+                      {customer.productCount || 0}
+                    </td>
+                  )}
+                  {visibleColumns.includes('partner') && (
+                    <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                      <div className="flex flex-col space-y-1">
+                        {customer.partnerNames ? (
+                          <div className="flex flex-wrap gap-1">
+                            {customer.partnerNames.split(', ').map((partnerName: string, index: number) => {
+                              const partnerIds = customer.partnerIds ? customer.partnerIds.split(',') : [];
+                              const partnerId = partnerIds[index] || '1';
+                              return (
+                                <Link 
+                                  key={index}
+                                  href={`/lists/partners/${partnerId}`}
+                                  className="text-indigo-600 hover:text-indigo-800 hover:underline"
+                                >
+                                  {partnerName}{index < customer.partnerNames.split(', ').length - 1 ? ',' : ''}
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <span className="text-gray-900">No Partner</span>
+                        )}
+                        <div className="flex space-x-2 text-xs text-gray-500">
+                          <span>Partners: {customer.partnerCount || 0}</span>
+                          <span>•</span>
+                          <span>Opps: {customer.opportunityCount || 0}</span>
                         </div>
-                      ) : (
-                        <span className="text-gray-900">No Partner</span>
-                      )}
-                      <div className="flex space-x-2 text-xs text-gray-500">
-                        <span>Partners: {customer.partnerCount || 0}</span>
-                        <span>•</span>
-                        <span>Opps: {customer.opportunityCount || 0}</span>
                       </div>
-                    </div>
-                  </td>
-                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Insurance</td>
-                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">Customer</td>
-                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Active</td>
-                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                    €{customer.totalOpportunityValue ? Number(customer.totalOpportunityValue).toLocaleString() : '0'}
-                  </td>
-                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                    <div className="flex space-x-1">
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        NB
-                      </span>
-                      <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                        PR
-                      </span>
-                    </div>
-                  </td>
+                    </td>
+                  )}
+                  {visibleColumns.includes('industry') && (
+                    <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Insurance</td>
+                  )}
+                  {visibleColumns.includes('type') && (
+                    <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">Customer</td>
+                  )}
+                  {visibleColumns.includes('status') && (
+                    <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Active</td>
+                  )}
+                  {visibleColumns.includes('value') && (
+                    <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                      €{customer.totalOpportunityValue ? Number(customer.totalOpportunityValue).toLocaleString() : '0'}
+                    </td>
+                  )}
+                  {visibleColumns.includes('template') && (
+                    <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                      <div className="flex space-x-1">
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                          NB
+                        </span>
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                          PR
+                        </span>
+                      </div>
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>
