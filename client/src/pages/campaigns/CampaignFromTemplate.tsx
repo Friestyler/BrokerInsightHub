@@ -644,14 +644,17 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const progress = (currentStep / totalSteps) * 100;
 
   const isStepCompleted = (stepNum: number): boolean => {
-    if (stepNum === 1) return Boolean(campaignData.name && campaignData.icon);
-    if (stepNum === 2) return Boolean(campaignData.entity);
-    if (stepNum === 3) {
-      const firstEmail = campaignData.emails[0];
-      return Boolean(firstEmail && firstEmail.subject && firstEmail.subject.trim());
-    }
-    if (stepNum === 4) return campaignData.recipients.length > 0;
-    if (stepNum === 5) return true; // Settings step - allow progression as it has default settings
+    const step1Complete = Boolean(campaignData.name && campaignData.icon);
+    const step2Complete = Boolean(campaignData.entity);
+    const step3Complete = Boolean(campaignData.emails[0]?.subject?.trim());
+    const step4Complete = isEditingCampaign ? true : campaignData.recipients.length > 0;
+    const step5Complete = true; // Settings step - allow progression as it has default settings
+    
+    if (stepNum === 1) return step1Complete;
+    if (stepNum === 2) return step2Complete;
+    if (stepNum === 3) return step3Complete;
+    if (stepNum === 4) return step4Complete;
+    if (stepNum === 5) return step5Complete;
     if (stepNum === 6) return false; // Share or Send step - never auto-completed
     return stepNum < currentStep;
   };

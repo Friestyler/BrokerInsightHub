@@ -136,10 +136,13 @@ export default function RecipientSelector({
   const queryClient = useQueryClient();
 
   // Fetch main entities based on type
-  const { data: entities = [], isLoading: entitiesLoading } = useQuery({
+  const { data: entitiesResponse = [], isLoading: entitiesLoading } = useQuery({
     queryKey: [`/api/degoudse/${entityType}`],
     enabled: !!entityType
   });
+  
+  // Extract entities from response (handle both array and object with data property)
+  const entities = Array.isArray(entitiesResponse) ? entitiesResponse : (entitiesResponse.data || []);
 
   // Fetch customers for opportunity drill-down
   const { data: customersResponse, isLoading: customersLoading } = useQuery({
