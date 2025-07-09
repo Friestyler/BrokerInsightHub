@@ -10598,20 +10598,20 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       
       // Update template
       await pool.query(`
-        UPDATE campaign_templates 
+        UPDATE ${envId}.campaign_templates 
         SET name = $1, description = $2, objective = $3, entity = $4, icon = $5, status = $6, attachments = $7, updated_at = NOW()
         WHERE id = $8
       `, [name, description, objective, entity, icon, status || 'draft', JSON.stringify(attachments || []), id]);
       
       // Delete existing emails and blocks (cascade will handle blocks)
-      await pool.query('DELETE FROM campaign_emails WHERE template_id = $1', [id]);
+      await pool.query(`DELETE FROM ${envId}.campaign_emails WHERE template_id = $1`, [id]);
       
       // Insert new emails and blocks
       for (let emailIndex = 0; emailIndex < emails.length; emailIndex++) {
         const email = emails[emailIndex];
         
         const emailResult = await pool.query(`
-          INSERT INTO campaign_emails (template_id, subject, follow_up_days, left_logo, right_logo, email_order)
+          INSERT INTO ${envId}.campaign_emails (template_id, subject, follow_up_days, left_logo, right_logo, email_order)
           VALUES ($1, $2, $3, $4, $5, $6)
           RETURNING id
         `, [id, email.subject, email.followUpDays || 0, email.leftLogo, email.rightLogo, emailIndex]);
@@ -10623,7 +10623,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
           const block = email.blocks[blockIndex];
           
           await pool.query(`
-            INSERT INTO email_blocks (email_id, type, content, properties, block_order)
+            INSERT INTO ${envId}.email_blocks (email_id, type, content, properties, block_order)
             VALUES ($1, $2, $3, $4, $5)
           `, [emailId, block.type, block.content, JSON.stringify(block.properties || {}), blockIndex]);
         }
