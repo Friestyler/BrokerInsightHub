@@ -19,7 +19,8 @@ import {
   Target,
   ArrowRight,
   BookOpen,
-  Check
+  Check,
+  Bookmark
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -105,12 +106,13 @@ export default function RecipientSelector({
       case 'selected': return 'selected';
       case 'lists': return 'lists';
       case 'contacts': return 'contacts';
+      case 'segments': return 'segments';
       default: return 'lists';
     }
   };
   
   const initialTabValue = getInitialTab(initialTab ?? null);
-  const [selectedTab, setSelectedTab] = useState<'lists' | 'contacts' | 'selected' | 'missing'>(initialTabValue);
+  const [selectedTab, setSelectedTab] = useState<'lists' | 'contacts' | 'selected' | 'missing' | 'segments'>(initialTabValue);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [showAddContact, setShowAddContact] = useState(false);
   const [showOnlyMissingContacts, setShowOnlyMissingContacts] = useState(false);
@@ -168,6 +170,11 @@ export default function RecipientSelector({
   // Fetch saved lists for the entity type
   const { data: savedLists = [], isLoading: listsLoading } = useQuery({
     queryKey: [`/api/degoudse/saved-lists?entity_type=${entityType}`]
+  });
+
+  // Fetch saved views (segments) for the entity type
+  const { data: savedViews = [], isLoading: viewsLoading } = useQuery({
+    queryKey: [`/api/degoudse/saved-views?entity_type=${entityType}`]
   });
 
   // Build entity-contact relationships for drill-down (include all entity types for hierarchical relationships)
@@ -430,6 +437,73 @@ export default function RecipientSelector({
   // Helper function to get entity display name
   const getEntityDisplayName = (entity: Entity) => {
     return entity.name || entity.title || 'Unknown Entity';
+  };
+
+  // Helper function to apply segment filters to entities
+  const applySegmentFilters = (entities: Entity[], filters: any) => {
+    return entities.filter(entity => {
+      // Parse filters if they're a string
+      const filterObj = typeof filters === 'string' ? JSON.parse(filters) : filters;
+      
+      // Apply search text filter
+      if (filterObj.searchText) {
+        const searchLower = filterObj.searchText.toLowerCase();
+        const entityName = getEntityDisplayName(entity).toLowerCase();
+        if (!entityName.includes(searchLower)) return false;
+      }
+
+      // Apply status filter for opportunities
+      if (filterObj.status && filterObj.status !== 'all' && entityType === 'opportunities') {
+        if (entity.status !== filterObj.status) return false;
+      }
+
+      // Apply type filter for opportunities
+      if (filterObj.type && filterObj.type !== 'all' && entityType === 'opportunities') {
+        if (entity.type !== filterObj.type) return false;
+      }
+
+      // Apply customer filter for opportunities
+      if (filterObj.customerId && filterObj.customerId !== 'all' && entityType === 'opportunities') {
+        if (entity.customerId !== filterObj.customerId) return false;
+      }
+
+      // Apply partner filter for opportunities
+      if (filterObj.partnerId && filterObj.partnerId !== 'all' && entityType === 'opportunities') {
+        if (entity.partnerId !== filterObj.partnerId) return false;
+      }
+
+      // Apply stage filter for opportunities
+      if (filterObj.stage && filterObj.stage !== 'all' && entityType === 'opportunities') {
+        if (entity.stage !== filterObj.stage) return false;
+      }
+
+      // Apply probability filter for opportunities
+      if (filterObj.probability && filterObj.probability !== 'all' && entityType === 'opportunities') {
+        if (String(entity.probability) !== filterObj.probability) return false;
+      }
+
+      return true;
+    });
+  };
+
+  // Handle segment selection
+  const handleSegmentSelection = (segment: any) => {
+    const filteredEntities = applySegmentFilters(entities, segment.filters);
+    
+    // Convert filtered entities to recipients
+    const segmentRecipients = filteredEntities.map(entity => ({
+      ...entity,
+      type: 'entity',
+      recipientKey: `entity-${entity.id}`,
+      segmentId: segment.id,
+      segmentName: segment.name
+    }));
+
+    // Add segment recipients to existing recipients (avoid duplicates)
+    const existingEntityIds = new Set(selectedRecipients.filter(r => r.type === 'entity').map(r => r.id));
+    const newRecipients = segmentRecipients.filter(r => !existingEntityIds.has(r.id));
+    
+    onRecipientsChange([...selectedRecipients, ...newRecipients]);
   };
 
   // Calculate selection counts
@@ -714,6 +788,19 @@ export default function RecipientSelector({
           >
             <Users className="h-4 w-4" />
             Lists
+          </Button>
+
+          <Button
+            variant={selectedTab === 'segments' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => {
+              setSelectedTab('segments');
+              setShowOnlyMissingContacts(false);
+            }}
+            className="gap-2"
+          >
+            <Bookmark className="h-4 w-4" />
+            Segments
           </Button>
 
           <Button
@@ -1323,6 +1410,122 @@ export default function RecipientSelector({
                     <p className="font-medium mb-2">No contacts found</p>
                     <p className="text-sm">Try adjusting your search or add new contacts.</p>
                   </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Segments Tab - Saved views that can be applied as filters */}
+        {selectedTab === 'segments' && (
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <h3 className="text-lg font-medium text-gray-900">
+                {entityType.charAt(0).toUpperCase() + entityType.slice(1)} Segments
+              </h3>
+              <p className="text-sm text-gray-500">
+                {savedViews.length} saved view{savedViews.length !== 1 ? 's' : ''} available
+              </p>
+            </div>
+
+            {viewsLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="text-gray-500 mt-2">Loading segments...</p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {savedViews.length === 0 ? (
+                  <div className="text-center py-12 text-gray-500">
+                    <Bookmark className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                    <p className="font-medium mb-2">No segments found</p>
+                    <p className="text-sm">Create segments by saving filtered views on the {entityType} list page.</p>
+                  </div>
+                ) : (
+                  savedViews.map((segment: any) => {
+                    // Calculate how many entities this segment would include
+                    const segmentEntities = applySegmentFilters(entities, segment.filters);
+                    const segmentCount = segmentEntities.length;
+                    
+                    return (
+                      <div key={segment.id} className="bg-white rounded-lg border border-gray-200 p-4 hover:border-blue-200 transition-colors">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="p-2 rounded-lg bg-purple-100">
+                              <Bookmark className="h-5 w-5 text-purple-600" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-gray-900">{segment.name}</h4>
+                              <p className="text-sm text-gray-500 mt-1">
+                                {segmentCount} {entityType.slice(0, -1)}{segmentCount !== 1 ? 's' : ''} match this segment
+                              </p>
+                              {segment.description && (
+                                <p className="text-xs text-gray-400 mt-1">{segment.description}</p>
+                              )}
+                            </div>
+                          </div>
+                          
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => toggleItemExpansion(`segment-${segment.id}`)}
+                              className="text-gray-600 hover:text-gray-900"
+                            >
+                              {expandedItems.has(`segment-${segment.id}`) ? (
+                                <ChevronDown className="h-4 w-4" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4" />
+                              )}
+                            </Button>
+                            <Button
+                              variant="default"
+                              size="sm"
+                              onClick={() => handleSegmentSelection(segment)}
+                              className="bg-purple-600 hover:bg-purple-700"
+                            >
+                              Select All
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Expanded segment preview */}
+                        {expandedItems.has(`segment-${segment.id}`) && (
+                          <div className="mt-4 space-y-2 pl-6 border-l-2 border-purple-100">
+                            {segmentEntities.slice(0, 10).map((entity: Entity) => (
+                              <div key={entity.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center gap-3">
+                                  <input
+                                    type="checkbox"
+                                    className="rounded border-gray-300"
+                                    onChange={() => handleSelectRecipient(entity, 'entity')}
+                                    checked={selectedRecipients.some(r => 
+                                      r.type === 'entity' && r.id === entity.id
+                                    )}
+                                  />
+                                  <div>
+                                    <p className="font-medium text-gray-900">{getEntityDisplayName(entity)}</p>
+                                    {entity.email && (
+                                      <p className="text-sm text-gray-500 flex items-center gap-1">
+                                        <Mail className="h-3 w-3" />
+                                        {entity.email}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                            
+                            {segmentEntities.length > 10 && (
+                              <div className="text-center p-3 text-gray-500 text-sm">
+                                ... and {segmentEntities.length - 10} more {entityType.slice(0, -1)}{segmentEntities.length - 10 !== 1 ? 's' : ''}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })
                 )}
               </div>
             )}
