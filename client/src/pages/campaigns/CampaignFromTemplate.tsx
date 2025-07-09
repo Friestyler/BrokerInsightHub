@@ -257,37 +257,82 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     if (templateData && isFromTemplate) {
       console.log('Loading template data for campaign creation:', templateData);
       
-      const emails = templateData.emails?.map((email: any, index: number) => {
-        let blocks = [];
+      // Parse email content from template data
+      let emails = [];
+      
+      // Handle main email from email_body
+      if (templateData.email_body) {
         try {
-          // Template emails store content as JSON string, parse it to get blocks
-          if (typeof email.content === 'string') {
-            blocks = JSON.parse(email.content);
-          } else if (email.blocks) {
-            blocks = email.blocks;
-          }
+          const blocks = JSON.parse(templateData.email_body);
+          emails.push({
+            id: '1',
+            subject: templateData.subject || '',
+            blocks: blocks,
+            followUpDays: 0,
+            leftLogo: null,
+            rightLogo: null
+          });
         } catch (e) {
-          console.warn('Failed to parse email content:', e);
-          blocks = [];
+          console.warn('Failed to parse email_body:', e);
+          emails.push({
+            id: '1',
+            subject: templateData.subject || '',
+            blocks: [],
+            followUpDays: 0,
+            leftLogo: null,
+            rightLogo: null
+          });
         }
-        
-        return {
-          id: email.id || (index + 1).toString(),
-          subject: email.subject || '',
-          blocks: blocks,
-          followUpDays: email.followUpDays || 0,
-          leftLogo: email.leftLogo || null,
-          rightLogo: email.rightLogo || null,
-          condition: email.condition || (index > 0 ? { type: 'always' } : undefined)
-        };
-      }) || [{
-        id: '1',
-        subject: '',
-        blocks: [],
-        followUpDays: 0,
-        leftLogo: null,
-        rightLogo: null
-      }];
+      }
+      
+      // Handle follow-up emails from follow_up_emails
+      if (templateData.follow_up_emails && Array.isArray(templateData.follow_up_emails)) {
+        templateData.follow_up_emails.forEach((followUpEmail: any, index: number) => {
+          let blocks = [];
+          try {
+            if (followUpEmail.body) {
+              blocks = JSON.parse(followUpEmail.body);
+            }
+          } catch (e) {
+            console.warn('Failed to parse follow-up email body:', e);
+            blocks = [];
+          }
+          
+          emails.push({
+            id: `${index + 2}`,
+            subject: followUpEmail.subject || '',
+            blocks: blocks,
+            followUpDays: followUpEmail.send_after_days || 0,
+            leftLogo: null,
+            rightLogo: null
+          });
+        });
+      }
+      
+      // If no emails were parsed, create a default one
+      if (emails.length === 0) {
+        emails = [{
+          id: '1',
+          subject: '',
+          blocks: [],
+          followUpDays: 0,
+          leftLogo: null,
+          rightLogo: null
+        }];
+      }
+
+      console.log('Campaign data initialized from template:', {
+        templateName: templateData.name,
+        emailCount: emails.length,
+        firstEmailBlocks: emails[0]?.blocks?.length || 0,
+        firstEmailSubject: emails[0]?.subject || '',
+        emailStructure: emails.map(e => ({
+          id: e.id,
+          subject: e.subject,
+          blockCount: e.blocks?.length || 0,
+          blocks: e.blocks
+        }))
+      });
 
       setCampaignData(prev => ({
         ...prev,
@@ -612,6 +657,19 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   };
 
   const isStepAccessible = (stepNum: number): boolean => {
+    // In edit mode or when using a template, make all steps accessible up to the current + 1
+    if (isEditingCampaign || isFromTemplate) {
+      // For editing campaigns and templates, allow navigation to all steps that are completed or within reasonable bounds
+      if (stepNum === 1) return true;
+      if (stepNum === 2) return isStepCompleted(1);
+      if (stepNum === 3) return isStepCompleted(2);
+      if (stepNum === 4) return isStepCompleted(3);
+      if (stepNum === 5) return isStepCompleted(4);
+      if (stepNum === 6) return isStepCompleted(5);
+      return false;
+    }
+    
+    // For new campaigns, follow strict progression
     if (stepNum === 1) return true;
     if (stepNum === 2) return isStepCompleted(1);
     if (stepNum === 3) return isStepCompleted(2); // Flow Builder after target group
@@ -1101,7 +1159,12 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                           ? 'bg-gray-200 text-gray-500 hover:bg-gray-300'
                           : 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-60'
                   }`}
-                  onClick={() => isStepAccessible(step.number) ? setCurrentStep(step.number) : undefined}
+                  onClick={() => {
+                    if (isStepAccessible(step.number)) {
+                      setCurrentStep(step.number);
+                      updateUrlStep(step.number);
+                    }
+                  }}
                 >
                   {isStepCompleted(step.number) ? <Check className="h-4 w-4" /> : step.number}
                 </div>
