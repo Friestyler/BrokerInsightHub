@@ -169,6 +169,30 @@ export default function CampaignTemplateCreator() {
         rightLogo: null
       }];
 
+      // Add follow-up emails if they exist
+      if (templateData.follow_up_emails && Array.isArray(templateData.follow_up_emails)) {
+        templateData.follow_up_emails.forEach((followUpEmail: any, index: number) => {
+          let followUpBlocks = [];
+          try {
+            if (followUpEmail.body) {
+              followUpBlocks = JSON.parse(followUpEmail.body);
+            }
+          } catch (error) {
+            console.error('Error parsing follow-up email blocks:', error);
+            followUpBlocks = [];
+          }
+
+          emails.push({
+            id: `${index + 2}`,
+            subject: followUpEmail.subject || '',
+            blocks: followUpBlocks,
+            followUpDays: followUpEmail.send_after_days || 0,
+            leftLogo: null,
+            rightLogo: null
+          });
+        });
+      }
+
       setCampaignData({
         entity: templateData.target_entity_type || '',
         name: templateData.name || '',
