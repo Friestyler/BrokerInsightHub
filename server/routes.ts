@@ -10596,38 +10596,42 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       
       await pool.query('BEGIN');
       
-      // Update template
-      await pool.query(`
-        UPDATE ${envId}.campaign_templates 
-        SET name = $1, description = $2, objective = $3, entity = $4, icon = $5, status = $6, attachments = $7, updated_at = NOW()
-        WHERE id = $8
-      `, [name, description, objective, entity, icon, status || 'draft', JSON.stringify(attachments || []), id]);
+      // Prepare email content for storage
+      let emailBody = '';
+      let followUpEmails = [];
       
-      // Delete existing emails and blocks (cascade will handle blocks)
-      await pool.query(`DELETE FROM ${envId}.campaign_emails WHERE template_id = $1`, [id]);
-      
-      // Insert new emails and blocks
-      for (let emailIndex = 0; emailIndex < emails.length; emailIndex++) {
-        const email = emails[emailIndex];
+      if (emails && emails.length > 0) {
+        const firstEmail = emails[0];
+        emailBody = firstEmail.content || '';
         
-        const emailResult = await pool.query(`
-          INSERT INTO ${envId}.campaign_emails (template_id, subject, follow_up_days, left_logo, right_logo, email_order)
-          VALUES ($1, $2, $3, $4, $5, $6)
-          RETURNING id
-        `, [id, email.subject, email.followUpDays || 0, email.leftLogo, email.rightLogo, emailIndex]);
-        
-        const emailId = emailResult.rows[0].id;
-        
-        // Insert blocks
-        for (let blockIndex = 0; blockIndex < email.blocks.length; blockIndex++) {
-          const block = email.blocks[blockIndex];
-          
-          await pool.query(`
-            INSERT INTO ${envId}.email_blocks (email_id, type, content, properties, block_order)
-            VALUES ($1, $2, $3, $4, $5)
-          `, [emailId, block.type, block.content, JSON.stringify(block.properties || {}), blockIndex]);
+        // Handle follow-up emails
+        if (emails.length > 1) {
+          followUpEmails = emails.slice(1).map(email => ({
+            subject: email.subject || '',
+            body: email.content || '',
+            send_after_days: email.followUpDays || 0
+          }));
         }
       }
+      
+      // Update template in campaigns table
+      await pool.query(`
+        UPDATE ${envId}.campaigns 
+        SET name = $1, description = $2, objective = $3, target_entity_type = $4, icon = $5, status = $6, 
+            subject = $7, email_body = $8, follow_up_emails = $9, updated_at = NOW()
+        WHERE id = $10 AND is_template = true
+      `, [
+        name, 
+        description, 
+        objective, 
+        entity, 
+        icon, 
+        status || 'draft', 
+        emails && emails.length > 0 ? emails[0].subject : '', 
+        emailBody, 
+        JSON.stringify(followUpEmails), 
+        id
+      ]);
       
       await pool.query('COMMIT');
       
