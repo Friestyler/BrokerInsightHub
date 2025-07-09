@@ -1060,150 +1060,154 @@ export default function RecipientSelector({
                                   ))}
                                   
                                   {/* Add Contact Button - Only show for non-opportunities or when opportunities have no customer */}
-                                  {entityType !== 'opportunities' && showInlineContactForm !== `${entity.id}-${entityType}` ? (
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => setShowInlineContactForm(`${entity.id}-${entityType}`)}
-                                      className="w-full mt-2 border-dashed border-[#E6E7F1] text-gray-600 hover:text-gray-800 hover:border-[#D6D7E4]"
-                                    >
-                                      <UserPlus className="h-4 w-4 mr-2" />
-                                      Add Contact for {entity.name}
-                                    </Button>
-                                  ) : (
-                                    /* Inline Contact Creation Form */
-                                    <div className="mt-2 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                                      <div className="flex items-center justify-between mb-3">
-                                        <h4 className="font-medium text-gray-900">Add New Contact</h4>
+                                  {entityType !== 'opportunities' && (
+                                    <div className="mt-2">
+                                      {showInlineContactForm !== `${entity.id}-${entityType}` ? (
                                         <Button
-                                          variant="ghost"
+                                          variant="outline"
                                           size="sm"
-                                          onClick={() => {
-                                            setShowInlineContactForm(null);
-                                            setInlineContactData({
-                                              first_name: '',
-                                              last_name: '',
-                                              email: '',
-                                              job_title: '',
-                                              phone: ''
-                                            });
-                                          }}
+                                          onClick={() => setShowInlineContactForm(`${entity.id}-${entityType}`)}
+                                          className="w-full border-dashed border-[#E6E7F1] text-gray-600 hover:text-gray-800 hover:border-[#D6D7E4]"
                                         >
-                                          <X className="h-4 w-4" />
+                                          <UserPlus className="h-4 w-4 mr-2" />
+                                          Add Contact
                                         </Button>
-                                      </div>
-                                      
-                                      <div className="grid grid-cols-2 gap-3 mb-3">
-                                        <div>
-                                          <Label htmlFor="first_name" className="text-xs font-medium text-gray-700">First Name</Label>
-                                          <Input
-                                            id="first_name"
-                                            placeholder="John"
-                                            value={inlineContactData.first_name}
-                                            onChange={(e) => setInlineContactData({
-                                              ...inlineContactData,
-                                              first_name: e.target.value
-                                            })}
-                                            className="mt-1"
-                                          />
+                                      ) : (
+                                        /* Inline Contact Creation Form */
+                                        <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                                          <div className="flex items-center justify-between mb-3">
+                                            <h4 className="font-medium text-gray-900">Add New Contact</h4>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => {
+                                                setShowInlineContactForm(null);
+                                                setInlineContactData({
+                                                  first_name: '',
+                                                  last_name: '',
+                                                  email: '',
+                                                  job_title: '',
+                                                  phone: ''
+                                                });
+                                              }}
+                                            >
+                                              <X className="h-4 w-4" />
+                                            </Button>
+                                          </div>
+                                          
+                                          <div className="grid grid-cols-2 gap-3 mb-3">
+                                            <div>
+                                              <Label htmlFor="first_name" className="text-xs font-medium text-gray-700">First Name</Label>
+                                              <Input
+                                                id="first_name"
+                                                placeholder="John"
+                                                value={inlineContactData.first_name}
+                                                onChange={(e) => setInlineContactData({
+                                                  ...inlineContactData,
+                                                  first_name: e.target.value
+                                                })}
+                                                className="mt-1"
+                                              />
+                                            </div>
+                                            <div>
+                                              <Label htmlFor="last_name" className="text-xs font-medium text-gray-700">Last Name</Label>
+                                              <Input
+                                                id="last_name"
+                                                placeholder="Doe"
+                                                value={inlineContactData.last_name}
+                                                onChange={(e) => setInlineContactData({
+                                                  ...inlineContactData,
+                                                  last_name: e.target.value
+                                                })}
+                                                className="mt-1"
+                                              />
+                                            </div>
+                                          </div>
+                                          
+                                          <div className="mb-3">
+                                            <Label htmlFor="email" className="text-xs font-medium text-gray-700">Email *</Label>
+                                            <Input
+                                              id="email"
+                                              type="email"
+                                              placeholder="john.doe@company.com"
+                                              value={inlineContactData.email}
+                                              onChange={(e) => setInlineContactData({
+                                                ...inlineContactData,
+                                                email: e.target.value
+                                              })}
+                                              className="mt-1"
+                                            />
+                                          </div>
+                                          
+                                          <div className="grid grid-cols-2 gap-3 mb-4">
+                                            <div>
+                                              <Label htmlFor="job_title" className="text-xs font-medium text-gray-700">Job Title</Label>
+                                              <Input
+                                                id="job_title"
+                                                placeholder="Account Manager"
+                                                value={inlineContactData.job_title}
+                                                onChange={(e) => setInlineContactData({
+                                                  ...inlineContactData,
+                                                  job_title: e.target.value
+                                                })}
+                                                className="mt-1"
+                                              />
+                                            </div>
+                                            <div>
+                                              <Label htmlFor="phone" className="text-xs font-medium text-gray-700">Phone</Label>
+                                              <Input
+                                                id="phone"
+                                                placeholder="+31 6 12345678"
+                                                value={inlineContactData.phone}
+                                                onChange={(e) => setInlineContactData({
+                                                  ...inlineContactData,
+                                                  phone: e.target.value
+                                                })}
+                                                className="mt-1"
+                                              />
+                                            </div>
+                                          </div>
+                                          
+                                          <div className="flex justify-end gap-2">
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => {
+                                                setShowInlineContactForm(null);
+                                                setInlineContactData({
+                                                  first_name: '',
+                                                  last_name: '',
+                                                  email: '',
+                                                  job_title: '',
+                                                  phone: ''
+                                                });
+                                              }}
+                                            >
+                                              Cancel
+                                            </Button>
+                                            <Button
+                                              size="sm"
+                                              onClick={() => {
+                                                if (!inlineContactData.email.trim()) {
+                                                  toast({
+                                                    title: "Error",
+                                                    description: "Email is required",
+                                                    variant: "destructive",
+                                                  });
+                                                  return;
+                                                }
+                                                createInlineContactMutation.mutate({
+                                                  contactData: inlineContactData,
+                                                  entityId: entity.id
+                                                });
+                                              }}
+                                              disabled={createInlineContactMutation.isPending || !inlineContactData.email.trim()}
+                                            >
+                                              {createInlineContactMutation.isPending ? 'Adding...' : 'Add Contact'}
+                                            </Button>
+                                          </div>
                                         </div>
-                                        <div>
-                                          <Label htmlFor="last_name" className="text-xs font-medium text-gray-700">Last Name</Label>
-                                          <Input
-                                            id="last_name"
-                                            placeholder="Doe"
-                                            value={inlineContactData.last_name}
-                                            onChange={(e) => setInlineContactData({
-                                              ...inlineContactData,
-                                              last_name: e.target.value
-                                            })}
-                                            className="mt-1"
-                                          />
-                                        </div>
-                                      </div>
-                                      
-                                      <div className="mb-3">
-                                        <Label htmlFor="email" className="text-xs font-medium text-gray-700">Email *</Label>
-                                        <Input
-                                          id="email"
-                                          type="email"
-                                          placeholder="john.doe@company.com"
-                                          value={inlineContactData.email}
-                                          onChange={(e) => setInlineContactData({
-                                            ...inlineContactData,
-                                            email: e.target.value
-                                          })}
-                                          className="mt-1"
-                                        />
-                                      </div>
-                                      
-                                      <div className="grid grid-cols-2 gap-3 mb-4">
-                                        <div>
-                                          <Label htmlFor="job_title" className="text-xs font-medium text-gray-700">Job Title</Label>
-                                          <Input
-                                            id="job_title"
-                                            placeholder="Account Manager"
-                                            value={inlineContactData.job_title}
-                                            onChange={(e) => setInlineContactData({
-                                              ...inlineContactData,
-                                              job_title: e.target.value
-                                            })}
-                                            className="mt-1"
-                                          />
-                                        </div>
-                                        <div>
-                                          <Label htmlFor="phone" className="text-xs font-medium text-gray-700">Phone</Label>
-                                          <Input
-                                            id="phone"
-                                            placeholder="+31 6 12345678"
-                                            value={inlineContactData.phone}
-                                            onChange={(e) => setInlineContactData({
-                                              ...inlineContactData,
-                                              phone: e.target.value
-                                            })}
-                                            className="mt-1"
-                                          />
-                                        </div>
-                                      </div>
-                                      
-                                      <div className="flex justify-end gap-2">
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => {
-                                            setShowInlineContactForm(null);
-                                            setInlineContactData({
-                                              first_name: '',
-                                              last_name: '',
-                                              email: '',
-                                              job_title: '',
-                                              phone: ''
-                                            });
-                                          }}
-                                        >
-                                          Cancel
-                                        </Button>
-                                        <Button
-                                          size="sm"
-                                          onClick={() => {
-                                            if (!inlineContactData.email.trim()) {
-                                              toast({
-                                                title: "Error",
-                                                description: "Email is required",
-                                                variant: "destructive",
-                                              });
-                                              return;
-                                            }
-                                            createInlineContactMutation.mutate({
-                                              contactData: inlineContactData,
-                                              entityId: entity.id
-                                            });
-                                          }}
-                                          disabled={createInlineContactMutation.isPending || !inlineContactData.email.trim()}
-                                        >
-                                          {createInlineContactMutation.isPending ? 'Adding...' : 'Add Contact'}
-                                        </Button>
-                                      </div>
+                                      )}
                                     </div>
                                   )}
                                 </div>
@@ -1560,156 +1564,158 @@ export default function RecipientSelector({
                                           </div>
                                           
                                           {/* Add Contact Button */}
-                                          {showInlineContactForm !== `segment-${entity.id}-${customer.id}` ? (
-                                            <Button
-                                              variant="outline"
-                                              size="sm"
-                                              onClick={() => setShowInlineContactForm(`segment-${entity.id}-${customer.id}`)}
-                                              className="w-full mt-2 border-dashed border-[#E6E7F1] text-gray-600 hover:text-gray-800 hover:border-[#D6D7E4]"
-                                            >
-                                              <UserPlus className="h-4 w-4 mr-2" />
-                                              Add Contact for {customer.name}
-                                            </Button>
-                                          ) : (
-                                            /* Inline Contact Creation Form */
-                                            <div className="mt-2 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                                              <div className="flex items-center justify-between mb-3">
-                                                <h4 className="font-medium text-gray-900">Add New Contact</h4>
-                                                <Button
-                                                  variant="ghost"
-                                                  size="sm"
-                                                  onClick={() => {
-                                                    setShowInlineContactForm(null);
-                                                    setInlineContactData({
-                                                      first_name: '',
-                                                      last_name: '',
-                                                      email: '',
-                                                      job_title: '',
-                                                      phone: ''
-                                                    });
-                                                  }}
-                                                >
-                                                  <X className="h-4 w-4" />
-                                                </Button>
-                                              </div>
-                                              
-                                              <div className="grid grid-cols-2 gap-3 mb-3">
-                                                <div>
-                                                  <Label htmlFor="first_name" className="text-xs font-medium text-gray-700">First Name</Label>
+                                          <div className="mt-2">
+                                            {showInlineContactForm !== `segment-${entity.id}-${customer.id}` ? (
+                                              <Button
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => setShowInlineContactForm(`segment-${entity.id}-${customer.id}`)}
+                                                className="w-full border-dashed border-[#E6E7F1] text-gray-600 hover:text-gray-800 hover:border-[#D6D7E4]"
+                                              >
+                                                <UserPlus className="h-4 w-4 mr-2" />
+                                                Add Contact
+                                              </Button>
+                                            ) : (
+                                              /* Inline Contact Creation Form */
+                                              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                                                <div className="flex items-center justify-between mb-3">
+                                                  <h4 className="font-medium text-gray-900">Add New Contact</h4>
+                                                  <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                      setShowInlineContactForm(null);
+                                                      setInlineContactData({
+                                                        first_name: '',
+                                                        last_name: '',
+                                                        email: '',
+                                                        job_title: '',
+                                                        phone: ''
+                                                      });
+                                                    }}
+                                                  >
+                                                    <X className="h-4 w-4" />
+                                                  </Button>
+                                                </div>
+                                                
+                                                <div className="grid grid-cols-2 gap-3 mb-3">
+                                                  <div>
+                                                    <Label htmlFor="first_name" className="text-xs font-medium text-gray-700">First Name</Label>
+                                                    <Input
+                                                      id="first_name"
+                                                      placeholder="John"
+                                                      value={inlineContactData.first_name}
+                                                      onChange={(e) => setInlineContactData({...inlineContactData, first_name: e.target.value})}
+                                                      className="mt-1"
+                                                    />
+                                                  </div>
+                                                  <div>
+                                                    <Label htmlFor="last_name" className="text-xs font-medium text-gray-700">Last Name</Label>
+                                                    <Input
+                                                      id="last_name"
+                                                      placeholder="Doe"
+                                                      value={inlineContactData.last_name}
+                                                      onChange={(e) => setInlineContactData({...inlineContactData, last_name: e.target.value})}
+                                                      className="mt-1"
+                                                    />
+                                                  </div>
+                                                </div>
+                                                
+                                                <div className="grid grid-cols-2 gap-3 mb-3">
+                                                  <div>
+                                                    <Label htmlFor="email" className="text-xs font-medium text-gray-700">Email</Label>
+                                                    <Input
+                                                      id="email"
+                                                      type="email"
+                                                      placeholder="john@example.com"
+                                                      value={inlineContactData.email}
+                                                      onChange={(e) => setInlineContactData({...inlineContactData, email: e.target.value})}
+                                                      className="mt-1"
+                                                    />
+                                                  </div>
+                                                  <div>
+                                                    <Label htmlFor="job_title" className="text-xs font-medium text-gray-700">Job Title</Label>
+                                                    <Input
+                                                      id="job_title"
+                                                      placeholder="Manager"
+                                                      value={inlineContactData.job_title}
+                                                      onChange={(e) => setInlineContactData({...inlineContactData, job_title: e.target.value})}
+                                                      className="mt-1"
+                                                    />
+                                                  </div>
+                                                </div>
+                                                
+                                                <div className="mb-4">
+                                                  <Label htmlFor="phone" className="text-xs font-medium text-gray-700">Phone</Label>
                                                   <Input
-                                                    id="first_name"
-                                                    placeholder="John"
-                                                    value={inlineContactData.first_name}
-                                                    onChange={(e) => setInlineContactData({...inlineContactData, first_name: e.target.value})}
+                                                    id="phone"
+                                                    placeholder="+1 (555) 123-4567"
+                                                    value={inlineContactData.phone}
+                                                    onChange={(e) => setInlineContactData({...inlineContactData, phone: e.target.value})}
                                                     className="mt-1"
                                                   />
                                                 </div>
-                                                <div>
-                                                  <Label htmlFor="last_name" className="text-xs font-medium text-gray-700">Last Name</Label>
-                                                  <Input
-                                                    id="last_name"
-                                                    placeholder="Doe"
-                                                    value={inlineContactData.last_name}
-                                                    onChange={(e) => setInlineContactData({...inlineContactData, last_name: e.target.value})}
-                                                    className="mt-1"
-                                                  />
+                                                
+                                                <div className="flex justify-end gap-2">
+                                                  <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                      setShowInlineContactForm(null);
+                                                      setInlineContactData({
+                                                        first_name: '',
+                                                        last_name: '',
+                                                        email: '',
+                                                        job_title: '',
+                                                        phone: ''
+                                                      });
+                                                    }}
+                                                  >
+                                                    Cancel
+                                                  </Button>
+                                                  <Button
+                                                    size="sm"
+                                                    onClick={() => {
+                                                      const contactData = {
+                                                        ...inlineContactData,
+                                                        linkedEntityId: customer.id,
+                                                        linkedEntityType: 'customer'
+                                                      };
+                                                      
+                                                      // Add to selected recipients
+                                                      const newContact = {
+                                                        ...contactData,
+                                                        id: Date.now(), // Temporary ID
+                                                        type: 'contact',
+                                                        recipientKey: `contact-${Date.now()}`,
+                                                        fullName: `${inlineContactData.first_name} ${inlineContactData.last_name}`.trim()
+                                                      };
+                                                      
+                                                      onRecipientsChange([...selectedRecipients, newContact]);
+                                                      
+                                                      // Reset form
+                                                      setShowInlineContactForm(null);
+                                                      setInlineContactData({
+                                                        first_name: '',
+                                                        last_name: '',
+                                                        email: '',
+                                                        job_title: '',
+                                                        phone: ''
+                                                      });
+                                                      
+                                                      toast({
+                                                        title: "Contact added",
+                                                        description: `${newContact.fullName} has been added to your campaign recipients.`,
+                                                      });
+                                                    }}
+                                                    disabled={!inlineContactData.first_name || !inlineContactData.email}
+                                                  >
+                                                    Add Contact
+                                                  </Button>
                                                 </div>
                                               </div>
-                                              
-                                              <div className="grid grid-cols-2 gap-3 mb-3">
-                                                <div>
-                                                  <Label htmlFor="email" className="text-xs font-medium text-gray-700">Email</Label>
-                                                  <Input
-                                                    id="email"
-                                                    type="email"
-                                                    placeholder="john@example.com"
-                                                    value={inlineContactData.email}
-                                                    onChange={(e) => setInlineContactData({...inlineContactData, email: e.target.value})}
-                                                    className="mt-1"
-                                                  />
-                                                </div>
-                                                <div>
-                                                  <Label htmlFor="job_title" className="text-xs font-medium text-gray-700">Job Title</Label>
-                                                  <Input
-                                                    id="job_title"
-                                                    placeholder="Manager"
-                                                    value={inlineContactData.job_title}
-                                                    onChange={(e) => setInlineContactData({...inlineContactData, job_title: e.target.value})}
-                                                    className="mt-1"
-                                                  />
-                                                </div>
-                                              </div>
-                                              
-                                              <div className="mb-4">
-                                                <Label htmlFor="phone" className="text-xs font-medium text-gray-700">Phone</Label>
-                                                <Input
-                                                  id="phone"
-                                                  placeholder="+1 (555) 123-4567"
-                                                  value={inlineContactData.phone}
-                                                  onChange={(e) => setInlineContactData({...inlineContactData, phone: e.target.value})}
-                                                  className="mt-1"
-                                                />
-                                              </div>
-                                              
-                                              <div className="flex justify-end gap-2">
-                                                <Button
-                                                  variant="outline"
-                                                  size="sm"
-                                                  onClick={() => {
-                                                    setShowInlineContactForm(null);
-                                                    setInlineContactData({
-                                                      first_name: '',
-                                                      last_name: '',
-                                                      email: '',
-                                                      job_title: '',
-                                                      phone: ''
-                                                    });
-                                                  }}
-                                                >
-                                                  Cancel
-                                                </Button>
-                                                <Button
-                                                  size="sm"
-                                                  onClick={() => {
-                                                    const contactData = {
-                                                      ...inlineContactData,
-                                                      linkedEntityId: customer.id,
-                                                      linkedEntityType: 'customer'
-                                                    };
-                                                    
-                                                    // Add to selected recipients
-                                                    const newContact = {
-                                                      ...contactData,
-                                                      id: Date.now(), // Temporary ID
-                                                      type: 'contact',
-                                                      recipientKey: `contact-${Date.now()}`,
-                                                      fullName: `${inlineContactData.first_name} ${inlineContactData.last_name}`.trim()
-                                                    };
-                                                    
-                                                    onRecipientsChange([...selectedRecipients, newContact]);
-                                                    
-                                                    // Reset form
-                                                    setShowInlineContactForm(null);
-                                                    setInlineContactData({
-                                                      first_name: '',
-                                                      last_name: '',
-                                                      email: '',
-                                                      job_title: '',
-                                                      phone: ''
-                                                    });
-                                                    
-                                                    toast({
-                                                      title: "Contact added",
-                                                      description: `${newContact.fullName} has been added to your campaign recipients.`,
-                                                    });
-                                                  }}
-                                                  disabled={!inlineContactData.first_name || !inlineContactData.email}
-                                                >
-                                                  Add Contact
-                                                </Button>
-                                              </div>
-                                            </div>
-                                          )}
+                                            )}
+                                          </div>
                                         </div>
                                       );
                                     })()}
@@ -2472,150 +2478,154 @@ export default function RecipientSelector({
                                 ))}
                                 
                                 {/* Add Contact Button - Only show for non-opportunities */}
-                                {entityType !== 'opportunities' && showInlineContactForm !== `${entity.id}-${entityType}` ? (
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    onClick={() => setShowInlineContactForm(`${entity.id}-${entityType}`)}
-                                    className="w-full mt-2 border-dashed border-orange-300 text-orange-600 hover:text-orange-800 hover:border-orange-400 bg-orange-50 hover:bg-orange-100"
-                                  >
-                                    <UserPlus className="h-4 w-4 mr-2" />
-                                    Add Contact for {entity.name}
-                                  </Button>
-                                ) : (
-                                  /* Inline Contact Creation Form */
-                                  <div className="mt-2 p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                                    <div className="flex items-center justify-between mb-3">
-                                      <h4 className="font-medium text-gray-900">Add New Contact</h4>
+                                {entityType !== 'opportunities' && (
+                                  <div className="mt-2">
+                                    {showInlineContactForm !== `${entity.id}-${entityType}` ? (
                                       <Button
-                                        variant="ghost"
+                                        variant="outline"
                                         size="sm"
-                                        onClick={() => {
-                                          setShowInlineContactForm(null);
-                                          setInlineContactData({
-                                            first_name: '',
-                                            last_name: '',
-                                            email: '',
-                                            job_title: '',
-                                            phone: ''
-                                          });
-                                        }}
+                                        onClick={() => setShowInlineContactForm(`${entity.id}-${entityType}`)}
+                                        className="w-full border-dashed border-orange-300 text-orange-600 hover:text-orange-800 hover:border-orange-400 bg-orange-50 hover:bg-orange-100"
                                       >
-                                        <X className="h-4 w-4" />
+                                        <UserPlus className="h-4 w-4 mr-2" />
+                                        Add Contact
                                       </Button>
-                                    </div>
-                                    
-                                    <div className="grid grid-cols-2 gap-3 mb-3">
-                                      <div>
-                                        <Label htmlFor="first_name" className="text-xs font-medium text-gray-700">First Name</Label>
-                                        <Input
-                                          id="first_name"
-                                          placeholder="John"
-                                          value={inlineContactData.first_name}
-                                          onChange={(e) => setInlineContactData({
-                                            ...inlineContactData,
-                                            first_name: e.target.value
-                                          })}
-                                          className="mt-1"
-                                        />
+                                    ) : (
+                                      /* Inline Contact Creation Form */
+                                      <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                                        <div className="flex items-center justify-between mb-3">
+                                          <h4 className="font-medium text-gray-900">Add New Contact</h4>
+                                          <Button
+                                            variant="ghost"
+                                            size="sm"
+                                            onClick={() => {
+                                              setShowInlineContactForm(null);
+                                              setInlineContactData({
+                                                first_name: '',
+                                                last_name: '',
+                                                email: '',
+                                                job_title: '',
+                                                phone: ''
+                                              });
+                                            }}
+                                          >
+                                            <X className="h-4 w-4" />
+                                          </Button>
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-2 gap-3 mb-3">
+                                          <div>
+                                            <Label htmlFor="first_name" className="text-xs font-medium text-gray-700">First Name</Label>
+                                            <Input
+                                              id="first_name"
+                                              placeholder="John"
+                                              value={inlineContactData.first_name}
+                                              onChange={(e) => setInlineContactData({
+                                                ...inlineContactData,
+                                                first_name: e.target.value
+                                              })}
+                                              className="mt-1"
+                                            />
+                                          </div>
+                                          <div>
+                                            <Label htmlFor="last_name" className="text-xs font-medium text-gray-700">Last Name</Label>
+                                            <Input
+                                              id="last_name"
+                                              placeholder="Doe"
+                                              value={inlineContactData.last_name}
+                                              onChange={(e) => setInlineContactData({
+                                                ...inlineContactData,
+                                                last_name: e.target.value
+                                              })}
+                                              className="mt-1"
+                                            />
+                                          </div>
+                                        </div>
+                                        
+                                        <div className="mb-3">
+                                          <Label htmlFor="email" className="text-xs font-medium text-gray-700">Email *</Label>
+                                          <Input
+                                            id="email"
+                                            type="email"
+                                            placeholder="john.doe@company.com"
+                                            value={inlineContactData.email}
+                                            onChange={(e) => setInlineContactData({
+                                              ...inlineContactData,
+                                              email: e.target.value
+                                            })}
+                                            className="mt-1"
+                                          />
+                                        </div>
+                                        
+                                        <div className="grid grid-cols-2 gap-3 mb-4">
+                                          <div>
+                                            <Label htmlFor="job_title" className="text-xs font-medium text-gray-700">Job Title</Label>
+                                            <Input
+                                              id="job_title"
+                                              placeholder="Account Manager"
+                                              value={inlineContactData.job_title}
+                                              onChange={(e) => setInlineContactData({
+                                                ...inlineContactData,
+                                                job_title: e.target.value
+                                              })}
+                                              className="mt-1"
+                                            />
+                                          </div>
+                                          <div>
+                                            <Label htmlFor="phone" className="text-xs font-medium text-gray-700">Phone</Label>
+                                            <Input
+                                              id="phone"
+                                              placeholder="+31 6 12345678"
+                                              value={inlineContactData.phone}
+                                              onChange={(e) => setInlineContactData({
+                                                ...inlineContactData,
+                                                phone: e.target.value
+                                              })}
+                                              className="mt-1"
+                                            />
+                                          </div>
+                                        </div>
+                                        
+                                        <div className="flex justify-end gap-2">
+                                          <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => {
+                                              setShowInlineContactForm(null);
+                                              setInlineContactData({
+                                                first_name: '',
+                                                last_name: '',
+                                                email: '',
+                                                job_title: '',
+                                                phone: ''
+                                              });
+                                            }}
+                                          >
+                                            Cancel
+                                          </Button>
+                                          <Button
+                                            size="sm"
+                                            onClick={() => {
+                                              if (!inlineContactData.email.trim()) {
+                                                toast({
+                                                  title: "Error",
+                                                  description: "Email is required",
+                                                  variant: "destructive",
+                                                });
+                                                return;
+                                              }
+                                              createInlineContactMutation.mutate({
+                                                contactData: inlineContactData,
+                                                entityId: entity.id
+                                              });
+                                            }}
+                                            disabled={createInlineContactMutation.isPending || !inlineContactData.email.trim()}
+                                          >
+                                            {createInlineContactMutation.isPending ? 'Adding...' : 'Add Contact'}
+                                          </Button>
+                                        </div>
                                       </div>
-                                      <div>
-                                        <Label htmlFor="last_name" className="text-xs font-medium text-gray-700">Last Name</Label>
-                                        <Input
-                                          id="last_name"
-                                          placeholder="Doe"
-                                          value={inlineContactData.last_name}
-                                          onChange={(e) => setInlineContactData({
-                                            ...inlineContactData,
-                                            last_name: e.target.value
-                                          })}
-                                          className="mt-1"
-                                        />
-                                      </div>
-                                    </div>
-                                    
-                                    <div className="mb-3">
-                                      <Label htmlFor="email" className="text-xs font-medium text-gray-700">Email *</Label>
-                                      <Input
-                                        id="email"
-                                        type="email"
-                                        placeholder="john.doe@company.com"
-                                        value={inlineContactData.email}
-                                        onChange={(e) => setInlineContactData({
-                                          ...inlineContactData,
-                                          email: e.target.value
-                                        })}
-                                        className="mt-1"
-                                      />
-                                    </div>
-                                    
-                                    <div className="grid grid-cols-2 gap-3 mb-4">
-                                      <div>
-                                        <Label htmlFor="job_title" className="text-xs font-medium text-gray-700">Job Title</Label>
-                                        <Input
-                                          id="job_title"
-                                          placeholder="Account Manager"
-                                          value={inlineContactData.job_title}
-                                          onChange={(e) => setInlineContactData({
-                                            ...inlineContactData,
-                                            job_title: e.target.value
-                                          })}
-                                          className="mt-1"
-                                        />
-                                      </div>
-                                      <div>
-                                        <Label htmlFor="phone" className="text-xs font-medium text-gray-700">Phone</Label>
-                                        <Input
-                                          id="phone"
-                                          placeholder="+31 6 12345678"
-                                          value={inlineContactData.phone}
-                                          onChange={(e) => setInlineContactData({
-                                            ...inlineContactData,
-                                            phone: e.target.value
-                                          })}
-                                          className="mt-1"
-                                        />
-                                      </div>
-                                    </div>
-                                    
-                                    <div className="flex justify-end gap-2">
-                                      <Button
-                                        variant="ghost"
-                                        size="sm"
-                                        onClick={() => {
-                                          setShowInlineContactForm(null);
-                                          setInlineContactData({
-                                            first_name: '',
-                                            last_name: '',
-                                            email: '',
-                                            job_title: '',
-                                            phone: ''
-                                          });
-                                        }}
-                                      >
-                                        Cancel
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        onClick={() => {
-                                          if (!inlineContactData.email.trim()) {
-                                            toast({
-                                              title: "Error",
-                                              description: "Email is required",
-                                              variant: "destructive",
-                                            });
-                                            return;
-                                          }
-                                          createInlineContactMutation.mutate({
-                                            contactData: inlineContactData,
-                                            entityId: entity.id
-                                          });
-                                        }}
-                                        disabled={createInlineContactMutation.isPending || !inlineContactData.email.trim()}
-                                      >
-                                        {createInlineContactMutation.isPending ? 'Adding...' : 'Add Contact'}
-                                      </Button>
-                                    </div>
+                                    )}
                                   </div>
                                 )}
                               </div>
