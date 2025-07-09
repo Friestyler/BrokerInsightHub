@@ -1059,8 +1059,8 @@ export default function RecipientSelector({
                                     </div>
                                   ))}
                                   
-                                  {/* Add Contact Button */}
-                                  {showInlineContactForm !== `${entity.id}-${entityType}` ? (
+                                  {/* Add Contact Button - Only show for non-opportunities or when opportunities have no customer */}
+                                  {entityType !== 'opportunities' && showInlineContactForm !== `${entity.id}-${entityType}` ? (
                                     <Button
                                       variant="outline"
                                       size="sm"
@@ -1489,30 +1489,232 @@ export default function RecipientSelector({
                           </div>
                         </div>
 
-                        {/* Expanded segment preview */}
+                        {/* Expanded segment preview with hierarchical display */}
                         {expandedItems.has(`segment-${segment.id}`) && (
                           <div className="mt-4 space-y-2 pl-6 border-l-2 border-purple-100">
                             {segmentEntities.slice(0, 10).map((entity: Entity) => (
-                              <div key={entity.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <div className="flex items-center gap-3">
-                                  <input
-                                    type="checkbox"
-                                    className="rounded border-gray-300"
-                                    onChange={() => handleSelectRecipient(entity, 'entity')}
-                                    checked={selectedRecipients.some(r => 
-                                      r.type === 'entity' && r.id === entity.id
-                                    )}
-                                  />
-                                  <div>
-                                    <p className="font-medium text-gray-900">{getEntityDisplayName(entity)}</p>
-                                    {entity.email && (
-                                      <p className="text-sm text-gray-500 flex items-center gap-1">
-                                        <Mail className="h-3 w-3" />
-                                        {entity.email}
-                                      </p>
-                                    )}
+                              <div key={entity.id} className="space-y-2">
+                                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                  <div className="flex items-center gap-3">
+                                    <input
+                                      type="checkbox"
+                                      className="rounded border-gray-300"
+                                      onChange={() => handleSelectRecipient(entity, 'entity')}
+                                      checked={selectedRecipients.some(r => 
+                                        r.type === 'entity' && r.id === entity.id
+                                      )}
+                                    />
+                                    <div>
+                                      <p className="font-medium text-gray-900">{getEntityDisplayName(entity)}</p>
+                                      {entity.email && (
+                                        <p className="text-sm text-gray-500 flex items-center gap-1">
+                                          <Mail className="h-3 w-3" />
+                                          {entity.email}
+                                        </p>
+                                      )}
+                                    </div>
                                   </div>
+                                  
+                                  {/* Drill-down button for hierarchical relationships */}
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => toggleItemExpansion(`segment-entity-${entity.id}`)}
+                                  >
+                                    {expandedItems.has(`segment-entity-${entity.id}`) ? (
+                                      <ChevronDown className="h-4 w-4" />
+                                    ) : (
+                                      <ChevronRight className="h-4 w-4" />
+                                    )}
+                                  </Button>
                                 </div>
+
+                                {/* Hierarchical drill-down for opportunities */}
+                                {expandedItems.has(`segment-entity-${entity.id}`) && entityType === 'opportunities' && (
+                                  <div className="ml-6 space-y-2">
+                                    {(() => {
+                                      const customer = getCustomerForOpportunity(entity.id);
+                                      if (!customer) return null;
+
+                                      return (
+                                        <div className="space-y-2">
+                                          {/* Customer Organization */}
+                                          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-blue-200 shadow-sm">
+                                            <div className="flex items-center gap-4">
+                                              <input
+                                                type="checkbox"
+                                                className="rounded border-gray-300 w-4 h-4"
+                                                onChange={() => handleSelectRecipient(customer, 'customer')}
+                                                checked={selectedRecipients.some(r => 
+                                                  r.type === 'customer' && r.id === customer.id
+                                                )}
+                                              />
+                                              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                                                <Users className="h-5 w-5 text-white" />
+                                              </div>
+                                              <div>
+                                                <p className="font-bold text-blue-900 text-lg">{customer.name}</p>
+                                                <p className="text-sm text-blue-700 font-medium">🏢 CUSTOMER ORGANIZATION</p>
+                                              </div>
+                                            </div>
+                                          </div>
+                                          
+                                          {/* Add Contact Button */}
+                                          {showInlineContactForm !== `segment-${entity.id}-${customer.id}` ? (
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => setShowInlineContactForm(`segment-${entity.id}-${customer.id}`)}
+                                              className="w-full mt-2 border-dashed border-[#E6E7F1] text-gray-600 hover:text-gray-800 hover:border-[#D6D7E4]"
+                                            >
+                                              <UserPlus className="h-4 w-4 mr-2" />
+                                              Add Contact for {customer.name}
+                                            </Button>
+                                          ) : (
+                                            /* Inline Contact Creation Form */
+                                            <div className="mt-2 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                                              <div className="flex items-center justify-between mb-3">
+                                                <h4 className="font-medium text-gray-900">Add New Contact</h4>
+                                                <Button
+                                                  variant="ghost"
+                                                  size="sm"
+                                                  onClick={() => {
+                                                    setShowInlineContactForm(null);
+                                                    setInlineContactData({
+                                                      first_name: '',
+                                                      last_name: '',
+                                                      email: '',
+                                                      job_title: '',
+                                                      phone: ''
+                                                    });
+                                                  }}
+                                                >
+                                                  <X className="h-4 w-4" />
+                                                </Button>
+                                              </div>
+                                              
+                                              <div className="grid grid-cols-2 gap-3 mb-3">
+                                                <div>
+                                                  <Label htmlFor="first_name" className="text-xs font-medium text-gray-700">First Name</Label>
+                                                  <Input
+                                                    id="first_name"
+                                                    placeholder="John"
+                                                    value={inlineContactData.first_name}
+                                                    onChange={(e) => setInlineContactData({...inlineContactData, first_name: e.target.value})}
+                                                    className="mt-1"
+                                                  />
+                                                </div>
+                                                <div>
+                                                  <Label htmlFor="last_name" className="text-xs font-medium text-gray-700">Last Name</Label>
+                                                  <Input
+                                                    id="last_name"
+                                                    placeholder="Doe"
+                                                    value={inlineContactData.last_name}
+                                                    onChange={(e) => setInlineContactData({...inlineContactData, last_name: e.target.value})}
+                                                    className="mt-1"
+                                                  />
+                                                </div>
+                                              </div>
+                                              
+                                              <div className="grid grid-cols-2 gap-3 mb-3">
+                                                <div>
+                                                  <Label htmlFor="email" className="text-xs font-medium text-gray-700">Email</Label>
+                                                  <Input
+                                                    id="email"
+                                                    type="email"
+                                                    placeholder="john@example.com"
+                                                    value={inlineContactData.email}
+                                                    onChange={(e) => setInlineContactData({...inlineContactData, email: e.target.value})}
+                                                    className="mt-1"
+                                                  />
+                                                </div>
+                                                <div>
+                                                  <Label htmlFor="job_title" className="text-xs font-medium text-gray-700">Job Title</Label>
+                                                  <Input
+                                                    id="job_title"
+                                                    placeholder="Manager"
+                                                    value={inlineContactData.job_title}
+                                                    onChange={(e) => setInlineContactData({...inlineContactData, job_title: e.target.value})}
+                                                    className="mt-1"
+                                                  />
+                                                </div>
+                                              </div>
+                                              
+                                              <div className="mb-4">
+                                                <Label htmlFor="phone" className="text-xs font-medium text-gray-700">Phone</Label>
+                                                <Input
+                                                  id="phone"
+                                                  placeholder="+1 (555) 123-4567"
+                                                  value={inlineContactData.phone}
+                                                  onChange={(e) => setInlineContactData({...inlineContactData, phone: e.target.value})}
+                                                  className="mt-1"
+                                                />
+                                              </div>
+                                              
+                                              <div className="flex justify-end gap-2">
+                                                <Button
+                                                  variant="outline"
+                                                  size="sm"
+                                                  onClick={() => {
+                                                    setShowInlineContactForm(null);
+                                                    setInlineContactData({
+                                                      first_name: '',
+                                                      last_name: '',
+                                                      email: '',
+                                                      job_title: '',
+                                                      phone: ''
+                                                    });
+                                                  }}
+                                                >
+                                                  Cancel
+                                                </Button>
+                                                <Button
+                                                  size="sm"
+                                                  onClick={() => {
+                                                    const contactData = {
+                                                      ...inlineContactData,
+                                                      linkedEntityId: customer.id,
+                                                      linkedEntityType: 'customer'
+                                                    };
+                                                    
+                                                    // Add to selected recipients
+                                                    const newContact = {
+                                                      ...contactData,
+                                                      id: Date.now(), // Temporary ID
+                                                      type: 'contact',
+                                                      recipientKey: `contact-${Date.now()}`,
+                                                      fullName: `${inlineContactData.first_name} ${inlineContactData.last_name}`.trim()
+                                                    };
+                                                    
+                                                    onRecipientsChange([...selectedRecipients, newContact]);
+                                                    
+                                                    // Reset form
+                                                    setShowInlineContactForm(null);
+                                                    setInlineContactData({
+                                                      first_name: '',
+                                                      last_name: '',
+                                                      email: '',
+                                                      job_title: '',
+                                                      phone: ''
+                                                    });
+                                                    
+                                                    toast({
+                                                      title: "Contact added",
+                                                      description: `${newContact.fullName} has been added to your campaign recipients.`,
+                                                    });
+                                                  }}
+                                                  disabled={!inlineContactData.first_name || !inlineContactData.email}
+                                                >
+                                                  Add Contact
+                                                </Button>
+                                              </div>
+                                            </div>
+                                          )}
+                                        </div>
+                                      );
+                                    })()}
+                                  </div>
+                                )}
                               </div>
                             ))}
                             
@@ -2269,8 +2471,8 @@ export default function RecipientSelector({
                                   </div>
                                 ))}
                                 
-                                {/* Add Contact Button */}
-                                {showInlineContactForm !== `${entity.id}-${entityType}` ? (
+                                {/* Add Contact Button - Only show for non-opportunities */}
+                                {entityType !== 'opportunities' && showInlineContactForm !== `${entity.id}-${entityType}` ? (
                                   <Button
                                     variant="outline"
                                     size="sm"
