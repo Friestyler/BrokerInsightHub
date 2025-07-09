@@ -1206,84 +1206,9 @@ function OpportunitiesTable() {
               )}
             </div>
             
-            {/* Right-side action buttons */}
-            <div className="flex items-center gap-2">
-              
-              {/* Save button - only shown when filters are applied */}
-              {(filterText || selectedStatus || selectedType) && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="text-indigo-600"
-                  onClick={() => setShowSaveListModal(true)}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                    <polyline points="7 3 7 8 15 8"></polyline>
-                  </svg>
-                  {activeList ? 'Update' : 'Save'}
-                </Button>
-              )}
-              
-              <FieldsSelector
-                fields={[
-                  { key: 'opportunity', label: 'Opportunity', required: true },
-                  { key: 'customer', label: 'Customer', required: false },
-                  { key: 'partner', label: 'Partner', required: false },
-                  { key: 'stage', label: 'Stage', required: false },
-                  { key: 'value', label: 'Value', required: false },
-                  { key: 'probability', label: 'Probability', required: false },
-                  { key: 'template', label: 'Template', required: false }
-                ]}
-                visibleFields={visibleColumns}
-                onFieldsChange={setVisibleColumns}
-              />
-              
-              <Button variant="outline" size="sm" className="hidden md:flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="7 10 12 15 17 10"></polyline>
-                  <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                Export
-              </Button>
-              
-              <Button 
-                size="sm" 
-                className="flex items-center bg-indigo-600 hover:bg-indigo-700"
-                onClick={() => setShowCreateModal(true)}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                New
-              </Button>
-            </div>
-          </div>
-          
-          {/* Bottom row with search, views, and filters */}
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-3 flex-grow">
-              {/* Search field */}
-              <div className="relative w-60">
-                <input
-                  type="text"
-                  placeholder="Search opportunities..."
-                  value={filterText}
-                  onChange={(e) => setFilterText(e.target.value)}
-                  className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
-                />
-                <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  </svg>
-                </button>
-              </div>
-              
-              {/* Segment Views dropdown - next to search field */}
+            {/* Right-side control buttons */}
+            <div className="flex items-center gap-3">
+              {/* Segment Views dropdown */}
               <div className="relative filter-dropdown">
                 <button 
                   className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium ${activeView ? 'bg-indigo-50 border-indigo-400 text-indigo-700' : 'border-gray-300 hover:border-gray-400'}`}
@@ -1373,9 +1298,9 @@ function OpportunitiesTable() {
                   </div>
                 )}
               </div>
-              
+
               {/* Database-driven filter dropdowns */}
-              <div className="flex items-center gap-2 ml-3">
+              <div className="flex items-center gap-2">
                 {/* Status Filter */}
                 <Select value={selectedStatus} onValueChange={setSelectedStatus}>
                   <SelectTrigger className="w-32">
@@ -1405,102 +1330,98 @@ function OpportunitiesTable() {
                     ))}
                   </SelectContent>
                 </Select>
-                
-                {/* Customer Filter */}
-                <Select value={selectedCustomer} onValueChange={setSelectedCustomer}>
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Customer" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Customers</SelectItem>
-                    {customerOptions.map((customer) => (
-                      <SelectItem key={customer} value={customer}>
-                        {customer}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                {/* Partner Filter */}
-                <Select value={selectedPartner} onValueChange={setSelectedPartner}>
-                  <SelectTrigger className="w-36">
-                    <SelectValue placeholder="Partner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Partners</SelectItem>
-                    {partnerOptions.map((partner) => (
-                      <SelectItem key={partner} value={partner}>
-                        {partner}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                {/* Stage Filter */}
-                <Select value={selectedStage} onValueChange={setSelectedStage}>
-                  <SelectTrigger className="w-28">
-                    <SelectValue placeholder="Stage" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Stages</SelectItem>
-                    {stageOptions.map((stage) => (
-                      <SelectItem key={stage} value={stage}>
-                        {stage}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                
-                {/* Probability Filter */}
-                <Select value={selectedProbability} onValueChange={setSelectedProbability}>
-                  <SelectTrigger className="w-36">
-                    <SelectValue placeholder="Probability" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Probabilities</SelectItem>
-                    {probabilityOptions.map((probability) => (
-                      <SelectItem key={probability} value={String(probability)}>
-                        {probability}%
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
               </div>
-            </div>
-            
-            {/* Save View and Clear filters buttons - only shown when filters are applied */}
-            {(filterText || (selectedStatus && selectedStatus !== 'all') || (selectedType && selectedType !== 'all') || (selectedCustomer && selectedCustomer !== 'all') || (selectedPartner && selectedPartner !== 'all') || (selectedStage && selectedStage !== 'all') || (selectedProbability && selectedProbability !== 'all')) && (
-              <div className="flex items-center gap-2">
-                <Button
-                  onClick={() => setShowSaveViewModal(true)}
-                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm"
-                  size="sm"
+
+              <FieldsSelector
+                fields={[
+                  { key: 'opportunity', label: 'Opportunity', required: true },
+                  { key: 'customer', label: 'Customer', required: false },
+                  { key: 'partner', label: 'Partner', required: false },
+                  { key: 'stage', label: 'Stage', required: false },
+                  { key: 'value', label: 'Value', required: false },
+                  { key: 'probability', label: 'Probability', required: false },
+                  { key: 'template', label: 'Template', required: false }
+                ]}
+                visibleFields={visibleColumns}
+                onFieldsChange={setVisibleColumns}
+              />
+              
+              {/* Save button - only shown when filters are applied */}
+              {(filterText || selectedStatus || selectedType) && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-indigo-600"
+                  onClick={() => setShowSaveListModal(true)}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
                   </svg>
-                  Save Segment View
+                  {activeList ? 'Update' : 'Save'}
                 </Button>
-                <button 
-                  onClick={() => {
-                    setFilterText('');
-                    setSelectedStatus('all');
-                    setSelectedType('all');
-                    setSelectedCustomer('all');
-                    setSelectedPartner('all');
-                    setSelectedStage('all');
-                    setSelectedProbability('all');
-                    if (activeList) setActiveList(null);
-                  }}
-                  className="text-xs text-gray-500 hover:text-gray-700 flex items-center px-2 py-1 hover:bg-gray-50 rounded-md transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                    <path d="M18 6L6 18"></path>
-                    <path d="M6 6l12 12"></path>
-                  </svg>
-                  Clear filters
-                </button>
-              </div>
+              )}
+              
+              <Button variant="outline" size="sm" className="hidden md:flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Export
+              </Button>
+              
+              <Button 
+                size="sm" 
+                className="flex items-center bg-indigo-600 hover:bg-indigo-700"
+                onClick={() => setShowCreateModal(true)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                New
+              </Button>
+            </div>
+          </div>
+          
+          {/* Bottom row with search only */}
+          <div className="flex items-center gap-3">
+            {/* Search field */}
+            <div className="relative w-60">
+              <input
+                type="text"
+                placeholder="Search opportunities..."
+                value={filterText}
+                onChange={(e) => setFilterText(e.target.value)}
+                className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+              />
+              <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </button>
+            </div>
+            
+            {/* Clear filters button */}
+            {(filterText || selectedStatus !== 'all' || selectedType !== 'all' || selectedCustomer !== 'all' || selectedPartner !== 'all' || selectedStage !== 'all' || selectedProbability !== 'all') && (
+              <button
+                onClick={() => {
+                  setFilterText('');
+                  setSelectedStatus('all');
+                  setSelectedType('all');
+                  setSelectedCustomer('all');
+                  setSelectedPartner('all');
+                  setSelectedStage('all');
+                  setSelectedProbability('all');
+                  if (activeList) setActiveList(null);
+                }}
+                className="text-sm text-indigo-600 hover:text-indigo-500 font-medium"
+              >
+                Clear filters
+              </button>
             )}
           </div>
         </div>
