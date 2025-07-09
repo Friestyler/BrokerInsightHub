@@ -976,12 +976,12 @@ export default function RecipientSelector({
                                     </div>
                                     
                                     {/* Customer contacts */}
-                                    {hasContacts && expandedItems.has(`customer-${customer.id}`) && (
+                                    {expandedItems.has(`customer-${customer.id}`) && (
                                       <div className="ml-8 space-y-2 border-l-2 border-gray-200 pl-4">
                                         <div className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-2">
                                           👤 Contact Persons
                                         </div>
-                                        {customerContacts.map((contact: Contact) => (
+                                        {hasContacts && customerContacts.map((contact: Contact) => (
                                           <div key={contact.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
                                             <input
                                               type="checkbox"
@@ -1015,6 +1015,135 @@ export default function RecipientSelector({
                                             </div>
                                           </div>
                                         ))}
+                                        
+                                        {/* Add Contact Button - Always visible for customers in opportunities */}
+                                        <div className="mt-3">
+                                          {showInlineContactForm === `all-lists-customer-${customer.id}` ? (
+                                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                              <div className="space-y-3">
+                                                <div className="grid grid-cols-2 gap-3">
+                                                  <div>
+                                                    <Input
+                                                      placeholder="First name"
+                                                      value={inlineContactData.first_name}
+                                                      onChange={(e) => setInlineContactData({
+                                                        ...inlineContactData,
+                                                        first_name: e.target.value
+                                                      })}
+                                                    />
+                                                  </div>
+                                                  <div>
+                                                    <Input
+                                                      placeholder="Last name"
+                                                      value={inlineContactData.last_name}
+                                                      onChange={(e) => setInlineContactData({
+                                                        ...inlineContactData,
+                                                        last_name: e.target.value
+                                                      })}
+                                                    />
+                                                  </div>
+                                                </div>
+                                                <div>
+                                                  <Input
+                                                    placeholder="Email address"
+                                                    value={inlineContactData.email}
+                                                    onChange={(e) => setInlineContactData({
+                                                      ...inlineContactData,
+                                                      email: e.target.value
+                                                    })}
+                                                  />
+                                                </div>
+                                                <div>
+                                                  <Input
+                                                    placeholder="Job title"
+                                                    value={inlineContactData.job_title}
+                                                    onChange={(e) => setInlineContactData({
+                                                      ...inlineContactData,
+                                                      job_title: e.target.value
+                                                    })}
+                                                  />
+                                                </div>
+                                                <div>
+                                                  <Input
+                                                    placeholder="Phone number"
+                                                    value={inlineContactData.phone}
+                                                    onChange={(e) => setInlineContactData({
+                                                      ...inlineContactData,
+                                                      phone: e.target.value
+                                                    })}
+                                                  />
+                                                </div>
+                                                <div className="flex gap-2">
+                                                  <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                      setShowInlineContactForm(null);
+                                                      setInlineContactData({
+                                                        first_name: '',
+                                                        last_name: '',
+                                                        email: '',
+                                                        job_title: '',
+                                                        phone: ''
+                                                      });
+                                                    }}
+                                                  >
+                                                    Cancel
+                                                  </Button>
+                                                  <Button
+                                                    size="sm"
+                                                    onClick={() => {
+                                                      const contactData = {
+                                                        ...inlineContactData,
+                                                        linkedEntityId: customer.id,
+                                                        linkedEntityType: 'customer'
+                                                      };
+                                                      
+                                                      // Add to selected recipients
+                                                      const newContact = {
+                                                        ...contactData,
+                                                        id: Date.now(), // Temporary ID
+                                                        type: 'contact',
+                                                        recipientKey: `contact-${Date.now()}`,
+                                                        fullName: `${inlineContactData.first_name} ${inlineContactData.last_name}`.trim()
+                                                      };
+                                                      
+                                                      onRecipientsChange([...selectedRecipients, newContact]);
+                                                      
+                                                      // Reset form
+                                                      setShowInlineContactForm(null);
+                                                      setInlineContactData({
+                                                        first_name: '',
+                                                        last_name: '',
+                                                        email: '',
+                                                        job_title: '',
+                                                        phone: ''
+                                                      });
+                                                      
+                                                      toast({
+                                                        title: "Contact added",
+                                                        description: `${newContact.fullName} has been added to your campaign recipients.`,
+                                                      });
+                                                    }}
+                                                    disabled={!inlineContactData.first_name || !inlineContactData.email}
+                                                  >
+                                                    Add Contact
+                                                  </Button>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => setShowInlineContactForm(`all-lists-customer-${customer.id}`)}
+                                              className="w-full border-dashed border-gray-300 text-gray-600 hover:border-gray-400 hover:text-gray-700 hover:bg-gray-50"
+                                            >
+                                              <UserPlus className="h-4 w-4 mr-2" />
+                                              Add Contact for {customer.name}
+                                            </Button>
+                                          )}
+                                        </div>
                                       </div>
                                     )}
                                   </div>
@@ -2898,6 +3027,135 @@ export default function RecipientSelector({
                                             </p>
                                           </div>
                                         )}
+                                        
+                                        {/* Add Contact Button - Always visible for customers in opportunities */}
+                                        <div className="mt-3">
+                                          {showInlineContactForm === `missing-customer-${customer.id}` ? (
+                                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                                              <div className="space-y-3">
+                                                <div className="grid grid-cols-2 gap-3">
+                                                  <div>
+                                                    <Input
+                                                      placeholder="First name"
+                                                      value={inlineContactData.first_name}
+                                                      onChange={(e) => setInlineContactData({
+                                                        ...inlineContactData,
+                                                        first_name: e.target.value
+                                                      })}
+                                                    />
+                                                  </div>
+                                                  <div>
+                                                    <Input
+                                                      placeholder="Last name"
+                                                      value={inlineContactData.last_name}
+                                                      onChange={(e) => setInlineContactData({
+                                                        ...inlineContactData,
+                                                        last_name: e.target.value
+                                                      })}
+                                                    />
+                                                  </div>
+                                                </div>
+                                                <div>
+                                                  <Input
+                                                    placeholder="Email address"
+                                                    value={inlineContactData.email}
+                                                    onChange={(e) => setInlineContactData({
+                                                      ...inlineContactData,
+                                                      email: e.target.value
+                                                    })}
+                                                  />
+                                                </div>
+                                                <div>
+                                                  <Input
+                                                    placeholder="Job title"
+                                                    value={inlineContactData.job_title}
+                                                    onChange={(e) => setInlineContactData({
+                                                      ...inlineContactData,
+                                                      job_title: e.target.value
+                                                    })}
+                                                  />
+                                                </div>
+                                                <div>
+                                                  <Input
+                                                    placeholder="Phone number"
+                                                    value={inlineContactData.phone}
+                                                    onChange={(e) => setInlineContactData({
+                                                      ...inlineContactData,
+                                                      phone: e.target.value
+                                                    })}
+                                                  />
+                                                </div>
+                                                <div className="flex gap-2">
+                                                  <Button
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={() => {
+                                                      setShowInlineContactForm(null);
+                                                      setInlineContactData({
+                                                        first_name: '',
+                                                        last_name: '',
+                                                        email: '',
+                                                        job_title: '',
+                                                        phone: ''
+                                                      });
+                                                    }}
+                                                  >
+                                                    Cancel
+                                                  </Button>
+                                                  <Button
+                                                    size="sm"
+                                                    onClick={() => {
+                                                      const contactData = {
+                                                        ...inlineContactData,
+                                                        linkedEntityId: customer.id,
+                                                        linkedEntityType: 'customer'
+                                                      };
+                                                      
+                                                      // Add to selected recipients
+                                                      const newContact = {
+                                                        ...contactData,
+                                                        id: Date.now(), // Temporary ID
+                                                        type: 'contact',
+                                                        recipientKey: `contact-${Date.now()}`,
+                                                        fullName: `${inlineContactData.first_name} ${inlineContactData.last_name}`.trim()
+                                                      };
+                                                      
+                                                      onRecipientsChange([...selectedRecipients, newContact]);
+                                                      
+                                                      // Reset form
+                                                      setShowInlineContactForm(null);
+                                                      setInlineContactData({
+                                                        first_name: '',
+                                                        last_name: '',
+                                                        email: '',
+                                                        job_title: '',
+                                                        phone: ''
+                                                      });
+                                                      
+                                                      toast({
+                                                        title: "Contact added",
+                                                        description: `${newContact.fullName} has been added to your campaign recipients.`,
+                                                      });
+                                                    }}
+                                                    disabled={!inlineContactData.first_name || !inlineContactData.email}
+                                                  >
+                                                    Add Contact
+                                                  </Button>
+                                                </div>
+                                              </div>
+                                            </div>
+                                          ) : (
+                                            <Button
+                                              variant="outline"
+                                              size="sm"
+                                              onClick={() => setShowInlineContactForm(`missing-customer-${customer.id}`)}
+                                              className="w-full border-dashed border-gray-300 text-gray-600 hover:border-gray-400 hover:text-gray-700 hover:bg-gray-50"
+                                            >
+                                              <UserPlus className="h-4 w-4 mr-2" />
+                                              Add Contact for {customer.name}
+                                            </Button>
+                                          )}
+                                        </div>
                                       </div>
                                     )}
                                   </div>
