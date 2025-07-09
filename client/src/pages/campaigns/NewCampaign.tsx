@@ -289,9 +289,9 @@ export default function NewCampaign() {
         return (
           <div className="w-full">
             <RecipientSelector
+              entityType={campaignData.entity}
               selectedRecipients={campaignData.recipients}
               onRecipientsChange={(recipients) => setCampaignData(prev => ({ ...prev, recipients }))}
-              targetEntityType={campaignData.entity}
             />
           </div>
         );

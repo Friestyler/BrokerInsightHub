@@ -13,11 +13,7 @@ import {
   Mail,
   Phone,
   Briefcase,
-  MapPin,
-  Eye,
-  X,
   Target,
-  ArrowRight,
   BookOpen,
   Check,
   Bookmark
@@ -41,16 +37,10 @@ interface Contact {
   phone?: string;
   jobTitle?: string;
   job_title?: string;
-  department?: string;
-  company?: string;
   linkedEntityType?: string;
   linked_entity_type?: string;
   linkedEntityId?: number;
   linked_entity_id?: number;
-  isPrimary?: boolean;
-  is_primary?: boolean;
-  isActive?: boolean;
-  is_active?: boolean;
 }
 
 interface Entity {
@@ -61,17 +51,8 @@ interface Entity {
   email?: string;
   phone?: string;
   description?: string;
-  contacts?: Contact[];
-  contactCount?: number;
-}
-
-interface Customer {
-  id: number;
-  name: string;
-  email?: string;
-  phone?: string;
-  company?: string;
   customerId?: number; // For opportunities
+  contactCount?: number;
 }
 
 interface SavedList {
@@ -114,17 +95,6 @@ export default function RecipientSelector({
   const initialTabValue = getInitialTab(initialTab ?? null);
   const [selectedTab, setSelectedTab] = useState<'lists' | 'contacts' | 'selected' | 'missing' | 'segments'>(initialTabValue);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
-  const [showAddContact, setShowAddContact] = useState(false);
-  const [showOnlyMissingContacts, setShowOnlyMissingContacts] = useState(false);
-
-  const [newContact, setNewContact] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    jobTitle: '',
-    linkedEntityId: null as number | null
-  });
   const [showInlineContactForm, setShowInlineContactForm] = useState<string | null>(null);
   const [inlineContactData, setInlineContactData] = useState({
     first_name: '',
@@ -153,18 +123,9 @@ export default function RecipientSelector({
   });
   const customers = customersResponse?.data || [];
 
-  // Fetch partners for contact relationship mapping
-  const { data: partners = [], isLoading: partnersLoading } = useQuery({
-    queryKey: ['/api/degoudse/partners']
-  });
-
-  // Fetch all contacts related to the entity type
+  // Fetch all contacts
   const { data: allContacts = [], isLoading: contactsLoading } = useQuery({
-    queryKey: [`/api/degoudse/contacts`],
-    select: (data: Contact[]) => data.filter(contact => 
-      contact.linkedEntityType === entityType.slice(0, -1) || // Remove 's' from plural
-      (!contact.linkedEntityType && entityType === 'internal')
-    )
+    queryKey: [`/api/degoudse/contacts`]
   });
 
   // Fetch saved lists for the entity type
@@ -177,1008 +138,398 @@ export default function RecipientSelector({
     queryKey: [`/api/degoudse/saved-views?entity_type=${entityType}`]
   });
 
-  // Build entity-contact relationships for drill-down (include all entity types for hierarchical relationships)
-  const { data: entityContacts = {}, isLoading: entityContactsLoading } = useQuery({
-    queryKey: [`/api/degoudse/contacts`],
-    select: (data: Contact[]) => {
-      const contactsByEntity: Record<number, Contact[]> = {};
-      data.forEach(contact => {
-        const entityId = contact.linkedEntityId || contact.linked_entity_id;
-        const entityTypeFromDb = contact.linkedEntityType || contact.linked_entity_type;
-        
-        if (entityId && entityTypeFromDb) {
-          // Include contacts for all entity types to support drill-down relationships
-          if (!contactsByEntity[entityId]) {
-            contactsByEntity[entityId] = [];
-          }
-          contactsByEntity[entityId].push(contact);
-        }
-      });
-      return contactsByEntity;
-    }
-  });
-
-  // Add contact mutation
-  const addContactMutation = useMutation({
-    mutationFn: async (contactData: any) => {
-      return await apiRequest('/api/degoudse/contacts', 'POST', contactData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/degoudse/contacts'] });
-      setShowAddContact(false);
-      setNewContact({
-        firstName: '',
-        lastName: '',
-        email: '',
-        phone: '',
-        jobTitle: '',
-        linkedEntityId: null
-      });
-      toast({
-        title: "Success",
-        description: "Contact added successfully",
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error",
-        description: "Failed to add contact",
-        variant: "destructive",
-      });
-    }
-  });
-
-  // Inline contact creation mutation
-  const createInlineContactMutation = useMutation({
-    mutationFn: async ({ contactData, entityId }: { contactData: any, entityId: number }) => {
-      const payload = {
-        firstName: contactData.first_name,
-        lastName: contactData.last_name,
-        email: contactData.email,
-        position: contactData.job_title,
-        phone: contactData.phone,
-        linkedEntityType: entityType.slice(0, -1), // Remove 's' from plural (e.g., 'opportunities' -> 'opportunity')
-        linkedEntityId: entityId,
-        isActive: true
-      };
-      return await apiRequest('/api/degoudse/contacts', 'POST', payload);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/degoudse/contacts'] });
-      setShowInlineContactForm(null);
-      setInlineContactData({
-        first_name: '',
-        last_name: '',
-        email: '',
-        job_title: '',
-        phone: ''
-      });
-      toast({
-        title: "Success",
-        description: "Contact added successfully",
-      });
-    },
-    onError: (error) => {
-      console.error('Error creating inline contact:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add contact",
-        variant: "destructive",
-      });
-    }
-  });
-
   // Helper functions
-  const getEntityColor = (entityType: string) => {
-    const colors = {
-      opportunities: 'text-green-600 bg-green-50 border-green-200',
-      customers: 'text-blue-600 bg-blue-50 border-blue-200',
-      partners: 'text-purple-600 bg-purple-50 border-purple-200',
-      internal: 'text-orange-600 bg-orange-50 border-orange-200'
-    };
-    return colors[entityType as keyof typeof colors] || 'text-gray-600 bg-gray-50 border-gray-200';
-  };
-
-  const getEntityIcon = (entityType: string) => {
-    const icons = {
-      opportunities: TrendingUp,
-      customers: Users,
-      partners: Handshake,
-      internal: Building2
-    };
-    return icons[entityType as keyof typeof icons] || Building2;
-  };
-
-  const toggleItemExpansion = (itemKey: string) => {
-    const newExpanded = new Set(expandedItems);
-    if (newExpanded.has(itemKey)) {
-      newExpanded.delete(itemKey);
-    } else {
-      newExpanded.add(itemKey);
-    }
-    setExpandedItems(newExpanded);
-  };
-
-  const handleSelectRecipient = (recipient: any, type: 'entity' | 'contact' | 'customer') => {
-    const recipientKey = `${type}-${recipient.id}`;
-    const isSelected = selectedRecipients.some(r => 
-      `${r.type}-${r.id}` === recipientKey
-    );
-
-    if (isSelected) {
-      // When deselecting, remove the entity and all its related contacts
-      const relatedKeys = [`${type}-${recipient.id}`];
-      
-      // Add related contacts to removal list
-      const relatedContacts = entityContacts[recipient.id] || [];
-      relatedContacts.forEach(contact => {
-        relatedKeys.push(`contact-${contact.id}`);
-      });
-      
-      // For opportunities, also remove customer contacts
-      if (type === 'entity' && entityType === 'opportunities') {
-        const customer = getCustomerForOpportunity(recipient.id);
-        if (customer) {
-          relatedKeys.push(`customer-${customer.id}`);
-          const customerContacts = entityContacts[customer.id] || [];
-          customerContacts.forEach(contact => {
-            relatedKeys.push(`contact-${contact.id}`);
-          });
-        }
-      }
-      
-      onRecipientsChange(selectedRecipients.filter(r => 
-        !relatedKeys.includes(`${r.type}-${r.id}`)
-      ));
-    } else {
-      // When selecting, add the entity and all its related contacts
-      const newRecipients = [
-        ...selectedRecipients,
-        { ...recipient, type, recipientKey }
-      ];
-      
-      // Add related contacts
-      const relatedContacts = entityContacts[recipient.id] || [];
-      relatedContacts.forEach(contact => {
-        const contactKey = `contact-${contact.id}`;
-        if (!selectedRecipients.some(r => `${r.type}-${r.id}` === contactKey)) {
-          newRecipients.push({
-            ...contact,
-            type: 'contact',
-            recipientKey: contactKey
-          });
-        }
-      });
-      
-      // For opportunities, also select customer and customer contacts
-      if (type === 'entity' && entityType === 'opportunities') {
-        const customer = getCustomerForOpportunity(recipient.id);
-        if (customer) {
-          const customerKey = `customer-${customer.id}`;
-          if (!selectedRecipients.some(r => `${r.type}-${r.id}` === customerKey)) {
-            newRecipients.push({
-              ...customer,
-              type: 'customer',
-              recipientKey: customerKey
-            });
-          }
-          
-          // Add customer contacts
-          const customerContacts = entityContacts[customer.id] || [];
-          customerContacts.forEach(contact => {
-            const contactKey = `contact-${contact.id}`;
-            if (!selectedRecipients.some(r => `${r.type}-${r.id}` === contactKey)) {
-              newRecipients.push({
-                ...contact,
-                type: 'contact',
-                recipientKey: contactKey
-              });
-            }
-          });
-        }
-      }
-      
-      onRecipientsChange(newRecipients);
-    }
-  };
-
-  const getCustomerForOpportunity = (opportunityId: number) => {
-    const opportunity = (entities as any[] || []).find((e: any) => e.id === opportunityId);
-    if (opportunity?.clientId) {
-      return (customers as any[] || []).find((c: Customer) => c.id === opportunity.clientId);
-    }
-    return null;
-  };
-
-  const filteredEntities = (entities as any[] || []).filter((entity: Entity) => {
-    const entityName = entity.name || entity.title || '';
-    const matchesSearch = entityName.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    // If showing only missing contacts, filter to entities without contacts
-    if (showOnlyMissingContacts) {
-      const entityContactsList = entityContacts[entity.id] || [];
-      const hasContacts = entityContactsList.length > 0;
-      const hasSelectedContacts = selectedRecipients.some(r => 
-        r.type === 'contact' && (r.linkedEntityId === entity.id || r.linked_entity_id === entity.id)
-      );
-      return matchesSearch && !hasContacts && !hasSelectedContacts;
-    }
-    
-    return matchesSearch;
-  });
-
-  const filteredContacts = (allContacts as any[] || []).filter((contact: Contact) => {
-    const fullName = contact.fullName || `${contact.firstName || (contact as any).first_name || ''} ${contact.lastName || (contact as any).last_name || ''}`.trim();
-    const email = contact.email || '';
-    return fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-           email.toLowerCase().includes(searchQuery.toLowerCase());
-  });
-
-  const filteredLists = (savedLists as any[] || []).filter((list: SavedList) => 
-    list.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
-
-  const handleAddContact = () => {
-    addContactMutation.mutate(newContact);
-  };
-
-  // Helper function to get contact display name
   const getContactDisplayName = (contact: Contact) => {
-    return contact.fullName || contact.full_name || 
-           `${contact.firstName || contact.first_name || ''} ${contact.lastName || contact.last_name || ''}`.trim() || 
-           'Unknown Contact';
+    if (contact.fullName || contact.full_name) {
+      return contact.fullName || contact.full_name;
+    }
+    const firstName = contact.firstName || contact.first_name || '';
+    const lastName = contact.lastName || contact.last_name || '';
+    return `${firstName} ${lastName}`.trim() || 'Unknown Contact';
   };
 
-  // Helper function to get contact job title
   const getContactJobTitle = (contact: Contact) => {
-    return contact.jobTitle || contact.job_title;
+    return contact.jobTitle || contact.job_title || '';
   };
 
-  // Helper function to get entity display name
-  const getEntityDisplayName = (entity: Entity) => {
-    return entity.name || entity.title || 'Unknown Entity';
-  };
-
-  // Helper function to apply segment filters to entities
-  const applySegmentFilters = (entities: Entity[], filters: any) => {
-    return entities.filter(entity => {
-      // Parse filters if they're a string
-      const filterObj = typeof filters === 'string' ? JSON.parse(filters) : filters;
-      
-      // Apply search text filter
-      if (filterObj.searchText) {
-        const searchLower = filterObj.searchText.toLowerCase();
-        const entityName = getEntityDisplayName(entity).toLowerCase();
-        if (!entityName.includes(searchLower)) return false;
+  const toggleItemExpansion = (itemId: string) => {
+    setExpandedItems(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(itemId)) {
+        newSet.delete(itemId);
+      } else {
+        newSet.add(itemId);
       }
-
-      // Apply status filter for opportunities
-      if (filterObj.status && filterObj.status !== 'all' && entityType === 'opportunities') {
-        if (entity.status !== filterObj.status) return false;
-      }
-
-      // Apply type filter for opportunities
-      if (filterObj.type && filterObj.type !== 'all' && entityType === 'opportunities') {
-        if (entity.type !== filterObj.type) return false;
-      }
-
-      // Apply customer filter for opportunities
-      if (filterObj.customerId && filterObj.customerId !== 'all' && entityType === 'opportunities') {
-        if (entity.customerId !== filterObj.customerId) return false;
-      }
-
-      // Apply partner filter for opportunities
-      if (filterObj.partnerId && filterObj.partnerId !== 'all' && entityType === 'opportunities') {
-        if (entity.partnerId !== filterObj.partnerId) return false;
-      }
-
-      // Apply stage filter for opportunities
-      if (filterObj.stage && filterObj.stage !== 'all' && entityType === 'opportunities') {
-        if (entity.stage !== filterObj.stage) return false;
-      }
-
-      // Apply probability filter for opportunities
-      if (filterObj.probability && filterObj.probability !== 'all' && entityType === 'opportunities') {
-        if (String(entity.probability) !== filterObj.probability) return false;
-      }
-
-      return true;
+      return newSet;
     });
   };
 
-  // Handle segment selection
-  const handleSegmentSelection = (segment: any) => {
-    const filteredEntities = applySegmentFilters(entities, segment.filters);
+  const handleSelectRecipient = (item: any, type: string) => {
+    const recipientKey = `${type}-${item.id}`;
+    const isSelected = selectedRecipients.some(r => r.recipientKey === recipientKey);
     
-    // Convert filtered entities to recipients
-    const segmentRecipients = filteredEntities.map(entity => ({
-      ...entity,
-      type: 'entity',
-      recipientKey: `entity-${entity.id}`,
-      segmentId: segment.id,
-      segmentName: segment.name
-    }));
-
-    // Add segment recipients to existing recipients (avoid duplicates)
-    const existingEntityIds = new Set(selectedRecipients.filter(r => r.type === 'entity').map(r => r.id));
-    const newRecipients = segmentRecipients.filter(r => !existingEntityIds.has(r.id));
-    
-    onRecipientsChange([...selectedRecipients, ...newRecipients]);
+    if (isSelected) {
+      onRecipientsChange(selectedRecipients.filter(r => r.recipientKey !== recipientKey));
+    } else {
+      const newRecipient = {
+        ...item,
+        type,
+        recipientKey
+      };
+      onRecipientsChange([...selectedRecipients, newRecipient]);
+    }
   };
 
-  // Calculate selection counts
-  const selectionCounts = {
-    total: selectedRecipients.length,
-    contacts: selectedRecipients.filter(r => r.type === 'contact').length,
-    entities: selectedRecipients.filter(r => r.type === 'entity' || r.type === 'customer').length
-  };
-
-  // Calculate summary statistics
-  const summaryStats = (() => {
-    // Count selected entities (opportunities, customers, partners, etc.)
-    const selectedEntities = selectedRecipients.filter(r => r.type === 'entity' || r.type === 'customer');
-    const selectedContacts = selectedRecipients.filter(r => r.type === 'contact');
-    
-    // Find entities that have no contacts assigned
-    const entitiesWithoutContacts = selectedEntities.filter(entity => {
-      // Special handling for opportunities - check their customer's contacts
-      if (entityType === 'opportunities' && entity.type === 'entity') {
-        const customer = getCustomerForOpportunity(entity.id);
-        if (!customer) return true; // No customer found, so no contacts
-        
-        const customerContacts = entityContacts[customer.id] || [];
-        const hasDirectContacts = customerContacts.length > 0;
-        
-        // Check if any individually selected contacts belong to this customer
-        const hasIndirectContacts = selectedContacts.some(contact => {
-          const contactEntityId = contact.linkedEntityId || contact.linked_entity_id;
-          return contactEntityId === customer.id;
-        });
-        
-        return !hasDirectContacts && !hasIndirectContacts;
-      }
-      
-      // For non-opportunity entities, check their direct contacts
-      const entityContactsList = entityContacts[entity.id] || [];
-      
-      // Check if this entity has any contacts assigned to it
-      const hasDirectContacts = entityContactsList.length > 0;
-      
-      // Also check if any individually selected contacts belong to this entity
-      const hasIndirectContacts = selectedContacts.some(contact => {
-        const contactEntityId = contact.linkedEntityId || contact.linked_entity_id;
-        return contactEntityId === entity.id;
-      });
-      
-      return !hasDirectContacts && !hasIndirectContacts;
-    });
-
-    return {
-      totalSelectedEntities: selectedEntities.length,
-      totalSelectedContacts: selectedContacts.length,
-      entitiesWithoutContacts: entitiesWithoutContacts.length,
-      entitiesWithoutContactsList: entitiesWithoutContacts, // For detailed display
-      totalRecipients: selectedEntities.length + selectedContacts.length
+  const handleCreateInlineContact = (entityId: number, entityType: string) => {
+    const contactData = {
+      ...inlineContactData,
+      linkedEntityId: entityId,
+      linkedEntityType: entityType
     };
-  })();
+    
+    // Add to selected recipients
+    const newContact = {
+      ...contactData,
+      id: Date.now(), // Temporary ID
+      type: 'contact',
+      recipientKey: `contact-${Date.now()}`,
+      fullName: `${inlineContactData.first_name} ${inlineContactData.last_name}`.trim()
+    };
+    
+    onRecipientsChange([...selectedRecipients, newContact]);
+    
+    // Reset form
+    setShowInlineContactForm(null);
+    setInlineContactData({
+      first_name: '',
+      last_name: '',
+      email: '',
+      job_title: '',
+      phone: ''
+    });
+    
+    toast({
+      title: "Contact added",
+      description: `${newContact.fullName} has been added to your campaign recipients.`,
+    });
+  };
 
-  return (
-    <div className="space-y-6">
-      {/* Summary Cards - Always Present with Placeholders */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Total Selection Summary */}
-        <div 
-          className={`rounded-lg p-4 transition-all duration-200 cursor-pointer hover:shadow-md ${
-            selectedRecipients.length > 0 
-              ? 'bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 hover:from-blue-100 hover:to-blue-150' 
-              : 'bg-gray-50 border border-gray-200 hover:bg-gray-100'
-          }`}
-          onClick={() => {
-            if (selectedRecipients.length > 0) {
-              setSelectedTab('selected');
-              setShowOnlyMissingContacts(false);
-            }
-          }}
-        >
-          <div className="flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-              selectedRecipients.length > 0 ? 'bg-blue-600' : 'bg-gray-400'
-            }`}>
-              <Users className="h-5 w-5 text-white" />
+  // Get entity contacts for drill-down
+  const getEntityContacts = (entityId: number, entityType: string) => {
+    return allContacts.filter(contact => {
+      const contactEntityId = contact.linkedEntityId || contact.linked_entity_id;
+      const contactEntityType = contact.linkedEntityType || contact.linked_entity_type;
+      return contactEntityId === entityId && contactEntityType === entityType;
+    });
+  };
+
+  // Filter entities based on search
+  const filteredEntities = entities.filter((entity: Entity) => {
+    const searchTerm = searchQuery.toLowerCase();
+    const entityName = entity.name || entity.title || '';
+    return entityName.toLowerCase().includes(searchTerm);
+  });
+
+  // Filter contacts based on search
+  const filteredContacts = allContacts.filter((contact: Contact) => {
+    const searchTerm = searchQuery.toLowerCase();
+    const contactName = getContactDisplayName(contact);
+    const contactEmail = contact.email || '';
+    return contactName.toLowerCase().includes(searchTerm) || 
+           contactEmail.toLowerCase().includes(searchTerm);
+  });
+
+  // Tab buttons
+  const tabButtons = [
+    { id: 'lists', label: 'All Lists', icon: BookOpen },
+    { id: 'segments', label: 'Segments', icon: Target },
+    { id: 'contacts', label: 'Contacts', icon: Users },
+    { id: 'missing', label: 'Missing Contacts', icon: UserPlus },
+    { id: 'selected', label: 'Selected', icon: Check, count: selectedRecipients.length }
+  ];
+
+  const renderInlineContactForm = (entityId: number, entityType: string, formKey: string) => (
+    <div className="mt-3">
+      {showInlineContactForm === formKey ? (
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <Input
+                  placeholder="First name"
+                  value={inlineContactData.first_name}
+                  onChange={(e) => setInlineContactData({
+                    ...inlineContactData,
+                    first_name: e.target.value
+                  })}
+                />
+              </div>
+              <div>
+                <Input
+                  placeholder="Last name"
+                  value={inlineContactData.last_name}
+                  onChange={(e) => setInlineContactData({
+                    ...inlineContactData,
+                    last_name: e.target.value
+                  })}
+                />
+              </div>
             </div>
             <div>
-              <h3 className={`font-semibold ${
-                selectedRecipients.length > 0 ? 'text-blue-900' : 'text-gray-600'
-              }`}>
-                {selectedRecipients.length > 0 ? 'Total Recipients Selected' : 'No Recipients Selected'}
-              </h3>
-              <div className={`flex items-center gap-4 text-sm mt-1 ${
-                selectedRecipients.length > 0 ? 'text-blue-700' : 'text-gray-500'
-              }`}>
-                {selectedRecipients.length > 0 ? (
-                  <>
-                    <span className="font-medium">{summaryStats.totalRecipients} total</span>
-                    <span>{summaryStats.totalSelectedEntities} organizations</span>
-                    <span>{summaryStats.totalSelectedContacts} individual contacts</span>
-                  </>
-                ) : (
-                  <span>Select entities or contacts to begin campaign targeting</span>
-                )}
-              </div>
+              <Input
+                placeholder="Email address"
+                value={inlineContactData.email}
+                onChange={(e) => setInlineContactData({
+                  ...inlineContactData,
+                  email: e.target.value
+                })}
+              />
+            </div>
+            <div>
+              <Input
+                placeholder="Job title"
+                value={inlineContactData.job_title}
+                onChange={(e) => setInlineContactData({
+                  ...inlineContactData,
+                  job_title: e.target.value
+                })}
+              />
+            </div>
+            <div>
+              <Input
+                placeholder="Phone number"
+                value={inlineContactData.phone}
+                onChange={(e) => setInlineContactData({
+                  ...inlineContactData,
+                  phone: e.target.value
+                })}
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setShowInlineContactForm(null);
+                  setInlineContactData({
+                    first_name: '',
+                    last_name: '',
+                    email: '',
+                    job_title: '',
+                    phone: ''
+                  });
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => handleCreateInlineContact(entityId, entityType)}
+                disabled={!inlineContactData.first_name || !inlineContactData.email}
+              >
+                Add Contact
+              </Button>
             </div>
           </div>
         </div>
-
-        {/* Status Card - Changes based on selection state */}
-        <div 
-          className={`rounded-lg p-4 transition-all duration-200 ${
-            summaryStats.entitiesWithoutContacts > 0 ? 'cursor-pointer hover:shadow-md' : ''
-          } ${
-            selectedRecipients.length === 0 
-              ? 'bg-[#E6E7F1] border border-[#E6E7F1]'
-              : summaryStats.entitiesWithoutContacts > 0 
-                ? 'bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 hover:from-orange-100 hover:to-orange-150'
-                : 'bg-gradient-to-r from-green-50 to-green-100 border border-green-200'
-          }`}
-          onClick={() => {
-            if (summaryStats.entitiesWithoutContacts > 0) {
-              setSelectedTab('missing');
-              setShowOnlyMissingContacts(true);
-              // Auto-expand the entity selection to show drill-down
-              setExpandedItems(new Set(['all-entities']));
-            }
-          }}
+      ) : (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => setShowInlineContactForm(formKey)}
+          className="w-full border-dashed border-gray-300 text-gray-600 hover:border-gray-400 hover:text-gray-700 hover:bg-gray-50"
         >
-          <div className="flex items-start gap-3">
-            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
-              selectedRecipients.length === 0 
-                ? 'bg-gray-400'
-                : summaryStats.entitiesWithoutContacts > 0 
-                  ? 'bg-orange-600'
-                  : 'bg-green-600'
-            }`}>
-              {selectedRecipients.length === 0 ? (
-                <Users className="h-5 w-5 text-white" />
-              ) : summaryStats.entitiesWithoutContacts > 0 ? (
-                <UserPlus className="h-5 w-5 text-white" />
-              ) : (
-                <CheckCircle2 className="h-5 w-5 text-white" />
-              )}
-            </div>
-            <div className="flex-1">
-              {selectedRecipients.length === 0 ? (
-                <>
-                  <h3 className="font-semibold text-gray-600">Campaign Status</h3>
-                  <div className="text-sm text-gray-500 mt-1">
-                    Ready to configure recipients
-                  </div>
-                  <p className="text-xs text-gray-400 mt-1">Start by selecting entities or individual contacts</p>
-                </>
-              ) : summaryStats.entitiesWithoutContacts > 0 ? (
-                <>
-                  <h3 className="font-semibold text-orange-900">Missing Contacts</h3>
-                  <div className="text-sm text-orange-700 mt-1">
-                    <span className="font-medium">{summaryStats.entitiesWithoutContacts} {entityType.slice(0, -1)}{summaryStats.entitiesWithoutContacts !== 1 ? 's' : ''}</span> without contact information
-                  </div>
-                  <div className="text-xs text-orange-600 mt-2 space-y-1">
-                    <p className="font-medium">Missing contacts for:</p>
-                    {summaryStats.entitiesWithoutContactsList.slice(0, 3).map((entity: any) => (
-                      <div key={entity.id} className="flex items-center gap-1">
-                        <span>•</span>
-                        <span>{getEntityDisplayName(entity)}</span>
-                      </div>
-                    ))}
-                    {summaryStats.entitiesWithoutContactsList.length > 3 && (
-                      <div className="text-orange-500">
-                        ... and {summaryStats.entitiesWithoutContactsList.length - 3} more
-                      </div>
-                    )}
-                  </div>
-                  <p className="text-xs text-orange-600 mt-2 font-medium">Check the "Selected" tab to add missing contacts</p>
-                </>
-              ) : (
-                <>
-                  <h3 className="font-semibold text-green-900">Ready for Delivery</h3>
-                  <div className="text-sm text-green-700 mt-1">
-                    All selected organizations have contact information
-                  </div>
-                  <p className="text-xs text-green-600 mt-1">Campaign can be sent successfully</p>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
+          <UserPlus className="h-4 w-4 mr-2" />
+          Add Contact
+        </Button>
+      )}
+    </div>
+  );
 
-      {/* Header with search and tabs */}
-      <div className="space-y-4">
-        <div className="flex gap-4 items-center">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search recipients..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 h-12"
-            />
-          </div>
-          
-          <div className="flex gap-2">
-            <Dialog open={showAddContact} onOpenChange={setShowAddContact}>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Add New Contact</DialogTitle>
-                </DialogHeader>
-                <div className="space-y-4 mt-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <Label htmlFor="firstName">First Name</Label>
-                      <Input
-                        id="firstName"
-                        value={newContact.firstName}
-                        onChange={(e) => setNewContact({ ...newContact, firstName: e.target.value })}
-                        placeholder="John"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="lastName">Last Name</Label>
-                      <Input
-                        id="lastName"
-                        value={newContact.lastName}
-                        onChange={(e) => setNewContact({ ...newContact, lastName: e.target.value })}
-                        placeholder="Doe"
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Email</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={newContact.email}
-                      onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
-                      placeholder="john.doe@example.com"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="phone">Phone</Label>
-                    <Input
-                      id="phone"
-                      value={newContact.phone}
-                      onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
-                      placeholder="+1 (555) 123-4567"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="jobTitle">Job Title</Label>
-                    <Input
-                      id="jobTitle"
-                      value={newContact.jobTitle}
-                      onChange={(e) => setNewContact({ ...newContact, jobTitle: e.target.value })}
-                      placeholder="Marketing Manager"
-                    />
-                  </div>
-                  <div className="flex justify-end space-x-2">
-                    <Button variant="outline" onClick={() => setShowAddContact(false)}>
-                      Cancel
-                    </Button>
-                    <Button 
-                      onClick={handleAddContact}
-                      disabled={!newContact.firstName || !newContact.lastName || !newContact.email || addContactMutation.isPending}
-                    >
-                      {addContactMutation.isPending ? 'Adding...' : 'Add Contact'}
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-        </div>
-
-        {/* Tab Navigation */}
-        <div className="flex gap-2">
-          <Button
-            variant={selectedTab === 'lists' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => {
-              setSelectedTab('lists');
-              setShowOnlyMissingContacts(false);
-            }}
-            className="gap-2"
-          >
-            <Users className="h-4 w-4" />
-            Lists
-          </Button>
-
-          <Button
-            variant={selectedTab === 'segments' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => {
-              setSelectedTab('segments');
-              setShowOnlyMissingContacts(false);
-            }}
-            className="gap-2"
-          >
-            <Bookmark className="h-4 w-4" />
-            Segments
-          </Button>
-
-          <Button
-            variant={selectedTab === 'selected' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => {
-              setSelectedTab('selected');
-              setShowOnlyMissingContacts(false);
-            }}
-            className="gap-2"
-          >
-            <Eye className="h-4 w-4" />
-            Selected ({selectedRecipients.length})
-          </Button>
-
-          <Button
-            variant={selectedTab === 'missing' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => {
-              setSelectedTab('missing');
-              setShowOnlyMissingContacts(true);
-              setExpandedItems(new Set(['all-entities']));
-            }}
-            className="gap-2"
-          >
-            <UserPlus className="h-4 w-4" />
-            Missing Contacts
-          </Button>
-        </div>
-      </div>
-
-      {/* Tab Content */}
-      <div className="min-h-[400px]">
-        {/* Lists Tab - Entity-specific saved lists with drill-down */}
-        {selectedTab === 'lists' && (
+  const renderTabContent = () => {
+    switch (selectedTab) {
+      case 'lists':
+        return (
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium text-gray-900">
-                {entityType.charAt(0).toUpperCase() + entityType.slice(1)} Lists
-              </h3>
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search entities..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
             </div>
 
-            {listsLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="text-gray-500 mt-2">Loading lists...</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {/* All Entities List */}
-                <div className="bg-white rounded-lg border border-gray-200 p-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${getEntityColor(entityType)}`}>
-                        {(() => {
-                          const Icon = getEntityIcon(entityType);
-                          return <Icon className="h-5 w-5" />;
-                        })()}
+            {/* Entities */}
+            <div className="space-y-3">
+              {filteredEntities.map((entity: Entity) => {
+                const entityContacts = getEntityContacts(entity.id, entityType.slice(0, -1));
+                const hasContacts = entityContacts.length > 0;
+                
+                return (
+                  <div key={entity.id} className="border rounded-lg p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          className="rounded border-gray-300"
+                          onChange={() => handleSelectRecipient(entity, entityType.slice(0, -1))}
+                          checked={selectedRecipients.some(r => 
+                            r.type === entityType.slice(0, -1) && r.id === entity.id
+                          )}
+                        />
+                        <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                          <Target className="h-4 w-4 text-white" />
+                        </div>
+                        <div>
+                          <p className="font-medium">{entity.name || entity.title}</p>
+                          <p className="text-sm text-gray-500">{entity.description}</p>
+                        </div>
                       </div>
-                      <div>
-                        <h4 className="font-medium text-gray-900">
-                          All {entityType.charAt(0).toUpperCase() + entityType.slice(1)}
-                        </h4>
-                        <p className="text-sm text-gray-500">
-                          {filteredEntities.length} items
-                        </p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleItemExpansion('all-entities')}
-                    >
-                      {expandedItems.has('all-entities') ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
+                      {hasContacts && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => toggleItemExpansion(`entity-${entity.id}`)}
+                          className="bg-blue-200 hover:bg-blue-300"
+                        >
+                          {expandedItems.has(`entity-${entity.id}`) ? (
+                            <ChevronDown className="h-4 w-4 text-blue-800" />
+                          ) : (
+                            <ChevronRight className="h-4 w-4 text-blue-800" />
+                          )}
+                        </Button>
                       )}
-                    </Button>
-                  </div>
-
-                  {/* Expanded Entity List with Drill-down */}
-                  {expandedItems.has('all-entities') && (
-                    <div className="mt-4 space-y-2 pl-6 border-l-2 border-gray-100">
-                      {filteredEntities.map((entity: Entity) => (
-                        <div key={entity.id} className="space-y-2">
-                          <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                            <div className="flex items-center gap-3">
-                              <input
-                                type="checkbox"
-                                className="rounded border-gray-300"
-                                onChange={() => handleSelectRecipient(entity, 'entity')}
-                                checked={selectedRecipients.some(r => 
-                                  r.type === 'entity' && r.id === entity.id
-                                )}
-                              />
-                              <div>
-                                <p className="font-medium text-gray-900">{getEntityDisplayName(entity)}</p>
-                                {entity.email && (
-                                  <p className="text-sm text-gray-500 flex items-center gap-1">
+                    </div>
+                    
+                    {/* Entity contacts */}
+                    {expandedItems.has(`entity-${entity.id}`) && (
+                      <div className="ml-8 mt-3 space-y-2 border-l-2 border-gray-200 pl-4">
+                        <div className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-2">
+                          👤 Contact Persons
+                        </div>
+                        {entityContacts.map((contact: Contact) => (
+                          <div key={contact.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                            <input
+                              type="checkbox"
+                              className="rounded border-gray-300 w-4 h-4"
+                              onChange={() => handleSelectRecipient(contact, 'contact')}
+                              checked={selectedRecipients.some(r => 
+                                r.type === 'contact' && r.id === contact.id
+                              )}
+                            />
+                            <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+                              <Users className="h-4 w-4 text-white" />
+                            </div>
+                            <div className="flex-1">
+                              <p className="font-semibold text-gray-800">
+                                {getContactDisplayName(contact)}
+                              </p>
+                              <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                                {contact.email && (
+                                  <span className="flex items-center gap-1 bg-blue-100 px-2 py-1 rounded text-blue-700">
                                     <Mail className="h-3 w-3" />
-                                    {entity.email}
-                                  </p>
+                                    {contact.email}
+                                  </span>
+                                )}
+                                {getContactJobTitle(contact) && (
+                                  <span className="flex items-center gap-1 text-gray-500">
+                                    <Briefcase className="h-3 w-3" />
+                                    {getContactJobTitle(contact)}
+                                  </span>
                                 )}
                               </div>
                             </div>
-                            
-                            {/* Drill-down button for hierarchical relationships */}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => toggleItemExpansion(`entity-${entity.id}`)}
-                            >
-                              {expandedItems.has(`entity-${entity.id}`) ? (
-                                <ChevronDown className="h-4 w-4" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4" />
-                              )}
-                            </Button>
                           </div>
+                        ))}
+                        
+                        {/* Add Contact Button for entities */}
+                        {renderInlineContactForm(entity.id, entityType.slice(0, -1), `entity-${entity.id}`)}
+                      </div>
+                    )}
 
-                          {/* Drill-down content */}
-                          {expandedItems.has(`entity-${entity.id}`) && (
-                            <div className="ml-6 space-y-2">
-                              {/* For opportunities, show customer hierarchy */}
-                              {entityType === 'opportunities' && (() => {
-                                const customer = getCustomerForOpportunity(entity.id);
-                                if (!customer) return null;
-
-                                const customerContacts = entityContacts[customer.id] || [];
-                                const hasContacts = customerContacts.length > 0;
-
-                                return (
-                                  <div className="space-y-2">
-                                    {/* Customer Organization */}
-                                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-blue-200 shadow-sm">
-                                      <div className="flex items-center gap-4">
-                                        <input
-                                          type="checkbox"
-                                          className="rounded border-gray-300 w-4 h-4"
-                                          onChange={() => handleSelectRecipient(customer, 'customer')}
-                                          checked={selectedRecipients.some(r => 
-                                            r.type === 'customer' && r.id === customer.id
-                                          )}
-                                        />
-                                        <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                                          <Users className="h-5 w-5 text-white" />
-                                        </div>
-                                        <div>
-                                          <p className="font-bold text-blue-900 text-lg">{customer.name}</p>
-                                          <p className="text-sm text-blue-700 font-medium">🏢 CUSTOMER ORGANIZATION</p>
-                                        </div>
-                                      </div>
-                                      {hasContacts && (
-                                        <div className="flex items-center gap-2">
-                                          <span className="text-xs text-blue-600 font-medium">
-                                            {customerContacts.length} contacts
-                                          </span>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => toggleItemExpansion(`customer-${customer.id}`)}
-                                            className="bg-blue-200 hover:bg-blue-300"
-                                          >
-                                            {expandedItems.has(`customer-${customer.id}`) ? (
-                                              <ChevronDown className="h-4 w-4 text-blue-800" />
-                                            ) : (
-                                              <ChevronRight className="h-4 w-4 text-blue-800" />
-                                            )}
-                                          </Button>
-                                        </div>
-                                      )}
-                                    </div>
-                                    
-                                    {/* Customer contacts */}
-                                    {expandedItems.has(`customer-${customer.id}`) && (
-                                      <div className="ml-8 space-y-2 border-l-2 border-gray-200 pl-4">
-                                        <div className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-2">
-                                          👤 Contact Persons
-                                        </div>
-                                        {hasContacts && customerContacts.map((contact: Contact) => (
-                                          <div key={contact.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
-                                            <input
-                                              type="checkbox"
-                                              className="rounded border-gray-300 w-4 h-4"
-                                              onChange={() => handleSelectRecipient(contact, 'contact')}
-                                              checked={selectedRecipients.some(r => 
-                                                r.type === 'contact' && r.id === contact.id
-                                              )}
-                                            />
-                                            <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
-                                              <Users className="h-4 w-4 text-white" />
-                                            </div>
-                                            <div className="flex-1">
-                                              <p className="font-semibold text-gray-800">
-                                                {getContactDisplayName(contact)}
-                                              </p>
-                                              <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                                                {contact.email && (
-                                                  <span className="flex items-center gap-1 bg-blue-100 px-2 py-1 rounded text-blue-700">
-                                                    <Mail className="h-3 w-3" />
-                                                    {contact.email}
-                                                  </span>
-                                                )}
-                                                {getContactJobTitle(contact) && (
-                                                  <span className="flex items-center gap-1 text-gray-500">
-                                                    <Briefcase className="h-3 w-3" />
-                                                    {getContactJobTitle(contact)}
-                                                  </span>
-                                                )}
-                                              </div>
-                                            </div>
-                                          </div>
-                                        ))}
-                                        
-                                        {/* Add Contact Button - Always visible for customers in opportunities */}
-                                        <div className="mt-3">
-                                          {showInlineContactForm === `all-lists-customer-${customer.id}` ? (
-                                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                              <div className="space-y-3">
-                                                <div className="grid grid-cols-2 gap-3">
-                                                  <div>
-                                                    <Input
-                                                      placeholder="First name"
-                                                      value={inlineContactData.first_name}
-                                                      onChange={(e) => setInlineContactData({
-                                                        ...inlineContactData,
-                                                        first_name: e.target.value
-                                                      })}
-                                                    />
-                                                  </div>
-                                                  <div>
-                                                    <Input
-                                                      placeholder="Last name"
-                                                      value={inlineContactData.last_name}
-                                                      onChange={(e) => setInlineContactData({
-                                                        ...inlineContactData,
-                                                        last_name: e.target.value
-                                                      })}
-                                                    />
-                                                  </div>
-                                                </div>
-                                                <div>
-                                                  <Input
-                                                    placeholder="Email address"
-                                                    value={inlineContactData.email}
-                                                    onChange={(e) => setInlineContactData({
-                                                      ...inlineContactData,
-                                                      email: e.target.value
-                                                    })}
-                                                  />
-                                                </div>
-                                                <div>
-                                                  <Input
-                                                    placeholder="Job title"
-                                                    value={inlineContactData.job_title}
-                                                    onChange={(e) => setInlineContactData({
-                                                      ...inlineContactData,
-                                                      job_title: e.target.value
-                                                    })}
-                                                  />
-                                                </div>
-                                                <div>
-                                                  <Input
-                                                    placeholder="Phone number"
-                                                    value={inlineContactData.phone}
-                                                    onChange={(e) => setInlineContactData({
-                                                      ...inlineContactData,
-                                                      phone: e.target.value
-                                                    })}
-                                                  />
-                                                </div>
-                                                <div className="flex gap-2">
-                                                  <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => {
-                                                      setShowInlineContactForm(null);
-                                                      setInlineContactData({
-                                                        first_name: '',
-                                                        last_name: '',
-                                                        email: '',
-                                                        job_title: '',
-                                                        phone: ''
-                                                      });
-                                                    }}
-                                                  >
-                                                    Cancel
-                                                  </Button>
-                                                  <Button
-                                                    size="sm"
-                                                    onClick={() => {
-                                                      const contactData = {
-                                                        ...inlineContactData,
-                                                        linkedEntityId: customer.id,
-                                                        linkedEntityType: 'customer'
-                                                      };
-                                                      
-                                                      // Add to selected recipients
-                                                      const newContact = {
-                                                        ...contactData,
-                                                        id: Date.now(), // Temporary ID
-                                                        type: 'contact',
-                                                        recipientKey: `contact-${Date.now()}`,
-                                                        fullName: `${inlineContactData.first_name} ${inlineContactData.last_name}`.trim()
-                                                      };
-                                                      
-                                                      onRecipientsChange([...selectedRecipients, newContact]);
-                                                      
-                                                      // Reset form
-                                                      setShowInlineContactForm(null);
-                                                      setInlineContactData({
-                                                        first_name: '',
-                                                        last_name: '',
-                                                        email: '',
-                                                        job_title: '',
-                                                        phone: ''
-                                                      });
-                                                      
-                                                      toast({
-                                                        title: "Contact added",
-                                                        description: `${newContact.fullName} has been added to your campaign recipients.`,
-                                                      });
-                                                    }}
-                                                    disabled={!inlineContactData.first_name || !inlineContactData.email}
-                                                  >
-                                                    Add Contact
-                                                  </Button>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          ) : (
-                                            <Button
-                                              variant="outline"
-                                              size="sm"
-                                              onClick={() => setShowInlineContactForm(`all-lists-customer-${customer.id}`)}
-                                              className="w-full border-dashed border-gray-300 text-gray-600 hover:border-gray-400 hover:text-gray-700 hover:bg-gray-50"
-                                            >
-                                              <UserPlus className="h-4 w-4 mr-2" />
-                                              Add Contact for {customer.name}
-                                            </Button>
-                                          )}
-                                        </div>
-                                      </div>
+                    {/* Opportunities drill-down for customers */}
+                    {entityType === 'opportunities' && entity.customerId && (
+                      <div className="ml-8 mt-3 border-l-2 border-gray-200 pl-4">
+                        {(() => {
+                          const customer = customers.find((c: any) => c.id === entity.customerId);
+                          if (!customer) return null;
+                          
+                          const customerContacts = getEntityContacts(customer.id, 'customer');
+                          const hasContacts = customerContacts.length > 0;
+                          
+                          return (
+                            <div className="space-y-2">
+                              <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                  <input
+                                    type="checkbox"
+                                    className="rounded border-gray-300"
+                                    onChange={() => handleSelectRecipient(customer, 'customer')}
+                                    checked={selectedRecipients.some(r => 
+                                      r.type === 'customer' && r.id === customer.id
                                     )}
+                                  />
+                                  <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                                    <Building2 className="h-4 w-4 text-white" />
                                   </div>
-                                );
-                              })()}
-
-                              {/* Direct entity contacts for all entity types */}
-                              <div className="space-y-2">
-                                  {/* Existing contacts */}
-                                  {entityContacts[entity.id] && entityContacts[entity.id].map((contact: Contact) => (
-                                    <div key={contact.id} className="flex items-center gap-3 p-3 bg-white border rounded-lg">
+                                  <div>
+                                    <p className="font-medium">{customer.name}</p>
+                                    <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                                      👤 {customerContacts.length} contacts
+                                    </span>
+                                  </div>
+                                </div>
+                                {hasContacts && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => toggleItemExpansion(`customer-${customer.id}`)}
+                                    className="bg-blue-200 hover:bg-blue-300"
+                                  >
+                                    {expandedItems.has(`customer-${customer.id}`) ? (
+                                      <ChevronDown className="h-4 w-4 text-blue-800" />
+                                    ) : (
+                                      <ChevronRight className="h-4 w-4 text-blue-800" />
+                                    )}
+                                  </Button>
+                                )}
+                              </div>
+                              
+                              {/* Customer contacts */}
+                              {expandedItems.has(`customer-${customer.id}`) && (
+                                <div className="ml-8 space-y-2 border-l-2 border-gray-200 pl-4">
+                                  <div className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-2">
+                                    👤 Contact Persons
+                                  </div>
+                                  {customerContacts.map((contact: Contact) => (
+                                    <div key={contact.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
                                       <input
                                         type="checkbox"
-                                        className="rounded border-gray-300"
+                                        className="rounded border-gray-300 w-4 h-4"
                                         onChange={() => handleSelectRecipient(contact, 'contact')}
                                         checked={selectedRecipients.some(r => 
                                           r.type === 'contact' && r.id === contact.id
                                         )}
                                       />
-                                      <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                                        <Users className="h-4 w-4 text-gray-600" />
+                                      <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+                                        <Users className="h-4 w-4 text-white" />
                                       </div>
                                       <div className="flex-1">
-                                        <p className="font-medium text-gray-900">
+                                        <p className="font-semibold text-gray-800">
                                           {getContactDisplayName(contact)}
                                         </p>
-                                        <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                                        <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
                                           {contact.email && (
-                                            <span className="flex items-center gap-1">
+                                            <span className="flex items-center gap-1 bg-blue-100 px-2 py-1 rounded text-blue-700">
                                               <Mail className="h-3 w-3" />
                                               {contact.email}
                                             </span>
                                           )}
                                           {getContactJobTitle(contact) && (
-                                            <span className="flex items-center gap-1">
+                                            <span className="flex items-center gap-1 text-gray-500">
                                               <Briefcase className="h-3 w-3" />
                                               {getContactJobTitle(contact)}
                                             </span>
@@ -1188,310 +539,105 @@ export default function RecipientSelector({
                                     </div>
                                   ))}
                                   
-                                  {/* Add Contact Button - Only show for non-opportunities or when opportunities have no customer */}
-                                  {entityType !== 'opportunities' && (
-                                    <div className="mt-2">
-                                      {showInlineContactForm !== `${entity.id}-${entityType}` ? (
-                                        <Button
-                                          variant="outline"
-                                          size="sm"
-                                          onClick={() => setShowInlineContactForm(`${entity.id}-${entityType}`)}
-                                          className="w-full border-dashed border-[#E6E7F1] text-gray-600 hover:text-gray-800 hover:border-[#D6D7E4]"
-                                        >
-                                          <UserPlus className="h-4 w-4 mr-2" />
-                                          Add Contact
-                                        </Button>
-                                      ) : (
-                                        /* Inline Contact Creation Form */
-                                        <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                                          <div className="flex items-center justify-between mb-3">
-                                            <h4 className="font-medium text-gray-900">Add New Contact</h4>
-                                            <Button
-                                              variant="ghost"
-                                              size="sm"
-                                              onClick={() => {
-                                                setShowInlineContactForm(null);
-                                                setInlineContactData({
-                                                  first_name: '',
-                                                  last_name: '',
-                                                  email: '',
-                                                  job_title: '',
-                                                  phone: ''
-                                                });
-                                              }}
-                                            >
-                                              <X className="h-4 w-4" />
-                                            </Button>
-                                          </div>
-                                          
-                                          <div className="grid grid-cols-2 gap-3 mb-3">
-                                            <div>
-                                              <Label htmlFor="first_name" className="text-xs font-medium text-gray-700">First Name</Label>
-                                              <Input
-                                                id="first_name"
-                                                placeholder="John"
-                                                value={inlineContactData.first_name}
-                                                onChange={(e) => setInlineContactData({
-                                                  ...inlineContactData,
-                                                  first_name: e.target.value
-                                                })}
-                                                className="mt-1"
-                                              />
-                                            </div>
-                                            <div>
-                                              <Label htmlFor="last_name" className="text-xs font-medium text-gray-700">Last Name</Label>
-                                              <Input
-                                                id="last_name"
-                                                placeholder="Doe"
-                                                value={inlineContactData.last_name}
-                                                onChange={(e) => setInlineContactData({
-                                                  ...inlineContactData,
-                                                  last_name: e.target.value
-                                                })}
-                                                className="mt-1"
-                                              />
-                                            </div>
-                                          </div>
-                                          
-                                          <div className="mb-3">
-                                            <Label htmlFor="email" className="text-xs font-medium text-gray-700">Email *</Label>
-                                            <Input
-                                              id="email"
-                                              type="email"
-                                              placeholder="john.doe@company.com"
-                                              value={inlineContactData.email}
-                                              onChange={(e) => setInlineContactData({
-                                                ...inlineContactData,
-                                                email: e.target.value
-                                              })}
-                                              className="mt-1"
-                                            />
-                                          </div>
-                                          
-                                          <div className="grid grid-cols-2 gap-3 mb-4">
-                                            <div>
-                                              <Label htmlFor="job_title" className="text-xs font-medium text-gray-700">Job Title</Label>
-                                              <Input
-                                                id="job_title"
-                                                placeholder="Account Manager"
-                                                value={inlineContactData.job_title}
-                                                onChange={(e) => setInlineContactData({
-                                                  ...inlineContactData,
-                                                  job_title: e.target.value
-                                                })}
-                                                className="mt-1"
-                                              />
-                                            </div>
-                                            <div>
-                                              <Label htmlFor="phone" className="text-xs font-medium text-gray-700">Phone</Label>
-                                              <Input
-                                                id="phone"
-                                                placeholder="+31 6 12345678"
-                                                value={inlineContactData.phone}
-                                                onChange={(e) => setInlineContactData({
-                                                  ...inlineContactData,
-                                                  phone: e.target.value
-                                                })}
-                                                className="mt-1"
-                                              />
-                                            </div>
-                                          </div>
-                                          
-                                          <div className="flex justify-end gap-2">
-                                            <Button
-                                              variant="outline"
-                                              size="sm"
-                                              onClick={() => {
-                                                setShowInlineContactForm(null);
-                                                setInlineContactData({
-                                                  first_name: '',
-                                                  last_name: '',
-                                                  email: '',
-                                                  job_title: '',
-                                                  phone: ''
-                                                });
-                                              }}
-                                            >
-                                              Cancel
-                                            </Button>
-                                            <Button
-                                              size="sm"
-                                              onClick={() => {
-                                                if (!inlineContactData.email.trim()) {
-                                                  toast({
-                                                    title: "Error",
-                                                    description: "Email is required",
-                                                    variant: "destructive",
-                                                  });
-                                                  return;
-                                                }
-                                                createInlineContactMutation.mutate({
-                                                  contactData: inlineContactData,
-                                                  entityId: entity.id
-                                                });
-                                              }}
-                                              disabled={createInlineContactMutation.isPending || !inlineContactData.email.trim()}
-                                            >
-                                              {createInlineContactMutation.isPending ? 'Adding...' : 'Add Contact'}
-                                            </Button>
-                                          </div>
-                                        </div>
-                                      )}
-                                    </div>
-                                  )}
-                                </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                </div>
-
-                {/* Saved Lists */}
-                {filteredLists.map((list: SavedList) => (
-                  <div key={list.id} className="bg-white rounded-lg border border-gray-200 p-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <input
-                          type="checkbox"
-                          className="rounded border-gray-300"
-                          onChange={() => handleSelectRecipient(list, 'entity')}
-                          checked={selectedRecipients.some(r => 
-                            r.type === 'entity' && r.id === list.id
-                          )}
-                        />
-                        <div className={`p-2 rounded-lg ${getEntityColor(entityType)}`}>
-                          <Users className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <h4 className="font-medium text-gray-900">{list.name}</h4>
-                          <p className="text-sm text-gray-500">
-                            {list.itemCount} items • {list.description || 'No description'}
-                          </p>
-                        </div>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => toggleItemExpansion(`list-${list.id}`)}
-                      >
-                        {expandedItems.has(`list-${list.id}`) ? (
-                          <ChevronDown className="h-4 w-4" />
-                        ) : (
-                          <ChevronRight className="h-4 w-4" />
-                        )}
-                      </Button>
-                    </div>
-
-                    {/* Expanded List Items with Drill-down */}
-                    {expandedItems.has(`list-${list.id}`) && (
-                      <div className="mt-4 space-y-2 pl-6 border-l-2 border-gray-100">
-                        {(list.members || []).map((entityId: number) => {
-                          const entity = (entities as any[] || []).find((e: any) => e.id === entityId);
-                          if (!entity) return null;
-                          
-                          return (
-                            <div key={entity.id} className="space-y-2">
-                              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                <div className="flex items-center gap-3">
-                                  <input
-                                    type="checkbox"
-                                    className="rounded border-gray-300"
-                                    onChange={() => handleSelectRecipient(entity, 'entity')}
-                                    checked={selectedRecipients.some(r => 
-                                      r.type === 'entity' && r.id === entity.id
-                                    )}
-                                  />
-                                  <div>
-                                    <p className="font-medium text-gray-900">{getEntityDisplayName(entity)}</p>
-                                    {entity.email && (
-                                      <p className="text-sm text-gray-500 flex items-center gap-1">
-                                        <Mail className="h-3 w-3" />
-                                        {entity.email}
-                                      </p>
-                                    )}
-                                  </div>
-                                </div>
-                                
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => toggleItemExpansion(`list-entity-${entity.id}`)}
-                                >
-                                  {expandedItems.has(`list-entity-${entity.id}`) ? (
-                                    <ChevronDown className="h-4 w-4" />
-                                  ) : (
-                                    <ChevronRight className="h-4 w-4" />
-                                  )}
-                                </Button>
-                              </div>
-
-                              {/* Entity contacts within list */}
-                              {expandedItems.has(`list-entity-${entity.id}`) && entityContacts[entity.id] && (
-                                <div className="ml-6 space-y-2">
-                                  {entityContacts[entity.id].map((contact: any) => (
-                                    <div key={contact.id} className="flex items-center gap-3 p-3 bg-white border rounded-lg">
-                                      <input
-                                        type="checkbox"
-                                        className="rounded border-gray-300"
-                                        onChange={() => handleSelectRecipient(contact, 'contact')}
-                                        checked={selectedRecipients.some(r => 
-                                          r.type === 'contact' && r.id === contact.id
-                                        )}
-                                      />
-                                      <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                                        <Users className="h-4 w-4 text-gray-600" />
-                                      </div>
-                                      <div className="flex-1">
-                                        <p className="font-medium text-gray-900">{getContactDisplayName(contact)}</p>
-                                        <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
-                                          {contact.email && (
-                                            <span className="flex items-center gap-1">
-                                              <Mail className="h-3 w-3" />
-                                              {contact.email}
-                                            </span>
-                                          )}
-                                          {getContactJobTitle(contact) && (
-                                            <span className="flex items-center gap-1">
-                                              <Briefcase className="h-3 w-3" />
-                                              {getContactJobTitle(contact)}
-                                            </span>
-                                          )}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  ))}
+                                  {/* Add Contact Button for customers */}
+                                  {renderInlineContactForm(customer.id, 'customer', `customer-${customer.id}`)}
                                 </div>
                               )}
                             </div>
                           );
-                        })}
+                        })()}
                       </div>
                     )}
                   </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Contacts Tab - All related contacts with filters */}
-        {selectedTab === 'contacts' && (
-          <div className="space-y-3">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium text-gray-900">All Contacts</h3>
+                );
+              })}
             </div>
 
-            {contactsLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="text-gray-500 mt-2">Loading contacts...</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {filteredContacts.map((contact: Contact) => (
-                  <div key={contact.id} className="flex items-center gap-4 p-4 bg-white border rounded-lg hover:border-blue-200 transition-colors">
+            {/* Saved Lists */}
+            <div className="space-y-3">
+              <h3 className="font-medium text-gray-900">Saved Lists</h3>
+              {savedLists.map((list: SavedList) => (
+                <div key={list.id} className="border rounded-lg p-3">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-300"
+                      onChange={() => handleSelectRecipient(list, 'list')}
+                      checked={selectedRecipients.some(r => 
+                        r.type === 'list' && r.id === list.id
+                      )}
+                    />
+                    <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
+                      <BookOpen className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{list.name}</p>
+                      <p className="text-sm text-gray-500">{list.description}</p>
+                      <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded">
+                        {list.itemCount} items
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'segments':
+        return (
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search segments..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <div className="space-y-3">
+              {savedViews.map((view: any) => (
+                <div key={view.id} className="border rounded-lg p-3">
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-300"
+                      onChange={() => handleSelectRecipient(view, 'segment')}
+                      checked={selectedRecipients.some(r => 
+                        r.type === 'segment' && r.id === view.id
+                      )}
+                    />
+                    <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                      <Target className="h-4 w-4 text-white" />
+                    </div>
+                    <div>
+                      <p className="font-medium">{view.name}</p>
+                      <p className="text-sm text-gray-500">{view.description}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 'contacts':
+        return (
+          <div className="space-y-4">
+            <div className="relative">
+              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search contacts..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <div className="space-y-3">
+              {filteredContacts.map((contact: Contact) => (
+                <div key={contact.id} className="border rounded-lg p-3">
+                  <div className="flex items-center gap-3">
                     <input
                       type="checkbox"
                       className="rounded border-gray-300"
@@ -1500,24 +646,16 @@ export default function RecipientSelector({
                         r.type === 'contact' && r.id === contact.id
                       )}
                     />
-                    <div className="w-12 h-12 bg-gray-200 rounded-full flex items-center justify-center">
-                      <Users className="h-6 w-6 text-gray-600" />
+                    <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
+                      <Users className="h-4 w-4 text-white" />
                     </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">
-                        {getContactDisplayName(contact)}
-                      </h4>
+                    <div>
+                      <p className="font-medium">{getContactDisplayName(contact)}</p>
                       <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
                         {contact.email && (
                           <span className="flex items-center gap-1">
                             <Mail className="h-3 w-3" />
                             {contact.email}
-                          </span>
-                        )}
-                        {contact.phone && (
-                          <span className="flex items-center gap-1">
-                            <Phone className="h-3 w-3" />
-                            {contact.phone}
                           </span>
                         )}
                         {getContactJobTitle(contact) && (
@@ -1527,1842 +665,147 @@ export default function RecipientSelector({
                           </span>
                         )}
                       </div>
-                      {contact.company && (
-                        <p className="text-sm text-gray-500 mt-1 flex items-center gap-1">
-                          <Building2 className="h-3 w-3" />
-                          {contact.company}
-                        </p>
-                      )}
                     </div>
                   </div>
-                ))}
-                
-                {filteredContacts.length === 0 && (
-                  <div className="text-center py-12 text-gray-500">
-                    <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                    <p className="font-medium mb-2">No contacts found</p>
-                    <p className="text-sm">Try adjusting your search or add new contacts.</p>
-                  </div>
-                )}
-              </div>
-            )}
+                </div>
+              ))}
+            </div>
           </div>
-        )}
+        );
 
-        {/* Segments Tab - Saved views that can be applied as filters */}
-        {selectedTab === 'segments' && (
+      case 'missing':
+        return (
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium text-gray-900">
-                {entityType.charAt(0).toUpperCase() + entityType.slice(1)} Segments
-              </h3>
-              <p className="text-sm text-gray-500">
-                {savedViews.length} saved view{savedViews.length !== 1 ? 's' : ''} available
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-yellow-800">
+                <UserPlus className="h-5 w-5" />
+                <span className="font-medium">Missing Contacts</span>
+              </div>
+              <p className="text-sm text-yellow-700 mt-1">
+                Entities without contact information. Add contacts to improve targeting.
               </p>
             </div>
-
-            {viewsLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
-                <p className="text-gray-500 mt-2">Loading segments...</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {savedViews.length === 0 ? (
-                  <div className="text-center py-12 text-gray-500">
-                    <Bookmark className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                    <p className="font-medium mb-2">No segments found</p>
-                    <p className="text-sm">Create segments by saving filtered views on the {entityType} list page.</p>
-                  </div>
-                ) : (
-                  savedViews.map((segment: any) => {
-                    // Calculate how many entities this segment would include
-                    const segmentEntities = applySegmentFilters(entities, segment.filters);
-                    const segmentCount = segmentEntities.length;
-                    
-                    return (
-                      <div key={segment.id} className="bg-white rounded-lg border border-gray-200 p-4 hover:border-blue-200 transition-colors">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="p-2 rounded-lg bg-purple-100">
-                              <Bookmark className="h-5 w-5 text-purple-600" />
-                            </div>
-                            <div>
-                              <h4 className="font-medium text-gray-900">{segment.name}</h4>
-                              <p className="text-sm text-gray-500 mt-1">
-                                {segmentCount} {entityType.slice(0, -1)}{segmentCount !== 1 ? 's' : ''} match this segment
-                              </p>
-                              {segment.description && (
-                                <p className="text-xs text-gray-400 mt-1">{segment.description}</p>
-                              )}
-                            </div>
-                          </div>
-                          
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() => toggleItemExpansion(`segment-${segment.id}`)}
-                              className="text-gray-600 hover:text-gray-900"
-                            >
-                              {expandedItems.has(`segment-${segment.id}`) ? (
-                                <ChevronDown className="h-4 w-4" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4" />
-                              )}
-                            </Button>
-                            <Button
-                              variant="default"
-                              size="sm"
-                              onClick={() => handleSegmentSelection(segment)}
-                              className="bg-purple-600 hover:bg-purple-700"
-                            >
-                              Select All
-                            </Button>
-                          </div>
-                        </div>
-
-                        {/* Expanded segment preview with hierarchical display */}
-                        {expandedItems.has(`segment-${segment.id}`) && (
-                          <div className="mt-4 space-y-2 pl-6 border-l-2 border-purple-100">
-                            {segmentEntities.slice(0, 10).map((entity: Entity) => (
-                              <div key={entity.id} className="space-y-2">
-                                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                                  <div className="flex items-center gap-3">
-                                    <input
-                                      type="checkbox"
-                                      className="rounded border-gray-300"
-                                      onChange={() => handleSelectRecipient(entity, 'entity')}
-                                      checked={selectedRecipients.some(r => 
-                                        r.type === 'entity' && r.id === entity.id
-                                      )}
-                                    />
-                                    <div>
-                                      <p className="font-medium text-gray-900">{getEntityDisplayName(entity)}</p>
-                                      {entity.email && (
-                                        <p className="text-sm text-gray-500 flex items-center gap-1">
-                                          <Mail className="h-3 w-3" />
-                                          {entity.email}
-                                        </p>
-                                      )}
-                                    </div>
-                                  </div>
-                                  
-                                  {/* Drill-down button for hierarchical relationships */}
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => toggleItemExpansion(`segment-entity-${entity.id}`)}
-                                  >
-                                    {expandedItems.has(`segment-entity-${entity.id}`) ? (
-                                      <ChevronDown className="h-4 w-4" />
-                                    ) : (
-                                      <ChevronRight className="h-4 w-4" />
-                                    )}
-                                  </Button>
-                                </div>
-
-                                {/* Hierarchical drill-down for opportunities */}
-                                {expandedItems.has(`segment-entity-${entity.id}`) && entityType === 'opportunities' && (
-                                  <div className="ml-6 space-y-2">
-                                    {(() => {
-                                      const customer = getCustomerForOpportunity(entity.id);
-                                      if (!customer) return null;
-
-                                      return (
-                                        <div className="space-y-2">
-                                          {/* Customer Organization */}
-                                          <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-blue-200 shadow-sm">
-                                            <div className="flex items-center gap-4">
-                                              <input
-                                                type="checkbox"
-                                                className="rounded border-gray-300 w-4 h-4"
-                                                onChange={() => handleSelectRecipient(customer, 'customer')}
-                                                checked={selectedRecipients.some(r => 
-                                                  r.type === 'customer' && r.id === customer.id
-                                                )}
-                                              />
-                                              <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                                                <Users className="h-5 w-5 text-white" />
-                                              </div>
-                                              <div>
-                                                <p className="font-bold text-blue-900 text-lg">{customer.name}</p>
-                                                <p className="text-sm text-blue-700 font-medium">🏢 CUSTOMER ORGANIZATION</p>
-                                              </div>
-                                            </div>
-                                          </div>
-                                          
-                                          {/* Add Contact Button */}
-                                          <div className="mt-2">
-                                            {showInlineContactForm !== `segment-${entity.id}-${customer.id}` ? (
-                                              <Button
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={() => setShowInlineContactForm(`segment-${entity.id}-${customer.id}`)}
-                                                className="w-full border-dashed border-[#E6E7F1] text-gray-600 hover:text-gray-800 hover:border-[#D6D7E4]"
-                                              >
-                                                <UserPlus className="h-4 w-4 mr-2" />
-                                                Add Contact
-                                              </Button>
-                                            ) : (
-                                              /* Inline Contact Creation Form */
-                                              <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                                                <div className="flex items-center justify-between mb-3">
-                                                  <h4 className="font-medium text-gray-900">Add New Contact</h4>
-                                                  <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                    onClick={() => {
-                                                      setShowInlineContactForm(null);
-                                                      setInlineContactData({
-                                                        first_name: '',
-                                                        last_name: '',
-                                                        email: '',
-                                                        job_title: '',
-                                                        phone: ''
-                                                      });
-                                                    }}
-                                                  >
-                                                    <X className="h-4 w-4" />
-                                                  </Button>
-                                                </div>
-                                                
-                                                <div className="grid grid-cols-2 gap-3 mb-3">
-                                                  <div>
-                                                    <Label htmlFor="first_name" className="text-xs font-medium text-gray-700">First Name</Label>
-                                                    <Input
-                                                      id="first_name"
-                                                      placeholder="John"
-                                                      value={inlineContactData.first_name}
-                                                      onChange={(e) => setInlineContactData({...inlineContactData, first_name: e.target.value})}
-                                                      className="mt-1"
-                                                    />
-                                                  </div>
-                                                  <div>
-                                                    <Label htmlFor="last_name" className="text-xs font-medium text-gray-700">Last Name</Label>
-                                                    <Input
-                                                      id="last_name"
-                                                      placeholder="Doe"
-                                                      value={inlineContactData.last_name}
-                                                      onChange={(e) => setInlineContactData({...inlineContactData, last_name: e.target.value})}
-                                                      className="mt-1"
-                                                    />
-                                                  </div>
-                                                </div>
-                                                
-                                                <div className="grid grid-cols-2 gap-3 mb-3">
-                                                  <div>
-                                                    <Label htmlFor="email" className="text-xs font-medium text-gray-700">Email</Label>
-                                                    <Input
-                                                      id="email"
-                                                      type="email"
-                                                      placeholder="john@example.com"
-                                                      value={inlineContactData.email}
-                                                      onChange={(e) => setInlineContactData({...inlineContactData, email: e.target.value})}
-                                                      className="mt-1"
-                                                    />
-                                                  </div>
-                                                  <div>
-                                                    <Label htmlFor="job_title" className="text-xs font-medium text-gray-700">Job Title</Label>
-                                                    <Input
-                                                      id="job_title"
-                                                      placeholder="Manager"
-                                                      value={inlineContactData.job_title}
-                                                      onChange={(e) => setInlineContactData({...inlineContactData, job_title: e.target.value})}
-                                                      className="mt-1"
-                                                    />
-                                                  </div>
-                                                </div>
-                                                
-                                                <div className="mb-4">
-                                                  <Label htmlFor="phone" className="text-xs font-medium text-gray-700">Phone</Label>
-                                                  <Input
-                                                    id="phone"
-                                                    placeholder="+1 (555) 123-4567"
-                                                    value={inlineContactData.phone}
-                                                    onChange={(e) => setInlineContactData({...inlineContactData, phone: e.target.value})}
-                                                    className="mt-1"
-                                                  />
-                                                </div>
-                                                
-                                                <div className="flex justify-end gap-2">
-                                                  <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => {
-                                                      setShowInlineContactForm(null);
-                                                      setInlineContactData({
-                                                        first_name: '',
-                                                        last_name: '',
-                                                        email: '',
-                                                        job_title: '',
-                                                        phone: ''
-                                                      });
-                                                    }}
-                                                  >
-                                                    Cancel
-                                                  </Button>
-                                                  <Button
-                                                    size="sm"
-                                                    onClick={() => {
-                                                      const contactData = {
-                                                        ...inlineContactData,
-                                                        linkedEntityId: customer.id,
-                                                        linkedEntityType: 'customer'
-                                                      };
-                                                      
-                                                      // Add to selected recipients
-                                                      const newContact = {
-                                                        ...contactData,
-                                                        id: Date.now(), // Temporary ID
-                                                        type: 'contact',
-                                                        recipientKey: `contact-${Date.now()}`,
-                                                        fullName: `${inlineContactData.first_name} ${inlineContactData.last_name}`.trim()
-                                                      };
-                                                      
-                                                      onRecipientsChange([...selectedRecipients, newContact]);
-                                                      
-                                                      // Reset form
-                                                      setShowInlineContactForm(null);
-                                                      setInlineContactData({
-                                                        first_name: '',
-                                                        last_name: '',
-                                                        email: '',
-                                                        job_title: '',
-                                                        phone: ''
-                                                      });
-                                                      
-                                                      toast({
-                                                        title: "Contact added",
-                                                        description: `${newContact.fullName} has been added to your campaign recipients.`,
-                                                      });
-                                                    }}
-                                                    disabled={!inlineContactData.first_name || !inlineContactData.email}
-                                                  >
-                                                    Add Contact
-                                                  </Button>
-                                                </div>
-                                              </div>
-                                            )}
-                                          </div>
-                                        </div>
-                                      );
-                                    })()}
-                                  </div>
-                                )}
-                              </div>
-                            ))}
-                            
-                            {segmentEntities.length > 10 && (
-                              <div className="text-center p-3 text-gray-500 text-sm">
-                                ... and {segmentEntities.length - 10} more {entityType.slice(0, -1)}{segmentEntities.length - 10 !== 1 ? 's' : ''}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })
-                )}
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Selected Tab - Entity-first hierarchy (opportunities → customers → contacts) */}
-        {selectedTab === 'selected' && selectedRecipients.length === 0 && (
-          <div className="text-center py-12 text-gray-500">
-            <Eye className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-            <p className="font-medium mb-2">No recipients selected</p>
-            <p className="text-sm">Select entities from the Lists tab to begin targeting.</p>
-          </div>
-        )}
-
-        {selectedTab === 'selected' && selectedRecipients.length > 0 && entityType === 'opportunities' && (
-          <div className="space-y-4">
-            {/* Summary Stats */}
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-gray-900">Selected Recipients</h3>
-              <div className="flex items-center gap-4 text-sm text-gray-600">
-                <span>{selectionCounts.contacts} contacts</span>
-                <span>{selectionCounts.entities} entities</span>
-                <span className="font-medium">{selectionCounts.total} total</span>
-              </div>
-            </div>
-
-            {/* Opportunities Section */}
-            <div className="border border-gray-200 rounded-lg">
-              <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 border-b border-green-200">
-                <div className="flex items-center justify-between">
+            
+            <div className="space-y-3">
+              {filteredEntities.filter((entity: Entity) => {
+                const entityContacts = getEntityContacts(entity.id, entityType.slice(0, -1));
+                return entityContacts.length === 0;
+              }).map((entity: Entity) => (
+                <div key={entity.id} className="border rounded-lg p-3 bg-yellow-50">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
-                      <Target className="h-4 w-4 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-green-900">Opportunities</h4>
-                      <p className="text-sm text-green-700">
-                        {selectedRecipients.filter(r => r.type === 'entity' && entityType === 'opportunities').length} opportunities selected
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleItemExpansion('selected-opportunities')}
-                    className="bg-green-200 hover:bg-green-300"
-                  >
-                    {expandedItems.has('selected-opportunities') ? (
-                      <ChevronDown className="h-4 w-4 text-green-800" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4 text-green-800" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-              
-              {expandedItems.has('selected-opportunities') && (
-                <div className="p-4 space-y-4">
-                  {selectedRecipients
-                    .filter(r => r.type === 'entity' && entityType === 'opportunities')
-                    .filter(opportunity => {
-                      if (!showOnlyMissingContacts) return true;
-                      
-                      // Check if this opportunity's customer has contacts
-                      const customer = getCustomerForOpportunity(opportunity.id);
-                      if (!customer) return true; // Show if no customer found
-                      
-                      const customerContacts = entityContacts[customer.id] || [];
-                      const hasDirectContacts = customerContacts.length > 0;
-                      
-                      // Check if any individually selected contacts belong to this customer
-                      const hasSelectedContacts = selectedRecipients.some(r => 
-                        r.type === 'contact' && (r.linkedEntityId === customer.id || r.linked_entity_id === customer.id)
-                      );
-                      
-                      return !hasDirectContacts && !hasSelectedContacts;
-                    })
-                    .map((opportunity) => {
-                      const customer = getCustomerForOpportunity(opportunity.id);
-                      const customerContacts = customer ? entityContacts[customer.id] || [] : [];
-                      
-                      return (
-                        <div key={`opportunity-${opportunity.id}`} className="space-y-3 border border-gray-200 rounded-lg p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-green-600 rounded-lg flex items-center justify-center">
-                                <Target className="h-4 w-4 text-white" />
-                              </div>
-                              <div>
-                                <p className="font-semibold text-gray-900">{getEntityDisplayName(opportunity)}</p>
-                                <p className="text-sm text-gray-600">Opportunity</p>
-                              </div>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                const updatedRecipients = selectedRecipients.filter(r => 
-                                  !(r.type === 'entity' && r.id === opportunity.id)
-                                );
-                                onRecipientsChange(updatedRecipients);
-                              }}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-
-                          {/* Customer level for this opportunity */}
-                          {customer && (
-                            <div className="ml-6 space-y-3 border-l-2 border-blue-200 pl-4">
-                              <div className="flex items-center justify-between p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                                    <Users className="h-4 w-4 text-white" />
-                                  </div>
-                                  <div>
-                                    <p className="font-semibold text-blue-900">{customer.name}</p>
-                                    <p className="text-sm text-blue-700">Customer Organization</p>
-                                  </div>
-                                </div>
-                                {customerContacts.length > 0 && (
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => toggleItemExpansion(`selected-customer-${customer.id}`)}
-                                    className="bg-blue-200 hover:bg-blue-300"
-                                  >
-                                    {expandedItems.has(`selected-customer-${customer.id}`) ? (
-                                      <ChevronDown className="h-4 w-4 text-blue-800" />
-                                    ) : (
-                                      <ChevronRight className="h-4 w-4 text-blue-800" />
-                                    )}
-                                  </Button>
-                                )}
-                              </div>
-
-                              {/* Contacts for this customer */}
-                              {expandedItems.has(`selected-customer-${customer.id}`) && (
-                                <div className="ml-6 space-y-2 border-l-2 border-gray-200 pl-4">
-                                  <div className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-2">
-                                    Contact Persons
-                                  </div>
-                                  {customerContacts.length > 0 ? (
-                                    customerContacts.map((contact: Contact) => (
-                                      <div key={`customer-${customer.id}-contact-${contact.id}`} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
-                                        <div className="flex items-center gap-3">
-                                          <div className="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center">
-                                            <Mail className="h-3 w-3 text-white" />
-                                          </div>
-                                          <div>
-                                            <p className="font-medium text-gray-900">{getContactDisplayName(contact)}</p>
-                                            <div className="flex items-center gap-3 text-xs text-gray-600 mt-1">
-                                              {contact.email && (
-                                                <span className="flex items-center gap-1">
-                                                  <Mail className="h-2 w-2" />
-                                                  {contact.email}
-                                                </span>
-                                              )}
-                                              {getContactJobTitle(contact) && (
-                                                <span className="flex items-center gap-1">
-                                                  <Briefcase className="h-2 w-2" />
-                                                  {getContactJobTitle(contact)}
-                                                </span>
-                                              )}
-                                            </div>
-                                          </div>
-                                        </div>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => {
-                                            const updatedRecipients = selectedRecipients.filter(r => 
-                                              !(r.type === 'contact' && r.id === contact.id)
-                                            );
-                                            onRecipientsChange(updatedRecipients);
-                                          }}
-                                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                        >
-                                          <X className="h-3 w-3" />
-                                        </Button>
-                                      </div>
-                                    ))
-                                  ) : (
-                                    <div className="p-3 bg-orange-50 border border-orange-200 rounded-lg">
-                                      <div className="flex items-center gap-2 mb-2">
-                                        <UserPlus className="h-4 w-4 text-orange-600" />
-                                        <p className="text-sm text-orange-800 font-medium">
-                                          No contacts found for {customer.name}
-                                        </p>
-                                      </div>
-                                      <p className="text-xs text-orange-700 mb-3">
-                                        Add contacts to enable communication with this customer organization.
-                                      </p>
-                                    </div>
-                                  )}
-                                  
-                                  {/* Add Contact Button - Always visible regardless of existing contacts */}
-                                  <div className="mt-3">
-                                    {showInlineContactForm === `selected-customer-${customer.id}` ? (
-                                      <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                        <div className="space-y-3">
-                                          <div className="grid grid-cols-2 gap-3">
-                                            <div>
-                                              <Input
-                                                placeholder="First name"
-                                                value={inlineContactData.first_name}
-                                                onChange={(e) => setInlineContactData({
-                                                  ...inlineContactData,
-                                                  first_name: e.target.value
-                                                })}
-                                              />
-                                            </div>
-                                            <div>
-                                              <Input
-                                                placeholder="Last name"
-                                                value={inlineContactData.last_name}
-                                                onChange={(e) => setInlineContactData({
-                                                  ...inlineContactData,
-                                                  last_name: e.target.value
-                                                })}
-                                              />
-                                            </div>
-                                          </div>
-                                          <div>
-                                            <Input
-                                              placeholder="Email address"
-                                              value={inlineContactData.email}
-                                              onChange={(e) => setInlineContactData({
-                                                ...inlineContactData,
-                                                email: e.target.value
-                                              })}
-                                            />
-                                          </div>
-                                          <div>
-                                            <Input
-                                              placeholder="Job title"
-                                              value={inlineContactData.job_title}
-                                              onChange={(e) => setInlineContactData({
-                                                ...inlineContactData,
-                                                job_title: e.target.value
-                                              })}
-                                            />
-                                          </div>
-                                          <div>
-                                            <Input
-                                              placeholder="Phone number"
-                                              value={inlineContactData.phone}
-                                              onChange={(e) => setInlineContactData({
-                                                ...inlineContactData,
-                                                phone: e.target.value
-                                              })}
-                                            />
-                                          </div>
-                                          <div className="flex gap-2">
-                                            <Button
-                                              variant="outline"
-                                              size="sm"
-                                              onClick={() => {
-                                                setShowInlineContactForm(null);
-                                                setInlineContactData({
-                                                  first_name: '',
-                                                  last_name: '',
-                                                  email: '',
-                                                  job_title: '',
-                                                  phone: ''
-                                                });
-                                              }}
-                                            >
-                                              Cancel
-                                            </Button>
-                                            <Button
-                                              size="sm"
-                                              onClick={() => {
-                                                const contactData = {
-                                                  ...inlineContactData,
-                                                  linkedEntityId: customer.id,
-                                                  linkedEntityType: 'customer'
-                                                };
-                                                
-                                                // Add to selected recipients
-                                                const newContact = {
-                                                  ...contactData,
-                                                  id: Date.now(), // Temporary ID
-                                                  type: 'contact',
-                                                  recipientKey: `contact-${Date.now()}`,
-                                                  fullName: `${inlineContactData.first_name} ${inlineContactData.last_name}`.trim()
-                                                };
-                                                
-                                                onRecipientsChange([...selectedRecipients, newContact]);
-                                                
-                                                // Reset form
-                                                setShowInlineContactForm(null);
-                                                setInlineContactData({
-                                                  first_name: '',
-                                                  last_name: '',
-                                                  email: '',
-                                                  job_title: '',
-                                                  phone: ''
-                                                });
-                                                
-                                                toast({
-                                                  title: "Contact added",
-                                                  description: `${newContact.fullName} has been added to your campaign recipients.`,
-                                                });
-                                              }}
-                                              disabled={!inlineContactData.first_name || !inlineContactData.email}
-                                            >
-                                              Add Contact
-                                            </Button>
-                                          </div>
-                                        </div>
-                                      </div>
-                                    ) : (
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setShowInlineContactForm(`selected-customer-${customer.id}`)}
-                                        className="w-full border-dashed border-gray-300 text-gray-600 hover:border-gray-400 hover:text-gray-700 hover:bg-gray-50"
-                                      >
-                                        <UserPlus className="h-4 w-4 mr-2" />
-                                        Add Contact for {customer.name}
-                                      </Button>
-                                    )}
-                                  </div>
-                                </div>
-                              )}
-                              
-                              {/* Show placeholder when customer has no contacts */}
-                              {customerContacts.length === 0 && (
-                                <div className="ml-6 mt-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                                  <div className="text-center text-gray-500">
-                                    <UserPlus className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                                    <p className="font-medium mb-1">Add Contact for {customer.name}</p>
-                                    <p className="text-sm text-gray-400">This customer has no contacts yet.</p>
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => setShowInlineContactForm(`selected-${opportunity.id}-${customer.id}`)}
-                                      className="mt-3 border-dashed border-[#E6E7F1] text-gray-600 hover:text-gray-800 hover:border-[#D6D7E4]"
-                                    >
-                                      <UserPlus className="h-4 w-4 mr-2" />
-                                      Add Contact
-                                    </Button>
-                                  </div>
-                                </div>
-                              )}
-                              
-                              {/* Inline contact form when adding for selected customer */}
-                              {showInlineContactForm === `selected-${opportunity.id}-${customer.id}` && (
-                                <div className="ml-6 mt-3 p-4 bg-white border border-gray-200 rounded-lg">
-                                  <div className="flex items-center justify-between mb-3">
-                                    <h4 className="font-medium text-gray-900">Add Contact for {customer.name}</h4>
-                                    <Button
-                                      variant="ghost"
-                                      size="sm"
-                                      onClick={() => {
-                                        setShowInlineContactForm(null);
-                                        setInlineContactData({
-                                          first_name: '',
-                                          last_name: '',
-                                          email: '',
-                                          job_title: '',
-                                          phone: ''
-                                        });
-                                      }}
-                                    >
-                                      <X className="h-4 w-4" />
-                                    </Button>
-                                  </div>
-                                  
-                                  <div className="grid grid-cols-2 gap-3 mb-3">
-                                    <div>
-                                      <Label htmlFor="first_name" className="text-xs font-medium text-gray-700">First Name</Label>
-                                      <Input
-                                        id="first_name"
-                                        placeholder="John"
-                                        value={inlineContactData.first_name}
-                                        onChange={(e) => setInlineContactData({...inlineContactData, first_name: e.target.value})}
-                                        className="mt-1"
-                                      />
-                                    </div>
-                                    <div>
-                                      <Label htmlFor="last_name" className="text-xs font-medium text-gray-700">Last Name</Label>
-                                      <Input
-                                        id="last_name"
-                                        placeholder="Doe"
-                                        value={inlineContactData.last_name}
-                                        onChange={(e) => setInlineContactData({...inlineContactData, last_name: e.target.value})}
-                                        className="mt-1"
-                                      />
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="grid grid-cols-2 gap-3 mb-3">
-                                    <div>
-                                      <Label htmlFor="email" className="text-xs font-medium text-gray-700">Email</Label>
-                                      <Input
-                                        id="email"
-                                        type="email"
-                                        placeholder="john@example.com"
-                                        value={inlineContactData.email}
-                                        onChange={(e) => setInlineContactData({...inlineContactData, email: e.target.value})}
-                                        className="mt-1"
-                                      />
-                                    </div>
-                                    <div>
-                                      <Label htmlFor="job_title" className="text-xs font-medium text-gray-700">Job Title</Label>
-                                      <Input
-                                        id="job_title"
-                                        placeholder="Manager"
-                                        value={inlineContactData.job_title}
-                                        onChange={(e) => setInlineContactData({...inlineContactData, job_title: e.target.value})}
-                                        className="mt-1"
-                                      />
-                                    </div>
-                                  </div>
-                                  
-                                  <div className="mb-4">
-                                    <Label htmlFor="phone" className="text-xs font-medium text-gray-700">Phone</Label>
-                                    <Input
-                                      id="phone"
-                                      placeholder="+1 (555) 123-4567"
-                                      value={inlineContactData.phone}
-                                      onChange={(e) => setInlineContactData({...inlineContactData, phone: e.target.value})}
-                                      className="mt-1"
-                                    />
-                                  </div>
-                                  
-                                  <div className="flex justify-end gap-2">
-                                    <Button
-                                      variant="outline"
-                                      size="sm"
-                                      onClick={() => {
-                                        setShowInlineContactForm(null);
-                                        setInlineContactData({
-                                          first_name: '',
-                                          last_name: '',
-                                          email: '',
-                                          job_title: '',
-                                          phone: ''
-                                        });
-                                      }}
-                                    >
-                                      Cancel
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      onClick={() => {
-                                        const contactData = {
-                                          ...inlineContactData,
-                                          linkedEntityId: customer.id,
-                                          linkedEntityType: 'customer'
-                                        };
-                                        
-                                        // Add to selected recipients
-                                        const newContact = {
-                                          ...contactData,
-                                          id: Date.now(), // Temporary ID
-                                          type: 'contact',
-                                          recipientKey: `contact-${Date.now()}`,
-                                          fullName: `${inlineContactData.first_name} ${inlineContactData.last_name}`.trim()
-                                        };
-                                        
-                                        onRecipientsChange([...selectedRecipients, newContact]);
-                                        
-                                        // Reset form
-                                        setShowInlineContactForm(null);
-                                        setInlineContactData({
-                                          first_name: '',
-                                          last_name: '',
-                                          email: '',
-                                          job_title: '',
-                                          phone: ''
-                                        });
-                                        
-                                        toast({
-                                          title: "Contact added",
-                                          description: `${newContact.fullName} has been added to your campaign recipients.`,
-                                        });
-                                      }}
-                                      disabled={!inlineContactData.first_name || !inlineContactData.email}
-                                    >
-                                      Add Contact
-                                    </Button>
-                                  </div>
-                                </div>
-                              )}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Selected Tab - For non-opportunity entity types */}
-        {selectedTab === 'selected' && selectedRecipients.length > 0 && entityType !== 'opportunities' && (
-          <div className="space-y-4">
-            {/* Summary Stats */}
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-medium text-gray-900">Selected Recipients</h3>
-              <div className="flex items-center gap-4 text-sm text-gray-600">
-                <span>{selectionCounts.contacts} contacts</span>
-                <span>{selectionCounts.entities} entities</span>
-                <span className="font-medium">{selectionCounts.total} total</span>
-              </div>
-            </div>
-
-            {/* Entities Section */}
-            <div className="border border-gray-200 rounded-lg">
-              <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 border-b border-blue-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                      <Building2 className="h-4 w-4 text-white" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-blue-900">
-                        {entityType.charAt(0).toUpperCase() + entityType.slice(1)}
-                      </h4>
-                      <p className="text-sm text-blue-700">
-                        {selectedRecipients.filter(r => r.type === 'entity' || r.type === 'customer').length} {entityType} selected
-                      </p>
-                    </div>
-                  </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleItemExpansion('selected-entities')}
-                    className="bg-blue-200 hover:bg-blue-300"
-                  >
-                    {expandedItems.has('selected-entities') ? (
-                      <ChevronDown className="h-4 w-4 text-blue-800" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4 text-blue-800" />
-                    )}
-                  </Button>
-                </div>
-              </div>
-              
-              {expandedItems.has('selected-entities') && (
-                <div className="p-4 space-y-4">
-                  {selectedRecipients
-                    .filter(r => r.type === 'entity' || r.type === 'customer')
-                    .filter(entity => {
-                      if (!showOnlyMissingContacts) return true;
-                      
-                      // Check if this entity has contacts
-                      const entityContactsList = entityContacts[entity.id] || [];
-                      const hasDirectContacts = entityContactsList.length > 0;
-                      
-                      // Check if any individually selected contacts belong to this entity
-                      const hasSelectedContacts = selectedRecipients.some(r => 
-                        r.type === 'contact' && (r.linkedEntityId === entity.id || r.linked_entity_id === entity.id)
-                      );
-                      
-                      return !hasDirectContacts && !hasSelectedContacts;
-                    })
-                    .map((entity) => {
-                      const entityContactsList = entityContacts[entity.id] || [];
-                      
-                      return (
-                        <div key={`entity-${entity.id}`} className="space-y-3 border border-gray-200 rounded-lg p-4">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                                <Building2 className="h-4 w-4 text-white" />
-                              </div>
-                              <div>
-                                <p className="font-semibold text-gray-900">{getEntityDisplayName(entity)}</p>
-                                <p className="text-sm text-gray-600">{entityType.slice(0, -1)}</p>
-                              </div>
-                            </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => {
-                                const updatedRecipients = selectedRecipients.filter(r => 
-                                  !((r.type === 'entity' || r.type === 'customer') && r.id === entity.id)
-                                );
-                                onRecipientsChange(updatedRecipients);
-                              }}
-                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
-                          </div>
-
-                          {/* Entity contacts */}
-                          {entityContactsList.length > 0 && (
-                            <div className="ml-6 space-y-2 border-l-2 border-gray-200 pl-4">
-                              <div className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-2">
-                                Contact Persons
-                              </div>
-                              {entityContactsList.map((contact: Contact) => (
-                                <div key={`entity-${entity.id}-contact-${contact.id}`} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-6 h-6 bg-gray-400 rounded-full flex items-center justify-center">
-                                      <Mail className="h-3 w-3 text-white" />
-                                    </div>
-                                    <div>
-                                      <p className="font-medium text-gray-900">
-                                        {getContactDisplayName(contact)}
-                                      </p>
-                                      <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
-                                        {contact.email && (
-                                          <span className="flex items-center gap-1">
-                                            <Mail className="h-3 w-3" />
-                                            {contact.email}
-                                          </span>
-                                        )}
-                                        {getContactJobTitle(contact) && (
-                                          <span className="flex items-center gap-1">
-                                            <Briefcase className="h-3 w-3" />
-                                            {getContactJobTitle(contact)}
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                  <Button
-                                    variant="ghost"
-                                    size="sm"
-                                    onClick={() => {
-                                      const updatedRecipients = selectedRecipients.filter(r => 
-                                        !(r.type === 'contact' && r.id === contact.id)
-                                      );
-                                      onRecipientsChange(updatedRecipients);
-                                    }}
-                                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                  >
-                                    <X className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              ))}
-                            </div>
-                          )}
-                          
-                          {/* Show placeholder when entity has no contacts */}
-                          {entityContactsList.length === 0 && (
-                            <div className="ml-6 mt-3 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-                              <div className="text-center text-gray-500">
-                                <UserPlus className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                                <p className="font-medium mb-1">Add Contact for {getEntityDisplayName(entity)}</p>
-                                <p className="text-sm text-gray-400">This {entityType.slice(0, -1)} has no contacts yet.</p>
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => setShowInlineContactForm(`selected-entity-${entity.id}`)}
-                                  className="mt-3 border-dashed border-[#E6E7F1] text-gray-600 hover:text-gray-800 hover:border-[#D6D7E4]"
-                                >
-                                  <UserPlus className="h-4 w-4 mr-2" />
-                                  Add Contact
-                                </Button>
-                              </div>
-                            </div>
-                          )}
-                          
-                          {/* Inline contact form when adding for selected entity */}
-                          {showInlineContactForm === `selected-entity-${entity.id}` && (
-                            <div className="ml-6 mt-3 p-4 bg-white border border-gray-200 rounded-lg">
-                              <div className="flex items-center justify-between mb-3">
-                                <h4 className="font-medium text-gray-900">Add Contact for {getEntityDisplayName(entity)}</h4>
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => {
-                                    setShowInlineContactForm(null);
-                                    setInlineContactData({
-                                      first_name: '',
-                                      last_name: '',
-                                      email: '',
-                                      job_title: '',
-                                      phone: ''
-                                    });
-                                  }}
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              </div>
-                              
-                              <div className="grid grid-cols-2 gap-3 mb-3">
-                                <div>
-                                  <Label htmlFor="first_name" className="text-xs font-medium text-gray-700">First Name</Label>
-                                  <Input
-                                    id="first_name"
-                                    placeholder="John"
-                                    value={inlineContactData.first_name}
-                                    onChange={(e) => setInlineContactData({...inlineContactData, first_name: e.target.value})}
-                                    className="mt-1"
-                                  />
-                                </div>
-                                <div>
-                                  <Label htmlFor="last_name" className="text-xs font-medium text-gray-700">Last Name</Label>
-                                  <Input
-                                    id="last_name"
-                                    placeholder="Doe"
-                                    value={inlineContactData.last_name}
-                                    onChange={(e) => setInlineContactData({...inlineContactData, last_name: e.target.value})}
-                                    className="mt-1"
-                                  />
-                                </div>
-                              </div>
-                              
-                              <div className="grid grid-cols-2 gap-3 mb-3">
-                                <div>
-                                  <Label htmlFor="email" className="text-xs font-medium text-gray-700">Email</Label>
-                                  <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="john@example.com"
-                                    value={inlineContactData.email}
-                                    onChange={(e) => setInlineContactData({...inlineContactData, email: e.target.value})}
-                                    className="mt-1"
-                                  />
-                                </div>
-                                <div>
-                                  <Label htmlFor="job_title" className="text-xs font-medium text-gray-700">Job Title</Label>
-                                  <Input
-                                    id="job_title"
-                                    placeholder="Manager"
-                                    value={inlineContactData.job_title}
-                                    onChange={(e) => setInlineContactData({...inlineContactData, job_title: e.target.value})}
-                                    className="mt-1"
-                                  />
-                                </div>
-                              </div>
-                              
-                              <div className="mb-4">
-                                <Label htmlFor="phone" className="text-xs font-medium text-gray-700">Phone</Label>
-                                <Input
-                                  id="phone"
-                                  placeholder="+1 (555) 123-4567"
-                                  value={inlineContactData.phone}
-                                  onChange={(e) => setInlineContactData({...inlineContactData, phone: e.target.value})}
-                                  className="mt-1"
-                                />
-                              </div>
-                              
-                              <div className="flex justify-end gap-2">
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  onClick={() => {
-                                    setShowInlineContactForm(null);
-                                    setInlineContactData({
-                                      first_name: '',
-                                      last_name: '',
-                                      email: '',
-                                      job_title: '',
-                                      phone: ''
-                                    });
-                                  }}
-                                >
-                                  Cancel
-                                </Button>
-                                <Button
-                                  size="sm"
-                                  onClick={() => {
-                                    const contactData = {
-                                      ...inlineContactData,
-                                      linkedEntityId: entity.id,
-                                      linkedEntityType: entityType.slice(0, -1)
-                                    };
-                                    
-                                    // Add to selected recipients
-                                    const newContact = {
-                                      ...contactData,
-                                      id: Date.now(), // Temporary ID
-                                      type: 'contact',
-                                      recipientKey: `contact-${Date.now()}`,
-                                      fullName: `${inlineContactData.first_name} ${inlineContactData.last_name}`.trim()
-                                    };
-                                    
-                                    onRecipientsChange([...selectedRecipients, newContact]);
-                                    
-                                    // Reset form
-                                    setShowInlineContactForm(null);
-                                    setInlineContactData({
-                                      first_name: '',
-                                      last_name: '',
-                                      email: '',
-                                      job_title: '',
-                                      phone: ''
-                                    });
-                                    
-                                    toast({
-                                      title: "Contact added",
-                                      description: `${newContact.fullName} has been added to your campaign recipients.`,
-                                    });
-                                  }}
-                                  disabled={!inlineContactData.first_name || !inlineContactData.email}
-                                >
-                                  Add Contact
-                                </Button>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Lists Tab */}
-        {selectedTab === 'lists' && (
-          <div className="space-y-4">
-            {/* Saved Lists Section */}
-            {filteredLists.length > 0 && (
-              <div className="border border-gray-200 rounded-lg">
-                <div className="p-4 bg-gray-50 border-b border-gray-200">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-indigo-600 rounded-full flex items-center justify-center">
-                        <BookOpen className="h-4 w-4 text-white" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-gray-900">Saved Lists</h4>
-                        <p className="text-sm text-gray-600">Pre-configured recipient groups</p>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleItemExpansion('saved-lists')}
-                    >
-                      {expandedItems.has('saved-lists') ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
+                    <input
+                      type="checkbox"
+                      className="rounded border-gray-300"
+                      onChange={() => handleSelectRecipient(entity, entityType.slice(0, -1))}
+                      checked={selectedRecipients.some(r => 
+                        r.type === entityType.slice(0, -1) && r.id === entity.id
                       )}
-                    </Button>
-                  </div>
-                </div>
-                
-                {expandedItems.has('saved-lists') && (
-                  <div className="p-4 space-y-3">
-                    {filteredLists.map((list: SavedList) => (
-                      <div key={list.id} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:bg-gray-50">
-                        <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                            <Users className="h-4 w-4 text-purple-600" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{list.name}</p>
-                            <p className="text-sm text-gray-600">{list.itemCount} recipients</p>
-                          </div>
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            // Add all list members to selected recipients
-                            const listMembers = list.members.map(id => ({ type: 'entity', id }));
-                            const listContacts = list.contactIds.map(id => ({ type: 'contact', id }));
-                            const newRecipients = [...selectedRecipients, ...listMembers, ...listContacts];
-                            onRecipientsChange(newRecipients);
-                          }}
-                        >
-                          Add List
-                        </Button>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Entity Selection */}
-            <div className="border border-gray-200 rounded-lg">
-              <div className="p-4 bg-gray-50 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
-                      <Building2 className="h-4 w-4 text-white" />
+                    />
+                    <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
+                      <UserPlus className="h-4 w-4 text-white" />
                     </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900">
-                        {entityType === 'opportunities' ? 'Opportunities' : 
-                         entityType === 'customers' ? 'Customers' : 'Partners'}
-                      </h4>
-                      <p className="text-sm text-gray-600">Select entities to target</p>
+                    <div className="flex-1">
+                      <p className="font-medium">{entity.name || entity.title}</p>
+                      <p className="text-sm text-gray-500">{entity.description}</p>
+                      <span className="text-xs text-yellow-700 bg-yellow-200 px-2 py-1 rounded">
+                        No contacts
+                      </span>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => toggleItemExpansion('entity-selection')}
-                  >
-                    {expandedItems.has('entity-selection') ? (
-                      <ChevronDown className="h-4 w-4" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4" />
-                    )}
-                  </Button>
+                  
+                  {/* Add Contact Button */}
+                  {renderInlineContactForm(entity.id, entityType.slice(0, -1), `missing-${entity.id}`)}
                 </div>
-              </div>
-              
-              {expandedItems.has('entity-selection') && (
-                <div className="p-4 space-y-3">
-                  {filteredEntities.map((entity: Entity) => {
-                    const isSelected = selectedRecipients.some(r => r.type === 'entity' && r.id === entity.id);
-                    
-                    return (
-                      <div
-                        key={entity.id}
-                        className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all duration-200 ${
-                          isSelected 
-                            ? 'border-green-300 bg-gradient-to-r from-green-50 to-green-100' 
-                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                        }`}
-                        onClick={() => handleSelectRecipient(entity, 'entity')}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            isSelected ? 'bg-green-600' : 'bg-gray-100'
-                          }`}>
-                            {entityType === 'opportunities' ? (
-                              <Target className={`h-4 w-4 ${isSelected ? 'text-white' : 'text-gray-600'}`} />
-                            ) : entityType === 'customers' ? (
-                              <Users className={`h-4 w-4 ${isSelected ? 'text-white' : 'text-gray-600'}`} />
-                            ) : (
-                              <Handshake className={`h-4 w-4 ${isSelected ? 'text-white' : 'text-gray-600'}`} />
-                            )}
-                          </div>
-                          <div>
-                            <p className="font-medium text-gray-900">{getEntityDisplayName(entity)}</p>
-                            <p className="text-sm text-gray-600">
-                              {(entityContacts[entity.id] || []).length} contacts
-                            </p>
-                          </div>
-                        </div>
-                        {isSelected && (
-                          <div className="w-6 h-6 bg-green-600 rounded-full flex items-center justify-center">
-                            <Check className="h-4 w-4 text-white" />
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
+              ))}
             </div>
           </div>
-        )}
+        );
 
-        {/* Missing Contacts Tab - Drill-down component filtered for entities without contacts */}
-        {selectedTab === 'missing' && (
+      case 'selected':
+        return (
           <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-medium text-gray-900">
-                Entities Missing Contact Information
-              </h3>
-              <div className="text-sm text-gray-600">
-                {summaryStats.entitiesWithoutContacts} {entityType.slice(0, -1)}{summaryStats.entitiesWithoutContacts !== 1 ? 's' : ''} need contacts
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-green-800">
+                <CheckCircle2 className="h-5 w-5" />
+                <span className="font-medium">Selected Recipients ({selectedRecipients.length})</span>
               </div>
+              <p className="text-sm text-green-700 mt-1">
+                Review and manage your selected campaign recipients.
+              </p>
             </div>
-
-            {summaryStats.entitiesWithoutContacts === 0 ? (
-              <div className="text-center py-12 text-gray-500">
-                <CheckCircle2 className="h-12 w-12 mx-auto mb-4 text-green-400" />
-                <p className="font-medium mb-2 text-green-600">All entities have contacts</p>
-                <p className="text-sm">No missing contact information found.</p>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {/* All Entities List - Filtered for missing contacts */}
-                <div className="bg-white rounded-lg border border-gray-200 p-4">
+            
+            <div className="space-y-3">
+              {selectedRecipients.map((recipient: any) => (
+                <div key={recipient.recipientKey} className="border rounded-lg p-3 bg-green-50">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className={`p-2 rounded-lg ${getEntityColor(entityType)}`}>
-                        {(() => {
-                          const Icon = getEntityIcon(entityType);
-                          return <Icon className="h-5 w-5" />;
-                        })()}
+                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                        <CheckCircle2 className="h-4 w-4 text-white" />
                       </div>
                       <div>
-                        <h4 className="font-medium text-gray-900">
-                          {entityType.charAt(0).toUpperCase() + entityType.slice(1)} Missing Contacts
-                        </h4>
-                        <p className="text-sm text-gray-500">
-                          {summaryStats.entitiesWithoutContactsList.length} items need contact information
+                        <p className="font-medium">
+                          {recipient.name || recipient.title || recipient.fullName || getContactDisplayName(recipient)}
                         </p>
+                        <span className="text-xs text-green-700 bg-green-200 px-2 py-1 rounded">
+                          {recipient.type}
+                        </span>
                       </div>
                     </div>
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => toggleItemExpansion('all-entities')}
-                    >
-                      {expandedItems.has('all-entities') ? (
-                        <ChevronDown className="h-4 w-4" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4" />
+                      onClick={() => onRecipientsChange(
+                        selectedRecipients.filter(r => r.recipientKey !== recipient.recipientKey)
                       )}
+                      className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                    >
+                      Remove
                     </Button>
                   </div>
-
-                  {/* Expanded Entity List with Drill-down - Only entities missing contacts */}
-                  {expandedItems.has('all-entities') && (
-                    <div className="mt-4 space-y-2 pl-6 border-l-2 border-gray-100">
-                      {summaryStats.entitiesWithoutContactsList.map((entity: Entity) => (
-                        <div key={entity.id} className="space-y-2">
-                          <div className="flex items-center justify-between p-3 bg-orange-50 rounded-lg border border-orange-200">
-                            <div className="flex items-center gap-3">
-                              <input
-                                type="checkbox"
-                                className="rounded border-gray-300"
-                                onChange={() => handleSelectRecipient(entity, 'entity')}
-                                checked={selectedRecipients.some(r => 
-                                  r.type === 'entity' && r.id === entity.id
-                                )}
-                              />
-                              <div>
-                                <p className="font-medium text-gray-900">{getEntityDisplayName(entity)}</p>
-                                {entity.email && (
-                                  <p className="text-sm text-gray-500 flex items-center gap-1">
-                                    <Mail className="h-3 w-3" />
-                                    {entity.email}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                            
-                            {/* Drill-down button for hierarchical relationships */}
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => toggleItemExpansion(`entity-${entity.id}`)}
-                            >
-                              {expandedItems.has(`entity-${entity.id}`) ? (
-                                <ChevronDown className="h-4 w-4" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4" />
-                              )}
-                            </Button>
-                          </div>
-
-                          {/* Drill-down content */}
-                          {expandedItems.has(`entity-${entity.id}`) && (
-                            <div className="ml-6 space-y-2">
-                              {/* For opportunities, show customer hierarchy */}
-                              {entityType === 'opportunities' && (() => {
-                                const customer = getCustomerForOpportunity(entity.id);
-                                if (!customer) {
-                                  return (
-                                    <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                                      <p className="text-sm text-yellow-800">
-                                        ⚠️ No customer organization found for this opportunity
-                                      </p>
-                                    </div>
-                                  );
-                                }
-
-                                const customerContacts = entityContacts[customer.id] || [];
-                                const hasContacts = customerContacts.length > 0;
-
-                                return (
-                                  <div className="space-y-2">
-                                    {/* Customer Organization - Always visible in Missing Contacts tab */}
-                                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-blue-200 shadow-sm">
-                                      <div className="flex items-center gap-4">
-                                        <input
-                                          type="checkbox"
-                                          className="rounded border-gray-300 w-4 h-4"
-                                          onChange={() => handleSelectRecipient(customer, 'customer')}
-                                          checked={selectedRecipients.some(r => 
-                                            r.type === 'customer' && r.id === customer.id
-                                          )}
-                                        />
-                                        <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                                          <Users className="h-5 w-5 text-white" />
-                                        </div>
-                                        <div>
-                                          <p className="font-bold text-blue-900 text-lg">{customer.name}</p>
-                                          <p className="text-sm text-blue-700 font-medium">🏢 CUSTOMER ORGANIZATION</p>
-                                          {!hasContacts && (
-                                            <p className="text-xs text-orange-600 font-medium mt-1">
-                                              ⚠️ No contacts available
-                                            </p>
-                                          )}
-                                        </div>
-                                      </div>
-                                      <div className="flex items-center gap-2">
-                                        <span className="text-xs text-blue-600 font-medium">
-                                          {customerContacts.length} contacts
-                                        </span>
-                                        <Button
-                                          variant="ghost"
-                                          size="sm"
-                                          onClick={() => toggleItemExpansion(`customer-${customer.id}`)}
-                                          className="bg-blue-200 hover:bg-blue-300"
-                                        >
-                                          {expandedItems.has(`customer-${customer.id}`) ? (
-                                            <ChevronDown className="h-4 w-4 text-blue-800" />
-                                          ) : (
-                                            <ChevronRight className="h-4 w-4 text-blue-800" />
-                                          )}
-                                        </Button>
-                                      </div>
-                                    </div>
-                                    
-                                    {/* Customer contacts or missing contacts message */}
-                                    {expandedItems.has(`customer-${customer.id}`) && (
-                                      <div className="ml-8 space-y-2 border-l-2 border-gray-200 pl-4">
-                                        <div className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-2">
-                                          👤 Contact Persons
-                                        </div>
-                                        {hasContacts ? (
-                                          customerContacts.map((contact: Contact) => (
-                                            <div key={contact.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
-                                              <input
-                                                type="checkbox"
-                                                className="rounded border-gray-300 w-4 h-4"
-                                                onChange={() => handleSelectRecipient(contact, 'contact')}
-                                                checked={selectedRecipients.some(r => 
-                                                  r.type === 'contact' && r.id === contact.id
-                                                )}
-                                              />
-                                              <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
-                                                <Users className="h-4 w-4 text-white" />
-                                              </div>
-                                              <div className="flex-1">
-                                                <p className="font-semibold text-gray-800">
-                                                  {getContactDisplayName(contact)}
-                                                </p>
-                                                <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                                                  {contact.email && (
-                                                    <span className="flex items-center gap-1 bg-blue-100 px-2 py-1 rounded text-blue-700">
-                                                      <Mail className="h-3 w-3" />
-                                                      {contact.email}
-                                                    </span>
-                                                  )}
-                                                  {getContactJobTitle(contact) && (
-                                                    <span className="flex items-center gap-1 text-gray-500">
-                                                      <Briefcase className="h-3 w-3" />
-                                                      {getContactJobTitle(contact)}
-                                                    </span>
-                                                  )}
-                                                </div>
-                                              </div>
-                                            </div>
-                                          ))
-                                        ) : (
-                                          <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                                            <div className="flex items-center gap-2 mb-2">
-                                              <UserPlus className="h-4 w-4 text-orange-600" />
-                                              <p className="text-sm text-orange-800 font-medium">
-                                                No contacts found for {customer.name}
-                                              </p>
-                                            </div>
-                                            <p className="text-xs text-orange-700">
-                                              Add contacts to enable communication with this customer organization.
-                                            </p>
-                                          </div>
-                                        )}
-                                        
-                                        {/* Add Contact Button - Always visible for customers in opportunities */}
-                                        <div className="mt-3">
-                                          {showInlineContactForm === `missing-customer-${customer.id}` ? (
-                                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                                              <div className="space-y-3">
-                                                <div className="grid grid-cols-2 gap-3">
-                                                  <div>
-                                                    <Input
-                                                      placeholder="First name"
-                                                      value={inlineContactData.first_name}
-                                                      onChange={(e) => setInlineContactData({
-                                                        ...inlineContactData,
-                                                        first_name: e.target.value
-                                                      })}
-                                                    />
-                                                  </div>
-                                                  <div>
-                                                    <Input
-                                                      placeholder="Last name"
-                                                      value={inlineContactData.last_name}
-                                                      onChange={(e) => setInlineContactData({
-                                                        ...inlineContactData,
-                                                        last_name: e.target.value
-                                                      })}
-                                                    />
-                                                  </div>
-                                                </div>
-                                                <div>
-                                                  <Input
-                                                    placeholder="Email address"
-                                                    value={inlineContactData.email}
-                                                    onChange={(e) => setInlineContactData({
-                                                      ...inlineContactData,
-                                                      email: e.target.value
-                                                    })}
-                                                  />
-                                                </div>
-                                                <div>
-                                                  <Input
-                                                    placeholder="Job title"
-                                                    value={inlineContactData.job_title}
-                                                    onChange={(e) => setInlineContactData({
-                                                      ...inlineContactData,
-                                                      job_title: e.target.value
-                                                    })}
-                                                  />
-                                                </div>
-                                                <div>
-                                                  <Input
-                                                    placeholder="Phone number"
-                                                    value={inlineContactData.phone}
-                                                    onChange={(e) => setInlineContactData({
-                                                      ...inlineContactData,
-                                                      phone: e.target.value
-                                                    })}
-                                                  />
-                                                </div>
-                                                <div className="flex gap-2">
-                                                  <Button
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={() => {
-                                                      setShowInlineContactForm(null);
-                                                      setInlineContactData({
-                                                        first_name: '',
-                                                        last_name: '',
-                                                        email: '',
-                                                        job_title: '',
-                                                        phone: ''
-                                                      });
-                                                    }}
-                                                  >
-                                                    Cancel
-                                                  </Button>
-                                                  <Button
-                                                    size="sm"
-                                                    onClick={() => {
-                                                      const contactData = {
-                                                        ...inlineContactData,
-                                                        linkedEntityId: customer.id,
-                                                        linkedEntityType: 'customer'
-                                                      };
-                                                      
-                                                      // Add to selected recipients
-                                                      const newContact = {
-                                                        ...contactData,
-                                                        id: Date.now(), // Temporary ID
-                                                        type: 'contact',
-                                                        recipientKey: `contact-${Date.now()}`,
-                                                        fullName: `${inlineContactData.first_name} ${inlineContactData.last_name}`.trim()
-                                                      };
-                                                      
-                                                      onRecipientsChange([...selectedRecipients, newContact]);
-                                                      
-                                                      // Reset form
-                                                      setShowInlineContactForm(null);
-                                                      setInlineContactData({
-                                                        first_name: '',
-                                                        last_name: '',
-                                                        email: '',
-                                                        job_title: '',
-                                                        phone: ''
-                                                      });
-                                                      
-                                                      toast({
-                                                        title: "Contact added",
-                                                        description: `${newContact.fullName} has been added to your campaign recipients.`,
-                                                      });
-                                                    }}
-                                                    disabled={!inlineContactData.first_name || !inlineContactData.email}
-                                                  >
-                                                    Add Contact
-                                                  </Button>
-                                                </div>
-                                              </div>
-                                            </div>
-                                          ) : (
-                                            <Button
-                                              variant="outline"
-                                              size="sm"
-                                              onClick={() => setShowInlineContactForm(`missing-customer-${customer.id}`)}
-                                              className="w-full border-dashed border-gray-300 text-gray-600 hover:border-gray-400 hover:text-gray-700 hover:bg-gray-50"
-                                            >
-                                              <UserPlus className="h-4 w-4 mr-2" />
-                                              Add Contact for {customer.name}
-                                            </Button>
-                                          )}
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                );
-                              })()}
-
-                              {/* Direct entity contacts for all entity types */}
-                              <div className="space-y-2">
-                                {/* Existing contacts */}
-                                {entityContacts[entity.id] && entityContacts[entity.id].map((contact: Contact) => (
-                                  <div key={contact.id} className="flex items-center gap-3 p-3 bg-white border rounded-lg">
-                                    <input
-                                      type="checkbox"
-                                      className="rounded border-gray-300"
-                                      onChange={() => handleSelectRecipient(contact, 'contact')}
-                                      checked={selectedRecipients.some(r => 
-                                        r.type === 'contact' && r.id === contact.id
-                                      )}
-                                    />
-                                    <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                                      <Users className="h-4 w-4 text-gray-600" />
-                                    </div>
-                                    <div className="flex-1">
-                                      <p className="font-medium text-gray-900">
-                                        {getContactDisplayName(contact)}
-                                      </p>
-                                      <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
-                                        {contact.email && (
-                                          <span className="flex items-center gap-1">
-                                            <Mail className="h-3 w-3" />
-                                            {contact.email}
-                                          </span>
-                                        )}
-                                        {getContactJobTitle(contact) && (
-                                          <span className="flex items-center gap-1">
-                                            <Briefcase className="h-3 w-3" />
-                                            {getContactJobTitle(contact)}
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                                
-                                {/* Add Contact Button - Only show for non-opportunities */}
-                                {entityType !== 'opportunities' && (
-                                  <div className="mt-2">
-                                    {showInlineContactForm !== `${entity.id}-${entityType}` ? (
-                                      <Button
-                                        variant="outline"
-                                        size="sm"
-                                        onClick={() => setShowInlineContactForm(`${entity.id}-${entityType}`)}
-                                        className="w-full border-dashed border-orange-300 text-orange-600 hover:text-orange-800 hover:border-orange-400 bg-orange-50 hover:bg-orange-100"
-                                      >
-                                        <UserPlus className="h-4 w-4 mr-2" />
-                                        Add Contact
-                                      </Button>
-                                    ) : (
-                                      /* Inline Contact Creation Form */
-                                      <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-                                        <div className="flex items-center justify-between mb-3">
-                                          <h4 className="font-medium text-gray-900">Add New Contact</h4>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => {
-                                              setShowInlineContactForm(null);
-                                              setInlineContactData({
-                                                first_name: '',
-                                                last_name: '',
-                                                email: '',
-                                                job_title: '',
-                                                phone: ''
-                                              });
-                                            }}
-                                          >
-                                            <X className="h-4 w-4" />
-                                          </Button>
-                                        </div>
-                                        
-                                        <div className="grid grid-cols-2 gap-3 mb-3">
-                                          <div>
-                                            <Label htmlFor="first_name" className="text-xs font-medium text-gray-700">First Name</Label>
-                                            <Input
-                                              id="first_name"
-                                              placeholder="John"
-                                              value={inlineContactData.first_name}
-                                              onChange={(e) => setInlineContactData({
-                                                ...inlineContactData,
-                                                first_name: e.target.value
-                                              })}
-                                              className="mt-1"
-                                            />
-                                          </div>
-                                          <div>
-                                            <Label htmlFor="last_name" className="text-xs font-medium text-gray-700">Last Name</Label>
-                                            <Input
-                                              id="last_name"
-                                              placeholder="Doe"
-                                              value={inlineContactData.last_name}
-                                              onChange={(e) => setInlineContactData({
-                                                ...inlineContactData,
-                                                last_name: e.target.value
-                                              })}
-                                              className="mt-1"
-                                            />
-                                          </div>
-                                        </div>
-                                        
-                                        <div className="mb-3">
-                                          <Label htmlFor="email" className="text-xs font-medium text-gray-700">Email *</Label>
-                                          <Input
-                                            id="email"
-                                            type="email"
-                                            placeholder="john.doe@company.com"
-                                            value={inlineContactData.email}
-                                            onChange={(e) => setInlineContactData({
-                                              ...inlineContactData,
-                                              email: e.target.value
-                                            })}
-                                            className="mt-1"
-                                          />
-                                        </div>
-                                        
-                                        <div className="grid grid-cols-2 gap-3 mb-4">
-                                          <div>
-                                            <Label htmlFor="job_title" className="text-xs font-medium text-gray-700">Job Title</Label>
-                                            <Input
-                                              id="job_title"
-                                              placeholder="Account Manager"
-                                              value={inlineContactData.job_title}
-                                              onChange={(e) => setInlineContactData({
-                                                ...inlineContactData,
-                                                job_title: e.target.value
-                                              })}
-                                              className="mt-1"
-                                            />
-                                          </div>
-                                          <div>
-                                            <Label htmlFor="phone" className="text-xs font-medium text-gray-700">Phone</Label>
-                                            <Input
-                                              id="phone"
-                                              placeholder="+31 6 12345678"
-                                              value={inlineContactData.phone}
-                                              onChange={(e) => setInlineContactData({
-                                                ...inlineContactData,
-                                                phone: e.target.value
-                                              })}
-                                              className="mt-1"
-                                            />
-                                          </div>
-                                        </div>
-                                        
-                                        <div className="flex justify-end gap-2">
-                                          <Button
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => {
-                                              setShowInlineContactForm(null);
-                                              setInlineContactData({
-                                                first_name: '',
-                                                last_name: '',
-                                                email: '',
-                                                job_title: '',
-                                                phone: ''
-                                              });
-                                            }}
-                                          >
-                                            Cancel
-                                          </Button>
-                                          <Button
-                                            size="sm"
-                                            onClick={() => {
-                                              if (!inlineContactData.email.trim()) {
-                                                toast({
-                                                  title: "Error",
-                                                  description: "Email is required",
-                                                  variant: "destructive",
-                                                });
-                                                return;
-                                              }
-                                              createInlineContactMutation.mutate({
-                                                contactData: inlineContactData,
-                                                entityId: entity.id
-                                              });
-                                            }}
-                                            disabled={createInlineContactMutation.isPending || !inlineContactData.email.trim()}
-                                          >
-                                            {createInlineContactMutation.isPending ? 'Adding...' : 'Add Contact'}
-                                          </Button>
-                                        </div>
-                                      </div>
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                  )}
                 </div>
-              </div>
-            )}
+              ))}
+            </div>
           </div>
-        )}
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="h-full flex flex-col">
+      {/* Tab Navigation */}
+      <div className="flex border-b border-gray-200 mb-4">
+        {tabButtons.map((tab) => {
+          const Icon = tab.icon;
+          const isActive = selectedTab === tab.id;
+          
+          return (
+            <button
+              key={tab.id}
+              onClick={() => setSelectedTab(tab.id as any)}
+              className={`flex items-center gap-2 px-4 py-3 border-b-2 font-medium text-sm transition-colors ${
+                isActive
+                  ? 'border-blue-500 text-blue-600'
+                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+              }`}
+            >
+              <Icon className="h-4 w-4" />
+              {tab.label}
+              {tab.count !== undefined && tab.count > 0 && (
+                <span className="bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
+                  {tab.count}
+                </span>
+              )}
+            </button>
+          );
+        })}
+      </div>
+
+      {/* Tab Content */}
+      <div className="flex-1 overflow-auto">
+        {renderTabContent()}
       </div>
     </div>
   );
