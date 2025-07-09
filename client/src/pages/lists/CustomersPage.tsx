@@ -168,6 +168,7 @@ export default function CustomersPageClean() {
   const [isEditingList, setIsEditingList] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
+  const [showFilterModal, setShowFilterModal] = useState(false);
   const [activeFilters, setActiveFilters] = useState({
     industry: [] as string[],
     size: [] as string[],
@@ -601,7 +602,7 @@ export default function CustomersPageClean() {
                       <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                     </svg>
                     <span className="text-gray-700">
-                      {activeView ? activeView.name : 'Select a segment view'}
+                      {activeView ? activeView.name : 'Segment View'}
                     </span>
                     <svg 
                       xmlns="http://www.w3.org/2000/svg" 
@@ -652,148 +653,33 @@ export default function CustomersPageClean() {
                   )}
                 </div>
                 
-                {/* Filter buttons next to the segment views dropdown */}
-                <div className="flex items-center gap-2 ml-3">
-                  {/* Status Filter */}
-                  <div className="relative">
-                    <button 
-                      className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
-                        activeFilters.status.length > 0 
-                          ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
-                          : 'border-gray-300 text-gray-700'
-                      }`}
-                      onClick={() => setShowStatusFilter(!showStatusFilter)}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                      </svg>
-                      <span>Status {activeFilters.status.length > 0 && `(${activeFilters.status.length})`}</span>
-                    </button>
-                    
-                    {showStatusFilter && (
-                      <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                        <div className="py-1">
-                          {['active', 'inactive', 'pending'].map((status) => (
-                            <label key={status} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                className="h-4 w-4 rounded border-gray-300 mr-2"
-                                checked={activeFilters.status.includes(status)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setActiveFilters(prev => ({
-                                      ...prev,
-                                      status: [...prev.status, status]
-                                    }));
-                                  } else {
-                                    setActiveFilters(prev => ({
-                                      ...prev,
-                                      status: prev.status.filter(s => s !== status)
-                                    }));
-                                  }
-                                }}
-                              />
-                              <span className="text-sm capitalize">{status}</span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                {/* Simplified Filter Component */}
+                <div className="flex items-center gap-2 ml-3 relative">
+                  <button 
+                    className="flex items-center px-3 h-8 border border-[#E6E7F1] rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                    onClick={() => setShowFilterModal(!showFilterModal)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    <span className="font-medium">Filter</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </button>
                   
-                  {/* Type Filter */}
-                  <div className="relative">
-                    <button 
-                      className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
-                        activeFilters.size.length > 0 
-                          ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
-                          : 'border-gray-300 text-gray-700'
-                      }`}
-                      onClick={() => setShowTypeFilter(!showTypeFilter)}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                      </svg>
-                      <span>Size {activeFilters.size.length > 0 && `(${activeFilters.size.length})`}</span>
-                    </button>
-                    
-                    {showTypeFilter && (
-                      <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                        <div className="py-1">
-                          {['small', 'medium', 'large', 'enterprise'].map((size) => (
-                            <label key={size} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                className="h-4 w-4 rounded border-gray-300 mr-2"
-                                checked={activeFilters.size.includes(size)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setActiveFilters(prev => ({
-                                      ...prev,
-                                      size: [...prev.size, size]
-                                    }));
-                                  } else {
-                                    setActiveFilters(prev => ({
-                                      ...prev,
-                                      size: prev.size.filter(s => s !== size)
-                                    }));
-                                  }
-                                }}
-                              />
-                              <span className="text-sm capitalize">{size}</span>
-                            </label>
-                          ))}
-                        </div>
+                  {/* Simplified Filter Modal */}
+                  {showFilterModal && (
+                    <div className="absolute top-full left-0 mt-1 w-[320px] bg-white border border-[#E6E7F1] rounded-lg shadow-lg z-50 p-4">
+                      <div className="text-center py-4">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-2 text-gray-400">
+                          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        <p className="text-sm text-gray-600 mb-2">Use Segment Views for filtering</p>
+                        <p className="text-xs text-gray-500">Create and manage your filter combinations through the Segment View dropdown above.</p>
                       </div>
-                    )}
-                  </div>
-                  
-                  {/* Industry Filter */}
-                  <div className="relative">
-                    <button 
-                      className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
-                        activeFilters.industry.length > 0 
-                          ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
-                          : 'border-gray-300 text-gray-700'
-                      }`}
-                      onClick={() => setShowIndustryFilter(!showIndustryFilter)}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                      </svg>
-                      <span>Industry {activeFilters.industry.length > 0 && `(${activeFilters.industry.length})`}</span>
-                    </button>
-                    
-                    {showIndustryFilter && (
-                      <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                        <div className="py-1">
-                          {['Technology', 'Insurance', 'Healthcare', 'Finance', 'Manufacturing', 'Retail'].map((industry) => (
-                            <label key={industry} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
-                              <input
-                                type="checkbox"
-                                className="h-4 w-4 rounded border-gray-300 mr-2"
-                                checked={activeFilters.industry.includes(industry)}
-                                onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setActiveFilters(prev => ({
-                                      ...prev,
-                                      industry: [...prev.industry, industry]
-                                    }));
-                                  } else {
-                                    setActiveFilters(prev => ({
-                                      ...prev,
-                                      industry: prev.industry.filter(i => i !== industry)
-                                    }));
-                                  }
-                                }}
-                              />
-                              <span className="text-sm">{industry}</span>
-                            </label>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Save Segment View button - appears when filters are applied */}

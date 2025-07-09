@@ -1092,7 +1092,7 @@ function PartnersTable() {
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
                     <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                   </svg>
-                  <span className="text-gray-700">{activeView ? activeView.name : "Select a segment view"}</span>
+                  <span className="text-gray-700">{activeView ? activeView.name : "Segment View"}</span>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     width="14" 
@@ -1188,144 +1188,15 @@ function PartnersTable() {
                   </svg>
                 </button>
                 
-                {/* Inline Filter Dropdown */}
+                {/* Simplified Filter Modal - Only contains segment view message */}
                 {showFilterModal && (
-                  <div className="absolute top-full left-0 mt-1 w-[520px] bg-white border border-[#E6E7F1] rounded-lg shadow-lg z-50 p-4">
-                    {/* Filter Rows */}
-                    <div className="space-y-3">
-                      {/* First Filter Row */}
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="text-gray-600 w-12 text-xs">Where</span>
-                        <Select value="status" disabled>
-                          <SelectTrigger className="w-20 h-8 text-xs border-[#E6E7F1]">
-                            <SelectValue>Status</SelectValue>
-                          </SelectTrigger>
-                        </Select>
-                        <Select value="equal_to" disabled>
-                          <SelectTrigger className="w-20 h-8 text-xs border-[#E6E7F1]">
-                            <SelectValue>equal to</SelectValue>
-                          </SelectTrigger>
-                        </Select>
-                        <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                          <SelectTrigger className="flex-1 h-8 text-xs border-[#E6E7F1]">
-                            <SelectValue placeholder="Select..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All</SelectItem>
-                            {uniqueStatuses.map(status => (
-                              <SelectItem key={status} value={status}>{status}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      {/* Second Filter Row */}
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="text-gray-600 w-12 text-xs">And</span>
-                        <Select value="region" disabled>
-                          <SelectTrigger className="w-20 h-8 text-xs border-[#E6E7F1]">
-                            <SelectValue>Region</SelectValue>
-                          </SelectTrigger>
-                        </Select>
-                        <Select value="equal_to" disabled>
-                          <SelectTrigger className="w-20 h-8 text-xs border-[#E6E7F1]">
-                            <SelectValue>equal to</SelectValue>
-                          </SelectTrigger>
-                        </Select>
-                        <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
-                          <SelectTrigger className="flex-1 h-8 text-xs border-[#E6E7F1]">
-                            <SelectValue placeholder="Select..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All</SelectItem>
-                            {uniqueRegions.map(region => (
-                              <SelectItem key={region} value={region}>{region}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      {/* Third Filter Row */}
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="text-gray-600 w-12 text-xs">And</span>
-                        <Select value="location" disabled>
-                          <SelectTrigger className="w-20 h-8 text-xs border-[#E6E7F1]">
-                            <SelectValue>Location</SelectValue>
-                          </SelectTrigger>
-                        </Select>
-                        <Select value="equal_to" disabled>
-                          <SelectTrigger className="w-20 h-8 text-xs border-[#E6E7F1]">
-                            <SelectValue>equal to</SelectValue>
-                          </SelectTrigger>
-                        </Select>
-                        <Select value={selectedActualIndustry} onValueChange={setSelectedActualIndustry}>
-                          <SelectTrigger className="flex-1 h-8 text-xs border-[#E6E7F1]">
-                            <SelectValue placeholder="Select..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All</SelectItem>
-                            {uniqueLocations.map(location => (
-                              <SelectItem key={location} value={location}>{location}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      
-                      {/* Fourth Filter Row */}
-                      <div className="flex items-center gap-2 text-sm">
-                        <span className="text-gray-600 w-12 text-xs">And</span>
-                        <Select value="size" disabled>
-                          <SelectTrigger className="w-20 h-8 text-xs border-[#E6E7F1]">
-                            <SelectValue>Size</SelectValue>
-                          </SelectTrigger>
-                        </Select>
-                        <Select value="equal_to" disabled>
-                          <SelectTrigger className="w-20 h-8 text-xs border-[#E6E7F1]">
-                            <SelectValue>equal to</SelectValue>
-                          </SelectTrigger>
-                        </Select>
-                        <Select value={selectedSize} onValueChange={setSelectedSize}>
-                          <SelectTrigger className="flex-1 h-8 text-xs border-[#E6E7F1]">
-                            <SelectValue placeholder="Select..." />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="all">All</SelectItem>
-                            <SelectItem value="Small">Small</SelectItem>
-                            <SelectItem value="Medium">Medium</SelectItem>
-                            <SelectItem value="Large">Large</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
-                    
-                    {/* Filter Actions */}
-                    <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
-                      <div className="flex items-center gap-3">
-                        <button 
-                          className="text-xs text-red-600 hover:text-red-700 flex items-center gap-1"
-                          onClick={() => {
-                            setSelectedStatus('all');
-                            setSelectedIndustry('all');
-                            setSelectedActualIndustry('all');
-                            setSelectedSize('all');
-                          }}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="18" y1="6" x2="6" y2="18"></line>
-                            <line x1="6" y1="6" x2="18" y2="18"></line>
-                          </svg>
-                          Clear
-                        </button>
-                        <button 
-                          className="text-xs text-green-600 hover:text-green-700 flex items-center gap-1"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                          </svg>
-                          Add filter
-                        </button>
-                      </div>
+                  <div className="absolute top-full left-0 mt-1 w-[320px] bg-white border border-[#E6E7F1] rounded-lg shadow-lg z-50 p-4">
+                    <div className="text-center py-4">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-2 text-gray-400">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                      </svg>
+                      <p className="text-sm text-gray-600 mb-2">Use Segment Views for filtering</p>
+                      <p className="text-xs text-gray-500">Create and manage your filter combinations through the Segment View dropdown above.</p>
                     </div>
                   </div>
                 )}
