@@ -170,6 +170,7 @@ Each environment maintains its own data isolation while sharing the same applica
 
 ## Changelog
 - June 14, 2025: Initial setup
+- July 09, 2025: Completed "Add Contact" functionality implementation across campaign recipient selector - added contact creation buttons to both "All Lists" and "Missing Contacts" tabs for customer drill-down within opportunities, enabling users to add contacts directly from the campaign builder interface with comprehensive form validation and immediate recipient addition
 - June 14, 2025: Completed tabbed campaigns interface with Templates and Campaigns tabs, updated entity selection styling
 - June 14, 2025: Streamlined Entity Upload Flow, AI-powered code generation for transformation scripts
 - June 15, 2025: Cleaned legacy template flows, improved save flow, added AI content blocks, campaign wizard redesign
