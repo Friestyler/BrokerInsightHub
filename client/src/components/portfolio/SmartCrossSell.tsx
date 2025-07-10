@@ -339,9 +339,9 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
               {/* Spacer to push button to bottom */}
               <div className="flex-1 min-h-[60px]"></div>
             </div>
-            <div className="pt-3">
+            <div className="pt-3 flex justify-center">
               <Button 
-                className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white font-medium rounded-lg h-10 justify-between px-4"
+                className="bg-[#5567E5] hover:bg-[#4556D4] text-white font-medium rounded-lg h-10 justify-between px-4 min-w-[180px]"
               >
                 <div className="flex items-center">
                   <Play className="w-4 h-4 mr-2" />
@@ -388,9 +388,9 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
                 </div>
               </div>
             </div>
-            <div className="pt-3">
+            <div className="pt-3 flex justify-center">
               <Button 
-                className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white font-medium rounded-lg h-10 justify-between px-4"
+                className="bg-[#5567E5] hover:bg-[#4556D4] text-white font-medium rounded-lg h-10 justify-between px-4 min-w-[180px]"
               >
                 <div className="flex items-center">
                   <Target className="w-4 h-4 mr-2" />
