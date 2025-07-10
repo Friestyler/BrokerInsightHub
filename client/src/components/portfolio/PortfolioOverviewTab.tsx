@@ -657,9 +657,12 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                   </div>
                 </div>
                 
-                {/* Customer Coverage Info */}
+                {/* Coverage Info - Different logic for customers vs partners */}
                 <p className="text-sm text-gray-600 mb-2">
-                  {uniqueCustomersInCategory} of {totalCustomers} customers
+                  {entityType === 'customers' 
+                    ? `${category.productsCovered} of ${category.totalProducts} products`
+                    : `${uniqueCustomersInCategory} of ${totalCustomers} customers`
+                  }
                 </p>
                 
                 {/* Current Value */}

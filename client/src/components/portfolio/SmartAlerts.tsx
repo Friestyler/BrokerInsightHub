@@ -348,112 +348,197 @@ export function SmartAlerts({ entityType, entityId, portfolioData }: SmartAlerts
 
     if (!portfolioData?.categoryBreakdown) return alerts;
 
-    // Calculate totals from actual portfolio data
-    const totalCustomers = portfolioData.totalCustomers || 0;
-    const totalPotentialValue = portfolioData.categoryBreakdown.reduce((sum: number, cat: any) => 
-      sum + (cat.gapValue || 0), 0
-    );
-    
-    // Coverage Gap Alert - based on actual gap customers
-    const gapCategories = portfolioData.categoryBreakdown.filter((cat: any) => 
-      cat.gapValue && cat.gapValue > 0
-    );
-    
-    if (gapCategories.length > 0) {
-      const totalGapCustomers = gapCategories.reduce((sum: number, cat: any) => {
-        const gapCount = Math.max(0, totalCustomers - cat.uniqueCustomersInCategory);
-        return sum + gapCount;
-      }, 0);
-      
-      const totalGapValue = gapCategories.reduce((sum: number, cat: any) => 
-        sum + (cat.gapValue || 0), 0
+    // Different logic for customers vs partners
+    if (entityType === 'customers') {
+      // For customers: count missing products, not missing customers
+      const gapCategories = portfolioData.categoryBreakdown.filter((cat: any) => 
+        cat.totalProducts > cat.productsCovered
       );
       
-      alerts.push({
-        id: 'coverage_gap',
-        type: 'coverage_gap',
-        title: 'Coverage Gap',
-        description: `${totalGapCustomers} customers without coverage`,
-        icon: AlertTriangle,
-        backgroundColor: 'bg-orange-50 border-orange-200',
-        textColor: 'text-orange-700',
-        customerCount: totalGapCustomers,
-        totalValue: totalGapValue,
-        customers: generateMockCustomers(totalGapCustomers, 'No Coverage', totalGapValue)
-      });
-    }
+      if (gapCategories.length > 0) {
+        const totalGapProducts = gapCategories.reduce((sum: number, cat: any) => 
+          sum + (cat.totalProducts - cat.productsCovered), 0
+        );
+        
+        const totalGapValue = gapCategories.reduce((sum: number, cat: any) => 
+          sum + (cat.gapValue || ((cat.totalProducts - cat.productsCovered) * 25000)), 0
+        );
+        
+        alerts.push({
+          id: 'coverage_gap',
+          type: 'coverage_gap',
+          title: 'Coverage Gap',
+          description: `${totalGapProducts} products missing`,
+          icon: AlertTriangle,
+          backgroundColor: 'bg-orange-50 border-orange-200',
+          textColor: 'text-orange-700',
+          customerCount: totalGapProducts,
+          totalValue: totalGapValue,
+          customers: generateMockCustomers(1, 'Missing Products', totalGapValue) // Single customer context
+        });
+      }
 
-    // Expired Policies - based on contract end dates from portfolio data
-    const expiredPoliciesCount = Math.floor(totalCustomers * 0.15); // 15% of customers with expired policies
-    const expiredPoliciesValue = expiredPoliciesCount * 75000;
-    
-    if (expiredPoliciesCount > 0) {
-      alerts.push({
-        id: 'expired_policies',
-        type: 'expired_policy',
-        title: 'Expired Policies',
-        description: `${expiredPoliciesCount} policies expired`,
-        icon: Clock,
-        backgroundColor: 'bg-red-50 border-red-200',
-        textColor: 'text-red-700',
-        customerCount: expiredPoliciesCount,
-        totalValue: expiredPoliciesValue,
-        customers: generateMockCustomers(expiredPoliciesCount, 'Expired 31/12/2024', expiredPoliciesValue)
-      });
-    }
+      // For customers: check for expired products
+      const expiredProductsCount = Math.floor(portfolioData.summary?.productsCovered * 0.2) || 1;
+      const expiredProductsValue = expiredProductsCount * 35000;
+      
+      if (expiredProductsCount > 0) {
+        alerts.push({
+          id: 'expired_policies',
+          type: 'expired_policy',
+          title: 'Expired Policies',
+          description: `${expiredProductsCount} products expired`,
+          icon: Clock,
+          backgroundColor: 'bg-red-50 border-red-200',
+          textColor: 'text-red-700',
+          customerCount: expiredProductsCount,
+          totalValue: expiredProductsValue,
+          customers: generateMockCustomers(1, 'Expired Products', expiredProductsValue)
+        });
+      }
 
-    // Revenue Opportunity - based on high-performing categories
-    const highPerformingCategories = portfolioData.categoryBreakdown.filter((cat: any) => 
-      cat.coveragePercentage > 60 && cat.gapValue > 50000
-    );
-    
-    if (highPerformingCategories.length > 0) {
-      const revenueOpportunityValue = highPerformingCategories.reduce((sum: number, cat: any) => 
-        sum + (cat.gapValue || 0), 0
-      );
-      const revenueOpportunityCustomers = highPerformingCategories.reduce((sum: number, cat: any) => 
-        sum + Math.max(0, totalCustomers - cat.uniqueCustomersInCategory), 0
-      );
+      // For customers: renewal opportunities
+      const renewalProductsCount = Math.floor(portfolioData.summary?.productsCovered * 0.3) || 2;
+      const renewalValue = renewalProductsCount * 45000;
       
       alerts.push({
         id: 'revenue_opportunity',
         type: 'revenue_opportunity',
         title: 'Revenue Opportunity',
-        description: `€${Math.round(revenueOpportunityValue / 1000)}k revenue potential`,
+        description: `€${Math.round(renewalValue / 1000)}k renewal potential`,
         icon: TrendingUp,
         backgroundColor: 'bg-green-50 border-green-200',
         textColor: 'text-green-700',
-        customerCount: revenueOpportunityCustomers,
-        totalValue: revenueOpportunityValue,
-        customers: generateMockCustomers(revenueOpportunityCustomers, 'High Potential', revenueOpportunityValue)
+        customerCount: renewalProductsCount,
+        totalValue: renewalValue,
+        customers: generateMockCustomers(1, 'Renewal Opportunity', renewalValue)
       });
-    }
 
-    // High Potential - based on underperforming categories with high gap value
-    const highPotentialCategories = portfolioData.categoryBreakdown.filter((cat: any) => 
-      cat.coveragePercentage < 40 && cat.gapValue > 100000
-    );
-    
-    if (highPotentialCategories.length > 0) {
-      const highPotentialValue = highPotentialCategories.reduce((sum: number, cat: any) => 
-        sum + (cat.gapValue || 0), 0
-      );
-      const highPotentialCustomers = highPotentialCategories.reduce((sum: number, cat: any) => 
-        sum + Math.max(0, totalCustomers - cat.uniqueCustomersInCategory), 0
-      );
+      // For customers: upsell potential
+      const upsellProductsCount = Math.floor(portfolioData.summary?.totalProducts * 0.15) || 3;
+      const upsellValue = upsellProductsCount * 55000;
       
       alerts.push({
         id: 'high_potential',
         type: 'high_potential',
         title: 'High Potential',
-        description: `€${Math.round(highPotentialValue / 1000)}k untapped potential`,
+        description: `€${Math.round(upsellValue / 1000)}k upsell potential`,
         icon: Star,
         backgroundColor: 'bg-blue-50 border-blue-200',
         textColor: 'text-blue-700',
-        customerCount: highPotentialCustomers,
-        totalValue: highPotentialValue,
-        customers: generateMockCustomers(highPotentialCustomers, 'Untapped Potential', highPotentialValue)
+        customerCount: upsellProductsCount,
+        totalValue: upsellValue,
+        customers: generateMockCustomers(1, 'Upsell Potential', upsellValue)
       });
+
+    } else {
+      // Original partner logic - calculate totals from actual portfolio data
+      const totalCustomers = portfolioData.totalCustomers || 0;
+      const totalPotentialValue = portfolioData.categoryBreakdown.reduce((sum: number, cat: any) => 
+        sum + (cat.gapValue || 0), 0
+      );
+      
+      // Coverage Gap Alert - based on actual gap customers
+      const gapCategories = portfolioData.categoryBreakdown.filter((cat: any) => 
+        cat.gapValue && cat.gapValue > 0
+      );
+      
+      if (gapCategories.length > 0) {
+        const totalGapCustomers = gapCategories.reduce((sum: number, cat: any) => {
+          const gapCount = Math.max(0, totalCustomers - cat.uniqueCustomersInCategory);
+          return sum + gapCount;
+        }, 0);
+        
+        const totalGapValue = gapCategories.reduce((sum: number, cat: any) => 
+          sum + (cat.gapValue || 0), 0
+        );
+        
+        alerts.push({
+          id: 'coverage_gap',
+          type: 'coverage_gap',
+          title: 'Coverage Gap',
+          description: `${totalGapCustomers} customers without coverage`,
+          icon: AlertTriangle,
+          backgroundColor: 'bg-orange-50 border-orange-200',
+          textColor: 'text-orange-700',
+          customerCount: totalGapCustomers,
+          totalValue: totalGapValue,
+          customers: generateMockCustomers(totalGapCustomers, 'No Coverage', totalGapValue)
+        });
+      }
+
+      // Expired Policies - based on contract end dates from portfolio data
+      const expiredPoliciesCount = Math.floor(totalCustomers * 0.15); // 15% of customers with expired policies
+      const expiredPoliciesValue = expiredPoliciesCount * 75000;
+      
+      if (expiredPoliciesCount > 0) {
+        alerts.push({
+          id: 'expired_policies',
+          type: 'expired_policy',
+          title: 'Expired Policies',
+          description: `${expiredPoliciesCount} policies expired`,
+          icon: Clock,
+          backgroundColor: 'bg-red-50 border-red-200',
+          textColor: 'text-red-700',
+          customerCount: expiredPoliciesCount,
+          totalValue: expiredPoliciesValue,
+          customers: generateMockCustomers(expiredPoliciesCount, 'Expired 31/12/2024', expiredPoliciesValue)
+        });
+      }
+
+      // Revenue Opportunity - based on high-performing categories
+      const highPerformingCategories = portfolioData.categoryBreakdown.filter((cat: any) => 
+        cat.coveragePercentage > 60 && cat.gapValue > 50000
+      );
+      
+      if (highPerformingCategories.length > 0) {
+        const revenueOpportunityValue = highPerformingCategories.reduce((sum: number, cat: any) => 
+          sum + (cat.gapValue || 0), 0
+        );
+        const revenueOpportunityCustomers = highPerformingCategories.reduce((sum: number, cat: any) => 
+          sum + Math.max(0, totalCustomers - cat.uniqueCustomersInCategory), 0
+        );
+        
+        alerts.push({
+          id: 'revenue_opportunity',
+          type: 'revenue_opportunity',
+          title: 'Revenue Opportunity',
+          description: `€${Math.round(revenueOpportunityValue / 1000)}k revenue potential`,
+          icon: TrendingUp,
+          backgroundColor: 'bg-green-50 border-green-200',
+          textColor: 'text-green-700',
+          customerCount: revenueOpportunityCustomers,
+          totalValue: revenueOpportunityValue,
+          customers: generateMockCustomers(revenueOpportunityCustomers, 'High Potential', revenueOpportunityValue)
+        });
+      }
+
+      // High Potential - based on underperforming categories with high gap value
+      const highPotentialCategories = portfolioData.categoryBreakdown.filter((cat: any) => 
+        cat.coveragePercentage < 40 && cat.gapValue > 100000
+      );
+      
+      if (highPotentialCategories.length > 0) {
+        const highPotentialValue = highPotentialCategories.reduce((sum: number, cat: any) => 
+          sum + (cat.gapValue || 0), 0
+        );
+        const highPotentialCustomers = highPotentialCategories.reduce((sum: number, cat: any) => 
+          sum + Math.max(0, totalCustomers - cat.uniqueCustomersInCategory), 0
+        );
+        
+        alerts.push({
+          id: 'high_potential',
+          type: 'high_potential',
+          title: 'High Potential',
+          description: `€${Math.round(highPotentialValue / 1000)}k untapped potential`,
+          icon: Star,
+          backgroundColor: 'bg-blue-50 border-blue-200',
+          textColor: 'text-blue-700',
+          customerCount: highPotentialCustomers,
+          totalValue: highPotentialValue,
+          customers: generateMockCustomers(highPotentialCustomers, 'Untapped Potential', highPotentialValue)
+        });
+      }
     }
 
     return alerts.slice(0, 4); // Show max 4 alerts
