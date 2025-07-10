@@ -361,7 +361,7 @@ export function SmartAlerts({ entityType, entityId, portfolioData }: SmartAlerts
       alerts.push({
         id: 'coverage_gap',
         type: 'coverage_gap',
-        title: 'Coverage Gap Alert',
+        title: 'Coverage Alert',
         description: `${totalGapCustomers} customers without coverage`,
         icon: AlertTriangle,
         backgroundColor: 'bg-orange-50 border-orange-200',
