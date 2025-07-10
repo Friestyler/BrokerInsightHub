@@ -5153,6 +5153,52 @@ Return as JSON in this exact format:
     }
   });
 
+  // All Product Assignments API endpoint (for dashboard filtering)
+  app.get('/api/degoudse/product-assignments-all', async (req, res) => {
+    try {
+      const envPool = pool;
+      
+      const result = await envPool.query(`
+        SELECT DISTINCT
+          pt.id as "productId",
+          pt.name as "productName",
+          pt.description as "productDescription", 
+          pt.provider,
+          pt.average_price as "averagePrice",
+          pt.premium_value as "premiumValue",
+          pt.premium_percentage as "premiumPercentage",
+          pt.discount_percentage as "discountPercentage",
+          pt.contract_start_date as "contractStartDate",
+          pt.contract_end_date as "contractEndDate",
+          -- Category info
+          c.name as "categoryName",
+          c.color as "categoryColor",
+          -- Parent category info for main category grouping
+          parent_cat.name as "parentCategoryName",
+          parent_cat.color as "parentCategoryColor",
+          -- Assignment counts
+          COUNT(DISTINCT cpa.customer_id) as "customersCount",
+          SUM(pt.premium_value) as "totalValue"
+        FROM degoudse.product_templates pt
+        LEFT JOIN degoudse.customer_product_assignments cpa ON pt.id = cpa.product_template_id AND cpa.is_active = true
+        LEFT JOIN degoudse.categories c ON pt.category_id = c.id
+        LEFT JOIN degoudse.categories parent_cat ON c.parent_id = parent_cat.id OR (c.parent_id IS NULL AND c.id = parent_cat.id)
+        GROUP BY 
+          pt.id, pt.name, pt.description, pt.provider, pt.average_price, 
+          pt.premium_value, pt.premium_percentage, pt.discount_percentage,
+          pt.contract_start_date, pt.contract_end_date,
+          c.name, c.color, parent_cat.name, parent_cat.color
+        ORDER BY COUNT(DISTINCT cpa.customer_id) DESC, pt.name ASC
+      `);
+      
+      console.log(`Returning ${result.rows.length} product assignments from all categories`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching all product assignments:', error);
+      res.status(500).json({ error: 'Failed to fetch product assignments' });
+    }
+  });
+
   // Partner Product Assignments API endpoints
 
   // Get Partner Product Assignments

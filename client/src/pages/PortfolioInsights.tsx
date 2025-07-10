@@ -142,6 +142,8 @@ function getBenchmarkIcon(rate: number, benchmark: number): string {
 function DashboardSection() {
   const [selectedProduct, setSelectedProduct] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [selectedCategoryForProducts, setSelectedCategoryForProducts] = useState<string | null>(null);
+  const [showProductDetails, setShowProductDetails] = useState(false);
 
   // Fetch aggregated portfolio data
   const { data: aggregatedPortfolioData, isLoading: isAggregatedLoading } = useQuery({
@@ -155,6 +157,12 @@ function DashboardSection() {
   const { data: opportunities = [] } = useQuery({ queryKey: ['/api/opportunities'] });
   const { data: products = [] } = useQuery({ queryKey: ['/api/products'] });
   const { data: categories = [] } = useQuery({ queryKey: ['/api/product-categories'] });
+  
+  // Fetch product assignments for detailed view when category is selected
+  const { data: productAssignments = [] } = useQuery({ 
+    queryKey: ['/api/product-assignments-all'],
+    enabled: showProductDetails 
+  });
 
   // Calculate basic data for category analysis
   const totalCustomers = Array.isArray((customers as any)?.data) ? (customers as any).data.length : 0;
@@ -249,7 +257,34 @@ function DashboardSection() {
     }).filter(cat => cat.name); // Show all categories with names
   }, [categories, products, totalCustomers]);
 
-  // Filter logic for product categories
+  // Filter products based on selected category
+  const filteredProductsForCategory = useMemo(() => {
+    if (!selectedCategoryForProducts || !Array.isArray(products)) return [];
+    
+    return (products as any[]).filter(product => 
+      product.categoryId === selectedCategoryForProducts || 
+      product.category === selectedCategoryForProducts ||
+      product.categoryName === selectedCategoryForProducts ||
+      product.parent_category_name === selectedCategoryForProducts ||
+      // Map specific categories to parent categories
+      (selectedCategoryForProducts === 'Non-Life' && (
+        product.parent_category_name === 'Business' ||
+        product.parent_category_name === 'Health' ||
+        product.parent_category_name === 'Mobility' ||
+        product.parent_category_name === 'Property & Liability'
+      )) ||
+      (selectedCategoryForProducts === 'Life' && (
+        product.parent_category_name === 'Life' ||
+        product.category?.toLowerCase().includes('life') ||
+        product.category?.toLowerCase().includes('death') ||
+        product.category?.toLowerCase().includes('pension')
+      )) ||
+      (selectedCategoryForProducts === 'Services' && (
+        product.parent_category_name === 'Travel' ||
+        product.category?.toLowerCase().includes('service')
+      ))
+    );
+  }, [selectedCategoryForProducts, products]);
 
   // Filter products based on search and selected product
   const filteredProducts = productCategories.filter(product => {
@@ -257,6 +292,12 @@ function DashboardSection() {
     const matchesFilter = selectedProduct === 'all' || product.name === selectedProduct;
     return matchesSearch && matchesFilter;
   });
+
+  // Handle category card click
+  const handleCategoryClick = (categoryName: string) => {
+    setSelectedCategoryForProducts(categoryName);
+    setShowProductDetails(true);
+  };
 
   return (
     <div className="space-y-6">
@@ -337,7 +378,11 @@ function DashboardSection() {
         <CardContent>
           <div className="space-y-3">
             {filteredProducts.map((product, index) => (
-              <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+              <div 
+                key={index} 
+                className="flex items-center justify-between p-3 border rounded-lg hover:shadow-md transition-shadow cursor-pointer hover:border-[#5567E5]" 
+                onClick={() => handleCategoryClick(product.name)}
+              >
                 <div className="flex items-center space-x-3">
                   <div 
                     className="w-3 h-3 rounded-full flex-shrink-0" 
@@ -357,6 +402,88 @@ function DashboardSection() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Product Details Section - Show when category is selected */}
+      {showProductDetails && selectedCategoryForProducts && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center space-x-2">
+                  <span>Products in {selectedCategoryForProducts}</span>
+                  <Badge variant="outline">{filteredProductsForCategory.length} products</Badge>
+                </CardTitle>
+                <p className="text-sm text-gray-600 mt-1">Product details and assignments</p>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={() => {
+                  setShowProductDetails(false);
+                  setSelectedCategoryForProducts(null);
+                }}
+              >
+                <X className="h-4 w-4 mr-1" />
+                Close
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {filteredProductsForCategory.length > 0 ? (
+              <div className="space-y-3">
+                {filteredProductsForCategory.map((product: any, index: number) => (
+                  <div key={product.id || index} className="border rounded-lg p-4 hover:shadow-sm transition-shadow">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h4 className="font-medium text-gray-900">{product.name}</h4>
+                          {product.provider && (
+                            <Badge variant="outline" className="text-xs">
+                              {product.provider}
+                            </Badge>
+                          )}
+                        </div>
+                        {product.description && (
+                          <p className="text-sm text-gray-600 mb-2">{product.description}</p>
+                        )}
+                        <div className="flex items-center space-x-4 text-xs text-gray-500">
+                          {product.averagePrice && (
+                            <span>Price: €{typeof product.averagePrice === 'string' ? product.averagePrice : product.averagePrice.toFixed(2)}</span>
+                          )}
+                          {product.premiumPercentage && (
+                            <span>Premium: {product.premiumPercentage}%</span>
+                          )}
+                          {product.contractStartDate && (
+                            <span>Contract: {new Date(product.contractStartDate).toLocaleDateString()}</span>
+                          )}
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-medium text-gray-900">
+                          {product.customersCount || product.customers_count || 0} customers
+                        </div>
+                        {product.totalValue && (
+                          <div className="text-xs text-gray-500">
+                            €{typeof product.totalValue === 'string' 
+                              ? parseFloat(product.totalValue.replace(/[^0-9.-]+/g, '')).toLocaleString() 
+                              : product.totalValue.toLocaleString()
+                            }
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p>No products found in this category</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
