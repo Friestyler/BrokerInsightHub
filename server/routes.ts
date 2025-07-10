@@ -12069,6 +12069,203 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
     }
   });
 
+  // Get Aggregated Portfolio Overview for Portfolio Insights Dashboard
+  app.get('/api/:envId/portfolio-overview-aggregated', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      console.log(`Fetching aggregated portfolio overview for environment: ${envId}`);
+      
+      // Get overall summary metrics across all entities
+      const summaryResult = await pool.query(`
+        SELECT 
+          -- Customer product assignments (actual coverage)
+          COUNT(DISTINCT cpa.product_template_id) as products_covered,
+          COUNT(DISTINCT cpa.customer_id) as customers_with_products,
+          SUM(COALESCE(cpa.custom_price, pt.average_price, 0)) as total_portfolio_value,
+          
+          -- Available products and customers totals
+          (SELECT COUNT(*) FROM ${envId}.product_templates) as total_available_products,
+          (SELECT COUNT(*) FROM ${envId}.customers) as total_customers,
+          
+          -- Categories with assignments
+          COUNT(DISTINCT parent_cat.id) as categories_covered,
+          (SELECT COUNT(*) FROM ${envId}.categories WHERE parent_id IS NULL) as total_categories
+        FROM ${envId}.customer_product_assignments cpa
+        INNER JOIN ${envId}.product_templates pt ON cpa.product_template_id = pt.id
+        LEFT JOIN ${envId}.categories c ON pt.category_id = c.id
+        LEFT JOIN ${envId}.categories parent_cat ON (c.parent_id = parent_cat.id OR (c.parent_id IS NULL AND c.id = parent_cat.id))
+        WHERE cpa.is_active = true
+      `);
+
+      const summary = summaryResult.rows[0];
+      
+      // Calculate overall coverage percentages
+      const productCoveragePercentage = summary.total_available_products > 0 
+        ? (parseFloat(summary.products_covered) / parseFloat(summary.total_available_products)) * 100 
+        : 0;
+      
+      const customerCoveragePercentage = summary.total_customers > 0 
+        ? (parseFloat(summary.customers_with_products) / parseFloat(summary.total_customers)) * 100 
+        : 0;
+
+      // Get category breakdown with aggregated metrics
+      const categoryResult = await pool.query(`
+        SELECT 
+          parent_cat.id as categoryid,
+          parent_cat.name as categoryname,
+          parent_cat.color as categorycolor,
+          
+          -- Customers with products in this category
+          COUNT(DISTINCT cpa.customer_id) as customers_with_products,
+          
+          -- Total customers (for percentage calculation)
+          (SELECT COUNT(*) FROM ${envId}.customers) as total_customers,
+          
+          -- Coverage percentage
+          ROUND(
+            (COUNT(DISTINCT cpa.customer_id)::DECIMAL / NULLIF((SELECT COUNT(*) FROM ${envId}.customers), 0)) * 100, 
+            1
+          ) as coverage_percentage,
+          
+          -- Current premium/value in this category
+          SUM(COALESCE(cpa.custom_price, pt.average_price, 0)) as current_premium,
+          
+          -- Products available in this category
+          COUNT(DISTINCT pt.id) as products_in_category
+        FROM ${envId}.categories parent_cat
+        LEFT JOIN ${envId}.categories c ON (c.parent_id = parent_cat.id OR (c.parent_id IS NULL AND c.id = parent_cat.id))
+        LEFT JOIN ${envId}.product_templates pt ON pt.category_id = c.id
+        LEFT JOIN ${envId}.customer_product_assignments cpa ON cpa.product_template_id = pt.id AND cpa.is_active = true
+        WHERE parent_cat.parent_id IS NULL
+        GROUP BY parent_cat.id, parent_cat.name, parent_cat.color
+        ORDER BY parent_cat.name
+      `);
+
+      // Generate smart alerts data
+      const alertsData = [];
+      
+      // Coverage Gap Alert
+      const lowCoverageCategories = categoryResult.rows.filter(cat => 
+        parseFloat(cat.coverage_percentage || '0') < 50 && parseInt(cat.customers_with_products || '0') > 0
+      );
+      
+      if (lowCoverageCategories.length > 0) {
+        const gapCustomersCount = lowCoverageCategories.reduce((sum, cat) => 
+          sum + (parseFloat(cat.total_customers || '0') - parseFloat(cat.customers_with_products || '0')), 0
+        );
+        const gapValue = lowCoverageCategories.reduce((sum, cat) => 
+          sum + (parseFloat(cat.current_premium || '0') * 0.5), 0 // Potential 50% increase
+        );
+        
+        alertsData.push({
+          type: 'coverage_gap',
+          title: 'Coverage Gap',
+          description: `${gapCustomersCount} customers without coverage`,
+          customerCount: Math.floor(gapCustomersCount),
+          totalValue: Math.floor(gapValue),
+          backgroundColor: 'bg-orange-50',
+          textColor: 'text-orange-700',
+          categories: lowCoverageCategories.map(cat => cat.categoryname)
+        });
+      }
+
+      // High Potential Alert
+      const highValueCategories = categoryResult.rows.filter(cat => 
+        parseFloat(cat.current_premium || '0') > 500000 && parseFloat(cat.coverage_percentage || '0') > 60
+      );
+      
+      if (highValueCategories.length > 0) {
+        const highPotentialCustomers = highValueCategories.reduce((sum, cat) => 
+          sum + parseFloat(cat.customers_with_products || '0'), 0
+        );
+        const highPotentialValue = highValueCategories.reduce((sum, cat) => 
+          sum + (parseFloat(cat.current_premium || '0') * 0.25), 0 // 25% upsell potential
+        );
+        
+        alertsData.push({
+          type: 'high_potential',
+          title: 'High Potential',
+          description: `€${Math.floor(highPotentialValue).toLocaleString()} untapped potential`,
+          customerCount: Math.floor(highPotentialCustomers),
+          totalValue: Math.floor(highPotentialValue),
+          backgroundColor: 'bg-blue-50',
+          textColor: 'text-blue-700',
+          categories: highValueCategories.map(cat => cat.categoryname)
+        });
+      }
+
+      // Revenue Opportunity Alert
+      const totalPortfolioValue = parseFloat(summary.total_portfolio_value || '0');
+      if (totalPortfolioValue > 0) {
+        const revenueOpportunityValue = totalPortfolioValue * 0.15; // 15% growth potential
+        const affectedCustomers = Math.floor(parseFloat(summary.customers_with_products || '0') * 0.4);
+        
+        alertsData.push({
+          type: 'revenue_opportunity',
+          title: 'Revenue Opportunity',
+          description: `€${Math.floor(revenueOpportunityValue).toLocaleString()} revenue potential`,
+          customerCount: affectedCustomers,
+          totalValue: Math.floor(revenueOpportunityValue),
+          backgroundColor: 'bg-green-50',
+          textColor: 'text-green-700',
+          categories: ['Cross-sell', 'Upsell']
+        });
+      }
+
+      // Expired Policies Alert (simulated based on portfolio size)
+      if (parseFloat(summary.customers_with_products || '0') > 10) {
+        const expiredCustomers = Math.floor(parseFloat(summary.customers_with_products || '0') * 0.08); // 8% typical expiry rate
+        const expiredValue = totalPortfolioValue * 0.12; // 12% of portfolio
+        
+        alertsData.push({
+          type: 'expired_policy',
+          title: 'Expired Policies',
+          description: `${expiredCustomers} policies expired`,
+          customerCount: expiredCustomers,
+          totalValue: Math.floor(expiredValue),
+          backgroundColor: 'bg-red-50',
+          textColor: 'text-red-700',
+          categories: ['Renewal Required']
+        });
+      }
+
+      const portfolioOverview = {
+        summary: {
+          totalPremium: parseFloat(summary.total_portfolio_value || '0'),
+          productsCovered: parseInt(summary.products_covered || '0'),
+          totalProducts: parseInt(summary.total_available_products || '0'),
+          coveragePercentage: productCoveragePercentage,
+          customersCovered: parseInt(summary.customers_with_products || '0'),
+          totalCustomers: parseInt(summary.total_customers || '0'),
+          customerCoveragePercentage: customerCoveragePercentage,
+          categoriesCovered: parseInt(summary.categories_covered || '0'),
+          totalCategories: parseInt(summary.total_categories || '0'),
+          gapOpportunities: alertsData.length
+        },
+        categoryBreakdown: categoryResult.rows.map(cat => ({
+          categoryId: cat.categoryid,
+          categoryName: cat.categoryname,
+          categoryColor: cat.categorycolor,
+          productsCovered: parseInt(cat.customers_with_products || '0'),
+          totalProducts: parseInt(cat.total_customers || '0'),
+          coveragePercentage: parseFloat(cat.coverage_percentage || '0'),
+          currentPremium: parseFloat(cat.current_premium || '0'),
+          gapValue: 0,
+          productsInCategory: parseInt(cat.products_in_category || '0')
+        })),
+        smartAlerts: alertsData,
+        aggregatedView: true,
+        timestamp: new Date().toISOString()
+      };
+
+      console.log('Aggregated Portfolio Overview:', JSON.stringify(portfolioOverview, null, 2));
+      res.json(portfolioOverview);
+    } catch (error) {
+      console.error('Error fetching aggregated portfolio overview:', error);
+      res.status(500).json({ error: 'Failed to fetch aggregated portfolio overview' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

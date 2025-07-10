@@ -9,6 +9,8 @@ import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { BarChart3, Search, Settings, Target, X, Star, Send, Users, List, DollarSign, TrendingUp, Download, Filter, Eye, ChevronDown, ChevronRight } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+import { AggregatedPortfolioCards } from "@/components/portfolio/AggregatedPortfolioCards";
+import { AggregatedSmartAlerts } from "@/components/portfolio/AggregatedSmartAlerts";
 
 // Fetch authentic product categories with hierarchy
 const useProductCategories = () => {
@@ -136,25 +138,19 @@ function getBenchmarkIcon(rate: number, benchmark: number): string {
   return '🔴';
 }
 
-// Dashboard Section Component
+// Dashboard Section Component with Aggregated Data
 function DashboardSection() {
   const [selectedProduct, setSelectedProduct] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [showMoreFilters, setShowMoreFilters] = useState(false);
-  const [collapsedDashboardCategories, setCollapsedDashboardCategories] = useState<Set<string>>(new Set());
 
-  // Helper function for dashboard category collapse/expand
-  const toggleDashboardCategoryCollapse = (categoryName: string) => {
-    const newCollapsed = new Set(collapsedDashboardCategories);
-    if (newCollapsed.has(categoryName)) {
-      newCollapsed.delete(categoryName);
-    } else {
-      newCollapsed.add(categoryName);
-    }
-    setCollapsedDashboardCategories(newCollapsed);
-  };
+  // Fetch aggregated portfolio data
+  const { data: aggregatedPortfolioData, isLoading: isAggregatedLoading } = useQuery({
+    queryKey: ['/api/portfolio-overview-aggregated'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    cacheTime: 10 * 60 * 1000, // 10 minutes
+  });
 
-  // Fetch authentic data
+  // Fetch authentic data for product list
   const { data: customers = { data: [] } } = useQuery({ queryKey: ['/api/customers'] });
   const { data: opportunities = [] } = useQuery({ queryKey: ['/api/opportunities'] });
   const { data: products = [] } = useQuery({ queryKey: ['/api/products'] });
@@ -302,8 +298,8 @@ function DashboardSection() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Product Analysis Dashboard</h1>
-          <p className="text-gray-600 mt-1">Cross-sell and upsell opportunities in your customer portfolio</p>
+          <h1 className="text-2xl font-bold text-gray-900">Portfolio Insights Dashboard</h1>
+          <p className="text-gray-600 mt-1">Aggregated portfolio overview with smart alerts and opportunities</p>
         </div>
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="sm">
@@ -316,6 +312,18 @@ function DashboardSection() {
           </Button>
         </div>
       </div>
+
+      {/* Aggregated Portfolio Cards */}
+      <AggregatedPortfolioCards 
+        portfolioData={aggregatedPortfolioData} 
+        isLoading={isAggregatedLoading} 
+      />
+
+      {/* Smart Alerts */}
+      <AggregatedSmartAlerts 
+        alerts={aggregatedPortfolioData?.smartAlerts || []} 
+        isLoading={isAggregatedLoading} 
+      />
 
       {/* Filters */}
       <div className="flex items-center space-x-4 bg-gray-50 p-4 rounded-lg">
@@ -337,79 +345,20 @@ function DashboardSection() {
                 <span>✓ All products</span>
               </div>
             </SelectItem>
-            {productCategories.map(category => {
-              const isCategoryCollapsed = collapsedDashboardCategories.has(category.name);
-              return (
-                <div key={category.name}>
-                  <SelectItem value={category.name}>
-                    <div className="flex items-center space-x-2 w-full">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleDashboardCategoryCollapse(category.name);
-                        }}
-                        className="p-0.5 hover:bg-gray-200 rounded"
-                      >
-                        {isCategoryCollapsed ? (
-                          <ChevronRight className="h-3 w-3 text-gray-500" />
-                        ) : (
-                          <ChevronDown className="h-3 w-3 text-gray-500" />
-                        )}
-                      </button>
-                      <div 
-                        className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
-                        style={{ backgroundColor: category.color }}
-                      />
-                      <span>{category.name}</span>
-                      <span className="text-xs text-gray-500">({category.productCount} products)</span>
-                    </div>
-                  </SelectItem>
-                  
-                  {/* Show subcategories and products when expanded */}
-                  {!isCategoryCollapsed && (
-                    <>
-                      {/* Show related products from database */}
-                      {(products as any[]).filter((product: any) => 
-                        product.parent_category_name === category.name ||
-                        (category.name === 'Non-Life' && (
-                          product.parent_category_name === 'Business' ||
-                          product.parent_category_name === 'Health' ||
-                          product.parent_category_name === 'Mobility' ||
-                          product.parent_category_name === 'Property & Liability'
-                        )) ||
-                        (category.name === 'Life' && (
-                          product.parent_category_name === 'Life' ||
-                          product.category?.toLowerCase().includes('life') ||
-                          product.category?.toLowerCase().includes('death') ||
-                          product.category?.toLowerCase().includes('pension')
-                        )) ||
-                        (category.name === 'Services' && (
-                          product.parent_category_name === 'Travel' ||
-                          product.category?.toLowerCase().includes('service')
-                        ))
-                      ).map((product: any) => (
-                        <SelectItem key={`product-${product.id}`} value={product.name} className="ml-6">
-                          <div className="flex items-center space-x-2">
-                            <div 
-                              className="w-2 h-2 rounded-full flex-shrink-0" 
-                              style={{ backgroundColor: product.category_color || category.color }}
-                            />
-                            <span className="text-sm">{product.name}</span>
-                            <span className="text-xs text-gray-400">€{(parseFloat(product.total_value || '0') / 1000).toFixed(0)}k</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </>
-                  )}
+            {productCategories.map(category => (
+              <SelectItem key={category.name} value={category.name}>
+                <div className="flex items-center space-x-2">
+                  <div 
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
+                    style={{ backgroundColor: category.color }}
+                  />
+                  <span>{category.name}</span>
+                  <span className="text-xs text-gray-500">({category.productCount} products)</span>
                 </div>
-              );
-            })}
+              </SelectItem>
+            ))}
           </SelectContent>
         </Select>
-        <Button variant="outline" size="sm" onClick={() => setShowMoreFilters(!showMoreFilters)}>
-          <Filter className="h-4 w-4 mr-1" />
-          More filters
-        </Button>
       </div>
 
       {/* KPI Cards */}
@@ -523,110 +472,32 @@ function DashboardSection() {
         </Card>
       </div>
 
-      {/* Product Categories Detail */}
+      {/* Product Categories Summary */}
       <Card>
         <CardHeader>
-          <CardTitle>Product Categories Detail</CardTitle>
-          <p className="text-sm text-gray-600">Detailed analysis per product category</p>
+          <CardTitle>Product Categories Overview</CardTitle>
+          <p className="text-sm text-gray-600">Simplified category overview</p>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {filteredProducts.map((product, index) => {
-              const isCategoryCollapsed = collapsedDashboardCategories.has(product.name);
-              return (
-                <div key={index} className="border rounded-lg">
-                  {/* Category Header */}
-                  <div className="flex items-center justify-between p-4">
-                    <div className="flex items-center space-x-3 flex-1">
-                      <button
-                        onClick={() => toggleDashboardCategoryCollapse(product.name)}
-                        className="p-1 hover:bg-gray-200 rounded"
-                      >
-                        {isCategoryCollapsed ? (
-                          <ChevronRight className="h-4 w-4 text-gray-500" />
-                        ) : (
-                          <ChevronDown className="h-4 w-4 text-gray-500" />
-                        )}
-                      </button>
-                      <div 
-                        className="w-3 h-3 rounded-full flex-shrink-0" 
-                        style={{ backgroundColor: product.color }}
-                      />
-                      <h3 className="font-medium text-gray-900">{product.name}</h3>
-                      <Badge 
-                        variant={product.penetration > 50 ? "default" : "secondary"}
-                        className={product.penetration > 50 ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"}
-                      >
-                        {product.penetration.toFixed(0)}% penetration
-                      </Badge>
-                    </div>
-                    <Button variant="outline" size="sm">
-                      <Eye className="h-3 w-3 mr-1" />
-                      Details
-                    </Button>
-                  </div>
-                  
-                  {/* Category Details (Always visible summary) */}
-                  <div className="px-4 pb-2 pt-0">
-                    <div className="grid grid-cols-3 gap-4 mb-3">
-                      <div>
-                        <p className="text-sm text-gray-600">{product.current.toLocaleString()} customers</p>
-                      </div>
-                      <div>
-                        <p className="text-sm text-gray-600">{product.potential.toLocaleString()} potential</p>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-green-600">€{(product.value / 1000000).toFixed(1)}M value</p>
-                      </div>
-                    </div>
-                    <Progress value={product.penetration} className="h-2" />
-                  </div>
-
-                  {/* Expanded Details - Show underlying products when expanded */}
-                  {!isCategoryCollapsed && (
-                    <div className="px-4 pb-4 border-t border-gray-100">
-                      <h4 className="text-sm font-medium text-gray-700 mt-3 mb-2">Onderliggende producten:</h4>
-                      <div className="space-y-2">
-                        {(products as any[]).filter((prod: any) => 
-                          prod.parent_category_name === product.name ||
-                          (product.name === 'Non-Life' && (
-                            prod.parent_category_name === 'Business' ||
-                            prod.parent_category_name === 'Health' ||
-                            prod.parent_category_name === 'Mobility' ||
-                            prod.parent_category_name === 'Property & Liability'
-                          )) ||
-                          (product.name === 'Life' && (
-                            prod.parent_category_name === 'Life' ||
-                            prod.category?.toLowerCase().includes('life') ||
-                            prod.category?.toLowerCase().includes('death') ||
-                            prod.category?.toLowerCase().includes('pension')
-                          )) ||
-                          (product.name === 'Services' && (
-                            prod.parent_category_name === 'Travel' ||
-                            prod.category?.toLowerCase().includes('service')
-                          ))
-                        ).map((prod: any) => (
-                          <div key={prod.id} className="flex items-center justify-between p-2 bg-gray-50 rounded">
-                            <div className="flex items-center space-x-2">
-                              <div 
-                                className="w-2 h-2 rounded-full flex-shrink-0" 
-                                style={{ backgroundColor: prod.category_color || product.color }}
-                              />
-                              <span className="text-sm text-gray-700">{prod.name}</span>
-                              <span className="text-xs text-gray-500">({prod.provider})</span>
-                            </div>
-                            <div className="flex items-center space-x-3">
-                              <span className="text-xs text-gray-600">€{(parseFloat(prod.total_value || '0') / 1000).toFixed(0)}k</span>
-                              <span className="text-xs text-blue-600">{prod.customers || 0} klanten</span>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
+          <div className="space-y-3">
+            {filteredProducts.map((product, index) => (
+              <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                <div className="flex items-center space-x-3">
+                  <div 
+                    className="w-3 h-3 rounded-full flex-shrink-0" 
+                    style={{ backgroundColor: product.color }}
+                  />
+                  <span className="font-medium text-gray-900">{product.name}</span>
+                  <Badge variant="secondary" className="bg-gray-100 text-gray-800">
+                    {product.penetration.toFixed(0)}% penetration
+                  </Badge>
                 </div>
-              );
-            })}
+                <div className="text-right">
+                  <div className="text-sm font-medium">€{(product.value / 1000000).toFixed(1)}M</div>
+                  <div className="text-xs text-gray-500">{product.current} customers</div>
+                </div>
+              </div>
+            ))}
           </div>
         </CardContent>
       </Card>
