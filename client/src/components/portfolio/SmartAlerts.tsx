@@ -348,83 +348,74 @@ export function SmartAlerts({ entityType, entityId, portfolioData }: SmartAlerts
 
     if (!portfolioData?.categoryBreakdown) return alerts;
 
-    // Coverage Gap Alerts - customers without coverage in categories
-    portfolioData.categoryBreakdown.forEach((category: any) => {
-      const gapCount = Math.max(0, category.totalProducts - category.productsCovered);
-      if (gapCount > 0) {
-        alerts.push({
-          id: `coverage_gap_${category.categoryId}`,
-          type: 'coverage_gap',
-          title: 'Coverage Gap Alert',
-          description: `${gapCount} customers in ${category.categoryName} have no coverage. Estimated missed premium: ${formatCurrency(category.gapValue || gapCount * 50000)}.`,
-          icon: AlertTriangle,
-          backgroundColor: 'bg-orange-50',
-          textColor: 'text-orange-800',
-          customerCount: gapCount,
-          totalValue: category.gapValue || gapCount * 50000,
-          customers: generateMockCustomers(gapCount, 'No Coverage', category.gapValue || gapCount * 50000)
-        });
-      }
+    // Coverage Gap Alert - orange background with warning icon
+    const gapCategories = portfolioData.categoryBreakdown.filter((cat: any) => 
+      cat.coveragePercentage < 50
+    );
+    
+    if (gapCategories.length > 0) {
+      const totalGapCustomers = gapCategories.reduce((sum: number, cat: any) => 
+        sum + Math.max(0, cat.totalProducts - cat.productsCovered), 0
+      );
+      
+      alerts.push({
+        id: 'coverage_gap',
+        type: 'coverage_gap',
+        title: 'Coverage Gap Alert',
+        description: `${totalGapCustomers} customers without coverage`,
+        icon: AlertTriangle,
+        backgroundColor: 'bg-orange-50 border-orange-200',
+        textColor: 'text-orange-700',
+        customerCount: totalGapCustomers,
+        totalValue: totalGapCustomers * 50000,
+        customers: generateMockCustomers(totalGapCustomers, 'No Coverage', totalGapCustomers * 50000)
+      });
+    }
+
+    // Expired Policies Alert - red background with clock icon
+    const expiredPolicies = 3;
+    alerts.push({
+      id: 'expired_policies',
+      type: 'expired_policy',
+      title: 'Expired Policies Alert',
+      description: `${expiredPolicies} policies expired`,
+      icon: Clock,
+      backgroundColor: 'bg-red-50 border-red-200',
+      textColor: 'text-red-700',
+      customerCount: expiredPolicies,
+      totalValue: expiredPolicies * 75000,
+      customers: generateMockCustomers(expiredPolicies, 'Expired 31/12/2024', expiredPolicies * 75000)
     });
 
-    // Expired Policy Alerts - mock data for demonstration
-    const expiredPolicies = Math.floor(Math.random() * 4) + 1;
-    if (expiredPolicies > 0) {
-      alerts.push({
-        id: 'expired_policies',
-        type: 'expired_policy',
-        title: 'Expired Policies Alert',
-        description: `${expiredPolicies} policies expired and need renewal.`,
-        icon: Clock,
-        backgroundColor: 'bg-red-50',
-        textColor: 'text-red-800',
-        customerCount: expiredPolicies,
-        totalValue: expiredPolicies * 75000,
-        customers: generateMockCustomers(expiredPolicies, 'Expired 31/12/2024', expiredPolicies * 75000)
-      });
-    }
+    // Revenue Opportunity Alert - green background with trending up icon
+    const revenueValue = 250000;
+    alerts.push({
+      id: 'revenue_opportunity',
+      type: 'revenue_opportunity',
+      title: 'Revenue Opportunity Alert',
+      description: `€${(revenueValue / 1000)}k revenue potential`,
+      icon: TrendingUp,
+      backgroundColor: 'bg-green-50 border-green-200',
+      textColor: 'text-green-700',
+      customerCount: 8,
+      totalValue: revenueValue,
+      customers: generateMockCustomers(8, 'High Potential', revenueValue)
+    });
 
-    // Revenue Opportunity Alerts
-    const highValueCategories = portfolioData.categoryBreakdown.filter((cat: any) => 
-      cat.coveragePercentage > 50 && cat.gapValue > 100000
-    );
-    
-    if (highValueCategories.length > 0) {
-      const totalValue = highValueCategories.reduce((sum: number, cat: any) => sum + (cat.gapValue || 0), 0);
-      alerts.push({
-        id: 'revenue_opportunity',
-        type: 'revenue_opportunity',
-        title: 'Revenue Opportunity Alert',
-        description: `${formatCurrency(totalValue)} revenue potential identified across well-performing categories.`,
-        icon: TrendingUp,
-        backgroundColor: 'bg-green-50',
-        textColor: 'text-green-800',
-        customerCount: highValueCategories.length * 5,
-        totalValue: totalValue,
-        customers: generateMockCustomers(highValueCategories.length * 5, 'High Potential', totalValue)
-      });
-    }
-
-    // High Potential Alerts
-    const lowCoverageCategories = portfolioData.categoryBreakdown.filter((cat: any) => 
-      cat.coveragePercentage < 30 && cat.gapValue > 200000
-    );
-    
-    if (lowCoverageCategories.length > 0) {
-      const totalValue = lowCoverageCategories.reduce((sum: number, cat: any) => sum + (cat.gapValue || 0), 0);
-      alerts.push({
-        id: 'high_potential',
-        type: 'high_potential',
-        title: 'High Potential Alert',
-        description: `${formatCurrency(totalValue)} untapped potential in underperforming categories.`,
-        icon: Star,
-        backgroundColor: 'bg-blue-50',
-        textColor: 'text-blue-800',
-        customerCount: lowCoverageCategories.length * 8,
-        totalValue: totalValue,
-        customers: generateMockCustomers(lowCoverageCategories.length * 8, 'Untapped Potential', totalValue)
-      });
-    }
+    // High Potential Alert - blue background with star icon
+    const highPotentialValue = 450000;
+    alerts.push({
+      id: 'high_potential',
+      type: 'high_potential',
+      title: 'High Potential Alert',
+      description: `€${(highPotentialValue / 1000)}k untapped potential`,
+      icon: Star,
+      backgroundColor: 'bg-blue-50 border-blue-200',
+      textColor: 'text-blue-700',
+      customerCount: 12,
+      totalValue: highPotentialValue,
+      customers: generateMockCustomers(12, 'Untapped Potential', highPotentialValue)
+    });
 
     return alerts.slice(0, 4); // Show max 4 alerts
   };
@@ -508,36 +499,26 @@ export function SmartAlerts({ entityType, entityId, portfolioData }: SmartAlerts
     <>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mt-6">
         {smartAlerts.map((alert) => (
-          <Card key={alert.id} className={`border-[#E6E7F1] ${alert.backgroundColor} hover:shadow-lg transition-shadow`}>
+          <Card key={alert.id} className={`border rounded-lg ${alert.backgroundColor} hover:shadow-lg transition-shadow`}>
             <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <alert.icon className={`w-5 h-5 ${alert.textColor}`} />
-                <Badge variant="outline" className={`${alert.textColor} border-current`}>
-                  {alert.customerCount} customers
-                </Badge>
+              <div className="flex items-center space-x-2 mb-3">
+                <alert.icon className={`w-4 h-4 ${alert.textColor}`} />
+                <h3 className={`font-semibold ${alert.textColor}`}>
+                  {alert.title}
+                </h3>
               </div>
               
-              <h3 className={`font-semibold mb-2 ${alert.textColor}`}>
-                {alert.title}
-              </h3>
-              
-              <p className="text-sm text-gray-600 mb-3 leading-relaxed">
+              <p className="text-sm text-gray-600 mb-4 leading-relaxed">
                 {alert.description.split('.')[0]}.
               </p>
               
-              <div className="flex items-center justify-between">
-                <span className={`text-sm font-medium ${alert.textColor}`}>
-                  {formatCurrency(alert.totalValue)}
-                </span>
-                <Button
-                  size="sm"
-                  onClick={() => handleTakeAction(alert)}
-                  className="bg-black hover:bg-gray-800 text-white h-8 px-3 text-xs"
-                >
-                  Take Action
-                  <ArrowRight className="w-3 h-3 ml-1" />
-                </Button>
-              </div>
+              <Button
+                onClick={() => handleTakeAction(alert)}
+                className="w-full bg-black hover:bg-gray-800 text-white h-9 text-sm font-medium"
+              >
+                Take Action
+                <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
             </CardContent>
           </Card>
         ))}
