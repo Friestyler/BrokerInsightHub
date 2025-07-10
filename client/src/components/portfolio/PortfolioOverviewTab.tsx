@@ -183,17 +183,17 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
   // Filter products based on search term and category filter
   const filteredProducts = productAssignments?.filter(product => {
     const matchesSearch = !searchTerm || 
-      product.productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.productDescription?.toLowerCase().includes(searchTerm.toLowerCase());
+      product.productname?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      product.productdescription?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesCategory = categoryFilter === 'all' || product.parentCategoryName === categoryFilter;
+    const matchesCategory = categoryFilter === 'all' || product.category === categoryFilter;
     
     return matchesSearch && matchesCategory;
   }) || [];
 
   // Group products by parent category (main categories)
   const productsByCategory = filteredProducts.reduce((acc: Record<string, any[]>, product) => {
-    const category = product.parentCategoryName || 'Other';
+    const category = product.category || 'Other';
     if (!acc[category]) {
       acc[category] = [];
     }
@@ -219,7 +219,7 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
   const handleCustomerCountClick = async (product: any) => {
     try {
       // Fetch customers for this specific product
-      const productId = product.productId;
+      const productId = product.productid;
       const response = await apiRequest('GET', `/api/${envId}/${entityType}/${entityId}/products/${productId}/customers`);
       
       if (response && Array.isArray(response)) {
@@ -233,7 +233,7 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
 
         setCustomerModalData({
           customers,
-          productName: product.productName || 'Unknown Product'
+          productName: product.productname || 'Unknown Product'
         });
         setShowCustomerModal(true);
       }
@@ -724,7 +724,7 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {[...new Set(productAssignments?.map(p => p.parentCategoryName).filter(Boolean))].map((categoryName) => (
+                {[...new Set(productAssignments?.map(p => p.category).filter(Boolean))].map((categoryName) => (
                   <SelectItem key={categoryName} value={categoryName}>
                     {categoryName}
                   </SelectItem>
@@ -740,7 +740,7 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
           <div className="flex items-center space-x-6">
             <span>{filteredProducts.length} products</span>
             <span className="font-semibold">
-              {formatCurrency(filteredProducts.reduce((sum, p) => sum + (parseInt(p.totalPremiumValue) || 0), 0))} total value
+              {formatCurrency(filteredProducts.reduce((sum, p) => sum + (parseInt(p.customprice) || 0), 0))} total value
             </span>
           </div>
         </div>
@@ -758,7 +758,7 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                       <div
                         className="w-3 h-3 rounded-full"
                         style={{
-                          backgroundColor: products[0]?.parentCategoryColor || '#6B7280'
+                          backgroundColor: products[0]?.categorycolor || '#6B7280'
                         }}
                       />
                       <span className="font-medium text-gray-900">
@@ -766,20 +766,20 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                       </span>
                     </div>
                     <div className="text-sm text-gray-600">
-                      Total value: {formatCurrency(products.reduce((sum, p) => sum + (parseInt(p.totalPremiumValue) || 0), 0))}
+                      Total value: {formatCurrency(products.reduce((sum, p) => sum + (parseInt(p.customprice) || 0), 0))}
                     </div>
                   </div>
 
                   {/* Products in Category */}
                   <div className="divide-y divide-[#E6E7F1]">
                     {products.map((product) => {
-                      const contractEnd = product.latestContractEnd ? new Date(product.latestContractEnd) : null;
+                      const contractEnd = product.customercontractenddate ? new Date(product.customercontractenddate) : null;
                       const today = new Date();
                       const isExpired = contractEnd && contractEnd < today;
                       const yearsLeft = contractEnd ? Math.max(0, Math.ceil((contractEnd.getTime() - today.getTime()) / (365.25 * 24 * 60 * 60 * 1000))) : 0;
                       
                       return (
-                        <div key={product.productId} className="px-6 py-4 hover:bg-gray-50 transition-colors">
+                        <div key={product.productid} className="px-6 py-4 hover:bg-gray-50 transition-colors">
                           <div className="flex items-start justify-between">
                             <div className="flex items-start space-x-3">
                               {/* Checkbox - only show when category is selected */}
@@ -787,17 +787,17 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                                 <input
                                   type="checkbox"
                                   className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                                  checked={selectedProducts.includes(product.productId.toString())}
+                                  checked={selectedProducts.includes(product.productid.toString())}
                                   onChange={(e) => {
-                                    handleProductSelection(product.productId.toString(), e.target.checked);
+                                    handleProductSelection(product.productid.toString(), e.target.checked);
                                   }}
                                 />
                               )}
                               
                               <div className="flex-1">
-                                <h4 className="font-semibold text-gray-900 mb-1">{product.productName}</h4>
-                                {product.productDescription && (
-                                  <p className="text-sm text-gray-500 mb-3">{product.productDescription}</p>
+                                <h4 className="font-semibold text-gray-900 mb-1">{product.productname}</h4>
+                                {product.productdescription && (
+                                  <p className="text-sm text-gray-500 mb-3">{product.productdescription}</p>
                                 )}
                               </div>
                             </div>
@@ -809,18 +809,18 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                                   className="font-semibold text-blue-600 cursor-pointer hover:text-blue-800 hover:underline transition-colors"
                                   onClick={() => handleCustomerCountClick(product)}
                                 >
-                                  {product.customerCount || 0}
+                                  {product.customercount || 0}
                                 </div>
                                 <div className="text-gray-500">Customers</div>
                               </div>
                               
                               <div className="text-center">
-                                <div className="font-semibold text-green-600">{formatCurrency(parseInt(product.totalPremiumValue) || 0)}</div>
+                                <div className="font-semibold text-green-600">{formatCurrency(parseInt(product.customprice) || 0)}</div>
                                 <div className="text-gray-500">Total Premium</div>
                               </div>
                               
                               <div className="text-center">
-                                <div className="font-semibold text-purple-600">{formatCurrency(parseFloat(product.avgPremiumValue) || 0)}</div>
+                                <div className="font-semibold text-purple-600">{formatCurrency(parseInt(product.customprice) || 0)}</div>
                                 <div className="text-gray-500">Avg Premium</div>
                               </div>
                               
