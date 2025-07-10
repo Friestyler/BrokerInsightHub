@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { BarChart3, Search, Settings, Target, X, Star, Send, Users, List, DollarSign, TrendingUp, Download, Filter, Eye, ChevronDown, ChevronRight } from "lucide-react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
+
 import { AggregatedPortfolioCards } from "@/components/portfolio/AggregatedPortfolioCards";
 import { AggregatedSmartAlerts } from "@/components/portfolio/AggregatedSmartAlerts";
 
@@ -156,22 +156,8 @@ function DashboardSection() {
   const { data: products = [] } = useQuery({ queryKey: ['/api/products'] });
   const { data: categories = [] } = useQuery({ queryKey: ['/api/product-categories'] });
 
-  // Calculate KPI data from authentic data
+  // Calculate basic data for category analysis
   const totalCustomers = Array.isArray((customers as any)?.data) ? (customers as any).data.length : 0;
-  const totalOpportunities = Array.isArray(opportunities) ? (opportunities as any[]).length : 0;
-  
-  // Calculate potential value from opportunities
-  const potentialValue = Array.isArray(opportunities) 
-    ? (opportunities as any[]).reduce((sum: number, opp: any) => {
-        const value = typeof opp.estimatedValue === 'string' 
-          ? parseFloat(opp.estimatedValue.replace(/[^0-9.-]+/g, '')) || 0
-          : opp.estimatedValue || 0;
-        return sum + value;
-      }, 0)
-    : 0;
-
-  // Calculate cross-sell potential from customer data
-  const crossSellPotential = Math.floor(totalCustomers * 0.65); // 65% of customers have cross-sell potential
   
   // Build product analysis data from authentic database
   const productCategories = useMemo(() => {
@@ -263,28 +249,7 @@ function DashboardSection() {
     }).filter(cat => cat.name); // Show all categories with names
   }, [categories, products, totalCustomers]);
 
-  // Chart data based on authentic database
-  const penetrationChartData = productCategories.map(category => ({
-    name: category.name.length > 15 ? category.name.substring(0, 12) + '...' : category.name,
-    current: category.current,
-    potential: category.potential
-  }));
-
-  // Calculate totals for pie chart from authentic data
-  const totalCurrent = productCategories.reduce((sum, cat) => sum + cat.current, 0);
-  const totalPotential = productCategories.reduce((sum, cat) => sum + cat.potential, 0);
-  const upsellPotential = Math.floor(totalCurrent * 0.35); // 35% of current customers have upsell potential
-
-  const pieChartData = [
-    { name: 'Bestaande klanten', value: totalCurrent, color: '#6366f1' },
-    { name: 'Cross-sell potentieel', value: totalPotential, color: '#a855f7' },
-    { name: 'Upsell potentieel', value: upsellPotential, color: '#06b6d4' }
-  ];
-
-  // Calculate average penetration from authentic data
-  const averagePenetration = productCategories.length > 0 
-    ? productCategories.reduce((sum, cat) => sum + cat.penetration, 0) / productCategories.length 
-    : 0;
+  // Filter logic for product categories
 
   // Filter products based on search and selected product
   const filteredProducts = productCategories.filter(product => {
@@ -361,116 +326,7 @@ function DashboardSection() {
         </Select>
       </div>
 
-      {/* KPI Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Total Customers</p>
-                <p className="text-2xl font-bold text-gray-900">{totalCustomers.toLocaleString()}</p>
-                <p className="text-xs text-green-600 mt-1">+12% vs previous month</p>
-              </div>
-              <Users className="h-8 w-8 text-blue-500" />
-            </div>
-          </CardContent>
-        </Card>
 
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Cross-sell Potential</p>
-                <p className="text-2xl font-bold text-gray-900">{crossSellPotential.toLocaleString()}</p>
-                <p className="text-xs text-gray-500 mt-1">Estimated opportunities</p>
-              </div>
-              <Target className="h-8 w-8 text-purple-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Potential Value</p>
-                <p className="text-2xl font-bold text-gray-900">€{(potentialValue / 1000000).toFixed(1)}M</p>
-                <p className="text-xs text-gray-500 mt-1">Annual premium potential</p>
-              </div>
-              <DollarSign className="h-8 w-8 text-green-500" />
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-gray-600">Avg. Penetration</p>
-                <p className="text-2xl font-bold text-gray-900">{averagePenetration.toFixed(1)}%</p>
-                <p className="text-xs text-gray-500 mt-1">Across all products</p>
-              </div>
-              <TrendingUp className="h-8 w-8 text-orange-500" />
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Charts Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Product Penetration</CardTitle>
-            <p className="text-sm text-gray-600">Current customers vs. potential per product</p>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={penetrationChartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis 
-                  dataKey="name" 
-                  angle={-45}
-                  textAnchor="end"
-                  height={80}
-                  fontSize={12}
-                />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="current" fill="#6366f1" name="Current customers" />
-                <Bar dataKey="potential" fill="#a855f7" name="Potential" />
-              </BarChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardTitle>Portfolio Distribution</CardTitle>
-            <p className="text-sm text-gray-600">Current vs. potential customers</p>
-          </CardHeader>
-          <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <PieChart>
-                <Pie
-                  data={pieChartData}
-                  cx="50%"
-                  cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-                  outerRadius={80}
-                  fill="#8884d8"
-                  dataKey="value"
-                >
-                  {pieChartData.map((entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  ))}
-                </Pie>
-                <Tooltip />
-              </PieChart>
-            </ResponsiveContainer>
-          </CardContent>
-        </Card>
-      </div>
 
       {/* Product Categories Summary */}
       <Card>
