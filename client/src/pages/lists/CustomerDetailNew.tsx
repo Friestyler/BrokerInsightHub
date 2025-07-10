@@ -1499,16 +1499,6 @@ export default function CustomerDetailNew() {
                   Overview
                 </button>
                 <button 
-                  onClick={() => setActiveProductTab("matrix")}
-                  className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md ${
-                    activeProductTab === "matrix" 
-                      ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
-                      : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
-                  }`}
-                >
-                  Matrix
-                </button>
-                <button 
                   onClick={() => setActiveProductTab("smart-cross-sell")}
                   className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md flex items-center gap-2 ${
                     activeProductTab === "smart-cross-sell" 
@@ -1518,6 +1508,16 @@ export default function CustomerDetailNew() {
                 >
                   <Bot className="w-4 h-4" />
                   Smart Cross Sell
+                </button>
+                <button 
+                  onClick={() => setActiveProductTab("matrix")}
+                  className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md ${
+                    activeProductTab === "matrix" 
+                      ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
+                      : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                  }`}
+                >
+                  Matrix
                 </button>
               </nav>
             </div>
