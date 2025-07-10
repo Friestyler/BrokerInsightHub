@@ -2900,6 +2900,49 @@ Prioritize actions that:
     }
   });
 
+  // Get customers for a specific product within a partner context
+  app.get('/api/:envId/partners/:partnerId/products/:productId/customers', async (req, res) => {
+    try {
+      const partnerId = parseInt(req.params.partnerId);
+      const productId = parseInt(req.params.productId);
+      const envId = req.params.envId;
+      
+      console.log(`Getting customers for product ${productId} in partner ${partnerId} context`);
+      
+      const envPool = pool;
+      
+      // Get customers who have this product and are associated with this partner
+      const result = await envPool.query(`
+        SELECT DISTINCT 
+          c.id,
+          c.name,
+          c.description,
+          c.status,
+          c.contact_email as email,
+          cpa.premium_value as potential_value,
+          cpa.premium_percentage,
+          cpa.discount_percentage,
+          cpa.contract_start_date,
+          cpa.contract_end_date,
+          cpa.status as contract_status
+        FROM ${envId}.customers c
+        INNER JOIN ${envId}.partner_customers pc ON c.id = pc.customer_id
+        INNER JOIN ${envId}.customer_product_assignments cpa ON c.id = cpa.customer_id
+        INNER JOIN ${envId}.product_templates pt ON cpa.product_template_id = pt.id
+        WHERE pc.partner_id = $1 
+          AND pt.id = $2 
+          AND cpa.is_active = true
+        ORDER BY c.name ASC
+      `, [partnerId, productId]);
+      
+      console.log(`Found ${result.rows.length} customers for product ${productId} in partner ${partnerId} context`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching product customers for partner:', error);
+      res.status(500).json({ error: 'Failed to fetch product customers' });
+    }
+  });
+
   // Get individual customer details in De Goudse environment
   app.get('/api/degoudse/customers/:id', async (req, res) => {
     try {

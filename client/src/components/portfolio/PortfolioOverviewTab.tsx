@@ -608,12 +608,7 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
               }`}
               onClick={() => toggleCategory(category.categoryName)}
             >
-              {/* Gap count indicator moved to bottom right */}
-              {gapCount > 0 && (
-                <div className="absolute bottom-3 right-3 text-xs font-medium text-gray-600">
-                  {gapCount} gaps
-                </div>
-              )}
+
               
               <CardContent className="p-6 text-center">
                 {/* Category Name with Colored Bullet - moved to top */}
