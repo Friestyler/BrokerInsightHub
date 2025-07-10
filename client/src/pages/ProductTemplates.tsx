@@ -43,13 +43,29 @@ import {
   CheckCircle,
   X,
   Calendar,
-  Euro 
+  Euro,
+  Bell,
+  AlertTriangle,
+  Info,
+  CheckCircle2,
+  XCircle,
+  AlertCircle,
+  BellRing,
+  Code,
+  Brain,
+  Eye,
+  EyeOff,
+  Palette,
+  Database,
+  Cpu,
+  Timer
 } from "lucide-react";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
+import { Toggle } from "@/components/ui/toggle";
 import CategoryManagerForProducts from "@/components/CategoryManagerForProducts";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -138,7 +154,7 @@ const productTemplateSchema = z.object({
 type ProductTemplateFormData = z.infer<typeof productTemplateSchema>;
 
 export default function ProductTemplates() {
-  const [activeTab, setActiveTab] = useState<'templates' | 'categories'>('templates');
+  const [activeTab, setActiveTab] = useState<'templates' | 'categories' | 'alerts'>('templates');
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>("all");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -163,6 +179,16 @@ export default function ProductTemplates() {
   // Customer popup states
   const [customerPopupOpen, setCustomerPopupOpen] = useState(false);
   const [selectedProductForCustomers, setSelectedProductForCustomers] = useState<number | null>(null);
+  
+  // Alert settings states
+  const [createAlertDialogOpen, setCreateAlertDialogOpen] = useState(false);
+  const [editAlertDialogOpen, setEditAlertDialogOpen] = useState(false);
+  const [deleteAlertDialogOpen, setDeleteAlertDialogOpen] = useState(false);
+  const [selectedAlert, setSelectedAlert] = useState<any>(null);
+  const [selectedAlertCategory, setSelectedAlertCategory] = useState<string | null>(null);
+  const [expandedAlertCategories, setExpandedAlertCategories] = useState<Set<string>>(new Set(['Schade Zakelijk']));
+  const [alertPreviewOpen, setAlertPreviewOpen] = useState(false);
+  const [currentAlertData, setCurrentAlertData] = useState<any>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -862,6 +888,18 @@ export default function ProductTemplates() {
               onClick={() => setActiveTab('categories')}
             >
               Product Categories
+            </Button>
+            <Button 
+              variant="ghost" 
+              className={`flex items-center gap-2 ${
+                activeTab === 'alerts' 
+                  ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
+                  : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
+              }`}
+              onClick={() => setActiveTab('alerts')}
+            >
+              <Bell className="h-4 w-4" />
+              Alert Settings
             </Button>
           </div>
         </div>
@@ -1601,6 +1639,252 @@ export default function ProductTemplates() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Alert Settings Tab */}
+      {activeTab === 'alerts' && (
+        <div className="mx-4">
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h1 className="text-2xl font-bold text-gray-900">Alert Settings</h1>
+              <Button 
+                variant="outline" 
+                className="text-gray-600 hover:text-gray-800"
+                onClick={() => setAlertPreviewOpen(true)}
+              >
+                <Eye className="h-4 w-4 mr-2" />
+                Preview Changes
+              </Button>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              Configure alert types, AI prompting, custom scripts, and visual styling for each insurance category to ensure timely notifications and actionable insights.
+            </p>
+          </div>
+
+          {/* Alert Categories */}
+          <div className="space-y-4">
+            {/* Overige - Collapsed */}
+            <div className="border border-[#E6E7F1] rounded-lg bg-white">
+              <div className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="p-0 h-auto"
+                      onClick={() => {
+                        const newExpanded = new Set(expandedAlertCategories);
+                        if (expandedAlertCategories.has('Overige')) {
+                          newExpanded.delete('Overige');
+                        } else {
+                          newExpanded.add('Overige');
+                        }
+                        setExpandedAlertCategories(newExpanded);
+                      }}
+                    >
+                      <ChevronRight className={`h-4 w-4 text-gray-500 transition-transform ${
+                        expandedAlertCategories.has('Overige') ? 'rotate-90' : ''
+                      }`} />
+                    </Button>
+                    <Badge variant="orange" className="text-sm px-3 py-1">
+                      Overige
+                    </Badge>
+                    <span className="text-sm text-gray-600">1 alert configured</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Schade Zakelijk - Expanded */}
+            <div className="border border-[#E6E7F1] rounded-lg bg-white">
+              <div className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="p-0 h-auto"
+                      onClick={() => {
+                        const newExpanded = new Set(expandedAlertCategories);
+                        if (expandedAlertCategories.has('Schade Zakelijk')) {
+                          newExpanded.delete('Schade Zakelijk');
+                        } else {
+                          newExpanded.add('Schade Zakelijk');
+                        }
+                        setExpandedAlertCategories(newExpanded);
+                      }}
+                    >
+                      <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform ${
+                        expandedAlertCategories.has('Schade Zakelijk') ? 'rotate-90' : ''
+                      }`} />
+                    </Button>
+                    <Badge variant="red" className="text-sm px-3 py-1">
+                      Schade Zakelijk
+                    </Badge>
+                    <span className="text-sm text-gray-600">2 alerts configured</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Expanded Content */}
+              {expandedAlertCategories.has('Schade Zakelijk') && (
+                <div className="px-4 pb-4">
+                  <div className="ml-7 space-y-3">
+                    {/* Expired Policies Alert */}
+                    <div className="border border-[#E6E7F1] rounded-lg p-4 bg-red-50">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center">
+                            <Clock className="h-4 w-4 text-red-600" />
+                          </div>
+                          <div>
+                            <h3 className="font-medium text-gray-900">Expired Policies Alert</h3>
+                            <p className="text-sm text-gray-600">(count) policies expired</p>
+                          </div>
+                          <Badge variant="green" className="text-xs px-2 py-1">
+                            Custom Script
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1 text-xs text-gray-500">
+                            <Database className="h-3 w-3" />
+                            <span>Policy Database</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs text-gray-500">
+                            <Timer className="h-3 w-3" />
+                            <span>Real-time</span>
+                          </div>
+                          <Toggle size="sm" defaultPressed />
+                          <Button variant="ghost" size="sm">
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm">
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Renewal Reminder Alert */}
+                    <div className="border border-[#E6E7F1] rounded-lg p-4 bg-yellow-50">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                            <Bell className="h-4 w-4 text-yellow-600" />
+                          </div>
+                          <div>
+                            <h3 className="font-medium text-gray-900">Renewal Reminder Alert</h3>
+                            <p className="text-sm text-gray-600">(count) renewals due soon</p>
+                          </div>
+                          <Badge variant="green" className="text-xs px-2 py-1">
+                            Custom Script
+                          </Badge>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center gap-1 text-xs text-gray-500">
+                            <Database className="h-3 w-3" />
+                            <span>Policy Database</span>
+                          </div>
+                          <div className="flex items-center gap-1 text-xs text-gray-500">
+                            <Timer className="h-3 w-3" />
+                            <span>Daily</span>
+                          </div>
+                          <Toggle size="sm" />
+                          <Button variant="ghost" size="sm">
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                          <Button variant="ghost" size="sm">
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Add New Alert Button */}
+                    <div className="flex justify-center py-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="text-[#5567E5] hover:text-[#4451c7] hover:bg-[#5567E5]/10"
+                        onClick={() => {
+                          setSelectedAlertCategory('Schade Zakelijk');
+                          setCreateAlertDialogOpen(true);
+                        }}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Add New Alert for Schade Zakelijk
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Inkomen Collectief - Collapsed */}
+            <div className="border border-[#E6E7F1] rounded-lg bg-white">
+              <div className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="p-0 h-auto"
+                      onClick={() => {
+                        const newExpanded = new Set(expandedAlertCategories);
+                        if (expandedAlertCategories.has('Inkomen Collectief')) {
+                          newExpanded.delete('Inkomen Collectief');
+                        } else {
+                          newExpanded.add('Inkomen Collectief');
+                        }
+                        setExpandedAlertCategories(newExpanded);
+                      }}
+                    >
+                      <ChevronRight className={`h-4 w-4 text-gray-500 transition-transform ${
+                        expandedAlertCategories.has('Inkomen Collectief') ? 'rotate-90' : ''
+                      }`} />
+                    </Button>
+                    <Badge variant="blue" className="text-sm px-3 py-1">
+                      Inkomen Collectief
+                    </Badge>
+                    <span className="text-sm text-gray-600">1 alert configured</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Pensioen - Collapsed */}
+            <div className="border border-[#E6E7F1] rounded-lg bg-white">
+              <div className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="p-0 h-auto"
+                      onClick={() => {
+                        const newExpanded = new Set(expandedAlertCategories);
+                        if (expandedAlertCategories.has('Pensioen')) {
+                          newExpanded.delete('Pensioen');
+                        } else {
+                          newExpanded.add('Pensioen');
+                        }
+                        setExpandedAlertCategories(newExpanded);
+                      }}
+                    >
+                      <ChevronRight className={`h-4 w-4 text-gray-500 transition-transform ${
+                        expandedAlertCategories.has('Pensioen') ? 'rotate-90' : ''
+                      }`} />
+                    </Button>
+                    <Badge variant="purple" className="text-sm px-3 py-1">
+                      Pensioen
+                    </Badge>
+                    <span className="text-sm text-gray-600">1 alert configured</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Customer Popup Dialog */}
       <Dialog open={customerPopupOpen} onOpenChange={setCustomerPopupOpen}>

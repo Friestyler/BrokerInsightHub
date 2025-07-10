@@ -1,0 +1,210 @@
+### User Stories: Admin Alert Settings
+
+## Primary Admin User Stories
+
+### **Epic: AI-Powered Alert Configuration**
+
+**As an Insurance Portfolio Manager,**I want to configure AI-powered alerts that automatically analyze my portfolio data,So that I can identify revenue opportunities and coverage gaps without manually reviewing every customer account.
+
+**Acceptance Criteria:**
+
+- I can select from multiple AI models (GPT-4o, Claude, etc.)
+- I can write custom AI prompts that tell the system what to analyze
+- I can preview how the AI will interpret my instructions
+- I can set the frequency of AI analysis (real-time to weekly)
+- I can specify which data sources the AI should examine
+
+
+---
+
+### **Epic: Custom Script & Query Management**
+
+**As a Technical Administrator,**I want to create custom SQL queries and scripts for specific alert conditions,So that I can implement precise business rules that our company has developed over years of experience.
+
+**Acceptance Criteria:**
+
+- I can write and test SQL queries directly in the interface
+- I can specify API endpoints for external data sources
+- I can set trigger conditions using business logic
+- I can schedule when these scripts should run
+- I can validate that my queries return the expected results
+
+
+---
+
+### **Epic: Visual Alert Customization**
+
+**As a Business Operations Manager,**I want to customize the visual appearance of alerts for different insurance categories,So that my team can quickly identify alert types and priorities at a glance.
+
+**Acceptance Criteria:**
+
+- I can choose icons, colors, and styling for each alert type
+- I can set severity levels with corresponding visual indicators
+- I can preview exactly how alerts will appear to end users
+- I can maintain consistent branding across all alert types
+- I can differentiate between AI-generated and custom alerts visually
+
+
+---
+
+## Detailed Feature User Stories
+
+### **Story: AI Prompt Engineering**
+
+**As an Insurance Analyst,**I want to write detailed AI prompts that specify exactly what patterns to look for,So that the AI generates relevant and actionable alerts instead of generic notifications.
+
+**Example Scenario:**
+
+> "I want the AI to analyze pension coverage and identify companies with employees approaching retirement age who don't have adequate pension plans, considering factors like company size, industry risk, and existing insurance relationships."
+
+
+
+---
+
+### **Story: Multi-Category Alert Management**
+
+**As a Portfolio Administrator,**I want to configure different alert types for each insurance category (Pensioen, Schade, etc.),So that each category has alerts tailored to its specific business requirements and risk patterns.
+
+**Acceptance Criteria:**
+
+- I can expand/collapse each insurance category
+- I can see how many alerts are configured per category
+- I can enable/disable alerts without deleting them
+- I can copy alert configurations between categories
+
+
+---
+
+### **Story: Alert Automation Scheduling**
+
+**As an Operations Manager,**I want to set different check frequencies for different types of alerts,So that critical alerts (like expired policies) are checked in real-time while opportunity alerts are checked weekly.
+
+**Acceptance Criteria:**
+
+- I can set real-time monitoring for critical alerts
+- I can schedule daily/weekly checks for opportunity alerts
+- I can see when each alert was last triggered
+- I can adjust frequencies based on business needs
+
+
+---
+
+### **Story: Data Source Integration**
+
+**As a Systems Administrator,**I want to configure which databases and APIs each alert should use,So that alerts pull from the most relevant and up-to-date data sources.
+
+**Acceptance Criteria:**
+
+- I can select from portfolio, customer, and policy databases
+- I can configure external API connections
+- I can test data source connectivity
+- I can specify custom data sources when needed
+
+
+---
+
+### **Story: Alert Testing & Validation**
+
+**As a Quality Assurance Manager,**I want to preview and test alerts before they go live,So that I can ensure they work correctly and provide value to the business users.
+
+**Acceptance Criteria:**
+
+- I can see a live preview of how alerts will appear
+- I can test AI prompts with sample data
+- I can validate custom queries return expected results
+- I can simulate alert conditions to verify behavior
+
+
+---
+
+## User Personas & Scenarios
+
+### **Persona: Sarah - Insurance Portfolio Manager**
+
+*"I need alerts that help me identify which customers to contact first"*
+
+**Scenario:** Sarah configures an AI alert for pension opportunities:
+
+1. Selects "AI-Generated" automation type
+2. Writes prompt: "Identify companies with 10+ employees, average age >45, no pension plan, and strong financial health"
+3. Sets weekly frequency and portfolio database as source
+4. Chooses green styling to indicate opportunity
+5. Previews the alert and activates it
+
+
+---
+
+### **Persona: Marcus - Technical Administrator**
+
+*"I need precise control over when and how alerts are triggered"*
+
+**Scenario:** Marcus creates a custom script for expired policies:
+
+1. Selects "Custom Script" automation type
+2. Writes SQL query to find policies expired in last 7 days
+3. Sets real-time frequency for immediate notifications
+4. Chooses red styling to indicate urgency
+5. Tests query and validates results
+
+
+---
+
+### **Persona: Lisa - Business Analyst**
+
+*"I need to understand what each alert does and how it's configured"*
+
+**Scenario:** Lisa reviews existing alerts:
+
+1. Expands each insurance category to see configured alerts
+2. Reviews AI prompts to understand analysis logic
+3. Checks automation badges to see which are AI vs custom
+4. Validates that alert frequencies match business requirements
+5. Suggests improvements to alert messaging
+
+
+---
+
+## Advanced User Stories
+
+### **Story: Alert Performance Optimization**
+
+**As a System Performance Manager,**I want to monitor how long AI analysis takes and optimize alert performance,So that alerts are delivered quickly without overwhelming our systems.
+
+---
+
+### **Story: Alert Template Library**
+
+**As a Multi-Branch Insurance Manager,**I want to save successful alert configurations as templates,So that I can quickly deploy proven alert setups across different branches or portfolios.
+
+---
+
+### **Story: Alert Effectiveness Analytics**
+
+**As a Business Intelligence Manager,**I want to track which alerts generate the most successful outcomes,So that I can optimize our alert strategy and focus on the most valuable notifications.
+
+---
+
+## Success Metrics
+
+**For AI-Powered Alerts:**
+
+- 80% of AI-generated alerts result in actionable insights
+- AI alerts identify 25% more opportunities than manual review
+- Time to identify coverage gaps reduced by 60%
+
+
+**For Custom Script Alerts:**
+
+- 99.9% accuracy in detecting expired policies
+- Zero false positives for critical alerts
+- Custom alerts execute within 30 seconds
+
+
+**For Visual Customization:**
+
+- 95% user satisfaction with alert clarity
+- 40% faster alert triage due to visual indicators
+- Consistent brand compliance across all alerts
+
+
+This comprehensive set of user stories covers every aspect of the admin settings functionality, from technical configuration to business outcomes! 🎉
