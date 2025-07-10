@@ -212,7 +212,7 @@ export default function ProductTemplates() {
     queryKey: ['/api/product-categories'],
   });
 
-  // Create main categories structure exactly like ProductListsTab.tsx
+  // Create main categories structure for product templates
   const mainCategoriesData = useMemo(() => {
     if (!productTemplates || !categories) return [];
 
@@ -222,9 +222,9 @@ export default function ProductTemplates() {
     const rootCategories = categories.filter((cat: any) => !cat.parent_id);
     
     rootCategories.forEach((category: any) => {
-      // Find products that belong to this main category
-      const categoryProducts = productTemplates.filter((product: any) => 
-        product.parent_category_name === category.name
+      // Find product templates that belong to this main category
+      const categoryProducts = productTemplates.filter((template: any) => 
+        template.categoryName === category.name
       );
       
       if (!mainCategories.has(category.name)) {
@@ -1143,77 +1143,105 @@ export default function ProductTemplates() {
           </CardContent>
         </Card>
       ) : (
-        <div className="space-y-6">
+        <div className="space-y-4">
           {mainCategories
             .filter((category: any) => {
               if (selectedCategoryFilter === "all") return true;
               return category.name === selectedCategoryFilter;
             })
-            .map((category: any) => (
-            <Card key={category.id} className="border-[#E6E7F1]">
-              <CardHeader className="pb-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="w-4 h-4 rounded-full" 
-                      style={{ backgroundColor: category.color }}
-                    />
-                    <div>
-                      <h3 className="text-lg font-semibold text-gray-900">
-                        {category.name} ({category.productCount})
-                      </h3>
-                      <p className="text-sm text-gray-500">
-                        Total value: €{category.products.reduce((sum: number, p: any) => sum + (p.premium_value || 0), 0).toLocaleString()}
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {category.products.map((product: any) => (
-                    <div key={product.id} className="bg-gray-50 rounded-lg p-4">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900 mb-1">
-                            {product.name}
-                          </h4>
-                          <p className="text-sm text-gray-600 mb-3">
-                            {product.description}
-                          </p>
-                          <div className="flex items-center gap-6 text-sm">
-                            <div className="flex items-center gap-2">
-                              <span className="text-blue-600 font-medium">{product.customerCount || 0}</span>
-                              <span className="text-gray-500">Customers</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-green-600 font-medium">€{(product.premium_value || 0).toLocaleString()}</span>
-                              <span className="text-gray-500">Total Premium</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-purple-600 font-medium">€{Math.round((product.premium_value || 0) / Math.max(product.customers || 1, 1)).toLocaleString()}</span>
-                              <span className="text-gray-500">Avg Premium</span>
+            .map((category: any) => {
+              const isExpanded = expandedCategories.has(category.id);
+              const totalCustomers = category.products.reduce((sum: number, p: any) => sum + (p.customerCount || 0), 0);
+              const totalPotential = category.products.reduce((sum: number, p: any) => sum + (p.customerCount || 0) * 0.8, 0);
+              const totalValue = category.products.reduce((sum: number, p: any) => sum + (p.premium_value || 0), 0);
+              const penetration = Math.round((totalCustomers / Math.max(totalCustomers + totalPotential, 1)) * 100);
+              
+              return (
+                <Card key={category.id} className="border-[#E6E7F1]">
+                  <Collapsible open={isExpanded} onOpenChange={(open) => {
+                    const newExpanded = new Set(expandedCategories);
+                    if (open) {
+                      newExpanded.add(category.id);
+                    } else {
+                      newExpanded.delete(category.id);
+                    }
+                    setExpandedCategories(newExpanded);
+                  }}>
+                    <CollapsibleTrigger className="w-full">
+                      <CardHeader className="pb-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            {isExpanded ? (
+                              <ChevronDown className="h-4 w-4 text-gray-500" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4 text-gray-500" />
+                            )}
+                            <div 
+                              className="w-4 h-4 rounded-full" 
+                              style={{ backgroundColor: category.color }}
+                            />
+                            <div className="text-left">
+                              <h3 className="text-lg font-semibold text-gray-900">
+                                {category.name} <span className="text-sm font-normal text-gray-500">{penetration}% penetration</span>
+                              </h3>
                             </div>
                           </div>
+                          <div className="border border-gray-300 rounded px-3 py-1 text-sm text-gray-600 bg-white">
+                            Details
+                          </div>
                         </div>
-                        <div className="text-right text-sm text-gray-500">
-                          {product.contract_end_date && (
-                            <>
-                              <div>{new Date(product.contract_end_date).toLocaleDateString()}</div>
-                              <div className="text-xs">
-                                {Math.ceil((new Date(product.contract_end_date).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24 * 365))} years left
+                        <div className="flex items-center gap-8 mt-2 text-sm">
+                          <div>
+                            <span className="font-medium">{totalCustomers}</span> customers
+                          </div>
+                          <div>
+                            <span className="font-medium">{Math.round(totalPotential)}</span> potential
+                          </div>
+                          <div>
+                            <span className="font-medium text-green-600">€{totalValue > 0 ? (totalValue / 1000).toFixed(1) + 'M' : '0.1M'}</span> value
+                          </div>
+                        </div>
+                        <div className="w-full bg-gray-200 rounded-full h-2 mt-2">
+                          <div 
+                            className="bg-blue-600 h-2 rounded-full" 
+                            style={{ width: `${penetration}%` }}
+                          />
+                        </div>
+                      </CardHeader>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent>
+                      <CardContent>
+                        <div className="space-y-3">
+                          <h4 className="font-medium text-gray-900 mb-3">Onderliggende producten:</h4>
+                          {category.products.map((product: any) => (
+                            <div key={product.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                              <div className="flex items-center gap-3">
+                                <div 
+                                  className="w-3 h-3 rounded-full" 
+                                  style={{ backgroundColor: category.color }}
+                                />
+                                <div>
+                                  <span className="font-medium text-gray-900">{product.name}</span>
+                                  <span className="text-gray-500 text-sm ml-2">({product.customerCount || 0})</span>
+                                </div>
                               </div>
-                              <div className="text-xs">Latest Expiry</div>
-                            </>
-                          )}
+                              <div className="flex items-center gap-4 text-sm">
+                                <div>
+                                  <span className="font-medium">€{((product.premium_value || 0) > 0 ? (product.premium_value || 0).toLocaleString() : '0k')}</span>
+                                </div>
+                                <Button variant="link" size="sm" className="text-blue-600 p-0 h-auto">
+                                  {product.customerCount || 0} klanten
+                                </Button>
+                              </div>
+                            </div>
+                          ))}
                         </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+                      </CardContent>
+                    </CollapsibleContent>
+                  </Collapsible>
+                </Card>
+              );
+            })}
         </div>
       )}
 
