@@ -2918,12 +2918,12 @@ Prioritize actions that:
           c.name,
           c.description,
           c.status,
-          cpa.premium_value as potential_value,
-          cpa.premium_percentage,
-          cpa.discount_percentage,
-          cpa.contract_start_date,
-          cpa.contract_end_date,
-          cpa.status as contract_status
+          cpa.custom_price as potential_value,
+          cpa.custom_premium_percentage as premium_percentage,
+          cpa.custom_discount_percentage as discount_percentage,
+          cpa.customer_contract_start_date as contract_start_date,
+          cpa.customer_contract_end_date as contract_end_date,
+          cpa.is_active as contract_status
         FROM ${envId}.customers c
         INNER JOIN ${envId}.partner_customers pc ON c.id = pc.customer_id
         INNER JOIN ${envId}.customer_product_assignments cpa ON c.id = cpa.customer_id
