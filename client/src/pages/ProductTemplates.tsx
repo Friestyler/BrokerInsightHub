@@ -187,6 +187,37 @@ export default function ProductTemplates() {
     return colorMap[color] || 'blue';
   };
 
+  // Hierarchical category rendering for dropdowns
+  const renderCategoriesHierarchy = (categories: any[], level = 0): React.ReactElement[] => {
+    const result: React.ReactElement[] = [];
+    
+    const rootCategories = categories.filter((cat: any) => !cat.parent_id);
+    const getSubcategories = (parentId: number) => 
+      categories.filter((cat: any) => cat.parent_id === parentId);
+    
+    const renderCategory = (category: any, currentLevel: number) => {
+      result.push(
+        <SelectItem key={category.id} value={category.id.toString()}>
+          <div className="flex items-center gap-2" style={{ paddingLeft: `${currentLevel * 16}px` }}>
+            <div 
+              className="w-3 h-3 rounded-full" 
+              style={{ backgroundColor: category.color }}
+            />
+            {category.name}
+          </div>
+        </SelectItem>
+      );
+      
+      // Recursively render subcategories
+      const subcategories = getSubcategories(category.id);
+      subcategories.forEach(subcat => renderCategory(subcat, currentLevel + 1));
+    };
+    
+    rootCategories.forEach(category => renderCategory(category, level));
+    
+    return result;
+  };
+
   // Simplified category rendering - main categories only
   const renderMainCategories = () => {
     return mainCategories.map((category: any) => (
@@ -209,41 +240,16 @@ export default function ProductTemplates() {
 
   // Fetch product categories using the working pattern
   const { data: categories = [] } = useQuery({
-    queryKey: ['/api/product-categories'],
+    queryKey: ['/api/categories'],
   });
 
-  // Create main categories structure exactly like ProductListsTab.tsx
-  const mainCategoriesData = useMemo(() => {
-    if (!productTemplates || !categories) return [];
-
-    const mainCategories = new Map();
-
-    // Get all main categories (no parent_id)
-    const rootCategories = categories.filter((cat: any) => !cat.parent_id);
+  // Get root categories directly from categories data
+  const mainCategories = useMemo(() => {
+    if (!categories || !Array.isArray(categories)) return [];
     
-    rootCategories.forEach((category: any) => {
-      // Find products that belong to this main category
-      const categoryProducts = productTemplates.filter((product: any) => 
-        product.parent_category_name === category.name
-      );
-      
-      if (!mainCategories.has(category.name)) {
-        mainCategories.set(category.name, {
-          id: category.id,
-          name: category.name,
-          color: category.color || '#6b7280',
-          products: categoryProducts,
-          productCount: categoryProducts.length,
-          isBlindSpot: categoryProducts.length === 0
-        });
-      }
-    });
-
-    return Array.from(mainCategories.values());
-  }, [productTemplates, categories]);
-
-  // Extract simple list for filter pills
-  const mainCategories = mainCategoriesData;
+    // Return only root categories (no parent_id)
+    return categories.filter((cat: any) => !cat.parent_id || cat.parent_id === null);
+  }, [categories]);
 
   // Fetch vendors for dropdown
   const { data: vendors = [] } = useQuery({
@@ -327,10 +333,10 @@ export default function ProductTemplates() {
   // Category mutations
   const createCategoryMutation = useMutation({
     mutationFn: async (data: { name: string; color: string; icon?: string; description?: string; parentId?: number }) => {
-      return apiRequest('POST', '/api/product-categories', data);
+      return apiRequest('POST', '/api/categories', data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/product-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
       setCreateCategoryDialogOpen(false);
       setCreateSubcategoryDialogOpen(false);
       setSelectedParentCategory(null);
@@ -354,10 +360,10 @@ export default function ProductTemplates() {
 
   const updateCategoryMutation = useMutation({
     mutationFn: async ({ id, data }: { id: number; data: any }) => {
-      return apiRequest('PUT', `/api/product-categories/${id}`, data);
+      return apiRequest('PUT', `/api/categories/${id}`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/product-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
       setEditCategoryDialogOpen(false);
       setSelectedCategory(null);
       setEditCategoryColor("#3B82F6");
@@ -378,10 +384,10 @@ export default function ProductTemplates() {
 
   const deleteCategoryMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest('DELETE', `/api/product-categories/${id}`);
+      return apiRequest('DELETE', `/api/categories/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/product-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/categories'] });
       setDeleteCategoryDialogOpen(false);
       setSelectedCategory(null);
       toast({
@@ -1247,6 +1253,64 @@ export default function ProductTemplates() {
       </AlertDialog>
       </div>
       )}
+      {/* Create Category Dialog */}
+      <Dialog open={createCategoryDialogOpen} onOpenChange={setCreateCategoryDialogOpen}>
+        <DialogContent className="max-w-md bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-[#282A3F]">Create Category</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target as HTMLFormElement);
+            createCategoryMutation.mutate({
+              name: formData.get('name') as string,
+              color: newCategoryColor,
+              icon: newCategoryIcon || undefined,
+              description: formData.get('description') as string || undefined,
+            });
+          }}>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-[#282A3F]">Category Name</label>
+                <Input name="name" placeholder="Enter category name" required className="mt-1" />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#282A3F]">Color</label>
+                <div className="mt-1">
+                  <ColorPicker 
+                    value={newCategoryColor} 
+                    onChange={setNewCategoryColor}
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#282A3F]">Icon (Optional)</label>
+                <div className="mt-1">
+                  <IconPicker 
+                    value={newCategoryIcon}
+                    onChange={setNewCategoryIcon}
+                    placeholder="Select icon..."
+                  />
+                </div>
+                <p className="text-xs text-gray-500 mt-1">Choose a visual icon to represent this category</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#282A3F]">Description</label>
+                <Textarea name="description" placeholder="Enter description (optional)" className="mt-1" />
+              </div>
+            </div>
+            <DialogFooter className="mt-6">
+              <Button type="button" variant="outline" onClick={() => setCreateCategoryDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" className="bg-[#5567E5] hover:bg-[#4451c7]" disabled={createCategoryMutation.isPending}>
+                {createCategoryMutation.isPending ? "Creating..." : "Create category"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
       {/* Create Subcategory Dialog */}
       <Dialog open={createSubcategoryDialogOpen} onOpenChange={setCreateSubcategoryDialogOpen}>
         <DialogContent className="max-w-md bg-white">
