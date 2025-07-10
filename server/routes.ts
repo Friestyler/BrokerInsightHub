@@ -2918,7 +2918,6 @@ Prioritize actions that:
           c.name,
           c.description,
           c.status,
-          c.contact_email as email,
           cpa.premium_value as potential_value,
           cpa.premium_percentage,
           cpa.discount_percentage,
