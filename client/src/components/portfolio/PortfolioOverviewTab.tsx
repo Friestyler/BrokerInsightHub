@@ -17,6 +17,7 @@ import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import { useEnvironment } from '@/contexts/EnvironmentContext';
+import { SmartAlerts } from './SmartAlerts';
 
 interface PortfolioOverviewProps {
   entityType: 'partners' | 'customers' | 'opportunities';
@@ -608,6 +609,13 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
           );
         })}
       </div>
+
+      {/* Smart Alerts Section */}
+      <SmartAlerts 
+        entityType={entityType} 
+        entityId={entityId} 
+        portfolioData={portfolioData}
+      />
 
       {/* Complete Product List Section - Always show */}
       <div className="space-y-4 mt-8">

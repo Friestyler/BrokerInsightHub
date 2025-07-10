@@ -1,0 +1,78 @@
+### User Stories for Insurance Portfolio Alert System
+
+## Alert Cards
+
+**As an** insurance portfolio manager**I want to** see visual alert cards for each insurance category**So that** I can quickly identify issues and opportunities across my portfolio
+
+### Acceptance Criteria:
+
+- Alert cards display with color-coded backgrounds based on alert type:
+
+- Orange for Coverage Gap alerts
+- Red for Expired Policy alerts
+- Green for Revenue Opportunity and High Potential alerts
+
+
+
+- Each card shows an appropriate icon, alert title, and brief description
+- Cards display key metrics (number of affected customers, revenue potential, etc.)
+- "Take Action" button is prominently displayed on each card
+- Cards are responsive and work on desktop and mobile devices
+
+
+---
+
+## Take Action Modal
+
+**As an** insurance portfolio manager**I want to** click "Take Action" on an alert card and see detailed information**So that** I can understand the full scope of the issue and take appropriate action
+
+### Acceptance Criteria:
+
+- Modal opens when "Take Action" button is clicked
+- Modal displays:
+
+- Alert title with matching icon
+- Detailed description of the issue/opportunity
+- List of affected customers with their details
+- Potential revenue impact for each customer
+- Total potential value when customers are selected
+
+
+
+- Modal includes multi-select functionality with checkboxes
+- "Select All" / "Deselect All" toggle button
+- Selection counter showing "X of Y customers selected"
+- Modal is scrollable for long customer lists
+- Modal can be closed by clicking outside or using close button
+
+
+---
+
+## Customer Details Modal
+
+**As an** insurance portfolio manager**I want to** view and select specific customers from an alert**So that** I can create targeted opportunities and track potential revenue
+
+### Acceptance Criteria:
+
+- Customer list shows:
+
+- Customer name
+- Contact information (email)
+- Current status (e.g., "No Coverage", "Expired 31/12/2024")
+- Potential revenue value
+
+
+
+- Each customer row has a "Creëer Kans" (Create Opportunity) button
+- Multi-select checkboxes allow bulk selection
+- Selected customers show total potential revenue calculation
+- Action buttons at bottom:
+
+- "Creëer Kansen voor Geselecteerde (X)" for selected customers
+- "Alle Kansen Creëren" to create opportunities for all customers
+- "Export Selectie" / "Export Lijst" for data export
+
+
+
+- Modal handles both alert-triggered views (with potential values) and product-triggered views (customer lists only)
+- Responsive design works on various screen sizes
