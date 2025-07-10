@@ -204,17 +204,36 @@ export default function ProductTemplates() {
 
   // Render hierarchical categories for form dropdown
   const renderCategoriesHierarchy = (categories: any[]) => {
-    return categories.map((category: any) => (
-      <SelectItem key={category.id} value={category.id.toString()}>
-        <div className="flex items-center gap-2">
-          <div 
-            className="w-3 h-3 rounded-full" 
-            style={{ backgroundColor: category.color }}
-          />
-          {category.name}
-        </div>
-      </SelectItem>
-    ));
+    const items: JSX.Element[] = [];
+    
+    const renderCategory = (category: any, level: number = 0) => {
+      const paddingLeft = level * 16; // 16px per level
+      
+      items.push(
+        <SelectItem key={category.id} value={category.id.toString()}>
+          <div className="flex items-center gap-2" style={{ paddingLeft: `${paddingLeft}px` }}>
+            <div 
+              className="w-3 h-3 rounded-full" 
+              style={{ backgroundColor: category.color }}
+            />
+            {category.name}
+          </div>
+        </SelectItem>
+      );
+      
+      // Render subcategories if they exist
+      if (category.subcategories && category.subcategories.length > 0) {
+        category.subcategories.forEach((subcategory: any) => {
+          renderCategory(subcategory, level + 1);
+        });
+      }
+    };
+    
+    categories.forEach((category: any) => {
+      renderCategory(category, 0);
+    });
+    
+    return items;
   };
 
   // Fetch product catalogue
@@ -224,7 +243,7 @@ export default function ProductTemplates() {
 
   // Fetch product categories using the working pattern
   const { data: categories = [] } = useQuery({
-    queryKey: ['/api/product-categories'],
+    queryKey: ['/api/categories'],
   });
 
   // Create main categories structure for product templates
@@ -260,8 +279,40 @@ export default function ProductTemplates() {
   // Extract simple list for filter pills
   const mainCategories = mainCategoriesData;
   
+  // Build hierarchical structure from flat categories
+  const categoriesWithHierarchy = useMemo(() => {
+    if (!categories || categories.length === 0) return [];
+    
+    const categoryMap = new Map();
+    const rootCategories: any[] = [];
+    
+    // First, create a map of all categories
+    categories.forEach((category: any) => {
+      categoryMap.set(category.id, {
+        ...category,
+        subcategories: []
+      });
+    });
+    
+    // Then, build the hierarchy
+    categories.forEach((category: any) => {
+      if (category.parent_id) {
+        // This is a subcategory
+        const parent = categoryMap.get(category.parent_id);
+        if (parent) {
+          parent.subcategories.push(categoryMap.get(category.id));
+        }
+      } else {
+        // This is a root category
+        rootCategories.push(categoryMap.get(category.id));
+      }
+    });
+    
+    return rootCategories;
+  }, [categories]);
+  
   // Get only root categories (level 1) for the categories tab
-  const rootCategories = categories.filter((cat: any) => !cat.parent_id);
+  const rootCategories = categoriesWithHierarchy;
 
   // Fetch vendors for dropdown
   const { data: vendors = [] } = useQuery({
@@ -606,7 +657,7 @@ export default function ProductTemplates() {
                     </SelectTrigger>
                   </FormControl>
                   <SelectContent>
-                    {categories && renderCategoriesHierarchy(categories as any[])}
+                    {categoriesWithHierarchy && renderCategoriesHierarchy(categoriesWithHierarchy as any[])}
                   </SelectContent>
                 </Select>
                 <FormMessage />
