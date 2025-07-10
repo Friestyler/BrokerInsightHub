@@ -202,6 +202,21 @@ export default function ProductTemplates() {
     ));
   };
 
+  // Render hierarchical categories for form dropdown
+  const renderCategoriesHierarchy = (categories: any[]) => {
+    return categories.map((category: any) => (
+      <SelectItem key={category.id} value={category.id.toString()}>
+        <div className="flex items-center gap-2">
+          <div 
+            className="w-3 h-3 rounded-full" 
+            style={{ backgroundColor: category.color }}
+          />
+          {category.name}
+        </div>
+      </SelectItem>
+    ));
+  };
+
   // Fetch product catalogue
   const { data: productTemplates = [], isLoading } = useQuery<ProductTemplateWithCategory[]>({
     queryKey: ['/api/product-templates'],
@@ -584,7 +599,7 @@ export default function ProductTemplates() {
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Category</FormLabel>
-                <Select onValueChange={(value) => field.onChange(value)} value={field.value}>
+                <Select onValueChange={(value) => field.onChange(Number(value))} value={field.value?.toString() || ""}>
                   <FormControl>
                     <SelectTrigger>
                       <SelectValue placeholder="Select category" />
@@ -612,6 +627,20 @@ export default function ProductTemplates() {
             )}
           />
         </div>
+
+        <FormField
+          control={form.control}
+          name="providerType"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Provider Type</FormLabel>
+              <FormControl>
+                <Input placeholder="e.g., Insurance Company, Broker" {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
 
 
 
@@ -689,6 +718,41 @@ export default function ProductTemplates() {
                     placeholder="0.00"
                     {...field}
                     onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : undefined)}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+        </div>
+
+        <div className="grid grid-cols-2 gap-4">
+          <FormField
+            control={form.control}
+            name="contractStartDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Contract Start Date</FormLabel>
+                <FormControl>
+                  <Input
+                    type="date"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="contractEndDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Contract End Date</FormLabel>
+                <FormControl>
+                  <Input
+                    type="date"
+                    {...field}
                   />
                 </FormControl>
                 <FormMessage />
@@ -1214,24 +1278,55 @@ export default function ProductTemplates() {
                         <div className="space-y-3">
                           <h4 className="font-medium text-gray-900 mb-3">Onderliggende producten:</h4>
                           {category.products.map((product: any) => (
-                            <div key={product.id} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                            <div key={product.id} className="flex items-center justify-between py-3 border-b border-gray-100 last:border-b-0">
                               <div className="flex items-center gap-3">
                                 <div 
                                   className="w-3 h-3 rounded-full" 
                                   style={{ backgroundColor: category.color }}
                                 />
-                                <div>
-                                  <span className="font-medium text-gray-900">{product.name}</span>
-                                  <span className="text-gray-500 text-sm ml-2">({product.customerCount || 0})</span>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="font-medium text-gray-900">{product.name}</span>
+                                    <span className="text-gray-500 text-sm">({product.customerCount || 0})</span>
+                                  </div>
+                                  {product.description && (
+                                    <p className="text-sm text-gray-600 mb-2">{product.description}</p>
+                                  )}
+                                  <div className="flex items-center gap-4 text-xs text-gray-500">
+                                    <span>Provider: {product.providerName || 'N/A'}</span>
+                                    <span>Avg: €{(product.averagePrice || 0).toLocaleString()}</span>
+                                    <span>Premium: {(Number(product.premiumPercentage) || 0).toFixed(1)}%</span>
+                                    {product.contractStartDate && (
+                                      <span>Start: {new Date(product.contractStartDate).toLocaleDateString()}</span>
+                                    )}
+                                  </div>
                                 </div>
                               </div>
-                              <div className="flex items-center gap-4 text-sm">
-                                <div>
-                                  <span className="font-medium">€{((product.premium_value || 0) > 0 ? (product.premium_value || 0).toLocaleString() : '0k')}</span>
+                              <div className="flex items-center gap-3">
+                                <div className="text-right text-sm">
+                                  <div className="font-medium">€{((product.premium_value || 0) > 0 ? (product.premium_value || 0).toLocaleString() : '0k')}</div>
+                                  <div className="text-xs text-gray-500">Total Value</div>
                                 </div>
                                 <Button variant="link" size="sm" className="text-blue-600 p-0 h-auto">
                                   {product.customerCount || 0} klanten
                                 </Button>
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                      <MoreVertical className="h-4 w-4" />
+                                    </Button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent align="end">
+                                    <DropdownMenuItem onClick={() => handleEdit(product)}>
+                                      <Edit className="h-4 w-4 mr-2" />
+                                      Edit
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem onClick={() => handleDelete(product)}>
+                                      <Trash2 className="h-4 w-4 mr-2" />
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
                               </div>
                             </div>
                           ))}
