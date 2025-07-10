@@ -311,7 +311,7 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
       {/* Top Row - Customer Cross-Sell and Summer Trending Products */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Customer Cross-Sell Opportunities */}
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow border-[#E6E7F1]" onClick={() => handleAnalyze('customer')}>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow border-[#E6E7F1] flex flex-col" onClick={() => handleAnalyze('customer')}>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -326,8 +326,8 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
               <Play className="w-5 h-5 text-[#5567E5]" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
+          <CardContent className="flex-1 flex flex-col">
+            <div className="flex-1 space-y-3">
               <div className="flex items-center justify-between">
                 <span className="text-sm text-gray-600">Total Opportunities</span>
                 <span className="font-semibold text-[#5567E5]">24</span>
@@ -336,25 +336,27 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
                 <span className="text-sm text-gray-600">Total Potential</span>
                 <span className="font-semibold text-green-600">€156,800</span>
               </div>
-              <div className="pt-3">
-                <Button 
-                  className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white font-medium rounded-lg h-10 justify-between px-4"
-                >
-                  <div className="flex items-center">
-                    <Play className="w-4 h-4 mr-2" />
-                    <span>Analyze insights</span>
-                  </div>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Button>
-              </div>
+              {/* Spacer to push button to bottom */}
+              <div className="flex-1 min-h-[60px]"></div>
+            </div>
+            <div className="pt-3">
+              <Button 
+                className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white font-medium rounded-lg h-10 justify-between px-4"
+              >
+                <div className="flex items-center">
+                  <Play className="w-4 h-4 mr-2" />
+                  <span>Analyze insights</span>
+                </div>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Button>
             </div>
           </CardContent>
         </Card>
 
         {/* Strategic Opportunities Analysis */}
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow border-[#E6E7F1]" onClick={() => handleAnalyze('strategic')}>
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow border-[#E6E7F1] flex flex-col" onClick={() => handleAnalyze('strategic')}>
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
@@ -369,8 +371,8 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
               <Play className="w-5 h-5 text-[#5567E5]" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
+          <CardContent className="flex-1 flex flex-col">
+            <div className="flex-1 space-y-3">
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">1. Travel Insurance</span>
@@ -385,19 +387,19 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
                   <span className="font-semibold text-green-600">€29,800</span>
                 </div>
               </div>
-              <div className="pt-3">
-                <Button 
-                  className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white font-medium rounded-lg h-10 justify-between px-4"
-                >
-                  <div className="flex items-center">
-                    <Target className="w-4 h-4 mr-2" />
-                    <span>Analyze trends</span>
-                  </div>
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                  </svg>
-                </Button>
-              </div>
+            </div>
+            <div className="pt-3">
+              <Button 
+                className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white font-medium rounded-lg h-10 justify-between px-4"
+              >
+                <div className="flex items-center">
+                  <Target className="w-4 h-4 mr-2" />
+                  <span>Analyze trends</span>
+                </div>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Button>
             </div>
           </CardContent>
         </Card>
