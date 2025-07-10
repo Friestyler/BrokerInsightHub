@@ -501,11 +501,15 @@ export default function ProductTemplates() {
   };
 
   const getSubcategories = (parentId: number) => {
-    return categories?.filter((cat: any) => cat.parent_id === parentId) || [];
+    // Find the parent category in rootCategories and return its subcategories
+    const parentCategory = rootCategories.find((cat: any) => cat.id === parentId);
+    return parentCategory?.subcategories || [];
   };
 
   const getSubcategoryCount = (parentId: number) => {
-    return categories?.filter((cat: any) => cat.parent_id === parentId)?.length || 0;
+    // Find the parent category in rootCategories and return its subcategories count
+    const parentCategory = rootCategories.find((cat: any) => cat.id === parentId);
+    return parentCategory?.subcategories?.length || 0;
   };
 
   // Handlers for category dialogs
