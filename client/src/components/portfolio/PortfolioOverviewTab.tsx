@@ -107,6 +107,22 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   
+  // Customer modal state
+  const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [customerModalData, setCustomerModalData] = useState<{
+    customers: Array<{
+      id: string;
+      name: string;
+      email: string;
+      status: string;
+      potentialValue?: number;
+    }>;
+    productName: string;
+  }>({
+    customers: [],
+    productName: ''
+  });
+  
   // Form state
   const [formData, setFormData] = useState({
     title: '',
@@ -196,6 +212,63 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
       setSelectedCategories([categoryName]);
     }
     setShowProductsList(true);
+  };
+
+  // Handle clicking on customer count
+  const handleCustomerCountClick = async (product: any) => {
+    try {
+      // Fetch customers for this specific product
+      const productId = product.productId;
+      const response = await apiRequest('GET', `/api/${envId}/${entityType}/${entityId}/products/${productId}/customers`);
+      
+      if (response && Array.isArray(response)) {
+        const customers = response.map((customer: any) => ({
+          id: customer.id?.toString() || '',
+          name: customer.name || customer.customer_name || 'Unknown Customer',
+          email: customer.email || customer.customer_email || 'No email',
+          status: customer.status || 'Active',
+          potentialValue: customer.potential_value || customer.premium_value || 0
+        }));
+
+        setCustomerModalData({
+          customers,
+          productName: product.productName || 'Unknown Product'
+        });
+        setShowCustomerModal(true);
+      }
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load customer data",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle customer modal actions
+  const handleCreateOpportunity = (customerId: string) => {
+    toast({
+      title: "Create Opportunity",
+      description: `Creating opportunity for customer ${customerId}`,
+    });
+    // Implementation would go here
+  };
+
+  const handleCreateOpportunities = (customerIds: string[]) => {
+    toast({
+      title: "Create Opportunities",
+      description: `Creating opportunities for ${customerIds.length} customers`,
+    });
+    // Implementation would go here
+  };
+
+  const handleExportCustomers = (customerIds: string[]) => {
+    toast({
+      title: "Export Data",
+      description: `Exporting data for ${customerIds.length} customers`,
+    });
+    // Implementation would go here
   };
 
   // Handle product selection
@@ -733,7 +806,12 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                             {/* Right side data points */}
                             <div className="flex items-center space-x-8 text-sm">
                               <div className="text-center">
-                                <div className="font-semibold text-blue-600">{product.customerCount || 0}</div>
+                                <div 
+                                  className="font-semibold text-blue-600 cursor-pointer hover:text-blue-800 hover:underline transition-colors"
+                                  onClick={() => handleCustomerCountClick(product)}
+                                >
+                                  {product.customerCount || 0}
+                                </div>
                                 <div className="text-gray-500">Customers</div>
                               </div>
                               
@@ -1168,6 +1246,95 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
                 {createOpportunityMutation.isPending ? 'Maken...' : 'Kans aanmaken'}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Customer Details Modal */}
+      <Dialog open={showCustomerModal} onOpenChange={setShowCustomerModal}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center space-x-2">
+              <Users className="w-5 h-5" />
+              <span>{customerModalData.productName} - Customers</span>
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {customerModalData.customers.length === 0 ? (
+              <div className="text-center py-8">
+                <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                <p className="text-gray-500">No customers found for this product</p>
+              </div>
+            ) : (
+              <>
+                {/* Customer List */}
+                <div className="space-y-3 max-h-96 overflow-y-auto">
+                  {customerModalData.customers.map((customer) => (
+                    <div
+                      key={customer.id}
+                      className="flex items-center justify-between p-4 border border-[#E6E7F1] rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
+                      onClick={() => window.open(`/customers/${customer.id}`, '_blank')}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <div>
+                          <div className="font-medium text-gray-900">{customer.name}</div>
+                          <div className="text-sm text-gray-500">{customer.email}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center space-x-4">
+                        <div className="text-right">
+                          <div className="text-sm text-gray-500">{customer.status}</div>
+                          {customer.potentialValue && (
+                            <div className="font-semibold text-green-600">
+                              {new Intl.NumberFormat('en-US', {
+                                style: 'currency',
+                                currency: 'EUR',
+                                minimumFractionDigits: 0,
+                                maximumFractionDigits: 0,
+                              }).format(customer.potentialValue)}
+                            </div>
+                          )}
+                        </div>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCreateOpportunity(customer.id);
+                          }}
+                          className="border-[#5567E5] text-[#5567E5] hover:bg-[#5567E5] hover:text-white"
+                        >
+                          Create Opportunity
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="flex justify-between items-center pt-4 border-t">
+                  <div className="text-sm text-gray-500">
+                    {customerModalData.customers.length} customers found
+                  </div>
+                  <div className="flex space-x-3">
+                    <Button
+                      variant="outline"
+                      onClick={() => handleExportCustomers(customerModalData.customers.map(c => c.id))}
+                      className="border-[#5567E5] text-[#5567E5] hover:bg-[#5567E5] hover:text-white"
+                    >
+                      Export Data
+                    </Button>
+                    <Button
+                      onClick={() => handleCreateOpportunities(customerModalData.customers.map(c => c.id))}
+                      className="bg-[#5567E5] hover:bg-[#4556D4]"
+                    >
+                      Create Opportunities
+                    </Button>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
         </DialogContent>
       </Dialog>
