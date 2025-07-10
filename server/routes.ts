@@ -4137,6 +4137,9 @@ ${JSON.stringify(enhancedCrossSellData.availableProducts, null, 2)}
 
 CUSTOM ANALYSIS PARAMETERS:
 
+Free Prompt:
+${customPrompt.freePrompt || 'No free prompt provided'}
+
 Market Dynamic:
 ${customPrompt.marketDynamic || 'No specific market dynamic parameters provided'}
 
@@ -4146,11 +4149,16 @@ ${customPrompt.partnerContext || 'No specific partner context provided'}
 Strategy NN:
 ${customPrompt.strategyNN || 'No specific NN strategy parameters provided'}
 
-Customer Segment:
+Customer Segment (${customPrompt.customerSegmentType || 'text'}):
 ${customPrompt.customerSegment || 'No specific customer segment parameters provided'}
+${customPrompt.customerSegmentType === 'list' || customPrompt.customerSegmentType === 'segment' ? 
+  `Selected from: ${customPrompt.customerSegmentSelection ? 
+    (customPrompt.customerSegmentType === 'list' ? 'Customer List' : 'Customer Segment') + ' ID: ' + customPrompt.customerSegmentSelection : 'None'}` : ''}
 
-Product Segment:
+Product Segment (${customPrompt.productSegmentType || 'text'}):
 ${customPrompt.productSegment || 'No specific product segment parameters provided'}
+${customPrompt.productSegmentType === 'category' ? 
+  `Selected Category ID: ${customPrompt.productSegmentSelection || 'None'}` : ''}
 
 CUSTOM ANALYSIS REQUEST:
 Generate 3-5 highly targeted cross-sell recommendations based on the custom parameters above. Focus on:

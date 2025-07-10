@@ -7,9 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TrendingUp, Target, DollarSign, Users, X, Plus, Play, ChevronDown, ChevronUp } from 'lucide-react';
+import { TrendingUp, Target, DollarSign, Users, X, Plus, Play, ChevronDown, ChevronUp, List, Layers } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { useQuery } from '@tanstack/react-query';
 
 interface SmartCrossSellProps {
   entityType: 'partners' | 'customers';
@@ -37,13 +38,34 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isCustomExpanded, setIsCustomExpanded] = useState(false);
   const [customPrompt, setCustomPrompt] = useState({
+    freePrompt: '',
     marketDynamic: '',
     partnerContext: '',
     strategyNN: '',
     customerSegment: '',
-    productSegment: ''
+    customerSegmentType: 'text', // 'text', 'list', 'segment'
+    customerSegmentSelection: '',
+    productSegment: '',
+    productSegmentType: 'text', // 'text', 'category'
+    productSegmentSelection: ''
   });
   const { toast } = useToast();
+
+  // Fetch data for selections
+  const { data: savedLists = [] } = useQuery({
+    queryKey: ['/api/degoudse/saved-lists'],
+    queryFn: () => apiRequest('GET', '/api/degoudse/saved-lists?entity_type=customers')
+  });
+
+  const { data: savedSegments = [] } = useQuery({
+    queryKey: ['/api/degoudse/saved-views'],
+    queryFn: () => apiRequest('GET', '/api/degoudse/saved-views?entity_type=customers')
+  });
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ['/api/degoudse/categories'],
+    queryFn: () => apiRequest('GET', '/api/degoudse/categories')
+  });
 
   const handleAnalyze = async (analysisType: string) => {
     setIsAnalyzing(true);
@@ -55,11 +77,16 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
       if (analysisType === 'custom') {
         // For custom analysis, send structured prompting data
         const customPromptData = {
+          freePrompt: customPrompt.freePrompt,
           marketDynamic: customPrompt.marketDynamic,
           partnerContext: customPrompt.partnerContext,
           strategyNN: customPrompt.strategyNN,
           customerSegment: customPrompt.customerSegment,
-          productSegment: customPrompt.productSegment
+          customerSegmentType: customPrompt.customerSegmentType,
+          customerSegmentSelection: customPrompt.customerSegmentSelection,
+          productSegment: customPrompt.productSegment,
+          productSegmentType: customPrompt.productSegmentType,
+          productSegmentSelection: customPrompt.productSegmentSelection
         };
         
         response = await apiRequest('POST', `/api/degoudse/${entityType}/${entityId}/smart-cross-sell`, {
@@ -387,6 +414,20 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
         {isCustomExpanded && (
           <CardContent className="pt-0">
             <div className="space-y-6">
+              {/* Free Prompt Field */}
+              <div>
+                <Label htmlFor="freePrompt" className="text-sm font-medium text-gray-700">
+                  Free Prompt
+                </Label>
+                <Textarea
+                  id="freePrompt"
+                  placeholder="Enter your custom analysis prompt or specific requirements..."
+                  value={customPrompt.freePrompt}
+                  onChange={(e) => setCustomPrompt(prev => ({ ...prev, freePrompt: e.target.value }))}
+                  className="mt-1 h-20"
+                />
+              </div>
+
               {/* Custom Prompting Form */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
@@ -431,30 +472,181 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
                 </div>
                 
                 <div className="space-y-4">
+                  {/* Customer Segment with Selection */}
                   <div>
-                    <Label htmlFor="customerSegment" className="text-sm font-medium text-gray-700">
+                    <Label className="text-sm font-medium text-gray-700">
                       Customer Segment
                     </Label>
-                    <Textarea
-                      id="customerSegment"
-                      placeholder="Target customer profiles, demographics, business sectors..."
-                      value={customPrompt.customerSegment}
-                      onChange={(e) => setCustomPrompt(prev => ({ ...prev, customerSegment: e.target.value }))}
-                      className="mt-1 h-20"
-                    />
+                    <div className="mt-1 space-y-2">
+                      <Select
+                        value={customPrompt.customerSegmentType}
+                        onValueChange={(value) => setCustomPrompt(prev => ({ 
+                          ...prev, 
+                          customerSegmentType: value,
+                          customerSegmentSelection: ''
+                        }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select segment type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="text">Free Text</SelectItem>
+                          <SelectItem value="list">
+                            <div className="flex items-center space-x-2">
+                              <List className="w-4 h-4" />
+                              <span>From Lists</span>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="segment">
+                            <div className="flex items-center space-x-2">
+                              <Layers className="w-4 h-4" />
+                              <span>From Segments</span>
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      
+                      {customPrompt.customerSegmentType === 'text' && (
+                        <Textarea
+                          placeholder="Target customer profiles, demographics, business sectors..."
+                          value={customPrompt.customerSegment}
+                          onChange={(e) => setCustomPrompt(prev => ({ ...prev, customerSegment: e.target.value }))}
+                          className="h-20"
+                        />
+                      )}
+                      
+                      {customPrompt.customerSegmentType === 'list' && (
+                        <div className="space-y-2">
+                          <Select
+                            value={customPrompt.customerSegmentSelection}
+                            onValueChange={(value) => setCustomPrompt(prev => ({ 
+                              ...prev, 
+                              customerSegmentSelection: value,
+                              customerSegment: savedLists.find(list => list.id.toString() === value)?.name || ''
+                            }))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a customer list" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {savedLists.map((list) => (
+                                <SelectItem key={list.id} value={list.id.toString()}>
+                                  {list.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Input
+                            placeholder="Additional customer segment context..."
+                            value={customPrompt.customerSegment}
+                            onChange={(e) => setCustomPrompt(prev => ({ ...prev, customerSegment: e.target.value }))}
+                          />
+                        </div>
+                      )}
+                      
+                      {customPrompt.customerSegmentType === 'segment' && (
+                        <div className="space-y-2">
+                          <Select
+                            value={customPrompt.customerSegmentSelection}
+                            onValueChange={(value) => setCustomPrompt(prev => ({ 
+                              ...prev, 
+                              customerSegmentSelection: value,
+                              customerSegment: savedSegments.find(segment => segment.id.toString() === value)?.name || ''
+                            }))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a customer segment" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {savedSegments.map((segment) => (
+                                <SelectItem key={segment.id} value={segment.id.toString()}>
+                                  {segment.name}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Input
+                            placeholder="Additional customer segment context..."
+                            value={customPrompt.customerSegment}
+                            onChange={(e) => setCustomPrompt(prev => ({ ...prev, customerSegment: e.target.value }))}
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                   
+                  {/* Product Segment with Selection */}
                   <div>
-                    <Label htmlFor="productSegment" className="text-sm font-medium text-gray-700">
+                    <Label className="text-sm font-medium text-gray-700">
                       Product Segment
                     </Label>
-                    <Textarea
-                      id="productSegment"
-                      placeholder="Product categories, coverage types, premium ranges..."
-                      value={customPrompt.productSegment}
-                      onChange={(e) => setCustomPrompt(prev => ({ ...prev, productSegment: e.target.value }))}
-                      className="mt-1 h-20"
-                    />
+                    <div className="mt-1 space-y-2">
+                      <Select
+                        value={customPrompt.productSegmentType}
+                        onValueChange={(value) => setCustomPrompt(prev => ({ 
+                          ...prev, 
+                          productSegmentType: value,
+                          productSegmentSelection: ''
+                        }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select product type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="text">Free Text</SelectItem>
+                          <SelectItem value="category">
+                            <div className="flex items-center space-x-2">
+                              <Target className="w-4 h-4" />
+                              <span>From Categories</span>
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                      
+                      {customPrompt.productSegmentType === 'text' && (
+                        <Textarea
+                          placeholder="Product categories, coverage types, premium ranges..."
+                          value={customPrompt.productSegment}
+                          onChange={(e) => setCustomPrompt(prev => ({ ...prev, productSegment: e.target.value }))}
+                          className="h-20"
+                        />
+                      )}
+                      
+                      {customPrompt.productSegmentType === 'category' && (
+                        <div className="space-y-2">
+                          <Select
+                            value={customPrompt.productSegmentSelection}
+                            onValueChange={(value) => setCustomPrompt(prev => ({ 
+                              ...prev, 
+                              productSegmentSelection: value,
+                              productSegment: categories.find(cat => cat.id.toString() === value)?.name || ''
+                            }))}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a product category" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {categories.map((category) => (
+                                <SelectItem key={category.id} value={category.id.toString()}>
+                                  <div className="flex items-center space-x-2">
+                                    <div 
+                                      className="w-3 h-3 rounded-full"
+                                      style={{ backgroundColor: category.color }}
+                                    />
+                                    <span>{category.name}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Input
+                            placeholder="Additional product segment context..."
+                            value={customPrompt.productSegment}
+                            onChange={(e) => setCustomPrompt(prev => ({ ...prev, productSegment: e.target.value }))}
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                   
                   {/* Analysis Button */}
