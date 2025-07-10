@@ -41,79 +41,44 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
     setIsAnalyzing(true);
     setActiveAnalysis(analysisType);
     
-    // Simulate analysis with loading
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    let mockResults: AnalysisResult[] = [];
-    
-    if (analysisType === 'customer') {
-      mockResults = [
-        {
-          id: '1',
-          name: 'Amazon CS Nederland B.V.',
-          description: 'Large enterprise customer with multiple business units and expansion potential',
-          opportunities: '12',
-          totalPremium: '€45,200',
-          avgPremium: '€3,767',
-          crossSellPotential: '€89,500',
-          products: ['Business Insurance', 'Cyber Security', 'Directors & Officers'],
-          priority: 'High'
-        },
-        {
-          id: '2',
-          name: 'Mevas B.V.',
-          description: 'Medium-sized business with growing insurance needs',
-          opportunities: '8',
-          totalPremium: '€23,800',
-          avgPremium: '€2,975',
-          crossSellPotential: '€42,300',
-          products: ['Professional Liability', 'Property Insurance'],
-          priority: 'Medium'
-        }
-      ];
-    } else if (analysisType === 'strategic') {
-      mockResults = [
-        {
-          id: '1',
-          name: 'Pension Products Cross-Sell',
-          description: 'Comprehensive pension solutions for corporate clients',
-          probability: '78%',
-          totalPremium: '€125,600',
-          avgPremium: '€15,700',
-          crossSellPotential: '€234,800',
-          products: ['Garant Pension Plan', 'Netto Pension Arrangement'],
-          priority: 'High'
-        },
-        {
-          id: '2',
-          name: 'Property & Casualty Bundle',
-          description: 'Integrated property and casualty insurance solutions',
-          probability: '65%',
-          totalPremium: '€89,200',
-          avgPremium: '€11,150',
-          crossSellPotential: '€156,700',
-          products: ['Property Insurance', 'General Liability', 'Motor Insurance'],
-          priority: 'Medium'
-        }
-      ];
-    } else if (analysisType === 'custom') {
-      mockResults = [
-        {
-          id: '1',
-          name: 'High-Value Corporate Accounts',
-          description: 'Large corporations with premium insurance requirements',
-          probability: '85%',
-          totalPremium: '€198,400',
-          avgPremium: '€24,800',
-          crossSellPotential: '€387,600',
-          products: ['Executive Protection', 'Cyber Insurance', 'International Coverage'],
-          priority: 'High'
-        }
-      ];
+    try {
+      // Call the Smart Cross Sell API endpoint for AI-powered analysis
+      const response = await apiRequest('GET', `/api/${entityType}/${entityId}/smart-cross-sell`);
+      
+      // Transform AI response into AnalysisResult format
+      const transformedResults: AnalysisResult[] = response.opportunities.map((opportunity: any) => ({
+        id: opportunity.id.toString(),
+        name: opportunity.title,
+        description: opportunity.description,
+        probability: `${opportunity.probability}%`,
+        totalPremium: opportunity.revenueLabel,
+        avgPremium: `€${Math.round(opportunity.revenueAmount / 3)}`, // Estimated average
+        crossSellPotential: `€${opportunity.revenueAmount.toLocaleString()}`,
+        products: [opportunity.productName],
+        priority: opportunity.priority
+      }));
+      
+      setAnalysisResults(transformedResults);
+      
+      toast({
+        title: "Analysis Complete",
+        description: `Found ${transformedResults.length} seasonal cross-sell opportunities`,
+      });
+      
+    } catch (error) {
+      console.error('Error fetching Smart Cross Sell analysis:', error);
+      toast({
+        title: "Analysis Failed",
+        description: "Unable to generate cross-sell analysis. Please try again.",
+        variant: "destructive"
+      });
+      
+      // Fallback to overview if API fails
+      setActiveAnalysis(null);
+      setAnalysisResults([]);
+    } finally {
+      setIsAnalyzing(false);
     }
-    
-    setAnalysisResults(mockResults);
-    setIsAnalyzing(false);
   };
 
   const handleBackToOverview = () => {
@@ -154,7 +119,7 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
             <div className="flex items-center justify-between">
               <h3 className="font-semibold text-[#282A3F] text-lg">
                 {activeAnalysis === 'customer' && `Customer Opportunities (${analysisResults.length})`}
-                {activeAnalysis === 'strategic' && `Strategic Opportunities (${analysisResults.length})`}
+                {activeAnalysis === 'strategic' && `Summer Trending Products Analysis (${analysisResults.length})`}
                 {activeAnalysis === 'custom' && `Custom Analysis (${analysisResults.length})`}
               </h3>
               <div className="text-sm text-gray-500">
@@ -345,15 +310,15 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">1. Travel Insurance</span>
-                  <span className="font-semibold text-green-600">+34%</span>
+                  <span className="font-semibold text-green-600">€45,200</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">2. Recreational Vehicle</span>
-                  <span className="font-semibold text-green-600">+28%</span>
+                  <span className="font-semibold text-green-600">€38,600</span>
                 </div>
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-gray-600">3. Event & Festival</span>
-                  <span className="font-semibold text-green-600">+22%</span>
+                  <span className="font-semibold text-green-600">€29,800</span>
                 </div>
               </div>
               <div className="pt-2 border-t border-[#E6E7F1]">
