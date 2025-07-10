@@ -123,9 +123,21 @@ export default function CustomerDetailNew() {
     
     // Fallback colors if not in database
     const fallbackColors: any = {
-      'Life Insurance': 'green',
-      'Non-Life Insurance': 'blue', 
-      'Services': 'purple'
+      'Inkomen Collectief': 'cyan',
+      'Pensioen': 'purple',
+      'Schade Zakelijk': 'red',
+      'Overige': 'orange',
+      'Verzuimverzekering': 'cyan',
+      'WGA ERD': 'cyan',
+      'WGA Hiaat': 'cyan',
+      'WIA ERD': 'cyan',
+      'WIA Excedent': 'cyan',
+      'Ziektewet ERD': 'cyan',
+      'NN PPP': 'purple',
+      'Bewust Pensioen Plus': 'purple',
+      'Garant Pensioen Plan': 'purple',
+      'Netto Pensioen': 'purple',
+      'PPPc': 'purple'
     };
     
     return {
@@ -165,6 +177,7 @@ export default function CustomerDetailNew() {
         'purple': 'border-purple-200 bg-purple-50 text-purple-700',
         'orange': 'border-orange-200 bg-orange-50 text-orange-700',
         'red': 'border-red-200 bg-red-50 text-red-700',
+        'cyan': 'border-cyan-200 bg-cyan-50 text-cyan-700',
         'gray': 'border-gray-200 bg-gray-50 text-gray-700'
       };
       return colorMap[color] || colorMap['gray'];
@@ -189,6 +202,7 @@ export default function CustomerDetailNew() {
       'purple': 'bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-700 hover:to-purple-800',
       'orange': 'bg-gradient-to-r from-orange-600 to-orange-700 hover:from-orange-700 hover:to-orange-800',
       'red': 'bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800',
+      'cyan': 'bg-gradient-to-r from-cyan-600 to-cyan-700 hover:from-cyan-700 hover:to-cyan-800',
       'gray': 'bg-gradient-to-r from-gray-600 to-gray-700 hover:from-gray-700 hover:to-gray-800'
     };
     
@@ -199,64 +213,77 @@ export default function CustomerDetailNew() {
   const getFilteredCategories = (): any[] => {
     const allCategories = [
       {
-        name: 'Life Insurance',
-        ...getCategoryInfo('Life Insurance'),
+        name: 'Inkomen Collectief',
+        ...getCategoryInfo('Inkomen Collectief'),
+        covered: 3,
+        total: 6,
+        percentage: 50,
+        currentPremium: 2800,
+        potentialUplift: 2800,
+        coveredProducts: [
+          { name: 'WGA ERD', premium: 980 },
+          { name: 'WIA ERD', premium: 920 },
+          { name: 'Verzuimverzekering', premium: 900 }
+        ],
+        availableProducts: [
+          { name: 'WGA Hiaat', premium: 840 },
+          { name: 'WIA Excedent', premium: 780 },
+          { name: 'Ziektewet ERD', premium: 1180 }
+        ]
+      },
+      {
+        name: 'Pensioen',
+        ...getCategoryInfo('Pensioen'),
         covered: 2,
-        total: 8,
-        percentage: 25,
+        total: 5,
+        percentage: 40,
         currentPremium: 2400,
-        potentialUplift: 6600,
+        potentialUplift: 3600,
         coveredProducts: [
-          { name: 'Death Cover Basic', premium: 1200 },
-          { name: 'Group Insurance Plan', premium: 1200 }
+          { name: 'NN PPP', premium: 1200 },
+          { name: 'Bewust Pensioen Plus', premium: 1200 }
         ],
         availableProducts: [
-          { name: 'Branch 21 Investment', premium: 2400 },
-          { name: 'Branch 23 Investment', premium: 1800 },
-          { name: 'Pension Savings Plan', premium: 600 },
-          { name: 'IPT Insurance', premium: 480 },
-          { name: 'Term Life Insurance', premium: 360 },
-          { name: 'Disability Insurance', premium: 960 }
+          { name: 'Garant Pensioen Plan', premium: 1200 },
+          { name: 'Netto Pensioen', premium: 1200 },
+          { name: 'PPPc', premium: 1200 }
         ]
       },
       {
-        name: 'Non-Life Insurance',
-        ...getCategoryInfo('Non-Life Insurance'),
-        covered: 5,
-        total: 12,
-        percentage: 42,
+        name: 'Schade Zakelijk',
+        ...getCategoryInfo('Schade Zakelijk'),
+        covered: 4,
+        total: 7,
+        percentage: 57,
         currentPremium: 3200,
-        potentialUplift: 4200,
+        potentialUplift: 2400,
         coveredProducts: [
-          { name: 'Auto Insurance Premium', premium: 840 },
-          { name: 'Health Insurance Basic', premium: 960 },
-          { name: 'Home Insurance Standard', premium: 1200 },
-          { name: 'Business Liability', premium: 150 },
-          { name: 'Travel Insurance', premium: 50 }
+          { name: 'Aansprakelijkheid Bedrijven', premium: 840 },
+          { name: 'Bedrijfsschadeverzekering', premium: 960 },
+          { name: 'Brandverzekering', premium: 800 },
+          { name: 'Wagenparkverzekering', premium: 600 }
         ],
         availableProducts: [
-          { name: 'Cyber Security Insurance', premium: 1200 },
-          { name: 'Fire Insurance', premium: 800 },
-          { name: 'Legal Protection', premium: 680 },
-          { name: 'Professional Indemnity', premium: 450 },
-          { name: 'Equipment Insurance', premium: 320 },
-          { name: 'Environmental Liability', premium: 400 },
-          { name: 'Director\'s Insurance', premium: 350 }
+          { name: 'Transport-Goederen', premium: 680 },
+          { name: 'Construction All Risk', premium: 920 },
+          { name: 'Machinebreukverzekering', premium: 800 }
         ]
       },
       {
-        name: 'Services',
-        ...getCategoryInfo('Services'),
-        covered: 0,
-        total: 3,
-        percentage: 0,
-        currentPremium: 0,
+        name: 'Overige',
+        ...getCategoryInfo('Overige'),
+        covered: 1,
+        total: 4,
+        percentage: 25,
+        currentPremium: 650,
         potentialUplift: 1950,
-        coveredProducts: [],
+        coveredProducts: [
+          { name: 'Rechtsbijstandverzekering Zakelijk', premium: 650 }
+        ],
         availableProducts: [
-          { name: 'Legal Services Package', premium: 650 },
-          { name: 'HR Consulting Services', premium: 800 },
-          { name: 'Financial Advisory', premium: 500 }
+          { name: 'Keymanverzekering', premium: 800 },
+          { name: 'Kredietverzekering', premium: 750 },
+          { name: 'Cyberverzekering', premium: 400 }
         ]
       }
     ];
@@ -272,190 +299,174 @@ export default function CustomerDetailNew() {
       }
       
       // Check if it's a subcategory - create individual category for it
-      if (selectedCat === 'Death Cover') {
+      if (selectedCat === 'Verzuimverzekering') {
         filteredCategories.push({
-          name: 'Death Cover',
+          name: 'Verzuimverzekering',
           covered: 1,
           total: 2,
           percentage: 50,
-          color: 'green',
-          currentPremium: 1400,
-          potentialUplift: 2800,
+          color: 'cyan',
+          currentPremium: 900,
+          potentialUplift: 900,
           coveredProducts: [
-            { name: 'Basic Death Cover', premium: 1400 }
+            { name: 'Verzuimverzekering Basis', premium: 900 }
           ],
           availableProducts: [
-            { name: 'Premium Death Cover', premium: 1400 }
+            { name: 'Verzuimverzekering Plus', premium: 900 }
           ]
         });
-      } else if (selectedCat === 'Branch 21') {
+      } else if (selectedCat === 'WGA ERD') {
         filteredCategories.push({
-          name: 'Branch 21',
+          name: 'WGA ERD',
           covered: 1,
           total: 2,
           percentage: 50,
-          color: 'green',
+          color: 'cyan',
+          currentPremium: 980,
+          potentialUplift: 980,
+          coveredProducts: [
+            { name: 'WGA ERD Standaard', premium: 980 }
+          ],
+          availableProducts: [
+            { name: 'WGA ERD Uitgebreid', premium: 980 }
+          ]
+        });
+      } else if (selectedCat === 'WGA Hiaat') {
+        filteredCategories.push({
+          name: 'WGA Hiaat',
+          covered: 0,
+          total: 2,
+          percentage: 0,
+          color: 'cyan',
+          currentPremium: 0,
+          potentialUplift: 1680,
+          coveredProducts: [],
+          availableProducts: [
+            { name: 'WGA Hiaat Basis', premium: 840 },
+            { name: 'WGA Hiaat Plus', premium: 840 }
+          ]
+        });
+      } else if (selectedCat === 'WIA ERD') {
+        filteredCategories.push({
+          name: 'WIA ERD',
+          covered: 1,
+          total: 2,
+          percentage: 50,
+          color: 'cyan',
+          currentPremium: 920,
+          potentialUplift: 920,
+          coveredProducts: [
+            { name: 'WIA ERD Standaard', premium: 920 }
+          ],
+          availableProducts: [
+            { name: 'WIA ERD Uitgebreid', premium: 920 }
+          ]
+        });
+      } else if (selectedCat === 'WIA Excedent') {
+        filteredCategories.push({
+          name: 'WIA Excedent',
+          covered: 0,
+          total: 2,
+          percentage: 0,
+          color: 'cyan',
+          currentPremium: 0,
+          potentialUplift: 1560,
+          coveredProducts: [],
+          availableProducts: [
+            { name: 'WIA Excedent Basis', premium: 780 },
+            { name: 'WIA Excedent Plus', premium: 780 }
+          ]
+        });
+      } else if (selectedCat === 'Ziektewet ERD') {
+        filteredCategories.push({
+          name: 'Ziektewet ERD',
+          covered: 0,
+          total: 2,
+          percentage: 0,
+          color: 'cyan',
+          currentPremium: 0,
+          potentialUplift: 2360,
+          coveredProducts: [],
+          availableProducts: [
+            { name: 'Ziektewet ERD Standaard', premium: 1180 },
+            { name: 'Ziektewet ERD Uitgebreid', premium: 1180 }
+          ]
+        });
+      } else if (selectedCat === 'NN PPP') {
+        filteredCategories.push({
+          name: 'NN PPP',
+          covered: 1,
+          total: 2,
+          percentage: 50,
+          color: 'purple',
           currentPremium: 1200,
+          potentialUplift: 1200,
+          coveredProducts: [
+            { name: 'NN PPP Basis', premium: 1200 }
+          ],
+          availableProducts: [
+            { name: 'NN PPP Plus', premium: 1200 }
+          ]
+        });
+      } else if (selectedCat === 'Bewust Pensioen Plus') {
+        filteredCategories.push({
+          name: 'Bewust Pensioen Plus',
+          covered: 1,
+          total: 2,
+          percentage: 50,
+          color: 'purple',
+          currentPremium: 1200,
+          potentialUplift: 1200,
+          coveredProducts: [
+            { name: 'Bewust Pensioen Plus Basis', premium: 1200 }
+          ],
+          availableProducts: [
+            { name: 'Bewust Pensioen Plus Uitgebreid', premium: 1200 }
+          ]
+        });
+      } else if (selectedCat === 'Garant Pensioen Plan') {
+        filteredCategories.push({
+          name: 'Garant Pensioen Plan',
+          covered: 0,
+          total: 2,
+          percentage: 0,
+          color: 'purple',
+          currentPremium: 0,
           potentialUplift: 2400,
-          coveredProducts: [
-            { name: 'Branch 21 Savings', premium: 1200 }
-          ],
-          availableProducts: [
-            { name: 'Branch 21 Premium', premium: 1200 }
-          ]
-        });
-      } else if (selectedCat === 'Branch 23') {
-        filteredCategories.push({
-          name: 'Branch 23',
-          covered: 0,
-          total: 2,
-          percentage: 0,
-          color: 'green',
-          currentPremium: 0,
-          potentialUplift: 3000,
           coveredProducts: [],
           availableProducts: [
-            { name: 'Branch 23 Investment', premium: 1500 },
-            { name: 'Branch 23 Growth', premium: 1500 }
+            { name: 'Garant Pensioen Plan Basis', premium: 1200 },
+            { name: 'Garant Pensioen Plan Plus', premium: 1200 }
           ]
         });
-      } else if (selectedCat === 'Group Insurance') {
+      } else if (selectedCat === 'Netto Pensioen') {
         filteredCategories.push({
-          name: 'Group Insurance',
+          name: 'Netto Pensioen',
           covered: 0,
           total: 2,
-          percentage: 0,
-          color: 'green',
-          currentPremium: 0,
-          potentialUplift: 1800,
-          coveredProducts: [],
-          availableProducts: [
-            { name: 'Employee Group Plan', premium: 900 },
-            { name: 'Executive Group Plan', premium: 900 }
-          ]
-        });
-      } else if (selectedCat === 'Health') {
-        filteredCategories.push({
-          name: 'Health',
-          covered: 1,
-          total: 2,
-          percentage: 50,
-          color: 'orange',
-          currentPremium: 960,
-          potentialUplift: 1920,
-          coveredProducts: [
-            { name: 'Health Insurance Basic', premium: 960 }
-          ],
-          availableProducts: [
-            { name: 'Health Insurance Premium', premium: 960 }
-          ]
-        });
-      } else if (selectedCat === 'Auto') {
-        filteredCategories.push({
-          name: 'Auto',
-          covered: 1,
-          total: 3,
-          percentage: 33,
-          color: 'orange',
-          currentPremium: 840,
-          potentialUplift: 2520,
-          coveredProducts: [
-            { name: 'Auto Insurance Premium', premium: 840 }
-          ],
-          availableProducts: [
-            { name: 'Comprehensive Auto', premium: 840 },
-            { name: 'Commercial Auto', premium: 840 }
-          ]
-        });
-      } else if (selectedCat === 'Property') {
-        filteredCategories.push({
-          name: 'Property',
-          covered: 1,
-          total: 3,
-          percentage: 33,
-          color: 'orange',
-          currentPremium: 1200,
-          potentialUplift: 3600,
-          coveredProducts: [
-            { name: 'Home Insurance Standard', premium: 1200 }
-          ],
-          availableProducts: [
-            { name: 'Fire Insurance', premium: 800 },
-            { name: 'Property Premium', premium: 1600 }
-          ]
-        });
-      } else if (selectedCat === 'Business') {
-        filteredCategories.push({
-          name: 'Business',
-          covered: 1,
-          total: 2,
-          percentage: 50,
-          color: 'orange',
-          currentPremium: 150,
-          potentialUplift: 300,
-          coveredProducts: [
-            { name: 'Business Liability', premium: 150 }
-          ],
-          availableProducts: [
-            { name: 'Professional Indemnity', premium: 150 }
-          ]
-        });
-      } else if (selectedCat === 'Travel') {
-        filteredCategories.push({
-          name: 'Travel',
-          covered: 1,
-          total: 2,
-          percentage: 50,
-          color: 'orange',
-          currentPremium: 50,
-          potentialUplift: 100,
-          coveredProducts: [
-            { name: 'Travel Insurance', premium: 50 }
-          ],
-          availableProducts: [
-            { name: 'Business Travel', premium: 50 }
-          ]
-        });
-      } else if (selectedCat === 'Legal Services') {
-        filteredCategories.push({
-          name: 'Legal Services',
-          covered: 0,
-          total: 1,
           percentage: 0,
           color: 'purple',
           currentPremium: 0,
-          potentialUplift: 650,
+          potentialUplift: 2400,
           coveredProducts: [],
           availableProducts: [
-            { name: 'Legal Services Package', premium: 650 }
+            { name: 'Netto Pensioen Basis', premium: 1200 },
+            { name: 'Netto Pensioen Plus', premium: 1200 }
           ]
         });
-      } else if (selectedCat === 'HR Consulting') {
+      } else if (selectedCat === 'PPPc') {
         filteredCategories.push({
-          name: 'HR Consulting',
+          name: 'PPPc',
           covered: 0,
-          total: 1,
+          total: 2,
           percentage: 0,
           color: 'purple',
           currentPremium: 0,
-          potentialUplift: 800,
+          potentialUplift: 2400,
           coveredProducts: [],
           availableProducts: [
-            { name: 'HR Consulting Services', premium: 800 }
-          ]
-        });
-      } else if (selectedCat === 'Financial Advisory') {
-        filteredCategories.push({
-          name: 'Financial Advisory',
-          covered: 0,
-          total: 1,
-          percentage: 0,
-          color: 'purple',
-          currentPremium: 0,
-          potentialUplift: 500,
-          coveredProducts: [],
-          availableProducts: [
-            { name: 'Financial Advisory', premium: 500 }
+            { name: 'PPPc Basis', premium: 1200 },
+            { name: 'PPPc Plus', premium: 1200 }
           ]
         });
       }
