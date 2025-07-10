@@ -204,7 +204,7 @@ export default function ProductTemplates() {
 
   // Fetch product catalogue
   const { data: productTemplates = [], isLoading } = useQuery<ProductTemplateWithCategory[]>({
-    queryKey: ['/api/products'],
+    queryKey: ['/api/product-templates'],
   });
 
   // Fetch product categories using the working pattern
@@ -1183,7 +1183,7 @@ export default function ProductTemplates() {
                           </p>
                           <div className="flex items-center gap-6 text-sm">
                             <div className="flex items-center gap-2">
-                              <span className="text-blue-600 font-medium">{product.customers || 0}</span>
+                              <span className="text-blue-600 font-medium">{product.customerCount || 0}</span>
                               <span className="text-gray-500">Customers</span>
                             </div>
                             <div className="flex items-center gap-2">
