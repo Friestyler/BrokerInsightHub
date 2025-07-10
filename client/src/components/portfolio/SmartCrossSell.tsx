@@ -337,7 +337,14 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
                 <span className="font-semibold text-green-600">€156,800</span>
               </div>
               <div className="pt-2 border-t border-[#E6E7F1]">
-                <p className="text-sm text-[#5567E5] font-medium">Click to analyze →</p>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-full justify-start p-0 h-auto text-[#5567E5] hover:text-[#4556D4] font-medium"
+                >
+                  <Play className="w-4 h-4 mr-2" />
+                  Analyze insights
+                </Button>
               </div>
             </div>
           </CardContent>
@@ -376,7 +383,14 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
                 </div>
               </div>
               <div className="pt-2 border-t border-[#E6E7F1]">
-                <p className="text-sm text-[#5567E5] font-medium">Click to analyze →</p>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-full justify-start p-0 h-auto text-[#5567E5] hover:text-[#4556D4] font-medium"
+                >
+                  <Target className="w-4 h-4 mr-2" />
+                  Analyze trends
+                </Button>
               </div>
             </div>
           </CardContent>
