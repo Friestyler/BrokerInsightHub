@@ -185,17 +185,23 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
     // Handle both partner (camelCase) and customer (lowercase) field structures
     const productName = product.productName || product.productname || '';
     const productDescription = product.productDescription || product.productdescription || '';
-    const categoryName = product.parentCategoryName || product.category || '';
     
-    // Debug logging for category filtering issues
-    if (categoryFilter !== 'all') {
-      console.log('Product filtering debug:', {
-        productName,
-        categoryName,
-        categoryFilter,
-        allFields: Object.keys(product),
-        productData: product
-      });
+    // For customers: map subcategory names to main categories
+    let categoryName = product.parentCategoryName || product.category || '';
+    
+    // If it's a customer and we have a subcategory, map it to main category
+    if (entityType === 'customers' && product.category) {
+      const subcategory = product.category;
+      // Map specific subcategories to main categories based on portfolio data
+      if (subcategory === 'NN PPP' || subcategory === 'Collectief Pensioen') {
+        categoryName = 'Pensioen';
+      } else if (subcategory === 'Zorgverzekering Aanvullend' || subcategory === 'Zorgverzekering Basis') {
+        categoryName = 'Inkomen Collectief';
+      } else if (subcategory === 'WIA Excedent' || subcategory === 'Ziektewet ERD' || subcategory === 'Arbeidsongeschiktheid') {
+        categoryName = 'Schade Zakelijk';
+      } else {
+        categoryName = 'Overige';
+      }
     }
     
     const matchesSearch = !searchTerm || 
@@ -209,7 +215,22 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
 
   // Group products by parent category (main categories)
   const productsByCategory = filteredProducts.reduce((acc: Record<string, any[]>, product) => {
-    const category = product.parentCategoryName || product.category || 'Other';
+    let category = product.parentCategoryName || product.category || 'Other';
+    
+    // Apply same category mapping for customers
+    if (entityType === 'customers' && product.category) {
+      const subcategory = product.category;
+      if (subcategory === 'NN PPP' || subcategory === 'Collectief Pensioen') {
+        category = 'Pensioen';
+      } else if (subcategory === 'Zorgverzekering Aanvullend' || subcategory === 'Zorgverzekering Basis') {
+        category = 'Inkomen Collectief';
+      } else if (subcategory === 'WIA Excedent' || subcategory === 'Ziektewet ERD' || subcategory === 'Arbeidsongeschiktheid') {
+        category = 'Schade Zakelijk';
+      } else {
+        category = 'Overige';
+      }
+    }
+    
     if (!acc[category]) {
       acc[category] = [];
     }
@@ -740,7 +761,23 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Categories</SelectItem>
-                {[...new Set(productAssignments?.map(p => p.parentCategoryName || p.category).filter(Boolean))].map((categoryName) => (
+                {[...new Set(productAssignments?.map(p => {
+                  let category = p.parentCategoryName || p.category || '';
+                  // Apply same category mapping for customers
+                  if (entityType === 'customers' && p.category) {
+                    const subcategory = p.category;
+                    if (subcategory === 'NN PPP' || subcategory === 'Collectief Pensioen') {
+                      category = 'Pensioen';
+                    } else if (subcategory === 'Zorgverzekering Aanvullend' || subcategory === 'Zorgverzekering Basis') {
+                      category = 'Inkomen Collectief';
+                    } else if (subcategory === 'WIA Excedent' || subcategory === 'Ziektewet ERD' || subcategory === 'Arbeidsongeschiktheid') {
+                      category = 'Schade Zakelijk';
+                    } else {
+                      category = 'Overige';
+                    }
+                  }
+                  return category;
+                }).filter(Boolean))].map((categoryName) => (
                   <SelectItem key={categoryName} value={categoryName}>
                     {categoryName}
                   </SelectItem>
