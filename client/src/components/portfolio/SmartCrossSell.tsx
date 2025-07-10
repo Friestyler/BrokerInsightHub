@@ -336,14 +336,14 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
                 <span className="text-sm text-gray-600">Total Potential</span>
                 <span className="font-semibold text-green-600">€156,800</span>
               </div>
-              <div className="pt-2 border-t border-[#E6E7F1]">
+              <div className="pt-3">
                 <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="w-full justify-start p-0 h-auto text-[#5567E5] hover:text-[#4556D4] font-medium"
+                  className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white font-medium rounded-lg h-10 justify-between px-4"
                 >
-                  <Play className="w-4 h-4 mr-2" />
-                  Analyze insights
+                  <span>Analyze insights</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </Button>
               </div>
             </div>
@@ -382,14 +382,14 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
                   <span className="font-semibold text-green-600">€29,800</span>
                 </div>
               </div>
-              <div className="pt-2 border-t border-[#E6E7F1]">
+              <div className="pt-3">
                 <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="w-full justify-start p-0 h-auto text-[#5567E5] hover:text-[#4556D4] font-medium"
+                  className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white font-medium rounded-lg h-10 justify-between px-4"
                 >
-                  <Target className="w-4 h-4 mr-2" />
-                  Analyze trends
+                  <span>Analyze trends</span>
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                  </svg>
                 </Button>
               </div>
             </div>
