@@ -1014,20 +1014,7 @@ export default function PartnerActivityHub({ partnerId, partnerName, entityType 
                 <Sparkles className="h-3 w-3 mr-1" />
                 {generateActionsMutation.isPending ? 'Generating...' : 'Next Best Action'}
               </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => {
-                  setCrossSellAnalysis(null); // Clear previous analysis
-                  setIsGeneratingCrossSell(true);
-                  smartCrossSellMutation.mutate();
-                }}
-                disabled={smartCrossSellMutation.isPending}
-                className="text-xs text-gray-600 hover:text-blue-600"
-              >
-                <Brain className="h-3 w-3 mr-1" />
-                {smartCrossSellMutation.isPending ? 'Analyzing...' : 'Smart Cross Sell'}
-              </Button>
+
             </div>
           )}
         </div>
