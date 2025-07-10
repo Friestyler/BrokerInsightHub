@@ -3524,12 +3524,17 @@ Keep the tone clear and professional. Focus on what will help the account manage
   });
 
   // Smart Cross Sell AI analysis endpoint
-  app.post('/api/degoudse/:entityType/:id/smart-cross-sell', async (req: Request, res: Response) => {
+  app.get('/api/degoudse/:entityType/:id/smart-cross-sell', async (req: Request, res: Response) => {
+    console.log('=== SMART CROSS SELL API ENDPOINT HIT ===');
+    console.log('Request params:', req.params);
+    console.log('Request path:', req.path);
+    
     try {
       const entityType = req.params.entityType; // 'partners' or 'customers'
       const entityId = parseInt(req.params.id);
       
       if (!process.env.OPENAI_API_KEY) {
+        console.log('OpenAI API key not configured');
         return res.status(500).json({ error: 'OpenAI API key not configured' });
       }
 

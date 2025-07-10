@@ -43,7 +43,7 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
     
     try {
       // Call the Smart Cross Sell API endpoint for AI-powered analysis
-      const response = await apiRequest('GET', `/api/${entityType}/${entityId}/smart-cross-sell`);
+      const response = await apiRequest('GET', `/api/degoudse/${entityType}/${entityId}/smart-cross-sell`);
       
       // Transform AI response into AnalysisResult format
       const transformedResults: AnalysisResult[] = response.opportunities.map((opportunity: any) => ({
