@@ -340,7 +340,10 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
                 <Button 
                   className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white font-medium rounded-lg h-10 justify-between px-4"
                 >
-                  <span>Analyze insights</span>
+                  <div className="flex items-center">
+                    <Play className="w-4 h-4 mr-2" />
+                    <span>Analyze insights</span>
+                  </div>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
@@ -386,7 +389,10 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
                 <Button 
                   className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white font-medium rounded-lg h-10 justify-between px-4"
                 >
-                  <span>Analyze trends</span>
+                  <div className="flex items-center">
+                    <Target className="w-4 h-4 mr-2" />
+                    <span>Analyze trends</span>
+                  </div>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
                   </svg>
