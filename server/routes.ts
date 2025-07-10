@@ -3565,7 +3565,7 @@ Keep the tone clear and professional. Focus on what will help the account manage
     }
   });
 
-  // Smart Cross Sell AI analysis endpoint
+  // Smart Cross Sell AI analysis endpoint (GET for standard analysis)
   app.get('/api/degoudse/:entityType/:id/smart-cross-sell', async (req: Request, res: Response) => {
     console.log('=== SMART CROSS SELL API ENDPOINT HIT ===');
     console.log('Request params:', req.params);
@@ -3919,6 +3919,280 @@ Prioritize opportunities that combine authentic seasonal demand data with this b
     } catch (error) {
       console.error('Error generating Smart Cross Sell analysis:', error);
       res.status(500).json({ error: 'Failed to generate cross-sell analysis' });
+    }
+  });
+
+  // Smart Cross Sell AI analysis endpoint (POST for custom analysis with structured prompting)
+  app.post('/api/degoudse/:entityType/:id/smart-cross-sell', async (req: Request, res: Response) => {
+    console.log('=== CUSTOM SMART CROSS SELL API ENDPOINT HIT ===');
+    console.log('Request params:', req.params);
+    console.log('Request body:', req.body);
+    
+    try {
+      const entityType = req.params.entityType;
+      const entityId = parseInt(req.params.id);
+      const { analysisType, customPrompt } = req.body;
+      
+      if (!process.env.OPENAI_API_KEY) {
+        console.log('OpenAI API key not configured');
+        return res.status(500).json({ error: 'OpenAI API key not configured' });
+      }
+
+      console.log(`Generating Custom Smart Cross Sell analysis for ${entityType} ${entityId}`);
+
+      // Get entity basic information (same as GET endpoint)
+      const entityResult = await pool.query(`
+        SELECT * FROM degoudse.${entityType} WHERE id = $1
+      `, [entityId]);
+
+      if (entityResult.rows.length === 0) {
+        return res.status(404).json({ error: `${entityType.slice(0, -1)} not found` });
+      }
+
+      const entity = entityResult.rows[0];
+
+      // Get product assignments and portfolio data (same as GET endpoint)
+      const productAssignmentsResult = entityType === 'partners' 
+        ? await pool.query(`
+            SELECT 
+              pa.product_id,
+              p.name as product_name,
+              p.description as product_description,
+              c.name as parent_category_name,
+              pa.premium_value,
+              pa.premium_percentage,
+              pa.discount_percentage,
+              pa.contract_start_date,
+              pa.contract_end_date
+            FROM degoudse.product_assignments pa
+            JOIN degoudse.products p ON pa.product_id = p.id
+            LEFT JOIN degoudse.categories c ON p.category_id = c.id
+            WHERE pa.partner_id = $1
+          `, [entityId])
+        : await pool.query(`
+            SELECT 
+              cpt.product_template_id,
+              pt.name as product_name,
+              pt.description as product_description,
+              c.name as parent_category_name,
+              cpt.custom_price,
+              cpt.custom_premium_percentage,
+              cpt.custom_discount_percentage,
+              cpt.customer_contract_start_date,
+              cpt.customer_contract_end_date
+            FROM degoudse.customer_product_templates cpt
+            JOIN degoudse.product_templates pt ON cpt.product_template_id = pt.id
+            LEFT JOIN degoudse.categories c ON pt.category_id = c.id
+            WHERE cpt.customer_id = $1
+          `, [entityId]);
+
+      // Get all available products for cross-sell recommendations
+      const allProductsResult = await pool.query(`
+        SELECT 
+          p.id,
+          p.name,
+          p.description,
+          c.name as parent_category_name,
+          p.vendor_id,
+          p.total_value,
+          p.premium_percentage
+        FROM degoudse.products p
+        LEFT JOIN degoudse.categories c ON p.category_id = c.id
+        WHERE p.id NOT IN (
+          SELECT product_id FROM degoudse.product_assignments WHERE partner_id = $1
+        )
+      `, [entityId]);
+
+      // Structure enhanced data for AI analysis with custom prompting
+      const enhancedCrossSellData = {
+        entity: {
+          type: entityType.slice(0, -1),
+          name: entity.name,
+          description: entity.description,
+          industry: entity.industry,
+          location: entity.location,
+          region: entity.region,
+          status: entity.status
+        },
+        currentProducts: productAssignmentsResult.rows.map(pa => ({
+          id: entityType === 'partners' ? pa.product_id : pa.product_template_id,
+          name: pa.product_name,
+          description: pa.product_description,
+          category: pa.parent_category_name,
+          premiumValue: pa.premium_value || pa.custom_price,
+          premiumPercentage: pa.premium_percentage || pa.custom_premium_percentage,
+          discountPercentage: pa.discount_percentage || pa.custom_discount_percentage,
+          contractStart: pa.contract_start_date || pa.customer_contract_start_date,
+          contractEnd: pa.contract_end_date || pa.customer_contract_end_date
+        })),
+        availableProducts: allProductsResult.rows.map(p => ({
+          id: p.id,
+          name: p.name,
+          description: p.description,
+          category: p.parent_category_name,
+          provider: p.vendor_id,
+          averagePrice: p.total_value,
+          premiumPercentage: p.premium_percentage
+        })),
+        customPrompt: customPrompt,
+        analysisTimestamp: new Date().toISOString()
+      };
+
+      // Send to OpenAI for Custom Smart Cross Sell analysis
+      const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "gpt-4o",
+          temperature: 0.7,
+          response_format: { type: "json_object" },
+          messages: [
+            {
+              role: "system",
+              content: `You are an AI insurance cross-selling specialist with deep expertise in custom market analysis and strategic planning.
+
+Current analysis timestamp: ${new Date().toISOString()}
+
+CUSTOM ANALYSIS MODE:
+You are performing a comprehensive custom analysis using structured prompting input provided by the user. This analysis should be more detailed and specific than standard analyses, incorporating the user's specific market context, strategic priorities, and segmentation preferences.
+
+Your task is to provide highly tailored cross-selling recommendations that align with the user's custom parameters:
+1. Market Dynamic Context - Current market conditions and trends
+2. Partner Context - Specific broker/partner strategic positioning
+3. Strategy NN - NN Group's strategic priorities and initiatives
+4. Customer Segment - Target customer profiles and demographics
+5. Product Segment - Specific product categories and focus areas
+
+For each opportunity, provide detailed strategic analysis including:
+- Market positioning and competitive advantages
+- Customer segment alignment and targeting strategy
+- Product-market fit assessment
+- Revenue potential and probability analysis
+- Implementation strategy and timeline
+- Risk assessment and mitigation
+
+Respond with JSON in this exact format:
+{
+  "analysis": {
+    "entityName": "entity name",
+    "entityType": "${entityType.slice(0, -1)}",
+    "analysisType": "custom",
+    "customParameters": {
+      "marketDynamic": "Market trends and dynamics analysis",
+      "partnerContext": "Partner positioning and strategy",
+      "strategyNN": "NN Group strategic alignment",
+      "customerSegment": "Target customer analysis",
+      "productSegment": "Product category focus"
+    }
+  },
+  "opportunities": [
+    {
+      "id": 1,
+      "title": "Custom Opportunity Title",
+      "description": "Detailed custom opportunity description",
+      "productName": "Specific product recommendation",
+      "category": "Insurance category",
+      "priority": "High|Medium|Low",
+      "revenueLabel": "€XX,XXX potential",
+      "revenueAmount": 25000,
+      "probability": 80,
+      "reasoning": "Strategic rationale based on custom parameters",
+      "timeframe": "Implementation timeline",
+      "riskLevel": "Low|Medium|High",
+      "strategicAlignment": "How this aligns with NN strategy",
+      "customerSegmentFit": "Target customer segment analysis",
+      "marketPosition": "Market positioning advantage",
+      "actionableSteps": [
+        "Strategic action step 1",
+        "Implementation step 2",
+        "Follow-up step 3"
+      ]
+    }
+  ],
+  "summary": {
+    "totalPotential": 75000,
+    "highPriorityCount": 3,
+    "recommendedFocus": "Primary strategic recommendation",
+    "customAdvantage": "Key advantage from custom analysis"
+  }
+}
+
+Focus on strategic depth, market intelligence, and alignment with the user's custom parameters.`
+            },
+            {
+              role: "user",
+              content: `CUSTOM Smart Cross Sell analysis request at ${new Date().toISOString()}
+
+Entity Profile (Insurance Broker):
+${JSON.stringify(enhancedCrossSellData.entity, null, 2)}
+
+Current Product Portfolio:
+${JSON.stringify(enhancedCrossSellData.currentProducts, null, 2)}
+
+Available Products for Cross-Sell:
+${JSON.stringify(enhancedCrossSellData.availableProducts, null, 2)}
+
+CUSTOM ANALYSIS PARAMETERS:
+
+Market Dynamic:
+${customPrompt.marketDynamic || 'No specific market dynamic parameters provided'}
+
+Partner Context:
+${customPrompt.partnerContext || 'No specific partner context provided'}
+
+Strategy NN:
+${customPrompt.strategyNN || 'No specific NN strategy parameters provided'}
+
+Customer Segment:
+${customPrompt.customerSegment || 'No specific customer segment parameters provided'}
+
+Product Segment:
+${customPrompt.productSegment || 'No specific product segment parameters provided'}
+
+CUSTOM ANALYSIS REQUEST:
+Generate 3-5 highly targeted cross-sell recommendations based on the custom parameters above. Focus on:
+1. Strategic alignment with provided market dynamics
+2. Partner-specific positioning and competitive advantages
+3. NN Group strategic priorities integration
+4. Customer segment targeting optimization
+5. Product segment focus and prioritization
+
+Provide detailed analysis that incorporates all custom parameters into actionable cross-sell opportunities.`
+            }
+          ]
+        })
+      });
+
+      if (!openaiResponse.ok) {
+        const errorData = await openaiResponse.text();
+        console.error('OpenAI API error:', errorData);
+        return res.status(500).json({ error: 'Failed to generate custom cross-sell analysis' });
+      }
+
+      const aiResult = await openaiResponse.json();
+      const analysis = JSON.parse(aiResult.choices[0].message.content);
+
+      console.log('=== CUSTOM SMART CROSS SELL ANALYSIS ===');
+      console.log(`Entity: ${entity.name} (${entityType})`);
+      console.log('Custom Parameters:', customPrompt);
+      console.log('Analysis:', analysis);
+      console.log('=== END CUSTOM ANALYSIS ===');
+
+      res.json({
+        ...analysis,
+        dataUsed: {
+          currentProducts: enhancedCrossSellData.currentProducts.length,
+          availableProducts: enhancedCrossSellData.availableProducts.length,
+          customParametersUsed: Object.keys(customPrompt).filter(key => customPrompt[key]?.trim()).length
+        }
+      });
+
+    } catch (error) {
+      console.error('Error generating Custom Smart Cross Sell analysis:', error);
+      res.status(500).json({ error: 'Failed to generate custom cross-sell analysis' });
     }
   });
 

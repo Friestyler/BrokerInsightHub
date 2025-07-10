@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { TrendingUp, Target, DollarSign, Users, X, Plus, Play } from 'lucide-react';
+import { TrendingUp, Target, DollarSign, Users, X, Plus, Play, ChevronDown, ChevronUp } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -35,6 +35,14 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
   const [analysisResults, setAnalysisResults] = useState<AnalysisResult[]>([]);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isCustomExpanded, setIsCustomExpanded] = useState(false);
+  const [customPrompt, setCustomPrompt] = useState({
+    marketDynamic: '',
+    partnerContext: '',
+    strategyNN: '',
+    customerSegment: '',
+    productSegment: ''
+  });
   const { toast } = useToast();
 
   const handleAnalyze = async (analysisType: string) => {
@@ -42,8 +50,26 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
     setActiveAnalysis(analysisType);
     
     try {
-      // Call the Smart Cross Sell API endpoint for AI-powered analysis
-      const response = await apiRequest('GET', `/api/degoudse/${entityType}/${entityId}/smart-cross-sell`);
+      let response;
+      
+      if (analysisType === 'custom') {
+        // For custom analysis, send structured prompting data
+        const customPromptData = {
+          marketDynamic: customPrompt.marketDynamic,
+          partnerContext: customPrompt.partnerContext,
+          strategyNN: customPrompt.strategyNN,
+          customerSegment: customPrompt.customerSegment,
+          productSegment: customPrompt.productSegment
+        };
+        
+        response = await apiRequest('POST', `/api/degoudse/${entityType}/${entityId}/smart-cross-sell`, {
+          analysisType: 'custom',
+          customPrompt: customPromptData
+        });
+      } else {
+        // For standard analysis types (seasonal, strategic, customer)
+        response = await apiRequest('GET', `/api/degoudse/${entityType}/${entityId}/smart-cross-sell`);
+      }
       
       // Transform AI response into AnalysisResult format
       const transformedResults: AnalysisResult[] = response.opportunities.map((opportunity: any) => ({
@@ -62,7 +88,7 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
       
       toast({
         title: "Analysis Complete",
-        description: `Found ${transformedResults.length} seasonal cross-sell opportunities`,
+        description: `Found ${transformedResults.length} ${analysisType === 'custom' ? 'custom' : 'seasonal'} cross-sell opportunities`,
       });
       
     } catch (error) {
@@ -255,7 +281,8 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
   // Show summary cards (default view)
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Top Row - Customer Cross-Sell and Summer Trending Products */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Customer Cross-Sell Opportunities */}
         <Card className="cursor-pointer hover:shadow-lg transition-shadow border-[#E6E7F1]" onClick={() => handleAnalyze('customer')}>
           <CardHeader>
@@ -328,39 +355,124 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
           </CardContent>
         </Card>
 
-        {/* Custom Analysis */}
-        <Card className="cursor-pointer hover:shadow-lg transition-shadow border-[#E6E7F1]" onClick={() => handleAnalyze('custom')}>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-[#5567E5] rounded-full flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <CardTitle className="text-lg">Custom Analysis</CardTitle>
-                  <CardDescription>Tailored cross-sell insights and recommendations</CardDescription>
-                </div>
+      </div>
+
+      {/* Custom Analysis - Full Width Below */}
+      <Card className="border-[#E6E7F1]">
+        <CardHeader 
+          className="cursor-pointer hover:bg-gray-50 transition-colors"
+          onClick={() => setIsCustomExpanded(!isCustomExpanded)}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-[#5567E5] rounded-full flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-white" />
               </div>
-              <Play className="w-5 h-5 text-[#5567E5]" />
+              <div>
+                <CardTitle className="text-lg">Custom Analysis</CardTitle>
+                <CardDescription>Tailored cross-sell insights with custom prompting</CardDescription>
+              </div>
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Custom Segments</span>
-                <span className="font-semibold text-[#5567E5]">12</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Potential Value</span>
-                <span className="font-semibold text-green-600">€298,600</span>
-              </div>
-              <div className="pt-2 border-t border-[#E6E7F1]">
-                <p className="text-sm text-[#5567E5] font-medium">Click to analyze →</p>
+            <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-500">Configure parameters</span>
+              {isCustomExpanded ? (
+                <ChevronUp className="w-5 h-5 text-[#5567E5]" />
+              ) : (
+                <ChevronDown className="w-5 h-5 text-[#5567E5]" />
+              )}
+            </div>
+          </div>
+        </CardHeader>
+        
+        {isCustomExpanded && (
+          <CardContent className="pt-0">
+            <div className="space-y-6">
+              {/* Custom Prompting Form */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="marketDynamic" className="text-sm font-medium text-gray-700">
+                      Market Dynamic
+                    </Label>
+                    <Textarea
+                      id="marketDynamic"
+                      placeholder="Current market trends, economic factors, regulatory changes..."
+                      value={customPrompt.marketDynamic}
+                      onChange={(e) => setCustomPrompt(prev => ({ ...prev, marketDynamic: e.target.value }))}
+                      className="mt-1 h-20"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="partnerContext" className="text-sm font-medium text-gray-700">
+                      Partner Context
+                    </Label>
+                    <Textarea
+                      id="partnerContext"
+                      placeholder="Partner strengths, focus areas, client base characteristics..."
+                      value={customPrompt.partnerContext}
+                      onChange={(e) => setCustomPrompt(prev => ({ ...prev, partnerContext: e.target.value }))}
+                      className="mt-1 h-20"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="strategyNN" className="text-sm font-medium text-gray-700">
+                      Strategy NN
+                    </Label>
+                    <Textarea
+                      id="strategyNN"
+                      placeholder="NN Group strategic priorities, product focus, growth initiatives..."
+                      value={customPrompt.strategyNN}
+                      onChange={(e) => setCustomPrompt(prev => ({ ...prev, strategyNN: e.target.value }))}
+                      className="mt-1 h-20"
+                    />
+                  </div>
+                </div>
+                
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="customerSegment" className="text-sm font-medium text-gray-700">
+                      Customer Segment
+                    </Label>
+                    <Textarea
+                      id="customerSegment"
+                      placeholder="Target customer profiles, demographics, business sectors..."
+                      value={customPrompt.customerSegment}
+                      onChange={(e) => setCustomPrompt(prev => ({ ...prev, customerSegment: e.target.value }))}
+                      className="mt-1 h-20"
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="productSegment" className="text-sm font-medium text-gray-700">
+                      Product Segment
+                    </Label>
+                    <Textarea
+                      id="productSegment"
+                      placeholder="Product categories, coverage types, premium ranges..."
+                      value={customPrompt.productSegment}
+                      onChange={(e) => setCustomPrompt(prev => ({ ...prev, productSegment: e.target.value }))}
+                      className="mt-1 h-20"
+                    />
+                  </div>
+                  
+                  {/* Analysis Button */}
+                  <div className="pt-4">
+                    <Button 
+                      onClick={() => handleAnalyze('custom')}
+                      disabled={isAnalyzing}
+                      className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white"
+                    >
+                      {isAnalyzing ? 'Analyzing...' : 'Generate custom analysis'}
+                    </Button>
+                  </div>
+                </div>
               </div>
             </div>
           </CardContent>
-        </Card>
-      </div>
+        )}
+      </Card>
     </div>
   );
 }
