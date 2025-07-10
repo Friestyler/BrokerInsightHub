@@ -192,10 +192,14 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
     // If it's a customer and we have a subcategory, map it to main category
     if (entityType === 'customers' && product.category) {
       const subcategory = product.category;
-      // Map specific subcategories to main categories based on portfolio data
+      
+      // Debug logging to see all subcategory names
+      console.log('Subcategory mapping debug:', { subcategory, productName: product.productname });
+      
+      // Map specific subcategories to main categories based on actual data
       if (subcategory === 'NN PPP' || subcategory === 'Collectief Pensioen') {
         categoryName = 'Pensioen';
-      } else if (subcategory === 'Zorgverzekering Aanvullend' || subcategory === 'Zorgverzekering Basis') {
+      } else if (subcategory === 'Zorgverzekering Aanvullend' || subcategory === 'Zorgverzekering Basis' || subcategory === 'Zorgverzekering' || subcategory.includes('Zorg') || subcategory === 'WGA ERD' || subcategory === 'WGA Vervolguitkering') {
         categoryName = 'Inkomen Collectief';
       } else if (subcategory === 'WIA Excedent' || subcategory === 'Ziektewet ERD' || subcategory === 'Arbeidsongeschiktheid') {
         categoryName = 'Schade Zakelijk';
