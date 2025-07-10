@@ -187,6 +187,17 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
     const productDescription = product.productDescription || product.productdescription || '';
     const categoryName = product.parentCategoryName || product.category || '';
     
+    // Debug logging for category filtering issues
+    if (categoryFilter !== 'all') {
+      console.log('Product filtering debug:', {
+        productName,
+        categoryName,
+        categoryFilter,
+        allFields: Object.keys(product),
+        productData: product
+      });
+    }
+    
     const matchesSearch = !searchTerm || 
       productName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       productDescription.toLowerCase().includes(searchTerm.toLowerCase());
