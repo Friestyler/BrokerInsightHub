@@ -1,0 +1,274 @@
+### User Stories: Edit Alert Wizard Steps
+
+## Step 1: Basic Settings Tab
+
+### **Story: Alert Foundation Setup**
+
+**As an Insurance Administrator,**I want to define the core information for my alert in the Basic Settings step,So that I establish the fundamental identity and messaging before configuring advanced features.
+
+**Acceptance Criteria:**
+
+- I can enter a clear, descriptive alert name for internal reference
+- I can set the alert title that users will see in the dashboard
+- I can create a message template with dynamic variables like count, amount, category
+- I can write a detailed description template that explains the alert to users
+- I can see available variables and understand how to use them
+- I can move to the next step only after required fields are completed
+
+
+**User Journey:**
+
+1. **Alert Name**: "Coverage Gap Detection - Pensioen"
+2. **Alert Title**: "Pension Coverage Gap Alert"
+3. **Message Template**: "count customers missing pension coverage - €amount potential"
+4. **Description**: "count customers in category lack adequate pension coverage. Estimated revenue opportunity: €amount. Immediate outreach recommended."
+
+
+---
+
+## Step 2: AI & Automation Tab
+
+### **Story: Intelligence Configuration**
+
+**As a Portfolio Analyst,**I want to configure how my alert will automatically detect conditions and generate insights,So that the system can proactively identify opportunities without manual intervention.
+
+**Acceptance Criteria:**
+
+- I can choose between AI-Generated, Custom Script, or Manual automation types
+- For AI alerts: I can select the appropriate AI model and write detailed analysis prompts
+- For Custom alerts: I can write SQL queries or specify API endpoints
+- I can set the data source (portfolio DB, customer DB, etc.)
+- I can define trigger conditions and check frequency
+- I can see examples and guidance for each automation type
+
+
+**User Journey - AI Path:**
+
+1. **Automation Type**: Select "AI-Generated"
+2. **AI Model**: Choose "GPT-4o (Recommended)"
+3. **AI Prompt**: Write detailed analysis instructions
+4. **Data Source**: Select "Portfolio Database"
+5. **Frequency**: Set to "Weekly"
+6. **Trigger Conditions**: Define business logic rules
+
+
+**Example AI Prompt:**
+
+> "Analyze pension coverage across all business customers. Identify companies with 10+ employees where average employee age is >40 and no pension plan exists. Consider company financial health, existing insurance relationships, and industry pension adoption rates. Calculate potential annual premium based on employee count and salary estimates."
+
+
+
+**User Journey - Custom Script Path:**
+
+1. **Automation Type**: Select "Custom Script"
+2. **Custom Query**: Write SQL or API logic
+3. **Data Source**: Select appropriate database
+4. **Frequency**: Set to "Daily"
+5. **Trigger Conditions**: Define precise conditions
+
+
+**Example Custom Query:**
+
+```sql
+SELECT c.company_name, c.employee_count, c.avg_employee_age, 
+       (c.employee_count * 2400) as potential_annual_premium
+FROM customers c 
+LEFT JOIN policies p ON c.id = p.customer_id AND p.type = 'pension'
+WHERE c.employee_count >= 10 
+  AND c.avg_employee_age > 40 
+  AND p.id IS NULL
+  AND c.financial_rating >= 'B'
+```
+
+---
+
+## Step 3: Visual Settings Tab
+
+### **Story: Alert Appearance Design**
+
+**As a UX-Focused Administrator,**I want to customize how my alert appears visually in the dashboard,So that users can quickly identify alert types, priorities, and take appropriate action.
+
+**Acceptance Criteria:**
+
+- I can select an appropriate icon that represents the alert type
+- I can set severity level (Low, Medium, High, Critical) with color coding
+- I can choose background and border colors that match alert purpose
+- I can enable/disable the alert with a simple toggle
+- I can see how my visual choices work together
+- Visual settings should align with our company's alert categorization system
+
+
+**User Journey:**
+
+1. **Icon Selection**: Choose "TrendingUp" for opportunity alerts
+2. **Severity Level**: Set to "Medium" (yellow indicator)
+3. **Background Color**: Select "Green Light" for opportunities
+4. **Border Color**: Choose "Green Border" to match
+5. **Enable Toggle**: Ensure alert is active
+6. **Visual Validation**: Confirm colors and icons work well together
+
+
+**Design Considerations:**
+
+- **Red styling** = Urgent/Critical (expired policies, compliance issues)
+- **Orange styling** = High priority (coverage gaps, renewals due)
+- **Green styling** = Opportunities (revenue potential, cross-sell)
+- **Blue styling** = Informational (status updates, reminders)
+
+
+---
+
+## ️ Step 4: Preview Tab
+
+### **Story: Alert Validation & Testing**
+
+**As a Quality Assurance Administrator,**I want to see exactly how my configured alert will appear and behave before activating it,So that I can ensure it meets business requirements and provides clear value to users.
+
+**Acceptance Criteria:**
+
+- I can see a pixel-perfect preview of the alert card as it will appear in the dashboard
+- For AI alerts: I can review the complete AI prompt and understand what analysis will occur
+- For Custom alerts: I can see the query/script that will execute
+- I can validate that all visual elements (colors, icons, text) work together effectively
+- I can identify any issues before saving the alert
+- I can go back to previous steps to make adjustments if needed
+
+
+**User Journey:**
+
+1. **Alert Card Preview**: See the complete alert as users will see it
+2. **Automation Preview**: Review AI prompt or custom script
+3. **Visual Validation**: Confirm styling matches intent
+4. **Content Review**: Verify message templates make sense
+5. **Final Approval**: Ensure alert is ready for production
+
+
+**Preview Components:**
+
+### **Alert Card Preview:**
+
+```plaintext
+[🔺] Pension Coverage Gap Alert        [AI-Generated]
+5 customers missing pension coverage - €250,000 potential
+
+[Take Action →]
+```
+
+### **AI Prompt Preview:**
+
+```plaintext
+🧠 AI Analysis Prompt
+Analyze pension coverage across all business customers. Identify companies 
+with 10+ employees where average employee age is >40 and no pension plan 
+exists. Consider company financial health, existing insurance relationships, 
+and industry pension adoption rates...
+```
+
+### **Configuration Summary:**
+
+- **Automation**: AI-Generated using GPT-4o
+- **Frequency**: Weekly analysis
+- **Data Source**: Portfolio Database
+- **Severity**: Medium priority
+- **Visual Style**: Green opportunity styling
+
+
+---
+
+## Cross-Step User Stories
+
+### **Story: Wizard Navigation & Flow**
+
+**As an Administrator configuring alerts,**I want to move smoothly between wizard steps and see my progress,So that I can efficiently configure complex alerts without losing my work.
+
+**Acceptance Criteria:**
+
+- I can navigate between tabs in any order
+- My changes are preserved when switching tabs
+- I can see which steps are complete/incomplete
+- I can save my progress and return later
+- I get validation errors if required fields are missing
+
+
+---
+
+### **Story: Configuration Consistency**
+
+**As a Business Process Manager,**I want the wizard to guide me toward consistent, effective alert configurations,So that all alerts follow our company standards and provide reliable results.
+
+**Acceptance Criteria:**
+
+- Visual settings suggestions based on alert type
+- AI prompt templates for common scenarios
+- Validation that automation settings match business requirements
+- Warnings if configurations might cause performance issues
+- Best practice recommendations throughout the wizard
+
+
+---
+
+## Wizard Completion Success Stories
+
+### **Story: New AI Alert Creation**
+
+**Scenario**: Creating a new pension opportunity alert from scratch
+
+**User Journey:**
+
+1. **Basic Settings**: Define "Pension Opportunity Alert" with revenue-focused messaging
+2. **AI & Automation**: Configure GPT-4o to analyze customer demographics and pension gaps
+3. **Visual Settings**: Apply green opportunity styling with trending-up icon
+4. **Preview**: Validate complete configuration and activate alert
+
+
+**Success Criteria**: Alert successfully identifies 15+ pension opportunities within first week
+
+---
+
+### **Story: Custom Script Alert Migration**
+
+**Scenario**: Converting a manual process to an automated custom script alert
+
+**User Journey:**
+
+1. **Basic Settings**: Replicate existing manual alert messaging
+2. **AI & Automation**: Convert manual checklist to SQL query logic
+3. **Visual Settings**: Maintain existing red critical styling
+4. **Preview**: Verify query returns same results as manual process
+
+
+**Success Criteria**: Automated alert catches 100% of cases that manual process would identify
+
+---
+
+## Step-by-Step Success Metrics
+
+**Basic Settings Success:**
+
+- 95% of users complete this step without assistance
+- Message templates use dynamic variables effectively
+- Alert names follow company naming conventions
+
+
+**AI & Automation Success:**
+
+- AI prompts generate relevant, actionable alerts
+- Custom queries execute within performance thresholds
+- Automation frequency matches business needs
+
+
+**Visual Settings Success:**
+
+- Visual styling aligns with alert priority and type
+- Color choices improve user response times
+- Icon selection enhances alert recognition
+
+
+**Preview Success:**
+
+- 90% of previewed alerts are approved without changes
+- Users catch configuration issues before going live
+- Preview accurately represents final alert appearance
+
+
+This comprehensive breakdown shows how each wizard step serves a specific purpose in creating effective, well-configured alerts! 🧙‍♂️✨

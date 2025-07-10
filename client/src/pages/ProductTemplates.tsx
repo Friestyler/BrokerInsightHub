@@ -189,6 +189,7 @@ export default function ProductTemplates() {
   const [expandedAlertCategories, setExpandedAlertCategories] = useState<Set<string>>(new Set(['Schade Zakelijk']));
   const [alertPreviewOpen, setAlertPreviewOpen] = useState(false);
   const [currentAlertData, setCurrentAlertData] = useState<any>(null);
+  const [editAlertStep, setEditAlertStep] = useState(0);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -1754,7 +1755,31 @@ export default function ProductTemplates() {
                             <span>Real-time</span>
                           </div>
                           <Toggle size="sm" defaultPressed />
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => {
+                              setSelectedAlert({
+                                id: 1,
+                                name: "Expired Policies Alert",
+                                title: "Expired Policies Alert",
+                                message: "(count) policies expired",
+                                description: "(count) {category} policies have expired (latest expiry: {date}). Immediate renewal needed to avoid uninsured liabilities.",
+                                category: "Schade Zakelijk",
+                                type: "custom_script",
+                                severity: "critical",
+                                icon: "Clock",
+                                backgroundColor: "Red Light",
+                                borderColor: "Red Border",
+                                enabled: true,
+                                frequency: "real-time",
+                                dataSource: "Policy Database",
+                                customScript: "SELECT * FROM policies WHERE category = 'Schade Zakelijk' AND expiry_date < CURRENT_DATE AND status != 'renewed'",
+                                triggerConditions: "expiry_date < today() AND status = 'active'"
+                              });
+                              setEditAlertDialogOpen(true);
+                            }}
+                          >
                             <Edit className="h-3 w-3" />
                           </Button>
                           <Button variant="ghost" size="sm">
@@ -1789,7 +1814,31 @@ export default function ProductTemplates() {
                             <span>Daily</span>
                           </div>
                           <Toggle size="sm" />
-                          <Button variant="ghost" size="sm">
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => {
+                              setSelectedAlert({
+                                id: 2,
+                                name: "Renewal Reminder Alert",
+                                title: "Renewal Reminder Alert",
+                                message: "(count) renewals due soon",
+                                description: "(count) {category} policies expire within 30 days. Total renewal value: €{amount}. Schedule renewal meetings immediately.",
+                                category: "Schade Zakelijk",
+                                type: "custom_script",
+                                severity: "medium",
+                                icon: "Bell",
+                                backgroundColor: "Yellow Light",
+                                borderColor: "Yellow Border",
+                                enabled: false,
+                                frequency: "daily",
+                                dataSource: "Policy Database",
+                                customScript: "SELECT * FROM policies WHERE category = 'Schade Zakelijk' AND expiry_date BETWEEN CURRENT_DATE AND DATE_ADD(CURRENT_DATE, INTERVAL 30 DAY)",
+                                triggerConditions: "expiry_date BETWEEN today() AND today() + 30"
+                              });
+                              setEditAlertDialogOpen(true);
+                            }}
+                          >
                             <Edit className="h-3 w-3" />
                           </Button>
                           <Button variant="ghost" size="sm">
@@ -1977,6 +2026,491 @@ export default function ProductTemplates() {
             >
               Close
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Alert Wizard Dialog */}
+      <Dialog open={editAlertDialogOpen} onOpenChange={setEditAlertDialogOpen}>
+        <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-[#282A3F] flex items-center gap-2">
+              <Settings className="h-5 w-5" />
+              Edit Alert
+            </DialogTitle>
+            <p className="text-sm text-gray-600">
+              Configure the alert settings, automation, messaging, and visual appearance.
+            </p>
+          </DialogHeader>
+          
+          {/* Step Navigation */}
+          <div className="flex items-center gap-1 mb-6 border-b border-gray-200 pb-4">
+            {['Basic Settings', 'AI & Automation', 'Visual Settings', 'Preview'].map((step, index) => (
+              <Button
+                key={step}
+                variant={editAlertStep === index ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setEditAlertStep(index)}
+                className={`px-4 py-2 text-sm font-medium rounded-md transition-all ${
+                  editAlertStep === index
+                    ? 'bg-[#5567E5] text-white'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                }`}
+              >
+                {step}
+              </Button>
+            ))}
+          </div>
+
+          {/* Step Content */}
+          <div className="min-h-[400px]">
+            {editAlertStep === 0 && (
+              <div className="space-y-6">
+                <div className="text-lg font-semibold text-[#282A3F]">Basic Settings</div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Alert Name</label>
+                    <Input 
+                      value={selectedAlert?.name || ''}
+                      onChange={(e) => setSelectedAlert(prev => ({...prev, name: e.target.value}))}
+                      placeholder="Expired Policies Alert"
+                      className="bg-white"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Alert Title</label>
+                    <Input 
+                      value={selectedAlert?.title || ''}
+                      onChange={(e) => setSelectedAlert(prev => ({...prev, title: e.target.value}))}
+                      placeholder="Expired Policies Alert"
+                      className="bg-white"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Message Template</label>
+                  <Input 
+                    value={selectedAlert?.message || ''}
+                    onChange={(e) => setSelectedAlert(prev => ({...prev, message: e.target.value}))}
+                    placeholder="(count) policies expired"
+                    className="bg-white"
+                  />
+                  <p className="text-xs text-gray-500">
+                    Available variables: {'{count}, {amount}, {category}, {coverage}, {date}, {timeframe}'}
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Description Template</label>
+                  <Textarea 
+                    value={selectedAlert?.description || ''}
+                    onChange={(e) => setSelectedAlert(prev => ({...prev, description: e.target.value}))}
+                    placeholder="(count) {category} policies have expired (latest expiry: {date}). Immediate renewal needed to avoid uninsured liabilities."
+                    rows={3}
+                    className="bg-white"
+                  />
+                </div>
+              </div>
+            )}
+
+            {editAlertStep === 1 && (
+              <div className="space-y-6">
+                <div className="text-lg font-semibold text-[#282A3F]">AI & Automation Settings</div>
+                
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Automation Type</label>
+                    <Select value={selectedAlert?.type || 'custom_script'} onValueChange={(value) => setSelectedAlert(prev => ({...prev, type: value}))}>
+                      <SelectTrigger className="bg-white">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="ai_generated">
+                          <div className="flex items-center gap-2">
+                            <Brain className="h-4 w-4" />
+                            AI-Generated
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="custom_script">
+                          <div className="flex items-center gap-2">
+                            <Code className="h-4 w-4" />
+                            Custom Script
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-xs text-gray-500">
+                      Use custom queries or scripts
+                    </p>
+                  </div>
+
+                  {selectedAlert?.type === 'custom_script' && (
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Custom Query/Script</label>
+                      <Textarea 
+                        value={selectedAlert?.customScript || ''}
+                        onChange={(e) => setSelectedAlert(prev => ({...prev, customScript: e.target.value}))}
+                        placeholder="SELECT * FROM policies WHERE category = 'Schade Zakelijk' AND expiry_date < CURRENT_DATE AND status != 'renewed'"
+                        rows={4}
+                        className="bg-white font-mono text-sm"
+                      />
+                      <p className="text-xs text-gray-500">
+                        Use SQL for database queries, or specify API endpoints and custom logic.
+                      </p>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Data Source</label>
+                      <Select value={selectedAlert?.dataSource || 'Policy Database'} onValueChange={(value) => setSelectedAlert(prev => ({...prev, dataSource: value}))}>
+                        <SelectTrigger className="bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Policy Database">Policy Database</SelectItem>
+                          <SelectItem value="Customer Database">Customer Database</SelectItem>
+                          <SelectItem value="Portfolio Database">Portfolio Database</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Check Frequency</label>
+                      <Select value={selectedAlert?.frequency || 'real-time'} onValueChange={(value) => setSelectedAlert(prev => ({...prev, frequency: value}))}>
+                        <SelectTrigger className="bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="real-time">Real-time</SelectItem>
+                          <SelectItem value="hourly">Hourly</SelectItem>
+                          <SelectItem value="daily">Daily</SelectItem>
+                          <SelectItem value="weekly">Weekly</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Trigger Conditions</label>
+                    <Input 
+                      value={selectedAlert?.triggerConditions || ''}
+                      onChange={(e) => setSelectedAlert(prev => ({...prev, triggerConditions: e.target.value}))}
+                      placeholder="expiry_date < today() AND status = 'active'"
+                      className="bg-white"
+                    />
+                    <p className="text-xs text-gray-500">
+                      Define the specific conditions that should trigger this alert.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {editAlertStep === 2 && (
+              <div className="space-y-6">
+                <div className="text-lg font-semibold text-[#282A3F]">Visual Settings</div>
+                
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Icon</label>
+                      <Select value={selectedAlert?.icon || 'Clock'} onValueChange={(value) => setSelectedAlert(prev => ({...prev, icon: value}))}>
+                        <SelectTrigger className="bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Clock">
+                            <div className="flex items-center gap-2">
+                              <Clock className="h-4 w-4" />
+                              Clock
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Bell">
+                            <div className="flex items-center gap-2">
+                              <Bell className="h-4 w-4" />
+                              Bell
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="AlertTriangle">
+                            <div className="flex items-center gap-2">
+                              <AlertTriangle className="h-4 w-4" />
+                              Alert Triangle
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="TrendingUp">
+                            <div className="flex items-center gap-2">
+                              <TrendingUp className="h-4 w-4" />
+                              Trending Up
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Severity</label>
+                      <Select value={selectedAlert?.severity || 'critical'} onValueChange={(value) => setSelectedAlert(prev => ({...prev, severity: value}))}>
+                        <SelectTrigger className="bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="low">
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 bg-gray-400 rounded-full" />
+                              Low
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="medium">
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 bg-yellow-400 rounded-full" />
+                              Medium
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="high">
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 bg-orange-400 rounded-full" />
+                              High
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="critical">
+                            <div className="flex items-center gap-2">
+                              <div className="w-3 h-3 bg-red-400 rounded-full" />
+                              Critical
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Background Color</label>
+                      <Select value={selectedAlert?.backgroundColor || 'Red Light'} onValueChange={(value) => setSelectedAlert(prev => ({...prev, backgroundColor: value}))}>
+                        <SelectTrigger className="bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Red Light">
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 bg-red-50 border border-red-200 rounded" />
+                              Red Light
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Yellow Light">
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 bg-yellow-50 border border-yellow-200 rounded" />
+                              Yellow Light
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Green Light">
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 bg-green-50 border border-green-200 rounded" />
+                              Green Light
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Blue Light">
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 bg-blue-50 border border-blue-200 rounded" />
+                              Blue Light
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Border Color</label>
+                      <Select value={selectedAlert?.borderColor || 'Red Border'} onValueChange={(value) => setSelectedAlert(prev => ({...prev, borderColor: value}))}>
+                        <SelectTrigger className="bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Red Border">
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 bg-white border-2 border-red-200 rounded" />
+                              Red Border
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Yellow Border">
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 bg-white border-2 border-yellow-200 rounded" />
+                              Yellow Border
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Green Border">
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 bg-white border-2 border-green-200 rounded" />
+                              Green Border
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="Blue Border">
+                            <div className="flex items-center gap-2">
+                              <div className="w-4 h-4 bg-white border-2 border-blue-200 rounded" />
+                              Blue Border
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm font-medium text-gray-700">Enabled</span>
+                    <p className="text-xs text-gray-500">Toggle alert activation</p>
+                  </div>
+                  <Toggle 
+                    pressed={selectedAlert?.enabled || false}
+                    onPressedChange={(pressed) => setSelectedAlert(prev => ({...prev, enabled: pressed}))}
+                  />
+                </div>
+              </div>
+            )}
+
+            {editAlertStep === 3 && (
+              <div className="space-y-6">
+                <div className="text-lg font-semibold text-[#282A3F]">Preview</div>
+                
+                <div className="space-y-4">
+                  <div className="text-sm font-medium text-gray-700">Alert Card Preview</div>
+                  
+                  {/* Alert Preview */}
+                  <div className={`border border-[#E6E7F1] rounded-lg p-4 ${
+                    selectedAlert?.backgroundColor === 'Red Light' ? 'bg-red-50' :
+                    selectedAlert?.backgroundColor === 'Yellow Light' ? 'bg-yellow-50' :
+                    selectedAlert?.backgroundColor === 'Green Light' ? 'bg-green-50' :
+                    'bg-blue-50'
+                  }`}>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                          selectedAlert?.backgroundColor === 'Red Light' ? 'bg-red-100' :
+                          selectedAlert?.backgroundColor === 'Yellow Light' ? 'bg-yellow-100' :
+                          selectedAlert?.backgroundColor === 'Green Light' ? 'bg-green-100' :
+                          'bg-blue-100'
+                        }`}>
+                          {selectedAlert?.icon === 'Clock' && <Clock className={`h-4 w-4 ${
+                            selectedAlert?.backgroundColor === 'Red Light' ? 'text-red-600' :
+                            selectedAlert?.backgroundColor === 'Yellow Light' ? 'text-yellow-600' :
+                            selectedAlert?.backgroundColor === 'Green Light' ? 'text-green-600' :
+                            'text-blue-600'
+                          }`} />}
+                          {selectedAlert?.icon === 'Bell' && <Bell className={`h-4 w-4 ${
+                            selectedAlert?.backgroundColor === 'Red Light' ? 'text-red-600' :
+                            selectedAlert?.backgroundColor === 'Yellow Light' ? 'text-yellow-600' :
+                            selectedAlert?.backgroundColor === 'Green Light' ? 'text-green-600' :
+                            'text-blue-600'
+                          }`} />}
+                          {selectedAlert?.icon === 'AlertTriangle' && <AlertTriangle className={`h-4 w-4 ${
+                            selectedAlert?.backgroundColor === 'Red Light' ? 'text-red-600' :
+                            selectedAlert?.backgroundColor === 'Yellow Light' ? 'text-yellow-600' :
+                            selectedAlert?.backgroundColor === 'Green Light' ? 'text-green-600' :
+                            'text-blue-600'
+                          }`} />}
+                          {selectedAlert?.icon === 'TrendingUp' && <TrendingUp className={`h-4 w-4 ${
+                            selectedAlert?.backgroundColor === 'Red Light' ? 'text-red-600' :
+                            selectedAlert?.backgroundColor === 'Yellow Light' ? 'text-yellow-600' :
+                            selectedAlert?.backgroundColor === 'Green Light' ? 'text-green-600' :
+                            'text-blue-600'
+                          }`} />}
+                        </div>
+                        <div>
+                          <h3 className="font-medium text-gray-900">{selectedAlert?.title || 'Alert Title'}</h3>
+                          <p className="text-sm text-gray-600">{selectedAlert?.message || 'Alert message'}</p>
+                        </div>
+                        <Badge variant="green" className="text-xs px-2 py-1">
+                          {selectedAlert?.type === 'custom_script' ? 'Custom Script' : 'AI-Generated'}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+
+                  {selectedAlert?.type === 'custom_script' && (
+                    <div className="space-y-2">
+                      <div className="text-sm font-medium text-gray-700">Custom Query Preview</div>
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Code className="h-4 w-4 text-green-600" />
+                          <span className="text-sm font-medium text-green-800">Custom Query/Script</span>
+                        </div>
+                        <pre className="text-xs text-green-700 whitespace-pre-wrap">
+                          {selectedAlert?.customScript || 'No custom script defined'}
+                        </pre>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="space-y-1">
+                      <div className="font-medium text-gray-700">Configuration Summary:</div>
+                      <div className="text-gray-600">• Automation: {selectedAlert?.type === 'custom_script' ? 'Custom Script' : 'AI-Generated'}</div>
+                      <div className="text-gray-600">• Frequency: {selectedAlert?.frequency || 'Real-time'}</div>
+                      <div className="text-gray-600">• Data Source: {selectedAlert?.dataSource || 'Policy Database'}</div>
+                      <div className="text-gray-600">• Severity: {selectedAlert?.severity || 'Critical'} priority</div>
+                      <div className="text-gray-600">• Status: {selectedAlert?.enabled ? 'Enabled' : 'Disabled'}</div>
+                    </div>
+                    <div className="space-y-1">
+                      <div className="font-medium text-gray-700">Visual Style:</div>
+                      <div className="text-gray-600">• Icon: {selectedAlert?.icon || 'Clock'}</div>
+                      <div className="text-gray-600">• Background: {selectedAlert?.backgroundColor || 'Red Light'}</div>
+                      <div className="text-gray-600">• Border: {selectedAlert?.borderColor || 'Red Border'}</div>
+                      <div className="text-gray-600">• Category: {selectedAlert?.category || 'Schade Zakelijk'}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <DialogFooter className="flex justify-between">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setEditAlertDialogOpen(false);
+                setSelectedAlert(null);
+                setEditAlertStep(0);
+              }}
+            >
+              Cancel
+            </Button>
+            <div className="flex gap-2">
+              {editAlertStep > 0 && (
+                <Button 
+                  variant="outline" 
+                  onClick={() => setEditAlertStep(editAlertStep - 1)}
+                >
+                  Previous
+                </Button>
+              )}
+              {editAlertStep < 3 ? (
+                <Button 
+                  onClick={() => setEditAlertStep(editAlertStep + 1)}
+                  className="bg-[#5567E5] hover:bg-[#4451c7]"
+                >
+                  Next
+                </Button>
+              ) : (
+                <Button 
+                  onClick={() => {
+                    // Save alert logic here
+                    toast({
+                      title: "Alert Updated",
+                      description: "Alert configuration has been saved successfully.",
+                    });
+                    setEditAlertDialogOpen(false);
+                    setSelectedAlert(null);
+                    setEditAlertStep(0);
+                  }}
+                  className="bg-[#5567E5] hover:bg-[#4451c7]"
+                >
+                  Save Changes
+                </Button>
+              )}
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
