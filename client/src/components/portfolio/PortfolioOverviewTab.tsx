@@ -11,7 +11,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { TrendingUp, Target, DollarSign, Package, AlertTriangle, Star, Plus, CalendarIcon, Users, X, CheckCircle, Shield, Heart, Briefcase, Car, Home, Plane, FileText, Zap, Play, Search } from 'lucide-react';
+import { TrendingUp, Target, DollarSign, Package, AlertTriangle, Star, Plus, CalendarIcon, Users, X, CheckCircle, Shield, Heart, Briefcase, Car, Home, Plane, FileText, Zap, Play, Search, ExternalLink } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { apiRequest } from '@/lib/queryClient';
@@ -109,6 +109,7 @@ export function PortfolioOverviewTab({ entityType, entityId, isModalOpen: extern
   
   // Customer modal state
   const [showCustomerModal, setShowCustomerModal] = useState(false);
+  const [selectedCustomerIds, setSelectedCustomerIds] = useState<string[]>([]);
   const [customerModalData, setCustomerModalData] = useState<{
     customers: Array<{
       id: string;
@@ -1245,17 +1246,29 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
         </DialogContent>
       </Dialog>
 
-      {/* Customer Details Modal */}
-      <Dialog open={showCustomerModal} onOpenChange={setShowCustomerModal}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="flex items-center space-x-2">
-              <Users className="w-5 h-5" />
-              <span>{customerModalData.productName} - Customers</span>
+      {/* Customer Details Modal with Selection */}
+      <Dialog open={showCustomerModal} onOpenChange={(open) => {
+        setShowCustomerModal(open);
+        if (!open) {
+          setSelectedCustomerIds([]);
+        }
+      }}>
+        <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden p-0">
+          <DialogHeader className="px-6 py-4 border-b border-[#E6E7F1]">
+            <DialogTitle className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <Users className="w-5 h-5" />
+                <span>{customerModalData.productName} - Customers</span>
+              </div>
+              {selectedCustomerIds.length > 0 && (
+                <div className="text-sm text-gray-600">
+                  {selectedCustomerIds.length} of {customerModalData.customers.length} selected
+                </div>
+              )}
             </DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-4">
+          <div className="flex-1 overflow-y-auto px-6 py-4">
             {customerModalData.customers.length === 0 ? (
               <div className="text-center py-8">
                 <Users className="w-12 h-12 text-gray-300 mx-auto mb-4" />
@@ -1263,73 +1276,144 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
               </div>
             ) : (
               <>
-                {/* Customer List */}
-                <div className="space-y-3 max-h-96 overflow-y-auto">
+                {/* Selection Controls */}
+                <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#E6E7F1]">
+                  <div className="flex items-center space-x-4">
+                    <label className="flex items-center space-x-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={selectedCustomerIds.length === customerModalData.customers.length}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedCustomerIds(customerModalData.customers.map(c => c.id.toString()));
+                          } else {
+                            setSelectedCustomerIds([]);
+                          }
+                        }}
+                        className="rounded text-[#5567E5] focus:ring-[#5567E5]"
+                      />
+                      <span className="text-sm font-medium text-gray-700">Select all</span>
+                    </label>
+                    {selectedCustomerIds.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setSelectedCustomerIds([])}
+                        className="text-gray-500 hover:text-gray-700"
+                      >
+                        Clear selection
+                      </Button>
+                    )}
+                  </div>
+                  <div className="text-sm text-gray-500">
+                    {customerModalData.customers.length} customers total
+                  </div>
+                </div>
+
+                {/* Customer List with Selection */}
+                <div className="space-y-3 max-h-80 overflow-y-auto">
                   {customerModalData.customers.map((customer) => (
                     <div
                       key={customer.id}
-                      className="flex items-center justify-between p-4 border border-[#E6E7F1] rounded-lg hover:bg-gray-50 transition-colors cursor-pointer"
-                      onClick={() => window.open(`/customers/${customer.id}`, '_blank')}
+                      className={cn(
+                        "flex items-center space-x-3 p-4 border rounded-lg transition-colors",
+                        selectedCustomerIds.includes(customer.id.toString())
+                          ? "border-[#5567E5] bg-blue-50"
+                          : "border-[#E6E7F1] hover:bg-gray-50"
+                      )}
                     >
-                      <div className="flex items-center space-x-3">
-                        <div>
-                          <div className="font-medium text-gray-900">{customer.name}</div>
-                          <div className="text-sm text-gray-500">{customer.email}</div>
+                      <input
+                        type="checkbox"
+                        checked={selectedCustomerIds.includes(customer.id.toString())}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedCustomerIds(prev => [...prev, customer.id.toString()]);
+                          } else {
+                            setSelectedCustomerIds(prev => prev.filter(id => id !== customer.id.toString()));
+                          }
+                        }}
+                        className="rounded text-[#5567E5] focus:ring-[#5567E5]"
+                      />
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <div className="font-medium text-gray-900 truncate">{customer.name}</div>
+                            <div className="text-sm text-gray-500">{customer.status}</div>
+                          </div>
+                          <div className="flex items-center space-x-4">
+                            {customer.potentialValue && (
+                              <div className="text-right">
+                                <div className="font-semibold text-green-600">
+                                  {new Intl.NumberFormat('en-US', {
+                                    style: 'currency',
+                                    currency: 'EUR',
+                                    minimumFractionDigits: 0,
+                                    maximumFractionDigits: 0,
+                                  }).format(customer.potentialValue)}
+                                </div>
+                                <div className="text-xs text-gray-500">Potential value</div>
+                              </div>
+                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => window.open(`/customers/${customer.id}`, '_blank')}
+                              className="text-gray-500 hover:text-gray-700"
+                            >
+                              <ExternalLink className="w-4 h-4" />
+                            </Button>
+                          </div>
                         </div>
-                      </div>
-                      <div className="flex items-center space-x-4">
-                        <div className="text-right">
-                          <div className="text-sm text-gray-500">{customer.status}</div>
-                          {customer.potentialValue && (
-                            <div className="font-semibold text-green-600">
-                              {new Intl.NumberFormat('en-US', {
-                                style: 'currency',
-                                currency: 'EUR',
-                                minimumFractionDigits: 0,
-                                maximumFractionDigits: 0,
-                              }).format(customer.potentialValue)}
-                            </div>
-                          )}
-                        </div>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            handleCreateOpportunity(customer.id);
-                          }}
-                          className="border-[#5567E5] text-[#5567E5] hover:bg-[#5567E5] hover:text-white"
-                        >
-                          Create Opportunity
-                        </Button>
                       </div>
                     </div>
                   ))}
                 </div>
-
-                {/* Action Buttons */}
-                <div className="flex justify-between items-center pt-4 border-t">
-                  <div className="text-sm text-gray-500">
-                    {customerModalData.customers.length} customers found
-                  </div>
-                  <div className="flex space-x-3">
-                    <Button
-                      variant="outline"
-                      onClick={() => handleExportCustomers(customerModalData.customers.map(c => c.id))}
-                      className="border-[#5567E5] text-[#5567E5] hover:bg-[#5567E5] hover:text-white"
-                    >
-                      Export Data
-                    </Button>
-                    <Button
-                      onClick={() => handleCreateOpportunities(customerModalData.customers.map(c => c.id))}
-                      className="bg-[#5567E5] hover:bg-[#4556D4]"
-                    >
-                      Create Opportunities
-                    </Button>
-                  </div>
-                </div>
               </>
             )}
+          </div>
+
+          {/* Action Footer */}
+          <div className="px-6 py-4 border-t border-[#E6E7F1] flex justify-between items-center bg-gray-50">
+            <div className="flex items-center space-x-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowCustomerModal(false)}
+              >
+                Close
+              </Button>
+              {selectedCustomerIds.length > 0 && (
+                <div className="text-sm text-gray-600">
+                  {selectedCustomerIds.length} customer{selectedCustomerIds.length !== 1 ? 's' : ''} selected
+                </div>
+              )}
+            </div>
+            <div className="flex space-x-3">
+              <Button
+                variant="outline"
+                disabled={selectedCustomerIds.length === 0}
+                onClick={() => {
+                  // Handle export for selected customers
+                  console.log('Export customers:', selectedCustomerIds);
+                }}
+                className="border-[#5567E5] text-[#5567E5] hover:bg-[#5567E5] hover:text-white disabled:opacity-50"
+              >
+                Export selected
+              </Button>
+              <Button
+                disabled={selectedCustomerIds.length === 0}
+                onClick={() => {
+                  // Open opportunity creation modal with selected customers
+                  setSelectedCustomers(selectedCustomerIds);
+                  setCustomerSelectionType('multiple');
+                  setShowCustomerModal(false);
+                  setModalOpen(true);
+                }}
+                className="bg-[#5567E5] hover:bg-[#4556D4] disabled:opacity-50"
+              >
+                Create opportunities ({selectedCustomerIds.length})
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
