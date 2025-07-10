@@ -333,8 +333,8 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
                   <Target className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg">Strategic Opportunities</CardTitle>
-                  <CardDescription>Market-driven cross-sell recommendations</CardDescription>
+                  <CardTitle className="text-lg">Summer Trending Products</CardTitle>
+                  <CardDescription>Top 3 seasonal insurance products for summer 2025</CardDescription>
                 </div>
               </div>
               <Play className="w-5 h-5 text-[#5567E5]" />
@@ -342,13 +342,19 @@ export function SmartCrossSell({ entityType, entityId, onCreateOpportunity }: Sm
           </CardHeader>
           <CardContent>
             <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">High Priority</span>
-                <span className="font-semibold text-[#5567E5]">8</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-gray-600">Success Rate</span>
-                <span className="font-semibold text-green-600">78%</span>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">1. Travel Insurance</span>
+                  <span className="font-semibold text-green-600">+34%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">2. Recreational Vehicle</span>
+                  <span className="font-semibold text-green-600">+28%</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm text-gray-600">3. Event & Festival</span>
+                  <span className="font-semibold text-green-600">+22%</span>
+                </div>
               </div>
               <div className="pt-2 border-t border-[#E6E7F1]">
                 <p className="text-sm text-[#5567E5] font-medium">Click to analyze →</p>

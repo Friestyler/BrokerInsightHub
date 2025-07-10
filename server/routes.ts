@@ -3737,23 +3737,36 @@ Keep the tone clear and professional. Focus on what will help the account manage
           messages: [
             {
               role: "system",
-              content: `You are an AI insurance cross-selling specialist analyzing product portfolios to identify growth opportunities.
+              content: `You are an AI insurance cross-selling specialist focused on seasonal trending products and broker strategy optimization.
 
 Current analysis timestamp: ${new Date().toISOString()}
+Current Season: SUMMER 2025 (July) - Focus on seasonal insurance trends
 
-You will receive:
-- Entity information (${entityType.slice(0, -1)} details)
-- Current product portfolio with premiums and contract details
-- Available products in the catalog
-- Existing opportunities and market context
+SEASONAL CONTEXT:
+- Summer peak travel season driving travel insurance demand (+34% market growth)
+- Recreational vehicle usage at yearly high (+28% market growth) 
+- Outdoor events and festivals increasing (+22% market growth)
+- Construction and seasonal business activity peaks
+- Holiday home and second property exposures
 
-Your task is to identify the top 3 cross-selling opportunities with actionable insights.
+BROKER STRATEGY FOCUS:
+You are analyzing for insurance brokers (like Willis, Aon, Marsh) who need to:
+1. Capitalize on seasonal demand patterns
+2. Leverage their multi-client portfolio for cross-sell opportunities
+3. Align product recommendations with current market trends
+4. Focus on high-margin, trending products for summer period
+
+Your task is to identify top 3 seasonal cross-selling opportunities combining:
+- Current trending summer insurance products
+- Entity's strategic positioning as insurance broker
+- Real market data and seasonal patterns
+- Customer base analysis for optimal product-market fit
 
 For each opportunity, analyze:
-1. Product gaps in current portfolio
-2. Market context and industry trends
-3. Revenue potential and strategic value
-4. Implementation feasibility and timeline
+1. Seasonal demand trends and market growth
+2. Broker positioning and competitive advantage
+3. Customer segmentation and targeting strategy
+4. Revenue potential based on seasonal patterns
 
 Respond with JSON in this exact format:
 {
@@ -3761,43 +3774,49 @@ Respond with JSON in this exact format:
     "entityName": "entity name",
     "entityType": "${entityType.slice(0, -1)}",
     "portfolioSummary": "brief current portfolio overview",
-    "marketContext": "relevant market insights"
+    "seasonalContext": "summer 2025 market trends and broker positioning",
+    "marketContext": "relevant seasonal market insights"
   },
   "opportunities": [
     {
       "id": 1,
-      "title": "Opportunity Title",
-      "description": "Detailed opportunity description",
-      "productName": "Specific product to cross-sell",
+      "title": "Seasonal Opportunity Title",
+      "description": "Detailed seasonal opportunity description",
+      "productName": "Specific trending summer product",
       "category": "Insurance category",
       "priority": "High|Medium|Low",
       "revenueLabel": "€XX,XXX potential",
       "revenueAmount": 15000,
       "probability": 75,
-      "reasoning": "Why this is a good opportunity",
-      "timeframe": "3-6 months",
+      "reasoning": "Why this seasonal trend creates broker opportunity",
+      "timeframe": "This summer season (July-September)",
       "riskLevel": "Low|Medium|High",
+      "seasonalGrowth": "+XX% market growth",
+      "brokerStrategy": "Specific broker approach for this product",
       "actionableSteps": [
-        "First action step",
-        "Second action step",
-        "Third action step"
+        "First seasonal action step",
+        "Second customer targeting step", 
+        "Third implementation step"
       ]
     }
   ],
   "summary": {
     "totalPotential": 45000,
     "highPriorityCount": 2,
-    "recommendedFocus": "Main strategic recommendation"
+    "recommendedFocus": "Main seasonal strategy recommendation",
+    "seasonalAdvantage": "Key summer market advantage"
   }
 }
 
-Focus on realistic, data-driven insights. Use actual product names and categories from the data provided.`
+Focus on authentic seasonal trends, real market data, and broker-specific strategies. Prioritize products showing strong summer demand growth.`
             },
             {
               role: "user",
-              content: `Enhanced Smart Cross Sell analysis request at ${new Date().toISOString()}
+              content: `Enhanced SEASONAL Smart Cross Sell analysis request at ${new Date().toISOString()}
 
-Entity Profile:
+SEASONAL FOCUS: SUMMER 2025 (July) - Analyze trending summer insurance products
+
+Entity Profile (Insurance Broker):
 ${JSON.stringify(enhancedCrossSellData.entity, null, 2)}
 
 Current Product Portfolio:
@@ -3807,12 +3826,20 @@ Available Products for Cross-Sell:
 ${JSON.stringify(enhancedCrossSellData.availableProducts, null, 2)}
 
 Market Intelligence & Industry Context:
-${enhancedCrossSellData.marketIntelligence || 'Market intelligence unavailable - focus on portfolio analysis'}
+${enhancedCrossSellData.marketIntelligence || 'Market intelligence unavailable - focus on seasonal portfolio analysis'}
 
 Market Context & Opportunities:
 ${JSON.stringify(enhancedCrossSellData.marketContext, null, 2)}
 
-Generate highly actionable cross-sell recommendations that leverage both portfolio gaps and current market intelligence. Prioritize opportunities that align with market trends and competitive positioning.`
+SEASONAL ANALYSIS REQUEST:
+Generate 3-5 actionable cross-sell recommendations focusing on:
+1. Top trending summer insurance products (Travel +34%, Recreational Vehicle +28%, Event & Festival +22%)
+2. Broker-specific strategy for this insurance broker entity
+3. Customer segmentation for optimal seasonal targeting
+4. Revenue potential based on current summer market trends
+5. Implementation timeline aligned with summer season peak demand
+
+Prioritize opportunities that combine authentic seasonal demand data with this broker's customer base and competitive positioning.`
             }
           ]
         })
