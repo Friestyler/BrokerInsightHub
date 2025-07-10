@@ -547,9 +547,7 @@ export function SmartAlerts({ entityType, entityId, portfolioData }: SmartAlerts
                 <AlertTriangle className="w-4 h-4 text-orange-700" />
                 <h3 className="font-semibold text-orange-700">Coverage Gap</h3>
               </div>
-              <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-                5 customers without coverage
-              </p>
+              <p className="text-sm text-gray-600 mb-4 leading-relaxed">2 customers without coverage</p>
               <Button className="w-full bg-black hover:bg-gray-800 text-white h-9 text-sm font-medium">
                 Take Action
                 <ArrowRight className="w-4 h-4 ml-2" />
