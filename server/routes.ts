@@ -8196,8 +8196,8 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
            FROM ${envId}.opportunities o 
            JOIN ${envId}.opportunity_products op ON o.id = op.opportunity_id 
            WHERE op.product_id = pt.id AND o.partner_id IS NOT NULL) as partner_count,
-          -- Get customer count (direct assignments - if table exists)
-          0 as customer_count,
+          -- Get customer count (mapped from category name-based assignments)
+          COALESCE(cp_count.customer_count, 0) as customer_count,
           -- Get opportunity count
           (SELECT COUNT(DISTINCT o.id)
            FROM ${envId}.opportunities o
@@ -8206,6 +8206,35 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         FROM ${envId}.product_templates pt
         LEFT JOIN ${envId}.categories c ON pt.category_id = c.id
         LEFT JOIN ${envId}.vendors v ON pt.vendor_id = v.id
+        LEFT JOIN (
+          SELECT 
+            CASE 
+              WHEN tc.name = 'Pensioen' THEN 'Pensioen'
+              WHEN tc.name = 'Inkomen Collectief' THEN 'Inkomen'
+              WHEN tc.name = 'Schade Zakelijk' THEN 'Schade'
+              WHEN tc.name = 'Overige' THEN 'Overige'
+              ELSE tc.name
+            END as template_category,
+            COUNT(DISTINCT cp.customer_id) as customer_count
+          FROM ${envId}.products p
+          JOIN ${envId}.customer_products cp ON p.id = cp.product_id
+          JOIN ${envId}.categories pc ON p.category_id = pc.id
+          JOIN ${envId}.categories tc ON (
+            (tc.name = 'Pensioen' AND pc.name LIKE '%Pensioen%') OR
+            (tc.name = 'Inkomen Collectief' AND (pc.name LIKE '%WIA%' OR pc.name LIKE '%WGA%' OR pc.name LIKE '%Ziektewet%' OR pc.name LIKE '%Verzuim%')) OR
+            (tc.name = 'Schade Zakelijk' AND (pc.name LIKE '%verzekering%' OR pc.name LIKE '%Aansprakelijkheid%' OR pc.name LIKE '%Brand%' OR pc.name LIKE '%Cyber%' OR pc.name LIKE '%Rechtsbijstand%' OR pc.name LIKE '%Krediet%' OR pc.name LIKE '%Machinebreuk%' OR pc.name LIKE '%Transport%' OR pc.name LIKE '%Construction%' OR pc.name LIKE '%Wagenpark%')) OR
+            (tc.name = 'Overige' AND pc.name LIKE '%Keymanverzekering%')
+          )
+          GROUP BY template_category
+        ) cp_count ON (
+          CASE 
+            WHEN c.name = 'Pensioen' THEN 'Pensioen'
+            WHEN c.name = 'Inkomen Collectief' THEN 'Inkomen'
+            WHEN c.name = 'Schade Zakelijk' THEN 'Schade'
+            WHEN c.name = 'Overige' THEN 'Overige'
+            ELSE c.name
+          END = cp_count.template_category
+        )
         WHERE pt.is_active = true
         ORDER BY pt.name ASC
       `);
