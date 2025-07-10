@@ -361,7 +361,7 @@ export function SmartAlerts({ entityType, entityId, portfolioData }: SmartAlerts
       alerts.push({
         id: 'coverage_gap',
         type: 'coverage_gap',
-        title: 'Coverage Alert',
+        title: 'Coverage Gap',
         description: `${totalGapCustomers} customers without coverage`,
         icon: AlertTriangle,
         backgroundColor: 'bg-orange-50 border-orange-200',
@@ -372,12 +372,12 @@ export function SmartAlerts({ entityType, entityId, portfolioData }: SmartAlerts
       });
     }
 
-    // Expired Policies Alert - red background with clock icon
+    // Expired Policies - red background with clock icon
     const expiredPolicies = 3;
     alerts.push({
       id: 'expired_policies',
       type: 'expired_policy',
-      title: 'Expired Policies Alert',
+      title: 'Expired Policies',
       description: `${expiredPolicies} policies expired`,
       icon: Clock,
       backgroundColor: 'bg-red-50 border-red-200',
@@ -387,12 +387,12 @@ export function SmartAlerts({ entityType, entityId, portfolioData }: SmartAlerts
       customers: generateMockCustomers(expiredPolicies, 'Expired 31/12/2024', expiredPolicies * 75000)
     });
 
-    // Revenue Opportunity Alert - green background with trending up icon
+    // Revenue Opportunity - green background with trending up icon
     const revenueValue = 250000;
     alerts.push({
       id: 'revenue_opportunity',
       type: 'revenue_opportunity',
-      title: 'Revenue Opportunity Alert',
+      title: 'Revenue Opportunity',
       description: `€${(revenueValue / 1000)}k revenue potential`,
       icon: TrendingUp,
       backgroundColor: 'bg-green-50 border-green-200',
@@ -402,12 +402,12 @@ export function SmartAlerts({ entityType, entityId, portfolioData }: SmartAlerts
       customers: generateMockCustomers(8, 'High Potential', revenueValue)
     });
 
-    // High Potential Alert - blue background with star icon
+    // High Potential - blue background with star icon
     const highPotentialValue = 450000;
     alerts.push({
       id: 'high_potential',
       type: 'high_potential',
-      title: 'High Potential Alert',
+      title: 'High Potential',
       description: `€${(highPotentialValue / 1000)}k untapped potential`,
       icon: Star,
       backgroundColor: 'bg-blue-50 border-blue-200',
