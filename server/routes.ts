@@ -5163,7 +5163,7 @@ Return as JSON in this exact format:
           pt.id as "productId",
           pt.name as "productName",
           pt.description as "productDescription", 
-          pt.provider,
+          pt.provider_name as "providerName",
           pt.average_price as "averagePrice",
           pt.premium_value as "premiumValue",
           pt.premium_percentage as "premiumPercentage",
@@ -5184,7 +5184,7 @@ Return as JSON in this exact format:
         LEFT JOIN degoudse.categories c ON pt.category_id = c.id
         LEFT JOIN degoudse.categories parent_cat ON c.parent_id = parent_cat.id OR (c.parent_id IS NULL AND c.id = parent_cat.id)
         GROUP BY 
-          pt.id, pt.name, pt.description, pt.provider, pt.average_price, 
+          pt.id, pt.name, pt.description, pt.provider_name, pt.average_price, 
           pt.premium_value, pt.premium_percentage, pt.discount_percentage,
           pt.contract_start_date, pt.contract_end_date,
           c.name, c.color, parent_cat.name, parent_cat.color

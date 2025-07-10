@@ -42,6 +42,8 @@ interface AggregatedPortfolioData {
 interface AggregatedPortfolioCardsProps {
   portfolioData: AggregatedPortfolioData;
   isLoading?: boolean;
+  onCategoryClick?: (categoryName: string) => void;
+  selectedCategory?: string | null;
 }
 
 // Circular Progress Component
@@ -116,7 +118,12 @@ function formatNumber(num: number): string {
   return num.toString();
 }
 
-export function AggregatedPortfolioCards({ portfolioData, isLoading = false }: AggregatedPortfolioCardsProps) {
+export function AggregatedPortfolioCards({ 
+  portfolioData, 
+  isLoading = false, 
+  onCategoryClick,
+  selectedCategory 
+}: AggregatedPortfolioCardsProps) {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
@@ -162,8 +169,18 @@ export function AggregatedPortfolioCards({ portfolioData, isLoading = false }: A
         const percentage = Math.round(category.coveragePercentage);
         const potentialValue = Math.round(category.currentPremium * 0.25); // 25% potential increase
         
+        const isSelected = selectedCategory === category.categoryName;
+        
         return (
-          <Card key={category.categoryId} className="hover:shadow-lg transition-shadow duration-200">
+          <Card 
+            key={category.categoryId} 
+            className={`hover:shadow-lg transition-all duration-200 cursor-pointer ${
+              isSelected 
+                ? 'ring-2 ring-[#5567E5] shadow-lg border-[#5567E5]' 
+                : 'hover:border-[#5567E5]'
+            }`}
+            onClick={() => onCategoryClick?.(category.categoryName)}
+          >
             <CardContent className="p-6">
               <div className="flex flex-col items-center text-center space-y-4">
                 {/* Category header with color indicator */}
