@@ -244,6 +244,9 @@ export default function ProductTemplates() {
 
   // Extract simple list for filter pills
   const mainCategories = mainCategoriesData;
+  
+  // Get only root categories (level 1) for the categories tab
+  const rootCategories = categories.filter((cat: any) => !cat.parent_id);
 
   // Fetch vendors for dropdown
   const { data: vendors = [] } = useQuery({
@@ -815,7 +818,7 @@ export default function ProductTemplates() {
 
           {/* Badge-based Category Tree */}
           <div className="space-y-4">
-            {mainCategories.map((category: any) => (
+            {rootCategories.map((category: any) => (
               <div key={category.id}>
                 <Collapsible 
                   open={expandedCategories.has(category.id)}
