@@ -167,23 +167,22 @@ function DashboardFilters() {
   ];
 
   return (
-    <Card className="bg-gray-50 border-gray-200">
-      <CardHeader className="pb-4">
+    <Card className="bg-[#E6E7F1] border-gray-200">
+      <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center">
           <Filter className="h-5 w-5 mr-2" />
           Portfolio Filters
         </CardTitle>
-        <p className="text-sm text-gray-600">Filter portfolio data by customer segment, provider, or partner</p>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* Customer Segment Selector */}
           <div>
-            <Label htmlFor="segment-select" className="text-sm font-medium text-gray-700 mb-2 block">
+            <Label className="text-sm font-medium text-gray-700 mb-2 block">
               Customer Segment
             </Label>
             <Select value={selectedSegment} onValueChange={setSelectedSegment}>
-              <SelectTrigger id="segment-select">
+              <SelectTrigger>
                 <SelectValue placeholder="Select segment" />
               </SelectTrigger>
               <SelectContent>
@@ -198,11 +197,11 @@ function DashboardFilters() {
 
           {/* Provider Selector */}
           <div>
-            <Label htmlFor="provider-select" className="text-sm font-medium text-gray-700 mb-2 block">
+            <Label className="text-sm font-medium text-gray-700 mb-2 block">
               Provider
             </Label>
             <Select value={selectedProvider} onValueChange={setSelectedProvider}>
-              <SelectTrigger id="provider-select">
+              <SelectTrigger>
                 <SelectValue placeholder="Select provider" />
               </SelectTrigger>
               <SelectContent>
@@ -217,11 +216,11 @@ function DashboardFilters() {
 
           {/* Partner Selector */}
           <div>
-            <Label htmlFor="partner-select" className="text-sm font-medium text-gray-700 mb-2 block">
+            <Label className="text-sm font-medium text-gray-700 mb-2 block">
               Partner
             </Label>
             <Select value={selectedPartner} onValueChange={setSelectedPartner}>
-              <SelectTrigger id="partner-select">
+              <SelectTrigger>
                 <SelectValue placeholder="Select partner" />
               </SelectTrigger>
               <SelectContent>
@@ -234,28 +233,6 @@ function DashboardFilters() {
               </SelectContent>
             </Select>
           </div>
-        </div>
-
-        {/* Active Filters Display */}
-        <div className="mt-4 flex flex-wrap gap-2">
-          {selectedSegment !== 'all' && (
-            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-              Segment: {customerSegments.find(s => s.id === selectedSegment)?.name}
-              <X className="ml-1 h-3 w-3 cursor-pointer" onClick={() => setSelectedSegment('all')} />
-            </Badge>
-          )}
-          {selectedProvider !== 'all' && (
-            <Badge variant="secondary" className="bg-green-100 text-green-800">
-              Provider: {providers.find(p => p.id === selectedProvider)?.name}
-              <X className="ml-1 h-3 w-3 cursor-pointer" onClick={() => setSelectedProvider('all')} />
-            </Badge>
-          )}
-          {selectedPartner !== 'all' && (
-            <Badge variant="secondary" className="bg-purple-100 text-purple-800">
-              Partner: {Array.isArray(partners) && partners.find((p: any) => p.id.toString() === selectedPartner)?.name}
-              <X className="ml-1 h-3 w-3 cursor-pointer" onClick={() => setSelectedPartner('all')} />
-            </Badge>
-          )}
         </div>
       </CardContent>
     </Card>
@@ -428,22 +405,13 @@ function DashboardSection() {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900">Portfolio Insights Dashboard</h1>
-          <p className="text-gray-600 mt-1">Aggregated portfolio overview with smart alerts and opportunities</p>
-        </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-1" />
-            Export
-          </Button>
-          <Button variant="outline" size="sm">
-            <Settings className="h-4 w-4 mr-1" />
-            Settings
-          </Button>
-        </div>
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Portfolio Insights Dashboard</h1>
+        <p className="text-gray-600">Aggregated portfolio overview with smart alerts and opportunities</p>
       </div>
+
+      {/* Customer Segment, Provider, and Partner Selectors */}
+      <DashboardFilters />
 
       {/* Aggregated Portfolio Cards */}
       <AggregatedPortfolioCards 
@@ -452,9 +420,6 @@ function DashboardSection() {
         onCategoryClick={handleCategoryClick}
         selectedCategory={selectedCategoryForProducts}
       />
-
-      {/* Customer Segment, Provider, and Partner Selectors */}
-      <DashboardFilters />
 
       {/* Smart Alerts */}
       <AggregatedSmartAlerts 
