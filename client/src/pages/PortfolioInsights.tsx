@@ -6,6 +6,7 @@ import { Slider } from "@/components/ui/slider";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Progress } from "@/components/ui/progress";
 import { Label } from "@/components/ui/label";
 import { BarChart3, Search, Settings, Target, X, Star, Send, Users, List, DollarSign, TrendingUp, Download, Filter, Eye, ChevronDown, ChevronRight, ChevronUp, Zap, Brain, Sparkles, Clock, Calendar, User, Building, Bot, CheckCircle, Play, Plus } from "lucide-react";
@@ -1793,49 +1794,103 @@ function SmartCrossSellSection() {
         </CardHeader>
         
         {isCustomExpanded && (
-          <CardContent className="border-t border-[#E6E7F1] pt-4">
-            <div className="space-y-4">
+          <CardContent className="border-t border-[#E6E7F1] pt-6">
+            <div className="space-y-6">
+              {/* Free Prompt */}
               <div>
                 <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Analysis Focus
+                  Free Prompt
                 </Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select analysis focus" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="seasonal">Seasonal Trends</SelectItem>
-                    <SelectItem value="competitive">Competitive Analysis</SelectItem>
-                    <SelectItem value="customer-behavior">Customer Behavior</SelectItem>
-                    <SelectItem value="market-expansion">Market Expansion</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                  Customer Segment
-                </Label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select customer segment" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Customers</SelectItem>
-                    <SelectItem value="high-value">High-Value Customers</SelectItem>
-                    <SelectItem value="new-customers">New Customers</SelectItem>
-                    <SelectItem value="inactive">Inactive Customers</SelectItem>
-                  </SelectContent>
-                </Select>
+                <textarea
+                  className="w-full min-h-[80px] p-3 border border-[#E6E7F1] rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-[#5567E5] focus:border-transparent"
+                  placeholder="Enter your custom analysis prompt or specific requirements..."
+                />
               </div>
 
-              <div className="flex justify-end pt-4">
+              {/* Market Dynamic and Customer Segment Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Market Dynamic
+                  </Label>
+                  <textarea
+                    className="w-full min-h-[80px] p-3 border border-[#E6E7F1] rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-[#5567E5] focus:border-transparent"
+                    placeholder="Current market trends, economic factors, regulatory changes..."
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Customer Segment
+                  </Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Free Text" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="free-text">Free Text</SelectItem>
+                      <SelectItem value="high-value">High-Value Customers</SelectItem>
+                      <SelectItem value="new-customers">New Customers</SelectItem>
+                      <SelectItem value="inactive">Inactive Customers</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <textarea
+                    className="w-full min-h-[60px] p-3 border border-[#E6E7F1] rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-[#5567E5] focus:border-transparent mt-2"
+                    placeholder="Target customer profiles, demographics, business sectors..."
+                  />
+                </div>
+              </div>
+
+              {/* Partner Context and Product Segment Row */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Partner Context
+                  </Label>
+                  <textarea
+                    className="w-full min-h-[80px] p-3 border border-[#E6E7F1] rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-[#5567E5] focus:border-transparent"
+                    placeholder="Partner strengths, focus areas, client base characteristics..."
+                  />
+                </div>
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Product Segment
+                  </Label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Free Text" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="free-text">Free Text</SelectItem>
+                      <SelectItem value="life-insurance">Life Insurance</SelectItem>
+                      <SelectItem value="non-life">Non-Life Insurance</SelectItem>
+                      <SelectItem value="business-insurance">Business Insurance</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <textarea
+                    className="w-full min-h-[60px] p-3 border border-[#E6E7F1] rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-[#5567E5] focus:border-transparent mt-2"
+                    placeholder="Product categories, coverage types, premium ranges..."
+                  />
+                </div>
+              </div>
+
+              {/* Strategy NN */}
+              <div>
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Strategy NN
+                </Label>
+                <textarea
+                  className="w-full min-h-[80px] p-3 border border-[#E6E7F1] rounded-md resize-none focus:outline-none focus:ring-2 focus:ring-[#5567E5] focus:border-transparent"
+                  placeholder="NN Group strategic priorities, product focus, growth initiatives..."
+                />
+              </div>
+
+              {/* Generate Button */}
+              <div className="flex justify-center pt-4">
                 <Button 
-                  className="bg-[#5567E5] hover:bg-[#4556D4] text-white"
+                  className="bg-[#5567E5] hover:bg-[#4556D4] text-white font-medium px-8 py-3 text-base"
                   onClick={() => handleAnalyze('custom')}
                 >
-                  <TrendingUp className="w-4 h-4 mr-2" />
-                  Run custom analysis
+                  Generate custom analysis
                 </Button>
               </div>
             </div>
