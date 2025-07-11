@@ -154,7 +154,7 @@ const productTemplateSchema = z.object({
 type ProductTemplateFormData = z.infer<typeof productTemplateSchema>;
 
 export default function ProductTemplates() {
-  const [activeTab, setActiveTab] = useState<'templates' | 'categories' | 'alerts'>('templates');
+  const [activeTab, setActiveTab] = useState<'templates' | 'categories' | 'alerts' | 'smartcrosssell'>('templates');
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>("all");
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -182,6 +182,9 @@ export default function ProductTemplates() {
   
   // Alert settings states
   const [activeAlertTab, setActiveAlertTab] = useState<'partners' | 'customers' | 'portfolio'>('partners');
+  
+  // Smart Cross Sell settings states
+  const [activeSmartCrossSellTab, setActiveSmartCrossSellTab] = useState<'partners' | 'customers' | 'portfolio'>('partners');
   const [createAlertDialogOpen, setCreateAlertDialogOpen] = useState(false);
   const [editAlertDialogOpen, setEditAlertDialogOpen] = useState(false);
   const [deleteAlertDialogOpen, setDeleteAlertDialogOpen] = useState(false);
@@ -902,6 +905,18 @@ export default function ProductTemplates() {
             >
               <Bell className="h-4 w-4" />
               Alert Settings
+            </Button>
+            <Button 
+              variant="ghost" 
+              className={`flex items-center gap-2 ${
+                activeTab === 'smartcrosssell' 
+                  ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
+                  : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
+              }`}
+              onClick={() => setActiveTab('smartcrosssell')}
+            >
+              <Brain className="h-4 w-4" />
+              Smart Cross Sell
             </Button>
           </div>
         </div>
@@ -2049,6 +2064,460 @@ export default function ProductTemplates() {
                         Market Intelligence
                       </Badge>
                       <span className="text-sm text-gray-600">2 alerts configured</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Smart Cross Sell Settings Tab */}
+      {activeTab === 'smartcrosssell' && (
+        <div className="mx-4">
+          <div className="mb-6">
+            <div className="flex items-center justify-between mb-3">
+              <h1 className="text-2xl font-bold text-gray-900">Smart Cross Sell Settings</h1>
+              <Button 
+                variant="outline" 
+                className="text-gray-600 hover:text-gray-800"
+                onClick={() => {}}
+              >
+                <Code className="h-4 w-4 mr-2" />
+                Export Templates
+              </Button>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              Configure predefined analysis templates for AI-powered cross-sell recommendations across different entity types and seasonal trends.
+            </p>
+          </div>
+
+          {/* Smart Cross Sell Sub-tabs */}
+          <div className="mb-6">
+            <div className="flex space-x-1 border-b border-gray-200">
+              <button
+                onClick={() => setActiveSmartCrossSellTab('partners')}
+                className={`px-6 py-3 text-sm font-medium transition-colors ${
+                  activeSmartCrossSellTab === 'partners'
+                    ? 'border-b-2 border-[#5567E5] text-[#5567E5]'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Partners
+              </button>
+              <button
+                onClick={() => setActiveSmartCrossSellTab('customers')}
+                className={`px-6 py-3 text-sm font-medium transition-colors ${
+                  activeSmartCrossSellTab === 'customers'
+                    ? 'border-b-2 border-[#5567E5] text-[#5567E5]'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Customers
+              </button>
+              <button
+                onClick={() => setActiveSmartCrossSellTab('portfolio')}
+                className={`px-6 py-3 text-sm font-medium transition-colors ${
+                  activeSmartCrossSellTab === 'portfolio'
+                    ? 'border-b-2 border-[#5567E5] text-[#5567E5]'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Portfolio Insights
+              </button>
+            </div>
+          </div>
+
+          {/* Smart Cross Sell Analysis Templates - Partners Tab */}
+          {activeSmartCrossSellTab === 'partners' && (
+            <div className="space-y-6">
+              <div className="mb-4">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Partner Analysis Templates</h3>
+                <p className="text-sm text-gray-600">
+                  Configure predefined analysis templates for partner-specific cross-sell opportunities and seasonal trends.
+                </p>
+              </div>
+              
+              {/* Customer Cross-Sell Opportunities Template */}
+              <div className="border border-[#E6E7F1] rounded-lg bg-white">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <Target className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">Partner Cross-Sell Opportunities</h4>
+                        <p className="text-sm text-gray-600">Identify upsell potential in partner customer base</p>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Configure
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">Analysis Focus:</span>
+                      <span className="ml-2 text-gray-900">Partner portfolio analysis</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">AI Model:</span>
+                      <span className="ml-2 text-gray-900">GPT-4o Enhanced</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Data Sources:</span>
+                      <span className="ml-2 text-gray-900">Partner relationships, customer data</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Update Frequency:</span>
+                      <span className="ml-2 text-gray-900">Weekly</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Summer Trending Products Template */}
+              <div className="border border-[#E6E7F1] rounded-lg bg-white">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                        <TrendingUp className="h-5 w-5 text-orange-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">Summer Trending Products</h4>
+                        <p className="text-sm text-gray-600">Top 3 seasonal insurance products for summer 2025</p>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Configure
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">Analysis Focus:</span>
+                      <span className="ml-2 text-gray-900">Seasonal market trends</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">AI Model:</span>
+                      <span className="ml-2 text-gray-900">GPT-4o Enhanced</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Data Sources:</span>
+                      <span className="ml-2 text-gray-900">Market intelligence, seasonal patterns</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Update Frequency:</span>
+                      <span className="ml-2 text-gray-900">Monthly</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Custom Analysis Template */}
+              <div className="border border-[#E6E7F1] rounded-lg bg-white">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                        <Brain className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">Custom Analysis</h4>
+                        <p className="text-sm text-gray-600">Tailored cross-sell insights with custom prompting</p>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Configure
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">Analysis Focus:</span>
+                      <span className="ml-2 text-gray-900">Custom prompting system</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">AI Model:</span>
+                      <span className="ml-2 text-gray-900">GPT-4o Enhanced</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Data Sources:</span>
+                      <span className="ml-2 text-gray-900">All available data sources</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Update Frequency:</span>
+                      <span className="ml-2 text-gray-900">On-demand</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Smart Cross Sell Analysis Templates - Customers Tab */}
+          {activeSmartCrossSellTab === 'customers' && (
+            <div className="space-y-6">
+              <div className="mb-4">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Customer Analysis Templates</h3>
+                <p className="text-sm text-gray-600">
+                  Configure predefined analysis templates for customer-specific cross-sell opportunities and lifecycle events.
+                </p>
+              </div>
+              
+              {/* Customer Cross-Sell Opportunities Template */}
+              <div className="border border-[#E6E7F1] rounded-lg bg-white">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                        <Users className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">Customer Cross-Sell Opportunities</h4>
+                        <p className="text-sm text-gray-600">Identify upsell potential in existing customer base</p>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Configure
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">Analysis Focus:</span>
+                      <span className="ml-2 text-gray-900">Customer lifecycle analysis</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">AI Model:</span>
+                      <span className="ml-2 text-gray-900">GPT-4o Enhanced</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Data Sources:</span>
+                      <span className="ml-2 text-gray-900">Customer history, product portfolio</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Update Frequency:</span>
+                      <span className="ml-2 text-gray-900">Daily</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Summer Trending Products Template */}
+              <div className="border border-[#E6E7F1] rounded-lg bg-white">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                        <TrendingUp className="h-5 w-5 text-orange-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">Customer Seasonal Trends</h4>
+                        <p className="text-sm text-gray-600">Seasonal product recommendations for individual customers</p>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Configure
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">Analysis Focus:</span>
+                      <span className="ml-2 text-gray-900">Customer seasonal behavior</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">AI Model:</span>
+                      <span className="ml-2 text-gray-900">GPT-4o Enhanced</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Data Sources:</span>
+                      <span className="ml-2 text-gray-900">Customer preferences, seasonal data</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Update Frequency:</span>
+                      <span className="ml-2 text-gray-900">Seasonal</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Custom Analysis Template */}
+              <div className="border border-[#E6E7F1] rounded-lg bg-white">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                        <Brain className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">Custom Customer Analysis</h4>
+                        <p className="text-sm text-gray-600">Personalized insights with custom prompting</p>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Configure
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">Analysis Focus:</span>
+                      <span className="ml-2 text-gray-900">Custom customer insights</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">AI Model:</span>
+                      <span className="ml-2 text-gray-900">GPT-4o Enhanced</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Data Sources:</span>
+                      <span className="ml-2 text-gray-900">All customer data sources</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Update Frequency:</span>
+                      <span className="ml-2 text-gray-900">On-demand</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Smart Cross Sell Analysis Templates - Portfolio Tab */}
+          {activeSmartCrossSellTab === 'portfolio' && (
+            <div className="space-y-6">
+              <div className="mb-4">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Portfolio Analysis Templates</h3>
+                <p className="text-sm text-gray-600">
+                  Configure predefined analysis templates for portfolio-level cross-sell opportunities and market intelligence.
+                </p>
+              </div>
+              
+              {/* Portfolio Cross-Sell Opportunities Template */}
+              <div className="border border-[#E6E7F1] rounded-lg bg-white">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                        <Target className="h-5 w-5 text-blue-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">Portfolio Cross-Sell Opportunities</h4>
+                        <p className="text-sm text-gray-600">Identify upsell potential across entire portfolio</p>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Configure
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">Analysis Focus:</span>
+                      <span className="ml-2 text-gray-900">Portfolio-wide analysis</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">AI Model:</span>
+                      <span className="ml-2 text-gray-900">GPT-4o Enhanced</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Data Sources:</span>
+                      <span className="ml-2 text-gray-900">All portfolio data, market trends</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Update Frequency:</span>
+                      <span className="ml-2 text-gray-900">Weekly</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Summer Trending Products Template */}
+              <div className="border border-[#E6E7F1] rounded-lg bg-white">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
+                        <TrendingUp className="h-5 w-5 text-orange-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">Market Trending Products</h4>
+                        <p className="text-sm text-gray-600">Top seasonal insurance products for portfolio optimization</p>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Configure
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">Analysis Focus:</span>
+                      <span className="ml-2 text-gray-900">Market trend analysis</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">AI Model:</span>
+                      <span className="ml-2 text-gray-900">GPT-4o Enhanced</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Data Sources:</span>
+                      <span className="ml-2 text-gray-900">Market intelligence, portfolio data</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Update Frequency:</span>
+                      <span className="ml-2 text-gray-900">Monthly</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Custom Analysis Template */}
+              <div className="border border-[#E6E7F1] rounded-lg bg-white">
+                <div className="p-6">
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                        <Brain className="h-5 w-5 text-purple-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">Custom Portfolio Analysis</h4>
+                        <p className="text-sm text-gray-600">Strategic insights with custom prompting</p>
+                      </div>
+                    </div>
+                    <Button variant="outline" size="sm">
+                      <Edit className="h-4 w-4 mr-2" />
+                      Configure
+                    </Button>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="text-gray-600">Analysis Focus:</span>
+                      <span className="ml-2 text-gray-900">Custom portfolio insights</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">AI Model:</span>
+                      <span className="ml-2 text-gray-900">GPT-4o Enhanced</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Data Sources:</span>
+                      <span className="ml-2 text-gray-900">All portfolio data sources</span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">Update Frequency:</span>
+                      <span className="ml-2 text-gray-900">On-demand</span>
                     </div>
                   </div>
                 </div>
