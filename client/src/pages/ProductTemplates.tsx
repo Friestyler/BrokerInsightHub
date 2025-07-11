@@ -181,6 +181,7 @@ export default function ProductTemplates() {
   const [selectedProductForCustomers, setSelectedProductForCustomers] = useState<number | null>(null);
   
   // Alert settings states
+  const [activeAlertTab, setActiveAlertTab] = useState<'partners' | 'customers' | 'portfolio'>('partners');
   const [createAlertDialogOpen, setCreateAlertDialogOpen] = useState(false);
   const [editAlertDialogOpen, setEditAlertDialogOpen] = useState(false);
   const [deleteAlertDialogOpen, setDeleteAlertDialogOpen] = useState(false);
@@ -1661,8 +1662,51 @@ export default function ProductTemplates() {
             </p>
           </div>
 
-          {/* Alert Categories */}
-          <div className="space-y-4">
+          {/* Alert Sub-tabs */}
+          <div className="mb-6">
+            <div className="flex space-x-1 border-b border-gray-200">
+              <button
+                onClick={() => setActiveAlertTab('partners')}
+                className={`px-6 py-3 text-sm font-medium transition-colors ${
+                  activeAlertTab === 'partners'
+                    ? 'border-b-2 border-[#5567E5] text-[#5567E5]'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Partners
+              </button>
+              <button
+                onClick={() => setActiveAlertTab('customers')}
+                className={`px-6 py-3 text-sm font-medium transition-colors ${
+                  activeAlertTab === 'customers'
+                    ? 'border-b-2 border-[#5567E5] text-[#5567E5]'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Customers
+              </button>
+              <button
+                onClick={() => setActiveAlertTab('portfolio')}
+                className={`px-6 py-3 text-sm font-medium transition-colors ${
+                  activeAlertTab === 'portfolio'
+                    ? 'border-b-2 border-[#5567E5] text-[#5567E5]'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+              >
+                Portfolio Insights
+              </button>
+            </div>
+          </div>
+
+          {/* Alert Categories - Partners Tab */}
+          {activeAlertTab === 'partners' && (
+            <div className="space-y-4">
+              <div className="mb-4">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Partner Alert Settings</h3>
+                <p className="text-sm text-gray-600">
+                  Configure alerts for partner-specific activities, performance metrics, and opportunities.
+                </p>
+              </div>
             {/* Overige - Collapsed */}
             <div className="border border-[#E6E7F1] rounded-lg bg-white">
               <div className="p-4">
@@ -1931,7 +1975,86 @@ export default function ProductTemplates() {
                 </div>
               </div>
             </div>
-          </div>
+            </div>
+          )}
+
+          {/* Alert Categories - Customers Tab */}
+          {activeAlertTab === 'customers' && (
+            <div className="space-y-4">
+              <div className="mb-4">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Customer Alert Settings</h3>
+                <p className="text-sm text-gray-600">
+                  Configure alerts for customer-specific activities, lifecycle events, and opportunities.
+                </p>
+              </div>
+              
+              {/* Customer-specific alert categories */}
+              <div className="border border-[#E6E7F1] rounded-lg bg-white">
+                <div className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Badge variant="blue" className="text-sm px-3 py-1">
+                        Customer Lifecycle
+                      </Badge>
+                      <span className="text-sm text-gray-600">3 alerts configured</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="border border-[#E6E7F1] rounded-lg bg-white">
+                <div className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Badge variant="green" className="text-sm px-3 py-1">
+                        Customer Engagement
+                      </Badge>
+                      <span className="text-sm text-gray-600">2 alerts configured</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Alert Categories - Portfolio Tab */}
+          {activeAlertTab === 'portfolio' && (
+            <div className="space-y-4">
+              <div className="mb-4">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Portfolio Insights Alert Settings</h3>
+                <p className="text-sm text-gray-600">
+                  Configure alerts for portfolio-level insights, performance metrics, and strategic opportunities.
+                </p>
+              </div>
+              
+              {/* Portfolio-specific alert categories */}
+              <div className="border border-[#E6E7F1] rounded-lg bg-white">
+                <div className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Badge variant="purple" className="text-sm px-3 py-1">
+                        Portfolio Performance
+                      </Badge>
+                      <span className="text-sm text-gray-600">4 alerts configured</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="border border-[#E6E7F1] rounded-lg bg-white">
+                <div className="p-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <Badge variant="orange" className="text-sm px-3 py-1">
+                        Market Intelligence
+                      </Badge>
+                      <span className="text-sm text-gray-600">2 alerts configured</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       )}
 
