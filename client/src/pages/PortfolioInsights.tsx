@@ -327,91 +327,7 @@ function DashboardSection() {
         selectedCategory={selectedCategoryForProducts}
       />
 
-      {/* Category Details - Show directly under selected category card */}
-      {showProductDetails && selectedCategoryForProducts && (
-        <Card className="mb-6 border-[#5567E5] border-2">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="flex items-center space-x-2">
-                  <span>{selectedCategoryForProducts} - Subcategories & Products</span>
-                  <Badge variant="outline">{filteredProductsForCategory.length} products</Badge>
-                </CardTitle>
-                <p className="text-sm text-gray-600 mt-1">Detailed breakdown of products in this category</p>
-              </div>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => {
-                  setShowProductDetails(false);
-                  setSelectedCategoryForProducts(null);
-                }}
-              >
-                <X className="h-4 w-4 mr-1" />
-                Close
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {filteredProductsForCategory.length > 0 ? (
-              <div className="space-y-4">
-                {/* Group products by subcategory if available */}
-                {(() => {
-                  const grouped = filteredProductsForCategory.reduce((acc: any, product: any) => {
-                    const subcat = product.categoryName || 'Other Products';
-                    if (!acc[subcat]) acc[subcat] = [];
-                    acc[subcat].push(product);
-                    return acc;
-                  }, {});
 
-                  return Object.entries(grouped).map(([subcategory, products]: [string, any]) => (
-                    <div key={subcategory} className="mb-6">
-                      <h4 className="font-semibold text-gray-800 mb-3 pb-2 border-b border-gray-200">
-                        {subcategory}
-                        <Badge variant="outline" className="ml-2 text-xs">
-                          {(products as any[]).length} products
-                        </Badge>
-                      </h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                        {(products as any[]).map((product: any, index: number) => (
-                          <div key={product.id || index} className="border rounded-lg p-4 hover:shadow-sm transition-shadow bg-gray-50">
-                            <div className="space-y-2">
-                              <h5 className="font-medium text-gray-900 text-sm">{product.name}</h5>
-                              {product.description && (
-                                <p className="text-xs text-gray-600 line-clamp-2">{product.description}</p>
-                              )}
-                              <div className="flex items-center justify-between text-xs">
-                                <span className="text-gray-500">
-                                  {product.customersCount || product.customers_count || 0} customers
-                                </span>
-                                {product.averagePrice && (
-                                  <span className="font-medium text-gray-900">
-                                    €{typeof product.averagePrice === 'string' ? product.averagePrice : product.averagePrice.toFixed(2)}
-                                  </span>
-                                )}
-                              </div>
-                              {product.premiumPercentage && (
-                                <div className="text-xs text-blue-600">
-                                  Premium: {product.premiumPercentage}%
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ));
-                })()}
-              </div>
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                <Package className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p>No products found in this category</p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       {/* Smart Alerts */}
       <AggregatedSmartAlerts 
@@ -419,6 +335,195 @@ function DashboardSection() {
         isLoading={isAggregatedLoading} 
       />
 
+      {/* Product Portfolio Section - Similar to customer detail page */}
+      <div className="mt-8">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h3 className="text-xl font-semibold text-gray-900">Total Portfolio</h3>
+            <p className="text-sm text-gray-600">
+              {selectedCategoryForProducts 
+                ? `Showing ${selectedCategoryForProducts} products` 
+                : 'All products in portfolio'
+              }
+            </p>
+          </div>
+          <div className="flex items-center space-x-3">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 w-64"
+              />
+            </div>
+            {selectedCategoryForProducts && (
+              <Badge 
+                variant="secondary" 
+                className="px-3 py-1 bg-blue-100 text-blue-800 border-blue-200"
+              >
+                Category: {selectedCategoryForProducts}
+                <X 
+                  className="ml-2 h-3 w-3 cursor-pointer" 
+                  onClick={() => {
+                    setSelectedCategoryForProducts(null);
+                    setShowProductDetails(false);
+                  }}
+                />
+              </Badge>
+            )}
+          </div>
+        </div>
+
+        {/* Product Statistics */}
+        <div className="flex items-center justify-between mb-4 p-4 bg-gray-50 rounded-lg">
+          <div className="flex items-center space-x-8">
+            <div>
+              <span className="text-sm text-gray-500">Total Portfolio</span>
+              <div className="font-semibold text-lg">
+                {filteredProductsForCategory.length} products
+              </div>
+            </div>
+            <div>
+              <span className="text-sm text-gray-500">Total Value</span>
+              <div className="font-semibold text-lg">
+                €{filteredProductsForCategory.reduce((sum, product) => {
+                  const value = product.totalValue || product.premiumValue || 0;
+                  return sum + (typeof value === 'string' ? parseFloat(value.replace(/[^0-9.-]+/g, '')) : value);
+                }, 0).toLocaleString()}
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center space-x-2">
+            <Select value={selectedCategoryForProducts || 'all'} onValueChange={(value) => {
+              if (value === 'all') {
+                setSelectedCategoryForProducts(null);
+                setShowProductDetails(false);
+              } else {
+                setSelectedCategoryForProducts(value);
+                setShowProductDetails(true);
+              }
+            }}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Categories</SelectItem>
+                <SelectItem value="Pensioen">Pensioen</SelectItem>
+                <SelectItem value="Inkomen Collectief">Inkomen Collectief</SelectItem>
+                <SelectItem value="Schade Zakelijk">Schade Zakelijk</SelectItem>
+                <SelectItem value="Overige">Overige</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Product List by Category */}
+        <div className="space-y-6">
+          {(() => {
+            // Group products by category
+            const groupedProducts = filteredProductsForCategory.reduce((acc: any, product: any) => {
+              const categoryName = product.parentCategoryName || product.categoryName || 'Other';
+              if (!acc[categoryName]) {
+                acc[categoryName] = [];
+              }
+              acc[categoryName].push(product);
+              return acc;
+            }, {});
+
+            // Get category color mapping
+            const categoryColors: Record<string, string> = {
+              'Pensioen': '#8B5CF6',
+              'Inkomen Collectief': '#06B6D4', 
+              'Schade Zakelijk': '#EF4444',
+              'Overige': '#F59E0B'
+            };
+
+            return Object.entries(groupedProducts).map(([categoryName, products]: [string, any]) => {
+              const categoryColor = categoryColors[categoryName] || '#6B7280';
+              const totalValue = (products as any[]).reduce((sum, product) => {
+                const value = product.totalValue || product.premiumValue || 0;
+                return sum + (typeof value === 'string' ? parseFloat(value.replace(/[^0-9.-]+/g, '')) : value);
+              }, 0);
+
+              return (
+                <Card key={categoryName} className="border-l-4" style={{ borderLeftColor: categoryColor }}>
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-3">
+                        <div 
+                          className="w-3 h-3 rounded-full"
+                          style={{ backgroundColor: categoryColor }}
+                        />
+                        <CardTitle className="text-lg">{categoryName} ({(products as any[]).length})</CardTitle>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-sm font-medium">Total value: €{totalValue.toLocaleString()}</div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      {(products as any[]).map((product: any, index: number) => (
+                        <div key={product.productId || index} className="flex items-center justify-between p-4 border rounded-lg hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center space-x-3">
+                            <div className="flex-1">
+                              <div className="flex items-center space-x-2 mb-1">
+                                <h4 className="font-medium text-gray-900">{product.productName}</h4>
+                                {product.providerName && (
+                                  <Badge variant="outline" className="text-xs">
+                                    {product.providerName}
+                                  </Badge>
+                                )}
+                              </div>
+                              {product.productDescription && (
+                                <p className="text-sm text-gray-600 mb-2">{product.productDescription}</p>
+                              )}
+                              <div className="flex items-center space-x-4 text-xs text-gray-500">
+                                {product.averagePrice && (
+                                  <span>Price: €{typeof product.averagePrice === 'string' ? product.averagePrice : product.averagePrice.toFixed(2)}</span>
+                                )}
+                                {product.premiumPercentage && (
+                                  <span>Premium: {product.premiumPercentage}%</span>
+                                )}
+                                {product.contractStartDate && (
+                                  <span>Contract: {new Date(product.contractStartDate).toLocaleDateString()}</span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-sm font-medium text-gray-900">
+                              {product.customersCount || 0}
+                            </div>
+                            <div className="text-xs text-gray-500">Customers</div>
+                            {product.totalValue && (
+                              <div className="text-xs text-green-600 font-medium">
+                                €{typeof product.totalValue === 'string' 
+                                  ? parseFloat(product.totalValue.replace(/[^0-9.-]+/g, '')).toLocaleString()
+                                  : product.totalValue.toLocaleString()
+                                }
+                              </div>
+                            )}
+                            {product.premiumValue && (
+                              <div className="text-xs text-purple-600 font-medium">
+                                €{typeof product.premiumValue === 'string' 
+                                  ? parseFloat(product.premiumValue.replace(/[^0-9.-]+/g, '')).toLocaleString()
+                                  : product.premiumValue.toLocaleString()
+                                } Total Premium
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            });
+          })()}
+        </div>
+      </div>
 
     </div>
   );
