@@ -4304,6 +4304,176 @@ Return as JSON in this exact format:
     }
   });
 
+  // Portfolio-level Smart Cross Sell endpoint
+  app.get('/api/degoudse/portfolio/smart-cross-sell', async (req: Request, res: Response) => {
+    console.log('=== PORTFOLIO SMART CROSS SELL API ENDPOINT HIT ===');
+    
+    try {
+      if (!process.env.OPENAI_API_KEY) {
+        console.log('OpenAI API key not configured');
+        return res.status(500).json({ error: 'OpenAI API key not configured' });
+      }
+
+      console.log('Generating Portfolio Smart Cross Sell analysis');
+
+      // Get portfolio overview data
+      const portfolioOverview = await pool.query(`
+        SELECT 
+          COUNT(DISTINCT c.id) as total_customers,
+          COUNT(DISTINCT p.id) as total_partners,
+          COUNT(DISTINCT o.id) as total_opportunities,
+          COUNT(DISTINCT prod.id) as total_products,
+          COALESCE(SUM(o.estimated_value), 0) as total_opportunity_value,
+          COALESCE(SUM(pt.premium_value), 0) as total_premium_value,
+          COUNT(DISTINCT cat.id) as total_categories
+        FROM degoudse.customers c
+        LEFT JOIN degoudse.opportunities o ON c.id = o.customer_id
+        LEFT JOIN degoudse.partners p ON o.partner_id = p.id
+        LEFT JOIN degoudse.product_templates pt ON true
+        LEFT JOIN degoudse.products prod ON true
+        LEFT JOIN degoudse.categories cat ON prod.category_id = cat.id
+      `);
+
+      // Get category breakdown
+      const categoryBreakdown = await pool.query(`
+        SELECT 
+          c.id as category_id,
+          c.name as category_name,
+          c.color as category_color,
+          COUNT(DISTINCT prod.id) as products_count,
+          COUNT(DISTINCT cpt.customer_id) as customers_with_products,
+          COALESCE(SUM(cpt.custom_price), 0) as total_category_value
+        FROM degoudse.categories c
+        LEFT JOIN degoudse.products prod ON c.id = prod.category_id
+        LEFT JOIN degoudse.customer_product_templates cpt ON prod.id = cpt.product_template_id
+        WHERE c.parent_id IS NULL
+        GROUP BY c.id, c.name, c.color
+        ORDER BY total_category_value DESC
+      `);
+
+      // Get top opportunities
+      const topOpportunities = await pool.query(`
+        SELECT 
+          o.id,
+          o.title,
+          o.description,
+          o.estimated_value,
+          o.probability,
+          c.name as customer_name,
+          p.name as partner_name,
+          cat.name as category_name
+        FROM degoudse.opportunities o
+        LEFT JOIN degoudse.customers c ON o.customer_id = c.id
+        LEFT JOIN degoudse.partners p ON o.partner_id = p.id
+        LEFT JOIN degoudse.categories cat ON o.category_id = cat.id
+        WHERE o.estimated_value > 0
+        ORDER BY o.estimated_value DESC
+        LIMIT 10
+      `);
+
+      const portfolioData = {
+        overview: portfolioOverview.rows[0],
+        categoryBreakdown: categoryBreakdown.rows,
+        topOpportunities: topOpportunities.rows
+      };
+
+      // Create AI prompt for portfolio analysis
+      const systemPrompt = `You are an expert insurance portfolio analyst specializing in cross-sell opportunities. 
+      Analyze the provided portfolio data and generate actionable cross-sell recommendations at the portfolio level.
+      
+      Focus on:
+      1. Customer Cross-Sell Opportunities - identify gaps in customer coverage
+      2. Summer Trending Products - seasonal insurance products with high demand
+      3. Strategic market opportunities based on portfolio composition
+      
+      Return your analysis in this exact JSON format:
+      {
+        "opportunities": [
+          {
+            "id": number,
+            "title": string,
+            "description": string,
+            "probability": number (0-100),
+            "revenueLabel": string (e.g. "€45K"),
+            "revenueAmount": number,
+            "productName": string,
+            "priority": "High" or "Medium"
+          }
+        ]
+      }
+      
+      Generate 3-5 opportunities with realistic revenue amounts and probabilities.`;
+
+      const userPrompt = `Analyze this insurance portfolio for cross-sell opportunities:
+      
+      Portfolio Overview:
+      - Total customers: ${portfolioData.overview.total_customers}
+      - Total partners: ${portfolioData.overview.total_partners}
+      - Total opportunities: ${portfolioData.overview.total_opportunities}
+      - Total products: ${portfolioData.overview.total_products}
+      - Total opportunity value: €${portfolioData.overview.total_opportunity_value}
+      - Total premium value: €${portfolioData.overview.total_premium_value}
+      
+      Category Performance:
+      ${portfolioData.categoryBreakdown.map(cat => `- ${cat.category_name}: ${cat.products_count} products, ${cat.customers_with_products} customers, €${cat.total_category_value} value`).join('\n')}
+      
+      Top Opportunities:
+      ${portfolioData.topOpportunities.map(opp => `- ${opp.title} (${opp.probability}% probability, €${opp.estimated_value})`).join('\n')}
+      
+      Generate portfolio-level cross-sell analysis with focus on seasonal trends and customer segments.`;
+
+      const openaiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${process.env.OPENAI_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          model: "gpt-4o",
+          messages: [
+            {
+              role: "system",
+              content: systemPrompt
+            },
+            {
+              role: "user",
+              content: userPrompt
+            }
+          ],
+          temperature: 0.7,
+          max_tokens: 2000
+        })
+      });
+
+      if (!openaiResponse.ok) {
+        const errorData = await openaiResponse.text();
+        console.error('OpenAI API error:', errorData);
+        return res.status(500).json({ error: 'Failed to generate portfolio cross-sell analysis' });
+      }
+
+      const aiResult = await openaiResponse.json();
+      const analysis = JSON.parse(aiResult.choices[0].message.content);
+
+      console.log('=== PORTFOLIO SMART CROSS SELL ANALYSIS ===');
+      console.log('Portfolio Analysis:', analysis);
+      console.log('=== END PORTFOLIO ANALYSIS ===');
+
+      res.json({
+        ...analysis,
+        portfolioData: {
+          totalCustomers: portfolioData.overview.total_customers,
+          totalPartners: portfolioData.overview.total_partners,
+          totalOpportunities: portfolioData.overview.total_opportunities,
+          totalValue: portfolioData.overview.total_opportunity_value
+        }
+      });
+
+    } catch (error) {
+      console.error('Error generating Portfolio Smart Cross Sell analysis:', error);
+      res.status(500).json({ error: 'Failed to generate portfolio cross-sell analysis' });
+    }
+  });
+
   // Save meeting briefing endpoint
   app.post('/api/degoudse/partners/:id/save-meeting-briefing', async (req: Request, res: Response) => {
     try {
