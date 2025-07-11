@@ -404,12 +404,6 @@ function DashboardSection() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Portfolio Insights Dashboard</h1>
-        <p className="text-gray-600">Aggregated portfolio overview with smart alerts and opportunities</p>
-      </div>
-
       {/* Customer Segment, Provider, and Partner Selectors */}
       <DashboardFilters />
 
@@ -429,86 +423,6 @@ function DashboardSection() {
 
       {/* Product Portfolio Section - Similar to customer detail page */}
       <div className="mt-8">
-        <div className="flex items-center justify-between mb-6">
-          <div>
-            <h3 className="text-xl font-semibold text-gray-900">Total Portfolio</h3>
-            <p className="text-sm text-gray-600">
-              {selectedCategoryForProducts 
-                ? `Showing ${selectedCategoryForProducts} products` 
-                : 'All products in portfolio'
-              }
-            </p>
-          </div>
-          <div className="flex items-center space-x-3">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search products..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 w-64"
-              />
-            </div>
-            {selectedCategoryForProducts && (
-              <Badge 
-                variant="secondary" 
-                className="px-3 py-1 bg-blue-100 text-blue-800 border-blue-200"
-              >
-                Category: {selectedCategoryForProducts}
-                <X 
-                  className="ml-2 h-3 w-3 cursor-pointer" 
-                  onClick={() => {
-                    setSelectedCategoryForProducts(null);
-                    setShowProductDetails(false);
-                  }}
-                />
-              </Badge>
-            )}
-          </div>
-        </div>
-
-        {/* Product Statistics */}
-        <div className="flex items-center justify-between mb-4 p-4 bg-gray-50 rounded-lg">
-          <div className="flex items-center space-x-8">
-            <div>
-              <span className="text-sm text-gray-500">Total Portfolio</span>
-              <div className="font-semibold text-lg">
-                {filteredProductsForCategory.length} products
-              </div>
-            </div>
-            <div>
-              <span className="text-sm text-gray-500">Total Value</span>
-              <div className="font-semibold text-lg">
-                €{filteredProductsForCategory.reduce((sum, product) => {
-                  const value = product.totalValue || product.premiumValue || 0;
-                  return sum + (typeof value === 'string' ? parseFloat(value.replace(/[^0-9.-]+/g, '')) : value);
-                }, 0).toLocaleString()}
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center space-x-2">
-            <Select value={selectedCategoryForProducts || 'all'} onValueChange={(value) => {
-              if (value === 'all') {
-                setSelectedCategoryForProducts(null);
-                setShowProductDetails(false);
-              } else {
-                setSelectedCategoryForProducts(value);
-                setShowProductDetails(true);
-              }
-            }}>
-              <SelectTrigger className="w-48">
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Categories</SelectItem>
-                <SelectItem value="Pensioen">Pensioen</SelectItem>
-                <SelectItem value="Inkomen Collectief">Inkomen Collectief</SelectItem>
-                <SelectItem value="Schade Zakelijk">Schade Zakelijk</SelectItem>
-                <SelectItem value="Overige">Overige</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </div>
 
         {/* Product List by Category */}
         <div className="space-y-6">
