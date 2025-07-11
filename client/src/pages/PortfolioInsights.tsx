@@ -1492,298 +1492,356 @@ export default function PortfolioInsights() {
   );
 }
 
-// Smart Cross Sell Admin Configuration Section
+// Smart Cross Sell Portfolio Section
 function SmartCrossSellSection() {
-  const [activeEngineType, setActiveEngineType] = useState('aggregated');
-  const [aiModel, setAiModel] = useState('gpt-4o');
-  const [analysisDepth, setAnalysisDepth] = useState('comprehensive');
-  const [seasonalFocus, setSeasonalFocus] = useState(true);
-  const [marketIntelligence, setMarketIntelligence] = useState(true);
-  const [customPrompt, setCustomPrompt] = useState('');
-  const [autoTrigger, setAutoTrigger] = useState(true);
-  const [refreshInterval, setRefreshInterval] = useState(24);
+  const [activeAnalysis, setActiveAnalysis] = useState<string | null>(null);
+  const [analysisResults, setAnalysisResults] = useState<any[]>([]);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isCustomExpanded, setIsCustomExpanded] = useState(false);
+  const { toast } = useToast();
 
-  const engineTypes = [
-    {
-      id: 'aggregated',
-      name: 'Aggregated Portfolio',
-      description: 'Portfolio-wide cross-sell analysis across all customers and partners',
-      icon: <BarChart3 className="h-5 w-5" />,
-      color: 'bg-blue-50 border-blue-200 text-blue-700',
-      location: 'Portfolio Insights Dashboard'
-    },
-    {
-      id: 'partner',
-      name: 'Partner Entity Pages',
-      description: 'Cross-sell opportunities specific to individual partner relationships',
-      icon: <Building className="h-5 w-5" />,
-      color: 'bg-purple-50 border-purple-200 text-purple-700',
-      location: 'Partner Detail Pages - Products Tab'
-    },
-    {
-      id: 'customer',
-      name: 'Customer Entity Pages',
-      description: 'Personalized cross-sell recommendations for individual customers',
-      icon: <User className="h-5 w-5" />,
-      color: 'bg-green-50 border-green-200 text-green-700',
-      location: 'Customer Detail Pages - Products Tab'
+  const handleAnalyze = async (analysisType: string) => {
+    setIsAnalyzing(true);
+    setActiveAnalysis(analysisType);
+    
+    try {
+      // For aggregated portfolio analysis, we'll use a special endpoint
+      const response = await apiRequest('GET', `/api/degoudse/portfolio/smart-cross-sell`);
+      
+      // Transform AI response into results format
+      const transformedResults = response.opportunities.map((opportunity: any) => ({
+        id: opportunity.id.toString(),
+        name: opportunity.title,
+        description: opportunity.description,
+        probability: `${opportunity.probability}%`,
+        totalPremium: opportunity.revenueLabel,
+        avgPremium: `€${Math.round(opportunity.revenueAmount / 3)}`,
+        crossSellPotential: `€${opportunity.revenueAmount.toLocaleString()}`,
+        products: [opportunity.productName],
+        priority: opportunity.priority
+      }));
+      
+      setAnalysisResults(transformedResults);
+      
+      toast({
+        title: "Analysis Complete",
+        description: `Found ${transformedResults.length} portfolio cross-sell opportunities`,
+      });
+      
+    } catch (error) {
+      console.error('Error fetching Smart Cross Sell analysis:', error);
+      toast({
+        title: "Analysis Failed",
+        description: "Unable to generate cross-sell analysis. Please try again.",
+        variant: "destructive"
+      });
+      
+      // Fallback to overview
+      setActiveAnalysis(null);
+      setAnalysisResults([]);
+    } finally {
+      setIsAnalyzing(false);
     }
-  ];
+  };
 
-  const currentEngine = engineTypes.find(e => e.id === activeEngineType);
+  const handleBackToOverview = () => {
+    setActiveAnalysis(null);
+    setAnalysisResults([]);
+  };
 
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900 mb-2">Smart Cross Sell Configuration</h1>
-        <p className="text-gray-600">Configure AI-powered cross-sell engines for different entity types</p>
-      </div>
+  // Show analysis results if we have an active analysis
+  if (activeAnalysis && analysisResults.length > 0) {
+    return (
+      <div className="space-y-6">
+        {/* Back to Overview Button */}
+        <div className="flex items-center justify-between">
+          <Button 
+            variant="outline" 
+            onClick={handleBackToOverview}
+            className="flex items-center space-x-2"
+          >
+            <X className="w-4 h-4" />
+            <span>Back to overview</span>
+          </Button>
+          <div className="text-sm text-gray-600">
+            {analysisResults.length} results found
+          </div>
+        </div>
 
-      {/* Engine Type Selection */}
-      <Card className="bg-[#E6E7F1] border-gray-200">
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Bot className="h-5 w-5 mr-2" />
-            Cross-sell Engine Types
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {engineTypes.map((engine) => (
-              <Card
-                key={engine.id}
-                className={`cursor-pointer transition-all hover:shadow-md ${
-                  activeEngineType === engine.id 
-                    ? 'ring-2 ring-indigo-500 border-indigo-300' 
-                    : 'border-gray-200 hover:border-gray-300'
-                }`}
-                onClick={() => setActiveEngineType(engine.id)}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start space-x-3">
-                    <div className={`p-2 rounded-lg ${engine.color}`}>
-                      {engine.icon}
-                    </div>
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900">{engine.name}</h3>
-                      <p className="text-sm text-gray-600 mt-1">{engine.description}</p>
-                      <div className="mt-2">
-                        <Badge variant="outline" className="text-xs">
-                          {engine.location}
+        {/* Structured Results List */}
+        <div className="bg-white rounded-lg border border-[#E6E7F1]">
+          <div className="p-4 border-b border-[#E6E7F1]">
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-[#282A3F] text-lg">
+                {activeAnalysis === 'customer' && `Customer Cross-Sell Opportunities (${analysisResults.length})`}
+                {activeAnalysis === 'strategic' && `Summer Trending Products Analysis (${analysisResults.length})`}
+                {activeAnalysis === 'custom' && `Custom Analysis (${analysisResults.length})`}
+              </h3>
+              <div className="text-sm text-gray-500">
+                Total value: {analysisResults.reduce((sum, result) => {
+                  const value = parseInt(result.crossSellPotential.replace(/[€,]/g, ''));
+                  return sum + value;
+                }, 0).toLocaleString('nl-NL', { style: 'currency', currency: 'EUR' })}
+              </div>
+            </div>
+          </div>
+
+          <div className="divide-y divide-[#E6E7F1]">
+            {analysisResults.map((result, index) => (
+              <div key={result.id} className="p-6 hover:bg-[#F8F9FA] transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <div className="w-3 h-3 bg-[#5567E5] rounded-full"></div>
+                      <h4 className="font-semibold text-[#282A3F] text-lg">{result.name}</h4>
+                      {result.priority && (
+                        <Badge 
+                          variant="outline" 
+                          className={
+                            result.priority === 'High' 
+                              ? 'bg-red-50 text-red-600 border-red-200' 
+                              : 'bg-yellow-50 text-yellow-600 border-yellow-200'
+                          }
+                        >
+                          {result.priority}
                         </Badge>
-                      </div>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 mb-3">{result.description}</p>
+                    
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {result.products.map((product: string, idx: number) => (
+                        <Badge key={idx} variant="outline" className="text-xs bg-[#F8F9FA] text-gray-700">
+                          {product}
+                        </Badge>
+                      ))}
                     </div>
                   </div>
-                </CardContent>
-              </Card>
+
+                  <div className="text-right space-y-2 ml-6">
+                    <div className="grid grid-cols-3 gap-6 text-center">
+                      <div>
+                        <div className="text-lg font-semibold text-[#5567E5]">
+                          {result.probability}
+                        </div>
+                        <div className="text-xs text-gray-500">Probability</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-semibold text-green-600">{result.totalPremium}</div>
+                        <div className="text-xs text-gray-500">Total Premium</div>
+                      </div>
+                      <div>
+                        <div className="text-lg font-semibold text-[#5567E5]">{result.avgPremium}</div>
+                        <div className="text-xs text-gray-500">Avg Premium</div>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-center justify-between pt-2 border-t border-[#E6E7F1]">
+                      <div className="text-sm text-gray-600">
+                        Potential: <span className="font-semibold text-[#5567E5]">{result.crossSellPotential}</span>
+                      </div>
+                      <Button 
+                        size="sm"
+                        className="bg-[#5567E5] hover:bg-[#4556D4] text-white ml-4"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create campaign
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
             ))}
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Configuration Panel */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Settings className="h-5 w-5 mr-2" />
-            {currentEngine?.name} Configuration
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* AI Model Selection */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                AI Model
-              </Label>
-              <Select value={aiModel} onValueChange={setAiModel}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="gpt-4o">GPT-4o (Recommended)</SelectItem>
-                  <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
-                  <SelectItem value="claude-3-sonnet">Claude 3 Sonnet</SelectItem>
-                  <SelectItem value="claude-3-haiku">Claude 3 Haiku</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                Analysis Depth
-              </Label>
-              <Select value={analysisDepth} onValueChange={setAnalysisDepth}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="quick">Quick Analysis</SelectItem>
-                  <SelectItem value="standard">Standard Analysis</SelectItem>
-                  <SelectItem value="comprehensive">Comprehensive Analysis</SelectItem>
-                  <SelectItem value="deep">Deep Market Analysis</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          {/* Feature Toggles */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="text-sm font-medium text-gray-700">Seasonal Focus</Label>
-                  <p className="text-xs text-gray-500">Include seasonal trends in analysis</p>
-                </div>
-                <Button
-                  variant={seasonalFocus ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSeasonalFocus(!seasonalFocus)}
-                  className="w-16"
-                >
-                  {seasonalFocus ? <CheckCircle className="h-4 w-4" /> : 'Off'}
-                </Button>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="text-sm font-medium text-gray-700">Market Intelligence</Label>
-                  <p className="text-xs text-gray-500">Leverage market data insights</p>
-                </div>
-                <Button
-                  variant={marketIntelligence ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setMarketIntelligence(!marketIntelligence)}
-                  className="w-16"
-                >
-                  {marketIntelligence ? <CheckCircle className="h-4 w-4" /> : 'Off'}
-                </Button>
-              </div>
-            </div>
-
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="text-sm font-medium text-gray-700">Auto-trigger</Label>
-                  <p className="text-xs text-gray-500">Automatically refresh analysis</p>
-                </div>
-                <Button
-                  variant={autoTrigger ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setAutoTrigger(!autoTrigger)}
-                  className="w-16"
-                >
-                  {autoTrigger ? <CheckCircle className="h-4 w-4" /> : 'Off'}
-                </Button>
-              </div>
-
-              {autoTrigger && (
-                <div>
-                  <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                    Refresh Interval (hours)
-                  </Label>
-                  <Select value={refreshInterval.toString()} onValueChange={(value) => setRefreshInterval(parseInt(value))}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 hour</SelectItem>
-                      <SelectItem value="6">6 hours</SelectItem>
-                      <SelectItem value="12">12 hours</SelectItem>
-                      <SelectItem value="24">24 hours</SelectItem>
-                      <SelectItem value="48">48 hours</SelectItem>
-                      <SelectItem value="168">Weekly</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Custom Prompt */}
-          <div>
-            <Label className="text-sm font-medium text-gray-700 mb-2 block">
-              Custom Analysis Prompt (Optional)
-            </Label>
-            <textarea
-              value={customPrompt}
-              onChange={(e) => setCustomPrompt(e.target.value)}
-              placeholder="Add specific instructions for the AI analysis..."
-              className="w-full h-24 p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            />
-            <p className="text-xs text-gray-500 mt-1">
-              Leave empty to use default analysis prompts optimized for {currentEngine?.name.toLowerCase()}
-            </p>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Preview & Testing */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center">
-            <Sparkles className="h-5 w-5 mr-2" />
-            Preview & Testing
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <h4 className="font-medium text-gray-900 mb-2">Current Configuration</h4>
-              <div className="bg-gray-50 p-4 rounded-lg space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Engine Type:</span>
-                  <span className="font-medium">{currentEngine?.name}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">AI Model:</span>
-                  <span className="font-medium">{aiModel}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Analysis Depth:</span>
-                  <span className="font-medium">{analysisDepth}</span>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-600">Features:</span>
-                  <span className="font-medium">
-                    {[
-                      seasonalFocus && 'Seasonal',
-                      marketIntelligence && 'Market Intel',
-                      autoTrigger && 'Auto-trigger'
-                    ].filter(Boolean).join(', ') || 'None'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            <div>
-              <h4 className="font-medium text-gray-900 mb-2">Test Analysis</h4>
-              <div className="space-y-3">
-                <Button variant="outline" className="w-full">
-                  <Brain className="h-4 w-4 mr-2" />
-                  Run Test Analysis
-                </Button>
-                <Button variant="outline" className="w-full">
-                  <Clock className="h-4 w-4 mr-2" />
-                  View Performance Metrics
-                </Button>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Save Configuration */}
-      <div className="flex justify-end space-x-3">
-        <Button variant="outline">
-          Reset to Defaults
-        </Button>
-        <Button className="bg-indigo-600 hover:bg-indigo-700">
-          <CheckCircle className="h-4 w-4 mr-2" />
-          Save Configuration
-        </Button>
+        </div>
       </div>
+    );
+  }
+
+  // Show loading state during analysis
+  if (isAnalyzing) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#5567E5] mx-auto mb-4"></div>
+          <p className="text-gray-600">Analyzing cross-sell opportunities...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show summary cards (default view)
+  return (
+    <div className="space-y-6">
+      {/* Top Row - Customer Cross-Sell and Summer Trending Products */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        {/* Customer Cross-Sell Opportunities */}
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow border-[#E6E7F1] flex flex-col" onClick={() => handleAnalyze('customer')}>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-[#5567E5] rounded-full flex items-center justify-center">
+                  <Users className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Customer Cross-Sell Opportunities</CardTitle>
+                  <CardDescription>Identify upsell potential in existing customer base</CardDescription>
+                </div>
+              </div>
+              <Play className="w-5 h-5 text-[#5567E5]" />
+            </div>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col">
+            <div className="flex-1 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Total Opportunities</span>
+                <span className="font-semibold text-[#5567E5]">24</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Total Potential</span>
+                <span className="font-semibold text-green-600">€156,800</span>
+              </div>
+              <div className="flex-1 min-h-[60px]"></div>
+            </div>
+            <div className="pt-3 flex justify-center">
+              <Button 
+                className="bg-[#5567E5] hover:bg-[#4556D4] text-white font-medium rounded-lg h-10 justify-between px-4 min-w-[180px]"
+              >
+                <div className="flex items-center">
+                  <Play className="w-4 h-4 mr-2" />
+                  <span>Analyze insights</span>
+                </div>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Summer Trending Products */}
+        <Card className="cursor-pointer hover:shadow-lg transition-shadow border-[#E6E7F1] flex flex-col" onClick={() => handleAnalyze('strategic')}>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-[#5567E5] rounded-full flex items-center justify-center">
+                  <Target className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Summer Trending Products</CardTitle>
+                  <CardDescription>Top 3 seasonal insurance products for summer 2025</CardDescription>
+                </div>
+              </div>
+              <Play className="w-5 h-5 text-[#5567E5]" />
+            </div>
+          </CardHeader>
+          <CardContent className="flex-1 flex flex-col">
+            <div className="flex-1 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">1. Travel Insurance</span>
+                <span className="font-semibold text-green-600">€45,200</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">2. Recreational Vehicle</span>
+                <span className="font-semibold text-green-600">€38,600</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">3. Event & Festival</span>
+                <span className="font-semibold text-green-600">€29,800</span>
+              </div>
+              <div className="flex-1 min-h-[20px]"></div>
+            </div>
+            <div className="pt-3 flex justify-center">
+              <Button 
+                className="bg-[#5567E5] hover:bg-[#4556D4] text-white font-medium rounded-lg h-10 justify-between px-4 min-w-[180px]"
+              >
+                <div className="flex items-center">
+                  <Target className="w-4 h-4 mr-2" />
+                  <span>Analyze trends</span>
+                </div>
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Custom Analysis Card */}
+      <Card className="border-[#E6E7F1]">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-[#5567E5] rounded-full flex items-center justify-center">
+                <TrendingUp className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <CardTitle className="text-lg">Custom Analysis</CardTitle>
+                <CardDescription>Tailored cross-sell insights with custom prompting</CardDescription>
+              </div>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setIsCustomExpanded(!isCustomExpanded)}
+            >
+              Configure parameters
+              {isCustomExpanded ? <ChevronUp className="w-4 h-4 ml-2" /> : <ChevronDown className="w-4 h-4 ml-2" />}
+            </Button>
+          </div>
+        </CardHeader>
+        
+        {isCustomExpanded && (
+          <CardContent className="border-t border-[#E6E7F1] pt-4">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Analysis Focus
+                </Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select analysis focus" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="seasonal">Seasonal Trends</SelectItem>
+                    <SelectItem value="competitive">Competitive Analysis</SelectItem>
+                    <SelectItem value="customer-behavior">Customer Behavior</SelectItem>
+                    <SelectItem value="market-expansion">Market Expansion</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                  Customer Segment
+                </Label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select customer segment" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Customers</SelectItem>
+                    <SelectItem value="high-value">High-Value Customers</SelectItem>
+                    <SelectItem value="new-customers">New Customers</SelectItem>
+                    <SelectItem value="inactive">Inactive Customers</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex justify-end pt-4">
+                <Button 
+                  className="bg-[#5567E5] hover:bg-[#4556D4] text-white"
+                  onClick={() => handleAnalyze('custom')}
+                >
+                  <TrendingUp className="w-4 h-4 mr-2" />
+                  Run custom analysis
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        )}
+      </Card>
     </div>
   );
 }
