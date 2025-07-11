@@ -158,10 +158,9 @@ function DashboardSection() {
   const { data: products = [] } = useQuery({ queryKey: ['/api/products'] });
   const { data: categories = [] } = useQuery({ queryKey: ['/api/product-categories'] });
   
-  // Fetch product assignments for detailed view when category is selected
+  // Fetch product assignments for detailed view
   const { data: productAssignments = [] } = useQuery({ 
-    queryKey: ['/api/product-assignments-all'],
-    enabled: showProductDetails 
+    queryKey: ['/api/product-assignments-all']
   });
 
   // Calculate basic data for category analysis
@@ -259,32 +258,35 @@ function DashboardSection() {
 
   // Filter products based on selected category
   const filteredProductsForCategory = useMemo(() => {
-    if (!selectedCategoryForProducts || !Array.isArray(products)) return [];
+    if (!selectedCategoryForProducts) {
+      // If no category selected, return all product assignments
+      return Array.isArray(productAssignments) ? productAssignments : [];
+    }
     
-    return (products as any[]).filter(product => 
-      product.categoryId === selectedCategoryForProducts || 
-      product.category === selectedCategoryForProducts ||
+    if (!Array.isArray(productAssignments)) return [];
+    
+    return (productAssignments as any[]).filter(product => 
       product.categoryName === selectedCategoryForProducts ||
-      product.parent_category_name === selectedCategoryForProducts ||
+      product.parentCategoryName === selectedCategoryForProducts ||
       // Map specific categories to parent categories
-      (selectedCategoryForProducts === 'Non-Life' && (
-        product.parent_category_name === 'Business' ||
-        product.parent_category_name === 'Health' ||
-        product.parent_category_name === 'Mobility' ||
-        product.parent_category_name === 'Property & Liability'
+      (selectedCategoryForProducts === 'Pensioen' && (
+        product.categoryName?.toLowerCase().includes('pensioen') ||
+        product.parentCategoryName?.toLowerCase().includes('pensioen')
       )) ||
-      (selectedCategoryForProducts === 'Life' && (
-        product.parent_category_name === 'Life' ||
-        product.category?.toLowerCase().includes('life') ||
-        product.category?.toLowerCase().includes('death') ||
-        product.category?.toLowerCase().includes('pension')
+      (selectedCategoryForProducts === 'Inkomen Collectief' && (
+        product.categoryName?.toLowerCase().includes('inkomen') ||
+        product.parentCategoryName?.toLowerCase().includes('inkomen')
       )) ||
-      (selectedCategoryForProducts === 'Services' && (
-        product.parent_category_name === 'Travel' ||
-        product.category?.toLowerCase().includes('service')
+      (selectedCategoryForProducts === 'Schade Zakelijk' && (
+        product.categoryName?.toLowerCase().includes('schade') ||
+        product.parentCategoryName?.toLowerCase().includes('schade')
+      )) ||
+      (selectedCategoryForProducts === 'Overige' && (
+        product.categoryName?.toLowerCase().includes('overige') ||
+        product.parentCategoryName?.toLowerCase().includes('overige')
       ))
     );
-  }, [selectedCategoryForProducts, products]);
+  }, [selectedCategoryForProducts, productAssignments]);
 
   // Filter products based on search and selected product
   const filteredProducts = productCategories.filter(product => {
