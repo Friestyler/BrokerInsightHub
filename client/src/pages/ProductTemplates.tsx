@@ -185,6 +185,10 @@ export default function ProductTemplates() {
   
   // Smart Cross Sell settings states
   const [activeSmartCrossSellTab, setActiveSmartCrossSellTab] = useState<'partners' | 'customers' | 'portfolio'>('partners');
+  const [createSmartCrossSellDialogOpen, setCreateSmartCrossSellDialogOpen] = useState(false);
+  const [configureSmartCrossSellDialogOpen, setConfigureSmartCrossSellDialogOpen] = useState(false);
+  const [selectedSmartCrossSellTemplate, setSelectedSmartCrossSellTemplate] = useState<any>(null);
+  const [smartCrossSellTemplateType, setSmartCrossSellTemplateType] = useState<'crosssell' | 'trending' | 'custom'>('crosssell');
   const [createAlertDialogOpen, setCreateAlertDialogOpen] = useState(false);
   const [editAlertDialogOpen, setEditAlertDialogOpen] = useState(false);
   const [deleteAlertDialogOpen, setDeleteAlertDialogOpen] = useState(false);
@@ -2132,11 +2136,23 @@ export default function ProductTemplates() {
           {/* Smart Cross Sell Analysis Templates - Partners Tab */}
           {activeSmartCrossSellTab === 'partners' && (
             <div className="space-y-6">
-              <div className="mb-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Partner Analysis Templates</h3>
-                <p className="text-sm text-gray-600">
-                  Configure predefined analysis templates for partner-specific cross-sell opportunities and seasonal trends.
-                </p>
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Partner Analysis Templates</h3>
+                  <p className="text-sm text-gray-600">
+                    Configure predefined analysis templates for partner-specific cross-sell opportunities and seasonal trends.
+                  </p>
+                </div>
+                <Button 
+                  className="bg-[#5567E5] hover:bg-[#4451c7]"
+                  onClick={() => {
+                    setSmartCrossSellTemplateType('crosssell');
+                    setCreateSmartCrossSellDialogOpen(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add New Template
+                </Button>
               </div>
               
               {/* Customer Cross-Sell Opportunities Template */}
@@ -2152,7 +2168,23 @@ export default function ProductTemplates() {
                         <p className="text-sm text-gray-600">Identify upsell potential in partner customer base</p>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedSmartCrossSellTemplate({
+                          id: 1,
+                          name: 'Partner Cross-Sell Opportunities',
+                          type: 'crosssell',
+                          entityType: 'partners',
+                          analysisFocus: 'Partner portfolio analysis',
+                          aiModel: 'GPT-4o Enhanced',
+                          dataSources: 'Partner relationships, customer data',
+                          updateFrequency: 'Weekly'
+                        });
+                        setConfigureSmartCrossSellDialogOpen(true);
+                      }}
+                    >
                       <Edit className="h-4 w-4 mr-2" />
                       Configure
                     </Button>
@@ -2192,7 +2224,23 @@ export default function ProductTemplates() {
                         <p className="text-sm text-gray-600">Top 3 seasonal insurance products for summer 2025</p>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedSmartCrossSellTemplate({
+                          id: 2,
+                          name: 'Summer Trending Products',
+                          type: 'trending',
+                          entityType: 'partners',
+                          analysisFocus: 'Seasonal market trends',
+                          aiModel: 'GPT-4o Enhanced',
+                          dataSources: 'Market intelligence, seasonal patterns',
+                          updateFrequency: 'Monthly'
+                        });
+                        setConfigureSmartCrossSellDialogOpen(true);
+                      }}
+                    >
                       <Edit className="h-4 w-4 mr-2" />
                       Configure
                     </Button>
@@ -2232,7 +2280,23 @@ export default function ProductTemplates() {
                         <p className="text-sm text-gray-600">Tailored cross-sell insights with custom prompting</p>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedSmartCrossSellTemplate({
+                          id: 3,
+                          name: 'Custom Analysis',
+                          type: 'custom',
+                          entityType: 'partners',
+                          analysisFocus: 'Custom prompting system',
+                          aiModel: 'GPT-4o Enhanced',
+                          dataSources: 'All available data sources',
+                          updateFrequency: 'On-demand'
+                        });
+                        setConfigureSmartCrossSellDialogOpen(true);
+                      }}
+                    >
                       <Edit className="h-4 w-4 mr-2" />
                       Configure
                     </Button>
@@ -2264,11 +2328,23 @@ export default function ProductTemplates() {
           {/* Smart Cross Sell Analysis Templates - Customers Tab */}
           {activeSmartCrossSellTab === 'customers' && (
             <div className="space-y-6">
-              <div className="mb-4">
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Customer Analysis Templates</h3>
-                <p className="text-sm text-gray-600">
-                  Configure predefined analysis templates for customer-specific cross-sell opportunities and lifecycle events.
-                </p>
+              <div className="mb-4 flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">Customer Analysis Templates</h3>
+                  <p className="text-sm text-gray-600">
+                    Configure predefined analysis templates for customer-specific cross-sell opportunities and lifecycle events.
+                  </p>
+                </div>
+                <Button 
+                  className="bg-[#5567E5] hover:bg-[#4451c7]"
+                  onClick={() => {
+                    setSmartCrossSellTemplateType('crosssell');
+                    setCreateSmartCrossSellDialogOpen(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add New Template
+                </Button>
               </div>
               
               {/* Customer Cross-Sell Opportunities Template */}
@@ -2284,7 +2360,23 @@ export default function ProductTemplates() {
                         <p className="text-sm text-gray-600">Identify upsell potential in existing customer base</p>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedSmartCrossSellTemplate({
+                          id: 4,
+                          name: 'Customer Cross-Sell Opportunities',
+                          type: 'crosssell',
+                          entityType: 'customers',
+                          analysisFocus: 'Customer lifecycle analysis',
+                          aiModel: 'GPT-4o Enhanced',
+                          dataSources: 'Customer history, product portfolio',
+                          updateFrequency: 'Daily'
+                        });
+                        setConfigureSmartCrossSellDialogOpen(true);
+                      }}
+                    >
                       <Edit className="h-4 w-4 mr-2" />
                       Configure
                     </Button>
@@ -2324,7 +2416,23 @@ export default function ProductTemplates() {
                         <p className="text-sm text-gray-600">Seasonal product recommendations for individual customers</p>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedSmartCrossSellTemplate({
+                          id: 5,
+                          name: 'Customer Seasonal Trends',
+                          type: 'trending',
+                          entityType: 'customers',
+                          analysisFocus: 'Customer seasonal behavior',
+                          aiModel: 'GPT-4o Enhanced',
+                          dataSources: 'Customer preferences, seasonal data',
+                          updateFrequency: 'Seasonal'
+                        });
+                        setConfigureSmartCrossSellDialogOpen(true);
+                      }}
+                    >
                       <Edit className="h-4 w-4 mr-2" />
                       Configure
                     </Button>
@@ -2364,7 +2472,23 @@ export default function ProductTemplates() {
                         <p className="text-sm text-gray-600">Personalized insights with custom prompting</p>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedSmartCrossSellTemplate({
+                          id: 6,
+                          name: 'Custom Customer Analysis',
+                          type: 'custom',
+                          entityType: 'customers',
+                          analysisFocus: 'Custom customer insights',
+                          aiModel: 'GPT-4o Enhanced',
+                          dataSources: 'All customer data sources',
+                          updateFrequency: 'On-demand'
+                        });
+                        setConfigureSmartCrossSellDialogOpen(true);
+                      }}
+                    >
                       <Edit className="h-4 w-4 mr-2" />
                       Configure
                     </Button>
@@ -2402,6 +2526,19 @@ export default function ProductTemplates() {
                   Configure predefined analysis templates for portfolio-level cross-sell opportunities and market intelligence.
                 </p>
               </div>
+              <div className="mb-4 flex items-center justify-between">
+                <div></div>
+                <Button 
+                  className="bg-[#5567E5] hover:bg-[#4451c7]"
+                  onClick={() => {
+                    setSmartCrossSellTemplateType('crosssell');
+                    setCreateSmartCrossSellDialogOpen(true);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add New Template
+                </Button>
+              </div>
               
               {/* Portfolio Cross-Sell Opportunities Template */}
               <div className="border border-[#E6E7F1] rounded-lg bg-white">
@@ -2416,7 +2553,23 @@ export default function ProductTemplates() {
                         <p className="text-sm text-gray-600">Identify upsell potential across entire portfolio</p>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedSmartCrossSellTemplate({
+                          id: 7,
+                          name: 'Portfolio Cross-Sell Opportunities',
+                          type: 'crosssell',
+                          entityType: 'portfolio',
+                          analysisFocus: 'Portfolio-wide analysis',
+                          aiModel: 'GPT-4o Enhanced',
+                          dataSources: 'All portfolio data, market trends',
+                          updateFrequency: 'Weekly'
+                        });
+                        setConfigureSmartCrossSellDialogOpen(true);
+                      }}
+                    >
                       <Edit className="h-4 w-4 mr-2" />
                       Configure
                     </Button>
@@ -2456,7 +2609,23 @@ export default function ProductTemplates() {
                         <p className="text-sm text-gray-600">Top seasonal insurance products for portfolio optimization</p>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedSmartCrossSellTemplate({
+                          id: 8,
+                          name: 'Market Trending Products',
+                          type: 'trending',
+                          entityType: 'portfolio',
+                          analysisFocus: 'Market trend analysis',
+                          aiModel: 'GPT-4o Enhanced',
+                          dataSources: 'Market intelligence, portfolio data',
+                          updateFrequency: 'Monthly'
+                        });
+                        setConfigureSmartCrossSellDialogOpen(true);
+                      }}
+                    >
                       <Edit className="h-4 w-4 mr-2" />
                       Configure
                     </Button>
@@ -2496,7 +2665,23 @@ export default function ProductTemplates() {
                         <p className="text-sm text-gray-600">Strategic insights with custom prompting</p>
                       </div>
                     </div>
-                    <Button variant="outline" size="sm">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        setSelectedSmartCrossSellTemplate({
+                          id: 9,
+                          name: 'Custom Portfolio Analysis',
+                          type: 'custom',
+                          entityType: 'portfolio',
+                          analysisFocus: 'Custom portfolio insights',
+                          aiModel: 'GPT-4o Enhanced',
+                          dataSources: 'All portfolio data sources',
+                          updateFrequency: 'On-demand'
+                        });
+                        setConfigureSmartCrossSellDialogOpen(true);
+                      }}
+                    >
                       <Edit className="h-4 w-4 mr-2" />
                       Configure
                     </Button>
@@ -3104,6 +3289,244 @@ export default function ProductTemplates() {
               )}
             </div>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Create Smart Cross Sell Template Dialog */}
+      <Dialog open={createSmartCrossSellDialogOpen} onOpenChange={setCreateSmartCrossSellDialogOpen}>
+        <DialogContent className="max-w-2xl bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-[#282A3F]">Create New Smart Cross Sell Template</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={(e) => {
+            e.preventDefault();
+            setCreateSmartCrossSellDialogOpen(false);
+          }}>
+            <div className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-[#282A3F]">Template Name</label>
+                <Input 
+                  name="name" 
+                  placeholder="Enter template name" 
+                  className="mt-1" 
+                  required 
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#282A3F]">Template Type</label>
+                <Select defaultValue={smartCrossSellTemplateType} onValueChange={setSmartCrossSellTemplateType}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select template type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="crosssell">Cross-Sell Opportunities</SelectItem>
+                    <SelectItem value="trending">Summer Trending Products</SelectItem>
+                    <SelectItem value="custom">Custom Analysis</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#282A3F]">Entity Type</label>
+                <Select defaultValue={activeSmartCrossSellTab}>
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select entity type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="partners">Partners</SelectItem>
+                    <SelectItem value="customers">Customers</SelectItem>
+                    <SelectItem value="portfolio">Portfolio Insights</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#282A3F]">Analysis Focus</label>
+                <Input 
+                  name="analysisFocus" 
+                  placeholder="e.g., Customer lifecycle analysis" 
+                  className="mt-1" 
+                  required 
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#282A3F]">AI Model</label>
+                <Select defaultValue="gpt-4o-enhanced">
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select AI model" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="gpt-4o-enhanced">GPT-4o Enhanced</SelectItem>
+                    <SelectItem value="claude-3-sonnet">Claude 3 Sonnet</SelectItem>
+                    <SelectItem value="gemini-pro">Gemini Pro</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#282A3F]">Data Sources</label>
+                <Input 
+                  name="dataSources" 
+                  placeholder="e.g., Customer history, product portfolio" 
+                  className="mt-1" 
+                  required 
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#282A3F]">Update Frequency</label>
+                <Select defaultValue="weekly">
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Select update frequency" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="realtime">Real-time</SelectItem>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="quarterly">Quarterly</SelectItem>
+                    <SelectItem value="on-demand">On-demand</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-[#282A3F]">Description</label>
+                <Textarea 
+                  name="description" 
+                  placeholder="Enter template description" 
+                  className="mt-1" 
+                  rows={3}
+                />
+              </div>
+            </div>
+            <DialogFooter className="mt-6">
+              <Button type="button" variant="outline" onClick={() => setCreateSmartCrossSellDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" className="bg-[#5567E5] hover:bg-[#4451c7]">
+                Create Template
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Configure Smart Cross Sell Template Dialog */}
+      <Dialog open={configureSmartCrossSellDialogOpen} onOpenChange={setConfigureSmartCrossSellDialogOpen}>
+        <DialogContent className="max-w-4xl bg-white">
+          <DialogHeader>
+            <DialogTitle className="text-[#282A3F]">
+              Configure {selectedSmartCrossSellTemplate?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedSmartCrossSellTemplate && (
+            <div className="space-y-6">
+              {/* Template Info */}
+              <div className="bg-gray-50 p-4 rounded-lg">
+                <div className="flex items-center gap-3 mb-3">
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                    selectedSmartCrossSellTemplate.type === 'crosssell' ? 'bg-blue-100' :
+                    selectedSmartCrossSellTemplate.type === 'trending' ? 'bg-orange-100' : 'bg-purple-100'
+                  }`}>
+                    {selectedSmartCrossSellTemplate.type === 'crosssell' && <Target className="h-5 w-5 text-blue-600" />}
+                    {selectedSmartCrossSellTemplate.type === 'trending' && <TrendingUp className="h-5 w-5 text-orange-600" />}
+                    {selectedSmartCrossSellTemplate.type === 'custom' && <Brain className="h-5 w-5 text-purple-600" />}
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-900">{selectedSmartCrossSellTemplate.name}</h4>
+                    <p className="text-sm text-gray-600">{selectedSmartCrossSellTemplate.entityType.charAt(0).toUpperCase() + selectedSmartCrossSellTemplate.entityType.slice(1)} Analysis Template</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Configuration Tabs */}
+              <div className="border-b border-gray-200">
+                <nav className="-mb-px flex space-x-8">
+                  <button className="border-b-2 border-[#5567E5] text-[#5567E5] py-2 px-1 text-sm font-medium">
+                    Basic Settings
+                  </button>
+                  <button className="border-transparent text-gray-500 hover:text-gray-700 py-2 px-1 text-sm font-medium">
+                    AI Configuration
+                  </button>
+                  <button className="border-transparent text-gray-500 hover:text-gray-700 py-2 px-1 text-sm font-medium">
+                    Data Sources
+                  </button>
+                  <button className="border-transparent text-gray-500 hover:text-gray-700 py-2 px-1 text-sm font-medium">
+                    Advanced Options
+                  </button>
+                </nav>
+              </div>
+
+              {/* Basic Settings */}
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-sm font-medium text-[#282A3F]">Template Name</label>
+                    <Input 
+                      defaultValue={selectedSmartCrossSellTemplate.name}
+                      className="mt-1" 
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-[#282A3F]">Analysis Focus</label>
+                    <Input 
+                      defaultValue={selectedSmartCrossSellTemplate.analysisFocus}
+                      className="mt-1" 
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-[#282A3F]">AI Model</label>
+                    <Select defaultValue="gpt-4o-enhanced">
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="gpt-4o-enhanced">GPT-4o Enhanced</SelectItem>
+                        <SelectItem value="claude-3-sonnet">Claude 3 Sonnet</SelectItem>
+                        <SelectItem value="gemini-pro">Gemini Pro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <label className="text-sm font-medium text-[#282A3F]">Update Frequency</label>
+                    <Select defaultValue={selectedSmartCrossSellTemplate.updateFrequency.toLowerCase()}>
+                      <SelectTrigger className="mt-1">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="realtime">Real-time</SelectItem>
+                        <SelectItem value="daily">Daily</SelectItem>
+                        <SelectItem value="weekly">Weekly</SelectItem>
+                        <SelectItem value="monthly">Monthly</SelectItem>
+                        <SelectItem value="quarterly">Quarterly</SelectItem>
+                        <SelectItem value="on-demand">On-demand</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-[#282A3F]">Data Sources</label>
+                  <Input 
+                    defaultValue={selectedSmartCrossSellTemplate.dataSources}
+                    className="mt-1" 
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-[#282A3F]">Custom Prompt (Optional)</label>
+                  <Textarea 
+                    placeholder="Enter custom AI prompt for enhanced analysis..."
+                    className="mt-1" 
+                    rows={4}
+                  />
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button type="button" variant="outline" onClick={() => setConfigureSmartCrossSellDialogOpen(false)}>
+                  Cancel
+                </Button>
+                <Button className="bg-[#5567E5] hover:bg-[#4451c7]">
+                  Save Configuration
+                </Button>
+              </DialogFooter>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>
