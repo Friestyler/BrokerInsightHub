@@ -7,6 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
+import { Label } from "@/components/ui/label";
 import { BarChart3, Search, Settings, Target, X, Star, Send, Users, List, DollarSign, TrendingUp, Download, Filter, Eye, ChevronDown, ChevronRight } from "lucide-react";
 
 import { AggregatedPortfolioCards } from "@/components/portfolio/AggregatedPortfolioCards";
@@ -136,6 +137,129 @@ function getBenchmarkIcon(rate: number, benchmark: number): string {
   if (diff >= 0) return '✅';
   if (diff >= -5) return '⚠️';
   return '🔴';
+}
+
+// Dashboard Filters Component
+function DashboardFilters() {
+  const [selectedSegment, setSelectedSegment] = useState('all');
+  const [selectedProvider, setSelectedProvider] = useState('all');
+  const [selectedPartner, setSelectedPartner] = useState('all');
+
+  // Fetch partners data
+  const { data: partners = [] } = useQuery({ queryKey: ['/api/partners'] });
+
+  // Provider options
+  const providers = [
+    { id: 'all', name: 'All Providers' },
+    { id: 'de_goudse', name: 'De Goudse' },
+    { id: 'nn_group', name: 'NN Group' },
+    { id: 'aegon', name: 'Aegon' },
+    { id: 'allianz', name: 'Allianz' }
+  ];
+
+  // Customer segments
+  const customerSegments = [
+    { id: 'all', name: 'All Segments' },
+    { id: 'young_families', name: 'Young Families' },
+    { id: 'empty_nesters', name: 'Empty Nesters' },
+    { id: 'singles', name: 'Singles' },
+    { id: 'seniors', name: 'Seniors' }
+  ];
+
+  return (
+    <Card className="bg-gray-50 border-gray-200">
+      <CardHeader className="pb-4">
+        <CardTitle className="text-lg flex items-center">
+          <Filter className="h-5 w-5 mr-2" />
+          Portfolio Filters
+        </CardTitle>
+        <p className="text-sm text-gray-600">Filter portfolio data by customer segment, provider, or partner</p>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {/* Customer Segment Selector */}
+          <div>
+            <Label htmlFor="segment-select" className="text-sm font-medium text-gray-700 mb-2 block">
+              Customer Segment
+            </Label>
+            <Select value={selectedSegment} onValueChange={setSelectedSegment}>
+              <SelectTrigger id="segment-select">
+                <SelectValue placeholder="Select segment" />
+              </SelectTrigger>
+              <SelectContent>
+                {customerSegments.map(segment => (
+                  <SelectItem key={segment.id} value={segment.id}>
+                    {segment.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Provider Selector */}
+          <div>
+            <Label htmlFor="provider-select" className="text-sm font-medium text-gray-700 mb-2 block">
+              Provider
+            </Label>
+            <Select value={selectedProvider} onValueChange={setSelectedProvider}>
+              <SelectTrigger id="provider-select">
+                <SelectValue placeholder="Select provider" />
+              </SelectTrigger>
+              <SelectContent>
+                {providers.map(provider => (
+                  <SelectItem key={provider.id} value={provider.id}>
+                    {provider.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Partner Selector */}
+          <div>
+            <Label htmlFor="partner-select" className="text-sm font-medium text-gray-700 mb-2 block">
+              Partner
+            </Label>
+            <Select value={selectedPartner} onValueChange={setSelectedPartner}>
+              <SelectTrigger id="partner-select">
+                <SelectValue placeholder="Select partner" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Partners</SelectItem>
+                {Array.isArray(partners) && partners.map((partner: any) => (
+                  <SelectItem key={partner.id} value={partner.id.toString()}>
+                    {partner.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Active Filters Display */}
+        <div className="mt-4 flex flex-wrap gap-2">
+          {selectedSegment !== 'all' && (
+            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+              Segment: {customerSegments.find(s => s.id === selectedSegment)?.name}
+              <X className="ml-1 h-3 w-3 cursor-pointer" onClick={() => setSelectedSegment('all')} />
+            </Badge>
+          )}
+          {selectedProvider !== 'all' && (
+            <Badge variant="secondary" className="bg-green-100 text-green-800">
+              Provider: {providers.find(p => p.id === selectedProvider)?.name}
+              <X className="ml-1 h-3 w-3 cursor-pointer" onClick={() => setSelectedProvider('all')} />
+            </Badge>
+          )}
+          {selectedPartner !== 'all' && (
+            <Badge variant="secondary" className="bg-purple-100 text-purple-800">
+              Partner: {Array.isArray(partners) && partners.find((p: any) => p.id.toString() === selectedPartner)?.name}
+              <X className="ml-1 h-3 w-3 cursor-pointer" onClick={() => setSelectedPartner('all')} />
+            </Badge>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  );
 }
 
 // Dashboard Section Component with Aggregated Data
@@ -329,7 +453,8 @@ function DashboardSection() {
         selectedCategory={selectedCategoryForProducts}
       />
 
-
+      {/* Customer Segment, Provider, and Partner Selectors */}
+      <DashboardFilters />
 
       {/* Smart Alerts */}
       <AggregatedSmartAlerts 
@@ -696,52 +821,107 @@ export default function PortfolioInsights() {
           </div>
 
           {/* Controls */}
-          <div className="flex items-center justify-between bg-[#E6E7F1] p-4 rounded-lg">
-            <div className="flex items-center space-x-6">
-              {/* Segment Selector */}
+          <div className="space-y-4">
+            {/* Filters Section */}
+            <Card className="bg-[#E6E7F1] border-gray-200">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-lg flex items-center">
+                  <Filter className="h-5 w-5 mr-2" />
+                  Matrix Filters
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {/* Customer Segment Selector */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                      Customer Segment
+                    </Label>
+                    <Select value={selectedSegment} onValueChange={setSelectedSegment}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {customerSegments.map(segment => (
+                          <SelectItem key={segment.id} value={segment.id}>
+                            {segment.name} ({segment.count.toLocaleString()})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Provider Selector */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                      Provider
+                    </Label>
+                    <Select value="all" onValueChange={() => {}}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select provider" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Providers</SelectItem>
+                        <SelectItem value="de_goudse">De Goudse</SelectItem>
+                        <SelectItem value="nn_group">NN Group</SelectItem>
+                        <SelectItem value="aegon">Aegon</SelectItem>
+                        <SelectItem value="allianz">Allianz</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Partner Selector */}
+                  <div>
+                    <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                      Partner
+                    </Label>
+                    <Select value="all" onValueChange={() => {}}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select partner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="all">All Partners</SelectItem>
+                        <SelectItem value="willis">Willis B.V</SelectItem>
+                        <SelectItem value="zicht">Zicht B.V</SelectItem>
+                        <SelectItem value="mevas">Mevas B.V</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Analysis Controls */}
+            <div className="flex items-center justify-between bg-gray-50 p-4 rounded-lg">
+              <div className="flex items-center space-x-6">
+                {/* Conversion Rate Slider */}
+                <div className="flex items-center space-x-3">
+                  <span className="text-sm font-medium">Conversion rate: {conversionRate[0]}%</span>
+                  <Slider
+                    value={conversionRate}
+                    onValueChange={setConversionRate}
+                    max={50}
+                    min={5}
+                    step={5}
+                    className="w-32"
+                  />
+                </div>
+
+                <div className="text-sm text-gray-600">
+                  {currentSegment?.name} - {currentSegment?.count.toLocaleString()} customers
+                </div>
+              </div>
+
               <div className="flex items-center space-x-2">
-                <span className="text-sm font-medium">Customer Segment</span>
-                <Select value={selectedSegment} onValueChange={setSelectedSegment}>
-                  <SelectTrigger className="w-48">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {customerSegments.map(segment => (
-                      <SelectItem key={segment.id} value={segment.id}>
-                        {segment.name} ({segment.count.toLocaleString()})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Button variant="outline" size="sm" onClick={() => setShowBenchmarkConfig(!showBenchmarkConfig)}>
+                  <Target className="h-4 w-4 mr-1" />
+                  Benchmarks
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => setShowProductConfig(!showProductConfig)}>
+                  <Settings className="h-4 w-4 mr-1" />
+                  Products
+                </Button>
               </div>
-
-              {/* Conversion Rate Slider */}
-              <div className="flex items-center space-x-3">
-                <span className="text-sm font-medium">Conversion rate: {conversionRate[0]}%</span>
-                <Slider
-                  value={conversionRate}
-                  onValueChange={setConversionRate}
-                  max={50}
-                  min={5}
-                  step={5}
-                  className="w-32"
-                />
-              </div>
-
-              <div className="text-sm text-gray-600">
-                {currentSegment?.name} - {currentSegment?.count.toLocaleString()} customers
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" onClick={() => setShowBenchmarkConfig(!showBenchmarkConfig)}>
-                <Target className="h-4 w-4 mr-1" />
-                Benchmarks
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => setShowProductConfig(!showProductConfig)}>
-                <Settings className="h-4 w-4 mr-1" />
-                Products
-              </Button>
             </div>
           </div>
 
