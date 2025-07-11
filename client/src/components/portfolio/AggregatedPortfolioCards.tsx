@@ -118,6 +118,13 @@ function formatNumber(num: number): string {
   return num.toString();
 }
 
+// Get coverage color based on thresholds matching Amazon/Willis reference
+function getCoverageColor(percentage: number): string {
+  if (percentage >= 80) return '#10B981'; // Green for excellent coverage (80%+)
+  if (percentage >= 30) return '#F59E0B'; // Orange for improving coverage (30-79%)
+  return '#EF4444'; // Red for needs attention (<30%)
+}
+
 export function AggregatedPortfolioCards({ 
   portfolioData, 
   isLoading = false, 
@@ -168,6 +175,7 @@ export function AggregatedPortfolioCards({
       {topCategories.map((category) => {
         const percentage = Math.round(category.coveragePercentage);
         const potentialValue = Math.round(category.currentPremium * 0.25); // 25% potential increase
+        const circleColor = getCoverageColor(percentage);
         
         const isSelected = selectedCategory === category.categoryName;
         
@@ -197,7 +205,7 @@ export function AggregatedPortfolioCards({
                 {/* Circular progress */}
                 <CircularProgress 
                   percentage={percentage} 
-                  color={category.categoryColor}
+                  color={circleColor}
                   size={100}
                   strokeWidth={6}
                 />
