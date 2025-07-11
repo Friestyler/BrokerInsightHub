@@ -8,7 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Progress } from "@/components/ui/progress";
 import { Label } from "@/components/ui/label";
-import { BarChart3, Search, Settings, Target, X, Star, Send, Users, List, DollarSign, TrendingUp, Download, Filter, Eye, ChevronDown, ChevronRight } from "lucide-react";
+import { BarChart3, Search, Settings, Target, X, Star, Send, Users, List, DollarSign, TrendingUp, Download, Filter, Eye, ChevronDown, ChevronRight, Zap, Brain, Sparkles, Clock, Calendar, User, Building, Bot, CheckCircle } from "lucide-react";
 
 import { AggregatedPortfolioCards } from "@/components/portfolio/AggregatedPortfolioCards";
 import { AggregatedSmartAlerts } from "@/components/portfolio/AggregatedSmartAlerts";
@@ -682,6 +682,15 @@ export default function PortfolioInsights() {
         >
           <Search className="h-4 w-4 mr-2" />
           White Space Analysis
+        </Button>
+
+        <Button 
+          variant="ghost"
+          className={activeSection === 'smartcrosssell' ? "bg-indigo-50 text-indigo-700 hover:bg-indigo-100" : ""}
+          onClick={() => setActiveSection('smartcrosssell')}
+        >
+          <Zap className="h-4 w-4 mr-2" />
+          Smart Cross Sell
         </Button>
       </div>
 
@@ -1474,6 +1483,307 @@ export default function PortfolioInsights() {
           )}
         </div>
       )}
+
+      {/* Smart Cross Sell Section */}
+      {activeSection === 'smartcrosssell' && (
+        <SmartCrossSellSection />
+      )}
+    </div>
+  );
+}
+
+// Smart Cross Sell Admin Configuration Section
+function SmartCrossSellSection() {
+  const [activeEngineType, setActiveEngineType] = useState('aggregated');
+  const [aiModel, setAiModel] = useState('gpt-4o');
+  const [analysisDepth, setAnalysisDepth] = useState('comprehensive');
+  const [seasonalFocus, setSeasonalFocus] = useState(true);
+  const [marketIntelligence, setMarketIntelligence] = useState(true);
+  const [customPrompt, setCustomPrompt] = useState('');
+  const [autoTrigger, setAutoTrigger] = useState(true);
+  const [refreshInterval, setRefreshInterval] = useState(24);
+
+  const engineTypes = [
+    {
+      id: 'aggregated',
+      name: 'Aggregated Portfolio',
+      description: 'Portfolio-wide cross-sell analysis across all customers and partners',
+      icon: <BarChart3 className="h-5 w-5" />,
+      color: 'bg-blue-50 border-blue-200 text-blue-700',
+      location: 'Portfolio Insights Dashboard'
+    },
+    {
+      id: 'partner',
+      name: 'Partner Entity Pages',
+      description: 'Cross-sell opportunities specific to individual partner relationships',
+      icon: <Building className="h-5 w-5" />,
+      color: 'bg-purple-50 border-purple-200 text-purple-700',
+      location: 'Partner Detail Pages - Products Tab'
+    },
+    {
+      id: 'customer',
+      name: 'Customer Entity Pages',
+      description: 'Personalized cross-sell recommendations for individual customers',
+      icon: <User className="h-5 w-5" />,
+      color: 'bg-green-50 border-green-200 text-green-700',
+      location: 'Customer Detail Pages - Products Tab'
+    }
+  ];
+
+  const currentEngine = engineTypes.find(e => e.id === activeEngineType);
+
+  return (
+    <div className="space-y-6">
+      {/* Header */}
+      <div>
+        <h1 className="text-2xl font-bold text-gray-900 mb-2">Smart Cross Sell Configuration</h1>
+        <p className="text-gray-600">Configure AI-powered cross-sell engines for different entity types</p>
+      </div>
+
+      {/* Engine Type Selection */}
+      <Card className="bg-[#E6E7F1] border-gray-200">
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Bot className="h-5 w-5 mr-2" />
+            Cross-sell Engine Types
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {engineTypes.map((engine) => (
+              <Card
+                key={engine.id}
+                className={`cursor-pointer transition-all hover:shadow-md ${
+                  activeEngineType === engine.id 
+                    ? 'ring-2 ring-indigo-500 border-indigo-300' 
+                    : 'border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => setActiveEngineType(engine.id)}
+              >
+                <CardContent className="p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className={`p-2 rounded-lg ${engine.color}`}>
+                      {engine.icon}
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="font-medium text-gray-900">{engine.name}</h3>
+                      <p className="text-sm text-gray-600 mt-1">{engine.description}</p>
+                      <div className="mt-2">
+                        <Badge variant="outline" className="text-xs">
+                          {engine.location}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Configuration Panel */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Settings className="h-5 w-5 mr-2" />
+            {currentEngine?.name} Configuration
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          {/* AI Model Selection */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                AI Model
+              </Label>
+              <Select value={aiModel} onValueChange={setAiModel}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="gpt-4o">GPT-4o (Recommended)</SelectItem>
+                  <SelectItem value="gpt-4-turbo">GPT-4 Turbo</SelectItem>
+                  <SelectItem value="claude-3-sonnet">Claude 3 Sonnet</SelectItem>
+                  <SelectItem value="claude-3-haiku">Claude 3 Haiku</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                Analysis Depth
+              </Label>
+              <Select value={analysisDepth} onValueChange={setAnalysisDepth}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="quick">Quick Analysis</SelectItem>
+                  <SelectItem value="standard">Standard Analysis</SelectItem>
+                  <SelectItem value="comprehensive">Comprehensive Analysis</SelectItem>
+                  <SelectItem value="deep">Deep Market Analysis</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          {/* Feature Toggles */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">Seasonal Focus</Label>
+                  <p className="text-xs text-gray-500">Include seasonal trends in analysis</p>
+                </div>
+                <Button
+                  variant={seasonalFocus ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setSeasonalFocus(!seasonalFocus)}
+                  className="w-16"
+                >
+                  {seasonalFocus ? <CheckCircle className="h-4 w-4" /> : 'Off'}
+                </Button>
+              </div>
+
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">Market Intelligence</Label>
+                  <p className="text-xs text-gray-500">Leverage market data insights</p>
+                </div>
+                <Button
+                  variant={marketIntelligence ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setMarketIntelligence(!marketIntelligence)}
+                  className="w-16"
+                >
+                  {marketIntelligence ? <CheckCircle className="h-4 w-4" /> : 'Off'}
+                </Button>
+              </div>
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-sm font-medium text-gray-700">Auto-trigger</Label>
+                  <p className="text-xs text-gray-500">Automatically refresh analysis</p>
+                </div>
+                <Button
+                  variant={autoTrigger ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setAutoTrigger(!autoTrigger)}
+                  className="w-16"
+                >
+                  {autoTrigger ? <CheckCircle className="h-4 w-4" /> : 'Off'}
+                </Button>
+              </div>
+
+              {autoTrigger && (
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Refresh Interval (hours)
+                  </Label>
+                  <Select value={refreshInterval.toString()} onValueChange={(value) => setRefreshInterval(parseInt(value))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="1">1 hour</SelectItem>
+                      <SelectItem value="6">6 hours</SelectItem>
+                      <SelectItem value="12">12 hours</SelectItem>
+                      <SelectItem value="24">24 hours</SelectItem>
+                      <SelectItem value="48">48 hours</SelectItem>
+                      <SelectItem value="168">Weekly</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Custom Prompt */}
+          <div>
+            <Label className="text-sm font-medium text-gray-700 mb-2 block">
+              Custom Analysis Prompt (Optional)
+            </Label>
+            <textarea
+              value={customPrompt}
+              onChange={(e) => setCustomPrompt(e.target.value)}
+              placeholder="Add specific instructions for the AI analysis..."
+              className="w-full h-24 p-3 border border-gray-300 rounded-lg resize-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+            <p className="text-xs text-gray-500 mt-1">
+              Leave empty to use default analysis prompts optimized for {currentEngine?.name.toLowerCase()}
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Preview & Testing */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center">
+            <Sparkles className="h-5 w-5 mr-2" />
+            Preview & Testing
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <h4 className="font-medium text-gray-900 mb-2">Current Configuration</h4>
+              <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Engine Type:</span>
+                  <span className="font-medium">{currentEngine?.name}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">AI Model:</span>
+                  <span className="font-medium">{aiModel}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Analysis Depth:</span>
+                  <span className="font-medium">{analysisDepth}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-600">Features:</span>
+                  <span className="font-medium">
+                    {[
+                      seasonalFocus && 'Seasonal',
+                      marketIntelligence && 'Market Intel',
+                      autoTrigger && 'Auto-trigger'
+                    ].filter(Boolean).join(', ') || 'None'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-medium text-gray-900 mb-2">Test Analysis</h4>
+              <div className="space-y-3">
+                <Button variant="outline" className="w-full">
+                  <Brain className="h-4 w-4 mr-2" />
+                  Run Test Analysis
+                </Button>
+                <Button variant="outline" className="w-full">
+                  <Clock className="h-4 w-4 mr-2" />
+                  View Performance Metrics
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Save Configuration */}
+      <div className="flex justify-end space-x-3">
+        <Button variant="outline">
+          Reset to Defaults
+        </Button>
+        <Button className="bg-indigo-600 hover:bg-indigo-700">
+          <CheckCircle className="h-4 w-4 mr-2" />
+          Save Configuration
+        </Button>
+      </div>
     </div>
   );
 }
