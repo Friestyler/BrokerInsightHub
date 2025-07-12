@@ -931,6 +931,109 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               <p className="text-gray-600">Choose who will receive this campaign</p>
             </div>
 
+            {/* Summary Overview Blocks */}
+            <div className="max-w-6xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                {/* Left Block - Selected Opportunities/Customers Summary */}
+                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                      <Target className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900">Selected Targets</h3>
+                      <p className="text-sm text-gray-600">Overview of your selections</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {(() => {
+                      const uniqueOpportunities = new Set();
+                      const uniqueCustomers = new Set();
+                      
+                      campaignData.recipients.forEach((recipient: any) => {
+                        if (recipient.type === 'opportunity') {
+                          uniqueOpportunities.add(recipient.id);
+                          if (recipient.customerInfo?.id) {
+                            uniqueCustomers.add(recipient.customerInfo.id);
+                          }
+                        } else if (recipient.type === 'customer') {
+                          uniqueCustomers.add(recipient.id);
+                        }
+                      });
+                      
+                      return (
+                        <>
+                          <div className="flex items-center justify-between py-2">
+                            <span className="text-sm text-gray-600">Opportunities</span>
+                            <span className="font-medium text-gray-900">{uniqueOpportunities.size}</span>
+                          </div>
+                          <div className="flex items-center justify-between py-2">
+                            <span className="text-sm text-gray-600">Customers</span>
+                            <span className="font-medium text-gray-900">{uniqueCustomers.size}</span>
+                          </div>
+                          <div className="flex items-center justify-between py-2 border-t pt-2">
+                            <span className="text-sm font-medium text-gray-900">Total Recipients</span>
+                            <span className="font-medium text-gray-900">{campaignData.recipients.length}</span>
+                          </div>
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+
+                {/* Right Block - Contacts Status */}
+                <div 
+                  className="bg-white border border-gray-200 rounded-lg p-6 cursor-pointer hover:shadow-md transition-shadow"
+                  onClick={() => {
+                    // Navigate to Selected tab with missing contacts filter
+                    const url = new URL(window.location.href);
+                    url.searchParams.set('tab', 'selected');
+                    window.history.replaceState({}, '', url.toString());
+                  }}
+                >
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Mail className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900">Contact Status</h3>
+                      <p className="text-sm text-gray-600">Email addresses and missing contacts</p>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {(() => {
+                      const contactsWithEmail = campaignData.recipients.filter((r: any) => !r.isMissingContact).length;
+                      const missingContacts = campaignData.recipients.filter((r: any) => r.isMissingContact).length;
+                      
+                      return (
+                        <>
+                          <div className="flex items-center justify-between py-2">
+                            <span className="text-sm text-gray-600">With Email</span>
+                            <span className="font-medium text-green-600">{contactsWithEmail}</span>
+                          </div>
+                          <div className="flex items-center justify-between py-2">
+                            <span className="text-sm text-gray-600">Missing Contacts</span>
+                            <span className={`font-medium ${missingContacts > 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                              {missingContacts}
+                            </span>
+                          </div>
+                          {missingContacts > 0 && (
+                            <div className="mt-3 p-2 bg-red-50 border border-red-200 rounded text-center">
+                              <p className="text-xs text-red-700">
+                                Click to view and fix missing contacts
+                              </p>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <div className="max-w-6xl mx-auto">
               <RecipientSelector
                 entityType={campaignData.entity}
