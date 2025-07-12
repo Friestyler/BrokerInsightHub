@@ -140,7 +140,13 @@ function SmartListCard({ list, onPreview, onSave, isActive = false }: SmartListP
           className="w-full mb-2"
           onClick={(e) => {
             e.stopPropagation();
-            onSave(list);
+            onSave({
+              name: list.title,
+              description: list.description,
+              criteria: list.criteria,
+              customerCount: list.customerCount,
+              value: list.value
+            });
           }}
         >
           Save as List
@@ -371,9 +377,15 @@ export default function SmartCustomerLists() {
         entity_type: 'customers',
         name: listData.name,
         description: listData.description,
-        criteria: listData.criteria,
-        customer_count: listData.customerCount,
-        estimated_value: listData.value
+        members: [], // Smart lists start with empty members array
+        isShared: false,
+        partner_id: null,
+        context: {
+          criteria: listData.criteria,
+          customer_count: listData.customerCount,
+          estimated_value: listData.value,
+          smart_list_type: 'ai_generated'
+        }
       });
     },
     onSuccess: () => {
