@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 
 import { AggregatedPortfolioCards } from "@/components/portfolio/AggregatedPortfolioCards";
 import { AggregatedSmartAlerts } from "@/components/portfolio/AggregatedSmartAlerts";
-import CustomersPageClean from "./lists/CustomersPage";
+import SmartCustomerLists from "@/components/SmartCustomerLists";
 
 // Fetch authentic product categories with hierarchy
 const useProductCategories = () => {
@@ -714,9 +714,9 @@ export default function PortfolioInsights() {
         <DashboardSection />
       )}
 
-      {/* Smart Customer Lists Section - Exact duplicate of CustomersPage */}
+      {/* Smart Customer Lists Section - AI-powered customer segmentation */}
       {activeSection === 'smartcustomerlists' && (
-        <CustomersPageClean />
+        <SmartCustomerLists />
       )}
 
       {/* White Space Analysis Section */}
