@@ -10,6 +10,7 @@ import { ArrowLeft, ArrowRight, Mail, Users, Target, Settings, Send, Check } fro
 import { toast } from '@/hooks/use-toast';
 import ImprovedEmailBuilder from './ImprovedEmailBuilder';
 import RecipientSelector from '@/components/campaigns/RecipientSelector';
+import CampaignSettingsWizard from '@/components/campaigns/CampaignSettingsWizard';
 
 interface Email {
   id: string;
@@ -36,6 +37,7 @@ export default function NewCampaign() {
   const [, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState(1);
   const [recipientSelectorTab, setRecipientSelectorTab] = useState<string | null>(null);
+  const [showSettingsWizard, setShowSettingsWizard] = useState(false);
   
   const [campaignData, setCampaignData] = useState<CampaignData>({
     name: '',
@@ -195,6 +197,15 @@ export default function NewCampaign() {
       campaignData.recipients.length > 0
     );
   };
+
+  const steps = [
+    { number: 1, title: 'Details', icon: Mail },
+    { number: 2, title: 'Target', icon: Target },
+    { number: 3, title: 'Content', icon: Mail },
+    { number: 4, title: 'Recipients', icon: Users },
+    { number: 5, title: 'Settings', icon: Settings },
+    { number: 6, title: 'Review', icon: Check }
+  ];
 
   const renderStepContent = () => {
     switch (currentStep) {
@@ -462,9 +473,68 @@ export default function NewCampaign() {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="text-sm text-gray-600">
-                Campaign settings can be configured here. For now, default settings will be applied.
+              <div className="text-sm text-gray-600 mb-4">
+                Configure advanced campaign settings including scheduling, permissions, sender information, and automation rules.
               </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <div className="font-medium text-sm">Schedule Type</div>
+                    <div className="text-xs text-gray-600">
+                      {campaignData.settings.scheduleType === 'scheduled' ? 'Scheduled delivery' : 'Send immediately'}
+                    </div>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    {campaignData.settings.scheduleType === 'scheduled' ? 'Scheduled' : 'Immediate'}
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <div className="font-medium text-sm">Partner Permissions</div>
+                    <div className="text-xs text-gray-600">
+                      Control what partners can customize
+                    </div>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    {Object.values(campaignData.settings).filter(Boolean).length} permissions
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <div className="font-medium text-sm">Sender Configuration</div>
+                    <div className="text-xs text-gray-600">
+                      {campaignData.settings.senderName || 'Default sender settings'}
+                    </div>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    {campaignData.settings.emailSendingType === 'qollabi_default' ? 'Qollabi Default' : 'Custom'}
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <div className="font-medium text-sm">Automation Rules</div>
+                    <div className="text-xs text-gray-600">
+                      {campaignData.settings.automationType === 'send_automatically' ? 'Automatic sending' : 'Manual review'}
+                    </div>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    {campaignData.settings.excludePreviouslySent ? 'Duplicate protection' : 'Standard'}
+                  </Badge>
+                </div>
+              </div>
+              
+              <Button 
+                onClick={() => setShowSettingsWizard(true)}
+                className="w-full mt-4"
+                variant="outline"
+              >
+                <Settings className="h-4 w-4 mr-2" />
+                Configure Settings
+              </Button>
             </CardContent>
           </Card>
         );
@@ -608,6 +678,26 @@ export default function NewCampaign() {
       <div className="max-w-6xl mx-auto px-6 py-8">
         {renderStepContent()}
       </div>
+      
+      {/* Campaign Settings Wizard */}
+      <CampaignSettingsWizard
+        isOpen={showSettingsWizard}
+        onClose={() => setShowSettingsWizard(false)}
+        onSave={(settings) => {
+          setCampaignData(prev => ({
+            ...prev,
+            settings: {
+              ...prev.settings,
+              ...settings
+            }
+          }));
+          setShowSettingsWizard(false);
+          toast({
+            title: "Settings saved",
+            description: "Your campaign settings have been updated."
+          });
+        }}
+      />
     </div>
   );
 }
