@@ -35,6 +35,7 @@ interface CampaignData {
 export default function NewCampaign() {
   const [, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState(1);
+  const [recipientSelectorTab, setRecipientSelectorTab] = useState<string | null>(null);
   
   const [campaignData, setCampaignData] = useState<CampaignData>({
     name: '',
@@ -367,13 +368,20 @@ export default function NewCampaign() {
                       </div>
 
                       {/* Right Block - Contacts Status */}
-                      <div className={`rounded-lg p-4 border-2 transition-all ${
+                      <div className={`rounded-lg p-4 border-2 transition-all cursor-pointer ${
                         contactStatus === 'empty' 
                           ? 'bg-gray-50 border-gray-200 text-gray-500' 
                           : contactStatus === 'missing'
                           ? 'bg-orange-50 border-orange-200 text-orange-900'
                           : 'bg-green-50 border-green-200 text-green-900'
-                      }`}>
+                      }`}
+                      onClick={() => {
+                        if (totalRecipients > 0) {
+                          setRecipientSelectorTab('selected');
+                          // Reset after a short delay to avoid state conflicts
+                          setTimeout(() => setRecipientSelectorTab(null), 100);
+                        }
+                      }}>
                         <div className="flex items-center gap-3 mb-3">
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                             contactStatus === 'empty' 
@@ -423,7 +431,7 @@ export default function NewCampaign() {
                           {contactStatus === 'missing' && (
                             <div className="mt-2 p-2 bg-orange-100 border border-orange-300 rounded text-center">
                               <p className="text-xs text-orange-700">
-                                Review recipients to fix missing contacts
+                                Click to view and fix missing contacts
                               </p>
                             </div>
                           )}
@@ -439,6 +447,7 @@ export default function NewCampaign() {
               entityType={campaignData.entity}
               selectedRecipients={campaignData.recipients}
               onRecipientsChange={(recipients) => setCampaignData(prev => ({ ...prev, recipients }))}
+              externalTabOverride={recipientSelectorTab}
             />
           </div>
         );

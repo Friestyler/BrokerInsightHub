@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Search, 
@@ -64,13 +64,17 @@ interface RecipientSelectorProps {
   selectedRecipients: any[];
   onRecipientsChange: (recipients: any[]) => void;
   initialTab?: string | null;
+  onTabChange?: (tab: string) => void;
+  externalTabOverride?: string | null;
 }
 
 export default function RecipientSelector({ 
   entityType, 
   selectedRecipients = [], 
   onRecipientsChange,
-  initialTab 
+  initialTab,
+  onTabChange,
+  externalTabOverride 
 }: RecipientSelectorProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [showMissingContactsOnly, setShowMissingContactsOnly] = useState(false);
@@ -101,6 +105,17 @@ export default function RecipientSelector({
   
   const [suggestedContacts, setSuggestedContacts] = useState<{[key: string]: any[]}>({});
   const [showSuggestions, setShowSuggestions] = useState<{[key: string]: boolean}>({});
+  
+  // Handle external tab changes
+  useEffect(() => {
+    if (externalTabOverride) {
+      const validTab = getInitialTab(externalTabOverride);
+      setSelectedTab(validTab);
+      if (onTabChange) {
+        onTabChange(validTab);
+      }
+    }
+  }, [externalTabOverride, onTabChange]);
   
   // Fetch look-alike contacts for partner sharing
   const fetchLookAlikeContacts = async (recipient: any) => {

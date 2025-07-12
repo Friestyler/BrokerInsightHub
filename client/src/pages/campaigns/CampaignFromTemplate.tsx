@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -50,6 +50,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
   
   const [currentStep, setCurrentStep] = useState(getStepNumber(stepParam));
+  const [recipientSelectorTab, setRecipientSelectorTab] = useState<string | null>(null);
 
   // Track if this is initial load to prevent URL conflicts with manual navigation
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -1015,11 +1016,9 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                         }`}
                         onClick={() => {
                           if (totalRecipients > 0) {
-                            const url = new URL(window.location.href);
-                            url.searchParams.set('tab', 'selected');
-                            window.history.replaceState({}, '', url.toString());
-                            // Force a page refresh to make sure the tab is selected
-                            window.location.reload();
+                            setRecipientSelectorTab('selected');
+                            // Reset after a short delay to avoid state conflicts
+                            setTimeout(() => setRecipientSelectorTab(null), 100);
                           }
                         }}
                       >
@@ -1092,6 +1091,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                   setCampaignData({ ...campaignData, recipients })
                 }
                 initialTab={tabParam}
+                externalTabOverride={recipientSelectorTab}
               />
             </div>
           </div>
