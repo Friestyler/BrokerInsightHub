@@ -98,9 +98,10 @@ interface SmartListPreviewProps {
   onPreview: (list: any) => void;
   onSave: (list: any) => void;
   isActive?: boolean;
+  onCardClick?: (list: any) => void;
 }
 
-function SmartListCard({ list, onPreview, onSave, isActive = false }: SmartListPreviewProps) {
+function SmartListCard({ list, onPreview, onSave, isActive = false, onCardClick }: SmartListPreviewProps) {
   const Icon = list.icon;
   
   return (
@@ -108,7 +109,7 @@ function SmartListCard({ list, onPreview, onSave, isActive = false }: SmartListP
       className={`hover:shadow-md transition-shadow border-[#E6E7F1] cursor-pointer ${
         isActive ? 'ring-2 ring-[#5567E5] bg-blue-50' : ''
       }`}
-      onClick={() => onPreview(list)}
+      onClick={() => onCardClick && onCardClick(list)}
     >
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
@@ -140,13 +141,7 @@ function SmartListCard({ list, onPreview, onSave, isActive = false }: SmartListP
           className="w-full mb-2"
           onClick={(e) => {
             e.stopPropagation();
-            onSave({
-              name: list.title,
-              description: list.description,
-              criteria: list.criteria,
-              customerCount: list.customerCount,
-              value: list.value
-            });
+            onPreview(list);
           }}
         >
           Save as List
@@ -407,6 +402,7 @@ export default function SmartCustomerLists() {
   const handlePreview = (list: any) => {
     setActiveSmartList(list);
     setSelectedList(list);
+    setShowPreviewDialog(true);
   };
 
   const handleSave = async (listData: any) => {
@@ -493,6 +489,7 @@ export default function SmartCustomerLists() {
                 onPreview={handlePreview}
                 onSave={handleSave}
                 isActive={activeSmartList?.id === list.id}
+                onCardClick={setActiveSmartList}
               />
             ))}
           </div>
