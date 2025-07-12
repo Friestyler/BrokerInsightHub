@@ -738,6 +738,26 @@ export default function RecipientSelector({
                   >
                     {showMissingContactsOnly ? 'Show all' : 'Show missing only'}
                   </Button>
+                  <Button
+                    size="sm"
+                    onClick={async () => {
+                      // Load suggestions for all missing contacts
+                      const missingRecipients = selectedRecipients.filter(r => r.isMissingContact);
+                      for (const recipient of missingRecipients) {
+                        const uniqueKey = recipient.uniqueKey;
+                        if (!suggestedContacts[uniqueKey]) {
+                          await loadSuggestionsForRecipient(uniqueKey, recipient);
+                        }
+                        setShowSuggestions(prev => ({
+                          ...prev,
+                          [uniqueKey]: true
+                        }));
+                      }
+                    }}
+                    className="h-7 px-3 text-xs"
+                  >
+                    Suggest all
+                  </Button>
                 </div>
               )}
             </div>
@@ -1154,26 +1174,14 @@ export default function RecipientSelector({
               </p>
             </div>
             
-            {/* Filter Controls */}
-            <div className="flex gap-4 mb-4">
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="showMissingContacts"
-                  checked={showMissingContactsOnly}
-                  onCheckedChange={(checked) => setShowMissingContactsOnly(checked as boolean)}
-                />
-                <Label htmlFor="showMissingContacts" className="text-sm font-medium">
-                  Show only missing contacts
-                </Label>
-              </div>
-              <div className="flex-1">
-                <Input
-                  placeholder="Search recipients..."
-                  value={recipientSearchQuery}
-                  onChange={(e) => setRecipientSearchQuery(e.target.value)}
-                  className="h-8"
-                />
-              </div>
+            {/* Search Control */}
+            <div className="mb-4">
+              <Input
+                placeholder="Search recipients..."
+                value={recipientSearchQuery}
+                onChange={(e) => setRecipientSearchQuery(e.target.value)}
+                className="h-8"
+              />
             </div>
             
             {renderRecipientsByEmail()}
