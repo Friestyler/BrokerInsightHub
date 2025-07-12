@@ -625,6 +625,11 @@ export default function RecipientSelector({
     // Convert to array and filter
     let emailGroups = Array.from(recipientsByEmail.entries());
     
+    // Count missing contacts
+    const missingContactsCount = emailGroups.filter(([email, recipients]) => 
+      recipients.some(r => r.isMissingContact)
+    ).length;
+
     // Filter by missing contacts if selected
     if (showMissingContactsOnly) {
       emailGroups = emailGroups.filter(([email, recipients]) => 
@@ -656,127 +661,164 @@ export default function RecipientSelector({
     
     return (
       <div className="space-y-3">
-        {emailGroups.map(([uniqueKey, recipients]) => {
-          const recipient = recipients[0]; // Each group should only have one recipient now
-          const displayEmail = recipient.isMissingContact ? 'No email address' : recipient.email;
-          
-          return (
-            <div key={uniqueKey} className="border rounded-lg bg-white">
-              <div className="p-4">
-                {/* Email Header */}
-                <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+        {/* Smart Summary Header */}
+        {selectedRecipients.length > 0 && (
+          <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center">
+                    <span className="text-xs font-medium text-blue-600">{selectedRecipients.length}</span>
+                  </div>
+                  <span className="text-sm font-medium text-gray-700">
+                    {selectedRecipients.length === 1 ? 'recipient' : 'recipients'} selected
+                  </span>
+                </div>
+                {missingContactsCount > 0 && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-full bg-red-100 flex items-center justify-center">
+                      <span className="text-xs font-medium text-red-600">{missingContactsCount}</span>
+                    </div>
+                    <span className="text-sm text-red-600">
+                      {missingContactsCount === 1 ? 'missing contact' : 'missing contacts'}
+                    </span>
+                  </div>
+                )}
+              </div>
+              {missingContactsCount > 0 && (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowMissingContactsOnly(!showMissingContactsOnly)}
+                    className="h-7 px-3 text-xs"
+                  >
+                    {showMissingContactsOnly ? 'Show all' : 'Show missing only'}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
+        <div className="space-y-2">
+          {emailGroups.map(([uniqueKey, recipients]) => {
+            const recipient = recipients[0]; // Each group should only have one recipient now
+            const displayEmail = recipient.isMissingContact ? 'No email address' : recipient.email;
+            const contactName = recipient.isMissingContact ? 'Missing Contact' : recipient.contactInfo?.full_name || recipient.contactInfo?.fullName || 'Unknown Contact';
+            
+            return (
+            <div key={uniqueKey} className={`border rounded-lg transition-all duration-200 ${
+              recipient.isMissingContact ? 'bg-red-50 border-red-200' : 'bg-white border-gray-200'
+            }`}>
+              <div className="p-3">
+                {/* Compact Single Row Layout */}
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    {/* Status Icon */}
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 ${
                       recipient.isMissingContact ? 'bg-red-100' : 'bg-green-100'
                     }`}>
                       {recipient.isMissingContact ? (
-                        <UserPlus className="h-4 w-4 text-red-600" />
+                        <UserPlus className="h-3 w-3 text-red-600" />
                       ) : (
-                        <Mail className="h-4 w-4 text-green-600" />
+                        <Mail className="h-3 w-3 text-green-600" />
                       )}
                     </div>
-                    <div>
-                      <p className="font-medium text-gray-900">
-                        {recipient.isMissingContact ? 'Missing Contact' : recipient.contactInfo?.full_name || recipient.contactInfo?.fullName || 'Unknown Contact'}
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {displayEmail}
-                      </p>
+                    
+                    {/* Contact Info */}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-gray-900 truncate">
+                          {contactName}
+                        </p>
+                        {!recipient.isMissingContact && (
+                          <span className="text-xs text-gray-500 truncate">
+                            {displayEmail}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-2 mt-1">
+                        <div className={`w-4 h-4 rounded-full flex items-center justify-center ${
+                          recipient.type === 'opportunity' ? 'bg-green-100' : 
+                          recipient.type === 'customer' ? 'bg-blue-100' : 'bg-gray-100'
+                        }`}>
+                          {recipient.type === 'opportunity' ? (
+                            <Target className="h-2 w-2 text-green-600" />
+                          ) : recipient.type === 'customer' ? (
+                            <Users className="h-2 w-2 text-blue-600" />
+                          ) : (
+                            <Mail className="h-2 w-2 text-gray-600" />
+                          )}
+                        </div>
+                        <span className="text-xs text-gray-500 truncate">
+                          {recipient.name || recipient.title || recipient.fullName || getContactDisplayName(recipient)}
+                          {recipient.type === 'opportunity' && recipient.customerInfo && (
+                            <span className="text-gray-400"> → {recipient.customerInfo.name}</span>
+                          )}
+                        </span>
+                      </div>
                     </div>
                   </div>
                   
-                  {recipient.isMissingContact && (
-                    <Button
-                      size="sm"
-                      onClick={() => setShowInlineContactForm(uniqueKey)}
-                      className="h-8"
-                    >
-                      <UserPlus className="h-4 w-4 mr-2" />
-                      Add Contact
-                    </Button>
-                  )}
-                </div>
-                
-                {/* Connected Context - Show the relationship chain */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
-                        recipient.type === 'opportunity' ? 'bg-green-100' : 
-                        recipient.type === 'customer' ? 'bg-blue-100' : 'bg-gray-100'
-                      }`}>
-                        {recipient.type === 'opportunity' ? (
-                          <Target className="h-3 w-3 text-green-600" />
-                        ) : recipient.type === 'customer' ? (
-                          <Users className="h-3 w-3 text-blue-600" />
-                        ) : (
-                          <Mail className="h-3 w-3 text-gray-600" />
-                        )}
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium">
-                          {recipient.name || recipient.title || recipient.fullName || getContactDisplayName(recipient)}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {recipient.type === 'opportunity' ? 'Opportunity' : 
-                           recipient.type === 'customer' ? 'Customer' : 'Contact'}
-                          {recipient.type === 'opportunity' && recipient.customerInfo && (
-                            <span className="ml-2">
-                              → {recipient.customerInfo.name}
-                            </span>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                    
+                  {/* Action Buttons */}
+                  <div className="flex items-center gap-2 flex-shrink-0">
+                    {recipient.isMissingContact && (
+                      <Button
+                        size="sm"
+                        onClick={() => setShowInlineContactForm(uniqueKey)}
+                        className="h-7 px-3 text-xs"
+                      >
+                        Add
+                      </Button>
+                    )}
                     <Button
                       variant="ghost"
                       size="sm"
                       onClick={() => handleSelectRecipient(recipient, recipient.type)}
-                      className="text-red-600 hover:text-red-800 h-6 w-6 p-0"
+                      className="text-red-600 hover:text-red-800 h-7 w-7 p-0"
                     >
                       <X className="h-3 w-3" />
                     </Button>
                   </div>
                 </div>
                 
-                {/* Inline Contact Form */}
+                {/* Inline Contact Form - Compact */}
                 {showInlineContactForm === uniqueKey && (
-                  <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <h4 className="font-medium text-blue-900 mb-3">Add Contact</h4>
-                    <div className="grid grid-cols-2 gap-3">
+                  <div className="mt-3 p-3 bg-white rounded-lg border border-gray-200">
+                    <div className="grid grid-cols-2 gap-2 mb-3">
                       <Input
                         placeholder="First name"
                         value={inlineContactData.first_name}
                         onChange={(e) => setInlineContactData(prev => ({ ...prev, first_name: e.target.value }))}
-                        className="h-8"
+                        className="h-8 text-sm"
                       />
                       <Input
                         placeholder="Last name"
                         value={inlineContactData.last_name}
                         onChange={(e) => setInlineContactData(prev => ({ ...prev, last_name: e.target.value }))}
-                        className="h-8"
+                        className="h-8 text-sm"
                       />
                       <Input
                         placeholder="Email"
                         type="email"
                         value={inlineContactData.email}
                         onChange={(e) => setInlineContactData(prev => ({ ...prev, email: e.target.value }))}
-                        className="h-8"
+                        className="h-8 text-sm"
                       />
                       <Input
                         placeholder="Job title"
                         value={inlineContactData.job_title}
                         onChange={(e) => setInlineContactData(prev => ({ ...prev, job_title: e.target.value }))}
-                        className="h-8"
+                        className="h-8 text-sm"
                       />
                     </div>
-                    <div className="flex justify-end gap-2 mt-3">
+                    <div className="flex justify-end gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => setShowInlineContactForm(null)}
-                        className="h-8"
+                        className="h-7 px-3 text-xs"
                       >
                         Cancel
                       </Button>
@@ -802,9 +844,9 @@ export default function RecipientSelector({
                           }
                         }}
                         disabled={createContactMutation.isPending || !inlineContactData.email}
-                        className="h-8"
+                        className="h-7 px-3 text-xs"
                       >
-                        {createContactMutation.isPending ? 'Creating...' : 'Create Contact'}
+                        {createContactMutation.isPending ? 'Adding...' : 'Add Contact'}
                       </Button>
                     </div>
                   </div>
@@ -812,7 +854,8 @@ export default function RecipientSelector({
               </div>
             </div>
           );
-        })}
+          })}
+        </div>
       </div>
     );
   };
