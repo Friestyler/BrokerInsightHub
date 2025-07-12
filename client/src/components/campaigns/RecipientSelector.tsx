@@ -73,6 +73,8 @@ export default function RecipientSelector({
   initialTab 
 }: RecipientSelectorProps) {
   const [searchQuery, setSearchQuery] = useState('');
+  const [showMissingContactsOnly, setShowMissingContactsOnly] = useState(false);
+  const [recipientSearchQuery, setRecipientSearchQuery] = useState('');
   
   // Map URL tab parameters to tab values and set initial tab
   const getInitialTab = (tabParam: string | null) => {
@@ -99,6 +101,35 @@ export default function RecipientSelector({
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Contact creation mutation
+  const createContactMutation = useMutation({
+    mutationFn: async (contactData: any) => {
+      return apiRequest('POST', '/api/contacts', contactData);
+    },
+    onSuccess: () => {
+      toast({
+        title: 'Success',
+        description: 'Contact created successfully',
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/degoudse/contacts`] });
+      setShowInlineContactForm(null);
+      setInlineContactData({
+        first_name: '',
+        last_name: '',
+        email: '',
+        job_title: '',
+        phone: ''
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error',
+        description: 'Failed to create contact',
+        variant: 'destructive',
+      });
+    },
+  });
 
   // Fetch main entities based on type
   const { data: entitiesResponse = [], isLoading: entitiesLoading } = useQuery({
@@ -178,17 +209,10 @@ export default function RecipientSelector({
   // Helper function to get customer for an opportunity
   const getCustomerForOpportunity = (opportunityId: number) => {
     const opportunity = entities.find(e => e.id === opportunityId);
-    if (!opportunity) {
-      console.log('DEBUG: Opportunity not found', opportunityId);
-      return null;
-    }
+    if (!opportunity) return null;
     
     const customerId = opportunity.customerId || opportunity.customer_id || opportunity.clientId || opportunity.client_id;
-    console.log('DEBUG: getCustomerForOpportunity', { opportunityId, customerId, opportunity, customers: customers.length });
-    
-    const customer = customers.find(c => c.id === customerId);
-    console.log('DEBUG: Found customer', customer);
-    return customer;
+    return customers.find(c => c.id === customerId);
   };
 
   const handleSelectRecipient = (item: any, type: string) => {
@@ -270,34 +294,7 @@ export default function RecipientSelector({
     return selectedCount > 0 && selectedCount < relevantOpportunities.length;
   };
 
-  // Create contact mutation
-  const createContactMutation = useMutation({
-    mutationFn: async (contactData: any) => {
-      return await apiRequest('POST', `/api/degoudse/contacts`, contactData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/degoudse/contacts`] });
-      toast({
-        title: "Contact created",
-        description: "New contact has been added successfully.",
-      });
-      setShowInlineContactForm(null);
-      setInlineContactData({
-        first_name: '',
-        last_name: '',
-        email: '',
-        job_title: '',
-        phone: ''
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: "Error creating contact",
-        description: "Failed to create contact. Please try again.",
-        variant: "destructive"
-      });
-    }
-  });
+
 
   const handleCreateInlineContact = (entityId: number, entityType: string) => {
     const contactData = {
@@ -559,6 +556,182 @@ export default function RecipientSelector({
     </div>
   );
 
+  // Function to render recipients organized by email address
+  const renderRecipientsByEmail = () => {
+    const recipientsByEmail = new Map<string, any[]>();
+    
+    // Group recipients by their email or generate missing contact info
+    selectedRecipients.forEach(recipient => {
+      let email = '';
+      let contactInfo = null;
+      
+      if (recipient.type === 'contact') {
+        email = recipient.email;
+        contactInfo = recipient;
+      } else if (recipient.type === 'opportunity') {
+        // Find customer and their contacts
+        const customer = getCustomerForOpportunity(recipient.id);
+        if (customer) {
+          const customerContacts = getContactsForCustomer(customer.id);
+          if (customerContacts.length > 0) {
+            // Use primary contact or first contact
+            const primaryContact = customerContacts.find(c => c.is_primary) || customerContacts[0];
+            email = primaryContact.email;
+            contactInfo = primaryContact;
+          } else {
+            // No contacts - create a missing contact entry
+            email = `missing-${customer.id}@example.com`;
+            contactInfo = null;
+          }
+        }
+      } else if (recipient.type === 'customer') {
+        // Find customer contacts
+        const customerContacts = getContactsForCustomer(recipient.id);
+        if (customerContacts.length > 0) {
+          const primaryContact = customerContacts.find(c => c.is_primary) || customerContacts[0];
+          email = primaryContact.email;
+          contactInfo = primaryContact;
+        } else {
+          // No contacts - create a missing contact entry
+          email = `missing-${recipient.id}@example.com`;
+          contactInfo = null;
+        }
+      }
+      
+      if (!recipientsByEmail.has(email)) {
+        recipientsByEmail.set(email, []);
+      }
+      
+      recipientsByEmail.get(email)!.push({
+        ...recipient,
+        contactInfo,
+        email,
+        isMissingContact: !contactInfo
+      });
+    });
+    
+    // Convert to array and filter
+    let emailGroups = Array.from(recipientsByEmail.entries());
+    
+    // Filter by missing contacts if selected
+    if (showMissingContactsOnly) {
+      emailGroups = emailGroups.filter(([email, recipients]) => 
+        recipients.some(r => r.isMissingContact)
+      );
+    }
+    
+    // Filter by search query
+    if (recipientSearchQuery) {
+      emailGroups = emailGroups.filter(([email, recipients]) =>
+        email.toLowerCase().includes(recipientSearchQuery.toLowerCase()) ||
+        recipients.some(r => 
+          (r.name || r.title || '').toLowerCase().includes(recipientSearchQuery.toLowerCase()) ||
+          (r.contactInfo?.full_name || '').toLowerCase().includes(recipientSearchQuery.toLowerCase())
+        )
+      );
+    }
+    
+    if (emailGroups.length === 0) {
+      return (
+        <div className="text-center py-8">
+          <Mail className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+          <p className="text-sm text-gray-600">
+            {showMissingContactsOnly ? 'No recipients with missing contacts' : 'No recipients found'}
+          </p>
+        </div>
+      );
+    }
+    
+    return (
+      <div className="space-y-3">
+        {emailGroups.map(([email, recipients]) => (
+          <div key={email} className="border rounded-lg bg-white">
+            <div className="p-4">
+              {/* Email Header */}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                    recipients[0].isMissingContact ? 'bg-red-100' : 'bg-green-100'
+                  }`}>
+                    {recipients[0].isMissingContact ? (
+                      <UserPlus className="h-4 w-4 text-red-600" />
+                    ) : (
+                      <Mail className="h-4 w-4 text-green-600" />
+                    )}
+                  </div>
+                  <div>
+                    <p className="font-medium text-gray-900">
+                      {recipients[0].isMissingContact ? 'Missing Contact' : recipients[0].contactInfo?.full_name || recipients[0].contactInfo?.fullName || 'Unknown'}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      {recipients[0].isMissingContact ? 'No email address' : email}
+                    </p>
+                  </div>
+                </div>
+                
+                {recipients[0].isMissingContact && (
+                  <Button
+                    size="sm"
+                    onClick={() => setShowInlineContactForm(email)}
+                    className="h-8"
+                  >
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Add Contact
+                  </Button>
+                )}
+              </div>
+              
+              {/* Connected Context */}
+              <div className="space-y-2">
+                {recipients.map((recipient, index) => (
+                  <div key={index} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
+                        recipient.type === 'opportunity' ? 'bg-green-100' : 
+                        recipient.type === 'customer' ? 'bg-blue-100' : 'bg-gray-100'
+                      }`}>
+                        {recipient.type === 'opportunity' ? (
+                          <Target className="h-3 w-3 text-green-600" />
+                        ) : recipient.type === 'customer' ? (
+                          <Users className="h-3 w-3 text-blue-600" />
+                        ) : (
+                          <Mail className="h-3 w-3 text-gray-600" />
+                        )}
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium">
+                          {recipient.name || recipient.title || recipient.fullName || getContactDisplayName(recipient)}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {recipient.type === 'opportunity' ? 'Opportunity' : 
+                           recipient.type === 'customer' ? 'Customer' : 'Contact'}
+                          {recipient.type === 'opportunity' && (
+                            <span className="ml-2">
+                              via {getCustomerForOpportunity(recipient.id)?.name || 'Unknown Customer'}
+                            </span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleSelectRecipient(recipient, recipient.type)}
+                      className="text-red-600 hover:text-red-800 h-6 w-6 p-0"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   const renderTabContent = () => {
     switch (selectedTab) {
       case 'lists':
@@ -710,45 +883,33 @@ export default function RecipientSelector({
                 <span className="font-medium">Selected Recipients ({selectedRecipients.length})</span>
               </div>
               <p className="text-sm text-green-700 mt-1">
-                Review and manage your selected campaign recipients.
+                Review recipients organized by email address with their connected context.
               </p>
             </div>
             
-            <div className="space-y-3">
-              {selectedRecipients.map((recipient: any) => (
-                <div key={recipient.recipientKey} className="border rounded-lg p-3 bg-green-50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                        <CheckCircle2 className="h-4 w-4 text-white" />
-                      </div>
-                      <div>
-                        <p className="font-medium">
-                          {recipient.name || recipient.title || recipient.fullName || getContactDisplayName(recipient)}
-                        </p>
-                        <span className="text-xs text-green-700 bg-green-200 px-2 py-1 rounded">
-                          {recipient.type}
-                        </span>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleSelectRecipient(recipient, recipient.type)}
-                      className="text-red-600 hover:text-red-800"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-              {selectedRecipients.length === 0 && (
-                <div className="text-center py-8">
-                  <CheckCircle2 className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                  <p className="text-sm text-gray-600">No recipients selected</p>
-                </div>
-              )}
+            {/* Filter Controls */}
+            <div className="flex gap-4 mb-4">
+              <div className="flex items-center gap-2">
+                <Checkbox
+                  id="showMissingContacts"
+                  checked={showMissingContactsOnly}
+                  onCheckedChange={(checked) => setShowMissingContactsOnly(checked as boolean)}
+                />
+                <Label htmlFor="showMissingContacts" className="text-sm font-medium">
+                  Show only missing contacts
+                </Label>
+              </div>
+              <div className="flex-1">
+                <Input
+                  placeholder="Search recipients..."
+                  value={recipientSearchQuery}
+                  onChange={(e) => setRecipientSearchQuery(e.target.value)}
+                  className="h-8"
+                />
+              </div>
             </div>
+            
+            {renderRecipientsByEmail()}
           </div>
         );
 
