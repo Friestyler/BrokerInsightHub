@@ -19,6 +19,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -202,6 +203,66 @@ export default function RecipientSelector({
     }
   };
 
+  // Helper function to check if item is selected
+  const isItemSelected = (item: any, type: string) => {
+    const recipientKey = `${type}-${item.id}`;
+    return selectedRecipients.some(r => r.recipientKey === recipientKey);
+  };
+
+  // Handle bulk selection of entire lists/segments
+  const handleSelectListOrSegment = (listOrSegment: any, sourceType: 'list' | 'segment') => {
+    if (entityType !== 'opportunities') return;
+
+    const opportunityIds = listOrSegment.members || [];
+    const relevantOpportunities = entities.filter(opp => opportunityIds.includes(opp.id));
+    
+    const allSelected = relevantOpportunities.every(opp => isItemSelected(opp, 'opportunity'));
+    
+    if (allSelected) {
+      // Remove all opportunities from this list/segment
+      const keysToRemove = relevantOpportunities.map(opp => `opportunity-${opp.id}`);
+      const newRecipients = selectedRecipients.filter(r => !keysToRemove.includes(r.recipientKey));
+      onRecipientsChange(newRecipients);
+    } else {
+      // Add all opportunities from this list/segment
+      const newRecipients = [...selectedRecipients];
+      relevantOpportunities.forEach(opp => {
+        const recipientKey = `opportunity-${opp.id}`;
+        if (!newRecipients.some(r => r.recipientKey === recipientKey)) {
+          newRecipients.push({
+            ...opp,
+            type: 'opportunity',
+            recipientKey
+          });
+        }
+      });
+      onRecipientsChange(newRecipients);
+    }
+  };
+
+  // Check if all items in list/segment are selected
+  const isListOrSegmentFullySelected = (listOrSegment: any, sourceType: 'list' | 'segment') => {
+    if (entityType !== 'opportunities') return false;
+    
+    const opportunityIds = listOrSegment.members || [];
+    const relevantOpportunities = entities.filter(opp => opportunityIds.includes(opp.id));
+    
+    return relevantOpportunities.length > 0 && relevantOpportunities.every(opp => isItemSelected(opp, 'opportunity'));
+  };
+
+  // Check if some items in list/segment are selected (for indeterminate state)
+  const isListOrSegmentPartiallySelected = (listOrSegment: any, sourceType: 'list' | 'segment') => {
+    if (entityType !== 'opportunities') return false;
+    
+    const opportunityIds = listOrSegment.members || [];
+    const relevantOpportunities = entities.filter(opp => opportunityIds.includes(opp.id));
+    
+    if (relevantOpportunities.length === 0) return false;
+    
+    const selectedCount = relevantOpportunities.filter(opp => isItemSelected(opp, 'opportunity')).length;
+    return selectedCount > 0 && selectedCount < relevantOpportunities.length;
+  };
+
   // Create contact mutation
   const createContactMutation = useMutation({
     mutationFn: async (contactData: any) => {
@@ -276,6 +337,11 @@ export default function RecipientSelector({
                 <div className="p-3 border-b bg-gray-50">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
+                      <Checkbox
+                        checked={isItemSelected(opportunity, 'opportunity')}
+                        onCheckedChange={() => handleSelectRecipient(opportunity, 'opportunity')}
+                        className="h-4 w-4"
+                      />
                       <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
                         <Target className="h-4 w-4 text-white" />
                       </div>
@@ -303,6 +369,11 @@ export default function RecipientSelector({
                   <div className="p-3 bg-blue-50 border-b">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
+                        <Checkbox
+                          checked={isItemSelected(customer, 'customer')}
+                          onCheckedChange={() => handleSelectRecipient(customer, 'customer')}
+                          className="h-4 w-4"
+                        />
                         <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                           <Building2 className="h-4 w-4 text-white" />
                         </div>
@@ -345,6 +416,11 @@ export default function RecipientSelector({
                         customerContacts.map((contact) => (
                           <div key={contact.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
                             <div className="flex items-center gap-3">
+                              <Checkbox
+                                checked={isItemSelected(contact, 'contact')}
+                                onCheckedChange={() => handleSelectRecipient(contact, 'contact')}
+                                className="h-4 w-4"
+                              />
                               <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
                                 <span className="text-white text-sm font-medium">
                                   {getContactDisplayName(contact).split(' ').map(n => n[0]).join('').toUpperCase()}
@@ -356,14 +432,6 @@ export default function RecipientSelector({
                                 <div className="text-sm text-gray-500">{getContactJobTitle(contact)}</div>
                               </div>
                             </div>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleSelectRecipient(contact, 'contact')}
-                              className="text-red-600 hover:text-red-800"
-                            >
-                              <X className="h-4 w-4" />
-                            </Button>
                           </div>
                         ))
                       ) : (
@@ -511,6 +579,12 @@ export default function RecipientSelector({
                     <div className="p-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
+                          <Checkbox
+                            checked={isListOrSegmentFullySelected(list, 'list')}
+                            indeterminate={isListOrSegmentPartiallySelected(list, 'list')}
+                            onCheckedChange={() => handleSelectListOrSegment(list, 'list')}
+                            className="h-4 w-4"
+                          />
                           <button
                             onClick={() => toggleItemExpansion(`list-${list.id}`)}
                             className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center"
@@ -575,6 +649,12 @@ export default function RecipientSelector({
                     <div className="p-3">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
+                          <Checkbox
+                            checked={isListOrSegmentFullySelected(view, 'segment')}
+                            indeterminate={isListOrSegmentPartiallySelected(view, 'segment')}
+                            onCheckedChange={() => handleSelectListOrSegment(view, 'segment')}
+                            className="h-4 w-4"
+                          />
                           <button
                             onClick={() => toggleItemExpansion(`segment-${view.id}`)}
                             className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center"
