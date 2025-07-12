@@ -290,7 +290,7 @@ export default function NewCampaign() {
           <div className="w-full space-y-8">
             {/* Summary Overview Blocks */}
             <div className="max-w-6xl mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
                 {(() => {
                   const totalRecipients = campaignData.recipients.length;
                   const contactsWithEmail = campaignData.recipients.filter((r: any) => r.email && r.email !== '' && !r.isMissingContact).length;
@@ -317,30 +317,30 @@ export default function NewCampaign() {
                   return (
                     <>
                       {/* Left Block - Selected Opportunities/Customers Summary */}
-                      <div className={`rounded-lg p-6 border-2 transition-all ${
+                      <div className={`rounded-lg p-4 border-2 transition-all ${
                         totalRecipients === 0 
                           ? 'bg-gray-50 border-gray-200 text-gray-500' 
                           : 'bg-white border-green-200 text-gray-900'
                       }`}>
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                             totalRecipients === 0 
                               ? 'bg-gray-200' 
                               : 'bg-green-100'
                           }`}>
-                            <Target className={`h-5 w-5 ${
+                            <Target className={`h-4 w-4 ${
                               totalRecipients === 0 
                                 ? 'text-gray-400' 
                                 : 'text-green-600'
                             }`} />
                           </div>
                           <div>
-                            <h3 className={`font-medium ${
+                            <h3 className={`font-medium text-sm ${
                               totalRecipients === 0 
                                 ? 'text-gray-500' 
                                 : 'text-gray-900'
                             }`}>Selected Targets</h3>
-                            <p className={`text-sm ${
+                            <p className={`text-xs ${
                               totalRecipients === 0 
                                 ? 'text-gray-400' 
                                 : 'text-gray-600'
@@ -350,39 +350,39 @@ export default function NewCampaign() {
                           </div>
                         </div>
                         
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between py-2">
-                            <span className="text-sm">Opportunities</span>
-                            <span className="font-medium">{uniqueOpportunities.size}</span>
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between py-1">
+                            <span className="text-xs">Opportunities</span>
+                            <span className="font-medium text-sm">{uniqueOpportunities.size}</span>
                           </div>
-                          <div className="flex items-center justify-between py-2">
-                            <span className="text-sm">Customers</span>
-                            <span className="font-medium">{uniqueCustomers.size}</span>
+                          <div className="flex items-center justify-between py-1">
+                            <span className="text-xs">Customers</span>
+                            <span className="font-medium text-sm">{uniqueCustomers.size}</span>
                           </div>
-                          <div className="flex items-center justify-between py-2 border-t pt-2">
-                            <span className="text-sm font-medium">Total Recipients</span>
-                            <span className="font-bold text-lg">{totalRecipients}</span>
+                          <div className="flex items-center justify-between py-1 border-t pt-2">
+                            <span className="text-xs font-medium">Total Recipients</span>
+                            <span className="font-bold text-base">{totalRecipients}</span>
                           </div>
                         </div>
                       </div>
 
                       {/* Right Block - Contacts Status */}
-                      <div className={`rounded-lg p-6 border-2 transition-all ${
+                      <div className={`rounded-lg p-4 border-2 transition-all ${
                         contactStatus === 'empty' 
                           ? 'bg-gray-50 border-gray-200 text-gray-500' 
                           : contactStatus === 'missing'
                           ? 'bg-orange-50 border-orange-200 text-orange-900'
                           : 'bg-green-50 border-green-200 text-green-900'
                       }`}>
-                        <div className="flex items-center gap-3 mb-4">
-                          <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
                             contactStatus === 'empty' 
                               ? 'bg-gray-200' 
                               : contactStatus === 'missing'
                               ? 'bg-orange-100'
                               : 'bg-green-100'
                           }`}>
-                            <Mail className={`h-5 w-5 ${
+                            <Mail className={`h-4 w-4 ${
                               contactStatus === 'empty' 
                                 ? 'text-gray-400' 
                                 : contactStatus === 'missing'
@@ -391,8 +391,8 @@ export default function NewCampaign() {
                             }`} />
                           </div>
                           <div>
-                            <h3 className="font-medium">Contact Status</h3>
-                            <p className="text-sm">
+                            <h3 className="font-medium text-sm">Contact Status</h3>
+                            <p className="text-xs">
                               {contactStatus === 'empty' 
                                 ? 'Select recipients first'
                                 : contactStatus === 'missing'
@@ -403,25 +403,25 @@ export default function NewCampaign() {
                           </div>
                         </div>
                         
-                        <div className="space-y-3">
-                          <div className="flex items-center justify-between py-2">
-                            <span className="text-sm">With Email</span>
-                            <span className={`font-medium ${
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between py-1">
+                            <span className="text-xs">With Email</span>
+                            <span className={`font-medium text-sm ${
                               contactStatus === 'complete' ? 'text-green-600' : ''
                             }`}>{contactsWithEmail}</span>
                           </div>
-                          <div className="flex items-center justify-between py-2">
-                            <span className="text-sm">Missing Contacts</span>
-                            <span className={`font-medium ${
+                          <div className="flex items-center justify-between py-1">
+                            <span className="text-xs">Missing Contacts</span>
+                            <span className={`font-medium text-sm ${
                               missingContacts > 0 ? 'text-red-600' : ''
                             }`}>{missingContacts}</span>
                           </div>
-                          <div className="flex items-center justify-between py-2 border-t pt-2">
-                            <span className="text-sm font-medium">Total Recipients</span>
-                            <span className="font-bold text-lg">{totalRecipients}</span>
+                          <div className="flex items-center justify-between py-1 border-t pt-2">
+                            <span className="text-xs font-medium">Total Recipients</span>
+                            <span className="font-bold text-base">{totalRecipients}</span>
                           </div>
                           {contactStatus === 'missing' && (
-                            <div className="mt-3 p-2 bg-orange-100 border border-orange-300 rounded text-center">
+                            <div className="mt-2 p-2 bg-orange-100 border border-orange-300 rounded text-center">
                               <p className="text-xs text-orange-700">
                                 Review recipients to fix missing contacts
                               </p>
