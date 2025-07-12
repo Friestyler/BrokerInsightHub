@@ -1,0 +1,435 @@
+# Epic Story: Smart Customer Lists with AI-Powered Segmentation
+
+## Epic Overview
+
+**Title:** Smart Customer Lists - AI-Powered Customer Segmentation for Insurance Brokers
+
+**Goal:** Transform the existing customer list interface into an intelligent segmentation tool that helps insurance brokers identify cross-sell, upsell, and retention opportunities using AI-powered suggestions and natural language queries.
+
+**User Persona:** Insurance brokers and account managers who need to identify customer opportunities but lack technical expertise to create complex database queries.
+
+---
+
+## User Stories & Detailed UX/UI Specifications
+
+### **Story 1: AI Suggestions Discovery - Primary Entry Point**
+
+**As an** insurance broker**I want to** see AI-powered customer segment suggestions prominently when I open the customer list**So that** I can immediately identify high-value opportunities without manual analysis
+
+#### UX/UI Details:
+
+- **Visibility:** AI suggestions section appears by default when no smart list is active
+- **Layout:** Full-width hero section positioned between header and customer controls
+- **Visual Design:**
+
+- Gradient background (blue-50 to indigo-50) for visual prominence
+- Large "AI Smart List Suggestions" title with brain icon (w-6 h-6)
+- "New" badge to highlight the feature
+- Descriptive subtitle explaining the functionality
+
+
+
+- **Card Grid:** Responsive 4-card layout (1→2→4 columns based on screen size)
+- **Each Suggestion Card:**
+
+- **Header:** Icon in colored background + Priority badge (High/Medium)
+- **Content:** Bold title, 2-line description, metrics row
+- **Footer:** "Preview Customers" button (outline style)
+- **Interactions:** Hover effects (scale 105%, enhanced shadow, blue border)
+
+
+
+- **Conversational CTA:** White box below cards with MessageSquare icon and "Create with AI Prompt" button
+
+
+#### Technical Requirements:
+
+```typescript
+interface SmartSuggestion {
+  id: string
+  title: string
+  description: string
+  prompt: string
+  count: number
+  value: string
+  priority: 'High' | 'Medium' | 'Low'
+  icon: LucideIcon
+  customers: string[]
+}
+
+// Conditional rendering logic
+{!activeSmartList && <AISuggestionsSection />}
+```
+
+---
+
+### **Story 2: Preview Mode - Validate Before Committing**
+
+**As an** insurance broker**I want to** preview which customers match an AI suggestion before saving it**So that** I can validate the segment quality and relevance
+
+#### UX/UI Details:
+
+- **Trigger:** Click any AI suggestion card
+- **State Transition:**
+
+- AI suggestions section disappears completely
+- Blue preview banner appears above controls
+
+
+
+- **Preview Banner Design:**
+
+- Light blue background (bg-blue-50) with blue border
+- Brain icon + "Preview" badge (not "AI Generated")
+- Suggestion title and quoted prompt text
+- Three action buttons: Clear, Save as Smart List, Launch Campaign
+
+
+
+- **Data Filtering:**
+
+- Customer table automatically filters to matching customers
+- Matching customers auto-selected with blue row highlighting
+- Stats cards update to reflect filtered subset
+
+
+
+- **Clear Functionality:** Returns to full customer list and shows AI suggestions again
+
+
+#### Technical Requirements:
+
+```typescript
+interface PreviewState {
+  activeSmartList: string | null
+  filteredCustomers: Customer[]
+  selectedCustomers: string[]
+}
+
+// Filter logic
+const filteredCustomers = activeSmartList 
+  ? customers.filter(c => suggestion.customers.includes(c.id))
+  : customers
+```
+
+---
+
+### **Story 3: Conversational AI Builder**
+
+**As an** insurance broker**I want to** describe customer segments in natural language**So that** I can create custom segments without technical knowledge
+
+#### UX/UI Details:
+
+- **Trigger Options:**
+
+- "Create with AI Prompt" button in suggestions section
+- "Create New Smart List" in dropdown menu
+
+
+
+- **Interface:** Expandable green-themed card (border-green-200, bg-green-50)
+- **Input Components:**
+
+- Large textarea (min-h-[80px]) with white background
+- Placeholder with specific insurance example
+- 5 clickable example prompt buttons with sparkles icons
+
+
+
+- **Example Prompts:**
+
+- "Find customers over 50 who have life insurance but no pension plan"
+- "Show me companies with more than 20 employees missing health coverage"
+- "Customers with contracts ending in the next 6 months"
+- "Find customers who have property insurance but no liability coverage"
+- "Show me new customers from the last 3 months with basic coverage only"
+
+
+
+- **Actions:**
+
+- Primary: "Generate Smart List" (green-600) with brain icon
+- Secondary: "Cancel" (outline)
+- Loading: Spinner + "Generating..." text (2-second simulation)
+
+
+
+
+
+#### Technical Requirements:
+
+```typescript
+interface PromptBuilderState {
+  showPromptBuilder: boolean
+  promptInput: string
+  isGenerating: boolean
+}
+
+const handleGenerateFromPrompt = async () => {
+  setIsGenerating(true)
+  await new Promise(resolve => setTimeout(resolve, 2000))
+  setActiveSmartList("custom-prompt")
+  setSelectedCustomers(customers.slice(0, 3).map(c => c.id))
+  setIsGenerating(false)
+}
+```
+
+---
+
+### **Story 4: Smart List Management**
+
+**As an** insurance broker**I want to** save successful customer segments for future use**So that** I can quickly access proven segments for campaigns
+
+#### UX/UI Details:
+
+- **Save Action:** "Save as Smart List" button in preview banner
+- **Dropdown Menu Structure:**
+
+- "All Customers (171)" at top
+- Separator line
+- "SAVED SMART LISTS" section header with save icon
+- Empty state: "No saved lists yet. Create one from AI suggestions above."
+- "Create New Smart List" action at bottom
+
+
+
+- **Future Enhancement:** Save modal with name input and description field
+
+
+#### Technical Requirements:
+
+```typescript
+interface SavedSmartList {
+  id: string
+  name: string
+  description?: string
+  prompt: string
+  customerIds: string[]
+  createdAt: Date
+  lastUsed: Date
+}
+
+// Dropdown state management
+const savedLists: SavedSmartList[] = []
+```
+
+---
+
+### **Story 5: Dynamic Statistics**
+
+**As an** insurance broker**I want to** see real-time statistics that reflect my current selection**So that** I understand the scope and value of each segment
+
+#### UX/UI Details:
+
+- **Stats Grid:** 4 cards above customer table
+
+- Total Customers (dynamic - updates with filtering)
+- Total Opportunities (static: 94)
+- Total Value (dynamic - updates with filtering)
+- Weighted Value (static: €3,600,665.8)
+
+
+
+- **Update Logic:** Stats automatically recalculate when smart list is active
+- **Visual Design:** Clean white cards with large numbers and descriptive labels
+
+
+#### Technical Requirements:
+
+```typescript
+const currentStats = {
+  totalCustomers: filteredCustomers.length,
+  totalValue: activeSmartList 
+    ? smartSuggestions.find(s => s.id === activeSmartList)?.value
+    : "€9,143,113"
+}
+```
+
+---
+
+### ️ **Story 6: Enhanced Controls**
+
+**As an** insurance broker**I want to** search, filter, and manage customers efficiently**So that** I can refine my segments and take action
+
+#### UX/UI Details:
+
+- **Search Bar:** Left-aligned with magnifying glass icon
+- **Segment Dropdown:** "Select a segment view" with predefined options
+- **Filter Button:** Outline style with filter icon (future enhancement)
+- **Selection Toolbar:** Appears when customers are selected
+
+- Shows count: "X selected"
+- Actions: "Create Campaign", "Save as List"
+
+
+
+- **Customer Actions:** Three-dot menu per row with View, Campaign, Opportunities
+
+
+---
+
+### **Story 7: Responsive Design**
+
+**As an** insurance broker**I want to** use smart lists on any device**So that** I can identify opportunities while mobile
+
+#### UX/UI Details:
+
+- **Mobile (< 768px):**
+
+- Single column suggestion cards
+- Stacked stats cards (2x2 grid)
+- Horizontal scroll for customer table
+
+
+
+- **Tablet (768px - 1024px):**
+
+- 2-column suggestion cards
+- 2x2 stats grid
+
+
+
+- **Desktop (> 1024px):**
+
+- 4-column suggestion cards
+- 4-column stats grid
+- Full table layout
+
+
+
+
+
+---
+
+## Design System Specifications
+
+### Color Palette:
+
+- **Primary Blue:** `#3B82F6` (blue-600)
+- **Light Blue:** `#EFF6FF` (blue-50), `#DBEAFE` (blue-100)
+- **Success Green:** `#059669` (green-600)
+- **Light Green:** `#F0FDF4` (green-50), `#DCFCE7` (green-100)
+- **Priority Colors:** `#DC2626` (red-600), `#6B7280` (gray-500)
+
+
+### Component Specifications:
+
+- **Suggestion Cards:** p-4, rounded corners, hover:scale-105
+- **Preview Banner:** p-4, rounded, border-blue-200
+- **Prompt Builder:** p-4, rounded, border-green-200
+- **Stats Cards:** p-6, white background, shadow-sm
+- **Buttons:** Standard shadcn/ui sizing (sm, default)
+
+
+### Icons & Typography:
+
+- **Icons:** Lucide React, w-4 h-4 for buttons, w-5 h-5 for headers
+- **Headers:** text-2xl font-bold (Customer Lists)
+- **Subheaders:** text-xl font-semibold (AI Smart List Suggestions)
+- **Body:** text-sm font-medium
+- **Captions:** text-xs
+
+
+---
+
+## Technical Implementation
+
+### Component Architecture:
+
+```typescript
+ConversationalSmartList/
+├── AISuggestionsSection.tsx     // Main suggestions grid
+├── PromptBuilder.tsx            // Conversational input
+├── PreviewBanner.tsx            // Active list banner
+├── CustomerTable.tsx            // Data table
+├── StatsCards.tsx              // Metrics display
+└── SavedListsDropdown.tsx      // List management
+```
+
+### State Management:
+
+```typescript
+interface SmartListState {
+  // Core data
+  customers: Customer[]
+  smartSuggestions: SmartSuggestion[]
+  
+  // UI state
+  activeSmartList: string | null
+  selectedCustomers: string[]
+  showPromptBuilder: boolean
+  isGenerating: boolean
+  promptInput: string
+  
+  // Computed
+  filteredCustomers: Customer[]
+  currentStats: Stats
+}
+```
+
+### Key Interactions:
+
+1. **Default State:** Show AI suggestions, full customer list
+2. **Preview State:** Hide suggestions, show banner, filter customers
+3. **Prompt State:** Show builder, maintain current list state
+4. **Clear Action:** Return to default state
+
+
+---
+
+## Testing Scenarios
+
+### Critical User Flows:
+
+1. **Discovery Flow:**
+
+1. User lands → sees AI suggestions → clicks suggestion → previews customers → saves list
+
+
+
+2. **Conversational Flow:**
+
+1. User clicks "Create with AI Prompt" → enters description → generates → previews → saves
+
+
+
+3. **Management Flow:**
+
+1. User opens dropdown → sees saved lists → selects list → customers filter
+
+
+
+4. **Campaign Flow:**
+
+1. User previews segment → clicks "Launch Campaign" → campaign creation
+
+
+
+
+
+### Edge Cases:
+
+- No matching customers for prompt
+- Network timeout during generation
+- Mobile layout on small screens
+- Empty saved lists state
+
+
+---
+
+## Success Metrics
+
+### User Engagement:
+
+- **AI Suggestion Click Rate:** % of users who interact with suggestions
+- **Preview to Save Conversion:** % of previews that become saved lists
+- **Prompt Builder Usage:** % of users who try conversational AI
+- **Return Usage:** % of users who return to use saved lists
+
+
+### Business Impact:
+
+- **Opportunity Discovery Rate:** Increase in identified cross-sell/upsell opportunities
+- **Time to Insight:** Reduction in time from login to actionable segment
+- **Campaign Conversion:** Success rate of campaigns from smart lists
+- **User Adoption:** % of brokers actively using the feature
