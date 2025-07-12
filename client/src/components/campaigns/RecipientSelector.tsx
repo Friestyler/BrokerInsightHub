@@ -596,7 +596,7 @@ export default function RecipientSelector({
                             )}
                           </button>
                           <div>
-                            <p className="font-medium">{list.name}</p>
+                            <p className="font-medium">{list.name === 'Shared opportunities list' ? 'All Opportunities' : list.name}</p>
                             <p className="text-sm text-gray-600">{list.description}</p>
                             <p className="text-xs text-gray-500">
                               {list.item_count || list.itemCount || 0} items
