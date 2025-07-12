@@ -97,13 +97,19 @@ interface SmartListPreviewProps {
   list: any;
   onPreview: (list: any) => void;
   onSave: (list: any) => void;
+  isActive?: boolean;
 }
 
-function SmartListCard({ list, onPreview, onSave }: SmartListPreviewProps) {
+function SmartListCard({ list, onPreview, onSave, isActive = false }: SmartListPreviewProps) {
   const Icon = list.icon;
   
   return (
-    <Card className="hover:shadow-md transition-shadow border-[#E6E7F1]">
+    <Card 
+      className={`hover:shadow-md transition-shadow border-[#E6E7F1] cursor-pointer ${
+        isActive ? 'ring-2 ring-[#5567E5] bg-blue-50' : ''
+      }`}
+      onClick={() => onPreview(list)}
+    >
       <CardContent className="p-6">
         <div className="flex items-start justify-between mb-4">
           <div className={`p-3 rounded-lg ${list.bgColor}`}>
@@ -132,9 +138,12 @@ function SmartListCard({ list, onPreview, onSave }: SmartListPreviewProps) {
         <Button 
           variant="outline" 
           className="w-full mb-2"
-          onClick={() => onPreview(list)}
+          onClick={(e) => {
+            e.stopPropagation();
+            onSave(list);
+          }}
         >
-          Preview Customers
+          Save as List
         </Button>
       </CardContent>
     </Card>
@@ -353,6 +362,7 @@ export default function SmartCustomerLists() {
   const [showAIPromptDialog, setShowAIPromptDialog] = useState(false);
   const [selectedList, setSelectedList] = useState<any>(null);
   const [showFullCustomerList, setShowFullCustomerList] = useState(false);
+  const [activeSmartList, setActiveSmartList] = useState<any>(null);
 
   // Create smart list mutation
   const createSmartListMutation = useMutation({
@@ -383,8 +393,8 @@ export default function SmartCustomerLists() {
   });
 
   const handlePreview = (list: any) => {
+    setActiveSmartList(list);
     setSelectedList(list);
-    setShowPreviewDialog(true);
   };
 
   const handleSave = async (listData: any) => {
@@ -413,7 +423,7 @@ export default function SmartCustomerLists() {
             Back to Smart Lists
           </Button>
         </div>
-        <CustomersPageClean />
+        <CustomersPageClean smartListFilter={activeSmartList} />
       </div>
     );
   }
@@ -470,6 +480,7 @@ export default function SmartCustomerLists() {
                 list={list}
                 onPreview={handlePreview}
                 onSave={handleSave}
+                isActive={activeSmartList?.id === list.id}
               />
             ))}
           </div>
@@ -495,8 +506,39 @@ export default function SmartCustomerLists() {
         </CardContent>
       </Card>
 
+      {/* Active Smart List Indicator */}
+      {activeSmartList && (
+        <Card className="bg-green-50 border-green-200 mb-4">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-green-100 rounded-lg">
+                  <activeSmartList.icon className="h-4 w-4 text-green-600" />
+                </div>
+                <div>
+                  <h3 className="font-medium text-green-900">
+                    Filtered by: {activeSmartList.title}
+                  </h3>
+                  <p className="text-sm text-green-700">
+                    Showing {activeSmartList.customerCount} customers matching smart list criteria
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setActiveSmartList(null)}
+                className="text-green-700 border-green-300 hover:bg-green-100"
+              >
+                Clear Filter
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Regular Customer List */}
-      <CustomersPageClean />
+      <CustomersPageClean smartListFilter={activeSmartList} />
 
       {/* Preview Dialog */}
       <SmartListPreviewDialog

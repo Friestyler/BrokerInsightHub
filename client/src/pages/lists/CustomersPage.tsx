@@ -167,7 +167,11 @@ const useCreateSavedSegmentView = () => {
   });
 };
 
-export default function CustomersPageClean() {
+interface CustomersPageCleanProps {
+  smartListFilter?: any;
+}
+
+export default function CustomersPageClean({ smartListFilter }: CustomersPageCleanProps = {}) {
   const { environment } = useEnvironment();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -335,7 +339,25 @@ export default function CustomersPageClean() {
       // Apply list filtering if an active list is selected
       const matchesList = !activeList || !activeList.members || activeList.members.includes(customerId);
       
-      return matchesSearch && matchesIndustry && matchesSize && matchesStatus && matchesList;
+      // Apply smart list filtering (simulated logic based on smart list criteria)
+      const matchesSmartList = !smartListFilter || (() => {
+        // This is a simplified filtering logic based on smart list criteria
+        // In a real implementation, this would be more sophisticated
+        switch (smartListFilter.id) {
+          case 1: // Retirement Prospects
+            return customer.opportunityCount > 0 && customer.industry !== 'Tech';
+          case 2: // Contract Renewals
+            return customer.opportunityCount > 0;
+          case 3: // SME Health Coverage Gap
+            return customer.size === 'Medium' || customer.size === 'Small';
+          case 4: // Liability Cross-sell
+            return customer.opportunityCount === 0 && customer.industry !== 'Finance';
+          default:
+            return true;
+        }
+      })();
+      
+      return matchesSearch && matchesIndustry && matchesSize && matchesStatus && matchesList && matchesSmartList;
     } catch (error) {
       console.error('Error filtering customer:', error, customer);
       return false;
