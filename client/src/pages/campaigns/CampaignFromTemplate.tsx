@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Share, DollarSign, Home, Car, Umbrella, Building, UserCheck, TrendingDown, Plane } from "lucide-react";
 import { useLocation, useRoute, useParams } from 'wouter';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
@@ -11,6 +12,7 @@ import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import ImprovedFlowBuilder from './ImprovedEmailBuilder';
 import RecipientSelector from '@/components/campaigns/RecipientSelector';
+import CampaignSettingsWizard from '@/components/campaigns/CampaignSettingsWizard';
 
 interface CampaignFromTemplateProps {
   params?: { templateId?: string; campaignId?: string };
@@ -51,6 +53,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   
   const [currentStep, setCurrentStep] = useState(getStepNumber(stepParam));
   const [recipientSelectorTab, setRecipientSelectorTab] = useState<string | null>(null);
+  const [showSettingsWizard, setShowSettingsWizard] = useState(false);
 
   // Track if this is initial load to prevent URL conflicts with manual navigation
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -1106,29 +1109,68 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             </div>
 
             <div className="max-w-2xl mx-auto">
-              <div className="p-8 text-center border-2 border-dashed border-gray-300 rounded-lg">
-                <Settings className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-700 mb-2">
-                  Campaign Settings
-                </h3>
-                <p className="text-sm text-gray-500 max-w-md mx-auto mb-4">
-                  Configure when to send, tracking options, and other campaign settings.
-                </p>
+              <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
+                <div className="text-sm text-gray-600 mb-4">
+                  Configure advanced campaign settings including scheduling, permissions, sender information, and automation rules.
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <div className="font-medium text-sm">Schedule Type</div>
+                      <div className="text-xs text-gray-600">
+                        {campaignData.settings.scheduleType === 'scheduled' ? 'Scheduled delivery' : 'Send immediately'}
+                      </div>
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      {campaignData.settings.scheduleType === 'scheduled' ? 'Scheduled' : 'Immediate'}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <div className="font-medium text-sm">Partner Permissions</div>
+                      <div className="text-xs text-gray-600">
+                        Control what partners can customize
+                      </div>
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      {Object.values(campaignData.settings).filter(Boolean).length} permissions
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <div className="font-medium text-sm">Sender Configuration</div>
+                      <div className="text-xs text-gray-600">
+                        {campaignData.settings.senderName || 'Default sender settings'}
+                      </div>
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      {campaignData.settings.emailSendingType === 'qollabi_default' ? 'Qollabi Default' : 'Custom'}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <div className="font-medium text-sm">Automation Rules</div>
+                      <div className="text-xs text-gray-600">
+                        {campaignData.settings.automationType === 'send_automatically' ? 'Automatic sending' : 'Manual review'}
+                      </div>
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      {campaignData.settings.excludePreviouslySent ? 'Duplicate protection' : 'Standard'}
+                    </Badge>
+                  </div>
+                </div>
+                
                 <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setCampaignData({
-                      ...campaignData,
-                      settings: {
-                        ...campaignData.settings,
-                        sendTime: 'immediate',
-                        timezone: 'UTC',
-                        replyTo: 'noreply@company.com'
-                      }
-                    });
-                  }}
+                  onClick={() => setShowSettingsWizard(true)}
+                  className="w-full mt-4"
+                  variant="outline"
                 >
-                  Apply Default Settings (Placeholder)
+                  <Settings className="h-4 w-4 mr-2" />
+                  Configure Settings
                 </Button>
               </div>
             </div>
@@ -1388,6 +1430,26 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
         {renderStepContent()}
       </div>
+      
+      {/* Campaign Settings Wizard */}
+      <CampaignSettingsWizard
+        isOpen={showSettingsWizard}
+        onClose={() => setShowSettingsWizard(false)}
+        onSave={(settings) => {
+          setCampaignData(prev => ({
+            ...prev,
+            settings: {
+              ...prev.settings,
+              ...settings
+            }
+          }));
+          setShowSettingsWizard(false);
+          toast({
+            title: "Settings saved",
+            description: "Your campaign settings have been updated."
+          });
+        }}
+      />
     </div>
   );
 }
