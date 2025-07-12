@@ -99,6 +99,39 @@ export default function RecipientSelector({
     phone: ''
   });
   
+  const [suggestedContacts, setSuggestedContacts] = useState<{[key: string]: any[]}>({});
+  const [showSuggestions, setShowSuggestions] = useState<{[key: string]: boolean}>({});
+  
+  // Fetch look-alike contacts for partner sharing
+  const fetchLookAlikeContacts = async (recipient: any) => {
+    try {
+      const customerName = recipient.customerInfo?.name || recipient.customerInfo?.title || '';
+      const opportunityTitle = recipient.title || '';
+      
+      const response = await fetch(`/api/contacts/lookalike?customerName=${encodeURIComponent(customerName)}&opportunityTitle=${encodeURIComponent(opportunityTitle)}&limit=3`);
+      
+      if (response.ok) {
+        const contacts = await response.json();
+        return contacts;
+      }
+      return [];
+    } catch (error) {
+      console.error('Error fetching look-alike contacts:', error);
+      return [];
+    }
+  };
+  
+  // Load suggestions when a recipient is missing a contact
+  const loadSuggestionsForRecipient = async (uniqueKey: string, recipient: any) => {
+    if (!recipient.isMissingContact) return;
+    
+    const contacts = await fetchLookAlikeContacts(recipient);
+    setSuggestedContacts(prev => ({
+      ...prev,
+      [uniqueKey]: contacts
+    }));
+  };
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -684,6 +717,16 @@ export default function RecipientSelector({
                     </span>
                   </div>
                 )}
+                {Object.keys(suggestedContacts).length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
+                      <Users className="h-3 w-3 text-green-600" />
+                    </div>
+                    <span className="text-sm text-green-600">
+                      Look-alike suggestions available
+                    </span>
+                  </div>
+                )}
               </div>
               {missingContactsCount > 0 && (
                 <div className="flex items-center gap-2">
@@ -764,13 +807,31 @@ export default function RecipientSelector({
                   {/* Action Buttons */}
                   <div className="flex items-center gap-2 flex-shrink-0">
                     {recipient.isMissingContact && (
-                      <Button
-                        size="sm"
-                        onClick={() => setShowInlineContactForm(uniqueKey)}
-                        className="h-7 px-3 text-xs"
-                      >
-                        Add
-                      </Button>
+                      <>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => {
+                            setShowSuggestions(prev => ({
+                              ...prev,
+                              [uniqueKey]: !prev[uniqueKey]
+                            }));
+                            if (!suggestedContacts[uniqueKey]) {
+                              loadSuggestionsForRecipient(uniqueKey, recipient);
+                            }
+                          }}
+                          className="h-7 px-3 text-xs"
+                        >
+                          {showSuggestions[uniqueKey] ? 'Hide' : 'Suggest'}
+                        </Button>
+                        <Button
+                          size="sm"
+                          onClick={() => setShowInlineContactForm(uniqueKey)}
+                          className="h-7 px-3 text-xs"
+                        >
+                          Add
+                        </Button>
+                      </>
                     )}
                     <Button
                       variant="ghost"
@@ -782,6 +843,84 @@ export default function RecipientSelector({
                     </Button>
                   </div>
                 </div>
+                
+                {/* Look-alike Contact Suggestions */}
+                {showSuggestions[uniqueKey] && (
+                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Users className="h-4 w-4 text-blue-600" />
+                      <span className="text-sm font-medium text-blue-800">
+                        Suggested contacts from your network
+                      </span>
+                    </div>
+                    {suggestedContacts[uniqueKey] && suggestedContacts[uniqueKey].length > 0 ? (
+                      <div className="space-y-2">
+                        {suggestedContacts[uniqueKey].map((contact, index) => (
+                          <div key={index} className="flex items-center justify-between p-2 bg-white rounded border">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                <span className="text-xs font-medium text-blue-600">
+                                  {contact.first_name?.[0]}{contact.last_name?.[0]}
+                                </span>
+                              </div>
+                              <div>
+                                <div className="text-sm font-medium">
+                                  {contact.first_name} {contact.last_name}
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  {contact.email} • {contact.job_title}
+                                </div>
+                              </div>
+                            </div>
+                            <Button
+                              size="sm"
+                              onClick={() => {
+                                // Use the suggested contact to fill the recipient
+                                const updatedRecipient = {
+                                  ...recipient,
+                                  contactInfo: {
+                                    id: contact.id,
+                                    first_name: contact.first_name,
+                                    last_name: contact.last_name,
+                                    full_name: `${contact.first_name} ${contact.last_name}`,
+                                    email: contact.email,
+                                    job_title: contact.job_title
+                                  },
+                                  email: contact.email,
+                                  isMissingContact: false
+                                };
+                                
+                                // Update the recipient in the list
+                                const updatedRecipients = selectedRecipients.map(r => 
+                                  r.uniqueKey === uniqueKey ? updatedRecipient : r
+                                );
+                                onRecipientsChange(updatedRecipients);
+                                
+                                // Hide suggestions
+                                setShowSuggestions(prev => ({
+                                  ...prev,
+                                  [uniqueKey]: false
+                                }));
+                                
+                                toast({
+                                  title: "Contact added",
+                                  description: `${contact.first_name} ${contact.last_name} has been added to this recipient.`,
+                                });
+                              }}
+                              className="h-7 px-3 text-xs"
+                            >
+                              Use this contact
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="text-sm text-gray-500">
+                        No similar contacts found in your network.
+                      </div>
+                    )}
+                  </div>
+                )}
                 
                 {/* Inline Contact Form - Compact */}
                 {showInlineContactForm === uniqueKey && (

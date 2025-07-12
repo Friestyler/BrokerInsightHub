@@ -10083,6 +10083,53 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
     }
   });
 
+  // Get look-alike contacts for partner sharing
+  app.get('/api/contacts/lookalike', async (req, res) => {
+    try {
+      const { customerName, opportunityTitle, limit = 3 } = req.query;
+      
+      // For now, return some mock similar contacts based on De Goudse environment
+      // In production, this would use machine learning or similarity algorithms
+      const mockContacts = [
+        {
+          id: 1,
+          first_name: "Alex",
+          last_name: "Johnson", 
+          email: "alex.johnson@example.com",
+          job_title: "Operations Manager",
+          similarity_score: 0.85,
+          company: "Tech Solutions BV"
+        },
+        {
+          id: 2,
+          first_name: "Sarah",
+          last_name: "Williams",
+          email: "sarah.williams@example.com", 
+          job_title: "Business Development Manager",
+          similarity_score: 0.78,
+          company: "Digital Services Ltd"
+        },
+        {
+          id: 3,
+          first_name: "Michael",
+          last_name: "Davis",
+          email: "michael.davis@example.com",
+          job_title: "Sales Director", 
+          similarity_score: 0.72,
+          company: "Marketing Pro BV"
+        }
+      ];
+      
+      // Filter by limit
+      const limitedContacts = mockContacts.slice(0, parseInt(limit as string));
+      
+      res.json(limitedContacts);
+    } catch (error) {
+      console.error('Error fetching look-alike contacts:', error);
+      res.status(500).json({ error: 'Failed to fetch look-alike contacts' });
+    }
+  });
+
   // Get contacts for specific entity
   app.get('/api/entities/:entityType/:entityId/contacts', async (req, res) => {
     try {
