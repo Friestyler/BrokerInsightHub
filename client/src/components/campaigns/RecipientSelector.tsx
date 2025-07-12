@@ -179,7 +179,7 @@ export default function RecipientSelector({
     const opportunity = entities.find(e => e.id === opportunityId);
     if (!opportunity) return null;
     
-    const customerId = opportunity.customerId || opportunity.customer_id;
+    const customerId = opportunity.customerId || opportunity.customer_id || opportunity.clientId || opportunity.client_id;
     return customers.find(c => c.id === customerId);
   };
 
@@ -308,7 +308,15 @@ export default function RecipientSelector({
                         </div>
                         <div>
                           <div className="font-medium">{customer.name}</div>
-                          <div className="text-sm text-gray-500">Customer Organization</div>
+                          <div className="text-sm text-gray-500">
+                            Customer Organization
+                            {customerContacts.length === 0 && (
+                              <span className="ml-2 text-yellow-600 font-medium">• No contacts</span>
+                            )}
+                            {customerContacts.length > 0 && (
+                              <span className="ml-2 text-blue-600 font-medium">• {customerContacts.length} contact{customerContacts.length > 1 ? 's' : ''}</span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <Button
@@ -333,30 +341,37 @@ export default function RecipientSelector({
                       CONTACT PERSONS
                     </div>
                     <div className="space-y-2">
-                      {customerContacts.map((contact) => (
-                        <div key={contact.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
-                              <span className="text-white text-sm font-medium">
-                                {getContactDisplayName(contact).split(' ').map(n => n[0]).join('').toUpperCase()}
-                              </span>
+                      {customerContacts.length > 0 ? (
+                        customerContacts.map((contact) => (
+                          <div key={contact.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                            <div className="flex items-center gap-3">
+                              <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
+                                <span className="text-white text-sm font-medium">
+                                  {getContactDisplayName(contact).split(' ').map(n => n[0]).join('').toUpperCase()}
+                                </span>
+                              </div>
+                              <div>
+                                <div className="font-medium">{getContactDisplayName(contact)}</div>
+                                <div className="text-sm text-gray-500">{contact.email}</div>
+                                <div className="text-sm text-gray-500">{getContactJobTitle(contact)}</div>
+                              </div>
                             </div>
-                            <div>
-                              <div className="font-medium">{getContactDisplayName(contact)}</div>
-                              <div className="text-sm text-gray-500">{contact.email}</div>
-                              <div className="text-sm text-gray-500">{getContactJobTitle(contact)}</div>
-                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleSelectRecipient(contact, 'contact')}
+                              className="text-red-600 hover:text-red-800"
+                            >
+                              <X className="h-4 w-4" />
+                            </Button>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleSelectRecipient(contact, 'contact')}
-                            className="text-red-600 hover:text-red-800"
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
+                        ))
+                      ) : (
+                        <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                          <div className="text-sm text-yellow-800 font-medium">No contacts found</div>
+                          <div className="text-xs text-yellow-600">Add a contact to start sending campaigns</div>
                         </div>
-                      ))}
+                      )}
                       
                       {/* Add Contact Button */}
                       <div className="pt-2">
