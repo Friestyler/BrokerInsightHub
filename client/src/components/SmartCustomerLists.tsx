@@ -22,7 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Brain, Users, TrendingUp, Shield, Calendar, Clock, Building, AlertCircle, MessageSquare, Filter, Search, BarChart3 } from "lucide-react";
+import { Brain, Users, TrendingUp, Shield, Calendar, Clock, Building, AlertCircle, MessageSquare, Filter, Search, BarChart3, BookmarkPlus, Send } from "lucide-react";
 import CustomersPageClean from "@/pages/lists/CustomersPage";
 
 // AI Smart List Suggestions data
@@ -97,11 +97,12 @@ interface SmartListPreviewProps {
   list: any;
   onPreview: (list: any) => void;
   onSave: (list: any) => void;
+  onStartCampaign?: (list: any) => void;
   isActive?: boolean;
   onCardClick?: (list: any) => void;
 }
 
-function SmartListCard({ list, onPreview, onSave, isActive = false, onCardClick }: SmartListPreviewProps) {
+function SmartListCard({ list, onPreview, onSave, onStartCampaign, isActive = false, onCardClick }: SmartListPreviewProps) {
   const Icon = list.icon;
   
   return (
@@ -136,16 +137,34 @@ function SmartListCard({ list, onPreview, onSave, isActive = false, onCardClick 
           </div>
         </div>
         
-        <Button 
-          variant="outline" 
-          className="w-full mb-2"
-          onClick={(e) => {
-            e.stopPropagation();
-            onPreview(list);
-          }}
-        >
-          Save as List
-        </Button>
+        <div className="space-y-2 mb-2">
+          <Button 
+            variant="outline" 
+            className="w-full border-green-200 text-green-700 hover:bg-green-50"
+            onClick={(e) => {
+              e.stopPropagation();
+              onPreview(list);
+            }}
+          >
+            <BookmarkPlus className="h-4 w-4 mr-2" />
+            Save as List
+          </Button>
+          <Button 
+            className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white"
+            onClick={(e) => {
+              e.stopPropagation();
+              if (onStartCampaign) {
+                onStartCampaign(list);
+              } else {
+                // Navigate to campaign creation with this list
+                window.location.href = '/campaigns/create';
+              }
+            }}
+          >
+            <Send className="h-4 w-4 mr-2" />
+            Start Campaign
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );
@@ -409,6 +428,21 @@ export default function SmartCustomerLists() {
     await createSmartListMutation.mutateAsync(listData);
   };
 
+  const handleStartCampaign = (list: any) => {
+    // Store the smart list data in sessionStorage for campaign creation
+    sessionStorage.setItem('smartListData', JSON.stringify({
+      name: list.title,
+      description: list.description,
+      customerCount: list.customerCount,
+      value: list.value,
+      criteria: list.criteria,
+      type: 'smart_list'
+    }));
+    
+    // Navigate to campaigns page
+    window.location.href = '/campaigns/create';
+  };
+
   const handleAIPrompt = async (prompt: string) => {
     // Here you would typically call an AI API to generate a smart list
     // For now, we'll create a mock response
@@ -488,6 +522,7 @@ export default function SmartCustomerLists() {
                 list={list}
                 onPreview={handlePreview}
                 onSave={handleSave}
+                onStartCampaign={handleStartCampaign}
                 isActive={activeSmartList?.id === list.id}
                 onCardClick={setActiveSmartList}
               />
