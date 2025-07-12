@@ -178,10 +178,17 @@ export default function RecipientSelector({
   // Helper function to get customer for an opportunity
   const getCustomerForOpportunity = (opportunityId: number) => {
     const opportunity = entities.find(e => e.id === opportunityId);
-    if (!opportunity) return null;
+    if (!opportunity) {
+      console.log('DEBUG: Opportunity not found', opportunityId);
+      return null;
+    }
     
     const customerId = opportunity.customerId || opportunity.customer_id || opportunity.clientId || opportunity.client_id;
-    return customers.find(c => c.id === customerId);
+    console.log('DEBUG: getCustomerForOpportunity', { opportunityId, customerId, opportunity, customers: customers.length });
+    
+    const customer = customers.find(c => c.id === customerId);
+    console.log('DEBUG: Found customer', customer);
+    return customer;
   };
 
   const handleSelectRecipient = (item: any, type: string) => {
