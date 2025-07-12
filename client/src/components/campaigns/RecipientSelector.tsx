@@ -8,20 +8,17 @@ import {
   UserPlus, 
   CheckCircle2, 
   TrendingUp, 
-  Handshake, 
+  Target,
+  BookOpen,
   Building2,
   Mail,
   Phone,
   Briefcase,
-  Target,
-  BookOpen,
-  Check,
-  Bookmark
+  X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -46,13 +43,10 @@ interface Contact {
 interface Entity {
   id: number;
   name?: string;
-  title?: string; // For opportunities
-  type: string;
-  email?: string;
-  phone?: string;
+  title?: string;
+  customerId?: number;
+  customer_id?: number;
   description?: string;
-  customerId?: number; // For opportunities
-  contactCount?: number;
 }
 
 interface SavedList {
@@ -61,7 +55,6 @@ interface SavedList {
   description: string;
   entityType: string;
   members: number[];
-  contactIds: number[];
   itemCount: number;
 }
 
@@ -83,18 +76,17 @@ export default function RecipientSelector({
   // Map URL tab parameters to tab values and set initial tab
   const getInitialTab = (tabParam: string | null) => {
     switch (tabParam) {
-      case 'missing-contacts': return 'missing';
       case 'selected': return 'selected';
       case 'lists': return 'lists';
-      case 'contacts': return 'contacts';
       case 'segments': return 'segments';
       default: return 'lists';
     }
   };
   
   const initialTabValue = getInitialTab(initialTab ?? null);
-  const [selectedTab, setSelectedTab] = useState<'lists' | 'contacts' | 'selected' | 'missing' | 'segments'>(initialTabValue);
+  const [selectedTab, setSelectedTab] = useState<'lists' | 'selected' | 'segments'>(initialTabValue);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
+  const [expandedCustomers, setExpandedCustomers] = useState<Set<string>>(new Set());
   const [showInlineContactForm, setShowInlineContactForm] = useState<string | null>(null);
   const [inlineContactData, setInlineContactData] = useState({
     first_name: '',
@@ -113,7 +105,6 @@ export default function RecipientSelector({
     enabled: !!entityType
   });
   
-  // Extract entities from response (handle both array and object with data property)
   const entities = Array.isArray(entitiesResponse) ? entitiesResponse : (entitiesResponse.data || []);
 
   // Fetch customers for opportunity drill-down
@@ -164,13 +155,44 @@ export default function RecipientSelector({
     });
   };
 
+  const toggleCustomerExpansion = (customerId: string) => {
+    setExpandedCustomers(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(customerId)) {
+        newSet.delete(customerId);
+      } else {
+        newSet.add(customerId);
+      }
+      return newSet;
+    });
+  };
+
+  // Helper function to get contacts for a specific customer
+  const getContactsForCustomer = (customerId: number) => {
+    return allContacts.filter(contact => 
+      contact.linked_entity_id === customerId && contact.linked_entity_type === 'customer'
+    );
+  };
+
+  // Helper function to get customer for an opportunity
+  const getCustomerForOpportunity = (opportunityId: number) => {
+    const opportunity = entities.find(e => e.id === opportunityId);
+    if (!opportunity) return null;
+    
+    const customerId = opportunity.customerId || opportunity.customer_id;
+    return customers.find(c => c.id === customerId);
+  };
+
   const handleSelectRecipient = (item: any, type: string) => {
     const recipientKey = `${type}-${item.id}`;
     const isSelected = selectedRecipients.some(r => r.recipientKey === recipientKey);
     
     if (isSelected) {
-      onRecipientsChange(selectedRecipients.filter(r => r.recipientKey !== recipientKey));
+      // Remove from selection
+      const newRecipients = selectedRecipients.filter(r => r.recipientKey !== recipientKey);
+      onRecipientsChange(newRecipients);
     } else {
+      // Add to selection
       const newRecipient = {
         ...item,
         type,
@@ -180,131 +202,232 @@ export default function RecipientSelector({
     }
   };
 
+  // Create contact mutation
+  const createContactMutation = useMutation({
+    mutationFn: async (contactData: any) => {
+      return await apiRequest('POST', `/api/degoudse/contacts`, contactData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/degoudse/contacts`] });
+      toast({
+        title: "Contact created",
+        description: "New contact has been added successfully.",
+      });
+      setShowInlineContactForm(null);
+      setInlineContactData({
+        first_name: '',
+        last_name: '',
+        email: '',
+        job_title: '',
+        phone: ''
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error creating contact",
+        description: "Failed to create contact. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   const handleCreateInlineContact = (entityId: number, entityType: string) => {
     const contactData = {
       ...inlineContactData,
-      linkedEntityId: entityId,
-      linkedEntityType: entityType
+      linked_entity_id: entityId,
+      linked_entity_type: entityType === 'opportunities' ? 'customer' : entityType.slice(0, -1)
     };
-    
-    // Add to selected recipients
-    const newContact = {
-      ...contactData,
-      id: Date.now(), // Temporary ID
-      type: 'contact',
-      recipientKey: `contact-${Date.now()}`,
-      fullName: `${inlineContactData.first_name} ${inlineContactData.last_name}`.trim()
-    };
-    
-    onRecipientsChange([...selectedRecipients, newContact]);
-    
-    // Reset form
-    setShowInlineContactForm(null);
-    setInlineContactData({
-      first_name: '',
-      last_name: '',
-      email: '',
-      job_title: '',
-      phone: ''
-    });
-    
-    toast({
-      title: "Contact added",
-      description: `${newContact.fullName} has been added to your campaign recipients.`,
-    });
+    createContactMutation.mutate(contactData);
   };
 
-  // Get entity contacts for drill-down
-  const getEntityContacts = (entityId: number, entityType: string) => {
-    return allContacts.filter(contact => {
-      const contactEntityId = contact.linkedEntityId || contact.linked_entity_id;
-      const contactEntityType = contact.linkedEntityType || contact.linked_entity_type;
-      return contactEntityId === entityId && contactEntityType === entityType;
-    });
+  // Cascading drill-down renderer
+  const renderCascadingDrillDown = (listOrSegment: any, sourceType: 'list' | 'segment') => {
+    if (entityType !== 'opportunities') {
+      return <div className="text-sm text-gray-500">Drill-down available for opportunities only</div>;
+    }
+
+    const opportunityIds = listOrSegment.members || [];
+    const relevantOpportunities = entities.filter(opp => opportunityIds.includes(opp.id));
+
+    if (relevantOpportunities.length === 0) {
+      return <div className="text-sm text-gray-500">No opportunities found in this {sourceType}</div>;
+    }
+
+    return (
+      <div className="space-y-3">
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+          <div className="flex items-center gap-2 text-green-800">
+            <Target className="h-4 w-4" />
+            <span className="font-medium">Opportunities</span>
+            <span className="text-sm">({relevantOpportunities.length} selected)</span>
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          {relevantOpportunities.map((opportunity) => {
+            const customer = getCustomerForOpportunity(opportunity.id);
+            const customerContacts = customer ? getContactsForCustomer(customer.id) : [];
+            const isOpportunityExpanded = expandedItems.has(`opp-${opportunity.id}`);
+            const isCustomerExpanded = expandedCustomers.has(`cust-${customer?.id}`);
+
+            return (
+              <div key={opportunity.id} className="border rounded-lg bg-white">
+                {/* Opportunity Level */}
+                <div className="p-3 border-b bg-gray-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                        <Target className="h-4 w-4 text-white" />
+                      </div>
+                      <div>
+                        <div className="font-medium">{opportunity.title || opportunity.name}</div>
+                        <div className="text-sm text-gray-500">Opportunity</div>
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => toggleItemExpansion(`opp-${opportunity.id}`)}
+                    >
+                      {isOpportunityExpanded ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Customer Level */}
+                {isOpportunityExpanded && customer && (
+                  <div className="p-3 bg-blue-50 border-b">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
+                          <Building2 className="h-4 w-4 text-white" />
+                        </div>
+                        <div>
+                          <div className="font-medium">{customer.name}</div>
+                          <div className="text-sm text-gray-500">Customer Organization</div>
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleCustomerExpansion(`cust-${customer.id}`)}
+                      >
+                        {isCustomerExpanded ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Contacts Level */}
+                {isOpportunityExpanded && customer && isCustomerExpanded && (
+                  <div className="p-3">
+                    <div className="text-sm text-gray-500 mb-3 uppercase tracking-wide">
+                      CONTACT PERSONS
+                    </div>
+                    <div className="space-y-2">
+                      {customerContacts.map((contact) => (
+                        <div key={contact.id} className="flex items-center justify-between p-2 bg-gray-50 rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
+                              <span className="text-white text-sm font-medium">
+                                {getContactDisplayName(contact).split(' ').map(n => n[0]).join('').toUpperCase()}
+                              </span>
+                            </div>
+                            <div>
+                              <div className="font-medium">{getContactDisplayName(contact)}</div>
+                              <div className="text-sm text-gray-500">{contact.email}</div>
+                              <div className="text-sm text-gray-500">{getContactJobTitle(contact)}</div>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleSelectRecipient(contact, 'contact')}
+                            className="text-red-600 hover:text-red-800"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      ))}
+                      
+                      {/* Add Contact Button */}
+                      <div className="pt-2">
+                        {renderAddContactForm(`customer-${customer.id}`, customer.id, 'customer')}
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
   };
 
-  // Filter entities based on search
-  const filteredEntities = entities.filter((entity: Entity) => {
-    const searchTerm = searchQuery.toLowerCase();
-    const entityName = entity.name || entity.title || '';
-    return entityName.toLowerCase().includes(searchTerm);
-  });
-
-  // Filter contacts based on search
-  const filteredContacts = allContacts.filter((contact: Contact) => {
-    const searchTerm = searchQuery.toLowerCase();
-    const contactName = getContactDisplayName(contact);
-    const contactEmail = contact.email || '';
-    return contactName.toLowerCase().includes(searchTerm) || 
-           contactEmail.toLowerCase().includes(searchTerm);
-  });
-
-  // Tab buttons
-  const tabButtons = [
-    { id: 'lists', label: 'All Lists', icon: BookOpen },
-    { id: 'segments', label: 'Segments', icon: Target },
-    { id: 'contacts', label: 'Contacts', icon: Users },
-    { id: 'missing', label: 'Missing Contacts', icon: UserPlus },
-    { id: 'selected', label: 'Selected', icon: Check, count: selectedRecipients.length }
-  ];
-
-  const renderInlineContactForm = (entityId: number, entityType: string, formKey: string) => (
-    <div className="mt-3">
+  const renderAddContactForm = (formKey: string, entityId: number, entityType: string) => (
+    <div className="w-full">
       {showInlineContactForm === formKey ? (
-        <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 bg-gray-50">
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               <div>
+                <Label htmlFor="first_name" className="text-sm font-medium">
+                  First Name
+                </Label>
                 <Input
-                  placeholder="First name"
+                  id="first_name"
                   value={inlineContactData.first_name}
-                  onChange={(e) => setInlineContactData({
-                    ...inlineContactData,
-                    first_name: e.target.value
-                  })}
+                  onChange={(e) => setInlineContactData(prev => ({ ...prev, first_name: e.target.value }))}
+                  className="mt-1"
                 />
               </div>
               <div>
+                <Label htmlFor="last_name" className="text-sm font-medium">
+                  Last Name
+                </Label>
                 <Input
-                  placeholder="Last name"
+                  id="last_name"
                   value={inlineContactData.last_name}
-                  onChange={(e) => setInlineContactData({
-                    ...inlineContactData,
-                    last_name: e.target.value
-                  })}
+                  onChange={(e) => setInlineContactData(prev => ({ ...prev, last_name: e.target.value }))}
+                  className="mt-1"
                 />
               </div>
             </div>
+            
             <div>
+              <Label htmlFor="email" className="text-sm font-medium">
+                Email
+              </Label>
               <Input
-                placeholder="Email address"
+                id="email"
+                type="email"
                 value={inlineContactData.email}
-                onChange={(e) => setInlineContactData({
-                  ...inlineContactData,
-                  email: e.target.value
-                })}
+                onChange={(e) => setInlineContactData(prev => ({ ...prev, email: e.target.value }))}
+                className="mt-1"
               />
             </div>
+            
             <div>
+              <Label htmlFor="job_title" className="text-sm font-medium">
+                Job Title
+              </Label>
               <Input
-                placeholder="Job title"
+                id="job_title"
                 value={inlineContactData.job_title}
-                onChange={(e) => setInlineContactData({
-                  ...inlineContactData,
-                  job_title: e.target.value
-                })}
+                onChange={(e) => setInlineContactData(prev => ({ ...prev, job_title: e.target.value }))}
+                className="mt-1"
               />
             </div>
-            <div>
-              <Input
-                placeholder="Phone number"
-                value={inlineContactData.phone}
-                onChange={(e) => setInlineContactData({
-                  ...inlineContactData,
-                  phone: e.target.value
-                })}
-              />
-            </div>
+            
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -351,268 +474,62 @@ export default function RecipientSelector({
       case 'lists':
         return (
           <div className="space-y-4">
-            {/* Search */}
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search lists..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-blue-800">
+                <BookOpen className="h-5 w-5" />
+                <span className="font-medium">Saved Lists</span>
+              </div>
+              <p className="text-sm text-blue-700 mt-1">
+                Select recipients from your saved lists with cascading drill-down navigation.
+              </p>
             </div>
-
-            {/* Saved Lists with Cascading Drill-Down */}
-            <div className="space-y-3">
-              {savedLists.filter((list: SavedList) => {
-                const searchTerm = searchQuery.toLowerCase();
-                return list.name.toLowerCase().includes(searchTerm) || 
-                       list.description.toLowerCase().includes(searchTerm);
-              }).map((list: SavedList) => (
-                <div key={list.id} className="border rounded-lg p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-300"
-                        onChange={() => handleSelectRecipient(list, 'list')}
-                        checked={selectedRecipients.some(r => 
-                          r.type === 'list' && r.id === list.id
-                        )}
-                      />
-                      <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                        <BookOpen className="h-4 w-4 text-white" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{list.name}</p>
-                        <p className="text-sm text-gray-500">{list.description}</p>
-                        <span className="text-xs text-purple-600 bg-purple-100 px-2 py-1 rounded">
-                          {list.itemCount} items
-                        </span>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleItemExpansion(`list-${list.id}`)}
-                      className="bg-purple-200 hover:bg-purple-300"
-                    >
-                      {expandedItems.has(`list-${list.id}`) ? (
-                        <ChevronDown className="h-4 w-4 text-purple-800" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4 text-purple-800" />
-                      )}
-                    </Button>
-                  </div>
-                  
-                  {/* List Items Drill-Down */}
-                  {expandedItems.has(`list-${list.id}`) && (
-                    <div className="ml-8 mt-3 space-y-2 border-l-2 border-purple-200 pl-4">
-                      <div className="text-xs text-purple-600 font-medium uppercase tracking-wide mb-2">
-                        📋 List Items
-                      </div>
-                      {list.members.map((entityId: number) => {
-                        const entity = entities.find((e: Entity) => e.id === entityId);
-                        if (!entity) return null;
-                        
-                        const entityContacts = getEntityContacts(entity.id, entityType.slice(0, -1));
-                        const hasContacts = entityContacts.length > 0;
-                        
-                        return (
-                          <div key={entity.id} className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <input
-                                  type="checkbox"
-                                  className="rounded border-gray-300"
-                                  onChange={() => handleSelectRecipient(entity, entityType.slice(0, -1))}
-                                  checked={selectedRecipients.some(r => 
-                                    r.type === entityType.slice(0, -1) && r.id === entity.id
-                                  )}
-                                />
-                                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                                  <Target className="h-4 w-4 text-white" />
-                                </div>
-                                <div>
-                                  <p className="font-medium">{entity.name || entity.title}</p>
-                                  <p className="text-sm text-gray-500">{entity.description}</p>
-                                </div>
-                              </div>
-                              {hasContacts && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => toggleItemExpansion(`list-entity-${entity.id}`)}
-                                  className="bg-blue-200 hover:bg-blue-300"
-                                >
-                                  {expandedItems.has(`list-entity-${entity.id}`) ? (
-                                    <ChevronDown className="h-4 w-4 text-blue-800" />
-                                  ) : (
-                                    <ChevronRight className="h-4 w-4 text-blue-800" />
-                                  )}
-                                </Button>
-                              )}
-                            </div>
-                            
-                            {/* Entity contacts within list */}
-                            {expandedItems.has(`list-entity-${entity.id}`) && (
-                              <div className="ml-8 mt-3 space-y-2 border-l-2 border-gray-200 pl-4">
-                                <div className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-2">
-                                  👤 Contact Persons
-                                </div>
-                                {entityContacts.map((contact: Contact) => (
-                                  <div key={contact.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                                    <input
-                                      type="checkbox"
-                                      className="rounded border-gray-300 w-4 h-4"
-                                      onChange={() => handleSelectRecipient(contact, 'contact')}
-                                      checked={selectedRecipients.some(r => 
-                                        r.type === 'contact' && r.id === contact.id
-                                      )}
-                                    />
-                                    <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
-                                      <Users className="h-4 w-4 text-white" />
-                                    </div>
-                                    <div className="flex-1">
-                                      <p className="font-semibold text-gray-800">
-                                        {getContactDisplayName(contact)}
-                                      </p>
-                                      <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                                        {contact.email && (
-                                          <span className="flex items-center gap-1 bg-blue-100 px-2 py-1 rounded text-blue-700">
-                                            <Mail className="h-3 w-3" />
-                                            {contact.email}
-                                          </span>
-                                        )}
-                                        {getContactJobTitle(contact) && (
-                                          <span className="flex items-center gap-1 text-gray-500">
-                                            <Briefcase className="h-3 w-3" />
-                                            {getContactJobTitle(contact)}
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                                
-                                {/* Add Contact Button for list entities */}
-                                {renderInlineContactForm(entity.id, entityType.slice(0, -1), `list-entity-${entity.id}`)}
-                              </div>
+            
+            {listsLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+                <p className="mt-2 text-sm text-gray-600">Loading saved lists...</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {savedLists.map((list: any) => (
+                  <div key={list.id} className="border rounded-lg">
+                    <div className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => toggleItemExpansion(`list-${list.id}`)}
+                            className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center"
+                          >
+                            {expandedItems.has(`list-${list.id}`) ? (
+                              <ChevronDown className="h-4 w-4 text-white" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4 text-white" />
                             )}
-
-                            {/* Opportunities drill-down for customers in lists */}
-                            {entityType === 'opportunities' && entity.customerId && (
-                              <div className="ml-8 mt-3 border-l-2 border-gray-200 pl-4">
-                                {(() => {
-                                  const customer = customers.find((c: any) => c.id === entity.customerId);
-                                  if (!customer) return null;
-                                  
-                                  const customerContacts = getEntityContacts(customer.id, 'customer');
-                                  const hasContacts = customerContacts.length > 0;
-                                  
-                                  return (
-                                    <div className="space-y-2">
-                                      <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                          <input
-                                            type="checkbox"
-                                            className="rounded border-gray-300"
-                                            onChange={() => handleSelectRecipient(customer, 'customer')}
-                                            checked={selectedRecipients.some(r => 
-                                              r.type === 'customer' && r.id === customer.id
-                                            )}
-                                          />
-                                          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                            <Building2 className="h-4 w-4 text-white" />
-                                          </div>
-                                          <div>
-                                            <p className="font-medium">{customer.name}</p>
-                                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                                              👤 {customerContacts.length} contacts
-                                            </span>
-                                          </div>
-                                        </div>
-                                        {hasContacts && (
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => toggleItemExpansion(`list-customer-${customer.id}`)}
-                                            className="bg-blue-200 hover:bg-blue-300"
-                                          >
-                                            {expandedItems.has(`list-customer-${customer.id}`) ? (
-                                              <ChevronDown className="h-4 w-4 text-blue-800" />
-                                            ) : (
-                                              <ChevronRight className="h-4 w-4 text-blue-800" />
-                                            )}
-                                          </Button>
-                                        )}
-                                      </div>
-                                      
-                                      {/* Customer contacts within list */}
-                                      {expandedItems.has(`list-customer-${customer.id}`) && (
-                                        <div className="ml-8 space-y-2 border-l-2 border-gray-200 pl-4">
-                                          <div className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-2">
-                                            👤 Contact Persons
-                                          </div>
-                                          {customerContacts.map((contact: Contact) => (
-                                            <div key={contact.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                                              <input
-                                                type="checkbox"
-                                                className="rounded border-gray-300 w-4 h-4"
-                                                onChange={() => handleSelectRecipient(contact, 'contact')}
-                                                checked={selectedRecipients.some(r => 
-                                                  r.type === 'contact' && r.id === contact.id
-                                                )}
-                                              />
-                                              <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
-                                                <Users className="h-4 w-4 text-white" />
-                                              </div>
-                                              <div className="flex-1">
-                                                <p className="font-semibold text-gray-800">
-                                                  {getContactDisplayName(contact)}
-                                                </p>
-                                                <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                                                  {contact.email && (
-                                                    <span className="flex items-center gap-1 bg-blue-100 px-2 py-1 rounded text-blue-700">
-                                                      <Mail className="h-3 w-3" />
-                                                      {contact.email}
-                                                    </span>
-                                                  )}
-                                                  {getContactJobTitle(contact) && (
-                                                    <span className="flex items-center gap-1 text-gray-500">
-                                                      <Briefcase className="h-3 w-3" />
-                                                      {getContactJobTitle(contact)}
-                                                    </span>
-                                                  )}
-                                                </div>
-                                              </div>
-                                            </div>
-                                          ))}
-                                          
-                                          {/* Add Contact Button for customers in lists */}
-                                          {renderInlineContactForm(customer.id, 'customer', `list-customer-${customer.id}`)}
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                })()}
-                              </div>
-                            )}
+                          </button>
+                          <div>
+                            <p className="font-medium">{list.name}</p>
+                            <p className="text-sm text-gray-600">{list.description}</p>
+                            <p className="text-xs text-gray-500">
+                              {list.item_count || list.itemCount || 0} items
+                            </p>
                           </div>
-                        );
-                      })}
+                        </div>
+                      </div>
                     </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* No lists state */}
-            {savedLists.length === 0 && (
-              <div className="text-center py-12">
-                <BookOpen className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">No saved lists found</p>
-                <p className="text-gray-400 text-sm">Create lists from your entity pages to use them here</p>
+                    
+                    {expandedItems.has(`list-${list.id}`) && (
+                      <div className="border-t bg-gray-50 p-3">
+                        {renderCascadingDrillDown(list, 'list')}
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {savedLists.length === 0 && (
+                  <div className="text-center py-8">
+                    <BookOpen className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600">No saved lists available</p>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -621,387 +538,64 @@ export default function RecipientSelector({
       case 'segments':
         return (
           <div className="space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search segments..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            
-            {/* Saved Views (Segments) with Cascading Drill-Down */}
-            <div className="space-y-3">
-              {savedViews.filter((view: any) => {
-                const searchTerm = searchQuery.toLowerCase();
-                return view.name.toLowerCase().includes(searchTerm) || 
-                       view.description.toLowerCase().includes(searchTerm);
-              }).map((view: any) => (
-                <div key={view.id} className="border rounded-lg p-3">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <input
-                        type="checkbox"
-                        className="rounded border-gray-300"
-                        onChange={() => handleSelectRecipient(view, 'segment')}
-                        checked={selectedRecipients.some(r => 
-                          r.type === 'segment' && r.id === view.id
-                        )}
-                      />
-                      <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                        <Target className="h-4 w-4 text-white" />
-                      </div>
-                      <div>
-                        <p className="font-medium">{view.name}</p>
-                        <p className="text-sm text-gray-500">{view.description}</p>
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-orange-600 bg-orange-100 px-2 py-1 rounded">
-                            Segment
-                          </span>
-                          {view.filters && (
-                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                              {Object.keys(view.filters).filter(key => view.filters[key] && view.filters[key] !== 'all').length} filters
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => toggleItemExpansion(`segment-${view.id}`)}
-                      className="bg-orange-200 hover:bg-orange-300"
-                    >
-                      {expandedItems.has(`segment-${view.id}`) ? (
-                        <ChevronDown className="h-4 w-4 text-orange-800" />
-                      ) : (
-                        <ChevronRight className="h-4 w-4 text-orange-800" />
-                      )}
-                    </Button>
-                  </div>
-                  
-                  {/* Segment Items Drill-Down */}
-                  {expandedItems.has(`segment-${view.id}`) && (
-                    <div className="ml-8 mt-3 space-y-2 border-l-2 border-orange-200 pl-4">
-                      <div className="text-xs text-orange-600 font-medium uppercase tracking-wide mb-2">
-                        🎯 Segment Items
-                      </div>
-                      {/* Apply segment filters to show matching entities */}
-                      {entities.filter((entity: Entity) => {
-                        // Basic filter logic - this would be more complex in real implementation
-                        if (!view.filters) return true;
-                        
-                        // Example filter matching
-                        const searchFilter = view.filters.search;
-                        if (searchFilter && searchFilter !== 'all') {
-                          const entityName = entity.name || entity.title || '';
-                          if (!entityName.toLowerCase().includes(searchFilter.toLowerCase())) {
-                            return false;
-                          }
-                        }
-                        
-                        return true;
-                      }).slice(0, 10).map((entity: Entity) => {
-                        const entityContacts = getEntityContacts(entity.id, entityType.slice(0, -1));
-                        const hasContacts = entityContacts.length > 0;
-                        
-                        return (
-                          <div key={entity.id} className="bg-orange-50 border border-orange-200 rounded-lg p-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <input
-                                  type="checkbox"
-                                  className="rounded border-gray-300"
-                                  onChange={() => handleSelectRecipient(entity, entityType.slice(0, -1))}
-                                  checked={selectedRecipients.some(r => 
-                                    r.type === entityType.slice(0, -1) && r.id === entity.id
-                                  )}
-                                />
-                                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                                  <Target className="h-4 w-4 text-white" />
-                                </div>
-                                <div>
-                                  <p className="font-medium">{entity.name || entity.title}</p>
-                                  <p className="text-sm text-gray-500">{entity.description}</p>
-                                </div>
-                              </div>
-                              {hasContacts && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => toggleItemExpansion(`segment-entity-${entity.id}`)}
-                                  className="bg-blue-200 hover:bg-blue-300"
-                                >
-                                  {expandedItems.has(`segment-entity-${entity.id}`) ? (
-                                    <ChevronDown className="h-4 w-4 text-blue-800" />
-                                  ) : (
-                                    <ChevronRight className="h-4 w-4 text-blue-800" />
-                                  )}
-                                </Button>
-                              )}
-                            </div>
-                            
-                            {/* Entity contacts within segment */}
-                            {expandedItems.has(`segment-entity-${entity.id}`) && (
-                              <div className="ml-8 mt-3 space-y-2 border-l-2 border-gray-200 pl-4">
-                                <div className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-2">
-                                  👤 Contact Persons
-                                </div>
-                                {entityContacts.map((contact: Contact) => (
-                                  <div key={contact.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                                    <input
-                                      type="checkbox"
-                                      className="rounded border-gray-300 w-4 h-4"
-                                      onChange={() => handleSelectRecipient(contact, 'contact')}
-                                      checked={selectedRecipients.some(r => 
-                                        r.type === 'contact' && r.id === contact.id
-                                      )}
-                                    />
-                                    <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
-                                      <Users className="h-4 w-4 text-white" />
-                                    </div>
-                                    <div className="flex-1">
-                                      <p className="font-semibold text-gray-800">
-                                        {getContactDisplayName(contact)}
-                                      </p>
-                                      <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                                        {contact.email && (
-                                          <span className="flex items-center gap-1 bg-blue-100 px-2 py-1 rounded text-blue-700">
-                                            <Mail className="h-3 w-3" />
-                                            {contact.email}
-                                          </span>
-                                        )}
-                                        {getContactJobTitle(contact) && (
-                                          <span className="flex items-center gap-1 text-gray-500">
-                                            <Briefcase className="h-3 w-3" />
-                                            {getContactJobTitle(contact)}
-                                          </span>
-                                        )}
-                                      </div>
-                                    </div>
-                                  </div>
-                                ))}
-                                
-                                {/* Add Contact Button for segment entities */}
-                                {renderInlineContactForm(entity.id, entityType.slice(0, -1), `segment-entity-${entity.id}`)}
-                              </div>
-                            )}
-
-                            {/* Opportunities drill-down for customers in segments */}
-                            {entityType === 'opportunities' && entity.customerId && (
-                              <div className="ml-8 mt-3 border-l-2 border-gray-200 pl-4">
-                                {(() => {
-                                  const customer = customers.find((c: any) => c.id === entity.customerId);
-                                  if (!customer) return null;
-                                  
-                                  const customerContacts = getEntityContacts(customer.id, 'customer');
-                                  const hasContacts = customerContacts.length > 0;
-                                  
-                                  return (
-                                    <div className="space-y-2">
-                                      <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-3">
-                                          <input
-                                            type="checkbox"
-                                            className="rounded border-gray-300"
-                                            onChange={() => handleSelectRecipient(customer, 'customer')}
-                                            checked={selectedRecipients.some(r => 
-                                              r.type === 'customer' && r.id === customer.id
-                                            )}
-                                          />
-                                          <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                                            <Building2 className="h-4 w-4 text-white" />
-                                          </div>
-                                          <div>
-                                            <p className="font-medium">{customer.name}</p>
-                                            <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
-                                              👤 {customerContacts.length} contacts
-                                            </span>
-                                          </div>
-                                        </div>
-                                        {hasContacts && (
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => toggleItemExpansion(`segment-customer-${customer.id}`)}
-                                            className="bg-blue-200 hover:bg-blue-300"
-                                          >
-                                            {expandedItems.has(`segment-customer-${customer.id}`) ? (
-                                              <ChevronDown className="h-4 w-4 text-blue-800" />
-                                            ) : (
-                                              <ChevronRight className="h-4 w-4 text-blue-800" />
-                                            )}
-                                          </Button>
-                                        )}
-                                      </div>
-                                      
-                                      {/* Customer contacts within segment */}
-                                      {expandedItems.has(`segment-customer-${customer.id}`) && (
-                                        <div className="ml-8 space-y-2 border-l-2 border-gray-200 pl-4">
-                                          <div className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-2">
-                                            👤 Contact Persons
-                                          </div>
-                                          {customerContacts.map((contact: Contact) => (
-                                            <div key={contact.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg">
-                                              <input
-                                                type="checkbox"
-                                                className="rounded border-gray-300 w-4 h-4"
-                                                onChange={() => handleSelectRecipient(contact, 'contact')}
-                                                checked={selectedRecipients.some(r => 
-                                                  r.type === 'contact' && r.id === contact.id
-                                                )}
-                                              />
-                                              <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
-                                                <Users className="h-4 w-4 text-white" />
-                                              </div>
-                                              <div className="flex-1">
-                                                <p className="font-semibold text-gray-800">
-                                                  {getContactDisplayName(contact)}
-                                                </p>
-                                                <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                                                  {contact.email && (
-                                                    <span className="flex items-center gap-1 bg-blue-100 px-2 py-1 rounded text-blue-700">
-                                                      <Mail className="h-3 w-3" />
-                                                      {contact.email}
-                                                    </span>
-                                                  )}
-                                                  {getContactJobTitle(contact) && (
-                                                    <span className="flex items-center gap-1 text-gray-500">
-                                                      <Briefcase className="h-3 w-3" />
-                                                      {getContactJobTitle(contact)}
-                                                    </span>
-                                                  )}
-                                                </div>
-                                              </div>
-                                            </div>
-                                          ))}
-                                          
-                                          {/* Add Contact Button for customers in segments */}
-                                          {renderInlineContactForm(customer.id, 'customer', `segment-customer-${customer.id}`)}
-                                        </div>
-                                      )}
-                                    </div>
-                                  );
-                                })()}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
-
-            {/* No segments state */}
-            {savedViews.length === 0 && (
-              <div className="text-center py-12">
-                <Target className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                <p className="text-gray-500 text-lg">No saved segments found</p>
-                <p className="text-gray-400 text-sm">Create segments from your entity pages to use them here</p>
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+              <div className="flex items-center gap-2 text-purple-800">
+                <TrendingUp className="h-5 w-5" />
+                <span className="font-medium">Saved Segments</span>
               </div>
-            )}
-          </div>
-        );
-
-      case 'contacts':
-        return (
-          <div className="space-y-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search contacts..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-            <div className="space-y-3">
-              {filteredContacts.map((contact: Contact) => (
-                <div key={contact.id} className="border rounded-lg p-3">
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      className="rounded border-gray-300"
-                      onChange={() => handleSelectRecipient(contact, 'contact')}
-                      checked={selectedRecipients.some(r => 
-                        r.type === 'contact' && r.id === contact.id
-                      )}
-                    />
-                    <div className="w-8 h-8 bg-gray-500 rounded-full flex items-center justify-center">
-                      <Users className="h-4 w-4 text-white" />
-                    </div>
-                    <div>
-                      <p className="font-medium">{getContactDisplayName(contact)}</p>
-                      <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
-                        {contact.email && (
-                          <span className="flex items-center gap-1">
-                            <Mail className="h-3 w-3" />
-                            {contact.email}
-                          </span>
-                        )}
-                        {getContactJobTitle(contact) && (
-                          <span className="flex items-center gap-1">
-                            <Briefcase className="h-3 w-3" />
-                            {getContactJobTitle(contact)}
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-
-      case 'missing':
-        return (
-          <div className="space-y-4">
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-              <div className="flex items-center gap-2 text-yellow-800">
-                <UserPlus className="h-5 w-5" />
-                <span className="font-medium">Missing Contacts</span>
-              </div>
-              <p className="text-sm text-yellow-700 mt-1">
-                Entities without contact information. Add contacts to improve targeting.
+              <p className="text-sm text-purple-700 mt-1">
+                Select recipients from your saved segments with cascading drill-down navigation.
               </p>
             </div>
             
-            <div className="space-y-3">
-              {filteredEntities.filter((entity: Entity) => {
-                const entityContacts = getEntityContacts(entity.id, entityType.slice(0, -1));
-                return entityContacts.length === 0;
-              }).map((entity: Entity) => (
-                <div key={entity.id} className="border rounded-lg p-3 bg-yellow-50">
-                  <div className="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      className="rounded border-gray-300"
-                      onChange={() => handleSelectRecipient(entity, entityType.slice(0, -1))}
-                      checked={selectedRecipients.some(r => 
-                        r.type === entityType.slice(0, -1) && r.id === entity.id
-                      )}
-                    />
-                    <div className="w-8 h-8 bg-yellow-500 rounded-full flex items-center justify-center">
-                      <UserPlus className="h-4 w-4 text-white" />
+            {viewsLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
+                <p className="mt-2 text-sm text-gray-600">Loading saved segments...</p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {savedViews.map((view: any) => (
+                  <div key={view.id} className="border rounded-lg">
+                    <div className="p-3">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <button
+                            onClick={() => toggleItemExpansion(`segment-${view.id}`)}
+                            className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center"
+                          >
+                            {expandedItems.has(`segment-${view.id}`) ? (
+                              <ChevronDown className="h-4 w-4 text-white" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4 text-white" />
+                            )}
+                          </button>
+                          <div>
+                            <p className="font-medium">{view.name}</p>
+                            <p className="text-sm text-gray-600">{view.description}</p>
+                            <p className="text-xs text-gray-500">
+                              {view.item_count || view.itemCount || 0} items
+                            </p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <p className="font-medium">{entity.name || entity.title}</p>
-                      <p className="text-sm text-gray-500">{entity.description}</p>
-                      <span className="text-xs text-yellow-700 bg-yellow-200 px-2 py-1 rounded">
-                        No contacts
-                      </span>
-                    </div>
+                    
+                    {expandedItems.has(`segment-${view.id}`) && (
+                      <div className="border-t bg-gray-50 p-3">
+                        {renderCascadingDrillDown(view, 'segment')}
+                      </div>
+                    )}
                   </div>
-                  
-                  {/* Add Contact Button */}
-                  {renderInlineContactForm(entity.id, entityType.slice(0, -1), `missing-${entity.id}`)}
-                </div>
-              ))}
-            </div>
+                ))}
+                {savedViews.length === 0 && (
+                  <div className="text-center py-8">
+                    <TrendingUp className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                    <p className="text-sm text-gray-600">No saved segments available</p>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         );
 
@@ -1038,16 +632,20 @@ export default function RecipientSelector({
                     <Button
                       variant="ghost"
                       size="sm"
-                      onClick={() => onRecipientsChange(
-                        selectedRecipients.filter(r => r.recipientKey !== recipient.recipientKey)
-                      )}
-                      className="text-red-600 hover:text-red-800 hover:bg-red-50"
+                      onClick={() => handleSelectRecipient(recipient, recipient.type)}
+                      className="text-red-600 hover:text-red-800"
                     >
-                      Remove
+                      <X className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
               ))}
+              {selectedRecipients.length === 0 && (
+                <div className="text-center py-8">
+                  <CheckCircle2 className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                  <p className="text-sm text-gray-600">No recipients selected</p>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -1058,37 +656,45 @@ export default function RecipientSelector({
   };
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="w-full max-w-4xl mx-auto bg-white rounded-lg shadow-sm">
       {/* Tab Navigation */}
-      <div className="flex border-b border-gray-200 mb-4">
-        {tabButtons.map((tab) => {
-          const Icon = tab.icon;
-          const isActive = selectedTab === tab.id;
-          
-          return (
-            <button
-              key={tab.id}
-              onClick={() => setSelectedTab(tab.id as any)}
-              className={`flex items-center gap-2 px-4 py-3 border-b-2 font-medium text-sm transition-colors ${
-                isActive
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-              }`}
-            >
-              <Icon className="h-4 w-4" />
-              {tab.label}
-              {tab.count !== undefined && tab.count > 0 && (
-                <span className="bg-blue-100 text-blue-600 text-xs px-2 py-1 rounded-full">
-                  {tab.count}
-                </span>
-              )}
-            </button>
-          );
-        })}
+      <div className="border-b border-gray-200">
+        <nav className="flex space-x-8 px-6">
+          <button
+            onClick={() => setSelectedTab('lists')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              selectedTab === 'lists'
+                ? 'border-blue-500 text-blue-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Lists
+          </button>
+          <button
+            onClick={() => setSelectedTab('segments')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              selectedTab === 'segments'
+                ? 'border-purple-500 text-purple-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Segments
+          </button>
+          <button
+            onClick={() => setSelectedTab('selected')}
+            className={`py-4 px-1 border-b-2 font-medium text-sm ${
+              selectedTab === 'selected'
+                ? 'border-green-500 text-green-600'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+            }`}
+          >
+            Selected ({selectedRecipients.length})
+          </button>
+        </nav>
       </div>
 
       {/* Tab Content */}
-      <div className="flex-1 overflow-auto">
+      <div className="p-6">
         {renderTabContent()}
       </div>
     </div>
