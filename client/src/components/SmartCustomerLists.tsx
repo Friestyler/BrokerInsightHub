@@ -140,7 +140,7 @@ function SmartListCard({ list, onPreview, onSave, onStartCampaign, isActive = fa
         <div className="space-y-2 mb-2">
           <Button 
             variant="outline" 
-            className="w-full border-green-200 text-green-700 hover:bg-green-50"
+            className="w-full border-blue-200 text-blue-700 hover:bg-blue-50"
             onClick={(e) => {
               e.stopPropagation();
               onPreview(list);
@@ -150,7 +150,7 @@ function SmartListCard({ list, onPreview, onSave, onStartCampaign, isActive = fa
             Save as List
           </Button>
           <Button 
-            className="w-full bg-[#5567E5] hover:bg-[#4556D4] text-white"
+            className="w-full bg-green-600 hover:bg-green-700 text-white"
             onClick={(e) => {
               e.stopPropagation();
               if (onStartCampaign) {
