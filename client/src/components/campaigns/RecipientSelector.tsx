@@ -560,53 +560,65 @@ export default function RecipientSelector({
   const renderRecipientsByEmail = () => {
     const recipientsByEmail = new Map<string, any[]>();
     
-    // Group recipients by their email or generate missing contact info
+    // Process each recipient individually to maintain proper relationships
     selectedRecipients.forEach(recipient => {
       let email = '';
       let contactInfo = null;
+      let customerInfo = null;
       
       if (recipient.type === 'contact') {
         email = recipient.email;
         contactInfo = recipient;
       } else if (recipient.type === 'opportunity') {
-        // Find customer and their contacts
+        // Each opportunity should have its own customer and contact
         const customer = getCustomerForOpportunity(recipient.id);
         if (customer) {
+          customerInfo = customer;
           const customerContacts = getContactsForCustomer(customer.id);
           if (customerContacts.length > 0) {
-            // Use primary contact or first contact
+            // Use primary contact or first contact for this specific opportunity
             const primaryContact = customerContacts.find(c => c.is_primary) || customerContacts[0];
             email = primaryContact.email;
             contactInfo = primaryContact;
           } else {
-            // No contacts - create a missing contact entry
-            email = `missing-${customer.id}@example.com`;
+            // No contacts - create unique missing contact entry for this opportunity
+            email = `missing-opportunity-${recipient.id}@example.com`;
             contactInfo = null;
           }
+        } else {
+          // No customer found for this opportunity
+          email = `missing-customer-${recipient.id}@example.com`;
+          contactInfo = null;
         }
       } else if (recipient.type === 'customer') {
-        // Find customer contacts
+        // Each customer should have its own contact
+        customerInfo = recipient;
         const customerContacts = getContactsForCustomer(recipient.id);
         if (customerContacts.length > 0) {
           const primaryContact = customerContacts.find(c => c.is_primary) || customerContacts[0];
           email = primaryContact.email;
           contactInfo = primaryContact;
         } else {
-          // No contacts - create a missing contact entry
-          email = `missing-${recipient.id}@example.com`;
+          // No contacts - create unique missing contact entry for this customer
+          email = `missing-customer-${recipient.id}@example.com`;
           contactInfo = null;
         }
       }
       
-      if (!recipientsByEmail.has(email)) {
-        recipientsByEmail.set(email, []);
+      // Use unique key to prevent grouping different recipients under same email
+      const uniqueKey = contactInfo ? email : `${email}-${recipient.id}`;
+      
+      if (!recipientsByEmail.has(uniqueKey)) {
+        recipientsByEmail.set(uniqueKey, []);
       }
       
-      recipientsByEmail.get(email)!.push({
+      recipientsByEmail.get(uniqueKey)!.push({
         ...recipient,
         contactInfo,
+        customerInfo,
         email,
-        isMissingContact: !contactInfo
+        isMissingContact: !contactInfo,
+        uniqueKey
       });
     });
     
@@ -644,47 +656,50 @@ export default function RecipientSelector({
     
     return (
       <div className="space-y-3">
-        {emailGroups.map(([email, recipients]) => (
-          <div key={email} className="border rounded-lg bg-white">
-            <div className="p-4">
-              {/* Email Header */}
-              <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-3">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                    recipients[0].isMissingContact ? 'bg-red-100' : 'bg-green-100'
-                  }`}>
-                    {recipients[0].isMissingContact ? (
-                      <UserPlus className="h-4 w-4 text-red-600" />
-                    ) : (
-                      <Mail className="h-4 w-4 text-green-600" />
-                    )}
+        {emailGroups.map(([uniqueKey, recipients]) => {
+          const recipient = recipients[0]; // Each group should only have one recipient now
+          const displayEmail = recipient.isMissingContact ? 'No email address' : recipient.email;
+          
+          return (
+            <div key={uniqueKey} className="border rounded-lg bg-white">
+              <div className="p-4">
+                {/* Email Header */}
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      recipient.isMissingContact ? 'bg-red-100' : 'bg-green-100'
+                    }`}>
+                      {recipient.isMissingContact ? (
+                        <UserPlus className="h-4 w-4 text-red-600" />
+                      ) : (
+                        <Mail className="h-4 w-4 text-green-600" />
+                      )}
+                    </div>
+                    <div>
+                      <p className="font-medium text-gray-900">
+                        {recipient.isMissingContact ? 'Missing Contact' : recipient.contactInfo?.full_name || recipient.contactInfo?.fullName || 'Unknown Contact'}
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {displayEmail}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="font-medium text-gray-900">
-                      {recipients[0].isMissingContact ? 'Missing Contact' : recipients[0].contactInfo?.full_name || recipients[0].contactInfo?.fullName || 'Unknown'}
-                    </p>
-                    <p className="text-sm text-gray-600">
-                      {recipients[0].isMissingContact ? 'No email address' : email}
-                    </p>
-                  </div>
+                  
+                  {recipient.isMissingContact && (
+                    <Button
+                      size="sm"
+                      onClick={() => setShowInlineContactForm(uniqueKey)}
+                      className="h-8"
+                    >
+                      <UserPlus className="h-4 w-4 mr-2" />
+                      Add Contact
+                    </Button>
+                  )}
                 </div>
                 
-                {recipients[0].isMissingContact && (
-                  <Button
-                    size="sm"
-                    onClick={() => setShowInlineContactForm(email)}
-                    className="h-8"
-                  >
-                    <UserPlus className="h-4 w-4 mr-2" />
-                    Add Contact
-                  </Button>
-                )}
-              </div>
-              
-              {/* Connected Context */}
-              <div className="space-y-2">
-                {recipients.map((recipient, index) => (
-                  <div key={index} className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
+                {/* Connected Context - Show the relationship chain */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between py-2 px-3 bg-gray-50 rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className={`w-6 h-6 rounded-full flex items-center justify-center ${
                         recipient.type === 'opportunity' ? 'bg-green-100' : 
@@ -705,9 +720,9 @@ export default function RecipientSelector({
                         <p className="text-xs text-gray-500">
                           {recipient.type === 'opportunity' ? 'Opportunity' : 
                            recipient.type === 'customer' ? 'Customer' : 'Contact'}
-                          {recipient.type === 'opportunity' && (
+                          {recipient.type === 'opportunity' && recipient.customerInfo && (
                             <span className="ml-2">
-                              via {getCustomerForOpportunity(recipient.id)?.name || 'Unknown Customer'}
+                              → {recipient.customerInfo.name}
                             </span>
                           )}
                         </p>
@@ -723,11 +738,81 @@ export default function RecipientSelector({
                       <X className="h-3 w-3" />
                     </Button>
                   </div>
-                ))}
+                </div>
+                
+                {/* Inline Contact Form */}
+                {showInlineContactForm === uniqueKey && (
+                  <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <h4 className="font-medium text-blue-900 mb-3">Add Contact</h4>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Input
+                        placeholder="First name"
+                        value={inlineContactData.first_name}
+                        onChange={(e) => setInlineContactData(prev => ({ ...prev, first_name: e.target.value }))}
+                        className="h-8"
+                      />
+                      <Input
+                        placeholder="Last name"
+                        value={inlineContactData.last_name}
+                        onChange={(e) => setInlineContactData(prev => ({ ...prev, last_name: e.target.value }))}
+                        className="h-8"
+                      />
+                      <Input
+                        placeholder="Email"
+                        type="email"
+                        value={inlineContactData.email}
+                        onChange={(e) => setInlineContactData(prev => ({ ...prev, email: e.target.value }))}
+                        className="h-8"
+                      />
+                      <Input
+                        placeholder="Job title"
+                        value={inlineContactData.job_title}
+                        onChange={(e) => setInlineContactData(prev => ({ ...prev, job_title: e.target.value }))}
+                        className="h-8"
+                      />
+                    </div>
+                    <div className="flex justify-end gap-2 mt-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setShowInlineContactForm(null)}
+                        className="h-8"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          // Get customer ID based on recipient type
+                          let customerId = null;
+                          if (recipient.type === 'customer') {
+                            customerId = recipient.id;
+                          } else if (recipient.type === 'opportunity' && recipient.customerInfo) {
+                            customerId = recipient.customerInfo.id;
+                          }
+                          
+                          if (customerId) {
+                            createContactMutation.mutate({
+                              ...inlineContactData,
+                              full_name: `${inlineContactData.first_name} ${inlineContactData.last_name}`.trim(),
+                              linked_entity_type: 'customer',
+                              linked_entity_id: customerId,
+                              is_primary: true
+                            });
+                          }
+                        }}
+                        disabled={createContactMutation.isPending || !inlineContactData.email}
+                        className="h-8"
+                      >
+                        {createContactMutation.isPending ? 'Creating...' : 'Create Contact'}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
     );
   };
