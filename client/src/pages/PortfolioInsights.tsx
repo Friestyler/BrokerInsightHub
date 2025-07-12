@@ -537,192 +537,7 @@ function DashboardSection() {
   );
 }
 
-// Smart Customer Lists Section Component
-function SmartCustomerListsSection() {
-  const { toast } = useToast();
 
-  const smartLists = [
-    {
-      id: 'high-value-customers',
-      name: 'High-Value Customers',
-      description: 'Customers with premium values above €1,000',
-      customerCount: 45,
-      totalValue: 89500,
-      color: '#10B981',
-      icon: DollarSign,
-      criteria: ['Premium > €1,000', 'Active policies', 'Multiple products']
-    },
-    {
-      id: 'cross-sell-opportunities',
-      name: 'Cross-Sell Opportunities',
-      description: 'Customers with single product coverage',
-      customerCount: 127,
-      totalValue: 234800,
-      color: '#3B82F6',
-      icon: Target,
-      criteria: ['Single product', 'High engagement', 'Renewal within 6 months']
-    },
-    {
-      id: 'renewal-risk',
-      name: 'Renewal Risk',
-      description: 'Customers with policies expiring in 90 days',
-      customerCount: 32,
-      totalValue: 67200,
-      color: '#EF4444',
-      icon: Clock,
-      criteria: ['Expiring < 90 days', 'No recent contact', 'Price sensitive']
-    },
-    {
-      id: 'new-customers',
-      name: 'New Customers',
-      description: 'Customers acquired in the last 6 months',
-      customerCount: 58,
-      totalValue: 125400,
-      color: '#8B5CF6',
-      icon: Users,
-      criteria: ['Acquired < 6 months', 'First policy', 'Growth potential']
-    }
-  ];
-
-  const handleExportList = (listId: string) => {
-    toast({
-      title: "Export Started",
-      description: "Your customer list export is being prepared.",
-    });
-  };
-
-  const handleCreateCampaign = (listId: string) => {
-    toast({
-      title: "Campaign Created",
-      description: "Marketing campaign has been created for the selected list.",
-    });
-  };
-
-  return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Smart Customer Lists</h1>
-          <p className="text-gray-600">AI-powered customer segmentation for targeted marketing and analysis</p>
-        </div>
-        <Button className="bg-[#5567E5] hover:bg-[#4451c7]">
-          <Plus className="h-4 w-4 mr-2" />
-          Create New List
-        </Button>
-      </div>
-
-      {/* Smart Lists Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {smartLists.map((list) => (
-          <Card key={list.id} className="border-[#E6E7F1] hover:shadow-lg transition-shadow">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-3">
-                  <div 
-                    className="w-10 h-10 rounded-full flex items-center justify-center"
-                    style={{ backgroundColor: `${list.color}20` }}
-                  >
-                    <list.icon className="w-5 h-5" style={{ color: list.color }} />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg">{list.name}</CardTitle>
-                    <CardDescription>{list.description}</CardDescription>
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Metrics */}
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <div className="text-2xl font-bold text-gray-900">
-                    {list.customerCount}
-                  </div>
-                  <div className="text-sm text-gray-600">Customers</div>
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-gray-900">
-                    €{list.totalValue.toLocaleString()}
-                  </div>
-                  <div className="text-sm text-gray-600">Total Value</div>
-                </div>
-              </div>
-
-              {/* Criteria */}
-              <div>
-                <div className="text-sm font-medium text-gray-700 mb-2">List Criteria</div>
-                <div className="space-y-1">
-                  {list.criteria.map((criterion, index) => (
-                    <div key={index} className="flex items-center space-x-2">
-                      <CheckCircle className="w-4 h-4 text-green-500" />
-                      <span className="text-sm text-gray-600">{criterion}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Actions */}
-              <div className="flex space-x-2 pt-4">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => handleExportList(list.id)}
-                  className="flex-1"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  Export
-                </Button>
-                <Button 
-                  size="sm" 
-                  onClick={() => handleCreateCampaign(list.id)}
-                  className="flex-1 bg-[#5567E5] hover:bg-[#4451c7]"
-                >
-                  <Send className="w-4 h-4 mr-2" />
-                  Campaign
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* AI Analysis Panel */}
-      <Card className="border-[#E6E7F1] bg-gradient-to-r from-blue-50 to-purple-50">
-        <CardHeader>
-          <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 bg-[#5567E5] rounded-full flex items-center justify-center">
-              <Brain className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <CardTitle className="text-lg">AI List Generator</CardTitle>
-              <CardDescription>Create custom customer lists using AI-powered analysis</CardDescription>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div>
-              <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                Describe your target customer segment
-              </Label>
-              <Textarea 
-                placeholder="E.g., 'Customers with life insurance who might be interested in disability coverage' or 'High-value customers in the Amsterdam area'"
-                className="min-h-[80px]"
-              />
-            </div>
-            <div className="flex justify-end">
-              <Button className="bg-[#5567E5] hover:bg-[#4451c7]">
-                <Sparkles className="w-4 w-4 mr-2" />
-                Generate List
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
-}
 
 export default function PortfolioInsights() {
   const [activeSection, setActiveSection] = useState('dashboard');
@@ -864,14 +679,7 @@ export default function PortfolioInsights() {
           Dashboard
         </Button>
 
-        <Button 
-          variant="ghost"
-          className={activeSection === 'smartcustomerlists' ? "bg-indigo-50 text-indigo-700 hover:bg-indigo-100" : ""}
-          onClick={() => setActiveSection('smartcustomerlists')}
-        >
-          <List className="h-4 w-4 mr-2" />
-          Smart Customer Lists
-        </Button>
+
 
         <Button 
           variant="ghost"
@@ -898,10 +706,7 @@ export default function PortfolioInsights() {
         <DashboardSection />
       )}
 
-      {/* Smart Customer Lists Section */}
-      {activeSection === 'smartcustomerlists' && (
-        <SmartCustomerListsSection />
-      )}
+
 
       {/* White Space Analysis Section */}
       {activeSection === 'whitespace' && (
