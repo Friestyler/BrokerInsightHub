@@ -14,6 +14,7 @@ import { useToast } from "@/hooks/use-toast";
 
 import { AggregatedPortfolioCards } from "@/components/portfolio/AggregatedPortfolioCards";
 import { AggregatedSmartAlerts } from "@/components/portfolio/AggregatedSmartAlerts";
+import CustomersPageClean from "./lists/CustomersPage";
 
 // Fetch authentic product categories with hierarchy
 const useProductCategories = () => {
@@ -679,7 +680,14 @@ export default function PortfolioInsights() {
           Dashboard
         </Button>
 
-
+        <Button 
+          variant="ghost"
+          className={activeSection === 'smartcustomerlists' ? "bg-indigo-50 text-indigo-700 hover:bg-indigo-100" : ""}
+          onClick={() => setActiveSection('smartcustomerlists')}
+        >
+          <List className="h-4 w-4 mr-2" />
+          Smart Customer Lists
+        </Button>
 
         <Button 
           variant="ghost"
@@ -706,7 +714,10 @@ export default function PortfolioInsights() {
         <DashboardSection />
       )}
 
-
+      {/* Smart Customer Lists Section - Exact duplicate of CustomersPage */}
+      {activeSection === 'smartcustomerlists' && (
+        <CustomersPageClean />
+      )}
 
       {/* White Space Analysis Section */}
       {activeSection === 'whitespace' && (
