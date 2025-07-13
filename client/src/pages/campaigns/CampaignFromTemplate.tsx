@@ -1239,6 +1239,50 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                         return groups;
                       }, {} as Record<string, typeof campaignData.recipients>);
 
+                      // Auto-select first company if none is selected
+                      const companyNames = Object.keys(groupedRecipients);
+                      if (!selectedCompany && companyNames.length > 0) {
+                        setTimeout(() => setSelectedCompany(companyNames[0]), 0);
+                      }
+
+                      // Show sample companies if no recipients exist
+                      if (companyNames.length === 0) {
+                        const sampleCompanies = [
+                          { name: "TechCorp Inc.", type: "Technology", contacts: 2 },
+                          { name: "Global Manufacturing Co.", type: "Manufacturing", contacts: 0 },
+                          { name: "Startup.io", type: "Software", contacts: 1 },
+                          { name: "Design Studio", type: "Creative", contacts: 1 },
+                          { name: "FinTech Solutions", type: "Finance", contacts: 0 }
+                        ];
+                        
+                        // Auto-select first sample company
+                        if (!selectedCompany) {
+                          setTimeout(() => setSelectedCompany(sampleCompanies[0].name), 0);
+                        }
+                        
+                        return sampleCompanies.map((company, index) => (
+                          <div
+                            key={company.name}
+                            className="p-3 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer bg-white"
+                            onClick={() => setSelectedCompany(company.name)}
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              <Building className="h-4 w-4 text-gray-400" />
+                              <span className="font-medium text-sm text-gray-900">{company.name}</span>
+                            </div>
+                            <div className="text-xs text-gray-500 mb-2">{company.type}</div>
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs text-gray-600">
+                                {company.contacts} contact{company.contacts !== 1 ? 's' : ''}
+                              </span>
+                              <span className="text-xs text-blue-600">
+                                +{Math.floor(Math.random() * 3) + 1} suggested
+                              </span>
+                            </div>
+                          </div>
+                        ));
+                      }
+
                       return Object.entries(groupedRecipients).map(([companyName, recipients]) => (
                         <div
                           key={companyName}
@@ -1290,6 +1334,82 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                           const companyRecipients = campaignData.recipients.filter(r => 
                             (r.customer_name || r.partner_name || r.opportunity_title || 'Unknown Company') === selectedCompany
                           );
+
+                          // Show sample contacts if no recipients exist
+                          if (companyRecipients.length === 0 && selectedCompany) {
+                            const sampleContacts = [
+                              { name: "Sarah Johnson", email: "sarah.johnson@techcorp.com", title: "CEO", company: "TechCorp Inc." },
+                              { name: "Michael Chen", email: "michael.chen@techcorp.com", title: "CTO", company: "TechCorp Inc." },
+                              { name: "Jennifer Smith", email: "jennifer.smith@globalmanufacturing.com", title: "VP Operations", company: "Global Manufacturing Co." },
+                              { name: "David Rodriguez", email: "david.rodriguez@startup.io", title: "Founder", company: "Startup.io" },
+                              { name: "Emma Wilson", email: "emma.wilson@designstudio.com", title: "Creative Director", company: "Design Studio" },
+                              { name: "Alex Thompson", email: "alex.thompson@fintech.com", title: "VP Product", company: "FinTech Solutions" }
+                            ];
+
+                            const relevantContacts = sampleContacts.filter(contact => 
+                              contact.company === selectedCompany
+                            );
+                            
+                            return relevantContacts.map((contact, index) => (
+                              <div key={index} className="border-l-2 border-gray-200 pl-4">
+                                <div className="flex items-center gap-3 mb-3">
+                                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <User className="h-4 w-4 text-blue-600" />
+                                  </div>
+                                  <div className="flex-1">
+                                    <div className="flex items-center gap-2">
+                                      <span className="font-medium text-gray-900">{contact.name}</span>
+                                      <Badge variant="secondary" className="text-xs">active</Badge>
+                                    </div>
+                                    <div className="text-sm text-gray-500">{contact.email}</div>
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    {campaignData.emails.length} email{campaignData.emails.length !== 1 ? 's' : ''}
+                                  </div>
+                                </div>
+
+                                {/* Email sequence for this contact */}
+                                <div className="space-y-3 mb-4">
+                                  {campaignData.emails.map((email, emailIndex) => (
+                                    <div key={emailIndex} className="bg-gray-50 rounded-lg p-3">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-xs font-medium text-gray-900">
+                                            {emailIndex + 1}
+                                          </span>
+                                          <span className="text-sm font-medium text-gray-900">
+                                            {email.subject || `Email ${emailIndex + 1} - Follow up`}
+                                          </span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <Badge variant="outline" className="text-xs">
+                                            {emailIndex === 0 ? 'sent' : 'draft'}
+                                          </Badge>
+                                          <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                                            <Edit className="h-3 w-3" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                      <div className="text-xs text-gray-600 mb-2">
+                                        {emailIndex === 0 ? 'Today' : `In ${emailIndex * 2} days`} • 10:00 AM
+                                      </div>
+                                      <div className="text-sm text-gray-700 line-clamp-2">
+                                        {typeof email.blocks === 'string' ? 
+                                          JSON.parse(email.blocks)[0]?.content || 'Email content preview...' :
+                                          email.blocks?.[0]?.content || 'Email content preview...'
+                                        }
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+
+                                <Button size="sm" variant="outline" className="text-xs">
+                                  <Plus className="h-3 w-3 mr-1" />
+                                  Add Email to Sequence
+                                </Button>
+                              </div>
+                            ));
+                          }
 
                           return companyRecipients.map((recipient, index) => (
                             <div key={recipient.id || index} className="border-l-2 border-gray-200 pl-4">
