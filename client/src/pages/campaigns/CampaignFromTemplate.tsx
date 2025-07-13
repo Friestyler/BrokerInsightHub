@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Edit, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Share, DollarSign, Home, Car, Umbrella, Building, UserCheck, TrendingDown, Plane } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Edit, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Share, DollarSign, Home, Car, Umbrella, Building, UserCheck, TrendingDown, Plane, Search, User } from "lucide-react";
 import { useLocation, useRoute, useParams } from 'wouter';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -54,6 +54,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const [currentStep, setCurrentStep] = useState(getStepNumber(stepParam));
   const [recipientSelectorTab, setRecipientSelectorTab] = useState<string | null>(null);
   const [showSettingsWizard, setShowSettingsWizard] = useState(false);
+  const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
 
   // Track if this is initial load to prevent URL conflicts with manual navigation
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -1191,42 +1192,249 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
       case 6:
         return (
-          <div className="space-y-8">
+          <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-xl font-medium text-gray-900 mb-2">Drafts</h2>
-              <p className="text-gray-600">Save and manage campaign drafts</p>
+              <h2 className="text-xl font-medium text-gray-900 mb-2">Email Sequence Management</h2>
+              <p className="text-gray-600">Manage contacts and customize email sequences for each recipient</p>
             </div>
 
-            <div className="max-w-2xl mx-auto">
-              <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
-                <div className="text-sm text-gray-600 mb-4">
-                  Draft functionality will be implemented here. This step allows you to save and manage campaign drafts.
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <div className="font-medium text-sm">Save as Draft</div>
-                      <div className="text-xs text-gray-600">
-                        Save your campaign progress without sending
-                      </div>
+            <div className="max-w-7xl mx-auto">
+              <div className="flex gap-6 h-[700px]">
+                {/* Left Sidebar - Customer Companies */}
+                <div className="w-1/3 bg-white border border-gray-200 rounded-lg p-4 overflow-hidden flex flex-col">
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h3 className="font-medium text-gray-900">Customer Companies</h3>
+                      <Button size="sm" variant="outline" className="text-xs">
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Customer
+                      </Button>
                     </div>
-                    <Badge variant="secondary" className="text-xs">
-                      Draft
-                    </Badge>
+                    
+                    <div className="relative mb-3">
+                      <input
+                        type="text"
+                        placeholder="Search companies..."
+                        className="w-full pl-8 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                    </div>
+                    
+                    <div className="flex gap-1 mb-3">
+                      <Button size="sm" variant="default" className="text-xs h-7">All Companies</Button>
+                      <Button size="sm" variant="outline" className="text-xs h-7">With Contacts</Button>
+                      <Button size="sm" variant="outline" className="text-xs h-7">Without Contacts</Button>
+                    </div>
                   </div>
                   
-                  <div className="flex items-center justify-between p-3 border rounded-lg">
-                    <div>
-                      <div className="font-medium text-sm">Auto-save</div>
-                      <div className="text-xs text-gray-600">
-                        Automatically save changes as you work
+                  <div className="flex-1 overflow-y-auto space-y-2">
+                    {/* Group recipients by customer/company */}
+                    {(() => {
+                      const groupedRecipients = campaignData.recipients.reduce((groups, recipient) => {
+                        const companyName = recipient.customer_name || recipient.partner_name || recipient.opportunity_title || 'Unknown Company';
+                        if (!groups[companyName]) {
+                          groups[companyName] = [];
+                        }
+                        groups[companyName].push(recipient);
+                        return groups;
+                      }, {} as Record<string, typeof campaignData.recipients>);
+
+                      return Object.entries(groupedRecipients).map(([companyName, recipients]) => (
+                        <div
+                          key={companyName}
+                          className="p-3 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer bg-white"
+                          onClick={() => setSelectedCompany(companyName)}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <Building className="h-4 w-4 text-gray-400" />
+                            <span className="font-medium text-sm text-gray-900">{companyName}</span>
+                          </div>
+                          <div className="text-xs text-gray-500 mb-2">
+                            {recipients[0]?.industry || 'Technology'}
+                          </div>
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-600">
+                              {recipients.length} contact{recipients.length !== 1 ? 's' : ''}
+                            </span>
+                            <span className="text-xs text-blue-600">
+                              +3 suggested
+                            </span>
+                          </div>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                </div>
+
+                {/* Right Content - Selected Company Details */}
+                <div className="w-2/3 bg-white border border-gray-200 rounded-lg p-6 overflow-hidden flex flex-col">
+                  {selectedCompany ? (
+                    <>
+                      <div className="flex items-center justify-between mb-6">
+                        <div className="flex items-center gap-3">
+                          <Building className="h-5 w-5 text-gray-400" />
+                          <div>
+                            <h3 className="font-medium text-gray-900">{selectedCompany}</h3>
+                            <p className="text-sm text-gray-500">Technology</p>
+                          </div>
+                        </div>
+                        <Button size="sm" variant="outline">
+                          <Plus className="h-4 w-4 mr-1" />
+                          Add Contact
+                        </Button>
+                      </div>
+
+                      <div className="flex-1 overflow-y-auto space-y-6">
+                        {/* Display contacts for selected company */}
+                        {(() => {
+                          const companyRecipients = campaignData.recipients.filter(r => 
+                            (r.customer_name || r.partner_name || r.opportunity_title || 'Unknown Company') === selectedCompany
+                          );
+
+                          return companyRecipients.map((recipient, index) => (
+                            <div key={recipient.id || index} className="border-l-2 border-gray-200 pl-4">
+                              <div className="flex items-center gap-3 mb-3">
+                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                  <User className="h-4 w-4 text-blue-600" />
+                                </div>
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2">
+                                    <span className="font-medium text-gray-900">
+                                      {recipient.contact_name || recipient.name || 'Contact'}
+                                    </span>
+                                    <Badge variant="secondary" className="text-xs">active</Badge>
+                                  </div>
+                                  <div className="text-sm text-gray-500">
+                                    {recipient.contact_email || recipient.email || 'email@example.com'}
+                                  </div>
+                                </div>
+                                <div className="text-xs text-gray-500">
+                                  2 emails
+                                </div>
+                              </div>
+
+                              {/* Email sequence for this contact */}
+                              <div className="space-y-3 mb-4">
+                                {campaignData.emails.map((email, emailIndex) => (
+                                  <div key={emailIndex} className="bg-gray-50 rounded-lg p-3">
+                                    <div className="flex items-center justify-between mb-2">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-xs font-medium text-gray-900">
+                                          {emailIndex + 1}
+                                        </span>
+                                        <span className="text-sm font-medium text-gray-900">
+                                          {email.subject || 'Email Subject'}
+                                        </span>
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <Badge variant="outline" className="text-xs">
+                                          {emailIndex === 0 ? 'sent' : 'draft'}
+                                        </Badge>
+                                        <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                                          <Edit className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                    <div className="text-xs text-gray-600 mb-2">
+                                      {emailIndex === 0 ? '16/01/2024' : '18/01/2024'} • 10:00
+                                    </div>
+                                    <div className="text-sm text-gray-700 line-clamp-2">
+                                      {typeof email.blocks === 'string' ? 
+                                        JSON.parse(email.blocks)[0]?.content || 'Email content...' :
+                                        email.blocks?.[0]?.content || 'Email content...'
+                                      }
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+
+                              <Button size="sm" variant="outline" className="text-xs">
+                                <Plus className="h-3 w-3 mr-1" />
+                                Add Email to Sequence
+                              </Button>
+                            </div>
+                          ));
+                        })()}
+
+                        {/* Suggested Contacts Section */}
+                        <div className="border-t pt-4">
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="flex items-center gap-2">
+                              <Search className="h-4 w-4 text-gray-400" />
+                              <span className="text-sm font-medium text-gray-900">Additional Suggested Contacts</span>
+                              <Badge variant="secondary" className="text-xs">3 found</Badge>
+                            </div>
+                            <Button size="sm" variant="ghost" className="text-xs">
+                              Hide
+                            </Button>
+                          </div>
+                          
+                          <p className="text-xs text-gray-600 mb-3">
+                            We found these additional potential contacts for {selectedCompany}. Click to add them instantly.
+                          </p>
+
+                          <div className="space-y-2">
+                            {[
+                              {
+                                name: "Robert Chen",
+                                email: "robert.chen@globalmanufacturing.com",
+                                title: "VP of Operations",
+                                confidence: 95,
+                                source: "LinkedIn"
+                              },
+                              {
+                                name: "Maria Rodriguez",
+                                email: "m.rodriguez@globalmanufacturing.com",
+                                title: "Head of Procurement",
+                                confidence: 88,
+                                source: "Company Website"
+                              },
+                              {
+                                name: "James Wilson",
+                                email: "jwilson@globalmanufacturing.com",
+                                title: "Director of Sales",
+                                confidence: 92,
+                                source: "Email Signature"
+                              }
+                            ].map((contact, index) => (
+                              <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
+                                <div className="flex-1">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <span className="font-medium text-sm text-gray-900">{contact.name}</span>
+                                    <Badge 
+                                      variant="secondary" 
+                                      className={`text-xs ${
+                                        contact.confidence >= 90 ? 'bg-green-100 text-green-700' :
+                                        contact.confidence >= 80 ? 'bg-yellow-100 text-yellow-700' :
+                                        'bg-gray-100 text-gray-700'
+                                      }`}
+                                    >
+                                      {contact.confidence}% match
+                                    </Badge>
+                                  </div>
+                                  <div className="text-xs text-gray-500 mb-1">{contact.email}</div>
+                                  <div className="text-xs text-gray-500">{contact.title}</div>
+                                  <div className="text-xs text-gray-400">From {contact.source}</div>
+                                </div>
+                                <Button size="sm" variant="outline" className="text-xs">
+                                  <Plus className="h-3 w-3 mr-1" />
+                                  Add
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="flex-1 flex items-center justify-center">
+                      <div className="text-center">
+                        <Building className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+                        <h3 className="text-lg font-medium text-gray-900 mb-2">Select a company</h3>
+                        <p className="text-gray-500">Choose a company from the list to manage their contacts and email sequences.</p>
                       </div>
                     </div>
-                    <Badge variant="secondary" className="text-xs">
-                      Enabled
-                    </Badge>
-                  </div>
+                  )}
                 </div>
               </div>
             </div>

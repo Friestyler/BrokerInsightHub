@@ -1,0 +1,327 @@
+I've enhanced the interface to include a "look-alike" contacts section for companies without contacts. Here are the key improvements:
+
+New Features:
+Suggested Contacts Section:
+Smart Suggestions - Shows potential contacts found in the database for companies without contacts
+Confidence Scoring - Each suggestion has a confidence percentage (90%+ = green, 80-89% = yellow, <80% = gray)
+Source Attribution - Shows where the contact was found (LinkedIn, company website, email signatures, etc.)
+Contact Details - Displays name, email, and job title when available
+Enhanced UX for Multiple Additions:
+Persistent Suggestions - Suggestions remain visible after adding contacts, allowing multiple quick additions
+Visual Feedback - Added contacts show a green "Added ✓" badge and green background
+Temporary State - Added state clears after 2 seconds, allowing re-adding if needed
+Pro Tip Section - Explains the multi-add functionality to users
+Improved User Flow:
+Two Addition Methods - Manual "Add Contact" button + quick suggested contact additions
+Clear Visual Hierarchy - Separates manual addition from suggestions with a separator
+Confidence-Based Styling - Color-coded confidence badges help users prioritize which contacts to add
+Source Transparency - Users can see where each suggestion came from
+Smart Interaction Design:
+Click to Add - Simple click on suggestion cards to add contacts
+Hover States - Clear visual feedback on interactive elements
+Disabled State - Recently added contacts can't be re-added immediately
+Badge Counter - Shows how many suggestions were found
+This design allows users to quickly scan and add multiple relevant contacts while maintaining clear visual feedback about what's been added and what's still available to add.
+
+Almos, when adding a contact, the email sequence should appear, and ass said if I only added 1 contact I want to keep seeing the other suggestions. This also counts for other customers. It could be that the ystsem suggests 2 or more contacts even if the customer already has a contact assigned
+
+Perfect! I've implemented all the requested features:
+
+Key Improvements:
+1. Automatic Email Sequence Creation
+Default Template: When adding a suggested contact, they automatically get a 2-email sequence
+Personalized Content: Email content is automatically personalized with the contact's name and company
+Ready to Customize: Users can immediately edit the generated emails for each contact
+2. Persistent Suggestions for ALL Companies
+Universal Suggestions: Now shows suggested contacts for companies that already have contacts too
+Always Visible: Suggestions appear for every company, not just those without contacts
+Collapsible Section: Added show/hide functionality to keep the interface clean while maintaining access
+3. Enhanced UX Features
+Suggestion Indicators: Company cards show "+X suggested" badges in the sidebar
+Collapsible Interface: Users can expand/collapse suggestions with a toggle button
+Scrollable Content: Added proper scrolling to handle longer content lists
+Visual Feedback: Clear indication when contacts are added with temporary success states
+4. Smart Contact Management
+Immediate Integration: Added contacts appear instantly in the contact list with their email sequences
+Template Customization: Default emails use placeholders that get replaced with actual names/companies
+Persistent State: Suggestions remain visible after adding contacts, allowing multiple quick additions
+5. Improved Information Architecture
+Reusable Component: Created SuggestedContactsSection component used for both scenarios
+Contextual Messaging: Different messaging for companies with/without existing contacts
+Pro Tips: Updated guidance explains the automatic email sequence feature
+6. Enhanced Visual Design
+Clear Hierarchy: Suggestions are visually separated but easily accessible
+Status Indicators: Shows suggestion counts and confidence levels
+Responsive Layout: Maintains clean design even with additional content
+Now users can:
+
+✅ Add contacts and see their email sequences appear immediately
+✅ Keep seeing suggestions after adding contacts (for all companies)
+✅ Add multiple contacts quickly while suggestions remain visible
+✅ Get automatic email sequences that are ready to customize
+✅ Collapse/expand suggestions to manage screen space
+This is great! Now write a complete detaile user story of this functionamity for my dev team. Make sure to take everything into account
+
+User Story: Email Sequence Management with Smart Contact Suggestions
+Epic: Customer Contact Management & Email Automation
+User Story Overview
+As a sales/marketing professional
+I want to manage customer companies and their contacts with intelligent contact suggestions and automated email sequences
+So that I can efficiently build and maintain relationships with multiple contacts across different companies while ensuring no potential leads are missed.
+
+Detailed User Stories
+1. Company Management
+As a user
+I want to view and manage customer companies in a centralized interface
+So that I can organize my outreach efforts by company structure.
+
+Acceptance Criteria:
+Display companies in a sidebar with company name, industry, and contact count
+Show visual indicators for companies with/without contacts
+Display suggestion count badges ("+X suggested") for companies with available contact suggestions
+Allow searching companies by name or industry
+Provide three filter buttons: "All Companies", "With Contacts", "Without Contacts"
+Show alert message when filtering for companies without contacts
+Enable adding new companies via modal dialog with company name and optional industry fields
+2. Contact Suggestions System
+As a user
+I want to see intelligent contact suggestions for all companies (regardless of existing contacts)
+So that I can discover and add relevant contacts I might have missed.
+
+Acceptance Criteria:
+Display suggested contacts for ALL companies, not just those without existing contacts
+Show contact suggestions with:
+
+Full name and email address
+Job title (when available)
+Confidence score (0-100%) with color coding:
+
+Green: 90%+ confidence
+Yellow: 80-89% confidence
+Gray: <80% confidence
+Source attribution (LinkedIn, company website, email signature, etc.)
+Make suggestions collapsible/expandable with show/hide toggle
+Keep suggestions permanently visible (don't hide after adding contacts)
+Allow one-click addition of suggested contacts
+Show temporary "Added ✓" confirmation for 2 seconds after adding
+Display pro-tip explaining the functionality
+3. Automatic Email Sequence Creation
+As a user
+I want newly added contacts to automatically receive a default email sequence
+So that I can immediately start nurturing relationships without manual setup.
+
+Acceptance Criteria:
+Automatically create a 2-email sequence for each newly added contact:
+
+Email 1: Introduction/partnership opportunity (scheduled for next day)
+Email 2: Follow-up (scheduled for 4 days later)
+Personalize email content by replacing placeholders:
+
+[Name] → Contact's actual name
+[Company] → Company name
+Set all new emails to "draft" status initially
+Generate unique IDs for each email in the sequence
+Display the new contact and their email sequence immediately after addition
+4. Contact and Email Sequence Display
+As a user
+I want to view all contacts for a selected company with their email sequences
+So that I can manage and customize communications for each individual contact.
+
+Acceptance Criteria:
+Display contacts in a hierarchical structure under their company
+Show contact information:
+
+Name and email address
+Attachment indicator (paperclip icon) if applicable
+Status badge (active/paused/completed) with color coding
+Email count
+Display email sequences for each contact showing:
+
+Sequence step number
+Email subject line
+Scheduled date and time
+Status (draft/scheduled/sent) with color-coded badges
+Email content preview (truncated)
+Provide "Edit" button for each email opening a modal with:
+
+Subject line editing
+Full content editing in textarea
+Save and Preview options
+Include "Add Email to Sequence" button for each contact
+Separate multiple contacts with visual dividers
+5. Empty State Handling
+As a user
+I want clear guidance when companies have no contacts
+So that I understand my options for adding contacts.
+
+Acceptance Criteria:
+Display empty state message for companies without contacts:
+
+User icon
+"No contacts yet" heading
+Descriptive text mentioning the company name
+"Add Contact Manually" button
+Show manual contact addition modal with name and email fields
+Display suggested contacts section below empty state (if suggestions exist)
+Provide "Add First Contact" button that opens the manual addition modal
+6. Multi-Contact Addition Workflow
+As a user
+I want to add multiple contacts quickly while keeping suggestions visible
+So that I can efficiently build comprehensive contact lists for each company.
+
+Acceptance Criteria:
+Keep suggestion section visible after adding contacts
+Show temporary visual feedback (green background, "Added ✓" badge) for recently added contacts
+Reset visual feedback after 2 seconds to allow re-adding if needed
+Update contact count and email count in real-time as contacts are added
+Maintain suggestion section for companies that already have contacts
+Allow collapsing suggestions to save screen space while keeping them accessible
+7. Navigation and Selection
+As a user
+I want intuitive navigation between companies and their details
+So that I can efficiently manage multiple customer relationships.
+
+Acceptance Criteria:
+Highlight selected company with blue ring border
+Show company details in main content area when selected
+Display company header with:
+
+Company name with building icon
+Industry (if available)
+Contact count
+"Add Contact" button
+Reset contact selection when switching between companies
+Show empty state when no company is selected
+Provide scrollable content areas for long lists
+Technical Requirements
+Data Models
+Company Interface
+interface Company {
+  id: string
+  name: string
+  industry?: string
+  contacts: Contact[]
+}
+Contact Interface
+interface Contact {
+  id: string
+  name: string
+  email: string
+  hasAttachments: boolean
+  emailSequence: Email[]
+  status: "active" | "paused" | "completed"
+}
+Email Interface
+interface Email {
+  id: string
+  subject: string
+  content: string
+  scheduledDate: string
+  status: "scheduled" | "sent" | "draft"
+  sequenceStep: number
+}
+SuggestedContact Interface
+interface SuggestedContact {
+  id: string
+  name: string
+  email: string
+  title?: string
+  confidence: number // 0-100
+  source: string // "linkedin", "company_website", "email_signature"
+}
+State Management Requirements
+Maintain companies list with real-time updates
+Track selected company and contact states
+Manage search and filter states
+Handle modal visibility states
+Track temporarily added suggestions for visual feedback
+Manage collapsed/expanded state for suggestion sections
+API Integration Points
+Fetch companies list with contacts
+Retrieve suggested contacts for each company
+Add new companies
+Add new contacts to companies
+Update email sequences
+Save email content changes
+Default Email Templates
+const defaultEmailSequence: Email[] = [
+  {
+    subject: "Introduction and partnership opportunity",
+    content: "Hi [Name], I hope this email finds you well. I wanted to reach out to discuss a potential partnership opportunity that could benefit [Company]...",
+    scheduledDate: "+1 day",
+    status: "draft",
+    sequenceStep: 1
+  },
+  {
+    subject: "Follow-up: Next steps for our collaboration", 
+    content: "Hi [Name], I wanted to follow up on my previous email about our partnership opportunity. I'd love to schedule a brief call to discuss how we can work together...",
+    scheduledDate: "+4 days",
+    status: "draft", 
+    sequenceStep: 2
+  }
+]
+UI/UX Requirements
+Layout Structure
+Sidebar (1/3 width): Company list with search, filters, and company cards
+Main Content (2/3 width): Selected company details with contacts and email sequences
+Responsive Design: Adapt to different screen sizes
+Scrollable Areas: Handle long lists without breaking layout
+Visual Design Requirements
+Use shadcn/ui components for consistency
+Implement proper color coding for status badges
+Show clear visual hierarchy with typography and spacing
+Use icons appropriately (Building2, User, Search, etc.)
+Provide hover states and transitions
+Implement proper loading and empty states
+Accessibility Requirements
+Proper ARIA labels for interactive elements
+Keyboard navigation support
+Screen reader compatibility
+Color contrast compliance
+Focus management for modals
+Edge Cases and Error Handling
+Edge Cases to Handle
+Companies with no suggested contacts
+Suggested contacts with missing information (no title, etc.)
+Network failures during contact addition
+Duplicate contact prevention
+Large numbers of suggestions (pagination/virtualization)
+Email template personalization failures
+Error States
+Failed to load companies
+Failed to load suggestions
+Failed to add contact
+Failed to save email changes
+Network connectivity issues
+Performance Considerations
+Lazy load suggestions when company is selected
+Debounce search input
+Virtualize long lists if needed
+Optimize re-renders with proper React keys
+Cache suggestion data appropriately
+Testing Requirements
+Unit Tests
+Component rendering with different data states
+State management functions
+Email template personalization logic
+Filter and search functionality
+Integration Tests
+Complete user workflows (add company → add contacts → edit emails)
+API integration points
+Modal interactions
+Real-time updates
+E2E Tests
+Full user journey from company selection to email editing
+Multi-contact addition workflow
+Search and filter functionality
+Responsive behavior
+Definition of Done
+All acceptance criteria met
+Unit tests written and passing
+Integration tests written and passing
+Code reviewed and approved
+Accessibility requirements met
+Performance benchmarks met
+Documentation updated
+QA testing completed
+Stakeholder approval received
