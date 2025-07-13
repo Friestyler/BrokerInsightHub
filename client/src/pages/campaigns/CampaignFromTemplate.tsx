@@ -1192,42 +1192,42 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
       case 6:
         return (
-          <div className="space-y-3">
+          <div className="space-y-2">
             <div className="text-center">
-              <h2 className="text-xl font-medium text-gray-900 mb-1">Email Sequence Management</h2>
-              <p className="text-gray-600">Manage contacts and customize email sequences for each recipient</p>
+              <h2 className="text-lg font-medium text-gray-900 mb-1">Email Sequence Management</h2>
+              <p className="text-sm text-gray-600">Manage contacts and customize email sequences for each recipient</p>
             </div>
 
             <div className="max-w-7xl mx-auto">
-              <div className="flex gap-4 h-[650px]">
+              <div className="flex gap-3 h-[600px]">
                 {/* Left Sidebar - Customer Companies */}
-                <div className="w-1/3 bg-white border border-gray-200 rounded-lg p-4 overflow-hidden flex flex-col">
-                  <div className="mb-4">
-                    <div className="flex items-center justify-between mb-3">
-                      <h3 className="font-medium text-gray-900">Customer Companies</h3>
-                      <Button size="sm" variant="outline" className="text-xs">
+                <div className="w-1/3 bg-white border border-gray-200 rounded-lg p-3 overflow-hidden flex flex-col">
+                  <div className="mb-3">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="text-sm font-medium text-gray-900">Customer Companies</h3>
+                      <Button size="sm" variant="outline" className="text-xs h-6">
                         <Plus className="h-3 w-3 mr-1" />
                         Add Customer
                       </Button>
                     </div>
                     
-                    <div className="relative mb-3">
+                    <div className="relative mb-2">
                       <input
                         type="text"
                         placeholder="Search companies..."
-                        className="w-full pl-8 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full pl-7 pr-3 py-1.5 border border-gray-200 rounded text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
                       />
-                      <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                      <Search className="absolute left-2 top-2 h-3 w-3 text-gray-400" />
                     </div>
                     
-                    <div className="flex gap-1 mb-3">
-                      <Button size="sm" variant="default" className="text-xs h-7">All Companies</Button>
-                      <Button size="sm" variant="outline" className="text-xs h-7">With Contacts</Button>
-                      <Button size="sm" variant="outline" className="text-xs h-7">Without Contacts</Button>
+                    <div className="flex gap-1 mb-2">
+                      <Button size="sm" variant="default" className="text-xs h-6 px-2">All Companies</Button>
+                      <Button size="sm" variant="outline" className="text-xs h-6 px-2">With Contacts</Button>
+                      <Button size="sm" variant="outline" className="text-xs h-6 px-2">Without Contacts</Button>
                     </div>
                   </div>
                   
-                  <div className="flex-1 overflow-y-auto space-y-2">
+                  <div className="flex-1 overflow-y-auto space-y-1">
                     {/* Group recipients by customer/company */}
                     {(() => {
                       const groupedRecipients = campaignData.recipients.reduce((groups, recipient) => {
@@ -1263,14 +1263,16 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                         return sampleCompanies.map((company, index) => (
                           <div
                             key={company.name}
-                            className="p-3 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer bg-white"
+                            className={`p-2 border border-gray-200 rounded cursor-pointer hover:border-blue-300 ${
+                              selectedCompany === company.name ? 'border-blue-500 bg-blue-50' : 'bg-white'
+                            }`}
                             onClick={() => setSelectedCompany(company.name)}
                           >
                             <div className="flex items-center gap-2 mb-1">
-                              <Building className="h-4 w-4 text-gray-400" />
-                              <span className="font-medium text-sm text-gray-900">{company.name}</span>
+                              <Building className="h-3 w-3 text-gray-400" />
+                              <span className="font-medium text-xs text-gray-900">{company.name}</span>
                             </div>
-                            <div className="text-xs text-gray-500 mb-2">{company.type}</div>
+                            <div className="text-xs text-gray-500 mb-1">{company.type}</div>
                             <div className="flex items-center justify-between">
                               <span className="text-xs text-gray-600">
                                 {company.contacts} contact{company.contacts !== 1 ? 's' : ''}
@@ -1286,14 +1288,16 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                       return Object.entries(groupedRecipients).map(([companyName, recipients]) => (
                         <div
                           key={companyName}
-                          className="p-3 border border-gray-200 rounded-lg hover:border-blue-300 cursor-pointer bg-white"
+                          className={`p-2 border border-gray-200 rounded cursor-pointer hover:border-blue-300 ${
+                            selectedCompany === companyName ? 'border-blue-500 bg-blue-50' : 'bg-white'
+                          }`}
                           onClick={() => setSelectedCompany(companyName)}
                         >
                           <div className="flex items-center gap-2 mb-1">
-                            <Building className="h-4 w-4 text-gray-400" />
-                            <span className="font-medium text-sm text-gray-900">{companyName}</span>
+                            <Building className="h-3 w-3 text-gray-400" />
+                            <span className="font-medium text-xs text-gray-900">{companyName}</span>
                           </div>
-                          <div className="text-xs text-gray-500 mb-2">
+                          <div className="text-xs text-gray-500 mb-1">
                             {recipients[0]?.industry || 'Technology'}
                           </div>
                           <div className="flex items-center justify-between">
@@ -1311,24 +1315,24 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 </div>
 
                 {/* Right Content - Selected Company Details */}
-                <div className="w-2/3 bg-white border border-gray-200 rounded-lg p-6 overflow-hidden flex flex-col">
+                <div className="w-2/3 bg-white border border-gray-200 rounded-lg p-3 overflow-hidden flex flex-col">
                   {selectedCompany ? (
                     <>
-                      <div className="flex items-center justify-between mb-6">
-                        <div className="flex items-center gap-3">
-                          <Building className="h-5 w-5 text-gray-400" />
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Building className="h-4 w-4 text-gray-400" />
                           <div>
-                            <h3 className="font-medium text-gray-900">{selectedCompany}</h3>
-                            <p className="text-sm text-gray-500">Technology</p>
+                            <h3 className="text-sm font-medium text-gray-900">{selectedCompany}</h3>
+                            <p className="text-xs text-gray-500">Technology</p>
                           </div>
                         </div>
-                        <Button size="sm" variant="outline">
-                          <Plus className="h-4 w-4 mr-1" />
+                        <Button size="sm" variant="outline" className="text-xs h-6">
+                          <Plus className="h-3 w-3 mr-1" />
                           Add Contact
                         </Button>
                       </div>
 
-                      <div className="flex-1 overflow-y-auto space-y-6">
+                      <div className="flex-1 overflow-y-auto space-y-3">
                         {/* Display contacts for selected company */}
                         {(() => {
                           const companyRecipients = campaignData.recipients.filter(r => 
@@ -1351,17 +1355,17 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                             );
                             
                             return relevantContacts.map((contact, index) => (
-                              <div key={index} className="border-l-2 border-gray-200 pl-4">
-                                <div className="flex items-center gap-3 mb-3">
-                                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <User className="h-4 w-4 text-blue-600" />
+                              <div key={index} className="border-l-2 border-gray-200 pl-3">
+                                <div className="flex items-center gap-2 mb-2">
+                                  <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <User className="h-3 w-3 text-blue-600" />
                                   </div>
                                   <div className="flex-1">
                                     <div className="flex items-center gap-2">
-                                      <span className="font-medium text-gray-900">{contact.name}</span>
-                                      <Badge variant="secondary" className="text-xs">active</Badge>
+                                      <span className="font-medium text-xs text-gray-900">{contact.name}</span>
+                                      <Badge variant="secondary" className="text-xs h-4">active</Badge>
                                     </div>
-                                    <div className="text-sm text-gray-500">{contact.email}</div>
+                                    <div className="text-xs text-gray-500">{contact.email}</div>
                                   </div>
                                   <div className="text-xs text-gray-500">
                                     {campaignData.emails.length} email{campaignData.emails.length !== 1 ? 's' : ''}
@@ -1369,31 +1373,31 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                 </div>
 
                                 {/* Email sequence for this contact */}
-                                <div className="space-y-3 mb-4">
+                                <div className="space-y-2 mb-2">
                                   {campaignData.emails.map((email, emailIndex) => (
-                                    <div key={emailIndex} className="bg-gray-50 rounded-lg p-3">
-                                      <div className="flex items-center justify-between mb-2">
-                                        <div className="flex items-center gap-2">
+                                    <div key={emailIndex} className="bg-gray-50 rounded p-2">
+                                      <div className="flex items-center justify-between mb-1">
+                                        <div className="flex items-center gap-1">
                                           <span className="text-xs font-medium text-gray-900">
                                             {emailIndex + 1}
                                           </span>
-                                          <span className="text-sm font-medium text-gray-900">
+                                          <span className="text-xs font-medium text-gray-900">
                                             {email.subject || `Email ${emailIndex + 1} - Follow up`}
                                           </span>
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                          <Badge variant="outline" className="text-xs">
+                                        <div className="flex items-center gap-1">
+                                          <Badge variant="outline" className="text-xs h-4">
                                             {emailIndex === 0 ? 'sent' : 'draft'}
                                           </Badge>
-                                          <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                                          <Button size="sm" variant="ghost" className="h-4 w-4 p-0">
                                             <Edit className="h-3 w-3" />
                                           </Button>
                                         </div>
                                       </div>
-                                      <div className="text-xs text-gray-600 mb-2">
+                                      <div className="text-xs text-gray-600 mb-1">
                                         {emailIndex === 0 ? 'Today' : `In ${emailIndex * 2} days`} • 10:00 AM
                                       </div>
-                                      <div className="text-sm text-gray-700 line-clamp-2">
+                                      <div className="text-xs text-gray-700 line-clamp-2">
                                         {typeof email.blocks === 'string' ? 
                                           JSON.parse(email.blocks)[0]?.content || 'Email content preview...' :
                                           email.blocks?.[0]?.content || 'Email content preview...'
@@ -1403,7 +1407,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                   ))}
                                 </div>
 
-                                <Button size="sm" variant="outline" className="text-xs">
+                                <Button size="sm" variant="outline" className="text-xs h-6 mb-3">
                                   <Plus className="h-3 w-3 mr-1" />
                                   Add Email to Sequence
                                 </Button>
@@ -1412,19 +1416,19 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                           }
 
                           return companyRecipients.map((recipient, index) => (
-                            <div key={recipient.id || index} className="border-l-2 border-gray-200 pl-4">
-                              <div className="flex items-center gap-3 mb-3">
-                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                  <User className="h-4 w-4 text-blue-600" />
+                            <div key={recipient.id || index} className="border-l-2 border-gray-200 pl-3">
+                              <div className="flex items-center gap-2 mb-2">
+                                <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                                  <User className="h-3 w-3 text-blue-600" />
                                 </div>
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2">
-                                    <span className="font-medium text-gray-900">
+                                    <span className="font-medium text-xs text-gray-900">
                                       {recipient.contact_name || recipient.name || 'Contact'}
                                     </span>
-                                    <Badge variant="secondary" className="text-xs">active</Badge>
+                                    <Badge variant="secondary" className="text-xs h-4">active</Badge>
                                   </div>
-                                  <div className="text-sm text-gray-500">
+                                  <div className="text-xs text-gray-500">
                                     {recipient.contact_email || recipient.email || 'email@example.com'}
                                   </div>
                                 </div>
@@ -1434,31 +1438,31 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                               </div>
 
                               {/* Email sequence for this contact */}
-                              <div className="space-y-3 mb-4">
+                              <div className="space-y-2 mb-2">
                                 {campaignData.emails.map((email, emailIndex) => (
-                                  <div key={emailIndex} className="bg-gray-50 rounded-lg p-3">
-                                    <div className="flex items-center justify-between mb-2">
-                                      <div className="flex items-center gap-2">
+                                  <div key={emailIndex} className="bg-gray-50 rounded p-2">
+                                    <div className="flex items-center justify-between mb-1">
+                                      <div className="flex items-center gap-1">
                                         <span className="text-xs font-medium text-gray-900">
                                           {emailIndex + 1}
                                         </span>
-                                        <span className="text-sm font-medium text-gray-900">
+                                        <span className="text-xs font-medium text-gray-900">
                                           {email.subject || 'Email Subject'}
                                         </span>
                                       </div>
-                                      <div className="flex items-center gap-2">
-                                        <Badge variant="outline" className="text-xs">
+                                      <div className="flex items-center gap-1">
+                                        <Badge variant="outline" className="text-xs h-4">
                                           {emailIndex === 0 ? 'sent' : 'draft'}
                                         </Badge>
-                                        <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                                        <Button size="sm" variant="ghost" className="h-4 w-4 p-0">
                                           <Edit className="h-3 w-3" />
                                         </Button>
                                       </div>
                                     </div>
-                                    <div className="text-xs text-gray-600 mb-2">
+                                    <div className="text-xs text-gray-600 mb-1">
                                       {emailIndex === 0 ? '16/01/2024' : '18/01/2024'} • 10:00
                                     </div>
-                                    <div className="text-sm text-gray-700 line-clamp-2">
+                                    <div className="text-xs text-gray-700 line-clamp-2">
                                       {typeof email.blocks === 'string' ? 
                                         JSON.parse(email.blocks)[0]?.content || 'Email content...' :
                                         email.blocks?.[0]?.content || 'Email content...'
@@ -1468,7 +1472,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                 ))}
                               </div>
 
-                              <Button size="sm" variant="outline" className="text-xs">
+                              <Button size="sm" variant="outline" className="text-xs h-6 mb-3">
                                 <Plus className="h-3 w-3 mr-1" />
                                 Add Email to Sequence
                               </Button>
@@ -1477,23 +1481,23 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                         })()}
 
                         {/* Suggested Contacts Section */}
-                        <div className="border-t pt-4">
-                          <div className="flex items-center justify-between mb-3">
+                        <div className="border-t pt-2">
+                          <div className="flex items-center justify-between mb-2">
                             <div className="flex items-center gap-2">
-                              <Search className="h-4 w-4 text-gray-400" />
-                              <span className="text-sm font-medium text-gray-900">Additional Suggested Contacts</span>
-                              <Badge variant="secondary" className="text-xs">3 found</Badge>
+                              <Search className="h-3 w-3 text-gray-400" />
+                              <span className="text-xs font-medium text-gray-900">Additional Suggested Contacts</span>
+                              <Badge variant="secondary" className="text-xs h-4">3 found</Badge>
                             </div>
-                            <Button size="sm" variant="ghost" className="text-xs">
+                            <Button size="sm" variant="ghost" className="text-xs h-6">
                               Hide
                             </Button>
                           </div>
                           
-                          <p className="text-xs text-gray-600 mb-3">
+                          <p className="text-xs text-gray-600 mb-2">
                             We found these additional potential contacts for {selectedCompany}. Click to add them instantly.
                           </p>
 
-                          <div className="space-y-2">
+                          <div className="space-y-1">
                             {[
                               {
                                 name: "Robert Chen",
@@ -1517,13 +1521,13 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                 source: "Email Signature"
                               }
                             ].map((contact, index) => (
-                              <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
+                              <div key={index} className="flex items-center justify-between p-2 border border-gray-200 rounded hover:border-blue-300 transition-colors">
                                 <div className="flex-1">
                                   <div className="flex items-center gap-2 mb-1">
-                                    <span className="font-medium text-sm text-gray-900">{contact.name}</span>
+                                    <span className="font-medium text-xs text-gray-900">{contact.name}</span>
                                     <Badge 
                                       variant="secondary" 
-                                      className={`text-xs ${
+                                      className={`text-xs h-4 ${
                                         contact.confidence >= 90 ? 'bg-green-100 text-green-700' :
                                         contact.confidence >= 80 ? 'bg-yellow-100 text-yellow-700' :
                                         'bg-gray-100 text-gray-700'
@@ -1536,7 +1540,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                   <div className="text-xs text-gray-500">{contact.title}</div>
                                   <div className="text-xs text-gray-400">From {contact.source}</div>
                                 </div>
-                                <Button size="sm" variant="outline" className="text-xs">
+                                <Button size="sm" variant="outline" className="text-xs h-6">
                                   <Plus className="h-3 w-3 mr-1" />
                                   Add
                                 </Button>
@@ -1690,31 +1694,31 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b">
-        <div className="max-w-6xl mx-auto px-6 py-3">
+        <div className="max-w-6xl mx-auto px-6 py-2">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <Button variant="ghost" size="sm" onClick={handleBack} className="gap-2">
+              <Button variant="ghost" size="sm" onClick={handleBack} className="gap-2 h-8">
                 <ArrowLeft className="h-4 w-4" />
                 {isEditingCampaign || isNewCampaign ? "Back to Campaigns" : "Back to Templates"}
               </Button>
               <div>
-                <h1 className="text-lg font-medium text-gray-900">
+                <h1 className="text-base font-medium text-gray-900">
                   {isEditingCampaign ? "Edit Campaign" : isNewCampaign ? "Create New Campaign" : "Create Campaign from Template"}
                 </h1>
                 {isFromTemplate && (
-                  <p className="text-sm text-gray-600">
+                  <p className="text-xs text-gray-600">
                     Based on: {templateData?.name}
                   </p>
                 )}
                 {isEditingCampaign && (
-                  <p className="text-sm text-gray-600">
+                  <p className="text-xs text-gray-600">
                     Campaign: {campaignDataFromAPI?.name}
                   </p>
                 )}
               </div>
             </div>
             <div className="text-right">
-              <p className="text-sm font-medium text-gray-900">Step {currentStep} of {totalSteps}</p>
+              <p className="text-xs font-medium text-gray-900">Step {currentStep} of {totalSteps}</p>
               <p className="text-xs text-gray-500">{Math.round(progress)}% complete</p>
             </div>
           </div>
@@ -1723,7 +1727,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
       {/* Steps Progress */}
       <div className="bg-white border-b">
-        <div className="max-w-6xl mx-auto px-6 py-4">
+        <div className="max-w-6xl mx-auto px-6 py-2">
           <div className="flex justify-between items-start relative">
             {/* Connecting Line Background */}
             <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 z-0" style={{ marginLeft: '4rem', marginRight: '4rem' }} />
@@ -1732,11 +1736,11 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               <div key={step.number} className="flex flex-col items-center flex-1 relative z-10">
                 {/* Step Circle */}
                 <div 
-                  className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-all cursor-pointer relative ${
+                  className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium transition-all cursor-pointer relative ${
                     isStepCompleted(step.number) 
                       ? 'bg-blue-600 text-white hover:bg-blue-700' 
                       : currentStep === step.number 
-                        ? 'bg-blue-100 text-blue-600 ring-4 ring-blue-50' 
+                        ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-50' 
                         : isStepAccessible(step.number)
                           ? 'bg-gray-200 text-gray-500 hover:bg-gray-300'
                           : 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-60'
@@ -1748,15 +1752,15 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                     }
                   }}
                 >
-                  {isStepCompleted(step.number) ? <Check className="h-4 w-4" /> : step.number}
+                  {isStepCompleted(step.number) ? <Check className="h-3 w-3" /> : step.number}
                 </div>
                 
                 {/* Step Text */}
-                <div className="mt-2 text-center">
-                  <p className={`text-sm font-medium ${
+                <div className="mt-1 text-center">
+                  <p className={`text-xs font-medium ${
                     currentStep === step.number ? 'text-blue-600' : 'text-gray-900'
                   }`}>{step.title}</p>
-                  <p className="text-xs text-gray-500 mt-0.5">{step.description}</p>
+                  <p className="text-xs text-gray-500 mt-0">{step.description}</p>
                 </div>
               </div>
             ))}
@@ -1774,9 +1778,9 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       </div>
 
       {/* Content */}
-      <div className="max-w-6xl mx-auto px-6 py-4">
+      <div className="max-w-6xl mx-auto px-6 py-2">
         {/* Navigation */}
-        <div className="flex justify-between mb-4">
+        <div className="flex justify-between mb-2">
           <Button
             variant="outline"
             onClick={handlePrevious}
