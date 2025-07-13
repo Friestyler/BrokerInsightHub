@@ -1711,6 +1711,75 @@ export default function PartnerDetail() {
 
         {activeTab === "opportunities" && (
           <div className="space-y-4">
+            {/* Saved Lists Cards */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">Opportunity Lists</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {(partnerRelevantLists as any[] || []).map((list: any) => (
+                  <div key={list.id} className="bg-white p-4 rounded-lg border border-[#E6E7F1] hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900 mb-1">{list.name}</h4>
+                        <p className="text-sm text-gray-500">{list.description || 'No description'}</p>
+                      </div>
+                      {list.is_shared && (
+                        <div className="flex items-center space-x-1 text-green-500">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2 text-sm text-gray-500">
+                        <span>{list.members?.length || 0} opportunities</span>
+                        <span>•</span>
+                        <span>{new Date(list.created_at).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setActiveList(list);
+                            // Scroll to the table
+                            const tableElement = document.getElementById('opportunities-table');
+                            if (tableElement) {
+                              tableElement.scrollIntoView({ behavior: 'smooth' });
+                            }
+                          }}
+                        >
+                          View List
+                        </Button>
+                        <Button 
+                          variant="default" 
+                          size="sm"
+                          className="bg-[#5567E5] hover:bg-[#4556D4] text-white"
+                          onClick={() => {
+                            toast({
+                              title: "Share with Partner",
+                              description: `Sharing "${list.name}" with partner. This will give them access to view and work with this opportunity list.`,
+                            });
+                          }}
+                        >
+                          Share With Partner
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {(!partnerRelevantLists || partnerRelevantLists.length === 0) && (
+                  <div className="col-span-full text-center py-8 text-gray-500">
+                    <p>No opportunity lists found. Create a list in the Opportunities section to share with this partner.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Enhanced unified toolbar - same as OpportunitiesPage */}
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <div className="flex flex-col gap-4">
@@ -2424,7 +2493,7 @@ export default function PartnerDetail() {
             </div>
 
             {/* Opportunities Table */}
-            <div className="bg-white rounded-lg shadow-sm">
+            <div className="bg-white rounded-lg shadow-sm" id="opportunities-table">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -2578,6 +2647,75 @@ export default function PartnerDetail() {
 
         {activeTab === "customers" && (
           <div className="space-y-4">
+            {/* Saved Lists Cards */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-gray-900">Customer Lists</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {(customerSavedLists as any[] || []).map((list: any) => (
+                  <div key={list.id} className="bg-white p-4 rounded-lg border border-[#E6E7F1] hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex-1">
+                        <h4 className="font-medium text-gray-900 mb-1">{list.name}</h4>
+                        <p className="text-sm text-gray-500">{list.description || 'No description'}</p>
+                      </div>
+                      {list.is_shared && (
+                        <div className="flex items-center space-x-1 text-green-500">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center space-x-2 text-sm text-gray-500">
+                        <span>{list.members?.length || 0} customers</span>
+                        <span>•</span>
+                        <span>{new Date(list.created_at).toLocaleDateString()}</span>
+                      </div>
+                      <div className="flex items-center space-x-2">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            setActiveCustomerList(list);
+                            // Scroll to the table
+                            const tableElement = document.getElementById('customers-table');
+                            if (tableElement) {
+                              tableElement.scrollIntoView({ behavior: 'smooth' });
+                            }
+                          }}
+                        >
+                          View List
+                        </Button>
+                        <Button 
+                          variant="default" 
+                          size="sm"
+                          className="bg-[#5567E5] hover:bg-[#4556D4] text-white"
+                          onClick={() => {
+                            toast({
+                              title: "Share with Partner",
+                              description: `Sharing "${list.name}" with partner. This will give them access to view and work with this customer list.`,
+                            });
+                          }}
+                        >
+                          Share With Partner
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {(!customerSavedLists || customerSavedLists.length === 0) && (
+                  <div className="col-span-full text-center py-8 text-gray-500">
+                    <p>No customer lists found. Create a list in the Customers section to share with this partner.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Enhanced unified toolbar for customers */}
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <div className="flex flex-col gap-4">
@@ -3106,7 +3244,7 @@ export default function PartnerDetail() {
             </div>
 
             {/* Customers Table - Enhanced version matching opportunities tab */}
-            <div className="bg-white rounded-lg shadow-sm">
+            <div className="bg-white rounded-lg shadow-sm" id="customers-table">
               <Table>
                 <TableHeader>
                   <TableRow>
