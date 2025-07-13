@@ -6,7 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, ArrowRight, Mail, Users, Target, Settings, Send, Check } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Mail, Users, Target, Settings, Send, Check, Edit } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import ImprovedEmailBuilder from './ImprovedEmailBuilder';
 import RecipientSelector from '@/components/campaigns/RecipientSelector';
@@ -180,6 +180,8 @@ export default function NewCampaign() {
       case 5:
         return true;
       case 6:
+        return true; // Drafts step - always allow progression
+      case 7:
         return true;
       default:
         return false;
@@ -204,7 +206,8 @@ export default function NewCampaign() {
     { number: 3, title: 'Content', icon: Mail },
     { number: 4, title: 'Recipients', icon: Users },
     { number: 5, title: 'Settings', icon: Settings },
-    { number: 6, title: 'Review', icon: Check }
+    { number: 6, title: 'Drafts', icon: Edit },
+    { number: 7, title: 'Review', icon: Check }
   ];
 
   const renderStepContent = () => {
@@ -544,6 +547,49 @@ export default function NewCampaign() {
           <Card className="w-full max-w-2xl mx-auto">
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
+                <Edit className="h-5 w-5" />
+                Drafts
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="text-sm text-gray-600 mb-4">
+                Draft functionality will be implemented here. This step allows you to save and manage campaign drafts.
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <div className="font-medium text-sm">Save as Draft</div>
+                    <div className="text-xs text-gray-600">
+                      Save your campaign progress without sending
+                    </div>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    Draft
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <div className="font-medium text-sm">Auto-save</div>
+                    <div className="text-xs text-gray-600">
+                      Automatically save changes as you work
+                    </div>
+                  </div>
+                  <Badge variant="secondary" className="text-xs">
+                    Enabled
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        );
+
+      case 7:
+        return (
+          <Card className="w-full max-w-2xl mx-auto">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
                 <Send className="h-5 w-5" />
                 Share or Send
               </CardTitle>
@@ -653,7 +699,7 @@ export default function NewCampaign() {
               Previous
             </Button>
 
-            {currentStep < 6 ? (
+            {currentStep < 7 ? (
               <Button
                 onClick={() => setCurrentStep(prev => prev + 1)}
                 disabled={!canProceed(currentStep)}

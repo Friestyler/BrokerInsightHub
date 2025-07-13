@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Share, DollarSign, Home, Car, Umbrella, Building, UserCheck, TrendingDown, Plane } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Edit, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Share, DollarSign, Home, Car, Umbrella, Building, UserCheck, TrendingDown, Plane } from "lucide-react";
 import { useLocation, useRoute, useParams } from 'wouter';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -599,6 +599,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       case 5:
         return 'Configure campaign settings';
       case 6:
+        return 'Save and manage drafts';
+      case 7:
         return 'Share or send your campaign';
       default:
         return '';
@@ -638,8 +640,14 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     },
     {
       number: 6,
-      title: 'Share or Send',
+      title: 'Drafts',
       description: getStepDescription(6),
+      component: 'drafts'
+    },
+    {
+      number: 7,
+      title: 'Share or Send',
+      description: getStepDescription(7),
       component: 'share'
     }
   ];
@@ -653,13 +661,15 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     const step3Complete = Boolean(campaignData.emails[0]?.subject?.trim());
     const step4Complete = isEditingCampaign ? true : campaignData.recipients.length > 0;
     const step5Complete = true; // Settings step - allow progression as it has default settings
+    const step6Complete = true; // Drafts step - allow progression as it has default behavior
     
     if (stepNum === 1) return step1Complete;
     if (stepNum === 2) return step2Complete;
     if (stepNum === 3) return step3Complete;
     if (stepNum === 4) return step4Complete;
     if (stepNum === 5) return step5Complete;
-    if (stepNum === 6) return false; // Share or Send step - never auto-completed
+    if (stepNum === 6) return step6Complete;
+    if (stepNum === 7) return false; // Share or Send step - never auto-completed
     return stepNum < currentStep;
   };
 
@@ -673,6 +683,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       if (stepNum === 4) return isStepCompleted(3);
       if (stepNum === 5) return isStepCompleted(4);
       if (stepNum === 6) return isStepCompleted(5);
+      if (stepNum === 7) return isStepCompleted(6);
       return false;
     }
     
@@ -682,12 +693,13 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     if (stepNum === 3) return isStepCompleted(2); // Flow Builder after target group
     if (stepNum === 4) return isStepCompleted(3); // Recipients after Flow Builder
     if (stepNum === 5) return isStepCompleted(4); // Settings after Recipients
-    if (stepNum === 6) return isStepCompleted(5); // Share or Send after Settings
+    if (stepNum === 6) return isStepCompleted(5); // Drafts after Settings
+    if (stepNum === 7) return isStepCompleted(6); // Share or Send after Drafts
     return false;
   };
 
   const canSave = (): boolean => {
-    return isStepCompleted(1) && isStepCompleted(2) && isStepCompleted(3) && isStepCompleted(4) && isStepCompleted(5);
+    return isStepCompleted(1) && isStepCompleted(2) && isStepCompleted(3) && isStepCompleted(4) && isStepCompleted(5) && isStepCompleted(6);
   };
 
   const updateUrlStep = (step: number) => {
@@ -1178,6 +1190,50 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
         );
 
       case 6:
+        return (
+          <div className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-xl font-medium text-gray-900 mb-2">Drafts</h2>
+              <p className="text-gray-600">Save and manage campaign drafts</p>
+            </div>
+
+            <div className="max-w-2xl mx-auto">
+              <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
+                <div className="text-sm text-gray-600 mb-4">
+                  Draft functionality will be implemented here. This step allows you to save and manage campaign drafts.
+                </div>
+                
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <div className="font-medium text-sm">Save as Draft</div>
+                      <div className="text-xs text-gray-600">
+                        Save your campaign progress without sending
+                      </div>
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      Draft
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center justify-between p-3 border rounded-lg">
+                    <div>
+                      <div className="font-medium text-sm">Auto-save</div>
+                      <div className="text-xs text-gray-600">
+                        Automatically save changes as you work
+                      </div>
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      Enabled
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 7:
         return (
           <div className="space-y-8">
             <div className="text-center">
