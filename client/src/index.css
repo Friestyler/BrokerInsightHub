@@ -10,6 +10,16 @@
   -webkit-line-clamp: 2;
 }
 
+/* Hide horizontal scrollbar completely */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
 :root {
   --background: 220 33% 98%;
   --foreground: 220 15% 25%; /* #282A3F */

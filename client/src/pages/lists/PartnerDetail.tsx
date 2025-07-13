@@ -1711,79 +1711,60 @@ export default function PartnerDetail() {
 
         {activeTab === "opportunities" && (
           <div className="space-y-4">
-            {/* Saved Lists Cards - Apple/Google Style */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-semibold text-gray-900">Opportunity Lists</h3>
-                <span className="text-sm text-gray-500">{(partnerRelevantLists as any[] || []).length} lists</span>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
-                {(partnerRelevantLists as any[] || []).map((list: any) => (
-                  <div key={list.id} className="group bg-white p-3 rounded-lg border border-[#E6E7F1] hover:border-[#5567E5] hover:shadow-sm transition-all duration-200 cursor-pointer">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <h4 className="font-medium text-gray-900 text-sm truncate">{list.name}</h4>
+            {/* Saved Lists Cards - Compact Horizontal Scroll */}
+            {(partnerRelevantLists as any[] || []).length > 0 && (
+              <div className="bg-white p-3 rounded-lg border border-[#E6E7F1]">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-medium text-gray-900">Opportunity Lists ({(partnerRelevantLists as any[] || []).length})</h3>
+                </div>
+                
+                <div className="flex overflow-x-auto space-x-2 pb-1 hide-scrollbar">
+                  {(partnerRelevantLists as any[] || []).map((list: any) => (
+                    <div key={list.id} className="flex-shrink-0 bg-gray-50 border border-gray-200 rounded-md p-2 hover:bg-gray-100 transition-colors min-w-[200px]">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center space-x-1">
+                          <h4 className="font-medium text-gray-900 text-xs truncate max-w-[120px]">{list.name}</h4>
                           {list.is_shared && (
-                            <div className="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full" title="Shared list"></div>
+                            <div className="flex-shrink-0 w-1.5 h-1.5 bg-green-500 rounded-full" title="Shared list"></div>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500 line-clamp-2">{list.description || 'No description'}</p>
+                        <span className="text-xs text-gray-500">{list.members?.length || 0}</span>
+                      </div>
+                      
+                      <div className="flex items-center space-x-1">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="flex-1 h-6 px-2 text-xs font-medium border-gray-300 hover:border-gray-400 text-gray-700"
+                          onClick={() => {
+                            setActiveList(list);
+                            const tableElement = document.getElementById('opportunities-table');
+                            if (tableElement) {
+                              tableElement.scrollIntoView({ behavior: 'smooth' });
+                            }
+                          }}
+                        >
+                          View
+                        </Button>
+                        <Button 
+                          variant="default" 
+                          size="sm"
+                          className="flex-1 h-6 px-2 text-xs font-medium bg-[#5567E5] hover:bg-[#4556D4] text-white"
+                          onClick={() => {
+                            toast({
+                              title: "Share with Partner",
+                              description: `Sharing "${list.name}" with partner. This will give them access to view and work with this opportunity list.`,
+                            });
+                          }}
+                        >
+                          Share
+                        </Button>
                       </div>
                     </div>
-                    
-                    <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                      <span>{list.members?.length || 0} opportunities</span>
-                      <span>{new Date(list.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                    </div>
-                    
-                    <div className="flex items-center space-x-1.5">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="flex-1 h-7 px-2 text-xs font-medium border-gray-300 hover:border-gray-400 text-gray-700"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveList(list);
-                          const tableElement = document.getElementById('opportunities-table');
-                          if (tableElement) {
-                            tableElement.scrollIntoView({ behavior: 'smooth' });
-                          }
-                        }}
-                      >
-                        View
-                      </Button>
-                      <Button 
-                        variant="default" 
-                        size="sm"
-                        className="flex-1 h-7 px-2 text-xs font-medium bg-[#5567E5] hover:bg-[#4556D4] text-white"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toast({
-                            title: "Share with Partner",
-                            description: `Sharing "${list.name}" with partner. This will give them access to view and work with this opportunity list.`,
-                          });
-                        }}
-                      >
-                        Share
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-                {(!partnerRelevantLists || partnerRelevantLists.length === 0) && (
-                  <div className="col-span-full text-center py-8 text-gray-500">
-                    <div className="flex flex-col items-center space-y-2">
-                      <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V9a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                      </svg>
-                      <p className="text-sm">No opportunity lists found</p>
-                      <p className="text-xs text-gray-400">Create a list in the Opportunities section to share with this partner</p>
-                    </div>
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Enhanced unified toolbar - same as OpportunitiesPage */}
             <div className="bg-white p-4 rounded-lg shadow-sm">
@@ -2652,79 +2633,60 @@ export default function PartnerDetail() {
 
         {activeTab === "customers" && (
           <div className="space-y-4">
-            {/* Saved Lists Cards - Apple/Google Style */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-semibold text-gray-900">Customer Lists</h3>
-                <span className="text-sm text-gray-500">{(customerSavedLists as any[] || []).length} lists</span>
-              </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3">
-                {(customerSavedLists as any[] || []).map((list: any) => (
-                  <div key={list.id} className="group bg-white p-3 rounded-lg border border-[#E6E7F1] hover:border-[#5567E5] hover:shadow-sm transition-all duration-200 cursor-pointer">
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center space-x-2 mb-1">
-                          <h4 className="font-medium text-gray-900 text-sm truncate">{list.name}</h4>
+            {/* Saved Lists Cards - Compact Horizontal Scroll */}
+            {(customerSavedLists as any[] || []).length > 0 && (
+              <div className="bg-white p-3 rounded-lg border border-[#E6E7F1]">
+                <div className="flex items-center justify-between mb-2">
+                  <h3 className="text-sm font-medium text-gray-900">Customer Lists ({(customerSavedLists as any[] || []).length})</h3>
+                </div>
+                
+                <div className="flex overflow-x-auto space-x-2 pb-1 hide-scrollbar">
+                  {(customerSavedLists as any[] || []).map((list: any) => (
+                    <div key={list.id} className="flex-shrink-0 bg-gray-50 border border-gray-200 rounded-md p-2 hover:bg-gray-100 transition-colors min-w-[200px]">
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center space-x-1">
+                          <h4 className="font-medium text-gray-900 text-xs truncate max-w-[120px]">{list.name}</h4>
                           {list.is_shared && (
-                            <div className="flex-shrink-0 w-2 h-2 bg-green-500 rounded-full" title="Shared list"></div>
+                            <div className="flex-shrink-0 w-1.5 h-1.5 bg-green-500 rounded-full" title="Shared list"></div>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500 line-clamp-2">{list.description || 'No description'}</p>
+                        <span className="text-xs text-gray-500">{list.members?.length || 0}</span>
+                      </div>
+                      
+                      <div className="flex items-center space-x-1">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="flex-1 h-6 px-2 text-xs font-medium border-gray-300 hover:border-gray-400 text-gray-700"
+                          onClick={() => {
+                            setActiveCustomerList(list);
+                            const tableElement = document.getElementById('customers-table');
+                            if (tableElement) {
+                              tableElement.scrollIntoView({ behavior: 'smooth' });
+                            }
+                          }}
+                        >
+                          View
+                        </Button>
+                        <Button 
+                          variant="default" 
+                          size="sm"
+                          className="flex-1 h-6 px-2 text-xs font-medium bg-[#5567E5] hover:bg-[#4556D4] text-white"
+                          onClick={() => {
+                            toast({
+                              title: "Share with Partner",
+                              description: `Sharing "${list.name}" with partner. This will give them access to view and work with this customer list.`,
+                            });
+                          }}
+                        >
+                          Share
+                        </Button>
                       </div>
                     </div>
-                    
-                    <div className="flex items-center justify-between text-xs text-gray-500 mb-3">
-                      <span>{list.members?.length || 0} customers</span>
-                      <span>{new Date(list.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
-                    </div>
-                    
-                    <div className="flex items-center space-x-1.5">
-                      <Button 
-                        variant="outline" 
-                        size="sm"
-                        className="flex-1 h-7 px-2 text-xs font-medium border-gray-300 hover:border-gray-400 text-gray-700"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveCustomerList(list);
-                          const tableElement = document.getElementById('customers-table');
-                          if (tableElement) {
-                            tableElement.scrollIntoView({ behavior: 'smooth' });
-                          }
-                        }}
-                      >
-                        View
-                      </Button>
-                      <Button 
-                        variant="default" 
-                        size="sm"
-                        className="flex-1 h-7 px-2 text-xs font-medium bg-[#5567E5] hover:bg-[#4556D4] text-white"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toast({
-                            title: "Share with Partner",
-                            description: `Sharing "${list.name}" with partner. This will give them access to view and work with this customer list.`,
-                          });
-                        }}
-                      >
-                        Share
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-                {(!customerSavedLists || customerSavedLists.length === 0) && (
-                  <div className="col-span-full text-center py-8 text-gray-500">
-                    <div className="flex flex-col items-center space-y-2">
-                      <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                      </svg>
-                      <p className="text-sm">No customer lists found</p>
-                      <p className="text-xs text-gray-400">Create a list in the Customers section to share with this partner</p>
-                    </div>
-                  </div>
-                )}
+                  ))}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Enhanced unified toolbar for customers */}
             <div className="bg-white p-4 rounded-lg shadow-sm">
