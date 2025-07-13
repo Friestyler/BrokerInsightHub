@@ -738,9 +738,9 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-8">
+          <div className="space-y-4">
             <div className="text-center">
-              <h2 className="text-xl font-medium text-gray-900 mb-2">Campaign Details</h2>
+              <h2 className="text-xl font-medium text-gray-900 mb-1">Campaign Details</h2>
               <p className="text-gray-600">Configure your campaign name and details</p>
             </div>
 
@@ -821,9 +821,9 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
       case 2:
         return (
-          <div className="space-y-8">
+          <div className="space-y-4">
             <div className="text-center">
-              <h2 className="text-xl font-medium text-gray-900 mb-2">Choose Target Group</h2>
+              <h2 className="text-xl font-medium text-gray-900 mb-1">Choose Target Group</h2>
               <p className="text-gray-600">Select the type of audience for this campaign</p>
             </div>
 
@@ -915,9 +915,9 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
       case 3:
         return (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div className="text-center">
-              <h2 className="text-xl font-medium text-gray-900 mb-2">Flow Builder</h2>
+              <h2 className="text-xl font-medium text-gray-900 mb-1">Flow Builder</h2>
               <p className="text-gray-600">Design your email sequence</p>
             </div>
 
@@ -942,10 +942,10 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
       case 4:
         return (
-          <div className="space-y-8">
+          <div className="space-y-4">
             {/* Summary Overview Blocks */}
             <div className="max-w-6xl mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                 {(() => {
                   const totalRecipients = campaignData.recipients.length;
                   const contactsWithEmail = campaignData.recipients.filter((r: any) => r.email && r.email !== '' && !r.isMissingContact).length;
@@ -1115,19 +1115,19 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
       case 5:
         return (
-          <div className="space-y-8">
+          <div className="space-y-4">
             <div className="text-center">
-              <h2 className="text-xl font-medium text-gray-900 mb-2">Campaign Settings</h2>
+              <h2 className="text-xl font-medium text-gray-900 mb-1">Campaign Settings</h2>
               <p className="text-gray-600">Configure when and how to send</p>
             </div>
 
             <div className="max-w-2xl mx-auto">
-              <div className="bg-white border border-gray-200 rounded-lg p-6 space-y-4">
-                <div className="text-sm text-gray-600 mb-4">
+              <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+                <div className="text-sm text-gray-600 mb-2">
                   Configure advanced campaign settings including scheduling, permissions, sender information, and automation rules.
                 </div>
                 
-                <div className="space-y-3">
+                <div className="space-y-2">
                   <div className="flex items-center justify-between p-3 border rounded-lg">
                     <div>
                       <div className="font-medium text-sm">Schedule Type</div>
@@ -1192,14 +1192,14 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
       case 6:
         return (
-          <div className="space-y-6">
+          <div className="space-y-3">
             <div className="text-center">
-              <h2 className="text-xl font-medium text-gray-900 mb-2">Email Sequence Management</h2>
+              <h2 className="text-xl font-medium text-gray-900 mb-1">Email Sequence Management</h2>
               <p className="text-gray-600">Manage contacts and customize email sequences for each recipient</p>
             </div>
 
             <div className="max-w-7xl mx-auto">
-              <div className="flex gap-6 h-[700px]">
+              <div className="flex gap-4 h-[650px]">
                 {/* Left Sidebar - Customer Companies */}
                 <div className="w-1/3 bg-white border border-gray-200 rounded-lg p-4 overflow-hidden flex flex-col">
                   <div className="mb-4">
@@ -1570,7 +1570,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
       <div className="bg-white border-b">
-        <div className="max-w-6xl mx-auto px-6 py-4">
+        <div className="max-w-6xl mx-auto px-6 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="sm" onClick={handleBack} className="gap-2">
@@ -1603,7 +1603,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
       {/* Steps Progress */}
       <div className="bg-white border-b">
-        <div className="max-w-6xl mx-auto px-6 py-6">
+        <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex justify-between items-start relative">
             {/* Connecting Line Background */}
             <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 z-0" style={{ marginLeft: '4rem', marginRight: '4rem' }} />
@@ -1632,11 +1632,11 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 </div>
                 
                 {/* Step Text */}
-                <div className="mt-3 text-center">
+                <div className="mt-2 text-center">
                   <p className={`text-sm font-medium ${
                     currentStep === step.number ? 'text-blue-600' : 'text-gray-900'
                   }`}>{step.title}</p>
-                  <p className="text-xs text-gray-500 mt-1">{step.description}</p>
+                  <p className="text-xs text-gray-500 mt-0.5">{step.description}</p>
                 </div>
               </div>
             ))}
@@ -1654,9 +1654,9 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       </div>
 
       {/* Content */}
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="max-w-6xl mx-auto px-6 py-4">
         {/* Navigation */}
-        <div className="flex justify-between mb-8">
+        <div className="flex justify-between mb-4">
           <Button
             variant="outline"
             onClick={handlePrevious}

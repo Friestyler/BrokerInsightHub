@@ -302,10 +302,10 @@ export default function NewCampaign() {
 
       case 4:
         return (
-          <div className="w-full space-y-8">
+          <div className="w-full space-y-4">
             {/* Summary Overview Blocks */}
             <div className="max-w-6xl mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3">
                 {(() => {
                   const totalRecipients = campaignData.recipients.length;
                   const contactsWithEmail = campaignData.recipients.filter((r: any) => r.email && r.email !== '' && !r.isMissingContact).length;
@@ -630,8 +630,8 @@ export default function NewCampaign() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="bg-white border-b border-gray-200">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="flex items-center justify-between mb-6">
+        <div className="max-w-6xl mx-auto px-6 py-3">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-4">
               <Button variant="ghost" onClick={handleBack} className="gap-2">
                 <ArrowLeft className="h-4 w-4" />
