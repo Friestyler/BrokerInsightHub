@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Copy, Users, Trash2, MoreHorizontal, MoreVertical, MessageSquare, ArrowLeft, Plus, Mail, Calendar, Clock, Play, Pause, AlertCircle, CheckCircle, Eye, Edit, Filter, Package, Target, Crown, Bot } from "lucide-react";
+import { Search, Copy, Users, Trash2, MoreHorizontal, MoreVertical, MessageSquare, ArrowLeft, Plus, Mail, Calendar, Clock, Play, Pause, AlertCircle, CheckCircle, Eye, Edit, Filter, Package, Target, Crown, Bot, ChevronDown, ChevronRight, Share2 } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
@@ -45,6 +45,8 @@ export default function PartnerDetail() {
   const [selectedTag, setSelectedTag] = useState("all");
   const [selectedUnit, setSelectedUnit] = useState("all");
   const [selectedRange, setSelectedRange] = useState("all");
+  const [isOpportunitiesListsCollapsed, setIsOpportunitiesListsCollapsed] = useState(false);
+  const [isCustomerListsCollapsed, setIsCustomerListsCollapsed] = useState(false);
   const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
   const [comment, setComment] = useState("");
   const [selectedMetricForComment, setSelectedMetricForComment] = useState<any>(null);
@@ -1711,58 +1713,73 @@ export default function PartnerDetail() {
 
         {activeTab === "opportunities" && (
           <div className="space-y-4">
-            {/* Saved Lists Cards - Compact Horizontal Scroll */}
+            {/* Saved Lists Cards - Collapsible Section */}
             {(partnerRelevantLists as any[] || []).length > 0 && (
-              <div className="bg-white p-3 rounded-lg border border-[#E6E7F1]">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-medium text-gray-900">Opportunity Lists ({(partnerRelevantLists as any[] || []).length})</h3>
+              <div className="bg-white rounded-lg border border-[#E6E7F1]">
+                <div className="p-3 border-b border-[#E6E7F1]">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center space-x-2 w-full justify-between p-0 h-auto text-sm font-medium text-gray-900 hover:bg-transparent"
+                    onClick={() => setIsOpportunitiesListsCollapsed(!isOpportunitiesListsCollapsed)}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <span>All opportunities</span>
+                      <span className="text-xs text-gray-500">({(partnerRelevantLists as any[] || []).length} lists)</span>
+                    </div>
+                    {isOpportunitiesListsCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
                 </div>
                 
-                <div className="flex overflow-x-auto space-x-2 pb-1 hide-scrollbar">
-                  {(partnerRelevantLists as any[] || []).map((list: any) => (
-                    <div key={list.id} className="flex-shrink-0 bg-gray-50 border border-gray-200 rounded-md p-2 hover:bg-gray-100 transition-colors min-w-[200px]">
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center space-x-1">
-                          <h4 className="font-medium text-gray-900 text-xs truncate max-w-[120px]">{list.name}</h4>
-                          {list.is_shared && (
-                            <div className="flex-shrink-0 w-1.5 h-1.5 bg-green-500 rounded-full" title="Shared list"></div>
-                          )}
+                {!isOpportunitiesListsCollapsed && (
+                  <div className="p-3">
+                    <div className="flex overflow-x-auto space-x-2 pb-1 hide-scrollbar">
+                      {(partnerRelevantLists as any[] || []).map((list: any) => (
+                        <div key={list.id} className="flex-shrink-0 bg-gray-50 border border-gray-200 rounded-md p-2 hover:bg-gray-100 transition-colors min-w-[200px]">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center space-x-1">
+                              <h4 className="font-medium text-gray-900 text-xs truncate max-w-[120px]">{list.name}</h4>
+                              {list.is_shared && (
+                                <div className="flex-shrink-0 w-1.5 h-1.5 bg-green-500 rounded-full" title="Shared list"></div>
+                              )}
+                            </div>
+                            <span className="text-xs text-gray-500">{list.members?.length || 0}</span>
+                          </div>
+                          
+                          <div className="flex items-center space-x-1">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="flex-1 h-6 px-2 text-xs font-medium border-gray-300 hover:border-gray-400 text-gray-700"
+                              onClick={() => {
+                                setActiveList(list);
+                                const tableElement = document.getElementById('opportunities-table');
+                                if (tableElement) {
+                                  tableElement.scrollIntoView({ behavior: 'smooth' });
+                                }
+                              }}
+                            >
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                            <Button 
+                              variant="default" 
+                              size="sm"
+                              className="flex-1 h-6 px-2 text-xs font-medium bg-[#5567E5] hover:bg-[#4556D4] text-white"
+                              onClick={() => {
+                                toast({
+                                  title: "Share with Partner",
+                                  description: `Sharing "${list.name}" with partner. This will give them access to view and work with this opportunity list.`,
+                                });
+                              }}
+                            >
+                              <Share2 className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
-                        <span className="text-xs text-gray-500">{list.members?.length || 0}</span>
-                      </div>
-                      
-                      <div className="flex items-center space-x-1">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="flex-1 h-6 px-2 text-xs font-medium border-gray-300 hover:border-gray-400 text-gray-700"
-                          onClick={() => {
-                            setActiveList(list);
-                            const tableElement = document.getElementById('opportunities-table');
-                            if (tableElement) {
-                              tableElement.scrollIntoView({ behavior: 'smooth' });
-                            }
-                          }}
-                        >
-                          View
-                        </Button>
-                        <Button 
-                          variant="default" 
-                          size="sm"
-                          className="flex-1 h-6 px-2 text-xs font-medium bg-[#5567E5] hover:bg-[#4556D4] text-white"
-                          onClick={() => {
-                            toast({
-                              title: "Share with Partner",
-                              description: `Sharing "${list.name}" with partner. This will give them access to view and work with this opportunity list.`,
-                            });
-                          }}
-                        >
-                          Share
-                        </Button>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
               </div>
             )}
 
@@ -2633,58 +2650,73 @@ export default function PartnerDetail() {
 
         {activeTab === "customers" && (
           <div className="space-y-4">
-            {/* Saved Lists Cards - Compact Horizontal Scroll */}
+            {/* Saved Lists Cards - Collapsible Section */}
             {(customerSavedLists as any[] || []).length > 0 && (
-              <div className="bg-white p-3 rounded-lg border border-[#E6E7F1]">
-                <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-medium text-gray-900">Customer Lists ({(customerSavedLists as any[] || []).length})</h3>
+              <div className="bg-white rounded-lg border border-[#E6E7F1]">
+                <div className="p-3 border-b border-[#E6E7F1]">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center space-x-2 w-full justify-between p-0 h-auto text-sm font-medium text-gray-900 hover:bg-transparent"
+                    onClick={() => setIsCustomerListsCollapsed(!isCustomerListsCollapsed)}
+                  >
+                    <div className="flex items-center space-x-2">
+                      <span>All customers</span>
+                      <span className="text-xs text-gray-500">({(customerSavedLists as any[] || []).length} lists)</span>
+                    </div>
+                    {isCustomerListsCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                  </Button>
                 </div>
                 
-                <div className="flex overflow-x-auto space-x-2 pb-1 hide-scrollbar">
-                  {(customerSavedLists as any[] || []).map((list: any) => (
-                    <div key={list.id} className="flex-shrink-0 bg-gray-50 border border-gray-200 rounded-md p-2 hover:bg-gray-100 transition-colors min-w-[200px]">
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center space-x-1">
-                          <h4 className="font-medium text-gray-900 text-xs truncate max-w-[120px]">{list.name}</h4>
-                          {list.is_shared && (
-                            <div className="flex-shrink-0 w-1.5 h-1.5 bg-green-500 rounded-full" title="Shared list"></div>
-                          )}
+                {!isCustomerListsCollapsed && (
+                  <div className="p-3">
+                    <div className="flex overflow-x-auto space-x-2 pb-1 hide-scrollbar">
+                      {(customerSavedLists as any[] || []).map((list: any) => (
+                        <div key={list.id} className="flex-shrink-0 bg-gray-50 border border-gray-200 rounded-md p-2 hover:bg-gray-100 transition-colors min-w-[200px]">
+                          <div className="flex items-center justify-between mb-1">
+                            <div className="flex items-center space-x-1">
+                              <h4 className="font-medium text-gray-900 text-xs truncate max-w-[120px]">{list.name}</h4>
+                              {list.is_shared && (
+                                <div className="flex-shrink-0 w-1.5 h-1.5 bg-green-500 rounded-full" title="Shared list"></div>
+                              )}
+                            </div>
+                            <span className="text-xs text-gray-500">{list.members?.length || 0}</span>
+                          </div>
+                          
+                          <div className="flex items-center space-x-1">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              className="flex-1 h-6 px-2 text-xs font-medium border-gray-300 hover:border-gray-400 text-gray-700"
+                              onClick={() => {
+                                setActiveCustomerList(list);
+                                const tableElement = document.getElementById('customers-table');
+                                if (tableElement) {
+                                  tableElement.scrollIntoView({ behavior: 'smooth' });
+                                }
+                              }}
+                            >
+                              <Eye className="h-3 w-3" />
+                            </Button>
+                            <Button 
+                              variant="default" 
+                              size="sm"
+                              className="flex-1 h-6 px-2 text-xs font-medium bg-[#5567E5] hover:bg-[#4556D4] text-white"
+                              onClick={() => {
+                                toast({
+                                  title: "Share with Partner",
+                                  description: `Sharing "${list.name}" with partner. This will give them access to view and work with this customer list.`,
+                                });
+                              }}
+                            >
+                              <Share2 className="h-3 w-3" />
+                            </Button>
+                          </div>
                         </div>
-                        <span className="text-xs text-gray-500">{list.members?.length || 0}</span>
-                      </div>
-                      
-                      <div className="flex items-center space-x-1">
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="flex-1 h-6 px-2 text-xs font-medium border-gray-300 hover:border-gray-400 text-gray-700"
-                          onClick={() => {
-                            setActiveCustomerList(list);
-                            const tableElement = document.getElementById('customers-table');
-                            if (tableElement) {
-                              tableElement.scrollIntoView({ behavior: 'smooth' });
-                            }
-                          }}
-                        >
-                          View
-                        </Button>
-                        <Button 
-                          variant="default" 
-                          size="sm"
-                          className="flex-1 h-6 px-2 text-xs font-medium bg-[#5567E5] hover:bg-[#4556D4] text-white"
-                          onClick={() => {
-                            toast({
-                              title: "Share with Partner",
-                              description: `Sharing "${list.name}" with partner. This will give them access to view and work with this customer list.`,
-                            });
-                          }}
-                        >
-                          Share
-                        </Button>
-                      </div>
+                      ))}
                     </div>
-                  ))}
-                </div>
+                  </div>
+                )}
               </div>
             )}
 
