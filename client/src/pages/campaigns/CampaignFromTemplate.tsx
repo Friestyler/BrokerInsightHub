@@ -1404,15 +1404,146 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                             );
                           }
                           
-                          return companyRecipients.map((recipient: any, index: number) => {
-                            const contactName = recipient.contactInfo?.first_name && recipient.contactInfo?.last_name 
-                              ? `${recipient.contactInfo.first_name} ${recipient.contactInfo.last_name}`
-                              : recipient.first_name && recipient.last_name 
-                              ? `${recipient.first_name} ${recipient.last_name}`
-                              : recipient.email || 'Unknown Contact';
+                          // Group recipients by customer ID to ensure one contact per customer
+                          const customerContactMap = new Map();
+                          
+                          companyRecipients.forEach((recipient: any) => {
+                            const customerId = recipient.customerInfo?.id || recipient.id;
+                            const customerName = recipient.customerInfo?.name || recipient.name || selectedCompany;
                             
-                            const contactEmail = recipient.email || recipient.contactInfo?.email || 'No email';
-                            const hasEmail = Boolean(recipient.email || recipient.contactInfo?.email);
+                            if (!customerContactMap.has(customerId)) {
+                              // Find the best contact for this customer
+                              const contactRecipients = companyRecipients.filter(r => 
+                                (r.customerInfo?.id || r.id) === customerId && r.type === 'contact'
+                              );
+                              
+                              let bestContact = null;
+                              
+                              if (contactRecipients.length > 0) {
+                                // Use the first contact with an email, or just the first contact
+                                bestContact = contactRecipients.find(c => c.email) || contactRecipients[0];
+                              } else {
+                                // No contacts found, create a placeholder
+                                bestContact = {
+                                  id: `missing-${customerId}`,
+                                  type: 'missing_contact',
+                                  customerInfo: recipient.customerInfo,
+                                  email: '',
+                                  first_name: '',
+                                  last_name: ''
+                                };
+                              }
+                              
+                              customerContactMap.set(customerId, {
+                                customerId,
+                                customerName,
+                                contact: bestContact
+                              });
+                            }
+                          });
+                          
+                          const customerContacts = Array.from(customerContactMap.values());
+                          
+                          return customerContacts.map((customerContact: any, index: number) => {
+                            const { contact, customerName } = customerContact;
+                            const isMissingContact = contact.type === 'missing_contact';
+                            
+                            const contactName = contact.first_name && contact.last_name 
+                              ? `${contact.first_name} ${contact.last_name}`
+                              : contact.email || 'Unknown Contact';
+                            
+                            const contactEmail = contact.email || '';
+                            const hasEmail = Boolean(contactEmail);
+                            
+                            if (isMissingContact) {
+                              return (
+                                <div key={index} className="border-b border-gray-100 pb-4">
+                                  <div className="text-center py-6">
+                                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                                      <User className="h-6 w-6 text-gray-400" />
+                                    </div>
+                                    <h3 className="text-sm font-medium text-gray-900 mb-1">No contacts yet</h3>
+                                    <p className="text-xs text-gray-500 mb-4">Add the first contact for {customerName} to start email sequences.</p>
+                                    <Button 
+                                      size="sm" 
+                                      className="text-xs h-7 px-3 bg-gray-900 hover:bg-gray-800 text-white rounded-md mb-4"
+                                    >
+                                      <Plus className="h-3 w-3 mr-1" />
+                                      Add Contact Manually
+                                    </Button>
+                                    
+                                    {/* Additional Suggested Contacts */}
+                                    <div className="border-t pt-4">
+                                      <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-2">
+                                          <Search className="h-4 w-4 text-blue-500" />
+                                          <span className="text-sm font-medium text-gray-900">Additional Suggested Contacts</span>
+                                          <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                            2 found
+                                          </Badge>
+                                        </div>
+                                        <Button variant="ghost" size="sm" className="text-xs h-6 px-2 text-gray-500 hover:text-gray-700">
+                                          Hide
+                                        </Button>
+                                      </div>
+                                      
+                                      <p className="text-xs text-gray-500 mb-4">We found these additional potential contacts for {customerName}. Click to add them instantly.</p>
+                                      
+                                      {/* Mock suggested contacts - these should come from API */}
+                                      {[
+                                        {
+                                          name: 'Sarah Kim',
+                                          email: 'sarah.kim@fintechsolutions.com',
+                                          title: 'Chief Technology Officer',
+                                          match: '97% match',
+                                          source: 'From LinkedIn'
+                                        },
+                                        {
+                                          name: 'Alex Thompson',
+                                          email: 'athompson@fintechsolutions.com',
+                                          title: 'Product Manager',
+                                          match: '85% match',
+                                          source: 'From Company Website'
+                                        }
+                                      ].map((suggested, suggestedIndex) => (
+                                        <div key={suggestedIndex} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                                          <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-1">
+                                              <span className="font-medium text-sm text-gray-900">{suggested.name}</span>
+                                              <Badge variant="outline" className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                                                {suggested.match}
+                                              </Badge>
+                                            </div>
+                                            <div className="text-xs text-gray-500">{suggested.email}</div>
+                                            <div className="text-xs text-gray-500">{suggested.title}</div>
+                                            <div className="text-xs text-gray-400">{suggested.source}</div>
+                                          </div>
+                                          <Button 
+                                            size="sm" 
+                                            variant="outline" 
+                                            className="text-xs h-6 px-2 ml-2"
+                                          >
+                                            <Plus className="h-3 w-3 mr-1" />
+                                            Add
+                                          </Button>
+                                        </div>
+                                      ))}
+                                      
+                                      <div className="mt-4 p-3 bg-blue-50 rounded-md">
+                                        <div className="flex items-start gap-2">
+                                          <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center mt-0.5">
+                                            <span className="text-xs text-white font-bold">!</span>
+                                          </div>
+                                          <div className="text-xs text-blue-800">
+                                            <span className="font-medium">Pro tip:</span> Added contacts will automatically get a default email sequence. You can customize it for each contact after adding them.
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            }
                             
                             return (
                               <div key={index} className="border-b border-gray-100 pb-4">
@@ -1432,7 +1563,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                           {hasEmail ? 'ready' : 'missing email'}
                                         </Badge>
                                       </div>
-                                      <div className="text-sm text-gray-500">{contactEmail}</div>
+                                      <div className="text-sm text-gray-500">{contactEmail || 'No email'}</div>
                                     </div>
                                   </div>
                                   <div className="text-xs text-gray-500">{campaignData.emails.length} email{campaignData.emails.length !== 1 ? 's' : ''}</div>
