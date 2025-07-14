@@ -1199,7 +1199,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 {/* Header */}
                 <div className="px-4 py-3 border-b border-gray-200 bg-white">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="text-sm font-semibold text-gray-900">Customer Companies</h3>
+                    <h3 className="text-sm font-semibold text-gray-900">Customers</h3>
                     <Button 
                       size="sm" 
                       className="text-xs h-7 px-3 bg-gray-900 hover:bg-gray-800 text-white rounded-md"
