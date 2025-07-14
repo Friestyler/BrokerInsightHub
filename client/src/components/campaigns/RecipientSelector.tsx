@@ -4,8 +4,6 @@ import {
   Search, 
   ChevronDown, 
   ChevronRight, 
-  Users, 
-  UserPlus, 
   CheckCircle2, 
   TrendingUp, 
   Target,
@@ -18,7 +16,6 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
@@ -94,34 +91,7 @@ export default function RecipientSelector({
   const [selectedTab, setSelectedTab] = useState<'lists' | 'selected' | 'segments'>(initialTabValue);
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [expandedCustomers, setExpandedCustomers] = useState<Set<string>>(new Set());
-  const [showInlineContactForm, setShowInlineContactForm] = useState<string | null>(null);
-  const [inlineContactData, setInlineContactData] = useState({
-    first_name: '',
-    last_name: '',
-    email: '',
-    job_title: '',
-    phone: ''
-  });
-  
-  const [suggestedContacts, setSuggestedContacts] = useState<{[key: string]: any[]}>({});
-  const [showSuggestions, setShowSuggestions] = useState<{[key: string]: boolean}>({});
-  
-  // Auto-expand suggestions for all recipients by default
-  useEffect(() => {
-    if (selectedRecipients.length > 0) {
-      const newShowSuggestions: {[key: string]: boolean} = {};
-      selectedRecipients.forEach(recipient => {
-        const uniqueKey = recipient.uniqueKey || `${recipient.type}-${recipient.id}`;
-        newShowSuggestions[uniqueKey] = true;
-        
-        // Also load suggestions for each recipient
-        if (!suggestedContacts[uniqueKey]) {
-          loadSuggestionsForRecipient(uniqueKey, recipient);
-        }
-      });
-      setShowSuggestions(newShowSuggestions);
-    }
-  }, [selectedRecipients]);
+
   
   // Handle external tab changes
   useEffect(() => {
@@ -134,65 +104,10 @@ export default function RecipientSelector({
     }
   }, [externalTabOverride, onTabChange]);
   
-  // Fetch look-alike contacts for partner sharing
-  const fetchLookAlikeContacts = async (recipient: any) => {
-    try {
-      const customerName = recipient.customerInfo?.name || recipient.customerInfo?.title || '';
-      const opportunityTitle = recipient.title || '';
-      
-      const response = await fetch(`/api/contacts/lookalike?customerName=${encodeURIComponent(customerName)}&opportunityTitle=${encodeURIComponent(opportunityTitle)}&limit=3`);
-      
-      if (response.ok) {
-        const contacts = await response.json();
-        return contacts;
-      }
-      return [];
-    } catch (error) {
-      console.error('Error fetching look-alike contacts:', error);
-      return [];
-    }
-  };
-  
-  // Load suggestions for any recipient (not just missing contacts)
-  const loadSuggestionsForRecipient = async (uniqueKey: string, recipient: any) => {
-    const contacts = await fetchLookAlikeContacts(recipient);
-    setSuggestedContacts(prev => ({
-      ...prev,
-      [uniqueKey]: contacts
-    }));
-  };
+
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  // Contact creation mutation
-  const createContactMutation = useMutation({
-    mutationFn: async (contactData: any) => {
-      return apiRequest('POST', '/api/contacts', contactData);
-    },
-    onSuccess: () => {
-      toast({
-        title: 'Success',
-        description: 'Contact created successfully',
-      });
-      queryClient.invalidateQueries({ queryKey: [`/api/degoudse/contacts`] });
-      setShowInlineContactForm(null);
-      setInlineContactData({
-        first_name: '',
-        last_name: '',
-        email: '',
-        job_title: '',
-        phone: ''
-      });
-    },
-    onError: (error) => {
-      toast({
-        title: 'Error',
-        description: 'Failed to create contact',
-        variant: 'destructive',
-      });
-    },
-  });
 
   // Fetch main entities based on type
   const { data: entitiesResponse = [], isLoading: entitiesLoading } = useQuery({
@@ -509,14 +424,7 @@ export default function RecipientSelector({
 
 
 
-  const handleCreateInlineContact = (entityId: number, entityType: string) => {
-    const contactData = {
-      ...inlineContactData,
-      linked_entity_id: entityId,
-      linked_entity_type: entityType === 'opportunities' ? 'customer' : entityType.slice(0, -1)
-    };
-    createContactMutation.mutate(contactData);
-  };
+
 
   // Cascading drill-down renderer
   const renderCascadingDrillDown = (listOrSegment: any, sourceType: 'list' | 'segment') => {
@@ -658,10 +566,7 @@ export default function RecipientSelector({
                         </div>
                       )}
                       
-                      {/* Add Contact Button */}
-                      <div className="pt-2">
-                        {renderAddContactForm(`customer-${customer.id}`, customer.id, 'customer')}
-                      </div>
+
                     </div>
                   </div>
                 )}
@@ -673,101 +578,7 @@ export default function RecipientSelector({
     );
   };
 
-  const renderAddContactForm = (formKey: string, entityId: number, entityType: string) => (
-    <div className="w-full">
-      {showInlineContactForm === formKey ? (
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-3 bg-gray-50">
-          <div className="space-y-3">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-              <div>
-                <Label htmlFor="first_name" className="text-sm font-medium">
-                  First Name
-                </Label>
-                <Input
-                  id="first_name"
-                  value={inlineContactData.first_name}
-                  onChange={(e) => setInlineContactData(prev => ({ ...prev, first_name: e.target.value }))}
-                  className="mt-1"
-                />
-              </div>
-              <div>
-                <Label htmlFor="last_name" className="text-sm font-medium">
-                  Last Name
-                </Label>
-                <Input
-                  id="last_name"
-                  value={inlineContactData.last_name}
-                  onChange={(e) => setInlineContactData(prev => ({ ...prev, last_name: e.target.value }))}
-                  className="mt-1"
-                />
-              </div>
-            </div>
-            
-            <div>
-              <Label htmlFor="email" className="text-sm font-medium">
-                Email
-              </Label>
-              <Input
-                id="email"
-                type="email"
-                value={inlineContactData.email}
-                onChange={(e) => setInlineContactData(prev => ({ ...prev, email: e.target.value }))}
-                className="mt-1"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="job_title" className="text-sm font-medium">
-                Job Title
-              </Label>
-              <Input
-                id="job_title"
-                value={inlineContactData.job_title}
-                onChange={(e) => setInlineContactData(prev => ({ ...prev, job_title: e.target.value }))}
-                className="mt-1"
-              />
-            </div>
-            
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setShowInlineContactForm(null);
-                  setInlineContactData({
-                    first_name: '',
-                    last_name: '',
-                    email: '',
-                    job_title: '',
-                    phone: ''
-                  });
-                }}
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => handleCreateInlineContact(entityId, entityType)}
-                disabled={!inlineContactData.first_name || !inlineContactData.email}
-              >
-                Add Contact
-              </Button>
-            </div>
-          </div>
-        </div>
-      ) : (
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setShowInlineContactForm(formKey)}
-          className="w-full border-dashed border-gray-300 text-gray-600 hover:border-gray-400 hover:text-gray-700 hover:bg-gray-50"
-        >
-          <UserPlus className="h-4 w-4 mr-2" />
-          Add Contact
-        </Button>
-      )}
-    </div>
-  );
+
 
   // Function to render recipients organized by email address
   const renderRecipientsByEmail = () => {
@@ -897,16 +708,7 @@ export default function RecipientSelector({
                     </span>
                   </div>
                 )}
-                {Object.keys(suggestedContacts).length > 0 && (
-                  <div className="flex items-center gap-2">
-                    <div className="w-5 h-5 rounded-full bg-green-100 flex items-center justify-center">
-                      <Users className="h-3 w-3 text-green-600" />
-                    </div>
-                    <span className="text-sm text-green-600">
-                      Look-alike suggestions available
-                    </span>
-                  </div>
-                )}
+
               </div>
               {missingContactsCount > 0 && (
                 <div className="flex items-center gap-2">
@@ -917,26 +719,6 @@ export default function RecipientSelector({
                     className="h-7 px-3 text-xs"
                   >
                     {showMissingContactsOnly ? 'Show all' : 'Show missing only'}
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={async () => {
-                      // Load suggestions for all missing contacts
-                      const missingRecipients = selectedRecipients.filter(r => r.isMissingContact);
-                      for (const recipient of missingRecipients) {
-                        const uniqueKey = recipient.uniqueKey;
-                        if (!suggestedContacts[uniqueKey]) {
-                          await loadSuggestionsForRecipient(uniqueKey, recipient);
-                        }
-                        setShowSuggestions(prev => ({
-                          ...prev,
-                          [uniqueKey]: true
-                        }));
-                      }
-                    }}
-                    className="h-7 px-3 text-xs"
-                  >
-                    Suggest all
                   </Button>
                 </div>
               )}
@@ -963,7 +745,7 @@ export default function RecipientSelector({
                       recipient.isMissingContact ? 'bg-red-100' : 'bg-green-100'
                     }`}>
                       {recipient.isMissingContact ? (
-                        <UserPlus className="h-3 w-3 text-red-600" />
+                        <X className="h-3 w-3 text-red-600" />
                       ) : (
                         <Mail className="h-3 w-3 text-green-600" />
                       )}
@@ -989,7 +771,7 @@ export default function RecipientSelector({
                           {recipient.type === 'opportunity' ? (
                             <Target className="h-2 w-2 text-green-600" />
                           ) : recipient.type === 'customer' ? (
-                            <Users className="h-2 w-2 text-blue-600" />
+                            <Building2 className="h-2 w-2 text-blue-600" />
                           ) : (
                             <Mail className="h-2 w-2 text-gray-600" />
                           )}
@@ -1006,32 +788,6 @@ export default function RecipientSelector({
                   
                   {/* Action Buttons */}
                   <div className="flex items-center gap-2 flex-shrink-0">
-                    {/* Always show suggestion button, regardless of contact status */}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        setShowSuggestions(prev => ({
-                          ...prev,
-                          [uniqueKey]: !prev[uniqueKey]
-                        }));
-                        if (!suggestedContacts[uniqueKey]) {
-                          loadSuggestionsForRecipient(uniqueKey, recipient);
-                        }
-                      }}
-                      className="h-7 px-3 text-xs"
-                    >
-                      {showSuggestions[uniqueKey] ? 'Hide' : 'Suggest'}
-                    </Button>
-                    {recipient.isMissingContact && (
-                      <Button
-                        size="sm"
-                        onClick={() => setShowInlineContactForm(uniqueKey)}
-                        className="h-7 px-3 text-xs"
-                      >
-                        Add
-                      </Button>
-                    )}
                     <Button
                       variant="ghost"
                       size="sm"
@@ -1042,153 +798,8 @@ export default function RecipientSelector({
                     </Button>
                   </div>
                 </div>
-                
-                {/* Look-alike Contact Suggestions */}
-                {showSuggestions[uniqueKey] && (
-                  <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Users className="h-4 w-4 text-blue-600" />
-                      <span className="text-sm font-medium text-blue-800">
-                        Suggested contacts from your network
-                      </span>
-                    </div>
-                    {suggestedContacts[uniqueKey] && suggestedContacts[uniqueKey].length > 0 ? (
-                      <div className="space-y-2">
-                        {suggestedContacts[uniqueKey].map((contact, index) => (
-                          <div key={index} className="flex items-center justify-between p-2 bg-white rounded border">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                <span className="text-xs font-medium text-blue-600">
-                                  {contact.first_name?.[0]}{contact.last_name?.[0]}
-                                </span>
-                              </div>
-                              <div>
-                                <div className="text-sm font-medium">
-                                  {contact.first_name} {contact.last_name}
-                                </div>
-                                <div className="text-xs text-gray-500">
-                                  {contact.email} • {contact.job_title}
-                                </div>
-                              </div>
-                            </div>
-                            <Button
-                              size="sm"
-                              onClick={() => {
-                                // Use the suggested contact to fill the recipient
-                                const updatedRecipient = {
-                                  ...recipient,
-                                  contactInfo: {
-                                    id: contact.id,
-                                    first_name: contact.first_name,
-                                    last_name: contact.last_name,
-                                    full_name: `${contact.first_name} ${contact.last_name}`,
-                                    email: contact.email,
-                                    job_title: contact.job_title
-                                  },
-                                  email: contact.email,
-                                  isMissingContact: false
-                                };
-                                
-                                // Update the recipient in the list
-                                const updatedRecipients = selectedRecipients.map(r => 
-                                  r.uniqueKey === uniqueKey ? updatedRecipient : r
-                                );
-                                onRecipientsChange(updatedRecipients);
-                                
-                                // Hide suggestions
-                                setShowSuggestions(prev => ({
-                                  ...prev,
-                                  [uniqueKey]: false
-                                }));
-                                
-                                toast({
-                                  title: "Contact added",
-                                  description: `${contact.first_name} ${contact.last_name} has been added to this recipient.`,
-                                });
-                              }}
-                              className="h-7 px-3 text-xs"
-                            >
-                              Use this contact
-                            </Button>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="text-sm text-gray-500">
-                        No similar contacts found in your network.
-                      </div>
-                    )}
-                  </div>
-                )}
-                
-                {/* Inline Contact Form - Compact */}
-                {showInlineContactForm === uniqueKey && (
-                  <div className="mt-3 p-3 bg-white rounded-lg border border-gray-200">
-                    <div className="grid grid-cols-2 gap-2 mb-3">
-                      <Input
-                        placeholder="First name"
-                        value={inlineContactData.first_name}
-                        onChange={(e) => setInlineContactData(prev => ({ ...prev, first_name: e.target.value }))}
-                        className="h-8 text-sm"
-                      />
-                      <Input
-                        placeholder="Last name"
-                        value={inlineContactData.last_name}
-                        onChange={(e) => setInlineContactData(prev => ({ ...prev, last_name: e.target.value }))}
-                        className="h-8 text-sm"
-                      />
-                      <Input
-                        placeholder="Email"
-                        type="email"
-                        value={inlineContactData.email}
-                        onChange={(e) => setInlineContactData(prev => ({ ...prev, email: e.target.value }))}
-                        className="h-8 text-sm"
-                      />
-                      <Input
-                        placeholder="Job title"
-                        value={inlineContactData.job_title}
-                        onChange={(e) => setInlineContactData(prev => ({ ...prev, job_title: e.target.value }))}
-                        className="h-8 text-sm"
-                      />
-                    </div>
-                    <div className="flex justify-end gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setShowInlineContactForm(null)}
-                        className="h-7 px-3 text-xs"
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          // Get customer ID based on recipient type
-                          let customerId = null;
-                          if (recipient.type === 'customer') {
-                            customerId = recipient.id;
-                          } else if (recipient.type === 'opportunity' && recipient.customerInfo) {
-                            customerId = recipient.customerInfo.id;
-                          }
-                          
-                          if (customerId) {
-                            createContactMutation.mutate({
-                              ...inlineContactData,
-                              full_name: `${inlineContactData.first_name} ${inlineContactData.last_name}`.trim(),
-                              linked_entity_type: 'customer',
-                              linked_entity_id: customerId,
-                              is_primary: true
-                            });
-                          }
-                        }}
-                        disabled={createContactMutation.isPending || !inlineContactData.email}
-                        className="h-7 px-3 text-xs"
-                      >
-                        {createContactMutation.isPending ? 'Adding...' : 'Add Contact'}
-                      </Button>
-                    </div>
-                  </div>
-                )}
+
+
               </div>
             </div>
           );
