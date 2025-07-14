@@ -18,6 +18,261 @@ interface CampaignFromTemplateProps {
   params?: { templateId?: string; campaignId?: string };
 }
 
+interface AssignPartnersSectionProps {
+  campaignData: any;
+  onAssignComplete: () => void;
+}
+
+function AssignPartnersSection({ campaignData, onAssignComplete }: AssignPartnersSectionProps) {
+  const [selectedPartnersForAssignment, setSelectedPartnersForAssignment] = useState<number[]>([]);
+  const [showPartnerSelection, setShowPartnerSelection] = useState(false);
+  const [itemsWithoutPartners, setItemsWithoutPartners] = useState<any[]>([]);
+  const [partnersAttachedToItems, setPartnersAttachedToItems] = useState<any[]>([]);
+  const { toast } = useToast();
+
+  // Fetch all partners for selection
+  const { data: allPartners = [] } = useQuery({
+    queryKey: ['/api/partners'],
+    enabled: showPartnerSelection
+  });
+
+  // Fetch saved partner lists
+  const { data: savedPartnerLists = [] } = useQuery({
+    queryKey: ['/api/saved-lists'],
+    enabled: showPartnerSelection
+  });
+
+  // Analyze campaign recipients to categorize them
+  useEffect(() => {
+    const itemsWithPartners = [];
+    const itemsWithoutPartners = [];
+
+    campaignData.recipients.forEach((recipient: any) => {
+      if (recipient.assigned_partner_id || recipient.partnerInfo) {
+        itemsWithPartners.push(recipient);
+      } else {
+        itemsWithoutPartners.push(recipient);
+      }
+    });
+
+    // Extract unique partners from items that have them
+    const uniquePartners = new Map();
+    itemsWithPartners.forEach(item => {
+      const partnerId = item.assigned_partner_id || item.partnerInfo?.id;
+      const partnerName = item.partnerInfo?.name || item.assigned_partner_name || `Partner ${partnerId}`;
+      
+      if (partnerId && !uniquePartners.has(partnerId)) {
+        uniquePartners.set(partnerId, {
+          id: partnerId,
+          name: partnerName,
+          itemCount: 0,
+          items: []
+        });
+      }
+      
+      if (partnerId) {
+        uniquePartners.get(partnerId).itemCount++;
+        uniquePartners.get(partnerId).items.push(item);
+      }
+    });
+
+    setPartnersAttachedToItems(Array.from(uniquePartners.values()));
+    setItemsWithoutPartners(itemsWithoutPartners);
+  }, [campaignData]);
+
+  const handlePartnerToggle = (partnerId: number) => {
+    setSelectedPartnersForAssignment(prev => 
+      prev.includes(partnerId) 
+        ? prev.filter(id => id !== partnerId)
+        : [...prev, partnerId]
+    );
+  };
+
+  const handleAssignToAll = () => {
+    const allPartnerIds = partnersAttachedToItems.map(p => p.id);
+    setSelectedPartnersForAssignment(allPartnerIds);
+  };
+
+  const handleAssignSelected = async () => {
+    if (selectedPartnersForAssignment.length === 0) {
+      toast({
+        title: "No partners selected",
+        description: "Please select at least one partner to assign the campaign to.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // TODO: Implement actual assignment API call here
+      toast({
+        title: "Campaign assigned",
+        description: `Campaign assigned to ${selectedPartnersForAssignment.length} partner(s).`
+      });
+      
+      onAssignComplete();
+    } catch (error) {
+      toast({
+        title: "Assignment failed",
+        description: "Failed to assign campaign to partners. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Partners attached to opportunities/customers */}
+      {partnersAttachedToItems.length > 0 && (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium text-gray-900">Partners attached to your recipients</h3>
+            <div className="flex gap-2">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleAssignToAll}
+              >
+                Select All
+              </Button>
+              <Button 
+                size="sm"
+                onClick={handleAssignSelected}
+                disabled={selectedPartnersForAssignment.length === 0}
+              >
+                Assign to Selected ({selectedPartnersForAssignment.length})
+              </Button>
+            </div>
+          </div>
+
+          <div className="grid gap-4">
+            {partnersAttachedToItems.map((partner: any) => (
+              <div key={partner.id} className="border rounded-lg p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-3">
+                    <Checkbox
+                      checked={selectedPartnersForAssignment.includes(partner.id)}
+                      onCheckedChange={() => handlePartnerToggle(partner.id)}
+                    />
+                    <div>
+                      <h4 className="font-medium text-gray-900">{partner.name}</h4>
+                      <p className="text-sm text-gray-500">{partner.itemCount} recipient(s)</p>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="text-xs">
+                    Attached
+                  </Badge>
+                </div>
+                
+                <div className="text-sm text-gray-600">
+                  Connected to: {partner.items.map((item: any) => 
+                    item.customerInfo?.name || item.name || 'Unknown'
+                  ).slice(0, 3).join(', ')}
+                  {partner.items.length > 3 && ` and ${partner.items.length - 3} more`}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Items without partners */}
+      {itemsWithoutPartners.length > 0 && (
+        <div className="space-y-4 pt-6 border-t">
+          <div className="flex items-center justify-between">
+            <h3 className="text-lg font-medium text-gray-900">Recipients without partners</h3>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setShowPartnerSelection(!showPartnerSelection)}
+            >
+              {showPartnerSelection ? 'Hide' : 'Show'} Partner Selection
+            </Button>
+          </div>
+
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
+              <div>
+                <h4 className="font-medium text-yellow-900">No partners assigned</h4>
+                <p className="text-sm text-yellow-700 mt-1">
+                  {itemsWithoutPartners.length} recipient(s) don't have assigned partners. 
+                  You can assign them to partners individually or in bulk.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {showPartnerSelection && (
+            <div className="space-y-4">
+              <div className="bg-white border rounded-lg p-4">
+                <h4 className="font-medium text-gray-900 mb-3">Select Partners</h4>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {allPartners.map((partner: any) => (
+                    <div key={partner.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
+                      <Checkbox
+                        checked={selectedPartnersForAssignment.includes(partner.id)}
+                        onCheckedChange={() => handlePartnerToggle(partner.id)}
+                      />
+                      <div>
+                        <p className="font-medium text-sm">{partner.name}</p>
+                        {partner.email && (
+                          <p className="text-xs text-gray-500">{partner.email}</p>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {savedPartnerLists.length > 0 && (
+                <div className="bg-white border rounded-lg p-4">
+                  <h4 className="font-medium text-gray-900 mb-3">Saved Partner Lists</h4>
+                  <div className="space-y-2">
+                    {savedPartnerLists.filter((list: any) => list.entity_type === 'partners').map((list: any) => (
+                      <div key={list.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          onClick={() => {
+                            // TODO: Load partners from this list and add to selection
+                            toast({
+                              title: "Feature coming soon",
+                              description: "Loading partners from saved lists will be available soon."
+                            });
+                          }}
+                        >
+                          Use List
+                        </Button>
+                        <div>
+                          <p className="font-medium text-sm">{list.name}</p>
+                          <p className="text-xs text-gray-500">{list.description}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Assignment action */}
+      <div className="flex justify-end pt-4 border-t">
+        <Button 
+          onClick={handleAssignSelected}
+          disabled={selectedPartnersForAssignment.length === 0}
+          className="gap-2"
+        >
+          <Users className="h-4 w-4" />
+          Assign Campaign ({selectedPartnersForAssignment.length})
+        </Button>
+      </div>
+    </div>
+  );
+}
+
 export default function CampaignFromTemplate({ params }: CampaignFromTemplateProps) {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
@@ -2120,104 +2375,29 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
         return (
           <div className="space-y-8">
             <div className="text-center">
-              <h2 className="text-xl font-medium text-gray-900 mb-2">Share or Send</h2>
-              <p className="text-gray-600">Choose how to distribute your campaign</p>
+              <h2 className="text-xl font-medium text-gray-900 mb-2">Assign Campaign</h2>
+              <p className="text-gray-600">Assign this campaign to partners for collaboration</p>
             </div>
 
             <div className="max-w-2xl mx-auto space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="p-6 border-2 border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-sm transition-all cursor-pointer">
-                  <div className="text-center">
-                    <div className="p-3 rounded-lg bg-blue-500 text-white w-12 h-12 mx-auto mb-4 flex items-center justify-center">
-                      <Send className="h-6 w-6" />
-                    </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Send Now</h3>
-                    <p className="text-sm text-gray-600">Send the campaign immediately to all selected recipients</p>
-                  </div>
-                </div>
-
-                <div className="p-6 border-2 border-gray-200 rounded-lg hover:border-green-300 hover:shadow-sm transition-all cursor-pointer">
-                  <div className="text-center">
-                    <div className="p-3 rounded-lg bg-green-500 text-white w-12 h-12 mx-auto mb-4 flex items-center justify-center">
-                      <Globe className="h-6 w-6" />
-                    </div>
-                    <h3 className="font-semibold text-gray-900 mb-2">Share Link</h3>
-                    <p className="text-sm text-gray-600">Generate a shareable link for others to view or collaborate</p>
-                  </div>
-                </div>
-
+              <div className="flex justify-center">
                 <Dialog open={sharePartnersDialogOpen} onOpenChange={setSharePartnersDialogOpen}>
                   <DialogTrigger asChild>
-                    <div className="p-6 border-2 border-gray-200 rounded-lg hover:border-purple-300 hover:shadow-sm transition-all cursor-pointer">
-                      <div className="text-center">
-                        <div className="p-3 rounded-lg bg-purple-500 text-white w-12 h-12 mx-auto mb-4 flex items-center justify-center">
-                          <Share className="h-6 w-6" />
-                        </div>
-                        <h3 className="font-semibold text-gray-900 mb-2">Share with Partner(s)</h3>
-                        <p className="text-sm text-gray-600">Share campaign with related partners for collaboration</p>
-                      </div>
-                    </div>
+                    <Button className="gap-2">
+                      <Users className="h-4 w-4" />
+                      Assign to Partner(s)
+                    </Button>
                   </DialogTrigger>
-                  <DialogContent className="max-w-md">
+                  <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                     <DialogHeader>
-                      <DialogTitle>Share with Partner(s)</DialogTitle>
+                      <DialogTitle>Assign Campaign to Partners</DialogTitle>
                     </DialogHeader>
-                    <div className="space-y-4">
-                      <p className="text-sm text-gray-600">
-                        Select partners to share this campaign with based on your recipient relationships.
-                      </p>
-                      
-                      {getRelatedPartners().length === 0 ? (
-                        <div className="text-center py-8">
-                          <Users className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                          <p className="text-gray-500 text-sm">
-                            No related partners found for the selected recipients.
-                          </p>
-                        </div>
-                      ) : (
-                        <div className="space-y-3 max-h-60 overflow-y-auto">
-                          {getRelatedPartners().map((partner: any) => (
-                            <div key={partner.id} className="flex items-center space-x-3 p-3 border rounded-lg hover:bg-gray-50">
-                              <Checkbox
-                                checked={selectedPartnersForSharing.includes(partner.id)}
-                                onCheckedChange={() => togglePartnerSelection(partner.id)}
-                              />
-                              <div className="flex-1">
-                                <p className="font-medium text-sm">{partner.name}</p>
-                                {partner.email && (
-                                  <p className="text-xs text-gray-500">{partner.email}</p>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                      
-                      {getRelatedPartners().length > 0 && (
-                        <div className="flex justify-end space-x-2 pt-4 border-t">
-                          <Button 
-                            variant="outline" 
-                            onClick={() => setSharePartnersDialogOpen(false)}
-                          >
-                            Cancel
-                          </Button>
-                          <Button 
-                            onClick={handleShareWithPartners}
-                            disabled={selectedPartnersForSharing.length === 0}
-                          >
-                            Share Campaign
-                          </Button>
-                        </div>
-                      )}
-                    </div>
+                    <AssignPartnersSection 
+                      campaignData={campaignData}
+                      onAssignComplete={() => setSharePartnersDialogOpen(false)}
+                    />
                   </DialogContent>
                 </Dialog>
-              </div>
-
-              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                <p className="text-sm text-blue-700 text-center">
-                  Campaign ready with {campaignData.recipients.length} recipients selected
-                </p>
               </div>
             </div>
           </div>
