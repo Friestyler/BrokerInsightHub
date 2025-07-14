@@ -230,7 +230,7 @@ export function CreateCampaign({ params }: CreateCampaignProps) {
     <div className="min-h-screen bg-[#E6E7F1]">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
+        <div className="flex items-center justify-between w-full">
           <div className="flex items-center space-x-4">
             <Button 
               variant="ghost" 
@@ -255,7 +255,7 @@ export function CreateCampaign({ params }: CreateCampaignProps) {
 
       {/* Progress Steps */}
       <div className="bg-white border-b border-gray-200 px-6 py-6">
-        <div className="max-w-4xl mx-auto">
+        <div className="w-full">
           <div className="flex items-center justify-between">
             {steps.map((step, index) => {
               const isActive = currentStep === step.id;
@@ -305,7 +305,7 @@ export function CreateCampaign({ params }: CreateCampaignProps) {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="w-full px-6 py-8">
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
