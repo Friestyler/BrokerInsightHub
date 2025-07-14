@@ -52,7 +52,9 @@ export default function PartnerDetailBrokerPOV() {
   const getCurrentEnvironment = () => {
     const envFromStorage = localStorage.getItem('selectedEnvironment');
     const envFromWindow = (window as any).selectedEnvironment;
-    return envFromWindow || envFromStorage || 'degoudse';
+    const currentEnv = envFromWindow || envFromStorage || 'degoudse';
+    console.log('🚨 BROKER VIEW - getCurrentEnvironment called:', { envFromStorage, envFromWindow, currentEnv });
+    return currentEnv;
   };
 
   const [currentEnvironment, setCurrentEnvironment] = useState(getCurrentEnvironment());
@@ -66,16 +68,49 @@ export default function PartnerDetailBrokerPOV() {
     const handleEnvironmentChange = () => {
       console.log('🚨 BROKER VIEW - Environment changed detected!');
       const newEnv = getCurrentEnvironment();
+      console.log('🚨 BROKER VIEW - New environment:', newEnv);
       setCurrentEnvironment(newEnv);
       setRenderKey(prev => prev + 1);
     };
 
+    // Listen for both storage and custom events
     window.addEventListener('environmentChanged', handleEnvironmentChange);
+    window.addEventListener('storage', handleEnvironmentChange);
+    
+    // Also check for environment changes on window focus
+    const handleFocus = () => {
+      const newEnv = getCurrentEnvironment();
+      if (newEnv !== currentEnvironment) {
+        console.log('🚨 BROKER VIEW - Environment changed on focus:', newEnv);
+        setCurrentEnvironment(newEnv);
+        setRenderKey(prev => prev + 1);
+      }
+    };
+    
+    window.addEventListener('focus', handleFocus);
     
     return () => {
       window.removeEventListener('environmentChanged', handleEnvironmentChange);
+      window.removeEventListener('storage', handleEnvironmentChange);
+      window.removeEventListener('focus', handleFocus);
     };
-  }, []);
+  }, [currentEnvironment]);
+
+  // Additional polling check to ensure environment stays in sync
+  useEffect(() => {
+    const checkEnvironment = () => {
+      const newEnv = getCurrentEnvironment();
+      if (newEnv !== currentEnvironment) {
+        console.log('🚨 BROKER VIEW - Environment drift detected, correcting:', { from: currentEnvironment, to: newEnv });
+        setCurrentEnvironment(newEnv);
+        setRenderKey(prev => prev + 1);
+      }
+    };
+
+    const intervalId = setInterval(checkEnvironment, 1000); // Check every second
+    
+    return () => clearInterval(intervalId);
+  }, [currentEnvironment]);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Dropdown state for filters
