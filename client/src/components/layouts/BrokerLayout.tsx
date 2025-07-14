@@ -1,12 +1,35 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
+import { useEnvironment } from '@/contexts/EnvironmentContext';
 import qollabiLogo from "@assets/logo_qollabi_O_dark.png";
+import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
+import baloiseLogoPng from "@assets/Baloise_1750499789244.png";
+import deGoudseLogo from "@assets/De_Goudse_logo_1749670246231.png";
 
 // Shared Broker Layout Component
 export function BrokerLayout({ children }: { children: React.ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [dataMenuOpen, setDataMenuOpen] = useState(true);
   const [location] = useLocation();
+  const { environment } = useEnvironment();
+
+  // Get the correct logo for broker view
+  const getBrokerLogo = (envId: string) => {
+    console.log('BrokerLayout - Getting logo for environment:', envId);
+    switch (envId) {
+      case 'degoudse':
+        return deGoudseLogo;
+      case 'baloise':
+        return baloiseLogoPng;
+      case 'nn':
+        return nnLogo;
+      default:
+        return deGoudseLogo;
+    }
+  };
+
+  const environmentLogo = getBrokerLogo(environment.id);
+  console.log('BrokerLayout - Using logo:', environmentLogo);
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
@@ -21,12 +44,12 @@ export function BrokerLayout({ children }: { children: React.ReactNode }) {
       {/* Sidebar - using same structure as main sidebar */}
       <div className={`${sidebarCollapsed ? "w-16" : "w-16 md:w-64"} environment-selector-bg flex flex-col h-full overflow-hidden transition-all duration-300 relative`}>
         
-        {/* Qollabi Logo */}
+        {/* Environment Logo */}
         <div className="pt-4 px-4 pb-1 flex justify-center md:justify-start flex-shrink-0">
           <div className={`${sidebarCollapsed ? "w-10 h-10" : "w-12 h-12"} flex items-center justify-center`}>
             <img 
-              src={qollabiLogo} 
-              alt="Qollabi Logo" 
+              src={environmentLogo} 
+              alt={`${environment.name} Logo`} 
               className="max-w-full max-h-full object-contain"
             />
           </div>
