@@ -2544,7 +2544,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       {/* Content */}
       <div className="w-full px-6 py-2">
         {/* Navigation */}
-        <div className="flex justify-between mb-2">
+        <div className="flex justify-between items-center mb-2">
           <Button
             variant="outline"
             onClick={handlePrevious}
@@ -2554,6 +2554,27 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             <ArrowLeft className="h-4 w-4" />
             Previous
           </Button>
+          
+          {/* Send All Button - Show on Drafts step */}
+          {currentStep === 6 && (() => {
+            // Count all ready contacts across ALL customers in the campaign
+            const allReadyContacts = campaignData.recipients.filter((recipient: any) => 
+              recipient.email || recipient.contactInfo?.email
+            ).length;
+            
+            if (allReadyContacts > 0) {
+              return (
+                <Button 
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 text-sm"
+                  onClick={() => handleBulkSendAll()}
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  Send All ({allReadyContacts})
+                </Button>
+              );
+            }
+            return null;
+          })()}
           
           <div className="flex gap-3 items-center">
             {currentStep < totalSteps ? (
@@ -2579,29 +2600,6 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             )}
           </div>
         </div>
-
-        {/* Centralized Send All Button - Show on Drafts step */}
-        {currentStep === 6 && (() => {
-          // Count all ready contacts across ALL customers in the campaign
-          const allReadyContacts = campaignData.recipients.filter((recipient: any) => 
-            recipient.email || recipient.contactInfo?.email
-          ).length;
-          
-          if (allReadyContacts > 0) {
-            return (
-              <div className="flex justify-center mb-4">
-                <Button 
-                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 text-sm"
-                  onClick={() => handleBulkSendAll()}
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  Send All ({allReadyContacts})
-                </Button>
-              </div>
-            );
-          }
-          return null;
-        })()}
 
         {renderStepContent()}
       </div>

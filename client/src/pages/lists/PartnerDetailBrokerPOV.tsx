@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Search } from "lucide-react";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import EntityAvatar from "@/components/EntityAvatar";
+import PartnerCampaignBuilder from "@/pages/campaigns/PartnerCampaignBuilder";
 
 import { BrokerLayout } from "@/components/layouts/BrokerLayout";
 import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
@@ -33,6 +34,7 @@ export default function PartnerDetailBrokerPOV() {
   const listParam = urlParams.get('list');
   
   const [activeTab, setActiveTab] = useState("products");
+  const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   
   // State for filtering
   const [searchTerm, setSearchTerm] = useState("");
@@ -937,6 +939,19 @@ export default function PartnerDetailBrokerPOV() {
               >
                 Campaigns
               </button>
+              {/* Campaign Editor Tab - Only show when a campaign is selected */}
+              {selectedCampaign && (
+                <button 
+                  onClick={() => setActiveTab("campaign-editor")}
+                  className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                    activeTab === "campaign-editor" 
+                      ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                      : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                  }`}
+                >
+                  Edit: {selectedCampaign.name}
+                </button>
+              )}
             </nav>
           </div>
         </div>
@@ -2473,6 +2488,16 @@ export default function PartnerDetailBrokerPOV() {
                               </span>
                               <button
                                 onClick={() => {
+                                  // Stay within partner detail page context
+                                  setActiveTab('campaign-editor');
+                                  setSelectedCampaign(campaign);
+                                }}
+                                className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                              >
+                                Edit Campaign
+                              </button>
+                              <button
+                                onClick={() => {
                                   const backUrl = `/broker-view/partner/${actualCurrentEnvironment}?tab=campaigns`;
                                   window.location.href = `/partner/campaigns/${campaign.id}?back_url=${encodeURIComponent(backUrl)}`;
                                 }}
@@ -2628,9 +2653,9 @@ export default function PartnerDetailBrokerPOV() {
                             key={campaign.id} 
                             className="hover:bg-gray-50 cursor-pointer group"
                             onClick={() => {
-                              // Navigate to broker-view campaign builder with metadata prefilled
-                              const backUrl = `/broker-view/partner/${currentEnvironment}?tab=campaigns`;
-                              window.location.href = `/broker-view/campaigns/edit/${campaign.id}?from_broker_view=true&back_url=${encodeURIComponent(backUrl)}&env=${currentEnvironment}`;
+                              // Stay within partner detail page context
+                              setSelectedCampaign(campaign);
+                              setActiveTab("campaign-editor");
                             }}
                           >
                             <td className="px-3 py-4 text-sm text-gray-900 w-[250px]">
@@ -2703,6 +2728,39 @@ export default function PartnerDetailBrokerPOV() {
                   )}
                 </>
               )}
+            </div>
+          )}
+
+          {/* Campaign Editor Tab */}
+          {activeTab === "campaign-editor" && selectedCampaign && (
+            <div className="bg-white rounded-lg border border-gray-200">
+              <div className="p-4 border-b border-gray-200">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium text-gray-900">Edit Campaign: {selectedCampaign.name}</h3>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      setSelectedCampaign(null);
+                      setActiveTab("campaigns");
+                    }}
+                  >
+                    Back to Campaigns
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Embedded Campaign Builder */}
+              <div className="p-6">
+                <PartnerCampaignBuilder 
+                  campaignId={selectedCampaign.id}
+                  partnerId={4} // Mevas BV partner ID
+                  onComplete={() => {
+                    setSelectedCampaign(null);
+                    setActiveTab("campaigns");
+                  }}
+                />
+              </div>
             </div>
           )}
         </div>
