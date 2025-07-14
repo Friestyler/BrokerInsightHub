@@ -241,11 +241,19 @@ export default function PartnerDetailBrokerPOV() {
   console.log('Broker POV - Partner name:', partner.name);
   console.log('Environment ID (actual):', actualCurrentEnvironment);
 
-  // Fetch broker campaigns
+  // Fetch broker campaigns (shared campaigns)
   const { data: brokerCampaigns = [], isLoading: campaignsLoading } = useQuery({
     queryKey: [`/api/${actualCurrentEnvironment}/broker/shared-campaigns`],
     queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/broker/shared-campaigns`),
     enabled: activeTab === 'campaigns',
+    staleTime: 2 * 60 * 1000,
+  });
+
+  // Fetch assigned campaigns for this partner
+  const { data: assignedCampaigns = [], isLoading: assignedCampaignsLoading } = useQuery({
+    queryKey: [`/api/${actualCurrentEnvironment}/partners/${partnerId}/assigned-campaigns`],
+    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/partners/${partnerId}/assigned-campaigns`),
+    enabled: activeTab === 'campaigns' && !!partnerId,
     staleTime: 2 * 60 * 1000,
   });
 
@@ -2429,33 +2437,75 @@ export default function PartnerDetailBrokerPOV() {
                     </div>
                   </div>
                 </div>
-              ) : brokerCampaigns.length === 0 ? (
+              ) : brokerCampaigns.length === 0 && assignedCampaigns.length === 0 ? (
                 <div className="text-center py-12">
                   <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
                     <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
                   </div>
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No campaigns shared</h3>
-                  <p className="text-gray-500">No campaigns have been shared with you yet.</p>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No campaigns available</h3>
+                  <p className="text-gray-500">No campaigns have been shared with you or assigned to you yet.</p>
                 </div>
               ) : (
                 <>
-                  {/* Summary Cards */}
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
-                    <div className="bg-white p-6 rounded-lg border">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0">
-                          <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                          </svg>
-                        </div>
-                        <div className="ml-4">
-                          <dt className="text-sm font-medium text-gray-500 truncate">Total Campaigns</dt>
-                          <dd className="text-2xl font-semibold text-gray-900">{brokerCampaigns.length}</dd>
-                        </div>
+                  {/* Assigned Campaigns Section */}
+                  {assignedCampaigns.length > 0 && (
+                    <div className="bg-white border rounded-lg p-6">
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">Assigned Campaigns</h3>
+                      <div className="space-y-3">
+                        {assignedCampaigns.map((campaign: any) => (
+                          <div key={campaign.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div>
+                              <h4 className="font-medium text-gray-900">{campaign.name}</h4>
+                              <p className="text-sm text-gray-500">{campaign.description}</p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                Assigned {campaign.assigned_at ? new Date(campaign.assigned_at).toLocaleDateString() : ''} by {campaign.assigned_by_name}
+                              </p>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span className={`px-2 py-1 text-xs rounded ${
+                                campaign.status === 'draft' ? 'bg-gray-100 text-gray-800' : 
+                                campaign.status === 'sent' ? 'bg-green-100 text-green-800' : 
+                                'bg-blue-100 text-blue-800'
+                              }`}>
+                                {campaign.status === 'draft' ? 'Draft' : campaign.status}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  const backUrl = `/broker-view/partner/${actualCurrentEnvironment}?tab=campaigns`;
+                                  window.location.href = `/partner/campaigns/${campaign.id}?back_url=${encodeURIComponent(backUrl)}`;
+                                }}
+                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                              >
+                                Manage
+                              </button>
+                            </div>
+                          </div>
+                        ))}
                       </div>
                     </div>
+                  )}
+
+                  {/* Shared Campaigns Section */}
+                  {brokerCampaigns.length > 0 && (
+                    <div className="bg-white border rounded-lg p-6">
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">Shared Campaigns</h3>
+                      {/* Summary Cards */}
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
+                        <div className="bg-white p-6 rounded-lg border">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0">
+                              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                            <div className="ml-4">
+                              <dt className="text-sm font-medium text-gray-500 truncate">Total Campaigns</dt>
+                              <dd className="text-2xl font-semibold text-gray-900">{brokerCampaigns.length}</dd>
+                            </div>
+                          </div>
+                        </div>
 
                     <div className="bg-white p-6 rounded-lg border">
                       <div className="flex items-center">
@@ -2649,8 +2699,8 @@ export default function PartnerDetailBrokerPOV() {
                       </tbody>
                     </table>
                   </div>
-
-                  
+                    </div>
+                  )}
                 </>
               )}
             </div>

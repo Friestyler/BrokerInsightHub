@@ -104,7 +104,20 @@ function AssignPartnersSection({ campaignData, onAssignComplete }: AssignPartner
     }
 
     try {
-      // TODO: Implement actual assignment API call here
+      // Get environment ID for API calls
+      const envId = localStorage.getItem('selectedEnvironment') || 'degoudse';
+      
+      // Create assignments for each selected partner
+      await Promise.all(
+        selectedPartnersForAssignment.map(partnerId =>
+          apiRequest('POST', `/api/${envId}/campaigns/${campaignData.id}/assign`, {
+            partner_id: partnerId,
+            assigned_by: campaignData.created_by_id || 1,
+            access_level: 'edit'
+          })
+        )
+      );
+      
       toast({
         title: "Campaign assigned",
         description: `Campaign assigned to ${selectedPartnersForAssignment.length} partner(s).`
@@ -112,6 +125,7 @@ function AssignPartnersSection({ campaignData, onAssignComplete }: AssignPartner
       
       onAssignComplete();
     } catch (error) {
+      console.error('Assignment error:', error);
       toast({
         title: "Assignment failed",
         description: "Failed to assign campaign to partners. Please try again.",

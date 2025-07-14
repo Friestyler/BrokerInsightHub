@@ -10517,6 +10517,97 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
     }
   });
 
+  // Assign campaign to partner
+  app.post('/api/:envId/campaigns/:id/assign', async (req, res) => {
+    try {
+      const { envId, id } = req.params;
+      const { partner_id, assigned_by, access_level = 'edit', notes } = req.body;
+      
+      if (!partner_id || !assigned_by) {
+        return res.status(400).json({ error: 'Partner ID and assigned_by are required' });
+      }
+      
+      if (envId === 'degoudse') {
+        try {
+          // Create the assignment record
+          const result = await pool.query(`
+            INSERT INTO ${envId}.campaign_assignments 
+            (campaign_id, partner_id, assigned_by, access_level, notes)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING *
+          `, [id, partner_id, assigned_by, access_level, notes]);
+          
+          const assignment = result.rows[0];
+          console.log('Campaign assignment created:', assignment);
+          res.json(assignment);
+          return;
+        } catch (dbError) {
+          console.error('Database error creating campaign assignment:', dbError);
+          res.status(500).json({ error: 'Failed to create campaign assignment' });
+          return;
+        }
+      }
+      
+      res.status(400).json({ error: 'Campaign assignment not supported for this environment' });
+    } catch (error) {
+      console.error('Error assigning campaign:', error);
+      res.status(500).json({ error: 'Failed to assign campaign' });
+    }
+  });
+
+  // Get campaigns assigned to partner
+  app.get('/api/:envId/partners/:partnerId/assigned-campaigns', async (req, res) => {
+    try {
+      const { envId, partnerId } = req.params;
+      
+      if (envId === 'degoudse') {
+        try {
+          const result = await pool.query(`
+            SELECT c.*, ca.assigned_at, ca.access_level, ca.status as assignment_status,
+                   u.name as assigned_by_name
+            FROM ${envId}.campaigns c
+            INNER JOIN ${envId}.campaign_assignments ca ON c.id = ca.campaign_id
+            LEFT JOIN ${envId}.users u ON ca.assigned_by = u.id
+            WHERE ca.partner_id = $1 AND ca.status = 'active'
+            ORDER BY ca.assigned_at DESC
+          `, [partnerId]);
+          
+          const campaigns = result.rows.map(campaign => ({
+            id: campaign.id,
+            name: campaign.name,
+            description: campaign.description,
+            type: campaign.type,
+            status: campaign.status,
+            subject: campaign.subject,
+            email_body: campaign.email_body,
+            from_name: campaign.from_name,
+            from_email: campaign.from_email,
+            recipients: campaign.recipients || [],
+            assigned_at: campaign.assigned_at,
+            access_level: campaign.access_level,
+            assignment_status: campaign.assignment_status,
+            assigned_by_name: campaign.assigned_by_name,
+            created_at: campaign.created_at,
+            updated_at: campaign.updated_at
+          }));
+          
+          console.log(`Returning ${campaigns.length} assigned campaigns for partner ${partnerId}`);
+          res.json(campaigns);
+          return;
+        } catch (dbError) {
+          console.error('Database error fetching assigned campaigns:', dbError);
+          res.json([]);
+          return;
+        }
+      }
+      
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching assigned campaigns:', error);
+      res.status(500).json({ error: 'Failed to fetch assigned campaigns' });
+    }
+  });
+
   // Get single campaign by ID
   app.get('/api/:envId/campaigns/:id', async (req, res) => {
     try {

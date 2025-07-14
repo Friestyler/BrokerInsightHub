@@ -56,6 +56,7 @@ import CampaignTemplateCreator from "@/pages/campaigns/CampaignTemplateCreator";
 import TemplatesPage from "@/pages/campaigns/TemplatesPage";
 import CampaignFromTemplate from "@/pages/campaigns/CampaignFromTemplate";
 import NewCampaign from "@/pages/campaigns/NewCampaign";
+import PartnerCampaignBuilder from "@/pages/campaigns/PartnerCampaignBuilder";
 
 // Temporary placeholder components for other list pages
 const ProjectsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Projects List (Coming Soon)</h1></div>;
@@ -76,7 +77,8 @@ function Router() {
   <Route path="/broker-view/partners" component={PartnerView} />
   <Route path="/broker-view/opportunities" component={PartnerView} />
   <Route path="/broker-view/campaigns" component={PartnerView} />
-  <Route path="/broker-view/campaigns/edit/:campaignId" component={PartnerView} />
+  <Route path="/broker-view/campaigns/edit/:campaignId" component={PartnerCampaignBuilder} />
+  <Route path="/partner/campaigns/:campaignId" component={PartnerCampaignBuilder} />
   <Route path="/broker-view/opportunity/:opportunityId" component={OpportunityDetailBrokerPOV} />
   <Route path="/broker-view/partner/:partnerId" component={PartnerDetailBrokerPOV} />
 

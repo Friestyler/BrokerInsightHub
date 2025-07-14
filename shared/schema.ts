@@ -1230,6 +1230,20 @@ export const campaigns = pgTable("campaigns", {
 
 
 
+// Campaign Assignments table for tracking assigned campaigns to partners
+export const campaignAssignments = pgTable("campaign_assignments", {
+  id: serial("id").primaryKey(),
+  campaign_id: integer("campaign_id").notNull().references(() => campaigns.id),
+  partner_id: integer("partner_id").notNull(),
+  assigned_by: integer("assigned_by").notNull().references(() => users.id),
+  assigned_at: timestamp("assigned_at").notNull().defaultNow(),
+  access_level: text("access_level").notNull().default("edit"), // view, edit, admin
+  status: text("status").notNull().default("active"), // active, inactive, revoked
+  notes: text("notes"),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+  updated_at: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // Campaign insert schema and types
 export const insertCampaignSchema = createInsertSchema(campaigns).omit({
   id: true,
@@ -1237,8 +1251,17 @@ export const insertCampaignSchema = createInsertSchema(campaigns).omit({
   updated_at: true,
 });
 
+export const insertCampaignAssignmentSchema = createInsertSchema(campaignAssignments).omit({
+  id: true,
+  assigned_at: true,
+  created_at: true,
+  updated_at: true,
+});
+
 export type Campaign = typeof campaigns.$inferSelect;
 export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
+export type CampaignAssignment = typeof campaignAssignments.$inferSelect;
+export type InsertCampaignAssignment = z.infer<typeof insertCampaignAssignmentSchema>;
 
 // Activity tables relations
 export const activityTasksRelations = relations(activityTasks, ({ one, many }) => ({
@@ -1383,6 +1406,18 @@ export const campaignsRelations = relations(campaigns, ({ one, many }) => ({
   }),
   recipients: many(campaignRecipients),
   followUps: many(campaignFollowUps),
+  assignments: many(campaignAssignments),
+}));
+
+export const campaignAssignmentsRelations = relations(campaignAssignments, ({ one }) => ({
+  campaign: one(campaigns, {
+    fields: [campaignAssignments.campaign_id],
+    references: [campaigns.id],
+  }),
+  assignedBy: one(users, {
+    fields: [campaignAssignments.assigned_by],
+    references: [users.id],
+  }),
 }));
 
 
