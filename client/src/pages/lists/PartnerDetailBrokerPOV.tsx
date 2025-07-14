@@ -44,13 +44,25 @@ export default function PartnerDetailBrokerPOV() {
   const [selectedOpportunityType, setSelectedOpportunityType] = useState('');
   const [renderKey, setRenderKey] = useState(0);
   
+  // Get current environment directly
+  const getCurrentEnvironment = () => {
+    const envFromStorage = localStorage.getItem('selectedEnvironment');
+    const envFromWindow = (window as any).selectedEnvironment;
+    return envFromWindow || envFromStorage || 'degoudse';
+  };
+
+  const [currentEnvironment, setCurrentEnvironment] = useState(getCurrentEnvironment());
+
   // Debug logs after state declarations
   console.log('🚨 BROKER VIEW - RENDER - Render key:', renderKey);
+  console.log('🚨 BROKER VIEW - Current environment:', currentEnvironment);
   
   // Force re-render when environment changes
   useEffect(() => {
     const handleEnvironmentChange = () => {
       console.log('🚨 BROKER VIEW - Environment changed detected!');
+      const newEnv = getCurrentEnvironment();
+      setCurrentEnvironment(newEnv);
       setRenderKey(prev => prev + 1);
     };
 
@@ -150,7 +162,7 @@ export default function PartnerDetailBrokerPOV() {
   };
 
   // For broker view, show the appropriate partner based on selected environment
-  console.log('Broker POV - Current environment:', environment);
+  console.log('Broker POV - Current environment:', currentEnvironment);
   
   // Get the correct logo for broker view (override environment context logos)
   const getBrokerLogo = (envId: string) => {
@@ -166,34 +178,34 @@ export default function PartnerDetailBrokerPOV() {
     }
   };
   
-  const environmentLogo = getBrokerLogo(environment.id);
-  const partner = getPartnerInfoForEnvironment(environment.id);
+  const environmentLogo = getBrokerLogo(currentEnvironment);
+  const partner = getPartnerInfoForEnvironment(currentEnvironment);
   
   console.log('Broker POV - Using environment logo:', environmentLogo);
   console.log('Broker POV - Partner name:', partner.name);
-  console.log('Environment object:', environment);
+  console.log('Environment ID:', currentEnvironment);
 
   // Fetch broker campaigns
   const { data: brokerCampaigns = [], isLoading: campaignsLoading } = useQuery({
-    queryKey: [`/api/${environment.id}/broker/shared-campaigns`],
-    queryFn: () => apiRequest('GET', `/api/${environment.id}/broker/shared-campaigns`),
+    queryKey: [`/api/${currentEnvironment}/broker/shared-campaigns`],
+    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/broker/shared-campaigns`),
     enabled: activeTab === 'campaigns',
     staleTime: 2 * 60 * 1000,
   });
 
   // For broker view, fetch opportunities with proper list filtering
   const { data: allOpportunities = [], isLoading: opportunitiesLoading } = useQuery({
-    queryKey: [`/api/${environment.id}/opportunities`, activeOpportunitiesList?.id],
+    queryKey: [`/api/${currentEnvironment}/opportunities`, activeOpportunitiesList?.id],
     queryFn: () => {
       const listParam = activeOpportunitiesList?.id ? `?listId=${activeOpportunitiesList.id}` : '';
-      return apiRequest('GET', `/api/${environment.id}/opportunities${listParam}`);
+      return apiRequest('GET', `/api/${currentEnvironment}/opportunities${listParam}`);
     },
     staleTime: 2 * 60 * 1000,
   });
 
   // Fetch customers for this partner in broker view - filtered by shared opportunities
   const { data: partnerCustomers = [], isLoading: customersLoading } = useQuery({
-    queryKey: [`/api/${environment.id}/partners/4/customers`, allOpportunities.length],
+    queryKey: [`/api/${currentEnvironment}/partners/4/customers`, allOpportunities.length],
     queryFn: async () => {
       // Hardcoded Belgian customers for broker view
       const hardcodedCustomers = [
@@ -639,20 +651,20 @@ export default function PartnerDetailBrokerPOV() {
 
   // Fetch template assignments for Mevas BV (partner_id 12)
   const { data: templateAssignments } = useQuery({
-    queryKey: [`/api/${environment.id}/template-assignments/partner`],
-    queryFn: () => apiRequest('GET', `/api/${environment.id}/template-assignments/partner`),
+    queryKey: [`/api/${currentEnvironment}/template-assignments/partner`],
+    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/template-assignments/partner`),
   });
 
   // Fetch all OKR metrics to match with assignments
   const { data: allMetrics } = useQuery({
-    queryKey: [`/api/${environment.id}/okr-metrics`],
-    queryFn: () => apiRequest('GET', `/api/${environment.id}/okr-metrics`),
+    queryKey: [`/api/${currentEnvironment}/okr-metrics`],
+    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/okr-metrics`),
   });
 
   // Fetch OKR tags for filtering
   const { data: tags = [] } = useQuery({
-    queryKey: [`/api/${environment.id}/okr-tags`],
-    queryFn: () => apiRequest('GET', `/api/${environment.id}/okr-tags`),
+    queryKey: [`/api/${currentEnvironment}/okr-tags`],
+    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/okr-tags`),
   });
 
   // Get metrics assigned to Mevas BV (partner_id 12)
