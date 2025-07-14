@@ -10,18 +10,22 @@ import CampaignSettingsWizard from '@/components/campaigns/CampaignSettingsWizar
 
 interface PartnerCampaignBuilderProps {
   params?: { campaignId?: string };
+  campaignId?: string;
+  partnerId?: number;
+  onComplete?: () => void;
 }
 
-export default function PartnerCampaignBuilder({ params }: PartnerCampaignBuilderProps) {
+export default function PartnerCampaignBuilder({ params, campaignId: propCampaignId, partnerId, onComplete }: PartnerCampaignBuilderProps) {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Extract campaign ID from URL
+  // Extract campaign ID from props or URL
   const currentPath = window.location.pathname;
-  const campaignId = currentPath.includes('/broker-view/campaigns/edit/') 
-    ? currentPath.split('/broker-view/campaigns/edit/')[1].split('/')[0]
-    : params?.campaignId;
+  const campaignId = propCampaignId || 
+    (currentPath.includes('/broker-view/campaigns/edit/') 
+      ? currentPath.split('/broker-view/campaigns/edit/')[1].split('/')[0]
+      : params?.campaignId);
   
   // Parse URL query parameters for step control
   const urlParams = new URLSearchParams(window.location.search);
@@ -99,7 +103,9 @@ export default function PartnerCampaignBuilder({ params }: PartnerCampaignBuilde
   };
   
   const handleBack = () => {
-    if (backUrl) {
+    if (onComplete) {
+      onComplete();
+    } else if (backUrl) {
       window.location.href = decodeURIComponent(backUrl);
     } else {
       setLocation('/broker-view/partners');
