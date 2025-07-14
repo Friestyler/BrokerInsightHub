@@ -1192,39 +1192,42 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
       case 6:
         return (
-          <div className="h-full">
-            <div className="flex h-[calc(100vh-180px)]">
+          <div className="h-full bg-white">
+            <div className="flex h-[calc(100vh-200px)]">
               {/* Left Sidebar - Customer Companies */}
               <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
                 {/* Header */}
-                <div className="p-4 border-b border-gray-200">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-medium text-gray-900">Customer Companies</h3>
-                    <Button size="sm" className="text-xs h-8 bg-gray-900 hover:bg-gray-800 text-white">
-                      <Plus className="h-4 w-4 mr-1" />
+                <div className="px-4 py-3 border-b border-gray-200 bg-white">
+                  <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-gray-900">Customer Companies</h3>
+                    <Button 
+                      size="sm" 
+                      className="text-xs h-7 px-3 bg-gray-900 hover:bg-gray-800 text-white rounded-md"
+                    >
+                      <Plus className="h-3 w-3 mr-1" />
                       Add Customer
                     </Button>
                   </div>
                   
-                  <div className="relative mb-4">
+                  <div className="relative mb-3">
                     <input
                       type="text"
                       placeholder="Search companies..."
-                      className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
                     />
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
                   </div>
                   
-                  <div className="flex gap-2">
-                    <Button size="sm" variant="default" className="text-xs h-7 bg-gray-900 hover:bg-gray-800 text-white">All Companies</Button>
-                    <Button size="sm" variant="outline" className="text-xs h-7">With Contacts</Button>
-                    <Button size="sm" variant="outline" className="text-xs h-7">Without Contacts</Button>
+                  <div className="flex gap-1">
+                    <Button size="sm" variant="default" className="text-xs h-7 px-3 bg-gray-900 hover:bg-gray-800 text-white rounded-md">All Companies</Button>
+                    <Button size="sm" variant="outline" className="text-xs h-7 px-3 border-gray-300 hover:bg-gray-50 rounded-md">With Contacts</Button>
+                    <Button size="sm" variant="outline" className="text-xs h-7 px-3 border-gray-300 hover:bg-gray-50 rounded-md">Without Contacts</Button>
                   </div>
                 </div>
                 
                 {/* Company List */}
-                <div className="flex-1 overflow-y-auto p-4">
-                  <div className="space-y-4">
+                <div className="flex-1 overflow-y-auto">
+                  <div className="p-3 space-y-2">
                     {/* Sample Companies */}
                     {[
                       { name: "TechCorp Inc.", type: "Technology", contacts: 2, suggested: 3 },
@@ -1241,21 +1244,21 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                       return (
                         <div
                           key={company.name}
-                          className={`p-4 border rounded-lg cursor-pointer transition-all hover:border-blue-300 ${
+                          className={`p-3 border rounded-lg cursor-pointer transition-all hover:border-blue-300 hover:bg-blue-50 ${
                             selectedCompany === company.name ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'
                           }`}
                           onClick={() => setSelectedCompany(company.name)}
                         >
-                          <div className="flex items-center gap-3 mb-2">
+                          <div className="flex items-center gap-2 mb-1">
                             <Building className="h-4 w-4 text-gray-400" />
                             <span className="font-medium text-sm text-gray-900">{company.name}</span>
                           </div>
-                          <div className="text-xs text-gray-500 mb-3">{company.type}</div>
+                          <div className="text-xs text-gray-500 mb-2">{company.type}</div>
                           <div className="flex items-center justify-between text-xs">
                             <span className="text-gray-600">
                               {company.contacts} contact{company.contacts !== 1 ? 's' : ''}
                             </span>
-                            <span className="text-blue-600">
+                            <span className={`${company.suggested > 0 ? 'text-blue-600' : 'text-gray-400'}`}>
                               {company.suggested > 0 ? `+${company.suggested} suggested` : 'No suggestions'}
                             </span>
                           </div>
@@ -1271,39 +1274,43 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 {selectedCompany ? (
                   <>
                     {/* Company Header */}
-                    <div className="p-4 border-b border-gray-200 bg-gray-50">
+                    <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <Building className="h-5 w-5 text-gray-400" />
                           <div>
-                            <h3 className="font-medium text-gray-900">{selectedCompany}</h3>
+                            <h3 className="font-semibold text-gray-900">{selectedCompany}</h3>
                             <p className="text-sm text-gray-500">Technology</p>
+                            <p className="text-xs text-gray-500">2 contacts</p>
                           </div>
                         </div>
-                        <Button size="sm" className="text-xs h-8 bg-gray-900 hover:bg-gray-800 text-white">
-                          <Plus className="h-4 w-4 mr-1" />
+                        <Button 
+                          size="sm" 
+                          className="text-xs h-7 px-3 bg-gray-900 hover:bg-gray-800 text-white rounded-md"
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
                           Add Contact
                         </Button>
                       </div>
                     </div>
 
                     {/* Contacts and Email Sequences */}
-                    <div className="flex-1 overflow-y-auto p-4">
-                      <div className="space-y-6">
+                    <div className="flex-1 overflow-y-auto">
+                      <div className="p-4 space-y-4">
                         {/* Sample Contacts for TechCorp */}
                         {selectedCompany === "TechCorp Inc." && (
                           <>
                             {/* Sarah Johnson */}
-                            <div className="border-b border-gray-100 pb-6">
-                              <div className="flex items-center justify-between mb-4">
+                            <div className="border-b border-gray-100 pb-4">
+                              <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-3">
                                   <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                                     <User className="h-4 w-4 text-blue-600" />
                                   </div>
                                   <div>
                                     <div className="flex items-center gap-2 mb-1">
-                                      <span className="font-medium text-gray-900">Sarah Johnson</span>
-                                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">active</Badge>
+                                      <span className="font-medium text-sm text-gray-900">Sarah Johnson</span>
+                                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">active</Badge>
                                     </div>
                                     <div className="text-sm text-gray-500">sarah@techcorp.com</div>
                                   </div>
@@ -1312,63 +1319,59 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                               </div>
 
                               {/* Email Sequence */}
-                              <div className="space-y-3 mb-4">
-                                <div className="bg-gray-50 rounded-lg p-4">
+                              <div className="space-y-3 mb-3">
+                                <div className="bg-gray-50 rounded-lg p-3">
                                   <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-2">
                                       <span className="text-sm font-medium text-gray-900">1</span>
                                       <span className="text-sm font-medium text-gray-900">Welcome to our partnership program</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                      <Badge variant="outline" className="text-xs bg-green-100 text-green-700">sent</Badge>
+                                      <Badge variant="outline" className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">sent</Badge>
                                       <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
                                         <Edit className="h-3 w-3" />
                                       </Button>
                                     </div>
                                   </div>
-                                  <div className="text-xs text-gray-600 mb-2">16/01/2024 • 10:00</div>
-                                  <div className="text-sm text-gray-700">
-                                    Hi Sarah, thank you for your interest in our partnership program...
-                                  </div>
+                                  <div className="text-xs text-gray-500 mb-2">16/01/2024 • 10:00</div>
+                                  <div className="text-xs text-gray-600">Hi Sarah, thank you for your interest in our partnership program...</div>
                                 </div>
 
-                                <div className="bg-gray-50 rounded-lg p-4">
+                                <div className="bg-gray-50 rounded-lg p-3">
                                   <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-2">
                                       <span className="text-sm font-medium text-gray-900">2</span>
                                       <span className="text-sm font-medium text-gray-900">Follow-up: Partnership details</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                      <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700">scheduled</Badge>
+                                      <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">scheduled</Badge>
                                       <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
                                         <Edit className="h-3 w-3" />
                                       </Button>
                                     </div>
                                   </div>
-                                  <div className="text-xs text-gray-600 mb-2">18/01/2024 • 11:00</div>
-                                  <div className="text-sm text-gray-700">
-                                    Hi Sarah, I wanted to follow up on our partnership discussion...
-                                  </div>
+                                  <div className="text-xs text-gray-500 mb-2">18/01/2024 • 11:00</div>
+                                  <div className="text-xs text-gray-600">Hi Sarah, I wanted to follow up on our partnership discussion...</div>
                                 </div>
                               </div>
 
-                              <Button size="sm" variant="outline" className="text-xs">
+                              <Button size="sm" variant="outline" className="text-xs h-7 px-3 border-gray-300 hover:bg-gray-50 rounded-md">
                                 <Plus className="h-3 w-3 mr-1" />
                                 Add Email to Sequence
                               </Button>
                             </div>
 
                             {/* David Wilson */}
-                            <div className="border-b border-gray-100 pb-6">
-                              <div className="flex items-center justify-between mb-4">
+                            <div className="border-b border-gray-100 pb-4">
+                              <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <User className="h-4 w-4 text-blue-600" />
+                                  <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
+                                    <User className="h-4 w-4 text-yellow-600" />
                                   </div>
                                   <div>
                                     <div className="flex items-center gap-2 mb-1">
-                                      <span className="font-medium text-gray-900">David Wilson</span>
-                                      <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-700">paused</Badge>
+                                      <span className="font-medium text-sm text-gray-900">David Wilson</span>
+                                      <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">paused</Badge>
                                     </div>
                                     <div className="text-sm text-gray-500">david@techcorp.com</div>
                                   </div>
@@ -1377,51 +1380,49 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                               </div>
 
                               {/* Email Sequence */}
-                              <div className="space-y-3 mb-4">
-                                <div className="bg-gray-50 rounded-lg p-4">
+                              <div className="space-y-3 mb-3">
+                                <div className="bg-gray-50 rounded-lg p-3">
                                   <div className="flex items-center justify-between mb-2">
                                     <div className="flex items-center gap-2">
                                       <span className="text-sm font-medium text-gray-900">1</span>
                                       <span className="text-sm font-medium text-gray-900">Technical integration discussion</span>
                                     </div>
                                     <div className="flex items-center gap-2">
-                                      <Badge variant="outline" className="text-xs bg-gray-100 text-gray-700">draft</Badge>
+                                      <Badge variant="outline" className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">draft</Badge>
                                       <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
                                         <Edit className="h-3 w-3" />
                                       </Button>
                                     </div>
                                   </div>
-                                  <div className="text-xs text-gray-600 mb-2">16/01/2024 • 12:00</div>
-                                  <div className="text-sm text-gray-700">
-                                    Hi David, let's discuss the technical aspects...
-                                  </div>
+                                  <div className="text-xs text-gray-500 mb-2">16/01/2024 • 12:00</div>
+                                  <div className="text-xs text-gray-600">Hi David, let's discuss the technical aspects...</div>
                                 </div>
                               </div>
 
-                              <Button size="sm" variant="outline" className="text-xs">
+                              <Button size="sm" variant="outline" className="text-xs h-7 px-3 border-gray-300 hover:bg-gray-50 rounded-md">
                                 <Plus className="h-3 w-3 mr-1" />
                                 Add Email to Sequence
                               </Button>
                             </div>
 
                             {/* Additional Suggested Contacts */}
-                            <div className="border-t pt-4">
-                              <div className="flex items-center justify-between mb-4">
+                            <div className="pb-4">
+                              <div className="flex items-center justify-between mb-3">
                                 <div className="flex items-center gap-2">
                                   <Search className="h-4 w-4 text-gray-400" />
-                                  <span className="font-medium text-gray-900">Additional Suggested Contacts</span>
-                                  <Badge variant="secondary" className="text-xs">2 found</Badge>
+                                  <span className="text-sm font-medium text-gray-900">Additional Suggested Contacts</span>
+                                  <Badge variant="outline" className="text-xs px-2 py-0.5 rounded">2 found</Badge>
                                 </div>
-                                <Button size="sm" variant="ghost" className="text-xs">
+                                <Button size="sm" variant="outline" className="text-xs h-7 px-3 border-gray-300 hover:bg-gray-50 rounded-md">
                                   Hide
                                 </Button>
                               </div>
                               
-                              <p className="text-sm text-gray-600 mb-4">
+                              <p className="text-xs text-gray-600 mb-3">
                                 We found these additional potential contacts for TechCorp Inc. Click to add them instantly.
                               </p>
 
-                              <div className="space-y-3">
+                              <div className="space-y-2">
                                 <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
                                   <div className="flex-1">
                                     <div className="flex items-center gap-2 mb-1">
@@ -1429,7 +1430,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                     </div>
                                     <div className="text-xs text-gray-500">jennifer.park@techcorp.com</div>
                                   </div>
-                                  <Button size="sm" variant="outline" className="text-xs">
+                                  <Button size="sm" variant="outline" className="text-xs h-7 px-3 border-gray-300 hover:bg-gray-50 rounded-md">
                                     <Plus className="h-3 w-3 mr-1" />
                                     Add
                                   </Button>

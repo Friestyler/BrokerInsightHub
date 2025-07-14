@@ -227,7 +227,7 @@ export function CreateCampaign({ params }: CreateCampaignProps) {
   }
 
   return (
-    <div className="min-h-screen bg-[#E6E7F1]">
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between w-full">
@@ -241,7 +241,7 @@ export function CreateCampaign({ params }: CreateCampaignProps) {
               Back to Templates
             </Button>
             <div>
-              <h1 className="text-2xl font-semibold text-gray-900">Create Campaign</h1>
+              <h1 className="text-xl font-semibold text-gray-900">Create Campaign</h1>
               <p className="text-sm text-gray-600">From template: {template?.name}</p>
             </div>
           </div>
@@ -254,7 +254,7 @@ export function CreateCampaign({ params }: CreateCampaignProps) {
       </div>
 
       {/* Progress Steps */}
-      <div className="bg-white border-b border-gray-200 px-6 py-6">
+      <div className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="w-full">
           <div className="flex items-center justify-between">
             {steps.map((step, index) => {
@@ -305,15 +305,15 @@ export function CreateCampaign({ params }: CreateCampaignProps) {
       </div>
 
       {/* Main Content */}
-      <div className="w-full px-6 py-8">
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center space-x-2">
+      <div className="w-full px-6 py-6">
+        <Card className="border-gray-200">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center space-x-2 text-lg">
               {React.createElement(steps[currentStep - 1].icon, { className: "h-5 w-5" })}
               <span>{steps[currentStep - 1].title}</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4">
             {/* Step 1: Campaign Name */}
             {currentStep === 1 && (
               <div className="space-y-4">
@@ -371,27 +371,27 @@ export function CreateCampaign({ params }: CreateCampaignProps) {
               <div className="space-y-4">
                 <div>
                   <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-medium">Select Recipients</h3>
-                    <Badge variant="outline">
+                    <h3 className="text-lg font-semibold text-gray-900">Select Recipients</h3>
+                    <Badge variant="outline" className="px-3 py-1">
                       {selectedRecipients.length} selected
                     </Badge>
                   </div>
                   
-                  <div className="max-h-96 overflow-y-auto border rounded-lg">
+                  <div className="max-h-96 overflow-y-auto border border-gray-200 rounded-lg">
                     {getPotentialRecipients().map((recipient) => (
                       <div
                         key={`${recipient.type}-${recipient.id}`}
-                        className="flex items-center space-x-3 p-3 border-b border-gray-100 hover:bg-gray-50"
+                        className="flex items-center space-x-3 p-3 border-b border-gray-100 hover:bg-gray-50 transition-colors"
                       >
                         <Checkbox
                           checked={selectedRecipients.some(r => r.id === recipient.id && r.type === recipient.type)}
                           onCheckedChange={() => toggleRecipient(recipient)}
                         />
                         <div className="flex-1">
-                          <div className="font-medium text-gray-900">{recipient.name}</div>
+                          <div className="font-medium text-sm text-gray-900">{recipient.name}</div>
                           <div className="text-sm text-gray-500">{recipient.email}</div>
                         </div>
-                        <Badge variant="outline" className="text-xs">
+                        <Badge variant="outline" className="text-xs px-2 py-0.5 rounded">
                           {recipient.type}
                         </Badge>
                       </div>
