@@ -15,17 +15,13 @@ import { Label } from "@/components/ui/label";
 import { ArrowLeft, Search } from "lucide-react";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import EntityAvatar from "@/components/EntityAvatar";
-import { useEnvironment } from "@/contexts/EnvironmentContext";
+
 import { BrokerLayout } from "@/components/layouts/BrokerLayout";
-import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
-import baloiseLogoPng from "@assets/Baloise_1750499789244.png";
-import deGoudseLogo from "@assets/De_Goudse_logo_1749670246231.png";
 
 
 
 export default function PartnerDetailBrokerPOV() {
   const { partnerId } = useParams<{ partnerId: string }>();
-  const { environment } = useEnvironment();
   const { toast } = useToast();
   
   // Get URL parameters for tab and list selection
@@ -49,15 +45,21 @@ export default function PartnerDetailBrokerPOV() {
   const [renderKey, setRenderKey] = useState(0);
   
   // Debug logs after state declarations
-  console.log('🚨 BROKER VIEW - RENDER - Current environment:', environment.id);
   console.log('🚨 BROKER VIEW - RENDER - Render key:', renderKey);
   
   // Force re-render when environment changes
   useEffect(() => {
-    console.log('🚨 BROKER VIEW - Environment changed! New environment:', environment.id);
-    console.log('🚨 BROKER VIEW - Environment object:', environment);
-    setRenderKey(prev => prev + 1);
-  }, [environment.id]);
+    const handleEnvironmentChange = () => {
+      console.log('🚨 BROKER VIEW - Environment changed detected!');
+      setRenderKey(prev => prev + 1);
+    };
+
+    window.addEventListener('environmentChanged', handleEnvironmentChange);
+    
+    return () => {
+      window.removeEventListener('environmentChanged', handleEnvironmentChange);
+    };
+  }, []);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Dropdown state for filters
@@ -726,8 +728,8 @@ export default function PartnerDetailBrokerPOV() {
   };
 
   return (
-    <BrokerLayout key={`broker-layout-${environment.id}-${renderKey}`}>
-      <div key={`broker-${environment.id}-${renderKey}`} className="min-h-screen bg-white">
+    <BrokerLayout>
+      <div key={`broker-${renderKey}`} className="min-h-screen bg-white">
         {/* Header section */}
         <div className="px-6 py-4">
           <div className="flex items-center mb-4">

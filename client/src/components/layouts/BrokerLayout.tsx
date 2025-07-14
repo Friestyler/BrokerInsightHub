@@ -1,6 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
-import { useEnvironment } from '@/contexts/EnvironmentContext';
 import qollabiLogo from "@assets/logo_qollabi_O_dark.png";
 import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
 import baloiseLogoPng from "@assets/Baloise_1750499789244.png";
@@ -11,7 +10,50 @@ export function BrokerLayout({ children }: { children: React.ReactNode }) {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [dataMenuOpen, setDataMenuOpen] = useState(true);
   const [location] = useLocation();
-  const { environment } = useEnvironment();
+  const [currentEnvironment, setCurrentEnvironment] = useState('degoudse');
+
+  // Direct environment detection from localStorage and window
+  useEffect(() => {
+    const detectEnvironment = () => {
+      const envFromStorage = localStorage.getItem('selectedEnvironment');
+      const envFromWindow = (window as any).selectedEnvironment;
+      const currentEnv = envFromWindow || envFromStorage || 'degoudse';
+      
+      console.log('🚨 BROKER LAYOUT - Environment detection:', {
+        envFromStorage,
+        envFromWindow,
+        currentEnv
+      });
+      
+      setCurrentEnvironment(currentEnv);
+    };
+
+    // Initial detection
+    detectEnvironment();
+
+    // Listen for storage changes
+    const handleStorageChange = () => {
+      detectEnvironment();
+    };
+
+    // Listen for custom environment change events
+    const handleEnvironmentChange = (event: any) => {
+      console.log('🚨 BROKER LAYOUT - Environment change event:', event.detail);
+      setCurrentEnvironment(event.detail.environmentId);
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    window.addEventListener('environmentChanged', handleEnvironmentChange);
+
+    // Poll for changes every 500ms as fallback
+    const interval = setInterval(detectEnvironment, 500);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      window.removeEventListener('environmentChanged', handleEnvironmentChange);
+      clearInterval(interval);
+    };
+  }, []);
 
   // Get the correct logo for broker view
   const getBrokerLogo = (envId: string) => {
@@ -28,9 +70,25 @@ export function BrokerLayout({ children }: { children: React.ReactNode }) {
     }
   };
 
-  const environmentLogo = getBrokerLogo(environment.id);
+  const environmentLogo = getBrokerLogo(currentEnvironment);
   console.log('🚨 BROKER LAYOUT - Using logo:', environmentLogo);
-  console.log('🚨 BROKER LAYOUT - Environment object:', environment);
+  console.log('🚨 BROKER LAYOUT - Current environment:', currentEnvironment);
+
+  // Get environment name for display
+  const getEnvironmentName = (envId: string) => {
+    switch (envId) {
+      case 'degoudse':
+        return 'De Goudse';
+      case 'baloise':
+        return 'Baloise';
+      case 'nn':
+        return 'Nationale Nederlanden';
+      default:
+        return 'De Goudse';
+    }
+  };
+
+  const environmentName = getEnvironmentName(currentEnvironment);
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
@@ -50,7 +108,7 @@ export function BrokerLayout({ children }: { children: React.ReactNode }) {
           <div className={`${sidebarCollapsed ? "w-10 h-10" : "w-12 h-12"} flex items-center justify-center`}>
             <img 
               src={environmentLogo} 
-              alt={`${environment.name} Logo`} 
+              alt={`${environmentName} Logo`} 
               className="max-w-full max-h-full object-contain"
             />
           </div>

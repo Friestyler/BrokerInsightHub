@@ -95,6 +95,16 @@ export const EnvironmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
     
     // Set the global environment variable immediately
     window.__APP_ENV__ = newEnv.id;
+    (window as any).selectedEnvironment = newEnv.id;
+    
+    // Dispatch custom event for components that need to know about environment changes
+    const environmentChangeEvent = new CustomEvent('environmentChanged', {
+      detail: { environmentId: newEnv.id, environment: newEnv }
+    });
+    window.dispatchEvent(environmentChangeEvent);
+    
+    console.log('🚨 ENVIRONMENT CONTEXT - Environment changed to:', newEnv.id);
+    console.log('🚨 ENVIRONMENT CONTEXT - Dispatched environmentChanged event');
     
     // No reload needed - this is purely cosmetic for demo purposes
   };
