@@ -106,17 +106,38 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   // Auto-expand suggestions when no contacts exist, collapse when contacts are added
   useEffect(() => {
     if (campaignData.recipients && Array.isArray(campaignData.recipients)) {
-      const hasAnyContacts = campaignData.recipients.some((recipient: any) => {
-        return recipient.email && recipient.email.trim() !== '';
+      // Check if there are any missing contacts (customers without contacts)
+      const customerContactMap = new Map();
+      
+      campaignData.recipients.forEach((recipient: any) => {
+        const customerId = recipient.customerInfo?.id || recipient.id;
+        
+        if (!customerContactMap.has(customerId)) {
+          // Find contacts for this customer
+          const contactRecipients = campaignData.recipients.filter(r => 
+            (r.customerInfo?.id || r.id) === customerId && r.type === 'contact'
+          );
+          
+          const hasValidContact = contactRecipients.some(c => c.email && c.email.trim() !== '');
+          customerContactMap.set(customerId, hasValidContact);
+        }
       });
       
-      // Auto-expand suggestions when no contacts exist
-      if (!hasAnyContacts) {
+      const hasMissingContacts = Array.from(customerContactMap.values()).some(hasContact => !hasContact);
+      
+      // Auto-expand suggestions when there are missing contacts
+      if (hasMissingContacts) {
         setSuggestionsCollapsed(false);
       } else {
-        // Auto-collapse when contacts are present
+        // Auto-collapse when all customers have contacts
         setSuggestionsCollapsed(true);
       }
+    } else if (campaignData.recipients && campaignData.recipients.length === 0) {
+      // If no recipients are loaded, show suggestions by default
+      setSuggestionsCollapsed(false);
+    } else {
+      // Default to showing suggestions when first initializing
+      setSuggestionsCollapsed(false);
     }
   }, [campaignData.recipients]);
   
