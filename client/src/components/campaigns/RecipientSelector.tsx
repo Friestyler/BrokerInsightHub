@@ -272,82 +272,33 @@ export default function RecipientSelector({
       const newRecipients = selectedRecipients.filter(r => r.recipientKey !== recipientKey);
       onRecipientsChange(newRecipients);
     } else {
-      // Add to selection with hierarchical auto-selection
+      // Add to selection - simple, controlled approach
       let newRecipients = [...selectedRecipients];
       
       if (type === 'opportunity') {
-        // When selecting an opportunity, auto-select its customer and contacts
+        // When selecting an opportunity, just add it with customer info for display
         const customer = getCustomerForOpportunity(item.id);
-        const customerContacts = customer ? getContactsForCustomer(customer.id) : [];
         
-        // Add the opportunity
         newRecipients.push({
           ...item,
           type: 'opportunity',
           recipientKey: `opportunity-${item.id}`,
           customerInfo: customer
         });
-        
-        // Auto-select the customer
-        if (customer) {
-          const customerKey = `customer-${customer.id}`;
-          const customerExists = newRecipients.some(r => r.recipientKey === customerKey);
-          if (!customerExists) {
-            newRecipients.push({
-              ...customer,
-              type: 'customer',
-              recipientKey: customerKey,
-              opportunityInfo: item
-            });
-          }
-          
-          // Auto-select all contacts for this customer
-          customerContacts.forEach(contact => {
-            const contactKey = `contact-${contact.id}`;
-            const contactExists = newRecipients.some(r => r.recipientKey === contactKey);
-            if (!contactExists) {
-              newRecipients.push({
-                ...contact,
-                type: 'contact',
-                recipientKey: contactKey,
-                customerInfo: customer,
-                opportunityInfo: item,
-                email: contact.email || ''
-              });
-            }
-          });
-        }
       } else if (type === 'customer') {
-        // When selecting a customer, auto-select all its contacts
-        const customerContacts = getContactsForCustomer(item.id);
-        
-        // Add the customer
+        // When selecting a customer, just add it
         newRecipients.push({
           ...item,
           type: 'customer',
           recipientKey: `customer-${item.id}`
-        });
-        
-        // Auto-select all contacts for this customer
-        customerContacts.forEach(contact => {
-          const contactKey = `contact-${contact.id}`;
-          const contactExists = newRecipients.some(r => r.recipientKey === contactKey);
-          if (!contactExists) {
-            newRecipients.push({
-              ...contact,
-              type: 'contact',
-              recipientKey: contactKey,
-              customerInfo: item,
-              email: contact.email || ''
-            });
-          }
         });
       } else {
         // For other types (contact, etc.), just add the item
         newRecipients.push({
           ...item,
           type,
-          recipientKey
+          recipientKey,
+          email: item.email || ''
         });
       }
       
@@ -361,7 +312,7 @@ export default function RecipientSelector({
     return selectedRecipients.some(r => r.recipientKey === recipientKey);
   };
 
-  // Handle bulk selection of entire lists/segments with hierarchical auto-selection
+  // Handle bulk selection of entire lists/segments - select only the specific list items
   const handleSelectListOrSegment = (listOrSegment: any, sourceType: 'list' | 'segment') => {
     if (entityType !== 'opportunities') return;
 
@@ -371,29 +322,13 @@ export default function RecipientSelector({
     const allSelected = relevantOpportunities.every(opp => isItemSelected(opp, 'opportunity'));
     
     if (allSelected) {
-      // Remove all opportunities from this list/segment and their associated entities
-      const keysToRemove = new Set<string>();
-      
-      relevantOpportunities.forEach(opp => {
-        keysToRemove.add(`opportunity-${opp.id}`);
-        
-        // Also remove associated customers and contacts
-        const customer = getCustomerForOpportunity(opp.id);
-        if (customer) {
-          keysToRemove.add(`customer-${customer.id}`);
-          
-          const customerContacts = getContactsForCustomer(customer.id);
-          customerContacts.forEach(contact => {
-            keysToRemove.add(`contact-${contact.id}`);
-          });
-        }
-      });
-      
-      const newRecipients = selectedRecipients.filter(r => !keysToRemove.has(r.recipientKey));
+      // Remove ONLY the opportunities from THIS specific list/segment
+      const keysToRemove = relevantOpportunities.map(opp => `opportunity-${opp.id}`);
+      const newRecipients = selectedRecipients.filter(r => !keysToRemove.includes(r.recipientKey));
       onRecipientsChange(newRecipients);
     } else {
-      // Add all opportunities from this list/segment with hierarchical auto-selection
-      let newRecipients = [...selectedRecipients];
+      // Add ONLY the opportunities from THIS specific list/segment
+      const newRecipients = [...selectedRecipients];
       
       relevantOpportunities.forEach(opp => {
         const recipientKey = `opportunity-${opp.id}`;
@@ -401,45 +336,14 @@ export default function RecipientSelector({
         // Only add if not already selected
         if (!newRecipients.some(r => r.recipientKey === recipientKey)) {
           const customer = getCustomerForOpportunity(opp.id);
-          const customerContacts = customer ? getContactsForCustomer(customer.id) : [];
           
-          // Add the opportunity
+          // Add just the opportunity with customer info for display
           newRecipients.push({
             ...opp,
             type: 'opportunity',
             recipientKey: `opportunity-${opp.id}`,
             customerInfo: customer
           });
-          
-          // Auto-select the customer
-          if (customer) {
-            const customerKey = `customer-${customer.id}`;
-            const customerExists = newRecipients.some(r => r.recipientKey === customerKey);
-            if (!customerExists) {
-              newRecipients.push({
-                ...customer,
-                type: 'customer',
-                recipientKey: customerKey,
-                opportunityInfo: opp
-              });
-            }
-            
-            // Auto-select all contacts for this customer
-            customerContacts.forEach(contact => {
-              const contactKey = `contact-${contact.id}`;
-              const contactExists = newRecipients.some(r => r.recipientKey === contactKey);
-              if (!contactExists) {
-                newRecipients.push({
-                  ...contact,
-                  type: 'contact',
-                  recipientKey: contactKey,
-                  customerInfo: customer,
-                  opportunityInfo: opp,
-                  email: contact.email || ''
-                });
-              }
-            });
-          }
         }
       });
       
@@ -1184,45 +1088,58 @@ export default function RecipientSelector({
               </div>
             ) : (
               <div className="space-y-2">
-                {savedLists.map((list: any) => (
-                  <div key={list.id} className="border rounded-lg">
-                    <div className="p-3">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-3">
-                          <Checkbox
-                            checked={isListOrSegmentFullySelected(list, 'list')}
-                            indeterminate={isListOrSegmentPartiallySelected(list, 'list')}
-                            onCheckedChange={() => handleSelectListOrSegment(list, 'list')}
-                            className="h-4 w-4"
-                          />
-                          <button
-                            onClick={() => toggleItemExpansion(`list-${list.id}`)}
-                            className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center"
-                          >
-                            {expandedItems.has(`list-${list.id}`) ? (
-                              <ChevronDown className="h-4 w-4 text-white" />
-                            ) : (
-                              <ChevronRight className="h-4 w-4 text-white" />
-                            )}
-                          </button>
-                          <div>
-                            <p className="font-medium">{list.name === 'Shared opportunities list' ? 'All Opportunities' : list.name}</p>
-                            <p className="text-sm text-gray-600">{list.description}</p>
-                            <p className="text-xs text-gray-500">
-                              {list.item_count || list.itemCount || 0} items
-                            </p>
+                {(() => {
+                  // Deduplicate lists by name, keeping the one with the highest ID
+                  const uniqueLists = savedLists.reduce((acc: any[], list: any) => {
+                    const existingIndex = acc.findIndex(l => l.name === list.name);
+                    if (existingIndex === -1) {
+                      acc.push(list);
+                    } else if (list.id > acc[existingIndex].id) {
+                      acc[existingIndex] = list;
+                    }
+                    return acc;
+                  }, []);
+                  
+                  return uniqueLists.map((list: any) => (
+                    <div key={list.id} className="border rounded-lg">
+                      <div className="p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <Checkbox
+                              checked={isListOrSegmentFullySelected(list, 'list')}
+                              indeterminate={isListOrSegmentPartiallySelected(list, 'list')}
+                              onCheckedChange={() => handleSelectListOrSegment(list, 'list')}
+                              className="h-4 w-4"
+                            />
+                            <button
+                              onClick={() => toggleItemExpansion(`list-${list.id}`)}
+                              className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center"
+                            >
+                              {expandedItems.has(`list-${list.id}`) ? (
+                                <ChevronDown className="h-4 w-4 text-white" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4 text-white" />
+                              )}
+                            </button>
+                            <div>
+                              <p className="font-medium">{list.name === 'Shared opportunities list' ? 'All Opportunities' : list.name}</p>
+                              <p className="text-sm text-gray-600">{list.description}</p>
+                              <p className="text-xs text-gray-500">
+                                {Array.isArray(list.members) ? list.members.length : (list.item_count || list.itemCount || 0)} items
+                              </p>
+                            </div>
                           </div>
                         </div>
                       </div>
+                      
+                      {expandedItems.has(`list-${list.id}`) && (
+                        <div className="border-t bg-gray-50 p-3">
+                          {renderCascadingDrillDown(list, 'list')}
+                        </div>
+                      )}
                     </div>
-                    
-                    {expandedItems.has(`list-${list.id}`) && (
-                      <div className="border-t bg-gray-50 p-3">
-                        {renderCascadingDrillDown(list, 'list')}
-                      </div>
-                    )}
-                  </div>
-                ))}
+                  ));
+                })()}
                 {savedLists.length === 0 && (
                   <div className="text-center py-8">
                     <BookOpen className="h-8 w-8 text-gray-400 mx-auto mb-2" />

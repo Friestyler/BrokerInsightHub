@@ -169,6 +169,7 @@ Each environment maintains its own data isolation while sharing the same applica
 - **Backup and restore** capabilities through admin panel
 
 ## Changelog
+- July 14, 2025: CAMPAIGN HIERARCHICAL SELECTION CLEANUP: Fixed duplicate lists and cleaned up selection logic in RecipientSelector - removed duplicate "Test 14/7" list from database, implemented deduplication logic in UI to prevent duplicate list display, simplified hierarchical selection to be more controlled and predictable. Changed list selection to only select items from the specific chosen list instead of cascading to all related entities. Updated individual opportunity selection to be simple and controlled without automatic customer/contact selection. Campaign recipient selection now shows one instance of each list and selects only what the user specifically clicks.
 - July 14, 2025: URGENT FIX: Environment switching issue in broker view - hardcoded "Shared by De Goudse" text across ALL files to resolve critical production issue where shared lists were displaying incorrect partner names. Systematically replaced all instances of "Shared by Baloise" and dynamic sharing partner text with "Shared by De Goudse" in:
   - PartnerDetailBrokerPOV.tsx (line 1359)
   - PartnerDetail.tsx (lines 1805, 3931)
