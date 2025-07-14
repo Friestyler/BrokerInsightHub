@@ -2590,28 +2590,13 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
           if (allReadyContacts > 0) {
             return (
               <div className="flex justify-center mb-4">
-                <div className="bg-green-50 border border-green-200 rounded-lg px-6 py-4">
-                  <div className="flex flex-col items-center gap-3">
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-green-600" />
-                      <div className="text-center">
-                        <p className="text-sm font-medium text-green-900">
-                          {allReadyContacts} email{allReadyContacts !== 1 ? 's' : ''} ready to send
-                        </p>
-                        <p className="text-xs text-green-600">
-                          Across all customers in this campaign
-                        </p>
-                      </div>
-                    </div>
-                    <Button 
-                      className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 text-sm"
-                      onClick={() => handleBulkSendAll()}
-                    >
-                      <Send className="h-4 w-4 mr-2" />
-                      Send All ({allReadyContacts})
-                    </Button>
-                  </div>
-                </div>
+                <Button 
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 text-sm"
+                  onClick={() => handleBulkSendAll()}
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  Send All ({allReadyContacts})
+                </Button>
               </div>
             );
           }
