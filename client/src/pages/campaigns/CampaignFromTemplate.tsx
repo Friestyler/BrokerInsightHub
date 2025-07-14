@@ -67,35 +67,6 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
   // Track if this is initial load to prevent URL conflicts with manual navigation
   const [isInitialLoad, setIsInitialLoad] = useState(true);
-  
-  // Auto-expand suggestions when no contacts exist, collapse when contacts are added
-  useEffect(() => {
-    if (campaignData.recipients && Array.isArray(campaignData.recipients)) {
-      const hasAnyContacts = campaignData.recipients.some((recipient: any) => {
-        return recipient.email && recipient.email.trim() !== '';
-      });
-      
-      // Auto-expand suggestions when no contacts exist
-      if (!hasAnyContacts) {
-        setSuggestionsCollapsed(false);
-      } else {
-        // Auto-collapse when contacts are present
-        setSuggestionsCollapsed(true);
-      }
-    }
-  }, [campaignData.recipients]);
-  
-  // Add effect to ensure URL parameters are respected only on initial load
-  useEffect(() => {
-    if (isInitialLoad && stepParam) {
-      const targetStep = getStepNumber(stepParam);
-      if (targetStep !== currentStep) {
-        console.log('Adjusting step based on URL parameter (initial load):', { stepParam, targetStep, currentStep });
-        setCurrentStep(targetStep);
-      }
-    }
-    setIsInitialLoad(false);
-  }, [stepParam, isInitialLoad, currentStep]);
   const [activeEmailIndex, setActiveEmailIndex] = useState(0);
   const [sharePartnersDialogOpen, setSharePartnersDialogOpen] = useState(false);
   const [selectedPartnersForSharing, setSelectedPartnersForSharing] = useState<number[]>([]);
@@ -131,6 +102,35 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       replyTo: ''
     }
   });
+
+  // Auto-expand suggestions when no contacts exist, collapse when contacts are added
+  useEffect(() => {
+    if (campaignData.recipients && Array.isArray(campaignData.recipients)) {
+      const hasAnyContacts = campaignData.recipients.some((recipient: any) => {
+        return recipient.email && recipient.email.trim() !== '';
+      });
+      
+      // Auto-expand suggestions when no contacts exist
+      if (!hasAnyContacts) {
+        setSuggestionsCollapsed(false);
+      } else {
+        // Auto-collapse when contacts are present
+        setSuggestionsCollapsed(true);
+      }
+    }
+  }, [campaignData.recipients]);
+  
+  // Add effect to ensure URL parameters are respected only on initial load
+  useEffect(() => {
+    if (isInitialLoad && stepParam) {
+      const targetStep = getStepNumber(stepParam);
+      if (targetStep !== currentStep) {
+        console.log('Adjusting step based on URL parameter (initial load):', { stepParam, targetStep, currentStep });
+        setCurrentStep(targetStep);
+      }
+    }
+    setIsInitialLoad(false);
+  }, [stepParam, isInitialLoad, currentStep]);
 
   // Load template data to duplicate (only for template-based campaigns)
   const { data: templateData, isLoading: templateLoading } = useQuery({
