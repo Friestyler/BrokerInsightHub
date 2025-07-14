@@ -1219,9 +1219,9 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                   </div>
                   
                   <div className="flex gap-1">
-                    <Button size="sm" variant="default" className="text-xs h-7 px-3 bg-gray-900 hover:bg-gray-800 text-white rounded-md">All Companies</Button>
-                    <Button size="sm" variant="outline" className="text-xs h-7 px-3 border-gray-300 hover:bg-gray-50 rounded-md">With Contacts</Button>
-                    <Button size="sm" variant="outline" className="text-xs h-7 px-3 border-gray-300 hover:bg-gray-50 rounded-md">Without Contacts</Button>
+                    <Button size="sm" variant="default" className="text-xs h-7 px-2 bg-gray-900 hover:bg-gray-800 text-white rounded-md">All</Button>
+                    <Button size="sm" variant="outline" className="text-xs h-7 px-2 border-gray-300 hover:bg-gray-50 rounded-md">With Contacts</Button>
+                    <Button size="sm" variant="outline" className="text-xs h-7 px-2 border-gray-300 hover:bg-gray-50 rounded-md">Without Contacts</Button>
                   </div>
                 </div>
                 
