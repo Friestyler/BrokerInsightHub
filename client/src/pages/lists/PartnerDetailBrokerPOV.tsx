@@ -138,11 +138,26 @@ export default function PartnerDetailBrokerPOV() {
 
   // For broker view, show the appropriate partner based on selected environment
   console.log('Broker POV - Current environment:', environment);
+  
+  // Get the correct logo for broker view (override environment context logos)
+  const getBrokerLogo = (envId: string) => {
+    switch (envId) {
+      case 'degoudse':
+        return deGoudseLogo;
+      case 'baloise':
+        return baloiseLogoPng;
+      case 'nn':
+        return nnLogo;
+      default:
+        return deGoudseLogo;
+    }
+  };
+  
+  const environmentLogo = getBrokerLogo(environment.id);
   const partner = getPartnerInfoForEnvironment(environment.id);
-
-  // Use the logo from the environment context directly
-  const environmentLogo = environment.logo || deGoudseLogo;
+  
   console.log('Broker POV - Using environment logo:', environmentLogo);
+  console.log('Broker POV - Partner name:', partner.name);
   console.log('Environment object:', environment);
 
   // Fetch broker campaigns
