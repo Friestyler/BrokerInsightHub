@@ -9575,7 +9575,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
     }
   });
 
-  // Broker-specific endpoint for lists shared with John Smith or partners
+  // Broker-specific endpoint for all shared lists available to brokers
   app.get('/api/:envId/broker/shared-lists', async (req, res) => {
     try {
       const { envId } = req.params;
@@ -9587,29 +9587,8 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       res.set('Pragma', 'no-cache');
       res.set('Expires', '0');
       
-      // Get list collaborators first to find relevant list IDs
-      let baseQuery = `
-        SELECT lc.list_id
-        FROM ${envId}.list_collaborators lc
-        WHERE lc.is_active = true
-          AND (lc.email LIKE '%john.smith%' OR lc.email LIKE '%partner%' OR lc.name LIKE '%John Smith%')
-      `;
-      
-      const params = [];
-      
-      // First get the list IDs from collaborators table
-      const listIdsResult = await envPool.query(baseQuery, params);
-      const listIds = listIdsResult.rows.map(row => row.list_id);
-      
-      if (listIds.length === 0) {
-        console.log('No lists found shared with John Smith or partners');
-        res.json([]);
-        return;
-      }
-      
-      // Then get the full list details with collaborator info, filtering by entity_type if needed
+      // Get all shared lists with collaborator info, filtering by entity_type if needed
       // Exclude lists that contain only seed opportunity records (IDs 1-16)
-      const placeholders = listIds.map((_, index) => `$${index + 1}`).join(', ');
       let query = `
         SELECT sl.*,
                COUNT(lc.id) as collaborator_count,
@@ -9618,20 +9597,22 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
                STRING_AGG(DISTINCT lc.name, ', ') as collaborator_names
         FROM ${envId}.saved_lists sl
         LEFT JOIN ${envId}.list_collaborators lc ON sl.id = lc.list_id AND lc.is_active = true
-        WHERE sl.id IN (${placeholders}) AND sl.is_shared = true
+        WHERE sl.is_shared = true
           AND NOT (sl.members <@ ARRAY[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16])
       `;
       
+      const params = [];
+      
       if (entityType) {
-        query += ` AND sl.entity_type = $${listIds.length + 1}`;
-        listIds.push(entityType);
+        query += ` AND sl.entity_type = $1`;
+        params.push(entityType);
       }
       
       query += ` GROUP BY sl.id ORDER BY sl.created_at DESC`;
       
-      const result = await envPool.query(query, listIds);
+      const result = await envPool.query(query, params);
       
-      console.log(`Found ${result.rows.length} lists shared with John Smith or partners`);
+      console.log(`Found ${result.rows.length} shared lists available to brokers`);
       res.json(result.rows);
     } catch (error) {
       console.error(`Error fetching broker shared lists from ${req.params.envId}:`, error);
