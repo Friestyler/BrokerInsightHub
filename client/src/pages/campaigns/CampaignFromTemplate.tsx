@@ -2265,8 +2265,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
           </Button>
           
           <div className="flex gap-3 items-center">
-            {/* Total Ready Count and Send All Button - Show on Recipients step */}
-            {currentStep === 4 && (() => {
+            {/* Total Ready Count and Send All Button - Show on Drafts step */}
+            {currentStep === 6 && (() => {
               // Count all ready contacts across ALL customers in the campaign
               const allReadyContacts = campaignData.recipients.filter((recipient: any) => 
                 recipient.email || recipient.contactInfo?.email
