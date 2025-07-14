@@ -105,6 +105,9 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
   // Create a per-customer suggestions state
   const [customerSuggestionsCollapsed, setCustomerSuggestionsCollapsed] = useState<Record<string, boolean>>({});
+  
+  // Contact filter state
+  const [contactFilter, setContactFilter] = useState<'all' | 'with_contacts' | 'without_contacts'>('all');
 
   // Initialize suggestions state for each customer based on whether they have existing contacts
   useEffect(() => {
@@ -131,6 +134,11 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     
     setCustomerSuggestionsCollapsed(newState);
   }, [campaignData.recipients]);
+
+  // Reset selected company when filter changes
+  useEffect(() => {
+    setSelectedCompany(null);
+  }, [contactFilter]);
   
   // Add effect to ensure URL parameters are respected only on initial load
   useEffect(() => {
@@ -1535,9 +1543,42 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                   </div>
                   
                   <div className="flex gap-1">
-                    <Button size="sm" variant="default" className="text-xs h-7 px-2 bg-gray-900 hover:bg-gray-800 text-white rounded-md">All</Button>
-                    <Button size="sm" variant="outline" className="text-xs h-7 px-2 border-gray-300 hover:bg-gray-50 rounded-md">With Contacts</Button>
-                    <Button size="sm" variant="outline" className="text-xs h-7 px-2 border-gray-300 hover:bg-gray-50 rounded-md">Without Contacts</Button>
+                    <Button 
+                      size="sm" 
+                      variant={contactFilter === 'all' ? 'default' : 'outline'}
+                      className={`text-xs h-7 px-2 rounded-md ${
+                        contactFilter === 'all' 
+                          ? 'bg-gray-900 hover:bg-gray-800 text-white' 
+                          : 'border-gray-300 hover:bg-gray-50'
+                      }`}
+                      onClick={() => setContactFilter('all')}
+                    >
+                      All
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant={contactFilter === 'with_contacts' ? 'default' : 'outline'}
+                      className={`text-xs h-7 px-2 rounded-md ${
+                        contactFilter === 'with_contacts' 
+                          ? 'bg-gray-900 hover:bg-gray-800 text-white' 
+                          : 'border-gray-300 hover:bg-gray-50'
+                      }`}
+                      onClick={() => setContactFilter('with_contacts')}
+                    >
+                      With Contacts
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant={contactFilter === 'without_contacts' ? 'default' : 'outline'}
+                      className={`text-xs h-7 px-2 rounded-md ${
+                        contactFilter === 'without_contacts' 
+                          ? 'bg-gray-900 hover:bg-gray-800 text-white' 
+                          : 'border-gray-300 hover:bg-gray-50'
+                      }`}
+                      onClick={() => setContactFilter('without_contacts')}
+                    >
+                      Without Contacts
+                    </Button>
                   </div>
                 </div>
                 
@@ -1603,7 +1644,15 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                         }
                       });
                       
-                      const companies = Array.from(companiesMap.values());
+                      let companies = Array.from(companiesMap.values());
+                      
+                      // Apply contact filter
+                      if (contactFilter === 'with_contacts') {
+                        companies = companies.filter(company => company.contactsCount > 0);
+                      } else if (contactFilter === 'without_contacts') {
+                        companies = companies.filter(company => company.contactsCount === 0);
+                      }
+                      // 'all' filter shows all companies, no filtering needed
                       
                       // Auto-select first company if none selected
                       if (!selectedCompany && companies.length > 0) {
