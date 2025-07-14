@@ -145,15 +145,26 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       // Invalidate contacts query to refresh the list
       queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
       
-      // Add new contact to campaign recipients
-      const updatedRecipients = [...campaignData.recipients, {
+      // Also invalidate any campaign-related queries to force refresh
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
+      
+      // Add new contact to campaign recipients with proper customer linking
+      const newContactRecipient = {
         id: newContact.id,
         type: 'contact',
         name: `${newContact.first_name} ${newContact.last_name}`,
         email: newContact.email,
         phone: newContact.phone,
         job_title: newContact.job_title,
-        customer_id: newContact.customer_id,
+        first_name: newContact.first_name,
+        last_name: newContact.last_name,
+        customer_id: newContact.linked_entity_id,
+        customerInfo: {
+          id: newContact.linked_entity_id,
+          name: newContact.company,
+          title: newContact.company
+        },
         contactInfo: {
           firstName: newContact.first_name,
           lastName: newContact.last_name,
@@ -161,7 +172,33 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
           phone: newContact.phone,
           jobTitle: newContact.job_title
         }
-      }];
+      };
+
+      // Also add the customer entity if it doesn't exist
+      const existingCustomerEntity = campaignData.recipients.find(r => 
+        r.customerInfo?.id === newContact.linked_entity_id || 
+        r.id === newContact.linked_entity_id
+      );
+      
+      const updatedRecipients = [...campaignData.recipients];
+      
+      if (!existingCustomerEntity) {
+        // Add customer entity first
+        updatedRecipients.push({
+          id: newContact.linked_entity_id,
+          type: 'customer',
+          name: newContact.company,
+          title: newContact.company,
+          customerInfo: {
+            id: newContact.linked_entity_id,
+            name: newContact.company,
+            title: newContact.company
+          }
+        });
+      }
+      
+      // Add the contact
+      updatedRecipients.push(newContactRecipient);
       
       setCampaignData(prev => ({
         ...prev,
@@ -1552,8 +1589,14 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                             recipient.customerInfo?.name === selectedCompany || 
                             recipient.customerInfo?.title === selectedCompany || 
                             recipient.name === selectedCompany || 
-                            recipient.title === selectedCompany
+                            recipient.title === selectedCompany ||
+                            (recipient.type === 'contact' && recipient.customerInfo?.name === selectedCompany)
                           );
+                          
+                          // Debug logging
+                          console.log('Selected company:', selectedCompany);
+                          console.log('All recipients:', campaignData.recipients);
+                          console.log('Filtered company recipients:', companyRecipients);
                           
                           if (companyRecipients.length === 0) {
                             return (
