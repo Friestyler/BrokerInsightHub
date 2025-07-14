@@ -1827,6 +1827,86 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                   <Plus className="h-3 w-3 mr-1" />
                                   Add Email to Sequence
                                 </Button>
+                                
+                                {/* Additional Suggested Contacts - Always show for ALL contacts */}
+                                <div className="mt-4 border-t pt-4">
+                                  <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-2">
+                                      <Search className="h-4 w-4 text-blue-500" />
+                                      <span className="text-sm font-medium text-gray-900">Additional Suggested Contacts</span>
+                                      <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                        2 found
+                                      </Badge>
+                                    </div>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="text-xs h-6 px-2 text-gray-500 hover:text-gray-700"
+                                      onClick={() => setSuggestionsCollapsed(!suggestionsCollapsed)}
+                                    >
+                                      {suggestionsCollapsed ? 'Show' : 'Hide'}
+                                    </Button>
+                                  </div>
+                                  
+                                  {!suggestionsCollapsed && (
+                                    <>
+                                      <p className="text-xs text-gray-500 mb-4">We found these additional potential contacts for {customerName}. Click to add them instantly.</p>
+                                      
+                                      {/* Mock suggested contacts - these should come from API */}
+                                      {[
+                                        {
+                                          name: 'Sarah Kim',
+                                          email: 'sarah.kim@fintechsolutions.com',
+                                          title: 'Chief Technology Officer',
+                                          match: '97% match',
+                                          source: 'From LinkedIn'
+                                        },
+                                        {
+                                          name: 'Alex Thompson',
+                                          email: 'athompson@fintechsolutions.com',
+                                          title: 'Product Manager',
+                                          match: '85% match',
+                                          source: 'From Company Website'
+                                        }
+                                      ].map((suggested, suggestedIndex) => (
+                                        <div key={suggestedIndex} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                                          <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-1">
+                                              <span className="font-medium text-sm text-gray-900">{suggested.name}</span>
+                                              <Badge variant="outline" className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                                                {suggested.match}
+                                              </Badge>
+                                            </div>
+                                            <div className="text-xs text-gray-500">{suggested.email}</div>
+                                            <div className="text-xs text-gray-500">{suggested.title}</div>
+                                            <div className="text-xs text-gray-400">{suggested.source}</div>
+                                          </div>
+                                          <Button 
+                                            size="sm" 
+                                            variant="outline" 
+                                            className="text-xs h-6 px-2 ml-2"
+                                            onClick={() => handleAddSuggestedContact(suggested)}
+                                            disabled={createContactMutation.isPending}
+                                          >
+                                            <Plus className="h-3 w-3 mr-1" />
+                                            Add
+                                          </Button>
+                                        </div>
+                                      ))}
+                                      
+                                      <div className="mt-4 p-3 bg-blue-50 rounded-md">
+                                        <div className="flex items-start gap-2">
+                                          <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center mt-0.5">
+                                            <span className="text-xs text-white font-bold">!</span>
+                                          </div>
+                                          <div className="text-xs text-blue-800">
+                                            <span className="font-medium">Pro tip:</span> Added contacts will automatically get a default email sequence. You can customize it for each contact after adding them.
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </>
+                                  )}
+                                </div>
                               </div>
                             );
                           });
