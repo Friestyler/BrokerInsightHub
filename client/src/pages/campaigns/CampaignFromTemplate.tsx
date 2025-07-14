@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Edit, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Share, DollarSign, Home, Car, Umbrella, Building, UserCheck, TrendingDown, Plane, Search, User } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Edit, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Share, DollarSign, Home, Car, Umbrella, Building, UserCheck, TrendingDown, Plane, Search, User, AlertCircle } from "lucide-react";
 import { useLocation, useRoute, useParams } from 'wouter';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -1324,9 +1324,19 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                               <span className="text-gray-600">
                                 {company.contactsCount} contact{company.contactsCount !== 1 ? 's' : ''}
                               </span>
-                              <span className={`${missingContacts > 0 ? 'text-red-600' : 'text-green-600'}`}>
-                                {missingContacts > 0 ? `${missingContacts} missing` : 'All contacts ready'}
-                              </span>
+                              <div className="flex items-center gap-1">
+                                {company.contactsCount > 0 ? (
+                                  <>
+                                    <Check className="h-3 w-3 text-green-600" />
+                                    <span className="text-green-600">Ready</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <AlertCircle className="h-3 w-3 text-orange-600" />
+                                    <span className="text-orange-600">Missing contact</span>
+                                  </>
+                                )}
+                              </div>
                             </div>
                           </div>
                         );
