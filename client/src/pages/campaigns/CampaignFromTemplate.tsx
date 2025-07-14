@@ -926,7 +926,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       case 6:
         return 'Save and manage drafts';
       case 7:
-        return 'Share or send your campaign';
+        return 'Share your campaign';
       default:
         return '';
     }
@@ -971,7 +971,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     },
     {
       number: 7,
-      title: 'Share or Send',
+      title: 'Share',
       description: getStepDescription(7),
       component: 'share'
     }
