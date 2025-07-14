@@ -55,19 +55,20 @@ export function BrokerLayout({ children }: { children: React.ReactNode }) {
     };
   }, []);
 
-  // Get the correct logo for broker view
+  // Comprehensive logo mapping system for all environments - easily extensible
+  const environmentLogos = {
+    degoudse: deGoudseLogo,
+    baloise: baloiseLogoPng,
+    nn: nnLogo,
+    qollabi: qollabiLogo,
+    // Add new environments here as they're added
+    // Example: newenv: newEnvLogo,
+  };
+
+  // Get the correct logo for broker view with fallback
   const getBrokerLogo = (envId: string) => {
     console.log('🚨 BROKER LAYOUT - Getting logo for environment:', envId);
-    switch (envId) {
-      case 'degoudse':
-        return deGoudseLogo;
-      case 'baloise':
-        return baloiseLogoPng;
-      case 'nn':
-        return nnLogo;
-      default:
-        return deGoudseLogo;
-    }
+    return environmentLogos[envId as keyof typeof environmentLogos] || deGoudseLogo;
   };
 
   const environmentLogo = getBrokerLogo(currentEnvironment);

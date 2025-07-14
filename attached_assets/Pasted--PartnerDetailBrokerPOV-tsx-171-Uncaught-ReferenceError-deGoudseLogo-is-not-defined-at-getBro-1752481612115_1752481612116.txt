@@ -1,0 +1,28 @@
+
+﻿
+PartnerDetailBrokerPOV.tsx:171 Uncaught ReferenceError: deGoudseLogo is not defined
+    at getBrokerLogo (PartnerDetailBrokerPOV.tsx:171:9)
+    at PartnerDetailBrokerPOV (PartnerDetailBrokerPOV.tsx:181:27)
+
+PartnerDetailBrokerPOV.tsx:171 Uncaught ReferenceError: deGoudseLogo is not defined
+    at getBrokerLogo (PartnerDetailBrokerPOV.tsx:171:9)
+    at PartnerDetailBrokerPOV (PartnerDetailBrokerPOV.tsx:181:27)
+chunk-276SZO74.js?v=8755a362:14032 The above error occurred in the <PartnerDetailBrokerPOV> component:
+
+    at PartnerDetailBrokerPOV (https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit.dev/src/pages/lists/PartnerDetailBrokerPOV.tsx:38:25)
+    at Route (https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=8755a362:265:16)
+    at Switch (https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit…/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=8755a362:321:17)
+    at Router
+    at Provider (https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit…unner/workspace/node_modules/.vite/deps/chunk-3RXG37ZK.js?v=8755a362:38:15)
+    at TooltipProvider (https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit…rkspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=8755a362:65:5)
+    at EnvironmentProvider (https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit.dev/src/contexts/EnvironmentContext.tsx:53:39)
+    at QueryClientProvider (https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit…rkspace/node_modules/.vite/deps/@tanstack_react-query.js?v=8755a362:2805:3)
+    at App (https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit.dev/src/App.tsx?v=ZEJ76xG61Uqqur4g6KGsL:405:49)
+
+Consider adding an error boundary to your tree to customize error handling behavior.
+Visit https://reactjs.org/link/error-boundaries to learn more about error boundaries.
+chunk-276SZO74.js?v=8755a362:19413 Uncaught ReferenceError: deGoudseLogo is not defined
+    at getBrokerLogo (PartnerDetailBrokerPOV.tsx:171:9)
+    at PartnerDetailBrokerPOV (PartnerDetailBrokerPOV.tsx:181:27)
+1:1 Unchecked runtime.lastError: The message port closed before a response was received.
+1:1 Unchecked runtime.lastError: The message port closed before a response was received.

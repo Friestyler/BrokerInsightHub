@@ -17,6 +17,10 @@ import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import EntityAvatar from "@/components/EntityAvatar";
 
 import { BrokerLayout } from "@/components/layouts/BrokerLayout";
+import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
+import baloiseLogoPng from "@assets/Baloise_1750499789244.png";
+import deGoudseLogo from "@assets/De_Goudse_logo_1749670246231.png";
+import qollabiLogo from "@assets/logo_qollabi_O_dark.png";
 
 
 
@@ -148,6 +152,16 @@ export default function PartnerDetailBrokerPOV() {
           location: 'Netherlands',
           phone: '+31 20 123 4567'
         };
+      case 'qollabi':
+        return {
+          id: 'qollabi',
+          name: 'Qollabi',
+          description: 'Insurance platform that shared this list with Regional Insurance Partners',
+          primary_contact: 'Partnership Manager',
+          contact_email: 'partnerships@qollabi.com',
+          location: 'Netherlands',
+          phone: '+31 20 000 0000'
+        };
       default:
         return {
           id: 'degoudse',
@@ -164,18 +178,19 @@ export default function PartnerDetailBrokerPOV() {
   // For broker view, show the appropriate partner based on selected environment
   console.log('Broker POV - Current environment:', currentEnvironment);
   
-  // Get the correct logo for broker view (override environment context logos)
+  // Comprehensive logo mapping system for all environments - easily extensible
+  const environmentLogos = {
+    degoudse: deGoudseLogo,
+    baloise: baloiseLogoPng,
+    nn: nnLogo,
+    qollabi: qollabiLogo,
+    // Add new environments here as they're added
+    // Example: newenv: newEnvLogo,
+  };
+
+  // Get the correct logo for broker view with fallback
   const getBrokerLogo = (envId: string) => {
-    switch (envId) {
-      case 'degoudse':
-        return deGoudseLogo;
-      case 'baloise':
-        return baloiseLogoPng;
-      case 'nn':
-        return nnLogo;
-      default:
-        return deGoudseLogo;
-    }
+    return environmentLogos[envId as keyof typeof environmentLogos] || deGoudseLogo;
   };
   
   const environmentLogo = getBrokerLogo(currentEnvironment);
