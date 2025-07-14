@@ -268,29 +268,100 @@ export default function RecipientSelector({
     const isSelected = selectedRecipients.some(r => r.recipientKey === recipientKey);
     
     if (isSelected) {
-      // Remove from selection
-      const newRecipients = selectedRecipients.filter(r => r.recipientKey !== recipientKey);
+      // Remove from selection along with related entities
+      let keysToRemove = new Set<string>();
+      keysToRemove.add(recipientKey);
+      
+      if (type === 'opportunity') {
+        // When removing an opportunity, also remove its customer and contacts
+        const customer = getCustomerForOpportunity(item.id);
+        if (customer) {
+          keysToRemove.add(`customer-${customer.id}`);
+          const customerContacts = getContactsForCustomer(customer.id);
+          customerContacts.forEach(contact => {
+            keysToRemove.add(`contact-${contact.id}`);
+          });
+        }
+      } else if (type === 'customer') {
+        // When removing a customer, also remove its contacts
+        const customerContacts = getContactsForCustomer(item.id);
+        customerContacts.forEach(contact => {
+          keysToRemove.add(`contact-${contact.id}`);
+        });
+      }
+      
+      const newRecipients = selectedRecipients.filter(r => !keysToRemove.has(r.recipientKey));
       onRecipientsChange(newRecipients);
     } else {
-      // Add to selection - simple, controlled approach
+      // Add to selection with hierarchical auto-selection
       let newRecipients = [...selectedRecipients];
       
       if (type === 'opportunity') {
-        // When selecting an opportunity, just add it with customer info for display
+        // When selecting an opportunity, auto-select its customer and contacts
         const customer = getCustomerForOpportunity(item.id);
+        const customerContacts = customer ? getContactsForCustomer(customer.id) : [];
         
+        // Add the opportunity
         newRecipients.push({
           ...item,
           type: 'opportunity',
           recipientKey: `opportunity-${item.id}`,
           customerInfo: customer
         });
+        
+        // Auto-select the customer
+        if (customer) {
+          const customerKey = `customer-${customer.id}`;
+          const customerExists = newRecipients.some(r => r.recipientKey === customerKey);
+          if (!customerExists) {
+            newRecipients.push({
+              ...customer,
+              type: 'customer',
+              recipientKey: customerKey,
+              opportunityInfo: item
+            });
+          }
+          
+          // Auto-select all contacts for this customer
+          customerContacts.forEach(contact => {
+            const contactKey = `contact-${contact.id}`;
+            const contactExists = newRecipients.some(r => r.recipientKey === contactKey);
+            if (!contactExists) {
+              newRecipients.push({
+                ...contact,
+                type: 'contact',
+                recipientKey: contactKey,
+                customerInfo: customer,
+                opportunityInfo: item,
+                email: contact.email || ''
+              });
+            }
+          });
+        }
       } else if (type === 'customer') {
-        // When selecting a customer, just add it
+        // When selecting a customer, auto-select all its contacts
+        const customerContacts = getContactsForCustomer(item.id);
+        
+        // Add the customer
         newRecipients.push({
           ...item,
           type: 'customer',
           recipientKey: `customer-${item.id}`
+        });
+        
+        // Auto-select all contacts for this customer
+        customerContacts.forEach(contact => {
+          const contactKey = `contact-${contact.id}`;
+          const contactExists = newRecipients.some(r => r.recipientKey === contactKey);
+          if (!contactExists) {
+            newRecipients.push({
+              ...contact,
+              type: 'contact',
+              recipientKey: contactKey,
+              customerInfo: item,
+              email: contact.email || ''
+            });
+          }
         });
       } else {
         // For other types (contact, etc.), just add the item
@@ -312,7 +383,7 @@ export default function RecipientSelector({
     return selectedRecipients.some(r => r.recipientKey === recipientKey);
   };
 
-  // Handle bulk selection of entire lists/segments - select only the specific list items
+  // Handle bulk selection of entire lists/segments with proper hierarchical selection
   const handleSelectListOrSegment = (listOrSegment: any, sourceType: 'list' | 'segment') => {
     if (entityType !== 'opportunities') return;
 
@@ -322,13 +393,29 @@ export default function RecipientSelector({
     const allSelected = relevantOpportunities.every(opp => isItemSelected(opp, 'opportunity'));
     
     if (allSelected) {
-      // Remove ONLY the opportunities from THIS specific list/segment
-      const keysToRemove = relevantOpportunities.map(opp => `opportunity-${opp.id}`);
-      const newRecipients = selectedRecipients.filter(r => !keysToRemove.includes(r.recipientKey));
+      // Remove all opportunities from this list/segment and their associated entities
+      const keysToRemove = new Set<string>();
+      
+      relevantOpportunities.forEach(opp => {
+        keysToRemove.add(`opportunity-${opp.id}`);
+        
+        // Also remove associated customers and contacts
+        const customer = getCustomerForOpportunity(opp.id);
+        if (customer) {
+          keysToRemove.add(`customer-${customer.id}`);
+          
+          const customerContacts = getContactsForCustomer(customer.id);
+          customerContacts.forEach(contact => {
+            keysToRemove.add(`contact-${contact.id}`);
+          });
+        }
+      });
+      
+      const newRecipients = selectedRecipients.filter(r => !keysToRemove.has(r.recipientKey));
       onRecipientsChange(newRecipients);
     } else {
-      // Add ONLY the opportunities from THIS specific list/segment
-      const newRecipients = [...selectedRecipients];
+      // Add all opportunities from this list/segment with full hierarchical selection
+      let newRecipients = [...selectedRecipients];
       
       relevantOpportunities.forEach(opp => {
         const recipientKey = `opportunity-${opp.id}`;
@@ -336,14 +423,45 @@ export default function RecipientSelector({
         // Only add if not already selected
         if (!newRecipients.some(r => r.recipientKey === recipientKey)) {
           const customer = getCustomerForOpportunity(opp.id);
+          const customerContacts = customer ? getContactsForCustomer(customer.id) : [];
           
-          // Add just the opportunity with customer info for display
+          // Add the opportunity
           newRecipients.push({
             ...opp,
             type: 'opportunity',
             recipientKey: `opportunity-${opp.id}`,
             customerInfo: customer
           });
+          
+          // Auto-select the customer
+          if (customer) {
+            const customerKey = `customer-${customer.id}`;
+            const customerExists = newRecipients.some(r => r.recipientKey === customerKey);
+            if (!customerExists) {
+              newRecipients.push({
+                ...customer,
+                type: 'customer',
+                recipientKey: customerKey,
+                opportunityInfo: opp
+              });
+            }
+            
+            // Auto-select all contacts for this customer
+            customerContacts.forEach(contact => {
+              const contactKey = `contact-${contact.id}`;
+              const contactExists = newRecipients.some(r => r.recipientKey === contactKey);
+              if (!contactExists) {
+                newRecipients.push({
+                  ...contact,
+                  type: 'contact',
+                  recipientKey: contactKey,
+                  customerInfo: customer,
+                  opportunityInfo: opp,
+                  email: contact.email || ''
+                });
+              }
+            });
+          }
         }
       });
       
