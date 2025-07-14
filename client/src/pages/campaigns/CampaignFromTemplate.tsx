@@ -103,10 +103,33 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     }
   });
 
-  // Show suggestions by default and allow manual toggle
+  // Create a per-customer suggestions state
+  const [customerSuggestionsCollapsed, setCustomerSuggestionsCollapsed] = useState<Record<string, boolean>>({});
+
+  // Initialize suggestions state for each customer based on whether they have existing contacts
   useEffect(() => {
-    // Always show suggestions by default when campaign loads
-    setSuggestionsCollapsed(false);
+    const newState: Record<string, boolean> = {};
+    
+    // Group recipients by customer to determine if they have existing contacts
+    const customerContactMap = new Map();
+    
+    campaignData.recipients.forEach((recipient: any) => {
+      const customerName = recipient.customerInfo?.name || recipient.name || recipient.title;
+      if (customerName) {
+        const existingContacts = campaignData.recipients.filter((r: any) => 
+          r.type === 'contact' && 
+          (r.customerInfo?.name === customerName || r.customerInfo?.title === customerName) &&
+          (r.email || r.contactInfo?.email)
+        );
+        
+        // For customers who already have contacts, collapse suggestions by default
+        // For customers who don't have contacts, expand suggestions by default
+        const hasExistingContacts = existingContacts.length > 0;
+        newState[customerName] = hasExistingContacts; // collapsed if they have contacts
+      }
+    });
+    
+    setCustomerSuggestionsCollapsed(newState);
   }, [campaignData.recipients]);
   
   // Add effect to ensure URL parameters are respected only on initial load
@@ -1953,13 +1976,19 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                       variant="ghost" 
                                       size="sm" 
                                       className="text-xs h-6 px-2 text-gray-500 hover:text-gray-700"
-                                      onClick={() => setSuggestionsCollapsed(!suggestionsCollapsed)}
+                                      onClick={() => {
+                                        const currentState = customerSuggestionsCollapsed[customerName] ?? false;
+                                        setCustomerSuggestionsCollapsed(prev => ({
+                                          ...prev,
+                                          [customerName]: !currentState
+                                        }));
+                                      }}
                                     >
-                                      {suggestionsCollapsed ? 'Show' : 'Hide'}
+                                      {(customerSuggestionsCollapsed[customerName] ?? false) ? 'Show' : 'Hide'}
                                     </Button>
                                   </div>
                                   
-                                  {!suggestionsCollapsed && (
+                                  {!(customerSuggestionsCollapsed[customerName] ?? false) && (
                                     <>
                                       <p className="text-xs text-gray-500 mb-4">We found these additional potential contacts for {customerName}. Click to add them instantly.</p>
                                       
