@@ -1796,13 +1796,30 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 <div className="px-4 py-3 border-b border-gray-200 bg-white">
                   <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-semibold text-gray-900">Customers</h3>
-                    <Button 
-                      size="sm" 
-                      className="text-xs h-7 px-3 bg-gray-900 hover:bg-gray-800 text-white rounded-md"
-                    >
-                      <Plus className="h-3 w-3 mr-1" />
-                      Add Customer
-                    </Button>
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="text-xs h-7 px-3 border-gray-300 hover:bg-gray-50"
+                        onClick={() => {
+                          // TODO: Implement contact upload functionality
+                          toast({
+                            title: "Upload Contacts",
+                            description: "Contact upload functionality will be implemented soon."
+                          });
+                        }}
+                      >
+                        <Upload className="h-3 w-3 mr-1" />
+                        Upload Contacts
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        className="text-xs h-7 px-3 bg-gray-900 hover:bg-gray-800 text-white rounded-md"
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Customer
+                      </Button>
+                    </div>
                   </div>
                   
                   <div className="relative mb-3">
@@ -2019,31 +2036,14 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                             })()}
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <Button 
-                            size="sm" 
-                            variant="outline"
-                            className="text-xs h-7 px-3 border-gray-300 hover:bg-gray-50"
-                            onClick={() => {
-                              // TODO: Implement contact upload functionality
-                              toast({
-                                title: "Upload Contacts",
-                                description: "Contact upload functionality will be implemented soon."
-                              });
-                            }}
-                          >
-                            <Upload className="h-3 w-3 mr-1" />
-                            Upload Contacts
-                          </Button>
-                          <Button 
-                            size="sm" 
-                            className="text-xs h-7 px-3 bg-gray-900 hover:bg-gray-800 text-white rounded-md"
-                            onClick={handleAddContact}
-                          >
-                            <Plus className="h-3 w-3 mr-1" />
-                            Add Contact
-                          </Button>
-                        </div>
+                        <Button 
+                          size="sm" 
+                          className="text-xs h-7 px-3 bg-gray-900 hover:bg-gray-800 text-white rounded-md"
+                          onClick={handleAddContact}
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add Contact
+                        </Button>
                       </div>
                     </div>
 
