@@ -18,6 +18,8 @@ import EntityAvatar from "@/components/EntityAvatar";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { BrokerLayout } from "@/components/layouts/BrokerLayout";
 import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
+import baloiseLogoPng from "@assets/Baloise_1750499789244.png";
+import deGoudseLogo from "@assets/De_Goudse_logo_1749670246231.png";
 
 
 
@@ -88,38 +90,90 @@ export default function PartnerDetailBrokerPOV() {
     }
   }, [editingStageId, editStageDropdownRef]);
 
-  // For broker view, show Nationale Nederlanden as the sharing partner
-  const partner = {
-    id: 'degoudse',
-    name: 'Nationale Nederlanden',
-    description: 'Insurance company that shared this list with Regional Insurance Partners',
-    primary_contact: 'Partnership Manager',
-    contact_email: 'partnerships@nn.nl',
-    location: 'Netherlands',
-    phone: '+31 20 123 4567'
+  // Get partner information based on selected environment
+  const getPartnerInfoForEnvironment = (envId: string) => {
+    switch (envId) {
+      case 'degoudse':
+        return {
+          id: 'degoudse',
+          name: 'De Goudse',
+          description: 'Insurance company that shared this list with Regional Insurance Partners',
+          primary_contact: 'Partnership Manager',
+          contact_email: 'partnerships@degoudse.nl',
+          location: 'Netherlands',
+          phone: '+31 70 344 2000'
+        };
+      case 'baloise':
+        return {
+          id: 'baloise',
+          name: 'Baloise',
+          description: 'Insurance company that shared this list with Regional Insurance Partners',
+          primary_contact: 'Partnership Manager',
+          contact_email: 'partnerships@baloise.nl',
+          location: 'Netherlands',
+          phone: '+31 30 295 4000'
+        };
+      case 'nn':
+        return {
+          id: 'nn',
+          name: 'Nationale Nederlanden',
+          description: 'Insurance company that shared this list with Regional Insurance Partners',
+          primary_contact: 'Partnership Manager',
+          contact_email: 'partnerships@nn.nl',
+          location: 'Netherlands',
+          phone: '+31 20 123 4567'
+        };
+      default:
+        return {
+          id: 'degoudse',
+          name: 'De Goudse',
+          description: 'Insurance company that shared this list with Regional Insurance Partners',
+          primary_contact: 'Partnership Manager',
+          contact_email: 'partnerships@degoudse.nl',
+          location: 'Netherlands',
+          phone: '+31 70 344 2000'
+        };
+    }
+  };
+
+  // For broker view, show the appropriate partner based on selected environment
+  const partner = getPartnerInfoForEnvironment(environment.id);
+
+  // Helper function to get logo for current environment
+  const getEnvironmentLogo = (envId: string) => {
+    switch (envId) {
+      case 'degoudse':
+        return deGoudseLogo;
+      case 'baloise':
+        return baloiseLogoPng;
+      case 'nn':
+        return nnLogo;
+      default:
+        return deGoudseLogo;
+    }
   };
 
   // Fetch broker campaigns
   const { data: brokerCampaigns = [], isLoading: campaignsLoading } = useQuery({
-    queryKey: ['/api/broker/shared-campaigns'],
-    queryFn: () => apiRequest('GET', '/api/broker/shared-campaigns'),
+    queryKey: [`/api/${environment.id}/broker/shared-campaigns`],
+    queryFn: () => apiRequest('GET', `/api/${environment.id}/broker/shared-campaigns`),
     enabled: activeTab === 'campaigns',
     staleTime: 2 * 60 * 1000,
   });
 
   // For broker view, fetch opportunities with proper list filtering
   const { data: allOpportunities = [], isLoading: opportunitiesLoading } = useQuery({
-    queryKey: ['/api/degoudse/opportunities', activeOpportunitiesList?.id],
+    queryKey: [`/api/${environment.id}/opportunities`, activeOpportunitiesList?.id],
     queryFn: () => {
       const listParam = activeOpportunitiesList?.id ? `?listId=${activeOpportunitiesList.id}` : '';
-      return apiRequest('GET', `/api/degoudse/opportunities${listParam}`);
+      return apiRequest('GET', `/api/${environment.id}/opportunities${listParam}`);
     },
     staleTime: 2 * 60 * 1000,
   });
 
   // Fetch customers for this partner in broker view - filtered by shared opportunities
   const { data: partnerCustomers = [], isLoading: customersLoading } = useQuery({
-    queryKey: ['/api/degoudse/partners/4/customers', allOpportunities.length],
+    queryKey: [`/api/${environment.id}/partners/4/customers`, allOpportunities.length],
     queryFn: async () => {
       // Hardcoded Belgian customers for broker view
       const hardcodedCustomers = [
@@ -182,13 +236,13 @@ export default function PartnerDetailBrokerPOV() {
 
   // Customer lists and views data
   const { data: customerSavedLists = [] } = useQuery({
-    queryKey: ['/api/degoudse/saved-lists', { entity_type: 'customers', partner_id: 4 }],
-    queryFn: () => apiRequest('GET', '/api/degoudse/saved-lists?entity_type=customers&partner_id=4'),
+    queryKey: [`/api/${environment.id}/saved-lists`, { entity_type: 'customers', partner_id: 4 }],
+    queryFn: () => apiRequest('GET', `/api/${environment.id}/saved-lists?entity_type=customers&partner_id=4`),
   });
 
   const { data: customerSavedViews = [] } = useQuery({
-    queryKey: ['/api/degoudse/saved-views', { entity_type: 'customers' }],
-    queryFn: () => apiRequest('GET', '/api/degoudse/saved-views?entity_type=customers'),
+    queryKey: [`/api/${environment.id}/saved-views`, { entity_type: 'customers' }],
+    queryFn: () => apiRequest('GET', `/api/${environment.id}/saved-views?entity_type=customers`),
   });
 
   // Customer filtering state
@@ -240,8 +294,8 @@ export default function PartnerDetailBrokerPOV() {
 
   // Fetch all lists shared with John Smith or partners using the new broker-specific endpoint
   const { data: savedListsData } = useQuery({
-    queryKey: ['/api/degoudse/broker/shared-lists', 'opportunities'],
-    queryFn: () => apiRequest('GET', '/api/degoudse/broker/shared-lists?entity_type=opportunities'),
+    queryKey: [`/api/${environment.id}/broker/shared-lists`, 'opportunities'],
+    queryFn: () => apiRequest('GET', `/api/${environment.id}/broker/shared-lists?entity_type=opportunities`),
     staleTime: 0, // Always refresh to get latest data
     refetchOnWindowFocus: true,
   });
@@ -312,11 +366,11 @@ export default function PartnerDetailBrokerPOV() {
     },
     onSuccess: (data, variables) => {
       // Invalidate multiple related queries to ensure UI updates
-      queryClient.invalidateQueries({ queryKey: ['/api/degoudse/partners/4/opportunities'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/opportunities'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/partners/4/opportunities`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/opportunities`] });
       
       // Optimistically update the cached data
-      queryClient.setQueryData(['/api/degoudse/partners/4/opportunities'], (oldData: any) => {
+      queryClient.setQueryData([`/api/${environment.id}/partners/4/opportunities`], (oldData: any) => {
         if (oldData) {
           return oldData.map((opp: any) => 
             opp.id === variables.opportunityId 
@@ -356,16 +410,16 @@ export default function PartnerDetailBrokerPOV() {
         };
         console.log('Sending edit list request:', { listId, updateData });
         
-        const envUrl = `/api/saved-lists/${listId}`;
-        const currentEnv = window.__APP_ENV__ || localStorage.getItem('selectedEnvironment') || 'myqollabi';
-        const finalUrl = currentEnv !== 'myqollabi' ? envUrl.replace('/api/', `/api/${currentEnv}/`) : envUrl;
+        const envUrl = `/api/${environment.id}/saved-lists/${listId}`;
+        const currentEnv = environment.id;
+        const finalUrl = envUrl;
         
         const response = await fetch(finalUrl, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'X-Environment': currentEnv,
-            'x-environment-id': currentEnv
+            'X-Environment': environment.id,
+            'x-environment-id': environment.id
           },
           body: JSON.stringify(updateData),
           credentials: 'include'
@@ -395,15 +449,9 @@ export default function PartnerDetailBrokerPOV() {
       
       console.log('Set new active list:', updatedList);
       
-      const currentEnv = window.__APP_ENV__ || localStorage.getItem('selectedEnvironment') || 'myqollabi';
-      
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities', 'partner', '4'] });
-      
-      if (currentEnv !== 'myqollabi') {
-        queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/saved-lists`] });
-        queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/saved-lists`, 'opportunities', 'partner', '4'] });
-      }
+      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/saved-lists`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/saved-lists`, 'opportunities', 'partner', '4'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/broker/shared-lists`] });
       
       toast({
         title: "List updated",
@@ -571,20 +619,20 @@ export default function PartnerDetailBrokerPOV() {
 
   // Fetch template assignments for Mevas BV (partner_id 12)
   const { data: templateAssignments } = useQuery({
-    queryKey: [`/api/degoudse/template-assignments/partner`],
-    queryFn: () => apiRequest('GET', '/api/degoudse/template-assignments/partner'),
+    queryKey: [`/api/${environment.id}/template-assignments/partner`],
+    queryFn: () => apiRequest('GET', `/api/${environment.id}/template-assignments/partner`),
   });
 
   // Fetch all OKR metrics to match with assignments
   const { data: allMetrics } = useQuery({
-    queryKey: ['/api/degoudse/okr-metrics'],
-    queryFn: () => apiRequest('GET', '/api/degoudse/okr-metrics'),
+    queryKey: [`/api/${environment.id}/okr-metrics`],
+    queryFn: () => apiRequest('GET', `/api/${environment.id}/okr-metrics`),
   });
 
   // Fetch OKR tags for filtering
   const { data: tags = [] } = useQuery({
-    queryKey: ['/api/degoudse/okr-tags'],
-    queryFn: () => apiRequest('GET', '/api/degoudse/okr-tags'),
+    queryKey: [`/api/${environment.id}/okr-tags`],
+    queryFn: () => apiRequest('GET', `/api/${environment.id}/okr-tags`),
   });
 
   // Get metrics assigned to Mevas BV (partner_id 12)
@@ -672,21 +720,13 @@ export default function PartnerDetailBrokerPOV() {
             </Link>
             {/* Company Logo */}
             <div className="flex-shrink-0 mr-4">
-              {partner.name === 'Nationale Nederlanden' ? (
-                <div className="w-16 h-16 rounded-lg overflow-hidden bg-white border border-gray-200 flex items-center justify-center">
-                  <img 
-                    src={nnLogo} 
-                    alt="Nationale Nederlanden Logo"
-                    className="w-full h-full object-contain p-1"
-                  />
-                </div>
-              ) : (
-                <div className="w-16 h-16 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
-                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
-              )}
+              <div className="w-16 h-16 rounded-lg overflow-hidden bg-white border border-gray-200 flex items-center justify-center">
+                <img 
+                  src={getEnvironmentLogo(environment.id)} 
+                  alt={`${partner.name} Logo`}
+                  className="w-full h-full object-contain p-1"
+                />
+              </div>
             </div>
             <div className="flex-1">
               <div className="flex items-center space-x-4 mb-1">
@@ -2451,9 +2491,9 @@ export default function PartnerDetailBrokerPOV() {
                             className="hover:bg-gray-50 cursor-pointer group"
                             onClick={() => {
                               // Navigate to broker-view campaign builder with metadata prefilled
-                              const environment = 'degoudse'; // From the environment context
-                              const backUrl = `/broker-view/partner/${environment}?tab=campaigns`;
-                              window.location.href = `/broker-view/campaigns/edit/${campaign.id}?from_broker_view=true&back_url=${encodeURIComponent(backUrl)}&env=${environment}`;
+                              const currentEnvironment = environment.id;
+                              const backUrl = `/broker-view/partner/${currentEnvironment}?tab=campaigns`;
+                              window.location.href = `/broker-view/campaigns/edit/${campaign.id}?from_broker_view=true&back_url=${encodeURIComponent(backUrl)}&env=${currentEnvironment}`;
                             }}
                           >
                             <td className="px-3 py-4 text-sm text-gray-900 w-[250px]">
