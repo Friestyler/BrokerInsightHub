@@ -283,13 +283,13 @@ export default function PartnerDetailBrokerPOV() {
 
   // Customer lists and views data
   const { data: customerSavedLists = [] } = useQuery({
-    queryKey: [`/api/${environment.id}/saved-lists`, { entity_type: 'customers', partner_id: 4 }],
-    queryFn: () => apiRequest('GET', `/api/${environment.id}/saved-lists?entity_type=customers&partner_id=4`),
+    queryKey: [`/api/${currentEnvironment}/saved-lists`, { entity_type: 'customers', partner_id: 4 }],
+    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/saved-lists?entity_type=customers&partner_id=4`),
   });
 
   const { data: customerSavedViews = [] } = useQuery({
-    queryKey: [`/api/${environment.id}/saved-views`, { entity_type: 'customers' }],
-    queryFn: () => apiRequest('GET', `/api/${environment.id}/saved-views?entity_type=customers`),
+    queryKey: [`/api/${currentEnvironment}/saved-views`, { entity_type: 'customers' }],
+    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/saved-views?entity_type=customers`),
   });
 
   // Customer filtering state
@@ -341,8 +341,8 @@ export default function PartnerDetailBrokerPOV() {
 
   // Fetch all lists shared with John Smith or partners using the new broker-specific endpoint
   const { data: savedListsData } = useQuery({
-    queryKey: [`/api/${environment.id}/broker/shared-lists`, 'opportunities'],
-    queryFn: () => apiRequest('GET', `/api/${environment.id}/broker/shared-lists?entity_type=opportunities`),
+    queryKey: [`/api/${currentEnvironment}/broker/shared-lists`, 'opportunities'],
+    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/broker/shared-lists?entity_type=opportunities`),
     staleTime: 0, // Always refresh to get latest data
     refetchOnWindowFocus: true,
   });
@@ -413,11 +413,11 @@ export default function PartnerDetailBrokerPOV() {
     },
     onSuccess: (data, variables) => {
       // Invalidate multiple related queries to ensure UI updates
-      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/partners/4/opportunities`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/opportunities`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnvironment}/partners/4/opportunities`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnvironment}/opportunities`] });
       
       // Optimistically update the cached data
-      queryClient.setQueryData([`/api/${environment.id}/partners/4/opportunities`], (oldData: any) => {
+      queryClient.setQueryData([`/api/${currentEnvironment}/partners/4/opportunities`], (oldData: any) => {
         if (oldData) {
           return oldData.map((opp: any) => 
             opp.id === variables.opportunityId 
@@ -457,16 +457,16 @@ export default function PartnerDetailBrokerPOV() {
         };
         console.log('Sending edit list request:', { listId, updateData });
         
-        const envUrl = `/api/${environment.id}/saved-lists/${listId}`;
-        const currentEnv = environment.id;
+        const envUrl = `/api/${currentEnvironment}/saved-lists/${listId}`;
+        const currentEnv = currentEnvironment;
         const finalUrl = envUrl;
         
         const response = await fetch(finalUrl, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'X-Environment': environment.id,
-            'x-environment-id': environment.id
+            'X-Environment': currentEnvironment,
+            'x-environment-id': currentEnvironment
           },
           body: JSON.stringify(updateData),
           credentials: 'include'
@@ -496,9 +496,9 @@ export default function PartnerDetailBrokerPOV() {
       
       console.log('Set new active list:', updatedList);
       
-      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/saved-lists`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/saved-lists`, 'opportunities', 'partner', '4'] });
-      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/broker/shared-lists`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnvironment}/saved-lists`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnvironment}/saved-lists`, 'opportunities', 'partner', '4'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnvironment}/broker/shared-lists`] });
       
       toast({
         title: "List updated",
@@ -2538,7 +2538,6 @@ export default function PartnerDetailBrokerPOV() {
                             className="hover:bg-gray-50 cursor-pointer group"
                             onClick={() => {
                               // Navigate to broker-view campaign builder with metadata prefilled
-                              const currentEnvironment = environment.id;
                               const backUrl = `/broker-view/partner/${currentEnvironment}?tab=campaigns`;
                               window.location.href = `/broker-view/campaigns/edit/${campaign.id}?from_broker_view=true&back_url=${encodeURIComponent(backUrl)}&env=${currentEnvironment}`;
                             }}
