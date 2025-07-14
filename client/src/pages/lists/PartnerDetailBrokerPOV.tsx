@@ -140,24 +140,10 @@ export default function PartnerDetailBrokerPOV() {
   console.log('Broker POV - Current environment:', environment);
   const partner = getPartnerInfoForEnvironment(environment.id);
 
-  // Helper function to get logo for current environment
-  const getEnvironmentLogo = (envId: string) => {
-    console.log('Getting environment logo for:', envId);
-    switch (envId) {
-      case 'degoudse':
-        console.log('Returning De Goudse logo');
-        return deGoudseLogo;
-      case 'baloise':
-        console.log('Returning Baloise logo');
-        return baloiseLogoPng;
-      case 'nn':
-        console.log('Returning NN logo');
-        return nnLogo;
-      default:
-        console.log('Returning default De Goudse logo');
-        return deGoudseLogo;
-    }
-  };
+  // Use the logo from the environment context directly
+  const environmentLogo = environment.logo || deGoudseLogo;
+  console.log('Broker POV - Using environment logo:', environmentLogo);
+  console.log('Environment object:', environment);
 
   // Fetch broker campaigns
   const { data: brokerCampaigns = [], isLoading: campaignsLoading } = useQuery({
@@ -728,7 +714,7 @@ export default function PartnerDetailBrokerPOV() {
             <div className="flex-shrink-0 mr-4">
               <div className="w-16 h-16 rounded-lg overflow-hidden bg-white border border-gray-200 flex items-center justify-center">
                 <img 
-                  src={getEnvironmentLogo(environment.id)} 
+                  src={environmentLogo} 
                   alt={`${partner.name} Logo`}
                   className="w-full h-full object-contain p-1"
                 />
