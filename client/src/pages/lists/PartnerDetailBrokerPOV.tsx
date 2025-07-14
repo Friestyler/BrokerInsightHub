@@ -137,18 +137,24 @@ export default function PartnerDetailBrokerPOV() {
   };
 
   // For broker view, show the appropriate partner based on selected environment
+  console.log('Broker POV - Current environment:', environment);
   const partner = getPartnerInfoForEnvironment(environment.id);
 
   // Helper function to get logo for current environment
   const getEnvironmentLogo = (envId: string) => {
+    console.log('Getting environment logo for:', envId);
     switch (envId) {
       case 'degoudse':
+        console.log('Returning De Goudse logo');
         return deGoudseLogo;
       case 'baloise':
+        console.log('Returning Baloise logo');
         return baloiseLogoPng;
       case 'nn':
+        console.log('Returning NN logo');
         return nnLogo;
       default:
+        console.log('Returning default De Goudse logo');
         return deGoudseLogo;
     }
   };
