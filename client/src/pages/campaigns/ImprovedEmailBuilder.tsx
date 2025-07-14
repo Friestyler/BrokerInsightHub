@@ -67,7 +67,19 @@ export default function ImprovedEmailBuilder({
   const [draggedBlock, setDraggedBlock] = useState<number | null>(null);
   const previewRef = useRef<HTMLDivElement>(null);
   
-  const currentEmail = emails[activeEmailIndex] || emails[0];
+  const currentEmail = emails && emails.length > 0 ? (emails[activeEmailIndex] || emails[0]) : null;
+
+  // Early return if no email data is available
+  if (!currentEmail || !emails || emails.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="text-gray-500 mb-2">Loading email data...</div>
+          <div className="text-sm text-gray-400">Please wait while we load the campaign content.</div>
+        </div>
+      </div>
+    );
+  }
 
   const generateBlockId = () => Math.random().toString(36).substr(2, 9);
 

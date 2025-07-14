@@ -5,7 +5,7 @@ import { useLocation, useParams } from 'wouter';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import ImprovedFlowBuilder from './ImprovedEmailBuilder';
+import ImprovedEmailBuilder from './ImprovedEmailBuilder';
 import CampaignSettingsWizard from '@/components/campaigns/CampaignSettingsWizard';
 
 interface PartnerCampaignBuilderProps {
@@ -285,13 +285,24 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
             </div>
             
             <div className="p-6">
-              <ImprovedFlowBuilder
-                blocks={emailBlocks}
-                onBlocksChange={setEmailBlocks}
-                subject={subject}
-                onSubjectChange={setSubject}
-                showSubjectField={true}
-                isPartnerMode={true}
+              <ImprovedEmailBuilder
+                emails={[{
+                  id: '1',
+                  subject: subject,
+                  blocks: emailBlocks,
+                  followUpDays: 0,
+                  leftLogo: null,
+                  rightLogo: null
+                }]}
+                activeEmailIndex={0}
+                entityType="partners"
+                onEmailsChange={(emails) => {
+                  if (emails.length > 0) {
+                    setEmailBlocks(emails[0].blocks);
+                    setSubject(emails[0].subject);
+                  }
+                }}
+                onActiveEmailChange={() => {}}
               />
             </div>
           </div>
