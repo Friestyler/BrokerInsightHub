@@ -345,7 +345,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     }
   };
 
-  // Handler for bulk sending all ready emails
+  // Handler for bulk sending all ready emails for a specific company
   const handleBulkSend = async (companyName: string) => {
     try {
       const companyRecipients = campaignData.recipients.filter((recipient: any) => 
@@ -378,6 +378,38 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       console.error('Error sending bulk emails:', error);
       toast({
         title: "Failed to send emails",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handler for bulk sending ALL ready emails across all customers
+  const handleBulkSendAll = async () => {
+    try {
+      const allReadyContacts = campaignData.recipients.filter((recipient: any) => 
+        recipient.email || recipient.contactInfo?.email
+      );
+      
+      const response = await apiRequest('POST', '/api/campaigns/send-bulk', {
+        campaignId: campaignId,
+        recipients: allReadyContacts.map(contact => ({
+          contactId: contact.id,
+          email: contact.email || contact.contactInfo?.email
+        }))
+      });
+      
+      toast({
+        title: "Campaign sent successfully!",
+        description: `${allReadyContacts.length} email${allReadyContacts.length !== 1 ? 's' : ''} sent across all customers`,
+      });
+      
+      // Refresh campaign data
+      queryClient.invalidateQueries({ queryKey: [`/api/campaigns/${campaignId}`] });
+    } catch (error) {
+      console.error('Error sending all emails:', error);
+      toast({
+        title: "Failed to send campaign",
         description: "Please try again later",
         variant: "destructive",
       });
@@ -1657,22 +1689,14 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                     {/* Contacts and Email Sequences */}
                     <div className="flex-1 overflow-y-auto">
                       <div className="p-4 space-y-4">
-                        {/* Total Ready Count and Bulk Send */}
+                        {/* Total Ready Count and Bulk Send - Aggregated across all customers */}
                         {(() => {
-                          const companyRecipients = campaignData.recipients.filter((recipient: any) => 
-                            recipient.customerInfo?.name === selectedCompany || 
-                            recipient.customerInfo?.title === selectedCompany || 
-                            recipient.name === selectedCompany || 
-                            recipient.title === selectedCompany ||
-                            (recipient.type === 'contact' && recipient.customerInfo?.name === selectedCompany)
-                          );
-                          
-                          // Count ready contacts (contacts with email addresses)
-                          const readyContacts = companyRecipients.filter((recipient: any) => 
+                          // Count all ready contacts across ALL customers in the campaign
+                          const allReadyContacts = campaignData.recipients.filter((recipient: any) => 
                             recipient.email || recipient.contactInfo?.email
                           ).length;
                           
-                          if (readyContacts > 0) {
+                          if (allReadyContacts > 0) {
                             return (
                               <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
                                 <div className="flex items-center justify-between">
@@ -1682,19 +1706,19 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                     </div>
                                     <div>
                                       <p className="text-sm font-medium text-green-900">
-                                        {readyContacts} email{readyContacts !== 1 ? 's' : ''} ready to send
+                                        {allReadyContacts} email{allReadyContacts !== 1 ? 's' : ''} ready to send
                                       </p>
                                       <p className="text-xs text-green-600">
-                                        All contacts have valid email addresses
+                                        Across all customers in this campaign
                                       </p>
                                     </div>
                                   </div>
                                   <Button 
                                     className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-sm"
-                                    onClick={() => handleBulkSend(selectedCompany)}
+                                    onClick={() => handleBulkSendAll()}
                                   >
                                     <Send className="h-4 w-4 mr-2" />
-                                    Send All ({readyContacts})
+                                    Send All ({allReadyContacts})
                                   </Button>
                                 </div>
                               </div>
