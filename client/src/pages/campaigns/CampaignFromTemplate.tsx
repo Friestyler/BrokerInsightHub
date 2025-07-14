@@ -317,6 +317,73 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     createContactMutation.mutate(contactData);
   };
 
+  // Handler for sending a single email
+  const handleSendSingleEmail = async (contact: any, email: any) => {
+    try {
+      const response = await apiRequest('POST', '/api/campaigns/send-email', {
+        campaignId: campaignId,
+        contactId: contact.id,
+        emailId: email.id,
+        emailSubject: email.subject,
+        emailContent: email.blocks
+      });
+      
+      toast({
+        title: "Email sent!",
+        description: `Email "${email.subject}" sent to ${contact.first_name} ${contact.last_name}`,
+      });
+      
+      // Refresh campaign data
+      queryClient.invalidateQueries({ queryKey: [`/api/campaigns/${campaignId}`] });
+    } catch (error) {
+      console.error('Error sending email:', error);
+      toast({
+        title: "Failed to send email",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handler for bulk sending all ready emails
+  const handleBulkSend = async (companyName: string) => {
+    try {
+      const companyRecipients = campaignData.recipients.filter((recipient: any) => 
+        recipient.customerInfo?.name === companyName || 
+        recipient.customerInfo?.title === companyName || 
+        recipient.name === companyName || 
+        recipient.title === companyName
+      );
+      
+      const readyContacts = companyRecipients.filter((recipient: any) => 
+        recipient.email || recipient.contactInfo?.email
+      );
+      
+      const response = await apiRequest('POST', '/api/campaigns/send-bulk', {
+        campaignId: campaignId,
+        recipients: readyContacts.map(contact => ({
+          contactId: contact.id,
+          email: contact.email || contact.contactInfo?.email
+        }))
+      });
+      
+      toast({
+        title: "Bulk send completed!",
+        description: `${readyContacts.length} email${readyContacts.length !== 1 ? 's' : ''} sent successfully`,
+      });
+      
+      // Refresh campaign data
+      queryClient.invalidateQueries({ queryKey: [`/api/campaigns/${campaignId}`] });
+    } catch (error) {
+      console.error('Error sending bulk emails:', error);
+      toast({
+        title: "Failed to send emails",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Set default data for new campaigns
   useEffect(() => {
     if (isNewCampaign) {
@@ -1590,6 +1657,52 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                     {/* Contacts and Email Sequences */}
                     <div className="flex-1 overflow-y-auto">
                       <div className="p-4 space-y-4">
+                        {/* Total Ready Count and Bulk Send */}
+                        {(() => {
+                          const companyRecipients = campaignData.recipients.filter((recipient: any) => 
+                            recipient.customerInfo?.name === selectedCompany || 
+                            recipient.customerInfo?.title === selectedCompany || 
+                            recipient.name === selectedCompany || 
+                            recipient.title === selectedCompany ||
+                            (recipient.type === 'contact' && recipient.customerInfo?.name === selectedCompany)
+                          );
+                          
+                          // Count ready contacts (contacts with email addresses)
+                          const readyContacts = companyRecipients.filter((recipient: any) => 
+                            recipient.email || recipient.contactInfo?.email
+                          ).length;
+                          
+                          if (readyContacts > 0) {
+                            return (
+                              <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2">
+                                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                                      <Mail className="h-4 w-4 text-green-600" />
+                                    </div>
+                                    <div>
+                                      <p className="text-sm font-medium text-green-900">
+                                        {readyContacts} email{readyContacts !== 1 ? 's' : ''} ready to send
+                                      </p>
+                                      <p className="text-xs text-green-600">
+                                        All contacts have valid email addresses
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <Button 
+                                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-sm"
+                                    onClick={() => handleBulkSend(selectedCompany)}
+                                  >
+                                    <Send className="h-4 w-4 mr-2" />
+                                    Send All ({readyContacts})
+                                  </Button>
+                                </div>
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
+                        
                         {/* Actual Recipients for Selected Company */}
                         {(() => {
                           const companyRecipients = campaignData.recipients.filter((recipient: any) => 
@@ -1812,6 +1925,16 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                             <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
                                               <Edit className="h-3 w-3" />
                                             </Button>
+                                            {hasEmail && emailIndex === 0 && (
+                                              <Button 
+                                                size="sm" 
+                                                className="h-6 px-2 text-xs bg-green-600 hover:bg-green-700 text-white"
+                                                onClick={() => handleSendSingleEmail(contact, email)}
+                                              >
+                                                <Send className="h-3 w-3 mr-1" />
+                                                Send
+                                              </Button>
+                                            )}
                                           </div>
                                         </div>
                                         <div className="text-xs text-gray-500 mb-2">
