@@ -1239,19 +1239,31 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                         let opportunityTitle = '';
                         
                         // Extract company information based on recipient structure
+                        // Priority: customer info first, then fallback to recipient direct properties
                         if (recipient.customerInfo?.name) {
                           companyName = recipient.customerInfo.name;
                           companyType = recipient.customerInfo.type || 'Business';
                         } else if (recipient.customerInfo?.title) {
                           companyName = recipient.customerInfo.title;
                           companyType = 'Business';
+                        } else if (recipient.type === 'customer' && recipient.name) {
+                          // If this is a customer recipient, use customer name
+                          companyName = recipient.name;
+                          companyType = 'Business';
+                        } else if (recipient.type === 'customer' && recipient.title) {
+                          companyName = recipient.title;
+                          companyType = 'Business';
+                        } else if (recipient.type === 'opportunity' && recipient.title) {
+                          // For opportunities without customer info, use opportunity title but mark as opportunity
+                          companyName = recipient.title;
+                          companyType = 'Opportunity';
+                          opportunityTitle = recipient.title;
                         } else if (recipient.name) {
                           companyName = recipient.name;
                           companyType = 'Business';
                         } else if (recipient.title) {
                           companyName = recipient.title;
-                          companyType = 'Opportunity';
-                          opportunityTitle = recipient.title;
+                          companyType = 'Business';
                         }
                         
                         if (companyName) {
