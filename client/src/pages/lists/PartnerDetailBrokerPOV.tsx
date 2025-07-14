@@ -59,9 +59,13 @@ export default function PartnerDetailBrokerPOV() {
 
   const [currentEnvironment, setCurrentEnvironment] = useState(getCurrentEnvironment());
 
+  // Always use fresh environment value to ensure we get the latest
+  const actualCurrentEnvironment = getCurrentEnvironment();
+
   // Debug logs after state declarations
   console.log('🚨 BROKER VIEW - RENDER - Render key:', renderKey);
-  console.log('🚨 BROKER VIEW - Current environment:', currentEnvironment);
+  console.log('🚨 BROKER VIEW - Current environment (state):', currentEnvironment);
+  console.log('🚨 BROKER VIEW - Current environment (actual):', actualCurrentEnvironment);
   
   // Force re-render when environment changes
   useEffect(() => {
@@ -211,7 +215,8 @@ export default function PartnerDetailBrokerPOV() {
   };
 
   // For broker view, show the appropriate partner based on selected environment
-  console.log('Broker POV - Current environment:', currentEnvironment);
+  console.log('Broker POV - Current environment (state):', currentEnvironment);
+  console.log('Broker POV - Current environment (actual):', actualCurrentEnvironment);
   
   // Comprehensive logo mapping system for all environments - easily extensible
   const environmentLogos = {
@@ -228,34 +233,35 @@ export default function PartnerDetailBrokerPOV() {
     return environmentLogos[envId as keyof typeof environmentLogos] || deGoudseLogo;
   };
   
-  const environmentLogo = getBrokerLogo(currentEnvironment);
-  const partner = getPartnerInfoForEnvironment(currentEnvironment);
+  // Use the actual current environment instead of stale state
+  const environmentLogo = getBrokerLogo(actualCurrentEnvironment);
+  const partner = getPartnerInfoForEnvironment(actualCurrentEnvironment);
   
   console.log('Broker POV - Using environment logo:', environmentLogo);
   console.log('Broker POV - Partner name:', partner.name);
-  console.log('Environment ID:', currentEnvironment);
+  console.log('Environment ID (actual):', actualCurrentEnvironment);
 
   // Fetch broker campaigns
   const { data: brokerCampaigns = [], isLoading: campaignsLoading } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/broker/shared-campaigns`],
-    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/broker/shared-campaigns`),
+    queryKey: [`/api/${actualCurrentEnvironment}/broker/shared-campaigns`],
+    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/broker/shared-campaigns`),
     enabled: activeTab === 'campaigns',
     staleTime: 2 * 60 * 1000,
   });
 
   // For broker view, fetch opportunities with proper list filtering
   const { data: allOpportunities = [], isLoading: opportunitiesLoading } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/opportunities`, activeOpportunitiesList?.id],
+    queryKey: [`/api/${actualCurrentEnvironment}/opportunities`, activeOpportunitiesList?.id],
     queryFn: () => {
       const listParam = activeOpportunitiesList?.id ? `?listId=${activeOpportunitiesList.id}` : '';
-      return apiRequest('GET', `/api/${currentEnvironment}/opportunities${listParam}`);
+      return apiRequest('GET', `/api/${actualCurrentEnvironment}/opportunities${listParam}`);
     },
     staleTime: 2 * 60 * 1000,
   });
 
   // Fetch customers for this partner in broker view - filtered by shared opportunities
   const { data: partnerCustomers = [], isLoading: customersLoading } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/partners/4/customers`, allOpportunities.length],
+    queryKey: [`/api/${actualCurrentEnvironment}/partners/4/customers`, allOpportunities.length],
     queryFn: async () => {
       // Hardcoded Belgian customers for broker view
       const hardcodedCustomers = [
@@ -318,13 +324,13 @@ export default function PartnerDetailBrokerPOV() {
 
   // Customer lists and views data
   const { data: customerSavedLists = [] } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/saved-lists`, { entity_type: 'customers', partner_id: 4 }],
-    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/saved-lists?entity_type=customers&partner_id=4`),
+    queryKey: [`/api/${actualCurrentEnvironment}/saved-lists`, { entity_type: 'customers', partner_id: 4 }],
+    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/saved-lists?entity_type=customers&partner_id=4`),
   });
 
   const { data: customerSavedViews = [] } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/saved-views`, { entity_type: 'customers' }],
-    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/saved-views?entity_type=customers`),
+    queryKey: [`/api/${actualCurrentEnvironment}/saved-views`, { entity_type: 'customers' }],
+    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/saved-views?entity_type=customers`),
   });
 
   // Customer filtering state
@@ -376,8 +382,8 @@ export default function PartnerDetailBrokerPOV() {
 
   // Fetch all lists shared with John Smith or partners using the new broker-specific endpoint
   const { data: savedListsData } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/broker/shared-lists`, 'opportunities'],
-    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/broker/shared-lists?entity_type=opportunities`),
+    queryKey: [`/api/${actualCurrentEnvironment}/broker/shared-lists`, 'opportunities'],
+    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/broker/shared-lists?entity_type=opportunities`),
     staleTime: 0, // Always refresh to get latest data
     refetchOnWindowFocus: true,
   });
@@ -448,11 +454,11 @@ export default function PartnerDetailBrokerPOV() {
     },
     onSuccess: (data, variables) => {
       // Invalidate multiple related queries to ensure UI updates
-      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnvironment}/partners/4/opportunities`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnvironment}/opportunities`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/partners/4/opportunities`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/opportunities`] });
       
       // Optimistically update the cached data
-      queryClient.setQueryData([`/api/${currentEnvironment}/partners/4/opportunities`], (oldData: any) => {
+      queryClient.setQueryData([`/api/${actualCurrentEnvironment}/partners/4/opportunities`], (oldData: any) => {
         if (oldData) {
           return oldData.map((opp: any) => 
             opp.id === variables.opportunityId 
@@ -492,16 +498,16 @@ export default function PartnerDetailBrokerPOV() {
         };
         console.log('Sending edit list request:', { listId, updateData });
         
-        const envUrl = `/api/${currentEnvironment}/saved-lists/${listId}`;
-        const currentEnv = currentEnvironment;
+        const envUrl = `/api/${actualCurrentEnvironment}/saved-lists/${listId}`;
+        const currentEnv = actualCurrentEnvironment;
         const finalUrl = envUrl;
         
         const response = await fetch(finalUrl, {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'X-Environment': currentEnvironment,
-            'x-environment-id': currentEnvironment
+            'X-Environment': actualCurrentEnvironment,
+            'x-environment-id': actualCurrentEnvironment
           },
           body: JSON.stringify(updateData),
           credentials: 'include'
@@ -531,9 +537,9 @@ export default function PartnerDetailBrokerPOV() {
       
       console.log('Set new active list:', updatedList);
       
-      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnvironment}/saved-lists`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnvironment}/saved-lists`, 'opportunities', 'partner', '4'] });
-      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnvironment}/broker/shared-lists`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/saved-lists`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/saved-lists`, 'opportunities', 'partner', '4'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/broker/shared-lists`] });
       
       toast({
         title: "List updated",
@@ -701,20 +707,20 @@ export default function PartnerDetailBrokerPOV() {
 
   // Fetch template assignments for Mevas BV (partner_id 12)
   const { data: templateAssignments } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/template-assignments/partner`],
-    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/template-assignments/partner`),
+    queryKey: [`/api/${actualCurrentEnvironment}/template-assignments/partner`],
+    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/template-assignments/partner`),
   });
 
   // Fetch all OKR metrics to match with assignments
   const { data: allMetrics } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/okr-metrics`],
-    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/okr-metrics`),
+    queryKey: [`/api/${actualCurrentEnvironment}/okr-metrics`],
+    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/okr-metrics`),
   });
 
   // Fetch OKR tags for filtering
   const { data: tags = [] } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/okr-tags`],
-    queryFn: () => apiRequest('GET', `/api/${currentEnvironment}/okr-tags`),
+    queryKey: [`/api/${actualCurrentEnvironment}/okr-tags`],
+    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/okr-tags`),
   });
 
   // Get metrics assigned to Mevas BV (partner_id 12)
@@ -791,7 +797,7 @@ export default function PartnerDetailBrokerPOV() {
 
   return (
     <BrokerLayout>
-      <div key={`broker-${renderKey}`} className="min-h-screen bg-white">
+      <div key={`broker-${actualCurrentEnvironment}-${renderKey}`} className="min-h-screen bg-white">
         {/* Header section */}
         <div className="px-6 py-4">
           <div className="flex items-center mb-4">
@@ -1350,7 +1356,7 @@ export default function PartnerDetailBrokerPOV() {
                                               <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
                                               <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                                             </svg>
-                                            <span className="text-xs text-gray-500">Shared by {environment.name}</span>
+                                            <span className="text-xs text-gray-500">Shared by {partner.name}</span>
                                           </div>
                                         )}
                                       </div>
