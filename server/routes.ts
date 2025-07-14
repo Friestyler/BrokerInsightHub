@@ -6302,30 +6302,30 @@ Return as JSON in this exact format:
     try {
       const envPool = pool;
       const { 
-        firstName, lastName, email, phone, 
-        company, position, department, linkedEntityType, linkedEntityId, 
-        notes, isActive 
+        first_name, last_name, email, phone, 
+        job_title, company, customer_id, linked_entity_type, linked_entity_id, 
+        notes, is_active 
       } = req.body;
       
       // Create full_name from first and last name
-      const fullName = `${firstName} ${lastName}`.trim();
+      const fullName = `${first_name} ${last_name}`.trim();
       
       const result = await envPool.query(`
         INSERT INTO degoudse.contacts (
           first_name, last_name, full_name, email, phone, 
-          job_title, department, company, linked_entity_type, linked_entity_id,
+          job_title, company, linked_entity_type, linked_entity_id,
           is_primary, notes, tags, is_active, created_at, updated_at
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW()
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, NOW(), NOW()
         ) RETURNING id, first_name, last_name, full_name, email, phone, 
-                   job_title, department, company, linked_entity_type, 
+                   job_title, company, linked_entity_type, 
                    linked_entity_id, is_primary, notes, tags, is_active, 
                    created_at, updated_at
       `, [
-        firstName, lastName, fullName, email || null, 
-        phone || null, position || null, department || null, company || null,
-        linkedEntityType || null, linkedEntityId || null, 
-        false, notes || null, [], isActive !== false
+        first_name, last_name, fullName, email || null, 
+        phone || null, job_title || null, company || null,
+        linked_entity_type || 'customer', linked_entity_id || customer_id || null, 
+        false, notes || null, [], is_active !== false
       ]);
       
       console.log(`Contact created successfully in De Goudse environment:`, result.rows[0]);

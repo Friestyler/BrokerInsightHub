@@ -229,7 +229,48 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       return;
     }
 
-    createContactMutation.mutate(newContactData);
+    // Include company name in the contact data
+    const contactDataWithCompany = {
+      ...newContactData,
+      company: selectedCompany,
+      linked_entity_type: 'customer',
+      linked_entity_id: newContactData.customer_id
+    };
+
+    createContactMutation.mutate(contactDataWithCompany);
+  };
+
+  // Function to handle adding suggested contacts instantly
+  const handleAddSuggestedContact = (suggestedContact: any) => {
+    // Find the customer ID for the selected company
+    const selectedCompanyData = campaignData.recipients.find((r: any) => 
+      r.customerInfo?.name === selectedCompany || 
+      r.customerInfo?.title === selectedCompany || 
+      r.name === selectedCompany || 
+      r.title === selectedCompany
+    );
+    
+    let customerId = null;
+    if (selectedCompanyData?.customerInfo?.id) {
+      customerId = selectedCompanyData.customerInfo.id;
+    } else if (selectedCompanyData?.customer_id) {
+      customerId = selectedCompanyData.customer_id;
+    }
+    
+    const [firstName, lastName] = suggestedContact.name.split(' ');
+    
+    const contactData = {
+      first_name: firstName,
+      last_name: lastName || '',
+      email: suggestedContact.email,
+      job_title: suggestedContact.title,
+      company: selectedCompany,
+      customer_id: customerId,
+      linked_entity_type: 'customer',
+      linked_entity_id: customerId
+    };
+
+    createContactMutation.mutate(contactData);
   };
 
   // Set default data for new campaigns
@@ -1643,6 +1684,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                             size="sm" 
                                             variant="outline" 
                                             className="text-xs h-6 px-2 ml-2"
+                                            onClick={() => handleAddSuggestedContact(suggested)}
+                                            disabled={createContactMutation.isPending}
                                           >
                                             <Plus className="h-3 w-3 mr-1" />
                                             Add
