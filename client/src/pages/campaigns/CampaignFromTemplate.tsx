@@ -965,7 +965,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     },
     {
       number: 6,
-      title: 'Drafts',
+      title: 'Drafts & Send',
       description: getStepDescription(6),
       component: 'drafts'
     },
