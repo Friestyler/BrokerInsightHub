@@ -52,11 +52,6 @@ export default function PartnerDetailBrokerPOV() {
   console.log('🚨 BROKER VIEW - RENDER - Current environment:', environment.id);
   console.log('🚨 BROKER VIEW - RENDER - Render key:', renderKey);
   
-  // Force alert to confirm component is loading
-  if (renderKey === 0) {
-    alert('PartnerDetailBrokerPOV component loaded with environment: ' + environment.id);
-  }
-  
   // Force re-render when environment changes
   useEffect(() => {
     console.log('🚨 BROKER VIEW - Environment changed! New environment:', environment.id);
@@ -731,7 +726,7 @@ export default function PartnerDetailBrokerPOV() {
   };
 
   return (
-    <BrokerLayout>
+    <BrokerLayout key={`broker-layout-${environment.id}-${renderKey}`}>
       <div key={`broker-${environment.id}-${renderKey}`} className="min-h-screen bg-white">
         {/* Header section */}
         <div className="px-6 py-4">
