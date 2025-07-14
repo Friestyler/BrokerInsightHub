@@ -106,6 +106,23 @@ export default function RecipientSelector({
   const [suggestedContacts, setSuggestedContacts] = useState<{[key: string]: any[]}>({});
   const [showSuggestions, setShowSuggestions] = useState<{[key: string]: boolean}>({});
   
+  // Auto-expand suggestions for all recipients by default
+  useEffect(() => {
+    if (selectedRecipients.length > 0) {
+      const newShowSuggestions: {[key: string]: boolean} = {};
+      selectedRecipients.forEach(recipient => {
+        const uniqueKey = recipient.uniqueKey || `${recipient.type}-${recipient.id}`;
+        newShowSuggestions[uniqueKey] = true;
+        
+        // Also load suggestions for each recipient
+        if (!suggestedContacts[uniqueKey]) {
+          loadSuggestionsForRecipient(uniqueKey, recipient);
+        }
+      });
+      setShowSuggestions(newShowSuggestions);
+    }
+  }, [selectedRecipients]);
+  
   // Handle external tab changes
   useEffect(() => {
     if (externalTabOverride) {
@@ -136,10 +153,8 @@ export default function RecipientSelector({
     }
   };
   
-  // Load suggestions when a recipient is missing a contact
+  // Load suggestions for any recipient (not just missing contacts)
   const loadSuggestionsForRecipient = async (uniqueKey: string, recipient: any) => {
-    if (!recipient.isMissingContact) return;
-    
     const contacts = await fetchLookAlikeContacts(recipient);
     setSuggestedContacts(prev => ({
       ...prev,
@@ -991,32 +1006,31 @@ export default function RecipientSelector({
                   
                   {/* Action Buttons */}
                   <div className="flex items-center gap-2 flex-shrink-0">
+                    {/* Always show suggestion button, regardless of contact status */}
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        setShowSuggestions(prev => ({
+                          ...prev,
+                          [uniqueKey]: !prev[uniqueKey]
+                        }));
+                        if (!suggestedContacts[uniqueKey]) {
+                          loadSuggestionsForRecipient(uniqueKey, recipient);
+                        }
+                      }}
+                      className="h-7 px-3 text-xs"
+                    >
+                      {showSuggestions[uniqueKey] ? 'Hide' : 'Suggest'}
+                    </Button>
                     {recipient.isMissingContact && (
-                      <>
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setShowSuggestions(prev => ({
-                              ...prev,
-                              [uniqueKey]: !prev[uniqueKey]
-                            }));
-                            if (!suggestedContacts[uniqueKey]) {
-                              loadSuggestionsForRecipient(uniqueKey, recipient);
-                            }
-                          }}
-                          className="h-7 px-3 text-xs"
-                        >
-                          {showSuggestions[uniqueKey] ? 'Hide' : 'Suggest'}
-                        </Button>
-                        <Button
-                          size="sm"
-                          onClick={() => setShowInlineContactForm(uniqueKey)}
-                          className="h-7 px-3 text-xs"
-                        >
-                          Add
-                        </Button>
-                      </>
+                      <Button
+                        size="sm"
+                        onClick={() => setShowInlineContactForm(uniqueKey)}
+                        className="h-7 px-3 text-xs"
+                      >
+                        Add
+                      </Button>
                     )}
                     <Button
                       variant="ghost"
