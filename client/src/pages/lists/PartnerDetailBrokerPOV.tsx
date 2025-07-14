@@ -36,9 +36,14 @@ export default function PartnerDetailBrokerPOV() {
   
   // Force re-render when environment changes
   useEffect(() => {
-    console.log('Environment changed in broker view - forcing re-render:', environment.id);
+    console.log('🚨 BROKER VIEW - Environment changed! New environment:', environment.id);
+    console.log('🚨 BROKER VIEW - Environment object:', environment);
     setRenderKey(prev => prev + 1);
   }, [environment.id]);
+
+  // Also add debug on every render
+  console.log('🚨 BROKER VIEW - RENDER - Current environment:', environment.id);
+  console.log('🚨 BROKER VIEW - RENDER - Render key:', renderKey);
   
   // State for filtering
   const [searchTerm, setSearchTerm] = useState("");

@@ -15,7 +15,7 @@ export function BrokerLayout({ children }: { children: React.ReactNode }) {
 
   // Get the correct logo for broker view
   const getBrokerLogo = (envId: string) => {
-    console.log('BrokerLayout - Getting logo for environment:', envId);
+    console.log('🚨 BROKER LAYOUT - Getting logo for environment:', envId);
     switch (envId) {
       case 'degoudse':
         return deGoudseLogo;
@@ -29,7 +29,8 @@ export function BrokerLayout({ children }: { children: React.ReactNode }) {
   };
 
   const environmentLogo = getBrokerLogo(environment.id);
-  console.log('BrokerLayout - Using logo:', environmentLogo);
+  console.log('🚨 BROKER LAYOUT - Using logo:', environmentLogo);
+  console.log('🚨 BROKER LAYOUT - Environment object:', environment);
 
   const toggleSidebar = () => {
     setSidebarCollapsed(!sidebarCollapsed);
