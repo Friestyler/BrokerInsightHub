@@ -1689,43 +1689,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                     {/* Contacts and Email Sequences */}
                     <div className="flex-1 overflow-y-auto">
                       <div className="p-4 space-y-4">
-                        {/* Total Ready Count and Bulk Send - Aggregated across all customers */}
-                        {(() => {
-                          // Count all ready contacts across ALL customers in the campaign
-                          const allReadyContacts = campaignData.recipients.filter((recipient: any) => 
-                            recipient.email || recipient.contactInfo?.email
-                          ).length;
-                          
-                          if (allReadyContacts > 0) {
-                            return (
-                              <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-4">
-                                <div className="flex items-center justify-between">
-                                  <div className="flex items-center gap-2">
-                                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                                      <Mail className="h-4 w-4 text-green-600" />
-                                    </div>
-                                    <div>
-                                      <p className="text-sm font-medium text-green-900">
-                                        {allReadyContacts} email{allReadyContacts !== 1 ? 's' : ''} ready to send
-                                      </p>
-                                      <p className="text-xs text-green-600">
-                                        Across all customers in this campaign
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <Button 
-                                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-sm"
-                                    onClick={() => handleBulkSendAll()}
-                                  >
-                                    <Send className="h-4 w-4 mr-2" />
-                                    Send All ({allReadyContacts})
-                                  </Button>
-                                </div>
-                              </div>
-                            );
-                          }
-                          return null;
-                        })()}
+
                         
                         {/* Actual Recipients for Selected Company */}
                         {(() => {
@@ -2300,7 +2264,41 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             Previous
           </Button>
           
-          <div className="flex gap-3">
+          <div className="flex gap-3 items-center">
+            {/* Total Ready Count and Send All Button - Show on Recipients step */}
+            {currentStep === 4 && (() => {
+              // Count all ready contacts across ALL customers in the campaign
+              const allReadyContacts = campaignData.recipients.filter((recipient: any) => 
+                recipient.email || recipient.contactInfo?.email
+              ).length;
+              
+              if (allReadyContacts > 0) {
+                return (
+                  <div className="flex items-center gap-3 bg-green-50 border border-green-200 rounded-lg px-3 py-2">
+                    <div className="flex items-center gap-2">
+                      <Mail className="h-4 w-4 text-green-600" />
+                      <div>
+                        <p className="text-sm font-medium text-green-900">
+                          {allReadyContacts} email{allReadyContacts !== 1 ? 's' : ''} ready to send
+                        </p>
+                        <p className="text-xs text-green-600">
+                          Across all customers in this campaign
+                        </p>
+                      </div>
+                    </div>
+                    <Button 
+                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 text-sm"
+                      onClick={() => handleBulkSendAll()}
+                    >
+                      <Send className="h-4 w-4 mr-2" />
+                      Send All ({allReadyContacts})
+                    </Button>
+                  </div>
+                );
+              }
+              return null;
+            })()}
+
             {currentStep < totalSteps ? (
               <Button
                 onClick={handleNext}
