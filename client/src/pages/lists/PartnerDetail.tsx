@@ -1802,7 +1802,7 @@ export default function PartnerDetail() {
                                               <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
                                               <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                                             </svg>
-                                            <span className="text-xs text-gray-500">Shared by Baloise</span>
+                                            <span className="text-xs text-gray-500">Shared by De Goudse</span>
                                           </div>
                                         )}
                                       </div>
@@ -3928,7 +3928,7 @@ export default function PartnerDetail() {
                                               <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
                                               <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                                             </svg>
-                                            <span className="text-xs text-gray-500">Shared by Baloise</span>
+                                            <span className="text-xs text-gray-500">Shared by De Goudse</span>
                                           </div>
                                         )}
                                       </div>

@@ -274,7 +274,7 @@ export default function PartnerView() {
                       </div>
                       <p className="text-gray-600 mb-3">{campaign.description}</p>
                       <div className="flex items-center gap-4 text-sm text-gray-500">
-                        <span>Shared by {campaign.sharedBy}</span>
+                        <span>Shared by De Goudse</span>
                         <span>•</span>
                         <span>{campaign.sponsorName}</span>
                         {campaign.sharedAt && (
