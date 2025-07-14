@@ -11,11 +11,12 @@ import CampaignSettingsWizard from '@/components/campaigns/CampaignSettingsWizar
 interface PartnerCampaignBuilderProps {
   params?: { campaignId?: string };
   campaignId?: string;
-  partnerId?: number;
+  partnerId?: number | string;
   onComplete?: () => void;
+  onBack?: () => void;
 }
 
-export default function PartnerCampaignBuilder({ params, campaignId: propCampaignId, partnerId, onComplete }: PartnerCampaignBuilderProps) {
+export default function PartnerCampaignBuilder({ params, campaignId: propCampaignId, partnerId, onComplete, onBack }: PartnerCampaignBuilderProps) {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -103,7 +104,9 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
   };
   
   const handleBack = () => {
-    if (onComplete) {
+    if (onBack) {
+      onBack();
+    } else if (onComplete) {
       onComplete();
     } else if (backUrl) {
       window.location.href = decodeURIComponent(backUrl);

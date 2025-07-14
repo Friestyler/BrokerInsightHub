@@ -18,6 +18,7 @@ interface CampaignsTableProps {
   onSelectionChange: (selectedIds: number[]) => void;
   isPartnerView?: boolean;
   partnerId?: string;
+  onCampaignClick?: (campaign: any) => void;
 }
 
 // Sortable table header component
@@ -193,7 +194,7 @@ const getEntityColor = (entityType: string) => {
   }
 };
 
-export default function CampaignsTable({ campaigns, selectedCampaigns, onSelectionChange, isPartnerView, partnerId }: CampaignsTableProps) {
+export default function CampaignsTable({ campaigns, selectedCampaigns, onSelectionChange, isPartnerView, partnerId, onCampaignClick }: CampaignsTableProps) {
   const [sortField, setSortField] = useState<string>('created_at');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('desc');
   const [, setLocation] = useLocation();
@@ -227,6 +228,12 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
       isPartnerView: isPartnerView,
       shouldUseDraftLogic: campaign.status === 'draft' && isPartnerView
     });
+
+    // If we're in partner view and have a callback, use it instead of navigation
+    if (isPartnerView && onCampaignClick) {
+      onCampaignClick(campaign);
+      return;
+    }
 
     if (campaign.status === 'draft' && isPartnerView) {
       // For draft campaigns from partner view, open campaign builder with recipient step

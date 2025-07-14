@@ -21,6 +21,7 @@ import { useEnvironment } from "@/contexts/EnvironmentContext";
 import LogoUploadModal from "@/components/LogoUploadModal";
 import EntityAvatar from "@/components/EntityAvatar";
 import PartnerCampaignsView from "@/components/campaigns/PartnerCampaignsView";
+import PartnerCampaignBuilder from "@/pages/campaigns/PartnerCampaignBuilder";
 import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTab";
 import { WhiteSpaceMatrix } from "@/components/entity/WhiteSpaceMatrixSimplified";
 import { SmartCrossSell } from "@/components/portfolio/SmartCrossSell";
@@ -45,6 +46,13 @@ export default function PartnerDetail() {
   const [selectedTag, setSelectedTag] = useState("all");
   const [selectedUnit, setSelectedUnit] = useState("all");
   const [selectedRange, setSelectedRange] = useState("all");
+  const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
+  
+  // Campaign click handler
+  const handleCampaignClick = (campaign: any) => {
+    setSelectedCampaign(campaign);
+    setActiveTab("campaign-editor");
+  };
   const [isOpportunitiesListsCollapsed, setIsOpportunitiesListsCollapsed] = useState(false);
   const [isCustomerListsCollapsed, setIsCustomerListsCollapsed] = useState(false);
   const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
@@ -1320,6 +1328,18 @@ export default function PartnerDetail() {
                   >
                     Campaigns
                   </button>
+                  {selectedCampaign && (
+                    <button 
+                      onClick={() => setActiveTab("campaign-editor")}
+                      className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                        activeTab === "campaign-editor" 
+                          ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                          : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                      }`}
+                    >
+                      Edit: {selectedCampaign.name}
+                    </button>
+                  )}
                   <button 
                     onClick={() => setActiveTab("contacts")}
                     className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
@@ -3274,7 +3294,42 @@ export default function PartnerDetail() {
           <PartnerCampaignsView 
             partnerId={id || ''} 
             partnerName={partner?.name}
+            onCampaignClick={handleCampaignClick}
           />
+        )}
+
+        {activeTab === "campaign-editor" && selectedCampaign && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">
+                  Edit Campaign: {selectedCampaign.name}
+                </h3>
+                <p className="text-sm text-gray-500">
+                  Partner-specific campaign configuration
+                </p>
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setSelectedCampaign(null);
+                  setActiveTab("campaigns");
+                }}
+              >
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Campaigns
+              </Button>
+            </div>
+            
+            <PartnerCampaignBuilder 
+              campaignId={selectedCampaign.id} 
+              partnerId={id || ''} 
+              onBack={() => {
+                setSelectedCampaign(null);
+                setActiveTab("campaigns");
+              }}
+            />
+          </div>
         )}
 
         {activeTab === "products" && (

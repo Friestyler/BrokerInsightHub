@@ -34,9 +34,10 @@ import {
 interface PartnerCampaignsViewProps {
   partnerId: string;
   partnerName?: string;
+  onCampaignClick?: (campaign: any) => void;
 }
 
-export default function PartnerCampaignsView({ partnerId, partnerName }: PartnerCampaignsViewProps) {
+export default function PartnerCampaignsView({ partnerId, partnerName, onCampaignClick }: PartnerCampaignsViewProps) {
   const [selectedCampaigns, setSelectedCampaigns] = useState<number[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const { environment } = useEnvironment();
@@ -330,6 +331,7 @@ export default function PartnerCampaignsView({ partnerId, partnerName }: Partner
           onSelectionChange={setSelectedCampaigns}
           isPartnerView={true}
           partnerId={partnerId}
+          onCampaignClick={onCampaignClick}
         />
       )}
     </div>
