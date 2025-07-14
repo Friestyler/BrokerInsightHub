@@ -1228,43 +1228,98 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 {/* Company List */}
                 <div className="flex-1 overflow-y-auto">
                   <div className="p-3 space-y-2">
-                    {/* Sample Companies */}
-                    {[
-                      { name: "TechCorp Inc.", type: "Technology", contacts: 2, suggested: 3 },
-                      { name: "Startup.io", type: "Software", contacts: 1, suggested: 1 },
-                      { name: "Design Studio", type: "Creative", contacts: 1, suggested: 1 },
-                      { name: "Global Manufacturing Co.", type: "Manufacturing", contacts: 0, suggested: 3 },
-                      { name: "FinTech Solutions", type: "Finance", contacts: 0, suggested: 2 }
-                    ].map((company, index) => {
-                      // Auto-select TechCorp Inc. by default on first render
-                      if (!selectedCompany && company.name === "TechCorp Inc.") {
-                        setTimeout(() => setSelectedCompany(company.name), 0);
+                    {/* Actual Companies from Selected Recipients */}
+                    {(() => {
+                      // Extract unique companies from selected recipients
+                      const companiesMap = new Map();
+                      
+                      campaignData.recipients.forEach((recipient: any) => {
+                        let companyName = '';
+                        let companyType = '';
+                        let opportunityTitle = '';
+                        
+                        // Extract company information based on recipient structure
+                        if (recipient.customerInfo?.name) {
+                          companyName = recipient.customerInfo.name;
+                          companyType = recipient.customerInfo.type || 'Business';
+                        } else if (recipient.customerInfo?.title) {
+                          companyName = recipient.customerInfo.title;
+                          companyType = 'Business';
+                        } else if (recipient.name) {
+                          companyName = recipient.name;
+                          companyType = 'Business';
+                        } else if (recipient.title) {
+                          companyName = recipient.title;
+                          companyType = 'Opportunity';
+                          opportunityTitle = recipient.title;
+                        }
+                        
+                        if (companyName) {
+                          if (!companiesMap.has(companyName)) {
+                            companiesMap.set(companyName, {
+                              name: companyName,
+                              type: companyType,
+                              recipients: [],
+                              contactsCount: 0,
+                              opportunityTitle: opportunityTitle
+                            });
+                          }
+                          
+                          const company = companiesMap.get(companyName);
+                          company.recipients.push(recipient);
+                          
+                          // Count contacts (recipients with email addresses)
+                          if (recipient.email || recipient.contactInfo?.email) {
+                            company.contactsCount++;
+                          }
+                        }
+                      });
+                      
+                      const companies = Array.from(companiesMap.values());
+                      
+                      // Auto-select first company if none selected
+                      if (!selectedCompany && companies.length > 0) {
+                        setTimeout(() => setSelectedCompany(companies[0].name), 0);
                       }
                       
-                      return (
-                        <div
-                          key={company.name}
-                          className={`p-3 border rounded-lg cursor-pointer transition-all hover:border-blue-300 hover:bg-blue-50 ${
-                            selectedCompany === company.name ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'
-                          }`}
-                          onClick={() => setSelectedCompany(company.name)}
-                        >
-                          <div className="flex items-center gap-2 mb-1">
-                            <Building className="h-4 w-4 text-gray-400" />
-                            <span className="font-medium text-sm text-gray-900">{company.name}</span>
+                      if (companies.length === 0) {
+                        return (
+                          <div className="p-4 text-center text-gray-500">
+                            <Building className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                            <p className="text-sm">No recipients selected yet</p>
+                            <p className="text-xs text-gray-400">Go back to step 4 to select recipients</p>
                           </div>
-                          <div className="text-xs text-gray-500 mb-2">{company.type}</div>
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-gray-600">
-                              {company.contacts} contact{company.contacts !== 1 ? 's' : ''}
-                            </span>
-                            <span className={`${company.suggested > 0 ? 'text-blue-600' : 'text-gray-400'}`}>
-                              {company.suggested > 0 ? `+${company.suggested} suggested` : 'No suggestions'}
-                            </span>
+                        );
+                      }
+                      
+                      return companies.map((company, index) => {
+                        const missingContacts = company.recipients.length - company.contactsCount;
+                        
+                        return (
+                          <div
+                            key={company.name}
+                            className={`p-3 border rounded-lg cursor-pointer transition-all hover:border-blue-300 hover:bg-blue-50 ${
+                              selectedCompany === company.name ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'
+                            }`}
+                            onClick={() => setSelectedCompany(company.name)}
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              <Building className="h-4 w-4 text-gray-400" />
+                              <span className="font-medium text-sm text-gray-900">{company.name}</span>
+                            </div>
+                            <div className="text-xs text-gray-500 mb-2">{company.type}</div>
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-gray-600">
+                                {company.contactsCount} contact{company.contactsCount !== 1 ? 's' : ''}
+                              </span>
+                              <span className={`${missingContacts > 0 ? 'text-red-600' : 'text-green-600'}`}>
+                                {missingContacts > 0 ? `${missingContacts} missing` : 'All contacts ready'}
+                              </span>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })}
+                        );
+                      });
+                    })()}
                   </div>
                 </div>
               </div>
@@ -1280,8 +1335,29 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                           <Building className="h-5 w-5 text-gray-400" />
                           <div>
                             <h3 className="font-semibold text-gray-900">{selectedCompany}</h3>
-                            <p className="text-sm text-gray-500">Technology</p>
-                            <p className="text-xs text-gray-500">2 contacts</p>
+                            {(() => {
+                              const selectedCompanyData = campaignData.recipients.find((r: any) => 
+                                r.customerInfo?.name === selectedCompany || 
+                                r.customerInfo?.title === selectedCompany || 
+                                r.name === selectedCompany || 
+                                r.title === selectedCompany
+                              );
+                              const companyType = selectedCompanyData?.customerInfo?.type || 'Business';
+                              const contactsCount = campaignData.recipients.filter((r: any) => 
+                                (r.customerInfo?.name === selectedCompany || 
+                                 r.customerInfo?.title === selectedCompany || 
+                                 r.name === selectedCompany || 
+                                 r.title === selectedCompany) && 
+                                (r.email || r.contactInfo?.email)
+                              ).length;
+                              
+                              return (
+                                <>
+                                  <p className="text-sm text-gray-500">{companyType}</p>
+                                  <p className="text-xs text-gray-500">{contactsCount} contact{contactsCount !== 1 ? 's' : ''}</p>
+                                </>
+                              );
+                            })()}
                           </div>
                         </div>
                         <Button 
@@ -1297,159 +1373,98 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                     {/* Contacts and Email Sequences */}
                     <div className="flex-1 overflow-y-auto">
                       <div className="p-4 space-y-4">
-                        {/* Sample Contacts for TechCorp */}
-                        {selectedCompany === "TechCorp Inc." && (
-                          <>
-                            {/* Sarah Johnson */}
-                            <div className="border-b border-gray-100 pb-4">
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <User className="h-4 w-4 text-blue-600" />
-                                  </div>
-                                  <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <span className="font-medium text-sm text-gray-900">Sarah Johnson</span>
-                                      <Badge variant="secondary" className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">active</Badge>
-                                    </div>
-                                    <div className="text-sm text-gray-500">sarah@techcorp.com</div>
-                                  </div>
-                                </div>
-                                <div className="text-xs text-gray-500">2 emails</div>
+                        {/* Actual Recipients for Selected Company */}
+                        {(() => {
+                          const companyRecipients = campaignData.recipients.filter((recipient: any) => 
+                            recipient.customerInfo?.name === selectedCompany || 
+                            recipient.customerInfo?.title === selectedCompany || 
+                            recipient.name === selectedCompany || 
+                            recipient.title === selectedCompany
+                          );
+                          
+                          if (companyRecipients.length === 0) {
+                            return (
+                              <div className="text-center text-gray-500 py-8">
+                                <User className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                                <p className="text-sm">No contacts found for this company</p>
+                                <p className="text-xs text-gray-400">Add contacts to start the email sequence</p>
                               </div>
-
-                              {/* Email Sequence */}
-                              <div className="space-y-3 mb-3">
-                                <div className="bg-gray-50 rounded-lg p-3">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-sm font-medium text-gray-900">1</span>
-                                      <span className="text-sm font-medium text-gray-900">Welcome to our partnership program</span>
+                            );
+                          }
+                          
+                          return companyRecipients.map((recipient: any, index: number) => {
+                            const contactName = recipient.contactInfo?.first_name && recipient.contactInfo?.last_name 
+                              ? `${recipient.contactInfo.first_name} ${recipient.contactInfo.last_name}`
+                              : recipient.first_name && recipient.last_name 
+                              ? `${recipient.first_name} ${recipient.last_name}`
+                              : recipient.email || 'Unknown Contact';
+                            
+                            const contactEmail = recipient.email || recipient.contactInfo?.email || 'No email';
+                            const hasEmail = Boolean(recipient.email || recipient.contactInfo?.email);
+                            
+                            return (
+                              <div key={index} className="border-b border-gray-100 pb-4">
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                      hasEmail ? 'bg-green-100' : 'bg-red-100'
+                                    }`}>
+                                      <User className={`h-4 w-4 ${hasEmail ? 'text-green-600' : 'text-red-600'}`} />
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                      <Badge variant="outline" className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">sent</Badge>
-                                      <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
-                                        <Edit className="h-3 w-3" />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                  <div className="text-xs text-gray-500 mb-2">16/01/2024 • 10:00</div>
-                                  <div className="text-xs text-gray-600">Hi Sarah, thank you for your interest in our partnership program...</div>
-                                </div>
-
-                                <div className="bg-gray-50 rounded-lg p-3">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-sm font-medium text-gray-900">2</span>
-                                      <span className="text-sm font-medium text-gray-900">Follow-up: Partnership details</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">scheduled</Badge>
-                                      <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
-                                        <Edit className="h-3 w-3" />
-                                      </Button>
-                                    </div>
-                                  </div>
-                                  <div className="text-xs text-gray-500 mb-2">18/01/2024 • 11:00</div>
-                                  <div className="text-xs text-gray-600">Hi Sarah, I wanted to follow up on our partnership discussion...</div>
-                                </div>
-                              </div>
-
-                              <Button size="sm" variant="outline" className="text-xs h-7 px-3 border-gray-300 hover:bg-gray-50 rounded-md">
-                                <Plus className="h-3 w-3 mr-1" />
-                                Add Email to Sequence
-                              </Button>
-                            </div>
-
-                            {/* David Wilson */}
-                            <div className="border-b border-gray-100 pb-4">
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 bg-yellow-100 rounded-full flex items-center justify-center">
-                                    <User className="h-4 w-4 text-yellow-600" />
-                                  </div>
-                                  <div>
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <span className="font-medium text-sm text-gray-900">David Wilson</span>
-                                      <Badge variant="secondary" className="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">paused</Badge>
-                                    </div>
-                                    <div className="text-sm text-gray-500">david@techcorp.com</div>
-                                  </div>
-                                </div>
-                                <div className="text-xs text-gray-500">1 emails</div>
-                              </div>
-
-                              {/* Email Sequence */}
-                              <div className="space-y-3 mb-3">
-                                <div className="bg-gray-50 rounded-lg p-3">
-                                  <div className="flex items-center justify-between mb-2">
-                                    <div className="flex items-center gap-2">
-                                      <span className="text-sm font-medium text-gray-900">1</span>
-                                      <span className="text-sm font-medium text-gray-900">Technical integration discussion</span>
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                      <Badge variant="outline" className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">draft</Badge>
-                                      <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
-                                        <Edit className="h-3 w-3" />
-                                      </Button>
+                                    <div>
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="font-medium text-sm text-gray-900">{contactName}</span>
+                                        <Badge variant="secondary" className={`text-xs px-2 py-0.5 rounded ${
+                                          hasEmail ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                        }`}>
+                                          {hasEmail ? 'ready' : 'missing email'}
+                                        </Badge>
+                                      </div>
+                                      <div className="text-sm text-gray-500">{contactEmail}</div>
                                     </div>
                                   </div>
-                                  <div className="text-xs text-gray-500 mb-2">16/01/2024 • 12:00</div>
-                                  <div className="text-xs text-gray-600">Hi David, let's discuss the technical aspects...</div>
+                                  <div className="text-xs text-gray-500">{campaignData.emails.length} email{campaignData.emails.length !== 1 ? 's' : ''}</div>
                                 </div>
-                              </div>
 
-                              <Button size="sm" variant="outline" className="text-xs h-7 px-3 border-gray-300 hover:bg-gray-50 rounded-md">
-                                <Plus className="h-3 w-3 mr-1" />
-                                Add Email to Sequence
-                              </Button>
-                            </div>
-
-                            {/* Additional Suggested Contacts */}
-                            <div className="pb-4">
-                              <div className="flex items-center justify-between mb-3">
-                                <div className="flex items-center gap-2">
-                                  <Search className="h-4 w-4 text-gray-400" />
-                                  <span className="text-sm font-medium text-gray-900">Additional Suggested Contacts</span>
-                                  <Badge variant="outline" className="text-xs px-2 py-0.5 rounded">2 found</Badge>
+                                {/* Email Sequence from Flow Builder */}
+                                <div className="space-y-3 mb-3">
+                                  {campaignData.emails.map((email: any, emailIndex: number) => {
+                                    const emailContent = email.blocks.find((block: any) => block.type === 'text')?.content || email.subject;
+                                    const truncatedContent = emailContent.length > 80 ? emailContent.substring(0, 80) + '...' : emailContent;
+                                    
+                                    return (
+                                      <div key={emailIndex} className="bg-gray-50 rounded-lg p-3">
+                                        <div className="flex items-center justify-between mb-2">
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-sm font-medium text-gray-900">{emailIndex + 1}</span>
+                                            <span className="text-sm font-medium text-gray-900">{email.subject || 'Untitled Email'}</span>
+                                          </div>
+                                          <div className="flex items-center gap-2">
+                                            <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                              {emailIndex === 0 ? 'ready' : 'scheduled'}
+                                            </Badge>
+                                            <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                                              <Edit className="h-3 w-3" />
+                                            </Button>
+                                          </div>
+                                        </div>
+                                        <div className="text-xs text-gray-500 mb-2">
+                                          {emailIndex === 0 ? 'Immediate' : `+${email.followUpDays || (emailIndex * 3)} days`}
+                                        </div>
+                                        <div className="text-xs text-gray-600">{truncatedContent}</div>
+                                      </div>
+                                    );
+                                  })}
                                 </div>
+
                                 <Button size="sm" variant="outline" className="text-xs h-7 px-3 border-gray-300 hover:bg-gray-50 rounded-md">
-                                  Hide
+                                  <Plus className="h-3 w-3 mr-1" />
+                                  Add Email to Sequence
                                 </Button>
                               </div>
-                              
-                              <p className="text-xs text-gray-600 mb-3">
-                                We found these additional potential contacts for TechCorp Inc. Click to add them instantly.
-                              </p>
-
-                              <div className="space-y-2">
-                                <div className="flex items-center justify-between p-3 border border-gray-200 rounded-lg hover:border-blue-300 transition-colors">
-                                  <div className="flex-1">
-                                    <div className="flex items-center gap-2 mb-1">
-                                      <span className="font-medium text-sm text-gray-900">Jennifer Park</span>
-                                    </div>
-                                    <div className="text-xs text-gray-500">jennifer.park@techcorp.com</div>
-                                  </div>
-                                  <Button size="sm" variant="outline" className="text-xs h-7 px-3 border-gray-300 hover:bg-gray-50 rounded-md">
-                                    <Plus className="h-3 w-3 mr-1" />
-                                    Add
-                                  </Button>
-                                </div>
-                              </div>
-                            </div>
-                          </>
-                        )}
-
-                        {/* Show placeholder for other companies */}
-                        {selectedCompany !== "TechCorp Inc." && (
-                          <div className="text-center py-12">
-                            <div className="text-gray-500 mb-4">
-                              <User className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                              <p>No contacts found for {selectedCompany}</p>
-                              <p className="text-sm mt-2">Click "Add Contact" to add the first contact for this company.</p>
-                            </div>
-                          </div>
-                        )}
+                            );
+                          });
+                        })()}
                       </div>
                     </div>
                   </>
