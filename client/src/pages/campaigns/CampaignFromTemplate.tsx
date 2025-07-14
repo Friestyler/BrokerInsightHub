@@ -55,6 +55,15 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const [recipientSelectorTab, setRecipientSelectorTab] = useState<string | null>(null);
   const [showSettingsWizard, setShowSettingsWizard] = useState(false);
   const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
+  const [showAddContactModal, setShowAddContactModal] = useState(false);
+  const [newContactData, setNewContactData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    job_title: '',
+    customer_id: null
+  });
 
   // Track if this is initial load to prevent URL conflicts with manual navigation
   const [isInitialLoad, setIsInitialLoad] = useState(true);
@@ -122,6 +131,106 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     queryKey: ['/api/partners'],
     enabled: sharePartnersDialogOpen
   });
+
+  // Fetch all contacts for updating campaign recipients
+  const { data: allContacts = [] } = useQuery({
+    queryKey: ['/api/contacts'],
+    enabled: currentStep === 5 // Only fetch when in draft/review step
+  });
+
+  // Mutation for creating new contacts
+  const createContactMutation = useMutation({
+    mutationFn: (contactData: any) => apiRequest('POST', '/api/contacts', contactData),
+    onSuccess: (newContact) => {
+      // Invalidate contacts query to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
+      
+      // Add new contact to campaign recipients
+      const updatedRecipients = [...campaignData.recipients, {
+        id: newContact.id,
+        type: 'contact',
+        name: `${newContact.first_name} ${newContact.last_name}`,
+        email: newContact.email,
+        phone: newContact.phone,
+        job_title: newContact.job_title,
+        customer_id: newContact.customer_id,
+        contactInfo: {
+          firstName: newContact.first_name,
+          lastName: newContact.last_name,
+          email: newContact.email,
+          phone: newContact.phone,
+          jobTitle: newContact.job_title
+        }
+      }];
+      
+      setCampaignData(prev => ({
+        ...prev,
+        recipients: updatedRecipients
+      }));
+      
+      // Close modal and reset form
+      setShowAddContactModal(false);
+      setNewContactData({
+        first_name: '',
+        last_name: '',
+        email: '',
+        phone: '',
+        job_title: '',
+        customer_id: null
+      });
+      
+      toast({
+        title: "Contact created successfully",
+        description: `${newContact.first_name} ${newContact.last_name} has been added to your campaign.`,
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error creating contact",
+        description: "Failed to create contact. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+
+  // Function to handle adding contact manually
+  const handleAddContact = () => {
+    // Find the customer ID for the selected company
+    const selectedCompanyData = campaignData.recipients.find((r: any) => 
+      r.customerInfo?.name === selectedCompany || 
+      r.customerInfo?.title === selectedCompany || 
+      r.name === selectedCompany || 
+      r.title === selectedCompany
+    );
+    
+    let customerId = null;
+    if (selectedCompanyData?.customerInfo?.id) {
+      customerId = selectedCompanyData.customerInfo.id;
+    } else if (selectedCompanyData?.customer_id) {
+      customerId = selectedCompanyData.customer_id;
+    }
+    
+    setNewContactData(prev => ({
+      ...prev,
+      customer_id: customerId
+    }));
+    
+    setShowAddContactModal(true);
+  };
+
+  // Function to handle saving new contact
+  const handleSaveContact = () => {
+    if (!newContactData.first_name || !newContactData.last_name || !newContactData.email) {
+      toast({
+        title: "Missing required fields",
+        description: "Please fill in first name, last name, and email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    createContactMutation.mutate(newContactData);
+  };
 
   // Set default data for new campaigns
   useEffect(() => {
@@ -1385,6 +1494,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                         <Button 
                           size="sm" 
                           className="text-xs h-7 px-3 bg-gray-900 hover:bg-gray-800 text-white rounded-md"
+                          onClick={handleAddContact}
                         >
                           <Plus className="h-3 w-3 mr-1" />
                           Add Contact
@@ -1477,6 +1587,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                     <Button 
                                       size="sm" 
                                       className="text-xs h-7 px-3 bg-gray-900 hover:bg-gray-800 text-white rounded-md mb-4"
+                                      onClick={handleAddContact}
                                     >
                                       <Plus className="h-3 w-3 mr-1" />
                                       Add Contact Manually
@@ -1907,6 +2018,100 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
           });
         }}
       />
+
+      {/* Add Contact Modal */}
+      <Dialog open={showAddContactModal} onOpenChange={setShowAddContactModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New Contact</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="first_name" className="block text-sm font-medium text-gray-700 mb-1">
+                  First Name *
+                </label>
+                <Input
+                  id="first_name"
+                  value={newContactData.first_name}
+                  onChange={(e) => setNewContactData(prev => ({ ...prev, first_name: e.target.value }))}
+                  placeholder="John"
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label htmlFor="last_name" className="block text-sm font-medium text-gray-700 mb-1">
+                  Last Name *
+                </label>
+                <Input
+                  id="last_name"
+                  value={newContactData.last_name}
+                  onChange={(e) => setNewContactData(prev => ({ ...prev, last_name: e.target.value }))}
+                  placeholder="Smith"
+                  className="w-full"
+                />
+              </div>
+            </div>
+            <div>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+                Email Address *
+              </label>
+              <Input
+                id="email"
+                type="email"
+                value={newContactData.email}
+                onChange={(e) => setNewContactData(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="john.smith@company.com"
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+                Phone Number
+              </label>
+              <Input
+                id="phone"
+                type="tel"
+                value={newContactData.phone}
+                onChange={(e) => setNewContactData(prev => ({ ...prev, phone: e.target.value }))}
+                placeholder="+32 123 456 789"
+                className="w-full"
+              />
+            </div>
+            <div>
+              <label htmlFor="job_title" className="block text-sm font-medium text-gray-700 mb-1">
+                Job Title
+              </label>
+              <Input
+                id="job_title"
+                value={newContactData.job_title}
+                onChange={(e) => setNewContactData(prev => ({ ...prev, job_title: e.target.value }))}
+                placeholder="CEO"
+                className="w-full"
+              />
+            </div>
+            <div className="text-sm text-gray-500">
+              Company: {selectedCompany}
+            </div>
+          </div>
+          <div className="flex justify-end space-x-2">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowAddContactModal(false)}
+              disabled={createContactMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSaveContact}
+              disabled={createContactMutation.isPending || !newContactData.first_name || !newContactData.last_name || !newContactData.email}
+              className="gap-2"
+            >
+              {createContactMutation.isPending ? 'Adding...' : 'Add Contact'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
