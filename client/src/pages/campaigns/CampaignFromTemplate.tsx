@@ -5,7 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Edit, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Share, DollarSign, Home, Car, Umbrella, Building, UserCheck, TrendingDown, Plane, Search, User, AlertCircle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Edit, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Share, DollarSign, Home, Car, Umbrella, Building, UserCheck, TrendingDown, Plane, Search, User, AlertCircle, Upload } from "lucide-react";
 import { useLocation, useRoute, useParams } from 'wouter';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -2019,14 +2019,31 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                             })()}
                           </div>
                         </div>
-                        <Button 
-                          size="sm" 
-                          className="text-xs h-7 px-3 bg-gray-900 hover:bg-gray-800 text-white rounded-md"
-                          onClick={handleAddContact}
-                        >
-                          <Plus className="h-3 w-3 mr-1" />
-                          Add Contact
-                        </Button>
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className="text-xs h-7 px-3 border-gray-300 hover:bg-gray-50"
+                            onClick={() => {
+                              // TODO: Implement contact upload functionality
+                              toast({
+                                title: "Upload Contacts",
+                                description: "Contact upload functionality will be implemented soon."
+                              });
+                            }}
+                          >
+                            <Upload className="h-3 w-3 mr-1" />
+                            Upload Contacts
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="text-xs h-7 px-3 bg-gray-900 hover:bg-gray-800 text-white rounded-md"
+                            onClick={handleAddContact}
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Add Contact
+                          </Button>
+                        </div>
                       </div>
                     </div>
 
