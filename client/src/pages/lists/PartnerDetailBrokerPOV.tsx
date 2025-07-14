@@ -34,6 +34,12 @@ export default function PartnerDetailBrokerPOV() {
   
   const [activeTab, setActiveTab] = useState("products");
   
+  // Force re-render when environment changes
+  useEffect(() => {
+    console.log('Environment changed in broker view - forcing re-render:', environment.id);
+    setRenderKey(prev => prev + 1);
+  }, [environment.id]);
+  
   // State for filtering
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState("all");
@@ -716,7 +722,7 @@ export default function PartnerDetailBrokerPOV() {
 
   return (
     <BrokerLayout>
-      <div className="min-h-screen bg-white">
+      <div key={`broker-${environment.id}-${renderKey}`} className="min-h-screen bg-white">
         {/* Header section */}
         <div className="px-6 py-4">
           <div className="flex items-center mb-4">
