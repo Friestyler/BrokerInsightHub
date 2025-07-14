@@ -1678,9 +1678,12 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                             <span className="font-bold text-base">{totalRecipients}</span>
                           </div>
                           {contactStatus === 'missing' && (
-                            <div className="mt-2 p-2 bg-orange-100 border border-orange-300 rounded text-center">
+                            <div 
+                              className="mt-2 p-2 bg-orange-100 border border-orange-300 rounded text-center cursor-pointer hover:bg-orange-200 transition-colors"
+                              onClick={() => setCurrentStep(6)}
+                            >
                               <p className="text-xs text-orange-700">
-                                Click to view and fix missing contacts
+                                Go to Drafts & Send to add or upload contacts
                               </p>
                             </div>
                           )}
