@@ -68,6 +68,23 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   // Track if this is initial load to prevent URL conflicts with manual navigation
   const [isInitialLoad, setIsInitialLoad] = useState(true);
   
+  // Auto-expand suggestions when no contacts exist, collapse when contacts are added
+  useEffect(() => {
+    if (campaignData.recipients && Array.isArray(campaignData.recipients)) {
+      const hasAnyContacts = campaignData.recipients.some((recipient: any) => {
+        return recipient.email && recipient.email.trim() !== '';
+      });
+      
+      // Auto-expand suggestions when no contacts exist
+      if (!hasAnyContacts) {
+        setSuggestionsCollapsed(false);
+      } else {
+        // Auto-collapse when contacts are present
+        setSuggestionsCollapsed(true);
+      }
+    }
+  }, [campaignData.recipients]);
+  
   // Add effect to ensure URL parameters are respected only on initial load
   useEffect(() => {
     if (isInitialLoad && stepParam) {
@@ -82,6 +99,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const [activeEmailIndex, setActiveEmailIndex] = useState(0);
   const [sharePartnersDialogOpen, setSharePartnersDialogOpen] = useState(false);
   const [selectedPartnersForSharing, setSelectedPartnersForSharing] = useState<number[]>([]);
+  const [suggestionsCollapsed, setSuggestionsCollapsed] = useState(false);
   
   // Determine the mode: editing existing campaign, new campaign, or template-based campaign
   const isEditingCampaign = !!campaignId;
@@ -1687,30 +1705,37 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                             2 found
                                           </Badge>
                                         </div>
-                                        <Button variant="ghost" size="sm" className="text-xs h-6 px-2 text-gray-500 hover:text-gray-700">
-                                          Hide
+                                        <Button 
+                                          variant="ghost" 
+                                          size="sm" 
+                                          className="text-xs h-6 px-2 text-gray-500 hover:text-gray-700"
+                                          onClick={() => setSuggestionsCollapsed(!suggestionsCollapsed)}
+                                        >
+                                          {suggestionsCollapsed ? 'Show' : 'Hide'}
                                         </Button>
                                       </div>
                                       
-                                      <p className="text-xs text-gray-500 mb-4">We found these additional potential contacts for {customerName}. Click to add them instantly.</p>
-                                      
-                                      {/* Mock suggested contacts - these should come from API */}
-                                      {[
-                                        {
-                                          name: 'Sarah Kim',
-                                          email: 'sarah.kim@fintechsolutions.com',
-                                          title: 'Chief Technology Officer',
-                                          match: '97% match',
-                                          source: 'From LinkedIn'
-                                        },
-                                        {
-                                          name: 'Alex Thompson',
-                                          email: 'athompson@fintechsolutions.com',
-                                          title: 'Product Manager',
-                                          match: '85% match',
-                                          source: 'From Company Website'
-                                        }
-                                      ].map((suggested, suggestedIndex) => (
+                                      {!suggestionsCollapsed && (
+                                        <>
+                                          <p className="text-xs text-gray-500 mb-4">We found these additional potential contacts for {customerName}. Click to add them instantly.</p>
+                                          
+                                          {/* Mock suggested contacts - these should come from API */}
+                                          {[
+                                            {
+                                              name: 'Sarah Kim',
+                                              email: 'sarah.kim@fintechsolutions.com',
+                                              title: 'Chief Technology Officer',
+                                              match: '97% match',
+                                              source: 'From LinkedIn'
+                                            },
+                                            {
+                                              name: 'Alex Thompson',
+                                              email: 'athompson@fintechsolutions.com',
+                                              title: 'Product Manager',
+                                              match: '85% match',
+                                              source: 'From Company Website'
+                                            }
+                                          ].map((suggested, suggestedIndex) => (
                                         <div key={suggestedIndex} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
                                           <div className="flex-1">
                                             <div className="flex items-center gap-2 mb-1">
@@ -1734,18 +1759,20 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                             Add
                                           </Button>
                                         </div>
-                                      ))}
-                                      
-                                      <div className="mt-4 p-3 bg-blue-50 rounded-md">
-                                        <div className="flex items-start gap-2">
-                                          <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center mt-0.5">
-                                            <span className="text-xs text-white font-bold">!</span>
+                                          ))}
+                                          
+                                          <div className="mt-4 p-3 bg-blue-50 rounded-md">
+                                            <div className="flex items-start gap-2">
+                                              <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center mt-0.5">
+                                                <span className="text-xs text-white font-bold">!</span>
+                                              </div>
+                                              <div className="text-xs text-blue-800">
+                                                <span className="font-medium">Pro tip:</span> Added contacts will automatically get a default email sequence. You can customize it for each contact after adding them.
+                                              </div>
+                                            </div>
                                           </div>
-                                          <div className="text-xs text-blue-800">
-                                            <span className="font-medium">Pro tip:</span> Added contacts will automatically get a default email sequence. You can customize it for each contact after adding them.
-                                          </div>
-                                        </div>
-                                      </div>
+                                        </>
+                                      )}
                                     </div>
                                   </div>
                                 </div>
