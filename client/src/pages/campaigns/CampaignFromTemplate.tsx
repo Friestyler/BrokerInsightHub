@@ -998,12 +998,22 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      // Set the campaign ID after successful save
+      setCampaignData(prev => ({
+        ...prev,
+        id: data.id
+      }));
+      
       toast({
         title: "Campaign created successfully!",
         description: "Your campaign has been created and is ready to launch."
       });
-      setLocation('/campaigns');
+      
+      // Only redirect if not in step 6 (draft step)
+      if (currentStep !== 6) {
+        setLocation('/campaigns');
+      }
     },
     onError: (error: any) => {
       console.error('Campaign creation error:', error);
@@ -1291,7 +1301,10 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     const step3Complete = Boolean(campaignData.emails[0]?.subject?.trim());
     const step4Complete = isEditingCampaign ? true : campaignData.recipients.length > 0;
     const step5Complete = Boolean(campaignData.settings && Object.keys(campaignData.settings).length > 0);
-    const step6Complete = Boolean(campaignData.id); // Only complete if campaign is saved
+    // Step 6 is complete when we have recipients with email addresses OR when campaign is saved
+    const step6Complete = Boolean(campaignData.id || 
+      (campaignData.recipients.length > 0 && 
+       campaignData.recipients.some((r: any) => r.email || r.contactInfo?.email)));
     
     if (stepNum === 1) return step1Complete;
     if (stepNum === 2) return step2Complete;
@@ -1329,7 +1342,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   };
 
   const canSave = (): boolean => {
-    return isStepCompleted(1) && isStepCompleted(2) && isStepCompleted(3) && isStepCompleted(4) && isStepCompleted(5) && isStepCompleted(6);
+    return isStepCompleted(1) && isStepCompleted(2) && isStepCompleted(3) && isStepCompleted(4) && isStepCompleted(5);
   };
 
   const updateUrlStep = (step: number) => {
@@ -2620,18 +2633,33 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               recipient.email || recipient.contactInfo?.email
             ).length;
             
-            if (allReadyContacts > 0) {
-              return (
-                <Button 
-                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 text-sm"
-                  onClick={() => handleBulkSendAll()}
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  Send All ({allReadyContacts})
-                </Button>
-              );
-            }
-            return null;
+            const canSaveNow = isStepCompleted(1) && isStepCompleted(2) && isStepCompleted(3) && isStepCompleted(4) && isStepCompleted(5);
+            
+            return (
+              <div className="flex gap-3 items-center">
+                {/* Save Campaign Button */}
+                {!campaignData.id && canSaveNow && (
+                  <Button
+                    onClick={handleSave}
+                    disabled={createCampaignMutation.isPending || updateCampaignMutation.isPending}
+                    className="gap-2"
+                  >
+                    {createCampaignMutation.isPending ? 'Saving...' : 'Save Campaign'}
+                  </Button>
+                )}
+                
+                {/* Send All Button */}
+                {allReadyContacts > 0 && (
+                  <Button 
+                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 text-sm"
+                    onClick={() => handleBulkSendAll()}
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    Send All ({allReadyContacts})
+                  </Button>
+                )}
+              </div>
+            );
           })()}
           
           <div className="flex gap-3 items-center">
