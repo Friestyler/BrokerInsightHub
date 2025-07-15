@@ -456,13 +456,10 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
 
   const handleScheduleSend = async (scheduledTime: string) => {
     try {
-      // Get partner recipients
-      const partnerRecipients = (campaign.recipients || []).filter((recipient: any) => 
-        recipient.assigned_partner_id === partnerId || 
-        recipient.partnerInfo?.id === partnerId
-      );
+      // Get all recipients for partner campaign
+      const allRecipients = campaign?.recipients || [];
       
-      const allReadyContacts = partnerRecipients.filter((recipient: any) => 
+      const allReadyContacts = allRecipients.filter((recipient: any) => 
         recipient.email || recipient.contactInfo?.email
       );
       
@@ -676,14 +673,14 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
             {/* Send All Button - Show on Drafts step */}
             {currentStep === 3 && (() => {
               // Count all ready contacts across partner's recipients
-              const partnerRecipients = (campaign.recipients || []).filter((recipient: any) => 
-                recipient.assigned_partner_id === partnerId || 
-                recipient.partnerInfo?.id === partnerId
-              );
+              // In partner campaign builder, we can send to all recipients since it's partner-specific
+              const allRecipients = campaign?.recipients || [];
               
-              const allReadyContacts = partnerRecipients.filter((recipient: any) => 
+              const allReadyContacts = allRecipients.filter((recipient: any) => 
                 recipient.email || recipient.contactInfo?.email
               ).length;
+              
+
               
               if (allReadyContacts > 0) {
                 return (
