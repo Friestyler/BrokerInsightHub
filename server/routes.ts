@@ -10587,6 +10587,81 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
     }
   });
 
+  // Share campaigns with partners
+  app.post('/api/:envId/campaigns/share', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const { campaignIds, partnerIds } = req.body;
+      
+      if (!campaignIds || !partnerIds || campaignIds.length === 0 || partnerIds.length === 0) {
+        return res.status(400).json({ error: 'Campaign IDs and Partner IDs are required' });
+      }
+      
+      if (envId === 'degoudse') {
+        try {
+          // Create campaign_shares table if it doesn't exist
+          await pool.query(`
+            CREATE TABLE IF NOT EXISTS ${envId}.campaign_shares (
+              id SERIAL PRIMARY KEY,
+              campaign_id INTEGER NOT NULL,
+              partner_id INTEGER NOT NULL,
+              shared_by INTEGER DEFAULT 1,
+              access_level VARCHAR(20) DEFAULT 'view',
+              created_at TIMESTAMP DEFAULT NOW(),
+              updated_at TIMESTAMP DEFAULT NOW(),
+              UNIQUE(campaign_id, partner_id)
+            )
+          `);
+          
+          // Insert sharing records for each campaign-partner combination
+          const shareRecords = [];
+          for (const campaignId of campaignIds) {
+            for (const partnerId of partnerIds) {
+              shareRecords.push([parseInt(campaignId), parseInt(partnerId), 1, 'view']);
+            }
+          }
+          
+          if (shareRecords.length > 0) {
+            // Build the query with multiple values
+            const values = shareRecords.map((_, index) => 
+              `($${index * 4 + 1}, $${index * 4 + 2}, $${index * 4 + 3}, $${index * 4 + 4})`
+            ).join(', ');
+            
+            const flatValues = shareRecords.flat();
+            
+            const result = await pool.query(`
+              INSERT INTO ${envId}.campaign_shares (campaign_id, partner_id, shared_by, access_level)
+              VALUES ${values}
+              ON CONFLICT (campaign_id, partner_id) 
+              DO UPDATE SET updated_at = NOW()
+              RETURNING *
+            `, flatValues);
+            
+            res.json({ 
+              message: 'Campaigns shared successfully', 
+              shares: result.rows,
+              campaignCount: campaignIds.length,
+              partnerCount: partnerIds.length
+            });
+            return;
+          }
+          
+          res.status(400).json({ error: 'No sharing records to create' });
+          return;
+        } catch (dbError) {
+          console.error('Database error sharing campaigns:', dbError);
+          res.status(500).json({ error: 'Failed to share campaigns' });
+          return;
+        }
+      }
+      
+      res.status(400).json({ error: 'Campaign sharing not supported for this environment' });
+    } catch (error) {
+      console.error('Error sharing campaigns:', error);
+      res.status(500).json({ error: 'Failed to share campaigns' });
+    }
+  });
+
   // Get email customizations for a campaign
   app.get('/api/:envId/campaigns/:campaignId/email-customizations', async (req, res) => {
     try {
