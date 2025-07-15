@@ -3,9 +3,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Edit, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Share, DollarSign, Home, Car, Umbrella, Building, UserCheck, TrendingDown, Plane, Search, User, AlertCircle, Upload } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Edit, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Share, DollarSign, Home, Car, Umbrella, Building, UserCheck, TrendingDown, Plane, Search, User, AlertCircle, Upload, Calendar, Clock, ChevronDown } from "lucide-react";
 import { useLocation, useRoute, useParams } from 'wouter';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -14,6 +15,7 @@ import ImprovedEmailBuilder from './ImprovedEmailBuilder';
 import RecipientSelector from '@/components/campaigns/RecipientSelector';
 import CampaignSettingsWizard from '@/components/campaigns/CampaignSettingsWizard';
 import ContactUploadModal from '@/components/campaigns/ContactUploadModal';
+import SendScheduleButton from '@/components/campaigns/SendScheduleButton';
 
 interface CampaignFromTemplateProps {
   params?: { templateId?: string; campaignId?: string };
@@ -1263,6 +1265,45 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     }
   };
 
+  // Handler for scheduling a single email
+  const handleScheduleSingleEmail = async (contact: any, email: any, scheduledTime: string) => {
+    try {
+      const response = await apiRequest('POST', '/api/campaigns/schedule-email', {
+        campaignId: campaignId,
+        contactId: contact.id,
+        emailId: email.id,
+        emailSubject: email.subject,
+        emailContent: email.blocks,
+        scheduledTime: scheduledTime
+      });
+      
+      const scheduledDate = new Date(scheduledTime);
+      const formattedDate = scheduledDate.toLocaleDateString('en-US', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      toast({
+        title: "Email scheduled!",
+        description: `Email "${email.subject}" scheduled for ${formattedDate}`,
+      });
+      
+      // Refresh campaign data
+      queryClient.invalidateQueries({ queryKey: [`/api/campaigns/${campaignId}`] });
+    } catch (error) {
+      console.error('Error scheduling email:', error);
+      toast({
+        title: "Failed to schedule email",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Handler for bulk sending all ready emails for a specific company
   const handleBulkSend = async (companyName: string) => {
     try {
@@ -1328,6 +1369,49 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       console.error('Error sending all emails:', error);
       toast({
         title: "Failed to send campaign",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handler for scheduling campaign send
+  const handleScheduleSend = async (scheduledTime: string) => {
+    try {
+      const allReadyContacts = campaignData.recipients.filter((recipient: any) => 
+        recipient.email || recipient.contactInfo?.email
+      );
+      
+      const response = await apiRequest('POST', '/api/campaigns/schedule', {
+        campaignId: campaignId,
+        scheduledTime: scheduledTime,
+        recipients: allReadyContacts.map(contact => ({
+          contactId: contact.id,
+          email: contact.email || contact.contactInfo?.email
+        }))
+      });
+      
+      const scheduledDate = new Date(scheduledTime);
+      const formattedDate = scheduledDate.toLocaleDateString('en-US', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      toast({
+        title: "Campaign scheduled successfully!",
+        description: `${allReadyContacts.length} email${allReadyContacts.length !== 1 ? 's' : ''} scheduled for ${formattedDate}`,
+      });
+      
+      // Refresh campaign data
+      queryClient.invalidateQueries({ queryKey: [`/api/campaigns/${campaignId}`] });
+    } catch (error) {
+      console.error('Error scheduling campaign:', error);
+      toast({
+        title: "Failed to schedule campaign",
         description: "Please try again later",
         variant: "destructive",
       });
@@ -3058,14 +3142,13 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                               <Edit className="h-3 w-3" />
                                             </Button>
                                             {hasEmail && emailIndex === 0 && (
-                                              <Button 
-                                                size="sm" 
-                                                className="h-6 px-2 text-xs bg-green-600 hover:bg-green-700 text-white"
-                                                onClick={() => handleSendSingleEmail(contact, email)}
-                                              >
-                                                <Send className="h-3 w-3 mr-1" />
-                                                Send
-                                              </Button>
+                                              <SendScheduleButton
+                                                onSendNow={() => handleSendSingleEmail(contact, email)}
+                                                onScheduleSend={(scheduledTime) => handleScheduleSingleEmail(contact, email, scheduledTime)}
+                                                hasRecipients={hasEmail}
+                                                variant="single"
+                                                size="sm"
+                                              />
                                             )}
                                           </div>
                                         </div>
@@ -3338,15 +3421,14 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             
             return (
               <div className="flex gap-3 items-center">
-                {/* Send All Button */}
+                {/* Send All Button with Schedule */}
                 {allReadyContacts > 0 && (
-                  <Button 
-                    className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 text-sm"
-                    onClick={() => handleBulkSendAll()}
-                  >
-                    <Send className="h-4 w-4 mr-2" />
-                    Send All ({allReadyContacts})
-                  </Button>
+                  <SendScheduleButton
+                    onSendNow={handleBulkSendAll}
+                    onScheduleSend={handleScheduleSend}
+                    hasRecipients={allReadyContacts > 0}
+                    variant="bulk"
+                  />
                 )}
               </div>
             );

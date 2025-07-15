@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
-import { ArrowLeft, ArrowRight, Settings, Mail, Send, Building, User, Check, AlertCircle, Plus, Search, Upload, Edit } from "lucide-react";
+import { ArrowLeft, ArrowRight, Settings, Mail, Send, Building, User, Check, AlertCircle, Plus, Search, Upload, Edit, Calendar, Clock, ChevronDown } from "lucide-react";
 import { useLocation, useParams } from 'wouter';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -11,6 +12,7 @@ import { useToast } from '@/hooks/use-toast';
 import ImprovedEmailBuilder from './ImprovedEmailBuilder';
 import SenderSettingsPanel from '@/components/campaigns/SenderSettingsPanel';
 import ContactUploadModal from '@/components/campaigns/ContactUploadModal';
+import SendScheduleButton from '@/components/campaigns/SendScheduleButton';
 
 interface PartnerCampaignBuilderProps {
   params?: { campaignId?: string };
@@ -401,6 +403,50 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
     };
     
     sendEmailMutation.mutate({ recipientId: contact.id, emailData });
+  };
+
+  // Handle scheduling single email
+  const handleScheduleSingleEmail = async (contact: any, email: any, scheduledTime: string) => {
+    try {
+      const emailData = {
+        subject: email.subject || subject,
+        body: email.blocks || emailBlocks,
+        from_name: fromName,
+        from_email: fromEmail,
+        scheduledTime: scheduledTime
+      };
+      
+      const response = await apiRequest('POST', '/api/campaigns/schedule-email', {
+        campaignId: campaignId,
+        recipientId: contact.id,
+        emailData
+      });
+      
+      const scheduledDate = new Date(scheduledTime);
+      const formattedDate = scheduledDate.toLocaleDateString('en-US', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      toast({
+        title: "Email scheduled!",
+        description: `Email scheduled for ${formattedDate}`,
+      });
+      
+      // Refresh campaign data
+      queryClient.invalidateQueries({ queryKey: [`/api/campaigns/${campaignId}`] });
+    } catch (error) {
+      console.error('Error scheduling email:', error);
+      toast({
+        title: "Failed to schedule email",
+        description: "Please try again later",
+        variant: "destructive",
+      });
+    }
   };
 
   // Handle sending all emails
@@ -1313,15 +1359,14 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                                                 <Edit className="h-3 w-3" />
                                               </Button>
                                               {hasEmail && emailIndex === 0 && (
-                                                <Button 
-                                                  size="sm" 
-                                                  className="h-6 px-2 text-xs bg-green-600 hover:bg-green-700 text-white"
-                                                  onClick={() => handleSendSingleEmail(contact, email)}
+                                                <SendScheduleButton
+                                                  onSendNow={() => handleSendSingleEmail(contact, email)}
+                                                  onScheduleSend={(scheduledTime) => handleScheduleSingleEmail(contact, email, scheduledTime)}
                                                   disabled={sendEmailMutation.isPending}
-                                                >
-                                                  <Send className="h-3 w-3 mr-1" />
-                                                  Send
-                                                </Button>
+                                                  hasRecipients={hasEmail}
+                                                  variant="single"
+                                                  size="sm"
+                                                />
                                               )}
                                             </div>
                                           </div>
@@ -1352,15 +1397,14 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                                             <Edit className="h-3 w-3" />
                                           </Button>
                                           {hasEmail && (
-                                            <Button 
-                                              size="sm" 
-                                              className="h-6 px-2 text-xs bg-green-600 hover:bg-green-700 text-white"
-                                              onClick={() => handleSendSingleEmail(contact, { subject, blocks: emailBlocks })}
+                                            <SendScheduleButton
+                                              onSendNow={() => handleSendSingleEmail(contact, { subject, blocks: emailBlocks })}
+                                              onScheduleSend={(scheduledTime) => handleScheduleSingleEmail(contact, { subject, blocks: emailBlocks }, scheduledTime)}
                                               disabled={sendEmailMutation.isPending}
-                                            >
-                                              <Send className="h-3 w-3 mr-1" />
-                                              Send
-                                            </Button>
+                                              hasRecipients={hasEmail}
+                                              variant="single"
+                                              size="sm"
+                                            />
                                           )}
                                         </div>
                                       </div>

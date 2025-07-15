@@ -10592,6 +10592,110 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
     }
   });
 
+  // Schedule individual email
+  app.post('/api/:envId/campaigns/schedule-email', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const { campaignId, contactId, recipientId, emailId, emailSubject, emailContent, emailData, scheduledTime } = req.body;
+      
+      if (!campaignId || !scheduledTime) {
+        return res.status(400).json({ error: 'Campaign ID and scheduled time are required' });
+      }
+      
+      if (envId === 'degoudse') {
+        try {
+          // Create a scheduled email record
+          const result = await pool.query(`
+            INSERT INTO ${envId}.scheduled_emails 
+            (campaign_id, contact_id, recipient_id, email_id, subject, content, email_data, scheduled_time, status)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            RETURNING *
+          `, [
+            campaignId,
+            contactId || recipientId,
+            recipientId || contactId,
+            emailId,
+            emailSubject || emailData?.subject,
+            emailContent || JSON.stringify(emailData?.body),
+            JSON.stringify(emailData),
+            scheduledTime,
+            'scheduled'
+          ]);
+          
+          const scheduledEmail = result.rows[0];
+          console.log('Email scheduled successfully:', scheduledEmail);
+          res.json({ 
+            message: 'Email scheduled successfully', 
+            data: scheduledEmail,
+            scheduledTime: scheduledTime
+          });
+          return;
+        } catch (dbError) {
+          console.error('Database error scheduling email:', dbError);
+          // If table doesn't exist, create it
+          if (dbError.message.includes('does not exist')) {
+            try {
+              await pool.query(`
+                CREATE TABLE IF NOT EXISTS ${envId}.scheduled_emails (
+                  id SERIAL PRIMARY KEY,
+                  campaign_id INTEGER REFERENCES ${envId}.campaigns(id),
+                  contact_id INTEGER,
+                  recipient_id INTEGER,
+                  email_id INTEGER,
+                  subject TEXT,
+                  content TEXT,
+                  email_data JSONB,
+                  scheduled_time TIMESTAMP WITH TIME ZONE,
+                  status VARCHAR(20) DEFAULT 'scheduled',
+                  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+                  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+                )
+              `);
+              
+              // Retry the insert
+              const result = await pool.query(`
+                INSERT INTO ${envId}.scheduled_emails 
+                (campaign_id, contact_id, recipient_id, email_id, subject, content, email_data, scheduled_time, status)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                RETURNING *
+              `, [
+                campaignId,
+                contactId || recipientId,
+                recipientId || contactId,
+                emailId,
+                emailSubject || emailData?.subject,
+                emailContent || JSON.stringify(emailData?.body),
+                JSON.stringify(emailData),
+                scheduledTime,
+                'scheduled'
+              ]);
+              
+              const scheduledEmail = result.rows[0];
+              console.log('Email scheduled successfully after table creation:', scheduledEmail);
+              res.json({ 
+                message: 'Email scheduled successfully', 
+                data: scheduledEmail,
+                scheduledTime: scheduledTime
+              });
+              return;
+            } catch (createError) {
+              console.error('Error creating scheduled_emails table:', createError);
+              res.status(500).json({ error: 'Failed to create scheduling infrastructure' });
+              return;
+            }
+          }
+          res.status(500).json({ error: 'Failed to schedule email' });
+          return;
+        }
+      }
+      
+      res.status(400).json({ error: 'Email scheduling not supported for this environment' });
+    } catch (error) {
+      console.error('Error scheduling email:', error);
+      res.status(500).json({ error: 'Failed to schedule email' });
+    }
+  });
+
   // Assign campaign to partner
   app.post('/api/:envId/campaigns/:id/assign', async (req, res) => {
     try {
