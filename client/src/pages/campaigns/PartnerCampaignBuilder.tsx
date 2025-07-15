@@ -271,6 +271,34 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
         </div>
       </div>
       
+      {/* Navigation Controls */}
+      <div className="bg-white border-b border-gray-200 px-4 py-4 sm:px-6">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <Button
+            variant="outline"
+            onClick={handlePrevious}
+            disabled={currentStep === 1}
+            className="gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Previous
+          </Button>
+          
+          <div className="text-sm text-gray-500">
+            Step {currentStep} of 3
+          </div>
+          
+          <Button
+            onClick={handleNext}
+            disabled={currentStep === 3}
+            className="gap-2"
+          >
+            Next
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </div>
+      </div>
+      
       {/* Step Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {currentStep === 1 && (
@@ -398,34 +426,6 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
             </div>
           </div>
         )}
-      </div>
-      
-      {/* Navigation Footer */}
-      <div className="bg-white border-t border-gray-200 px-4 py-4 sm:px-6">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <Button
-            variant="outline"
-            onClick={handlePrevious}
-            disabled={currentStep === 1}
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Previous
-          </Button>
-          
-          <div className="text-sm text-gray-500">
-            Step {currentStep} of 3
-          </div>
-          
-          <Button
-            onClick={handleNext}
-            disabled={currentStep === 3}
-            className="gap-2"
-          >
-            Next
-            <ArrowRight className="h-4 w-4" />
-          </Button>
-        </div>
       </div>
     </div>
   );
