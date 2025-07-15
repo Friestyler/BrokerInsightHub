@@ -6,7 +6,7 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import ImprovedEmailBuilder from './ImprovedEmailBuilder';
-import CampaignSettingsWizard from '@/components/campaigns/CampaignSettingsWizard';
+import SenderSettingsPanel from '@/components/campaigns/SenderSettingsPanel';
 
 interface PartnerCampaignBuilderProps {
   params?: { campaignId?: string };
@@ -49,6 +49,7 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
   const [fromName, setFromName] = useState('');
   const [fromEmail, setFromEmail] = useState('');
   const [subject, setSubject] = useState('');
+  const [emailSendingType, setEmailSendingType] = useState('qollabi_default');
   
   // Fetch campaign data
   const { data: campaign, isLoading } = useQuery({
@@ -65,6 +66,7 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
       setSubject(campaign.subject || '');
       setFromName(campaign.from_name || '');
       setFromEmail(campaign.from_email || '');
+      setEmailSendingType(campaign.email_sending_type || 'qollabi_default');
       
       // Parse email body
       try {
@@ -144,6 +146,7 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
       email_body: JSON.stringify(emailBlocks),
       from_name: fromName,
       from_email: fromEmail,
+      email_sending_type: emailSendingType,
       status: 'draft'
     };
     
@@ -348,12 +351,13 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
             </div>
             
             <div className="p-6">
-              <CampaignSettingsWizard
-                step="sender"
+              <SenderSettingsPanel
                 fromName={fromName}
                 fromEmail={fromEmail}
+                emailSendingType={emailSendingType}
                 onFromNameChange={setFromName}
                 onFromEmailChange={setFromEmail}
+                onEmailSendingTypeChange={setEmailSendingType}
                 isPartnerMode={true}
               />
             </div>
@@ -390,8 +394,12 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                       <p className="font-medium">{campaign.recipients?.length || 0} contacts</p>
                     </div>
                     <div>
-                      <span className="text-gray-500">Status:</span>
-                      <p className="font-medium">Ready to send</p>
+                      <span className="text-gray-500">Email Type:</span>
+                      <p className="font-medium">
+                        {emailSendingType === 'qollabi_default' ? 'Qollabi Default' :
+                         emailSendingType === 'custom_email' ? 'Custom Email' :
+                         emailSendingType === 'partner_select' ? 'Partner Select' : 'Default'}
+                      </p>
                     </div>
                   </div>
                 </div>
