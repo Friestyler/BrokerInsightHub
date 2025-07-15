@@ -1210,16 +1210,50 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
   // Email editing functions
   const handleEditEmail = (contact: any, email: any, emailIndex: number) => {
-    // Populate email content with contact's information
-    const emailContent = email.blocks.find((block: any) => block.type === 'text')?.content || '';
+    console.log('handleEditEmail called with:', { contact, email, emailIndex });
+    
+    // Extract email content from blocks
+    let emailContent = '';
+    
+    if (email.blocks && Array.isArray(email.blocks)) {
+      // Combine all text blocks into a single content string
+      emailContent = email.blocks
+        .filter((block: any) => block.type === 'text')
+        .map((block: any) => block.content || '')
+        .join('\n\n');
+    } else if (email.email_body) {
+      // Try to parse email_body if it's a JSON string
+      try {
+        const blocks = JSON.parse(email.email_body);
+        if (Array.isArray(blocks)) {
+          emailContent = blocks
+            .filter((block: any) => block.type === 'text')
+            .map((block: any) => block.content || '')
+            .join('\n\n');
+        } else {
+          emailContent = email.email_body;
+        }
+      } catch (e) {
+        emailContent = email.email_body;
+      }
+    } else {
+      // Fallback to other properties
+      emailContent = email.content || email.text || 'No email content available';
+    }
+    
+    console.log('Extracted email content:', emailContent);
     
     // Replace placeholders with actual contact data
     const populatedContent = emailContent
-      .replace(/\{contact_name\}/g, contact.name || 'Dear Customer')
-      .replace(/\{company_name\}/g, contact.customerInfo?.name || 'Your Company')
-      .replace(/\{opportunity_title\}/g, contact.opportunityInfo?.title || 'Opportunity')
-      .replace(/\{opportunity_value\}/g, contact.opportunityInfo?.estimated_value || '0')
-      .replace(/\{opportunity_description\}/g, contact.opportunityInfo?.description || '');
+      .replace(/\{\{naam\}\}/g, contact.name || contact.customerInfo?.name || 'Dear Customer')
+      .replace(/\{\{name\}\}/g, contact.name || contact.customerInfo?.name || 'Dear Customer')
+      .replace(/\{\{contact_name\}\}/g, contact.name || contact.customerInfo?.name || 'Dear Customer')
+      .replace(/\{\{company_name\}\}/g, contact.customerInfo?.name || 'Your Company')
+      .replace(/\{\{opportunity_title\}\}/g, contact.title || contact.opportunityInfo?.title || 'Opportunity')
+      .replace(/\{\{opportunity_value\}\}/g, contact.estimated_value || contact.opportunityInfo?.estimated_value || '0')
+      .replace(/\{\{opportunity_description\}\}/g, contact.description || contact.opportunityInfo?.description || '');
+
+    console.log('Populated content:', populatedContent);
 
     setEditingEmail({ contact, email, emailIndex });
     setEditingEmailSubject(email.subject || '');
@@ -2915,34 +2949,39 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       <Dialog open={!!editingEmail} onOpenChange={handleCancelEdit}>
         <DialogContent className="max-w-4xl">
           <DialogHeader>
-            <DialogTitle>Edit Email</DialogTitle>
+            <DialogTitle>Edit Individual Email</DialogTitle>
+            {editingEmail && (
+              <div className="text-sm text-gray-600 mt-2">
+                Editing email for: <span className="font-medium">{editingEmail.contact.name || editingEmail.contact.customerInfo?.name}</span>
+              </div>
+            )}
           </DialogHeader>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Subject
+                Subject Line
               </label>
               <input
                 type="text"
                 value={editingEmailSubject}
                 onChange={(e) => setEditingEmailSubject(e.target.value)}
-                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="Enter email subject"
               />
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Content
+                Email Content
               </label>
               <textarea
                 value={editingEmailContent}
                 onChange={(e) => setEditingEmailContent(e.target.value)}
-                rows={12}
-                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                rows={14}
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
                 placeholder="Enter email content"
               />
             </div>
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-3 pt-4 border-t">
               <Button
                 variant="outline"
                 onClick={handleCancelEdit}
@@ -2953,8 +2992,9 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               <Button
                 onClick={handleSaveEmail}
                 disabled={saveEmailCustomizationMutation.isPending}
+                className="bg-blue-600 hover:bg-blue-700"
               >
-                {saveEmailCustomizationMutation.isPending ? 'Saving...' : 'Save'}
+                {saveEmailCustomizationMutation.isPending ? 'Saving...' : 'Save Changes'}
               </Button>
             </div>
           </div>
