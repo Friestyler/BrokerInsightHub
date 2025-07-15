@@ -908,7 +908,7 @@ export default function ProductTemplates() {
               onClick={() => setActiveTab('alerts')}
             >
               <Bell className="h-4 w-4" />
-              Alert Settings
+              Category Alerts
             </Button>
             <Button 
               variant="ghost" 
