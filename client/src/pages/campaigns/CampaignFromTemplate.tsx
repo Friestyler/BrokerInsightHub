@@ -498,34 +498,16 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
 
   return (
     <div className="space-y-6">
-      {/* Filter Buttons */}
-      <div className="flex items-center gap-3">
-        <Button
-          variant={filterStatus === 'all' ? 'default' : 'outline'}
-          size="sm"
+      {/* Summary Cards - Now function as filter buttons */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div 
+          className={`bg-white rounded-lg border-2 p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
+            filterStatus === 'all' 
+              ? 'border-blue-500 bg-blue-50' 
+              : 'border-gray-200 hover:border-gray-300'
+          }`}
           onClick={() => setFilterStatus('all')}
         >
-          All ({customerGroups.length})
-        </Button>
-        <Button
-          variant={filterStatus === 'assigned' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setFilterStatus('assigned')}
-        >
-          Assigned ({assignedCustomers.length})
-        </Button>
-        <Button
-          variant={filterStatus === 'unassigned' ? 'default' : 'outline'}
-          size="sm"
-          onClick={() => setFilterStatus('unassigned')}
-        >
-          Unassigned ({unassignedCustomers.length})
-        </Button>
-      </div>
-
-      {/* Summary Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-lg border p-4">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
               <Users className="h-4 w-4 text-blue-600" />
@@ -538,7 +520,14 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
           </div>
         </div>
         
-        <div className="bg-white rounded-lg border p-4">
+        <div 
+          className={`bg-white rounded-lg border-2 p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
+            filterStatus === 'assigned' 
+              ? 'border-green-500 bg-green-50' 
+              : 'border-gray-200 hover:border-gray-300'
+          }`}
+          onClick={() => setFilterStatus('assigned')}
+        >
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
               <UserCheck className="h-4 w-4 text-green-600" />
@@ -551,7 +540,14 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
           </div>
         </div>
         
-        <div className="bg-white rounded-lg border p-4">
+        <div 
+          className={`bg-white rounded-lg border-2 p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
+            filterStatus === 'unassigned' 
+              ? 'border-orange-500 bg-orange-50' 
+              : 'border-gray-200 hover:border-gray-300'
+          }`}
+          onClick={() => setFilterStatus('unassigned')}
+        >
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
               <AlertCircle className="h-4 w-4 text-orange-600" />
