@@ -113,15 +113,48 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
   
   // Function to handle edit email
   const handleEditEmail = (contact: any, emailIndex: number, emailData: any) => {
-    const currentSubject = emailData.subject || subject || 'Untitled Email';
-    const currentBlocks = emailData.blocks || emailBlocks || [];
+    console.log('handleEditEmail called with:', { contact, emailData, emailIndex });
+    
+    let currentSubject = emailData.subject || subject || 'Untitled Email';
+    let currentBlocks = emailData.blocks || emailBlocks || [];
+    
+    // If emailData doesn't have blocks, try to parse from campaign data
+    if (!currentBlocks || currentBlocks.length === 0) {
+      if (campaignData && campaignData.email_body) {
+        try {
+          const parsedBlocks = JSON.parse(campaignData.email_body);
+          currentBlocks = parsedBlocks || [];
+        } catch (e) {
+          console.error('Failed to parse email_body:', e);
+          currentBlocks = [{
+            id: 'default',
+            type: 'text',
+            content: campaignData.email_body || 'No content available'
+          }];
+        }
+      }
+    }
+    
+    // If still no blocks, create a default one
+    if (!currentBlocks || currentBlocks.length === 0) {
+      currentBlocks = [{
+        id: 'default',
+        type: 'text',
+        content: 'No content available'
+      }];
+    }
+    
+    console.log('Processing blocks:', currentBlocks);
     
     // Populate dynamic fields in subject and blocks
     const populatedSubject = populateDynamicFields(currentSubject, contact);
     const populatedBlocks = currentBlocks.map((block: any) => ({
       ...block,
-      content: populateDynamicFields(block.content, contact)
+      content: populateDynamicFields(block.content || '', contact)
     }));
+    
+    console.log('Populated subject:', populatedSubject);
+    console.log('Populated blocks:', populatedBlocks);
     
     setEditingEmail({
       contact,
@@ -1569,41 +1602,26 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                 />
               </div>
               
-              {/* Email Builder */}
+              {/* Email Content */}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">Email Content</label>
-                <div className="border rounded-lg">
-                  <ImprovedEmailBuilder
-                    blocks={editEmailBlocks}
-                    onChange={setEditEmailBlocks}
-                    subject={editEmailSubject}
-                    onSubjectChange={setEditEmailSubject}
-                    hideSubject={true}
-                  />
-                </div>
+                <textarea
+                  value={editEmailBlocks.map(block => block.content).join('\n\n')}
+                  onChange={(e) => {
+                    const content = e.target.value;
+                    setEditEmailBlocks([{
+                      id: 'text-block',
+                      type: 'text',
+                      content: content
+                    }]);
+                  }}
+                  rows={12}
+                  className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+                  placeholder="Enter email content..."
+                />
               </div>
               
-              {/* Dynamic Fields Info */}
-              <div className="bg-blue-50 rounded-lg p-4">
-                <h4 className="font-medium text-sm text-blue-900 mb-2">Dynamic Fields Available</h4>
-                <div className="grid grid-cols-2 gap-4 text-xs">
-                  <div>
-                    <div className="font-medium text-blue-800">Contact Fields:</div>
-                    <div className="text-blue-600">
-                      {editingEmail.contact.first_name && '{{name}} → ' + editingEmail.contact.first_name}<br/>
-                      {editingEmail.contact.email && '{{email}} → ' + editingEmail.contact.email}<br/>
-                      {editingEmail.contact.job_title && '{{job_title}} → ' + editingEmail.contact.job_title}
-                    </div>
-                  </div>
-                  <div>
-                    <div className="font-medium text-blue-800">Company Fields:</div>
-                    <div className="text-blue-600">
-                      {editingEmail.contact.customerInfo?.name && '{{company}} → ' + editingEmail.contact.customerInfo.name}<br/>
-                      {editingEmail.contact.customerInfo?.name && '{{customer_name}} → ' + editingEmail.contact.customerInfo.name}
-                    </div>
-                  </div>
-                </div>
-              </div>
+
               
               {/* Action Buttons */}
               <div className="flex justify-end gap-3 pt-4">
