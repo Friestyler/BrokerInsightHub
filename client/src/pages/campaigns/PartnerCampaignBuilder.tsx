@@ -672,10 +672,6 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
             Previous
           </Button>
           
-          <div className="text-sm text-gray-500">
-            Step {currentStep} of 3
-          </div>
-          
           <div className="flex gap-3 items-center">
             {/* Send All Button - Show on Drafts step */}
             {currentStep === 3 && (() => {

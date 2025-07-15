@@ -164,38 +164,32 @@ export default function SendScheduleButton({
     );
   }
 
-  // Bulk variant for "Send All" functionality
+  // Bulk variant for "Send All" functionality - same integrated design as single
   return (
     <>
-      <div className="flex items-center gap-2">
-        <Button
-          onClick={onSendNow}
-          disabled={disabled || isLoading || !hasRecipients}
-          className={`${buttonClasses} bg-green-600 hover:bg-green-700 text-white flex-1`}
-        >
-          <Send className={`${iconClasses} mr-2`} />
-          {isLoading ? 'Sending...' : 'Send all'}
-        </Button>
-        
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button
-              variant="outline"
-              size={size}
-              className={`${buttonClasses} px-2`}
-              disabled={disabled || isLoading || !hasRecipients}
-            >
-              <ChevronDown className={iconClasses} />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-48">
-            <DropdownMenuItem onClick={() => setShowScheduleDialog(true)}>
-              <Calendar className="h-4 w-4 mr-2" />
-              Schedule to send
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
-      </div>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            size={size}
+            className={`${buttonClasses} bg-green-600 hover:bg-green-700 text-white ${disabled ? 'opacity-50' : ''}`}
+            disabled={disabled || isLoading || !hasRecipients}
+          >
+            <Send className={`${iconClasses} mr-1`} />
+            {isLoading ? 'Sending...' : 'Send all'}
+            <ChevronDown className={`${iconClasses} ml-1`} />
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="w-48">
+          <DropdownMenuItem onClick={onSendNow}>
+            <Send className="h-4 w-4 mr-2" />
+            Send now
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => setShowScheduleDialog(true)}>
+            <Calendar className="h-4 w-4 mr-2" />
+            Schedule to send
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
 
       <Dialog open={showScheduleDialog} onOpenChange={setShowScheduleDialog}>
         <DialogContent className="sm:max-w-md">

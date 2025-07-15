@@ -3413,17 +3413,6 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
           </Button>
           
           <div className="flex gap-3 items-center">
-            {/* Save Campaign Button - show when campaign not saved yet */}
-            {!campaignData.id && isStepCompleted(1) && isStepCompleted(2) && isStepCompleted(3) && isStepCompleted(4) && isStepCompleted(5) && (
-              <Button
-                onClick={handleSave}
-                disabled={createCampaignMutation.isPending || updateCampaignMutation.isPending}
-                className="gap-2"
-              >
-                {createCampaignMutation.isPending ? 'Saving...' : 'Save'}
-              </Button>
-            )}
-            
             {/* Send All Button - Show on Drafts step */}
             {currentStep === 6 && (() => {
               // Count all ready contacts across ALL customers in the campaign
@@ -3445,6 +3434,17 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 </>
               );
             })()}
+            
+            {/* Save Campaign Button - show when campaign not saved yet */}
+            {!campaignData.id && isStepCompleted(1) && isStepCompleted(2) && isStepCompleted(3) && isStepCompleted(4) && isStepCompleted(5) && (
+              <Button
+                onClick={handleSave}
+                disabled={createCampaignMutation.isPending || updateCampaignMutation.isPending}
+                className="gap-2"
+              >
+                {createCampaignMutation.isPending ? 'Saving...' : 'Save'}
+              </Button>
+            )}
             
             {currentStep < totalSteps ? (
               <Button
