@@ -808,8 +808,8 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
                   ))}
                 </div>
                 
-                {/* Multiple Partner Lists Selection Notice */}
-                {selectedPartnersForAssignment.length > 1 && (
+                {/* Partner Lists Selection Notice - Always show since lists contain multiple partners */}
+                {selectedPartnersForAssignment.length > 0 && (
                   <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <div className="flex items-start gap-2">
                       <div className="w-4 h-4 rounded-full bg-yellow-400 flex items-center justify-center mt-0.5">
@@ -820,7 +820,10 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
                           Random Assignment
                         </p>
                         <p className="text-sm text-yellow-700 mt-1">
-                          Qollabi will randomly assign the selected customers across partners from the {selectedPartnersForAssignment.length} chosen lists to ensure balanced distribution.
+                          {selectedPartnersForAssignment.length === 1 
+                            ? "Qollabi will randomly assign the selected customers across partners from the chosen list to ensure balanced distribution."
+                            : `Qollabi will randomly assign the selected customers across partners from the ${selectedPartnersForAssignment.length} chosen lists to ensure balanced distribution.`
+                          }
                         </p>
                       </div>
                     </div>
