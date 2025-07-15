@@ -70,6 +70,108 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
   const [suggestionsCollapsed, setSuggestionsCollapsed] = useState(false);
   const [customerSuggestionsCollapsed, setCustomerSuggestionsCollapsed] = useState<{[key: string]: boolean}>({});
   
+  // State for edit individual email functionality
+  const [editingEmail, setEditingEmail] = useState<{
+    contact: any;
+    emailIndex: number;
+    emailData: any;
+  } | null>(null);
+  const [editEmailSubject, setEditEmailSubject] = useState('');
+  const [editEmailBlocks, setEditEmailBlocks] = useState<any[]>([]);
+  
+  // Function to populate dynamic fields with contact data
+  const populateDynamicFields = (content: string, contact: any) => {
+    if (!content || !contact) return content;
+    
+    let populatedContent = content;
+    
+    // Replace common dynamic fields
+    populatedContent = populatedContent.replace(/\{\{name\}\}/g, contact.first_name || contact.name || 'Contact');
+    populatedContent = populatedContent.replace(/\{\{first_name\}\}/g, contact.first_name || contact.name || 'Contact');
+    populatedContent = populatedContent.replace(/\{\{last_name\}\}/g, contact.last_name || '');
+    populatedContent = populatedContent.replace(/\{\{full_name\}\}/g, 
+      contact.first_name && contact.last_name 
+        ? `${contact.first_name} ${contact.last_name}` 
+        : contact.name || 'Contact'
+    );
+    populatedContent = populatedContent.replace(/\{\{email\}\}/g, contact.email || '');
+    populatedContent = populatedContent.replace(/\{\{company\}\}/g, contact.company || contact.customerInfo?.name || '');
+    populatedContent = populatedContent.replace(/\{\{job_title\}\}/g, contact.job_title || '');
+    populatedContent = populatedContent.replace(/\{\{phone\}\}/g, contact.phone || '');
+    
+    // Replace with customer/opportunity data if available
+    if (contact.customerInfo) {
+      populatedContent = populatedContent.replace(/\{\{customer_name\}\}/g, contact.customerInfo.name || '');
+    }
+    if (contact.opportunityInfo) {
+      populatedContent = populatedContent.replace(/\{\{opportunity_title\}\}/g, contact.opportunityInfo.title || '');
+      populatedContent = populatedContent.replace(/\{\{opportunity_value\}\}/g, contact.opportunityInfo.estimated_value || '');
+    }
+    
+    return populatedContent;
+  };
+  
+  // Function to handle edit email
+  const handleEditEmail = (contact: any, emailIndex: number, emailData: any) => {
+    const currentSubject = emailData.subject || subject || 'Untitled Email';
+    const currentBlocks = emailData.blocks || emailBlocks || [];
+    
+    // Populate dynamic fields in subject and blocks
+    const populatedSubject = populateDynamicFields(currentSubject, contact);
+    const populatedBlocks = currentBlocks.map((block: any) => ({
+      ...block,
+      content: populateDynamicFields(block.content, contact)
+    }));
+    
+    setEditingEmail({
+      contact,
+      emailIndex,
+      emailData
+    });
+    setEditEmailSubject(populatedSubject);
+    setEditEmailBlocks(populatedBlocks);
+  };
+  
+  // Function to save edited email
+  const saveEditedEmailMutation = useMutation({
+    mutationFn: async (editedData: any) => {
+      return apiRequest(`/api/${envId}/campaigns/${campaignId}/emails/${editedData.emailIndex}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          contactId: editedData.contact.id,
+          subject: editedData.subject,
+          blocks: editedData.blocks
+        })
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/${envId}/campaigns`, campaignId] });
+      setEditingEmail(null);
+      toast({
+        title: "Email updated",
+        description: "The email has been successfully customized."
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error updating email",
+        description: "Failed to save the customized email. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+  
+  const handleSaveEditedEmail = () => {
+    if (!editingEmail) return;
+    
+    saveEditedEmailMutation.mutate({
+      contact: editingEmail.contact,
+      emailIndex: editingEmail.emailIndex,
+      subject: editEmailSubject,
+      blocks: editEmailBlocks
+    });
+  };
+  
   // Fetch campaign data
   const { data: campaign, isLoading } = useQuery({
     queryKey: [`/api/${envId}/campaigns`, campaignId],
@@ -1142,20 +1244,27 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                                   {campaign.emails && campaign.emails.length > 0 ? (
                                     campaign.emails.map((email: any, emailIndex: number) => {
                                       const emailContent = email.blocks?.find((block: any) => block.type === 'text')?.content || email.subject || subject;
-                                      const truncatedContent = emailContent.length > 80 ? emailContent.substring(0, 80) + '...' : emailContent;
+                                      const populatedContent = populateDynamicFields(emailContent, contact);
+                                      const truncatedContent = populatedContent.length > 80 ? populatedContent.substring(0, 80) + '...' : populatedContent;
+                                      const populatedSubject = populateDynamicFields(email.subject || subject || 'Untitled Email', contact);
                                       
                                       return (
                                         <div key={emailIndex} className="bg-gray-50 rounded-lg p-3">
                                           <div className="flex items-center justify-between mb-2">
                                             <div className="flex items-center gap-2">
                                               <span className="text-sm font-medium text-gray-900">{emailIndex + 1}</span>
-                                              <span className="text-sm font-medium text-gray-900">{email.subject || subject || 'Untitled Email'}</span>
+                                              <span className="text-sm font-medium text-gray-900">{populatedSubject}</span>
                                             </div>
                                             <div className="flex items-center gap-2">
                                               <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
                                                 {emailIndex === 0 ? 'ready' : 'scheduled'}
                                               </Badge>
-                                              <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                                              <Button 
+                                                size="sm" 
+                                                variant="ghost" 
+                                                className="h-6 w-6 p-0"
+                                                onClick={() => handleEditEmail(contact, emailIndex, email)}
+                                              >
                                                 <Edit className="h-3 w-3" />
                                               </Button>
                                               {hasEmail && emailIndex === 0 && (
@@ -1183,13 +1292,18 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                                       <div className="flex items-center justify-between mb-2">
                                         <div className="flex items-center gap-2">
                                           <span className="text-sm font-medium text-gray-900">1</span>
-                                          <span className="text-sm font-medium text-gray-900">{subject || 'Untitled Email'}</span>
+                                          <span className="text-sm font-medium text-gray-900">{populateDynamicFields(subject || 'Untitled Email', contact)}</span>
                                         </div>
                                         <div className="flex items-center gap-2">
                                           <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
                                             ready
                                           </Badge>
-                                          <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                                          <Button 
+                                            size="sm" 
+                                            variant="ghost" 
+                                            className="h-6 w-6 p-0"
+                                            onClick={() => handleEditEmail(contact, 0, { subject, blocks: emailBlocks })}
+                                          >
                                             <Edit className="h-3 w-3" />
                                           </Button>
                                           {hasEmail && (
@@ -1207,7 +1321,12 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                                       </div>
                                       <div className="text-xs text-gray-500 mb-2">Immediate</div>
                                       <div className="text-xs text-gray-600">
-                                        {emailBlocks.find((block: any) => block.type === 'text')?.content?.substring(0, 80) || 'Email content...'}
+                                        {(() => {
+                                          const textBlock = emailBlocks.find((block: any) => block.type === 'text');
+                                          const content = textBlock?.content || 'Email content...';
+                                          const populatedContent = populateDynamicFields(content, contact);
+                                          return populatedContent.substring(0, 80) + (populatedContent.length > 80 ? '...' : '');
+                                        })()}
                                       </div>
                                     </div>
                                   )}
@@ -1407,6 +1526,103 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
               </Button>
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Edit Email Dialog */}
+      <Dialog open={!!editingEmail} onOpenChange={() => setEditingEmail(null)}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              Edit Email {editingEmail ? editingEmail.emailIndex + 1 : ''} - {editingEmail?.contact?.first_name || editingEmail?.contact?.name || 'Contact'}
+            </DialogTitle>
+          </DialogHeader>
+          
+          {editingEmail && (
+            <div className="space-y-6">
+              {/* Contact Info */}
+              <div className="bg-gray-50 rounded-lg p-4">
+                <h4 className="font-medium text-sm text-gray-900 mb-2">Recipient</h4>
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                    <User className="h-4 w-4 text-blue-600" />
+                  </div>
+                  <div>
+                    <div className="font-medium text-sm text-gray-900">
+                      {editingEmail.contact.first_name || editingEmail.contact.name || 'Contact'}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      {editingEmail.contact.email || 'No email'}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Email Subject */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                <Input
+                  value={editEmailSubject}
+                  onChange={(e) => setEditEmailSubject(e.target.value)}
+                  placeholder="Enter email subject"
+                  className="w-full"
+                />
+              </div>
+              
+              {/* Email Builder */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Email Content</label>
+                <div className="border rounded-lg">
+                  <ImprovedEmailBuilder
+                    blocks={editEmailBlocks}
+                    onChange={setEditEmailBlocks}
+                    subject={editEmailSubject}
+                    onSubjectChange={setEditEmailSubject}
+                    hideSubject={true}
+                  />
+                </div>
+              </div>
+              
+              {/* Dynamic Fields Info */}
+              <div className="bg-blue-50 rounded-lg p-4">
+                <h4 className="font-medium text-sm text-blue-900 mb-2">Dynamic Fields Available</h4>
+                <div className="grid grid-cols-2 gap-4 text-xs">
+                  <div>
+                    <div className="font-medium text-blue-800">Contact Fields:</div>
+                    <div className="text-blue-600">
+                      {editingEmail.contact.first_name && '{{name}} → ' + editingEmail.contact.first_name}<br/>
+                      {editingEmail.contact.email && '{{email}} → ' + editingEmail.contact.email}<br/>
+                      {editingEmail.contact.job_title && '{{job_title}} → ' + editingEmail.contact.job_title}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="font-medium text-blue-800">Company Fields:</div>
+                    <div className="text-blue-600">
+                      {editingEmail.contact.customerInfo?.name && '{{company}} → ' + editingEmail.contact.customerInfo.name}<br/>
+                      {editingEmail.contact.customerInfo?.name && '{{customer_name}} → ' + editingEmail.contact.customerInfo.name}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {/* Action Buttons */}
+              <div className="flex justify-end gap-3 pt-4">
+                <Button
+                  variant="outline"
+                  onClick={() => setEditingEmail(null)}
+                  disabled={saveEditedEmailMutation.isPending}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSaveEditedEmail}
+                  disabled={saveEditedEmailMutation.isPending}
+                >
+                  {saveEditedEmailMutation.isPending ? 'Saving...' : 'Save Changes'}
+                </Button>
+              </div>
+            </div>
+          )}
         </DialogContent>
       </Dialog>
     </div>

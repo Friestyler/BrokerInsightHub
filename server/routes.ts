@@ -10517,6 +10517,81 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
     }
   });
 
+  // Get email customizations for a campaign
+  app.get('/api/:envId/campaigns/:campaignId/email-customizations', async (req, res) => {
+    try {
+      const { envId, campaignId } = req.params;
+      
+      if (envId === 'degoudse') {
+        try {
+          const result = await pool.query(`
+            SELECT * FROM ${envId}.email_customizations
+            WHERE campaign_id = $1
+          `, [parseInt(campaignId)]);
+          
+          res.json(result.rows);
+          return;
+        } catch (dbError) {
+          console.error('Database error fetching email customizations:', dbError);
+          res.status(500).json({ error: 'Failed to fetch email customizations' });
+          return;
+        }
+      }
+      
+      res.status(400).json({ error: 'Email customization not supported for this environment' });
+    } catch (error) {
+      console.error('Error fetching email customizations:', error);
+      res.status(500).json({ error: 'Failed to fetch email customizations' });
+    }
+  });
+
+  // Save individual email customization
+  app.post('/api/:envId/campaigns/:campaignId/emails/:contactId', async (req, res) => {
+    try {
+      const { envId, campaignId, contactId } = req.params;
+      const { customizedContent } = req.body;
+      
+      if (envId === 'degoudse') {
+        try {
+          // Check if email_customizations table exists, create if not
+          await pool.query(`
+            CREATE TABLE IF NOT EXISTS ${envId}.email_customizations (
+              id SERIAL PRIMARY KEY,
+              campaign_id INTEGER NOT NULL,
+              contact_id INTEGER NOT NULL,
+              customized_content TEXT NOT NULL,
+              created_at TIMESTAMP DEFAULT NOW(),
+              updated_at TIMESTAMP DEFAULT NOW(),
+              UNIQUE(campaign_id, contact_id)
+            )
+          `);
+          
+          // Insert or update customized email content
+          const result = await pool.query(`
+            INSERT INTO ${envId}.email_customizations (campaign_id, contact_id, customized_content, updated_at)
+            VALUES ($1, $2, $3, NOW())
+            ON CONFLICT (campaign_id, contact_id) 
+            DO UPDATE SET customized_content = $3, updated_at = NOW()
+            RETURNING *
+          `, [parseInt(campaignId), parseInt(contactId), customizedContent]);
+          
+          console.log('Email customization saved successfully:', result.rows[0]);
+          res.json({ message: 'Email customization saved successfully', data: result.rows[0] });
+          return;
+        } catch (dbError) {
+          console.error('Database error saving email customization:', dbError);
+          res.status(500).json({ error: 'Failed to save email customization' });
+          return;
+        }
+      }
+      
+      res.status(400).json({ error: 'Email customization not supported for this environment' });
+    } catch (error) {
+      console.error('Error saving email customization:', error);
+      res.status(500).json({ error: 'Failed to save email customization' });
+    }
+  });
+
   // Assign campaign to partner
   app.post('/api/:envId/campaigns/:id/assign', async (req, res) => {
     try {

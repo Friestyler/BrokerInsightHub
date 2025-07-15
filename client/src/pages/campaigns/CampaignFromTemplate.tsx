@@ -10,7 +10,7 @@ import { useLocation, useRoute, useParams } from 'wouter';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import ImprovedFlowBuilder from './ImprovedEmailBuilder';
+import ImprovedEmailBuilder from './ImprovedEmailBuilder';
 import RecipientSelector from '@/components/campaigns/RecipientSelector';
 import CampaignSettingsWizard from '@/components/campaigns/CampaignSettingsWizard';
 
@@ -401,9 +401,59 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
   // Create a per-customer suggestions state
   const [customerSuggestionsCollapsed, setCustomerSuggestionsCollapsed] = useState<Record<string, boolean>>({});
+
+  // Save email customization
+  const saveEmailCustomizationMutation = useMutation({
+    mutationFn: async ({ campaignId, contactId, subject, content }: {
+      campaignId: string;
+      contactId: string;
+      subject: string;
+      content: string;
+    }) => {
+      const response = await apiRequest(`/api/degoudse/campaigns/${campaignId}/emails/${contactId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ subject, content })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to save email customization');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Email customization saved successfully!",
+        variant: "default"
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save email customization",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Fetch email customizations for the campaign
+  const { data: emailCustomizations = [] } = useQuery({
+    queryKey: ['/api/degoudse/campaigns', campaignData.id, 'email-customizations'],
+    enabled: !!campaignData.id
+  });
   
   // Contact filter state
   const [contactFilter, setContactFilter] = useState<'all' | 'with_contacts' | 'without_contacts'>('all');
+  
+  // Email editing state
+  const [editingEmail, setEditingEmail] = useState<{ contact: any, email: any, emailIndex: number } | null>(null);
+  const [editingEmailSubject, setEditingEmailSubject] = useState('');
+  const [editingEmailContent, setEditingEmailContent] = useState('');
+  const [customizations, setCustomizations] = useState<{[key: string]: any}>({});
 
   // Initialize suggestions state for each customer based on whether they have existing contacts
   useEffect(() => {
@@ -1158,6 +1208,58 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     }
   };
 
+  // Email editing functions
+  const handleEditEmail = (contact: any, email: any, emailIndex: number) => {
+    // Populate email content with contact's information
+    const emailContent = email.blocks.find((block: any) => block.type === 'text')?.content || '';
+    
+    // Replace placeholders with actual contact data
+    const populatedContent = emailContent
+      .replace(/\{contact_name\}/g, contact.name || 'Dear Customer')
+      .replace(/\{company_name\}/g, contact.customerInfo?.name || 'Your Company')
+      .replace(/\{opportunity_title\}/g, contact.opportunityInfo?.title || 'Opportunity')
+      .replace(/\{opportunity_value\}/g, contact.opportunityInfo?.estimated_value || '0')
+      .replace(/\{opportunity_description\}/g, contact.opportunityInfo?.description || '');
+
+    setEditingEmail({ contact, email, emailIndex });
+    setEditingEmailSubject(email.subject || '');
+    setEditingEmailContent(populatedContent);
+  };
+
+  const handleSaveEmail = async () => {
+    if (!editingEmail || !campaignData.id) return;
+
+    try {
+      await saveEmailCustomizationMutation.mutateAsync({
+        campaignId: campaignData.id,
+        contactId: editingEmail.contact.id,
+        subject: editingEmailSubject,
+        content: editingEmailContent
+      });
+
+      // Update local state
+      setCustomizations(prev => ({
+        ...prev,
+        [`${editingEmail.contact.id}-${editingEmail.emailIndex}`]: {
+          subject: editingEmailSubject,
+          content: editingEmailContent
+        }
+      }));
+
+      setEditingEmail(null);
+    } catch (error) {
+      console.error('Failed to save email customization:', error);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingEmail(null);
+    setEditingEmailSubject('');
+    setEditingEmailContent('');
+  };
+
+
+
   // Get partners related to selected recipients
   const getRelatedPartners = () => {
     if (!campaignData.recipients || !allPartners) return [];
@@ -1579,7 +1681,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               </div>
             )}
             
-            <ImprovedFlowBuilder
+            <ImprovedEmailBuilder
               emails={campaignData.emails}
               activeEmailIndex={activeEmailIndex}
               entityType={campaignData.entity}
@@ -2326,7 +2428,12 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                             <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
                                               {emailIndex === 0 ? 'ready' : 'scheduled'}
                                             </Badge>
-                                            <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                                            <Button 
+                                              size="sm" 
+                                              variant="ghost" 
+                                              className="h-6 w-6 p-0"
+                                              onClick={() => handleEditEmail(contact, email, emailIndex)}
+                                            >
                                               <Edit className="h-3 w-3" />
                                             </Button>
                                             {hasEmail && emailIndex === 0 && (
@@ -2800,6 +2907,56 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             >
               {createContactMutation.isPending ? 'Adding...' : 'Add Contact'}
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Email Edit Dialog */}
+      <Dialog open={!!editingEmail} onOpenChange={handleCancelEdit}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Edit Email</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Subject
+              </label>
+              <input
+                type="text"
+                value={editingEmailSubject}
+                onChange={(e) => setEditingEmailSubject(e.target.value)}
+                className="w-full p-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter email subject"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Content
+              </label>
+              <textarea
+                value={editingEmailContent}
+                onChange={(e) => setEditingEmailContent(e.target.value)}
+                rows={12}
+                className="w-full p-3 border border-gray-300 rounded-md focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Enter email content"
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={handleCancelEdit}
+                disabled={saveEmailCustomizationMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveEmail}
+                disabled={saveEmailCustomizationMutation.isPending}
+              >
+                {saveEmailCustomizationMutation.isPending ? 'Saving...' : 'Save'}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
