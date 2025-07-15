@@ -929,18 +929,18 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                                           size="sm" 
                                           className="text-xs h-6 px-2 text-gray-500 hover:text-gray-700"
                                           onClick={() => {
-                                            const currentState = customerSuggestionsCollapsed[customerName] ?? false;
+                                            const currentState = customerSuggestionsCollapsed[customerName] ?? true; // Default to collapsed for customers with no contacts
                                             setCustomerSuggestionsCollapsed(prev => ({
                                               ...prev,
                                               [customerName]: !currentState
                                             }));
                                           }}
                                         >
-                                          {(customerSuggestionsCollapsed[customerName] ?? false) ? 'Show' : 'Hide'}
+                                          {(customerSuggestionsCollapsed[customerName] ?? true) ? 'Show' : 'Hide'}
                                         </Button>
                                       </div>
                                       
-                                      {!(customerSuggestionsCollapsed[customerName] ?? false) && (
+                                      {!(customerSuggestionsCollapsed[customerName] ?? true) && (
                                         <>
                                           <p className="text-xs text-gray-500 mb-4">We found these additional potential contacts for {customerName}. Click to add them instantly.</p>
                                           
@@ -1105,7 +1105,7 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                                   )}
                                 </div>
                                 
-                                {/* Additional Suggested Contacts - Always show for ALL contacts */}
+                                {/* Additional Suggested Contacts - Show for ALL contacts */}
                                 <div className="mt-4 border-t pt-4">
                                   <div className="flex items-center justify-between mb-3">
                                     <div className="flex items-center gap-2">
@@ -1119,13 +1119,19 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                                       variant="ghost" 
                                       size="sm" 
                                       className="text-xs h-6 px-2 text-gray-500 hover:text-gray-700"
-                                      onClick={() => setSuggestionsCollapsed(!suggestionsCollapsed)}
+                                      onClick={() => {
+                                        const key = `${customerName}`;
+                                        setCustomerSuggestionsCollapsed(prev => ({
+                                          ...prev,
+                                          [key]: !prev[key]
+                                        }));
+                                      }}
                                     >
-                                      {suggestionsCollapsed ? 'Show' : 'Hide'}
+                                      {(customerSuggestionsCollapsed[customerName] ?? true) ? 'Show' : 'Hide'}
                                     </Button>
                                   </div>
                                   
-                                  {!suggestionsCollapsed && (
+                                  {!(customerSuggestionsCollapsed[customerName] ?? true) && (
                                     <>
                                       <p className="text-xs text-gray-500 mb-4">We found these additional potential contacts for {customerName}. Click to add them instantly.</p>
                                       
