@@ -2449,14 +2449,33 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                 <div className="space-y-3 mb-3">
                                   {campaignData.emails.map((email: any, emailIndex: number) => {
                                     const emailContent = email.blocks.find((block: any) => block.type === 'text')?.content || email.subject;
-                                    const truncatedContent = emailContent.length > 80 ? emailContent.substring(0, 80) + '...' : emailContent;
+                                    
+                                    // Populate dynamic fields with actual contact data
+                                    const populatedContent = emailContent
+                                      .replace(/\{\{naam\}\}/g, contact.name || contact.customerInfo?.name || 'Dear Customer')
+                                      .replace(/\{\{name\}\}/g, contact.name || contact.customerInfo?.name || 'Dear Customer')
+                                      .replace(/\{\{contact_name\}\}/g, contact.name || contact.customerInfo?.name || 'Dear Customer')
+                                      .replace(/\{\{company_name\}\}/g, contact.customerInfo?.name || 'Your Company')
+                                      .replace(/\{\{opportunity_title\}\}/g, contact.title || contact.opportunityInfo?.title || 'Opportunity')
+                                      .replace(/\{\{opportunity_value\}\}/g, contact.estimated_value || contact.opportunityInfo?.estimated_value || '0')
+                                      .replace(/\{\{opportunity_description\}\}/g, contact.description || contact.opportunityInfo?.description || '');
+                                    
+                                    const truncatedContent = populatedContent.length > 80 ? populatedContent.substring(0, 80) + '...' : populatedContent;
+                                    
+                                    // Also populate subject line
+                                    const populatedSubject = (email.subject || 'Untitled Email')
+                                      .replace(/\{\{naam\}\}/g, contact.name || contact.customerInfo?.name || 'Dear Customer')
+                                      .replace(/\{\{name\}\}/g, contact.name || contact.customerInfo?.name || 'Dear Customer')
+                                      .replace(/\{\{contact_name\}\}/g, contact.name || contact.customerInfo?.name || 'Dear Customer')
+                                      .replace(/\{\{company_name\}\}/g, contact.customerInfo?.name || 'Your Company')
+                                      .replace(/\{\{opportunity_title\}\}/g, contact.title || contact.opportunityInfo?.title || 'Opportunity');
                                     
                                     return (
                                       <div key={emailIndex} className="bg-gray-50 rounded-lg p-3">
                                         <div className="flex items-center justify-between mb-2">
                                           <div className="flex items-center gap-2">
                                             <span className="text-sm font-medium text-gray-900">{emailIndex + 1}</span>
-                                            <span className="text-sm font-medium text-gray-900">{email.subject || 'Untitled Email'}</span>
+                                            <span className="text-sm font-medium text-gray-900">{populatedSubject}</span>
                                           </div>
                                           <div className="flex items-center gap-2">
                                             <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
