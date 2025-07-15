@@ -120,6 +120,16 @@ function AssignPartnersSection({ campaignData, onAssignComplete }: AssignPartner
       return;
     }
 
+    // Check if campaign has been saved (has an ID)
+    if (!campaignData.id) {
+      toast({
+        title: "Campaign not saved",
+        description: "Please save the campaign first before assigning it to partners.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       // Get environment ID for API calls
       const envId = localStorage.getItem('selectedEnvironment') || 'degoudse';
@@ -2439,10 +2449,25 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             </div>
 
             <div className="max-w-2xl mx-auto space-y-6">
+              {!campaignData.id && (
+                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
+                  <div className="flex items-center gap-2 text-amber-800">
+                    <AlertCircle className="h-5 w-5" />
+                    <p className="font-medium">Campaign must be saved first</p>
+                  </div>
+                  <p className="text-sm text-amber-700 mt-1">
+                    Please save your campaign before assigning it to partners. Click "Create Campaign" to continue.
+                  </p>
+                </div>
+              )}
+              
               <div className="flex justify-center">
                 <Dialog open={sharePartnersDialogOpen} onOpenChange={setSharePartnersDialogOpen}>
                   <DialogTrigger asChild>
-                    <Button className="gap-2">
+                    <Button 
+                      className="gap-2"
+                      disabled={!campaignData.id}
+                    >
                       <Users className="h-4 w-4" />
                       Assign to Partner(s)
                     </Button>
