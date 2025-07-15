@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
-import { ArrowLeft, ArrowRight, Settings, Mail, Send } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, ArrowRight, Settings, Mail, Send, Building, User, Check, AlertCircle, Plus, Search, Upload, Edit } from "lucide-react";
 import { useLocation, useParams } from 'wouter';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -50,6 +53,18 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
   const [fromEmail, setFromEmail] = useState('');
   const [subject, setSubject] = useState('');
   const [emailSendingType, setEmailSendingType] = useState('qollabi_default');
+  
+  // State for drafts & send functionality
+  const [selectedCompany, setSelectedCompany] = useState<string | null>(null);
+  const [contactFilter, setContactFilter] = useState('all');
+  const [showAddContactModal, setShowAddContactModal] = useState(false);
+  const [newContactData, setNewContactData] = useState({
+    first_name: '',
+    last_name: '',
+    email: '',
+    phone: '',
+    job_title: ''
+  });
   
   // Fetch campaign data
   const { data: campaign, isLoading } = useQuery({
@@ -136,6 +151,73 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
       });
     }
   });
+
+  // Send single email mutation
+  const sendEmailMutation = useMutation({
+    mutationFn: ({ recipientId, emailData }: { recipientId: string; emailData: any }) => 
+      apiRequest('POST', `/api/${envId}/campaigns/${campaignId}/send-email`, { recipientId, emailData }),
+    onSuccess: () => {
+      toast({
+        title: "Email sent",
+        description: "Email has been sent successfully."
+      });
+    },
+    onError: (error) => {
+      console.error('Error sending email:', error);
+      toast({
+        title: "Send failed",
+        description: "Failed to send email. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Send all emails mutation
+  const sendAllEmailsMutation = useMutation({
+    mutationFn: () => apiRequest('POST', `/api/${envId}/campaigns/${campaignId}/send-all`),
+    onSuccess: () => {
+      toast({
+        title: "All emails sent",
+        description: "All ready emails have been sent successfully."
+      });
+    },
+    onError: (error) => {
+      console.error('Error sending all emails:', error);
+      toast({
+        title: "Send all failed",
+        description: "Failed to send all emails. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Create contact mutation
+  const createContactMutation = useMutation({
+    mutationFn: (contactData: any) => apiRequest('POST', `/api/${envId}/contacts`, contactData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/${envId}/campaigns`, campaignId] });
+      toast({
+        title: "Contact added",
+        description: "New contact has been added successfully."
+      });
+      setShowAddContactModal(false);
+      setNewContactData({
+        first_name: '',
+        last_name: '',
+        email: '',
+        phone: '',
+        job_title: ''
+      });
+    },
+    onError: (error) => {
+      console.error('Error creating contact:', error);
+      toast({
+        title: "Failed to add contact",
+        description: "Could not add the new contact. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
   
   // Handle saving campaign data
   const handleSave = async () => {
@@ -151,6 +233,47 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
     };
     
     saveCampaignMutation.mutate(updateData);
+  };
+
+  // Handle sending single email
+  const handleSendSingleEmail = (contact: any, email: any) => {
+    const emailData = {
+      subject: email.subject,
+      body: email.blocks,
+      from_name: fromName,
+      from_email: fromEmail
+    };
+    
+    sendEmailMutation.mutate({ recipientId: contact.id, emailData });
+  };
+
+  // Handle sending all emails
+  const handleBulkSendAll = () => {
+    sendAllEmailsMutation.mutate();
+  };
+
+  // Handle adding contact
+  const handleAddContact = () => {
+    setShowAddContactModal(true);
+  };
+
+  // Handle saving new contact
+  const handleSaveContact = () => {
+    if (!newContactData.first_name || !newContactData.last_name || !newContactData.email) {
+      toast({
+        title: "Missing information",
+        description: "Please fill in all required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const contactData = {
+      ...newContactData,
+      customer_id: selectedCompany // Link to selected company
+    };
+
+    createContactMutation.mutate(contactData);
   };
   
   // Step titles for 3-step workflow
@@ -287,9 +410,40 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
             Previous
           </Button>
           
-          <div className="text-sm text-gray-500">
-            Step {currentStep} of 3
-          </div>
+          {/* Send All Button - Show on Drafts step */}
+          {currentStep === 3 ? (() => {
+            // Count all ready contacts across partner's recipients
+            const partnerRecipients = (campaign.recipients || []).filter((recipient: any) => 
+              recipient.assigned_partner_id === partnerId || 
+              recipient.partnerInfo?.id === partnerId
+            );
+            
+            const allReadyContacts = partnerRecipients.filter((recipient: any) => 
+              recipient.email || recipient.contactInfo?.email
+            ).length;
+            
+            if (allReadyContacts > 0) {
+              return (
+                <Button 
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 text-sm"
+                  onClick={handleBulkSendAll}
+                  disabled={sendAllEmailsMutation.isPending}
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  Send All ({allReadyContacts})
+                </Button>
+              );
+            }
+            return (
+              <div className="text-sm text-gray-500">
+                Step {currentStep} of 3
+              </div>
+            );
+          })() : (
+            <div className="text-sm text-gray-500">
+              Step {currentStep} of 3
+            </div>
+          )}
           
           <Button
             onClick={handleNext}
@@ -365,76 +519,575 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
         )}
         
         {currentStep === 3 && (
-          <div className="bg-white rounded-lg shadow">
-            <div className="p-6 border-b border-gray-200">
-              <h2 className="text-lg font-medium text-gray-900">
-                Ready to Send
-              </h2>
-              <p className="mt-1 text-sm text-gray-500">
-                Review your campaign and send emails to recipients
-              </p>
-            </div>
-            
-            <div className="p-6">
-              <div className="space-y-6">
-                {/* Campaign Summary */}
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <h3 className="font-medium text-gray-900 mb-3">Campaign Summary</h3>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div>
-                      <span className="text-gray-500">Subject:</span>
-                      <p className="font-medium">{subject}</p>
+          <div className="h-full bg-white">
+            <div className="flex h-[calc(100vh-200px)]">
+              {/* Left Sidebar - Customer Companies */}
+              <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+                {/* Header */}
+                <div className="px-4 py-3 border-b border-gray-200 bg-white">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        className="text-xs h-7 px-3 border-gray-300 hover:bg-gray-50"
+                        onClick={() => {
+                          toast({
+                            title: "Upload Contacts",
+                            description: "Contact upload functionality will be implemented soon."
+                          });
+                        }}
+                      >
+                        <Upload className="h-3 w-3 mr-1" />
+                        Upload Contacts
+                      </Button>
+                      <Button 
+                        size="sm" 
+                        className="text-xs h-7 px-3 bg-gray-900 hover:bg-gray-800 text-white rounded-md"
+                        onClick={handleAddContact}
+                      >
+                        <Plus className="h-3 w-3 mr-1" />
+                        Add Customer
+                      </Button>
                     </div>
-                    <div>
-                      <span className="text-gray-500">From:</span>
-                      <p className="font-medium">{fromName} &lt;{fromEmail}&gt;</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Recipients:</span>
-                      <p className="font-medium">{campaign.recipients?.length || 0} contacts</p>
-                    </div>
-                    <div>
-                      <span className="text-gray-500">Email Type:</span>
-                      <p className="font-medium">
-                        {emailSendingType === 'qollabi_default' ? 'Use Default Email' :
-                         emailSendingType === 'custom_email' ? "Use Provider's Mail" :
-                         emailSendingType === 'partner_select' ? 'Connect your own email' : 'Default'}
-                      </p>
-                    </div>
+                  </div>
+                  
+                  <div className="relative mb-3">
+                    <input
+                      type="text"
+                      placeholder="Search companies..."
+                      className="w-full pl-8 pr-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
+                    />
+                    <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                  </div>
+                  
+                  <div className="flex gap-1">
+                    <Button 
+                      size="sm" 
+                      variant={contactFilter === 'all' ? 'default' : 'outline'}
+                      className={`text-xs h-7 px-2 rounded-md ${
+                        contactFilter === 'all' 
+                          ? 'bg-gray-900 hover:bg-gray-800 text-white' 
+                          : 'border-gray-300 hover:bg-gray-50'
+                      }`}
+                      onClick={() => setContactFilter('all')}
+                    >
+                      All
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant={contactFilter === 'with_contacts' ? 'default' : 'outline'}
+                      className={`text-xs h-7 px-2 rounded-md ${
+                        contactFilter === 'with_contacts' 
+                          ? 'bg-gray-900 hover:bg-gray-800 text-white' 
+                          : 'border-gray-300 hover:bg-gray-50'
+                      }`}
+                      onClick={() => setContactFilter('with_contacts')}
+                    >
+                      With Contacts
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant={contactFilter === 'without_contacts' ? 'default' : 'outline'}
+                      className={`text-xs h-7 px-2 rounded-md ${
+                        contactFilter === 'without_contacts' 
+                          ? 'bg-gray-900 hover:bg-gray-800 text-white' 
+                          : 'border-gray-300 hover:bg-gray-50'
+                      }`}
+                      onClick={() => setContactFilter('without_contacts')}
+                    >
+                      Without Contacts
+                    </Button>
                   </div>
                 </div>
                 
-                {/* Send Options */}
-                <div className="flex gap-4">
-                  <Button 
-                    className="gap-2"
-                    onClick={() => {
-                      // Handle send logic here
-                      toast({
-                        title: "Campaign sent",
-                        description: "Your campaign has been sent successfully."
+                {/* Company List */}
+                <div className="flex-1 overflow-y-auto">
+                  <div className="p-3 space-y-2">
+                    {/* Partner-specific Recipients */}
+                    {(() => {
+                      // Filter recipients to only show those assigned to this partner
+                      const partnerRecipients = (campaign.recipients || []).filter((recipient: any) => 
+                        recipient.assigned_partner_id === partnerId || 
+                        recipient.partnerInfo?.id === partnerId
+                      );
+
+                      // Extract unique companies from partner recipients
+                      const companiesMap = new Map();
+                      
+                      partnerRecipients.forEach((recipient: any) => {
+                        let companyName = '';
+                        let companyType = '';
+                        
+                        if (recipient.customerInfo?.name) {
+                          companyName = recipient.customerInfo.name;
+                          companyType = recipient.customerInfo.type || 'Business';
+                        } else if (recipient.customerInfo?.title) {
+                          companyName = recipient.customerInfo.title;
+                          companyType = 'Business';
+                        } else if (recipient.type === 'customer' && recipient.name) {
+                          companyName = recipient.name;
+                          companyType = 'Business';
+                        } else if (recipient.type === 'customer' && recipient.title) {
+                          companyName = recipient.title;
+                          companyType = 'Business';
+                        } else if (recipient.type === 'opportunity' && recipient.title) {
+                          companyName = recipient.title;
+                          companyType = 'Opportunity';
+                        } else if (recipient.name) {
+                          companyName = recipient.name;
+                          companyType = 'Business';
+                        } else if (recipient.title) {
+                          companyName = recipient.title;
+                          companyType = 'Business';
+                        }
+                        
+                        if (companyName) {
+                          if (!companiesMap.has(companyName)) {
+                            companiesMap.set(companyName, {
+                              name: companyName,
+                              type: companyType,
+                              recipients: [],
+                              contactsCount: 0
+                            });
+                          }
+                          
+                          const company = companiesMap.get(companyName);
+                          company.recipients.push(recipient);
+                          
+                          // Count contacts (recipients with email addresses)
+                          if (recipient.email || recipient.contactInfo?.email) {
+                            company.contactsCount++;
+                          }
+                        }
                       });
-                    }}
-                  >
-                    <Send className="h-4 w-4" />
-                    Send Campaign
-                  </Button>
-                  
-                  <Button 
-                    variant="outline"
-                    onClick={() => {
-                      // Handle save as draft
-                      handleSave();
-                    }}
-                  >
-                    Save as Draft
-                  </Button>
+                      
+                      let companies = Array.from(companiesMap.values());
+                      
+                      // Apply contact filter
+                      if (contactFilter === 'with_contacts') {
+                        companies = companies.filter(company => company.contactsCount > 0);
+                      } else if (contactFilter === 'without_contacts') {
+                        companies = companies.filter(company => company.contactsCount === 0);
+                      }
+                      
+                      // Auto-select first company if none selected
+                      if (!selectedCompany && companies.length > 0) {
+                        setTimeout(() => setSelectedCompany(companies[0].name), 0);
+                      }
+                      
+                      if (companies.length === 0) {
+                        return (
+                          <div className="p-4 text-center text-gray-500">
+                            <Building className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                            <p className="text-sm">No recipients assigned to this partner</p>
+                            <p className="text-xs text-gray-400">Recipients must be assigned to this partner to appear here</p>
+                          </div>
+                        );
+                      }
+                      
+                      return companies.map((company, index) => {
+                        const missingContacts = company.recipients.length - company.contactsCount;
+                        
+                        return (
+                          <div
+                            key={company.name}
+                            className={`p-3 border rounded-lg cursor-pointer transition-all hover:border-blue-300 hover:bg-blue-50 ${
+                              selectedCompany === company.name ? 'border-blue-500 bg-blue-50' : 'border-gray-200 bg-white'
+                            }`}
+                            onClick={() => setSelectedCompany(company.name)}
+                          >
+                            <div className="flex items-center gap-2 mb-1">
+                              <Building className="h-4 w-4 text-gray-400" />
+                              <span className="font-medium text-sm text-gray-900">{company.name}</span>
+                            </div>
+                            <div className="text-xs text-gray-500 mb-2">{company.type}</div>
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-gray-600">
+                                {company.contactsCount} contact{company.contactsCount !== 1 ? 's' : ''}
+                              </span>
+                              <div className="flex items-center gap-1">
+                                {company.contactsCount > 0 ? (
+                                  <>
+                                    <Check className="h-3 w-3 text-green-600" />
+                                    <span className="text-green-600">Ready</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <AlertCircle className="h-3 w-3 text-orange-600" />
+                                    <span className="text-orange-600">Missing contact</span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        );
+                      });
+                    })()}
+                  </div>
                 </div>
+              </div>
+
+              {/* Right Content - Selected Company Details */}
+              <div className="flex-1 bg-white flex flex-col">
+                {selectedCompany ? (
+                  <>
+                    {/* Company Header */}
+                    <div className="px-4 py-3 border-b border-gray-200 bg-gray-50">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <Building className="h-5 w-5 text-gray-400" />
+                          <div>
+                            <h3 className="font-semibold text-gray-900">{selectedCompany}</h3>
+                            {(() => {
+                              const partnerRecipients = (campaign.recipients || []).filter((recipient: any) => 
+                                recipient.assigned_partner_id === partnerId || 
+                                recipient.partnerInfo?.id === partnerId
+                              );
+                              
+                              const selectedCompanyData = partnerRecipients.find((r: any) => 
+                                r.customerInfo?.name === selectedCompany || 
+                                r.customerInfo?.title === selectedCompany || 
+                                r.name === selectedCompany || 
+                                r.title === selectedCompany
+                              );
+                              
+                              const companyType = selectedCompanyData?.customerInfo?.type || 'Business';
+                              const contactsCount = partnerRecipients.filter((r: any) => 
+                                (r.customerInfo?.name === selectedCompany || 
+                                 r.customerInfo?.title === selectedCompany || 
+                                 r.name === selectedCompany || 
+                                 r.title === selectedCompany) && 
+                                (r.email || r.contactInfo?.email)
+                              ).length;
+                              
+                              return (
+                                <>
+                                  <p className="text-sm text-gray-500">{companyType}</p>
+                                  <p className="text-xs text-gray-500">{contactsCount} contact{contactsCount !== 1 ? 's' : ''}</p>
+                                </>
+                              );
+                            })()}
+                          </div>
+                        </div>
+                        <Button 
+                          size="sm" 
+                          className="text-xs h-7 px-3 bg-gray-900 hover:bg-gray-800 text-white rounded-md"
+                          onClick={handleAddContact}
+                        >
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add Contact
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Contacts and Email Sequences */}
+                    <div className="flex-1 overflow-y-auto">
+                      <div className="p-4 space-y-4">
+                        {/* Partner-specific Recipients for Selected Company */}
+                        {(() => {
+                          const partnerRecipients = (campaign.recipients || []).filter((recipient: any) => 
+                            recipient.assigned_partner_id === partnerId || 
+                            recipient.partnerInfo?.id === partnerId
+                          );
+                          
+                          const companyRecipients = partnerRecipients.filter((recipient: any) => 
+                            recipient.customerInfo?.name === selectedCompany || 
+                            recipient.customerInfo?.title === selectedCompany || 
+                            recipient.name === selectedCompany || 
+                            recipient.title === selectedCompany ||
+                            (recipient.type === 'contact' && recipient.customerInfo?.name === selectedCompany)
+                          );
+                          
+                          if (companyRecipients.length === 0) {
+                            return (
+                              <div className="text-center text-gray-500 py-8">
+                                <User className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                                <p className="text-sm">No contacts found for this company</p>
+                                <p className="text-xs text-gray-400">Add contacts to start the email sequence</p>
+                              </div>
+                            );
+                          }
+                          
+                          // Group recipients by customer ID
+                          const customerContactMap = new Map();
+                          
+                          companyRecipients.forEach((recipient: any) => {
+                            const customerId = recipient.customerInfo?.id || recipient.id;
+                            const customerName = recipient.customerInfo?.name || recipient.name || selectedCompany;
+                            
+                            if (!customerContactMap.has(customerId)) {
+                              const contactRecipients = companyRecipients.filter(r => 
+                                (r.customerInfo?.id || r.id) === customerId && r.type === 'contact'
+                              );
+                              
+                              let bestContact = null;
+                              
+                              if (contactRecipients.length > 0) {
+                                bestContact = contactRecipients.find(c => c.email) || contactRecipients[0];
+                              } else {
+                                bestContact = {
+                                  id: `missing-${customerId}`,
+                                  type: 'missing_contact',
+                                  customerInfo: recipient.customerInfo,
+                                  email: '',
+                                  first_name: '',
+                                  last_name: ''
+                                };
+                              }
+                              
+                              customerContactMap.set(customerId, {
+                                customerId,
+                                customerName,
+                                contact: bestContact
+                              });
+                            }
+                          });
+                          
+                          const customerContacts = Array.from(customerContactMap.values());
+                          
+                          return customerContacts.map((customerContact: any, index: number) => {
+                            const { contact, customerName } = customerContact;
+                            const isMissingContact = contact.type === 'missing_contact';
+                            
+                            const contactName = contact.first_name && contact.last_name 
+                              ? `${contact.first_name} ${contact.last_name}`
+                              : contact.email || 'Unknown Contact';
+                            
+                            const contactEmail = contact.email || '';
+                            const hasEmail = Boolean(contactEmail);
+                            
+                            if (isMissingContact) {
+                              return (
+                                <div key={index} className="border-b border-gray-100 pb-4">
+                                  <div className="text-center py-6">
+                                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                                      <User className="h-6 w-6 text-gray-400" />
+                                    </div>
+                                    <h3 className="text-sm font-medium text-gray-900 mb-1">No contacts yet</h3>
+                                    <p className="text-xs text-gray-500 mb-4">Add the first contact for {customerName} to start email sequences.</p>
+                                    <Button 
+                                      size="sm" 
+                                      className="text-xs h-7 px-3 bg-gray-900 hover:bg-gray-800 text-white rounded-md mb-4"
+                                      onClick={handleAddContact}
+                                    >
+                                      <Plus className="h-3 w-3 mr-1" />
+                                      Add Contact Manually
+                                    </Button>
+                                  </div>
+                                </div>
+                              );
+                            }
+                            
+                            return (
+                              <div key={index} className="border-b border-gray-100 pb-4">
+                                <div className="flex items-center justify-between mb-3">
+                                  <div className="flex items-center gap-3">
+                                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                      hasEmail ? 'bg-green-100' : 'bg-red-100'
+                                    }`}>
+                                      <User className={`h-4 w-4 ${hasEmail ? 'text-green-600' : 'text-red-600'}`} />
+                                    </div>
+                                    <div>
+                                      <div className="flex items-center gap-2 mb-1">
+                                        <span className="font-medium text-sm text-gray-900">{contactName}</span>
+                                        <Badge variant="secondary" className={`text-xs px-2 py-0.5 rounded ${
+                                          hasEmail ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                                        }`}>
+                                          {hasEmail ? 'ready' : 'missing email'}
+                                        </Badge>
+                                      </div>
+                                      <div className="text-sm text-gray-500">{contactEmail || 'No email'}</div>
+                                    </div>
+                                  </div>
+                                  <div className="text-xs text-gray-500">{campaign.emails?.length || 1} email{(campaign.emails?.length || 1) !== 1 ? 's' : ''}</div>
+                                </div>
+
+                                {/* Email Sequence */}
+                                <div className="space-y-3 mb-3">
+                                  {campaign.emails && campaign.emails.length > 0 ? (
+                                    campaign.emails.map((email: any, emailIndex: number) => {
+                                      const emailContent = email.blocks?.find((block: any) => block.type === 'text')?.content || email.subject || subject;
+                                      const truncatedContent = emailContent.length > 80 ? emailContent.substring(0, 80) + '...' : emailContent;
+                                      
+                                      return (
+                                        <div key={emailIndex} className="bg-gray-50 rounded-lg p-3">
+                                          <div className="flex items-center justify-between mb-2">
+                                            <div className="flex items-center gap-2">
+                                              <span className="text-sm font-medium text-gray-900">{emailIndex + 1}</span>
+                                              <span className="text-sm font-medium text-gray-900">{email.subject || subject || 'Untitled Email'}</span>
+                                            </div>
+                                            <div className="flex items-center gap-2">
+                                              <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                                {emailIndex === 0 ? 'ready' : 'scheduled'}
+                                              </Badge>
+                                              <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                                                <Edit className="h-3 w-3" />
+                                              </Button>
+                                              {hasEmail && emailIndex === 0 && (
+                                                <Button 
+                                                  size="sm" 
+                                                  className="h-6 px-2 text-xs bg-green-600 hover:bg-green-700 text-white"
+                                                  onClick={() => handleSendSingleEmail(contact, email)}
+                                                  disabled={sendEmailMutation.isPending}
+                                                >
+                                                  <Send className="h-3 w-3 mr-1" />
+                                                  Send
+                                                </Button>
+                                              )}
+                                            </div>
+                                          </div>
+                                          <div className="text-xs text-gray-500 mb-2">
+                                            {emailIndex === 0 ? 'Immediate' : `+${email.followUpDays || (emailIndex * 3)} days`}
+                                          </div>
+                                          <div className="text-xs text-gray-600">{truncatedContent}</div>
+                                        </div>
+                                      );
+                                    })
+                                  ) : (
+                                    <div className="bg-gray-50 rounded-lg p-3">
+                                      <div className="flex items-center justify-between mb-2">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-sm font-medium text-gray-900">1</span>
+                                          <span className="text-sm font-medium text-gray-900">{subject || 'Untitled Email'}</span>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                            ready
+                                          </Badge>
+                                          <Button size="sm" variant="ghost" className="h-6 w-6 p-0">
+                                            <Edit className="h-3 w-3" />
+                                          </Button>
+                                          {hasEmail && (
+                                            <Button 
+                                              size="sm" 
+                                              className="h-6 px-2 text-xs bg-green-600 hover:bg-green-700 text-white"
+                                              onClick={() => handleSendSingleEmail(contact, { subject, blocks: emailBlocks })}
+                                              disabled={sendEmailMutation.isPending}
+                                            >
+                                              <Send className="h-3 w-3 mr-1" />
+                                              Send
+                                            </Button>
+                                          )}
+                                        </div>
+                                      </div>
+                                      <div className="text-xs text-gray-500 mb-2">Immediate</div>
+                                      <div className="text-xs text-gray-600">
+                                        {emailBlocks.find((block: any) => block.type === 'text')?.content?.substring(0, 80) || 'Email content...'}
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            );
+                          });
+                        })()}
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex-1 flex items-center justify-center text-gray-500">
+                    <div className="text-center">
+                      <Building className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                      <p className="text-lg font-medium">Select a company</p>
+                      <p className="text-sm">Choose a company from the list to view and manage email sequences</p>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         )}
       </div>
+      
+      {/* Add Contact Modal */}
+      <Dialog open={showAddContactModal} onOpenChange={setShowAddContactModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add New Contact</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  First Name *
+                </label>
+                <Input
+                  value={newContactData.first_name}
+                  onChange={(e) => setNewContactData(prev => ({ ...prev, first_name: e.target.value }))}
+                  placeholder="Enter first name"
+                  className="w-full"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Last Name *
+                </label>
+                <Input
+                  value={newContactData.last_name}
+                  onChange={(e) => setNewContactData(prev => ({ ...prev, last_name: e.target.value }))}
+                  placeholder="Enter last name"
+                  className="w-full"
+                />
+              </div>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Email *
+              </label>
+              <Input
+                type="email"
+                value={newContactData.email}
+                onChange={(e) => setNewContactData(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="Enter email address"
+                className="w-full"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Phone
+              </label>
+              <Input
+                type="tel"
+                value={newContactData.phone}
+                onChange={(e) => setNewContactData(prev => ({ ...prev, phone: e.target.value }))}
+                placeholder="Enter phone number"
+                className="w-full"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Job Title
+              </label>
+              <Input
+                value={newContactData.job_title}
+                onChange={(e) => setNewContactData(prev => ({ ...prev, job_title: e.target.value }))}
+                placeholder="Enter job title"
+                className="w-full"
+              />
+            </div>
+            
+            <div className="flex justify-end gap-3 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowAddContactModal(false)}
+                disabled={createContactMutation.isPending}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSaveContact}
+                disabled={createContactMutation.isPending}
+              >
+                {createContactMutation.isPending ? 'Adding...' : 'Add Contact'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
