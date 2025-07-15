@@ -6,6 +6,7 @@ import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import CampaignsTable from '../../pages/campaigns/CampaignsTable';
+import ShareCampaignModal from './ShareCampaignModal';
 import { 
   FileText, 
   Send, 
@@ -22,14 +23,10 @@ import {
   Mail,
   Users,
   Target,
-  TrendingUp
+  TrendingUp,
+  Share2
 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+
 
 interface PartnerCampaignsViewProps {
   partnerId: string;
@@ -40,6 +37,7 @@ interface PartnerCampaignsViewProps {
 export default function PartnerCampaignsView({ partnerId, partnerName, onCampaignClick }: PartnerCampaignsViewProps) {
   const [selectedCampaigns, setSelectedCampaigns] = useState<number[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
+  const [showShareModal, setShowShareModal] = useState(false);
   const { environment } = useEnvironment();
   const { toast } = useToast();
 
@@ -117,48 +115,7 @@ export default function PartnerCampaignsView({ partnerId, partnerName, onCampaig
     ];
   }, [campaigns]);
 
-  // Status options and handlers
-  const statusOptions = [
-    { value: 'draft', label: 'Draft', icon: <AlertCircle className="w-4 h-4" /> },
-    { value: 'scheduled', label: 'Scheduled', icon: <Clock className="w-4 h-4" /> },
-    { value: 'active', label: 'Active', icon: <Play className="w-4 h-4" /> },
-    { value: 'paused', label: 'Paused', icon: <Pause className="w-4 h-4" /> },
-    { value: 'completed', label: 'Completed', icon: <CheckCircle className="w-4 h-4" /> },
-  ];
 
-  const getStatusIcon = (status: string) => {
-    const option = statusOptions.find(opt => opt.value === status);
-    return option ? option.icon : <AlertCircle className="w-4 h-4" />;
-  };
-
-  const handleBulkStatusChange = async (newStatus: string) => {
-    if (selectedCampaigns.length === 0) return;
-    
-    try {
-      // Implementation for bulk status change
-      await Promise.all(
-        selectedCampaigns.map(campaignId =>
-          apiRequest('PATCH', `/api/campaigns/${campaignId}`, { status: newStatus })
-        )
-      );
-      
-      // Invalidate and refetch campaigns
-      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/campaigns`] });
-      
-      toast({
-        title: "Status Updated",
-        description: `${selectedCampaigns.length} campaign(s) updated to ${newStatus}`,
-      });
-      
-      setSelectedCampaigns([]);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to update campaign status",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleBulkDelete = async () => {
     if (selectedCampaigns.length === 0) return;
@@ -269,26 +226,15 @@ export default function PartnerCampaignsView({ partnerId, partnerName, onCampaig
               {selectedCampaigns.length} campaign(s) selected
             </span>
             
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="flex items-center gap-2">
-                  {getStatusIcon('draft')}
-                  Change Status
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="start" className="w-48">
-                {statusOptions.map((option) => (
-                  <DropdownMenuItem
-                    key={option.value}
-                    onClick={() => handleBulkStatusChange(option.value)}
-                    className="flex items-center gap-2"
-                  >
-                    {option.icon}
-                    {option.label}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-2"
+              onClick={() => setShowShareModal(true)}
+            >
+              <Share2 className="w-4 h-4" />
+              Share with partner
+            </Button>
           </div>
           
           <div className="flex items-center gap-2">
@@ -334,6 +280,21 @@ export default function PartnerCampaignsView({ partnerId, partnerName, onCampaig
           onCampaignClick={onCampaignClick}
         />
       )}
+      
+      {/* Share Campaign Modal */}
+      <ShareCampaignModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        campaignIds={selectedCampaigns}
+        campaignNames={selectedCampaigns.map(id => {
+          const campaign = campaigns?.find((c: any) => c.id === id);
+          return campaign?.name || `Campaign ${id}`;
+        })}
+        onSuccess={() => {
+          setSelectedCampaigns([]);
+          queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/campaigns`] });
+        }}
+      />
     </div>
   );
 }
