@@ -1243,12 +1243,20 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     
     console.log('Extracted email content:', emailContent);
     
+    // Get the actual contact name from the contact data structure
+    const contactName = contact.full_name || 
+                      (contact.first_name && contact.last_name ? `${contact.first_name} ${contact.last_name}` : '') ||
+                      contact.first_name || 
+                      contact.name || 
+                      'Contact';
+    const companyName = contact.customerInfo?.name || contact.company || 'Your Company';
+    
     // Replace placeholders with actual contact data
     const populatedContent = emailContent
-      .replace(/\{\{naam\}\}/g, contact.name || contact.customerInfo?.name || 'Dear Customer')
-      .replace(/\{\{name\}\}/g, contact.name || contact.customerInfo?.name || 'Dear Customer')
-      .replace(/\{\{contact_name\}\}/g, contact.name || contact.customerInfo?.name || 'Dear Customer')
-      .replace(/\{\{company_name\}\}/g, contact.customerInfo?.name || 'Your Company')
+      .replace(/\{\{naam\}\}/g, contactName)
+      .replace(/\{\{name\}\}/g, contactName)
+      .replace(/\{\{contact_name\}\}/g, contactName)
+      .replace(/\{\{company_name\}\}/g, companyName)
       .replace(/\{\{opportunity_title\}\}/g, contact.title || contact.opportunityInfo?.title || 'Opportunity')
       .replace(/\{\{opportunity_value\}\}/g, contact.estimated_value || contact.opportunityInfo?.estimated_value || '0')
       .replace(/\{\{opportunity_description\}\}/g, contact.description || contact.opportunityInfo?.description || '');
@@ -2450,12 +2458,22 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                   {campaignData.emails.map((email: any, emailIndex: number) => {
                                     const emailContent = email.blocks.find((block: any) => block.type === 'text')?.content || email.subject;
                                     
+                                    // Get the actual contact name from the contact data structure
+                                    const contactName = contact.full_name || 
+                                                      (contact.first_name && contact.last_name ? `${contact.first_name} ${contact.last_name}` : '') ||
+                                                      contact.first_name || 
+                                                      contact.name || 
+                                                      'Contact';
+                                    const companyName = contact.customerInfo?.name || contact.company || 'Your Company';
+                                    
+
+                                    
                                     // Populate dynamic fields with actual contact data
                                     const populatedContent = emailContent
-                                      .replace(/\{\{naam\}\}/g, contact.name || contact.customerInfo?.name || 'Dear Customer')
-                                      .replace(/\{\{name\}\}/g, contact.name || contact.customerInfo?.name || 'Dear Customer')
-                                      .replace(/\{\{contact_name\}\}/g, contact.name || contact.customerInfo?.name || 'Dear Customer')
-                                      .replace(/\{\{company_name\}\}/g, contact.customerInfo?.name || 'Your Company')
+                                      .replace(/\{\{naam\}\}/g, contactName)
+                                      .replace(/\{\{name\}\}/g, contactName)
+                                      .replace(/\{\{contact_name\}\}/g, contactName)
+                                      .replace(/\{\{company_name\}\}/g, companyName)
                                       .replace(/\{\{opportunity_title\}\}/g, contact.title || contact.opportunityInfo?.title || 'Opportunity')
                                       .replace(/\{\{opportunity_value\}\}/g, contact.estimated_value || contact.opportunityInfo?.estimated_value || '0')
                                       .replace(/\{\{opportunity_description\}\}/g, contact.description || contact.opportunityInfo?.description || '');
@@ -2464,10 +2482,10 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                     
                                     // Also populate subject line
                                     const populatedSubject = (email.subject || 'Untitled Email')
-                                      .replace(/\{\{naam\}\}/g, contact.name || contact.customerInfo?.name || 'Dear Customer')
-                                      .replace(/\{\{name\}\}/g, contact.name || contact.customerInfo?.name || 'Dear Customer')
-                                      .replace(/\{\{contact_name\}\}/g, contact.name || contact.customerInfo?.name || 'Dear Customer')
-                                      .replace(/\{\{company_name\}\}/g, contact.customerInfo?.name || 'Your Company')
+                                      .replace(/\{\{naam\}\}/g, contactName)
+                                      .replace(/\{\{name\}\}/g, contactName)
+                                      .replace(/\{\{contact_name\}\}/g, contactName)
+                                      .replace(/\{\{company_name\}\}/g, companyName)
                                       .replace(/\{\{opportunity_title\}\}/g, contact.title || contact.opportunityInfo?.title || 'Opportunity');
                                     
                                     return (

@@ -83,19 +83,32 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
   const populateDynamicFields = (content: string, contact: any) => {
     if (!content || !contact) return content;
     
+
+    
     let populatedContent = content;
     
+    // Get the actual contact name from the contact data structure
+    const contactName = contact.full_name || 
+                      (contact.first_name && contact.last_name ? `${contact.first_name} ${contact.last_name}` : '') ||
+                      contact.first_name || 
+                      contact.name || 
+                      'Contact';
+    const companyName = contact.customerInfo?.name || contact.company || 'Your Company';
+    
     // Replace common dynamic fields
-    populatedContent = populatedContent.replace(/\{\{name\}\}/g, contact.first_name || contact.name || 'Contact');
-    populatedContent = populatedContent.replace(/\{\{first_name\}\}/g, contact.first_name || contact.name || 'Contact');
+    populatedContent = populatedContent.replace(/\{\{name\}\}/g, contactName);
+    populatedContent = populatedContent.replace(/\{\{naam\}\}/g, contactName);
+    populatedContent = populatedContent.replace(/\{\{contact_name\}\}/g, contactName);
+    populatedContent = populatedContent.replace(/\{\{first_name\}\}/g, contact.first_name || contactName);
     populatedContent = populatedContent.replace(/\{\{last_name\}\}/g, contact.last_name || '');
     populatedContent = populatedContent.replace(/\{\{full_name\}\}/g, 
       contact.first_name && contact.last_name 
         ? `${contact.first_name} ${contact.last_name}` 
-        : contact.name || 'Contact'
+        : contactName
     );
     populatedContent = populatedContent.replace(/\{\{email\}\}/g, contact.email || '');
-    populatedContent = populatedContent.replace(/\{\{company\}\}/g, contact.company || contact.customerInfo?.name || '');
+    populatedContent = populatedContent.replace(/\{\{company\}\}/g, companyName);
+    populatedContent = populatedContent.replace(/\{\{company_name\}\}/g, companyName);
     populatedContent = populatedContent.replace(/\{\{job_title\}\}/g, contact.job_title || '');
     populatedContent = populatedContent.replace(/\{\{phone\}\}/g, contact.phone || '');
     
@@ -103,10 +116,12 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
     if (contact.customerInfo) {
       populatedContent = populatedContent.replace(/\{\{customer_name\}\}/g, contact.customerInfo.name || '');
     }
-    if (contact.opportunityInfo) {
-      populatedContent = populatedContent.replace(/\{\{opportunity_title\}\}/g, contact.opportunityInfo.title || '');
-      populatedContent = populatedContent.replace(/\{\{opportunity_value\}\}/g, contact.opportunityInfo.estimated_value || '');
+    if (contact.opportunityInfo || contact.title) {
+      populatedContent = populatedContent.replace(/\{\{opportunity_title\}\}/g, contact.title || contact.opportunityInfo?.title || '');
+      populatedContent = populatedContent.replace(/\{\{opportunity_value\}\}/g, contact.estimated_value || contact.opportunityInfo?.estimated_value || '');
     }
+    
+
     
     return populatedContent;
   };
