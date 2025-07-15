@@ -6,7 +6,7 @@ import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import CampaignsTable from '../../pages/campaigns/CampaignsTable';
-import ShareCampaignModal from './ShareCampaignModal';
+import PartnerCampaignShareModal from './PartnerCampaignShareModal';
 import { 
   FileText, 
   Send, 
@@ -282,7 +282,7 @@ export default function PartnerCampaignsView({ partnerId, partnerName, onCampaig
       )}
       
       {/* Share Campaign Modal */}
-      <ShareCampaignModal
+      <PartnerCampaignShareModal
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
         campaignIds={selectedCampaigns}
@@ -290,6 +290,8 @@ export default function PartnerCampaignsView({ partnerId, partnerName, onCampaig
           const campaign = campaigns?.find((c: any) => c.id === id);
           return campaign?.name || `Campaign ${id}`;
         })}
+        partnerId={partnerId}
+        partnerName={partnerName}
         onSuccess={() => {
           setSelectedCampaigns([]);
           queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/campaigns`] });
