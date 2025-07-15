@@ -3364,7 +3364,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 disabled={createCampaignMutation.isPending || updateCampaignMutation.isPending}
                 className="gap-2"
               >
-                {createCampaignMutation.isPending ? 'Saving...' : 'Save Campaign'}
+                {createCampaignMutation.isPending ? 'Saving...' : 'Save'}
               </Button>
             )}
             
@@ -3378,16 +3378,19 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 <ArrowRight className="h-4 w-4" />
               </Button>
             ) : (
-              <Button
-                onClick={handleSave}
-                disabled={!canSave() || createCampaignMutation.isPending || updateCampaignMutation.isPending}
-                className="gap-2"
-              >
-                {isEditingCampaign 
-                  ? (updateCampaignMutation.isPending ? 'Updating...' : 'Update Campaign')
-                  : (createCampaignMutation.isPending ? 'Creating...' : 'Create Campaign')
-                }
-              </Button>
+              // For step 7, don't show any save/update button
+              currentStep === 7 ? null : (
+                <Button
+                  onClick={handleSave}
+                  disabled={!canSave() || createCampaignMutation.isPending || updateCampaignMutation.isPending}
+                  className="gap-2"
+                >
+                  {isEditingCampaign 
+                    ? (updateCampaignMutation.isPending ? 'Updating...' : 'Update Campaign')
+                    : (createCampaignMutation.isPending ? 'Creating...' : 'Create Campaign')
+                  }
+                </Button>
+              )
             )}
           </div>
         </div>
