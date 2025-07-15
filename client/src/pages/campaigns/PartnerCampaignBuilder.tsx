@@ -66,6 +66,10 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
     job_title: ''
   });
   
+  // State for suggest contacts functionality
+  const [suggestionsCollapsed, setSuggestionsCollapsed] = useState(false);
+  const [customerSuggestionsCollapsed, setCustomerSuggestionsCollapsed] = useState<{[key: string]: boolean}>({});
+  
   // Fetch campaign data
   const { data: campaign, isLoading } = useQuery({
     queryKey: [`/api/${envId}/campaigns`, campaignId],
@@ -257,6 +261,20 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
     setShowAddContactModal(true);
   };
 
+  // Handle adding suggested contact
+  const handleAddSuggestedContact = (suggestedContact: any) => {
+    const contactData = {
+      first_name: suggestedContact.name.split(' ')[0],
+      last_name: suggestedContact.name.split(' ')[1] || '',
+      email: suggestedContact.email,
+      job_title: suggestedContact.title,
+      phone: '',
+      customer_id: selectedCompany // Link to the current company
+    };
+    
+    createContactMutation.mutate(contactData);
+  };
+
   // Handle saving new contact
   const handleSaveContact = () => {
     if (!newContactData.first_name || !newContactData.last_name || !newContactData.email) {
@@ -445,14 +463,25 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
             </div>
           )}
           
-          <Button
-            onClick={handleNext}
-            disabled={currentStep === 3}
-            className="gap-2"
-          >
-            Next
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+          {currentStep === 3 ? (
+            <Button
+              onClick={handleBulkSendAll}
+              disabled={sendAllEmailsMutation.isPending}
+              className="gap-2 bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Send className="h-4 w-4" />
+              {sendAllEmailsMutation.isPending ? 'Sending...' : 'Send emails'}
+            </Button>
+          ) : (
+            <Button
+              onClick={handleNext}
+              disabled={currentStep === 3}
+              className="gap-2"
+            >
+              Next
+              <ArrowRight className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       </div>
       
@@ -884,6 +913,93 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                                       <Plus className="h-3 w-3 mr-1" />
                                       Add Contact Manually
                                     </Button>
+                                    
+                                    {/* Additional Suggested Contacts */}
+                                    <div className="mt-4 border-t pt-4">
+                                      <div className="flex items-center justify-between mb-3">
+                                        <div className="flex items-center gap-2">
+                                          <Search className="h-4 w-4 text-blue-500" />
+                                          <span className="text-sm font-medium text-gray-900">Additional Suggested Contacts</span>
+                                          <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                            2 found
+                                          </Badge>
+                                        </div>
+                                        <Button 
+                                          variant="ghost" 
+                                          size="sm" 
+                                          className="text-xs h-6 px-2 text-gray-500 hover:text-gray-700"
+                                          onClick={() => {
+                                            const currentState = customerSuggestionsCollapsed[customerName] ?? false;
+                                            setCustomerSuggestionsCollapsed(prev => ({
+                                              ...prev,
+                                              [customerName]: !currentState
+                                            }));
+                                          }}
+                                        >
+                                          {(customerSuggestionsCollapsed[customerName] ?? false) ? 'Show' : 'Hide'}
+                                        </Button>
+                                      </div>
+                                      
+                                      {!(customerSuggestionsCollapsed[customerName] ?? false) && (
+                                        <>
+                                          <p className="text-xs text-gray-500 mb-4">We found these additional potential contacts for {customerName}. Click to add them instantly.</p>
+                                          
+                                          {/* Mock suggested contacts - these should come from API */}
+                                          {[
+                                            {
+                                              name: 'Sarah Kim',
+                                              email: 'sarah.kim@fintechsolutions.com',
+                                              title: 'Chief Technology Officer',
+                                              match: '97% match',
+                                              source: 'From LinkedIn'
+                                            },
+                                            {
+                                              name: 'Alex Thompson',
+                                              email: 'athompson@fintechsolutions.com',
+                                              title: 'Product Manager',
+                                              match: '85% match',
+                                              source: 'From Company Website'
+                                            }
+                                          ].map((suggested, suggestedIndex) => (
+                                            <div key={suggestedIndex} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                                              <div className="flex-1">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                  <span className="font-medium text-sm text-gray-900">{suggested.name}</span>
+                                                  <Badge variant="outline" className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                                                    {suggested.match}
+                                                  </Badge>
+                                                </div>
+                                                <div className="text-xs text-gray-500">{suggested.email}</div>
+                                                <div className="text-xs text-gray-500">{suggested.title}</div>
+                                                <div className="text-xs text-gray-400">{suggested.source}</div>
+                                              </div>
+                                              <Button 
+                                                size="sm" 
+                                                variant="outline" 
+                                                className="text-xs h-6 px-2 ml-2"
+                                                onClick={() => handleAddSuggestedContact(suggested)}
+                                                disabled={createContactMutation.isPending}
+                                              >
+                                                <Plus className="h-3 w-3 mr-1" />
+                                                Add
+                                              </Button>
+                                            </div>
+                                          ))}
+                                          
+                                          <div className="mt-4 p-3 bg-blue-50 rounded-md">
+                                            <div className="flex items-start gap-2">
+                                              <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center mt-0.5">
+                                                <span className="text-xs text-white font-bold">!</span>
+                                              </div>
+                                              <div>
+                                                <p className="text-xs text-blue-800 font-medium">Smart Contact Discovery</p>
+                                                <p className="text-xs text-blue-600">These contacts were found using AI-powered analysis of company websites, LinkedIn profiles, and business directories.</p>
+                                              </div>
+                                            </div>
+                                          </div>
+                                        </>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                               );
@@ -986,6 +1102,87 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                                         {emailBlocks.find((block: any) => block.type === 'text')?.content?.substring(0, 80) || 'Email content...'}
                                       </div>
                                     </div>
+                                  )}
+                                </div>
+                                
+                                {/* Additional Suggested Contacts - Always show for ALL contacts */}
+                                <div className="mt-4 border-t pt-4">
+                                  <div className="flex items-center justify-between mb-3">
+                                    <div className="flex items-center gap-2">
+                                      <Search className="h-4 w-4 text-blue-500" />
+                                      <span className="text-sm font-medium text-gray-900">Additional Suggested Contacts</span>
+                                      <Badge variant="outline" className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded">
+                                        2 found
+                                      </Badge>
+                                    </div>
+                                    <Button 
+                                      variant="ghost" 
+                                      size="sm" 
+                                      className="text-xs h-6 px-2 text-gray-500 hover:text-gray-700"
+                                      onClick={() => setSuggestionsCollapsed(!suggestionsCollapsed)}
+                                    >
+                                      {suggestionsCollapsed ? 'Show' : 'Hide'}
+                                    </Button>
+                                  </div>
+                                  
+                                  {!suggestionsCollapsed && (
+                                    <>
+                                      <p className="text-xs text-gray-500 mb-4">We found these additional potential contacts for {customerName}. Click to add them instantly.</p>
+                                      
+                                      {/* Mock suggested contacts - these should come from API */}
+                                      {[
+                                        {
+                                          name: 'Sarah Kim',
+                                          email: 'sarah.kim@fintechsolutions.com',
+                                          title: 'Chief Technology Officer',
+                                          match: '97% match',
+                                          source: 'From LinkedIn'
+                                        },
+                                        {
+                                          name: 'Alex Thompson',
+                                          email: 'athompson@fintechsolutions.com',
+                                          title: 'Product Manager',
+                                          match: '85% match',
+                                          source: 'From Company Website'
+                                        }
+                                      ].map((suggested, suggestedIndex) => (
+                                        <div key={suggestedIndex} className="flex items-center justify-between py-2 border-b border-gray-100 last:border-b-0">
+                                          <div className="flex-1">
+                                            <div className="flex items-center gap-2 mb-1">
+                                              <span className="font-medium text-sm text-gray-900">{suggested.name}</span>
+                                              <Badge variant="outline" className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded">
+                                                {suggested.match}
+                                              </Badge>
+                                            </div>
+                                            <div className="text-xs text-gray-500">{suggested.email}</div>
+                                            <div className="text-xs text-gray-500">{suggested.title}</div>
+                                            <div className="text-xs text-gray-400">{suggested.source}</div>
+                                          </div>
+                                          <Button 
+                                            size="sm" 
+                                            variant="outline" 
+                                            className="text-xs h-6 px-2 ml-2"
+                                            onClick={() => handleAddSuggestedContact(suggested)}
+                                            disabled={createContactMutation.isPending}
+                                          >
+                                            <Plus className="h-3 w-3 mr-1" />
+                                            Add
+                                          </Button>
+                                        </div>
+                                      ))}
+                                      
+                                      <div className="mt-4 p-3 bg-blue-50 rounded-md">
+                                        <div className="flex items-start gap-2">
+                                          <div className="w-4 h-4 rounded-full bg-blue-500 flex items-center justify-center mt-0.5">
+                                            <span className="text-xs text-white font-bold">!</span>
+                                          </div>
+                                          <div>
+                                            <p className="text-xs text-blue-800 font-medium">Smart Contact Discovery</p>
+                                            <p className="text-xs text-blue-600">These contacts were found using AI-powered analysis of company websites, LinkedIn profiles, and business directories.</p>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </>
                                   )}
                                 </div>
                               </div>
