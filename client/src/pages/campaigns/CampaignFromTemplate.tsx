@@ -2473,6 +2473,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                       .replace(/\{\{naam\}\}/g, contactName)
                                       .replace(/\{\{name\}\}/g, contactName)
                                       .replace(/\{\{contact_name\}\}/g, contactName)
+                                      .replace(/\{\{first_name\}\}/g, contact.first_name || contact.name || 'Contact')
+                                      .replace(/\{\{last_name\}\}/g, contact.last_name || '')
                                       .replace(/\{\{company_name\}\}/g, companyName)
                                       .replace(/\{\{opportunity_title\}\}/g, contact.title || contact.opportunityInfo?.title || 'Opportunity')
                                       .replace(/\{\{opportunity_value\}\}/g, contact.estimated_value || contact.opportunityInfo?.estimated_value || '0')
@@ -2485,6 +2487,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                       .replace(/\{\{naam\}\}/g, contactName)
                                       .replace(/\{\{name\}\}/g, contactName)
                                       .replace(/\{\{contact_name\}\}/g, contactName)
+                                      .replace(/\{\{first_name\}\}/g, contact.first_name || contact.name || 'Contact')
+                                      .replace(/\{\{last_name\}\}/g, contact.last_name || '')
                                       .replace(/\{\{company_name\}\}/g, companyName)
                                       .replace(/\{\{opportunity_title\}\}/g, contact.title || contact.opportunityInfo?.title || 'Opportunity');
                                     

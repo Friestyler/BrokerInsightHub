@@ -319,6 +319,8 @@ Status: Ready for deployment`;
 
   const dynamicFields = [
     { field: 'name', label: 'Contact name' },
+    { field: 'first_name', label: 'First name' },
+    { field: 'last_name', label: 'Last name' },
     { field: 'company', label: 'Company name' },
     { field: 'title', label: 'Job title' },
     { field: 'email', label: 'Email address' },
