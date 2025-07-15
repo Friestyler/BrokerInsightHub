@@ -1290,8 +1290,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     const step2Complete = Boolean(campaignData.entity);
     const step3Complete = Boolean(campaignData.emails[0]?.subject?.trim());
     const step4Complete = isEditingCampaign ? true : campaignData.recipients.length > 0;
-    const step5Complete = true; // Settings step - allow progression as it has default settings
-    const step6Complete = true; // Drafts step - allow progression as it has default behavior
+    const step5Complete = Boolean(campaignData.settings && Object.keys(campaignData.settings).length > 0);
+    const step6Complete = Boolean(campaignData.id); // Only complete if campaign is saved
     
     if (stepNum === 1) return step1Complete;
     if (stepNum === 2) return step2Complete;
@@ -1300,7 +1300,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     if (stepNum === 5) return step5Complete;
     if (stepNum === 6) return step6Complete;
     if (stepNum === 7) return false; // Share or Send step - never auto-completed
-    return stepNum < currentStep;
+    return false; // Don't auto-complete steps based on current step
   };
 
   const isStepAccessible = (stepNum: number): boolean => {
@@ -1550,14 +1550,21 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               <p className="text-gray-600">Design your email sequence</p>
             </div>
 
-            <div className="p-4 bg-green-50 rounded-lg border border-green-200 mb-6">
-              <p className="text-sm text-green-700">
-                <strong>Email content has been duplicated from the template.</strong> You can review and modify it below.
-              </p>
-              <p className="text-xs text-green-600 mt-1">
-                Debug: {campaignData.emails.length} emails loaded, First email has {campaignData.emails[0]?.blocks?.length || 0} blocks
-              </p>
-            </div>
+            {isFromTemplate && (
+              <div className="p-4 bg-green-50 rounded-lg border border-green-200 mb-6">
+                <p className="text-sm text-green-700">
+                  <strong>Email content has been duplicated from the template.</strong> You can review and modify it below.
+                </p>
+              </div>
+            )}
+            
+            {!isFromTemplate && !isEditingCampaign && (
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200 mb-6">
+                <p className="text-sm text-blue-700">
+                  <strong>Build your email sequence.</strong> Start by creating your first email with subject line and content.
+                </p>
+              </div>
+            )}
             
             <ImprovedFlowBuilder
               emails={campaignData.emails}
