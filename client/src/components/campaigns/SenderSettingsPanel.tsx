@@ -70,13 +70,16 @@ export default function SenderSettingsPanel({
                 <RadioGroupItem value="qollabi_default" id="qollabi_default" className="mt-1" />
                 <div className="flex-1">
                   <Label htmlFor="qollabi_default" className="font-medium">
-                    Use Qollabi Default Email
+                    {isPartnerMode ? 'Use Default Email' : 'Use Qollabi Default Email'}
                     <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
                       Recommended
                     </span>
                   </Label>
                   <p className="text-sm text-gray-600 mt-1">
-                    Send campaigns from our verified Qollabi email address
+                    {isPartnerMode 
+                      ? 'Send campaigns from the default platform email address with professional branding'
+                      : 'Send campaigns from our verified Qollabi email address'
+                    }
                   </p>
                 </div>
               </div>
@@ -85,13 +88,16 @@ export default function SenderSettingsPanel({
                 <RadioGroupItem value="custom_email" id="custom_email" className="mt-1" />
                 <div className="flex-1">
                   <Label htmlFor="custom_email" className="font-medium">
-                    Connect Your Own Email
+                    {isPartnerMode ? "Use Provider's Mail (if applicable)" : 'Connect Your Own Email'}
                     <span className="ml-2 px-2 py-1 bg-gray-100 text-gray-600 text-xs rounded">
-                      Custom
+                      {isPartnerMode ? 'Provider' : 'Custom'}
                     </span>
                   </Label>
                   <p className="text-sm text-gray-600 mt-1">
-                    Use your own email address with SMTP configuration
+                    {isPartnerMode
+                      ? 'Send campaigns from the insurance provider\'s email system when available'
+                      : 'Use your own email address with SMTP configuration'
+                    }
                   </p>
                 </div>
               </div>
@@ -101,13 +107,13 @@ export default function SenderSettingsPanel({
                   <RadioGroupItem value="partner_select" id="partner_select" className="mt-1" />
                   <div className="flex-1">
                     <Label htmlFor="partner_select" className="font-medium">
-                      Let Partner Select Email
+                      Connect your own email
                       <span className="ml-2 px-2 py-1 bg-green-100 text-green-800 text-xs rounded">
-                        Flexible
+                        Personal
                       </span>
                     </Label>
                     <p className="text-sm text-gray-600 mt-1">
-                      Allow partners to choose their own sending email address
+                      Connect and send campaigns from your personal or business email account
                     </p>
                   </div>
                 </div>

@@ -396,9 +396,9 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                     <div>
                       <span className="text-gray-500">Email Type:</span>
                       <p className="font-medium">
-                        {emailSendingType === 'qollabi_default' ? 'Qollabi Default' :
-                         emailSendingType === 'custom_email' ? 'Custom Email' :
-                         emailSendingType === 'partner_select' ? 'Partner Select' : 'Default'}
+                        {emailSendingType === 'qollabi_default' ? 'Use Default Email' :
+                         emailSendingType === 'custom_email' ? "Use Provider's Mail" :
+                         emailSendingType === 'partner_select' ? 'Connect your own email' : 'Default'}
                       </p>
                     </div>
                   </div>
