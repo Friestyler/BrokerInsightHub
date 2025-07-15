@@ -761,6 +761,25 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
                     </div>
                   ))}
                 </div>
+                
+                {/* Multiple Partner Selection Notice */}
+                {selectedPartnersForAssignment.length > 1 && (
+                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <div className="w-4 h-4 rounded-full bg-yellow-400 flex items-center justify-center mt-0.5">
+                        <span className="text-white text-xs font-bold">!</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-yellow-800">
+                          Random Assignment
+                        </p>
+                        <p className="text-sm text-yellow-700 mt-1">
+                          Qollabi will randomly assign the selected customers across the {selectedPartnersForAssignment.length} chosen partners to ensure balanced distribution.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             
@@ -788,6 +807,25 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
                     </div>
                   ))}
                 </div>
+                
+                {/* Multiple Partner Lists Selection Notice */}
+                {selectedPartnersForAssignment.length > 1 && (
+                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <div className="w-4 h-4 rounded-full bg-yellow-400 flex items-center justify-center mt-0.5">
+                        <span className="text-white text-xs font-bold">!</span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-yellow-800">
+                          Random Assignment
+                        </p>
+                        <p className="text-sm text-yellow-700 mt-1">
+                          Qollabi will randomly assign the selected customers across partners from the {selectedPartnersForAssignment.length} chosen lists to ensure balanced distribution.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
             
