@@ -454,6 +454,52 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
     sendAllEmailsMutation.mutate();
   };
 
+  const handleScheduleSend = async (scheduledTime: string) => {
+    try {
+      // Get partner recipients
+      const partnerRecipients = (campaign.recipients || []).filter((recipient: any) => 
+        recipient.assigned_partner_id === partnerId || 
+        recipient.partnerInfo?.id === partnerId
+      );
+      
+      const allReadyContacts = partnerRecipients.filter((recipient: any) => 
+        recipient.email || recipient.contactInfo?.email
+      );
+      
+      const response = await apiRequest('POST', '/api/campaigns/schedule', {
+        campaignId: campaignId,
+        scheduledTime: scheduledTime,
+        recipients: allReadyContacts.map(contact => ({
+          contactId: contact.id,
+          email: contact.email || contact.contactInfo?.email
+        }))
+      });
+      
+      const scheduledDate = new Date(scheduledTime);
+      const formattedDate = scheduledDate.toLocaleDateString('en-US', {
+        weekday: 'short',
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+      });
+      
+      toast({
+        title: "Campaign scheduled successfully!",
+        description: `${allReadyContacts.length} emails scheduled for ${formattedDate}`
+      });
+      
+    } catch (error) {
+      console.error('Error scheduling campaign:', error);
+      toast({
+        title: "Failed to schedule campaign",
+        description: "Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Handle adding contact
   const handleAddContact = () => {
     setShowAddContactModal(true);
@@ -626,60 +672,47 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
             Previous
           </Button>
           
-          {/* Send All Button - Show on Drafts step */}
-          {currentStep === 3 ? (() => {
-            // Count all ready contacts across partner's recipients
-            const partnerRecipients = (campaign.recipients || []).filter((recipient: any) => 
-              recipient.assigned_partner_id === partnerId || 
-              recipient.partnerInfo?.id === partnerId
-            );
-            
-            const allReadyContacts = partnerRecipients.filter((recipient: any) => 
-              recipient.email || recipient.contactInfo?.email
-            ).length;
-            
-            if (allReadyContacts > 0) {
-              return (
-                <Button 
-                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 text-sm"
-                  onClick={handleBulkSendAll}
-                  disabled={sendAllEmailsMutation.isPending}
-                >
-                  <Send className="h-4 w-4 mr-2" />
-                  Send All ({allReadyContacts})
-                </Button>
-              );
-            }
-            return (
-              <div className="text-sm text-gray-500">
-                Step {currentStep} of 3
-              </div>
-            );
-          })() : (
-            <div className="text-sm text-gray-500">
-              Step {currentStep} of 3
-            </div>
-          )}
+          <div className="text-sm text-gray-500">
+            Step {currentStep} of 3
+          </div>
           
-          {currentStep === 3 ? (
-            <Button
-              onClick={handleBulkSendAll}
-              disabled={sendAllEmailsMutation.isPending}
-              className="gap-2 bg-green-600 hover:bg-green-700 text-white"
-            >
-              <Send className="h-4 w-4" />
-              {sendAllEmailsMutation.isPending ? 'Sending...' : 'Send emails'}
-            </Button>
-          ) : (
-            <Button
-              onClick={handleNext}
-              disabled={currentStep === 3}
-              className="gap-2"
-            >
-              Next
-              <ArrowRight className="h-4 w-4" />
-            </Button>
-          )}
+          <div className="flex gap-3 items-center">
+            {/* Send All Button - Show on Drafts step */}
+            {currentStep === 3 && (() => {
+              // Count all ready contacts across partner's recipients
+              const partnerRecipients = (campaign.recipients || []).filter((recipient: any) => 
+                recipient.assigned_partner_id === partnerId || 
+                recipient.partnerInfo?.id === partnerId
+              );
+              
+              const allReadyContacts = partnerRecipients.filter((recipient: any) => 
+                recipient.email || recipient.contactInfo?.email
+              ).length;
+              
+              if (allReadyContacts > 0) {
+                return (
+                  <SendScheduleButton
+                    onSendNow={handleBulkSendAll}
+                    onScheduleSend={handleScheduleSend}
+                    hasRecipients={allReadyContacts > 0}
+                    variant="bulk"
+                  />
+                );
+              }
+              return null;
+            })()}
+            
+            {currentStep === 3 ? null : (
+              <Button
+                onClick={handleNext}
+                disabled={currentStep === 3}
+                className="gap-2"
+              >
+                Next
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
       
