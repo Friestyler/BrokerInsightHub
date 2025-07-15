@@ -3321,25 +3321,13 @@ export default function PartnerDetail() {
             {/* Campaign Edit Tab */}
             {selectedCampaign && activeCampaignTab === `edit-${selectedCampaign.id}` && (
               <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      Edit Campaign: {selectedCampaign.name}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      Partner-specific campaign configuration
-                    </p>
-                  </div>
-                  <Button 
-                    variant="outline" 
-                    onClick={() => {
-                      setSelectedCampaign(null);
-                      setActiveCampaignTab("overview");
-                    }}
-                  >
-                    <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Overview
-                  </Button>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Edit Campaign: {selectedCampaign.name}
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    Partner-specific campaign configuration
+                  </p>
                 </div>
                 
                 <PartnerCampaignBuilder 
