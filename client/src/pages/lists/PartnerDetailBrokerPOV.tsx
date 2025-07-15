@@ -18,6 +18,7 @@ import EntityAvatar from "@/components/EntityAvatar";
 import PartnerCampaignBuilder from "@/pages/campaigns/PartnerCampaignBuilder";
 
 import { BrokerLayout } from "@/components/layouts/BrokerLayout";
+import PartnerCampaignShareModal from "@/components/campaigns/PartnerCampaignShareModal";
 import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
 import baloiseLogoPng from "@assets/Baloise_1750499789244.png";
 import deGoudseLogo from "@assets/De_Goudse_logo_1749670246231.png";
@@ -40,6 +41,10 @@ export default function PartnerDetailBrokerPOV() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState("all");
   const [selectedUnit, setSelectedUnit] = useState("all");
+
+  // State for campaign selection and sharing
+  const [selectedCampaigns, setSelectedCampaigns] = useState<number[]>([]);
+  const [showCampaignShareModal, setShowCampaignShareModal] = useState(false);
 
   // Opportunities toolbar state management
   const [showListsDropdown, setShowListsDropdown] = useState(false);
@@ -2616,11 +2621,60 @@ export default function PartnerDetailBrokerPOV() {
                     </div>
                   </div>
 
+                  {/* Bulk Selection Bar */}
+                  {selectedCampaigns.length > 0 && (
+                    <div className="bg-indigo-50 border-l-4 border-indigo-400 p-4 mb-4 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-400" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div className="ml-3">
+                            <p className="text-sm text-indigo-700">
+                              {selectedCampaigns.length} campaign{selectedCampaigns.length > 1 ? 's' : ''} selected
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedCampaigns([])}
+                            className="text-indigo-700 border-indigo-300 hover:bg-indigo-100"
+                          >
+                            Clear selection
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => setShowCampaignShareModal(true)}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                          >
+                            Share with partner
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* Campaigns Table */}
                   <div className="bg-white overflow-x-auto rounded-lg">
                     <table className="min-w-full divide-y divide-gray-200">
                       <thead className="bg-white">
                         <tr>
+                          <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                            <Checkbox
+                              checked={brokerCampaigns.length > 0 && brokerCampaigns.every((campaign: any) => selectedCampaigns.includes(campaign.id))}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedCampaigns(brokerCampaigns.map((campaign: any) => campaign.id));
+                                } else {
+                                  setSelectedCampaigns([]);
+                                }
+                              }}
+                            />
+                          </th>
                           <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[250px]">
                             Campaign Name
                           </th>
@@ -2651,14 +2705,29 @@ export default function PartnerDetailBrokerPOV() {
                         {brokerCampaigns.map((campaign: any) => (
                           <tr 
                             key={campaign.id} 
-                            className="hover:bg-gray-50 cursor-pointer group"
-                            onClick={() => {
-                              // Stay within partner detail page context
-                              setSelectedCampaign(campaign);
-                              setActiveTab("campaign-editor");
-                            }}
+                            className="hover:bg-gray-50 group"
                           >
-                            <td className="px-3 py-4 text-sm text-gray-900 w-[250px]">
+                            <td className="px-3 py-4 text-sm text-gray-900 w-12">
+                              <Checkbox
+                                checked={selectedCampaigns.includes(campaign.id)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setSelectedCampaigns([...selectedCampaigns, campaign.id]);
+                                  } else {
+                                    setSelectedCampaigns(selectedCampaigns.filter(id => id !== campaign.id));
+                                  }
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </td>
+                            <td 
+                              className="px-3 py-4 text-sm text-gray-900 w-[250px] cursor-pointer"
+                              onClick={() => {
+                                // Stay within partner detail page context
+                                setSelectedCampaign(campaign);
+                                setActiveTab("campaign-editor");
+                              }}
+                            >
                               <div className="max-w-[230px]">
                                 <div className="font-medium text-gray-900 truncate">
                                   {campaign.name}
@@ -2670,7 +2739,13 @@ export default function PartnerDetailBrokerPOV() {
                                 )}
                               </div>
                             </td>
-                            <td className="px-3 py-4 text-sm text-gray-900 w-[160px] min-w-[160px]">
+                            <td 
+                              className="px-3 py-4 text-sm text-gray-900 w-[160px] min-w-[160px] cursor-pointer"
+                              onClick={() => {
+                                setSelectedCampaign(campaign);
+                                setActiveTab("campaign-editor");
+                              }}
+                            >
                               {(() => {
                                 // Calculate the actual status based on campaign data
                                 const status = campaign.status || 'draft';
@@ -2761,10 +2836,22 @@ export default function PartnerDetailBrokerPOV() {
                                 return statusBadge;
                               })()}
                             </td>
-                            <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
+                            <td 
+                              className="px-3 py-4 text-sm text-gray-900 w-[100px] cursor-pointer"
+                              onClick={() => {
+                                setSelectedCampaign(campaign);
+                                setActiveTab("campaign-editor");
+                              }}
+                            >
                               {campaign.status === 'draft' ? 5 : (Array.isArray(campaign.recipients) ? campaign.recipients.length : (campaign.recipients || 0))}
                             </td>
-                            <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
+                            <td 
+                              className="px-3 py-4 text-sm text-gray-900 w-[100px] cursor-pointer"
+                              onClick={() => {
+                                setSelectedCampaign(campaign);
+                                setActiveTab("campaign-editor");
+                              }}
+                            >
                               {campaign.status === 'draft' ? (
                                 <span className="text-sm text-gray-400">-</span>
                               ) : (
@@ -2780,7 +2867,13 @@ export default function PartnerDetailBrokerPOV() {
                                 </div>
                               )}
                             </td>
-                            <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
+                            <td 
+                              className="px-3 py-4 text-sm text-gray-900 w-[100px] cursor-pointer"
+                              onClick={() => {
+                                setSelectedCampaign(campaign);
+                                setActiveTab("campaign-editor");
+                              }}
+                            >
                               {campaign.status === 'draft' ? (
                                 <span className="text-sm text-gray-400">-</span>
                               ) : (
@@ -2789,14 +2882,26 @@ export default function PartnerDetailBrokerPOV() {
                                 </span>
                               )}
                             </td>
-                            <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
+                            <td 
+                              className="px-3 py-4 text-sm text-gray-900 w-[100px] cursor-pointer"
+                              onClick={() => {
+                                setSelectedCampaign(campaign);
+                                setActiveTab("campaign-editor");
+                              }}
+                            >
                               {campaign.status === 'draft' ? (
                                 <span className="text-sm text-gray-400">-</span>
                               ) : (
                                 campaign.emails_sent || 0
                               )}
                             </td>
-                            <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
+                            <td 
+                              className="px-3 py-4 text-sm text-gray-900 w-[120px] cursor-pointer"
+                              onClick={() => {
+                                setSelectedCampaign(campaign);
+                                setActiveTab("campaign-editor");
+                              }}
+                            >
                               {campaign.created_at ? new Date(campaign.created_at).toLocaleDateString() : '-'}
                             </td>
 
@@ -2846,6 +2951,23 @@ export default function PartnerDetailBrokerPOV() {
           )}
         </div>
       </div>
+
+      {/* Campaign Share Modal */}
+      <PartnerCampaignShareModal
+        isOpen={showCampaignShareModal}
+        onClose={() => setShowCampaignShareModal(false)}
+        campaignIds={selectedCampaigns}
+        campaignNames={selectedCampaigns.map(id => {
+          const campaign = brokerCampaigns.find((c: any) => c.id === id);
+          return campaign ? campaign.name : '';
+        }).filter(Boolean)}
+        partnerId={partnerId || ''}
+        partnerName={partner.name}
+        onShareComplete={() => {
+          setSelectedCampaigns([]);
+          setShowCampaignShareModal(false);
+        }}
+      />
 
       {/* Partner Details Dialog */}
       <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
