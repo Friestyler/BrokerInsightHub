@@ -1594,6 +1594,10 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
         id: data.id
       }));
       
+      // Invalidate campaigns cache to refresh the overview list
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/degoudse/campaigns'] });
+      
       toast({
         title: "Campaign created successfully!",
         description: "Your campaign has been created and is ready to launch."
@@ -1632,6 +1636,12 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       return response.json();
     },
     onSuccess: () => {
+      // Invalidate campaigns cache to refresh the overview list
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/degoudse/campaigns'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/campaigns/${campaignId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/degoudse/campaigns/${campaignId}`] });
+      
       toast({
         title: "Campaign updated successfully!",
         description: "Your campaign changes have been saved."
