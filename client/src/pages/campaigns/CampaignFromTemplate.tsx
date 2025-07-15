@@ -1097,7 +1097,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
         title: "Campaign updated successfully!",
         description: "Your campaign changes have been saved."
       });
-      setLocation('/campaigns');
+      // Stay on the same page when saving in edit mode
+      // setLocation('/campaigns'); // Removed redirect
     },
     onError: (error: any) => {
       console.error('Campaign update error:', error);
