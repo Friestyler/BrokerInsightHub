@@ -742,14 +742,13 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                           <div>
                             <h3 className="font-semibold text-gray-900">{selectedCompany}</h3>
                             {(() => {
-                              const partnerRecipients = (campaign.recipients || []).filter((recipient: any) => 
-                                recipient.assigned_partner_id === partnerId || 
-                                recipient.partnerInfo?.id === partnerId
-                              );
+                              // Use all recipients for partner campaign workflow
+                              const partnerRecipients = campaign.recipients || [];
                               
                               const selectedCompanyData = partnerRecipients.find((r: any) => 
                                 r.customerInfo?.name === selectedCompany || 
-                                r.customerInfo?.title === selectedCompany || 
+                                r.customerName === selectedCompany ||
+                                r.clientName === selectedCompany ||
                                 r.name === selectedCompany || 
                                 r.title === selectedCompany
                               );
@@ -757,7 +756,8 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                               const companyType = selectedCompanyData?.customerInfo?.type || 'Business';
                               const contactsCount = partnerRecipients.filter((r: any) => 
                                 (r.customerInfo?.name === selectedCompany || 
-                                 r.customerInfo?.title === selectedCompany || 
+                                 r.customerName === selectedCompany ||
+                                 r.clientName === selectedCompany ||
                                  r.name === selectedCompany || 
                                  r.title === selectedCompany) && 
                                 (r.email || r.contactInfo?.email)
@@ -788,18 +788,26 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                       <div className="p-4 space-y-4">
                         {/* Partner-specific Recipients for Selected Company */}
                         {(() => {
-                          const partnerRecipients = (campaign.recipients || []).filter((recipient: any) => 
-                            recipient.assigned_partner_id === partnerId || 
-                            recipient.partnerInfo?.id === partnerId
-                          );
+                          // Use all recipients for partner campaign workflow
+                          const partnerRecipients = campaign.recipients || [];
+                          
+                          console.log('Selected company:', selectedCompany);
+                          console.log('All recipients:', partnerRecipients);
                           
                           const companyRecipients = partnerRecipients.filter((recipient: any) => 
                             recipient.customerInfo?.name === selectedCompany || 
-                            recipient.customerInfo?.title === selectedCompany || 
+                            recipient.customerName === selectedCompany ||
+                            recipient.clientName === selectedCompany ||
                             recipient.name === selectedCompany || 
                             recipient.title === selectedCompany ||
-                            (recipient.type === 'contact' && recipient.customerInfo?.name === selectedCompany)
+                            (recipient.type === 'contact' && (
+                              recipient.customerInfo?.name === selectedCompany ||
+                              recipient.customerName === selectedCompany ||
+                              recipient.clientName === selectedCompany
+                            ))
                           );
+                          
+                          console.log('Filtered company recipients:', companyRecipients);
                           
                           if (companyRecipients.length === 0) {
                             return (
