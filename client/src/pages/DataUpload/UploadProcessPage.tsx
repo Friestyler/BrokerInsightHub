@@ -18,6 +18,8 @@ import CategoryManagerForProducts from '@/components/CategoryManagerForProducts'
 interface UploadProcessProps {
   entityType?: string;
   formatType?: string;
+  isModal?: boolean;
+  onUploadComplete?: (data: any[]) => void;
 }
 
 const capitalizeUploadType = (type: string) => {
@@ -101,7 +103,7 @@ const getSteps = (uploadType: string, selectedEntityTypes: string[] = []) => {
   ];
 };
 
-export default function UploadProcessPage() {
+export default function UploadProcessPage({ entityType: propEntityType, formatType: propFormatType, isModal, onUploadComplete }: UploadProcessProps = {}) {
   const [location, setLocation] = useLocation();
   const [match2, params2] = useRoute('/data-upload-2/process/:type');
   const [match3, params3] = useRoute('/data-upload-3/process/:type');
@@ -113,8 +115,8 @@ export default function UploadProcessPage() {
   // Determine if this is a special format (contains hyphen) or entity
   const isEntityUpload = uploadType === 'entity-upload';
   const isSpecialFormat = !isEntityUpload && (uploadType.includes('-') || ['salesforce', 'brio', 'degoudse'].includes(uploadType));
-  const entityType = isSpecialFormat ? undefined : uploadType;
-  const formatType = isSpecialFormat ? uploadType : undefined;
+  const entityType = propEntityType || (isSpecialFormat ? undefined : uploadType);
+  const formatType = propFormatType || (isSpecialFormat ? uploadType : undefined);
   
   const [currentStep, setCurrentStep] = useState(1); // Always start at step 1
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -830,6 +832,11 @@ export default function UploadProcessPage() {
                   recordsProcessed: results.recordsProcessed,
                   errors: results.errors
                 });
+                
+                // Call onUploadComplete if provided (for modal usage)
+                if (onUploadComplete && results.data) {
+                  onUploadComplete(results.data);
+                }
               }}
             />
           )}

@@ -13,6 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import ImprovedEmailBuilder from './ImprovedEmailBuilder';
 import RecipientSelector from '@/components/campaigns/RecipientSelector';
 import CampaignSettingsWizard from '@/components/campaigns/CampaignSettingsWizard';
+import ContactUploadModal from '@/components/campaigns/ContactUploadModal';
 
 interface CampaignFromTemplateProps {
   params?: { templateId?: string; campaignId?: string };
@@ -906,6 +907,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const [sharePartnersDialogOpen, setSharePartnersDialogOpen] = useState(false);
   const [selectedPartnersForSharing, setSelectedPartnersForSharing] = useState<number[]>([]);
   const [suggestionsCollapsed, setSuggestionsCollapsed] = useState(false);
+  const [showContactUploadModal, setShowContactUploadModal] = useState(false);
   
   // Determine the mode: editing existing campaign, new campaign, or template-based campaign
   const isEditingCampaign = !!campaignId;
@@ -2550,13 +2552,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                         size="sm" 
                         variant="outline"
                         className="text-xs h-7 px-3 border-gray-300 hover:bg-gray-50"
-                        onClick={() => {
-                          // TODO: Implement contact upload functionality
-                          toast({
-                            title: "Upload Contacts",
-                            description: "Contact upload functionality will be implemented soon."
-                          });
-                        }}
+                        onClick={() => setShowContactUploadModal(true)}
                       >
                         <Upload className="h-3 w-3 mr-1" />
                         Upload Contacts
@@ -3567,6 +3563,16 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
           </div>
         </DialogContent>
       </Dialog>
+      
+      <ContactUploadModal 
+        isOpen={showContactUploadModal}
+        onClose={() => setShowContactUploadModal(false)}
+        onUploadComplete={(uploadedContacts) => {
+          // TODO: Handle uploaded contacts and add them to campaign recipients
+          console.log('Uploaded contacts:', uploadedContacts);
+          setShowContactUploadModal(false);
+        }}
+      />
     </div>
   );
 }
