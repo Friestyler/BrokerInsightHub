@@ -112,13 +112,13 @@ export default function SendScheduleButton({
               <Calendar className="h-4 w-4 mr-2" />
               Schedule to send
             </DropdownMenuItem>
-            {(campaignStatus === 'running' || campaignStatus === 'scheduled') && onPause && (
+            {onPause && (
               <DropdownMenuItem onClick={onPause}>
                 <Pause className="h-4 w-4 mr-2" />
                 Pause campaign
               </DropdownMenuItem>
             )}
-            {(campaignStatus !== 'draft' && campaignStatus !== 'stopped') && onStop && (
+            {onStop && (
               <DropdownMenuItem onClick={onStop}>
                 <Square className="h-4 w-4 mr-2" />
                 Stop campaign
@@ -206,13 +206,13 @@ export default function SendScheduleButton({
             <Calendar className="h-4 w-4 mr-2" />
             Schedule to send
           </DropdownMenuItem>
-          {(campaignStatus === 'running' || campaignStatus === 'scheduled') && onPause && (
+          {onPause && (
             <DropdownMenuItem onClick={onPause}>
               <Pause className="h-4 w-4 mr-2" />
               Pause campaign
             </DropdownMenuItem>
           )}
-          {(campaignStatus !== 'draft' && campaignStatus !== 'stopped') && onStop && (
+          {onStop && (
             <DropdownMenuItem onClick={onStop}>
               <Square className="h-4 w-4 mr-2" />
               Stop campaign
