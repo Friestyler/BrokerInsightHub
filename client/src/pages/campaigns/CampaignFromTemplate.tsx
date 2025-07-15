@@ -48,7 +48,14 @@ function AssignPartnersSection({ campaignData, onAssignComplete }: AssignPartner
     const itemsWithoutPartners = [];
 
     campaignData.recipients.forEach((recipient: any) => {
-      if (recipient.assigned_partner_id || recipient.partnerInfo) {
+      // Check for partner information in various fields
+      const hasPartner = recipient.assigned_partner_id || 
+                        recipient.partnerInfo || 
+                        recipient.partnerId || 
+                        recipient.partnerName ||
+                        recipient.opportunityInfo?.partnerId;
+      
+      if (hasPartner) {
         itemsWithPartners.push(recipient);
       } else {
         itemsWithoutPartners.push(recipient);
@@ -58,8 +65,18 @@ function AssignPartnersSection({ campaignData, onAssignComplete }: AssignPartner
     // Extract unique partners from items that have them
     const uniquePartners = new Map();
     itemsWithPartners.forEach(item => {
-      const partnerId = item.assigned_partner_id || item.partnerInfo?.id;
-      const partnerName = item.partnerInfo?.name || item.assigned_partner_name || `Partner ${partnerId}`;
+      // Get partner ID from various possible fields
+      const partnerId = item.assigned_partner_id || 
+                       item.partnerInfo?.id || 
+                       item.partnerId || 
+                       item.opportunityInfo?.partnerId;
+      
+      // Get partner name from various possible fields
+      const partnerName = item.partnerInfo?.name || 
+                         item.assigned_partner_name || 
+                         item.partnerName || 
+                         item.opportunityInfo?.partnerName ||
+                         `Partner ${partnerId}`;
       
       if (partnerId && !uniquePartners.has(partnerId)) {
         uniquePartners.set(partnerId, {
@@ -1140,12 +1157,21 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       if (recipient.partnerId) {
         relatedPartnerIds.add(recipient.partnerId);
       }
+      if (recipient.opportunityInfo?.partnerId) {
+        relatedPartnerIds.add(recipient.opportunityInfo.partnerId);
+      }
       
-      // Check for partner names (string) - this is what we're actually getting
+      // Check for partner names (string)
       if (recipient.partnerNames) {
         // partnerNames can be a comma-separated string
         const names = recipient.partnerNames.split(',').map((name: string) => name.trim());
         names.forEach((name: string) => relatedPartnerNames.add(name));
+      }
+      if (recipient.partnerName) {
+        relatedPartnerNames.add(recipient.partnerName);
+      }
+      if (recipient.opportunityInfo?.partnerName) {
+        relatedPartnerNames.add(recipient.opportunityInfo.partnerName);
       }
     });
     
