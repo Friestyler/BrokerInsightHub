@@ -41,6 +41,7 @@ export default function PartnerDetail() {
   const isIframeMode = urlParams.get('iframe') === 'true';
   const [activeTab, setActiveTab] = useState(tabParam || "products");
   const [activeProductTab, setActiveProductTab] = useState("overview");
+  const [activeCampaignTab, setActiveCampaignTab] = useState("overview");
   const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState("all");
@@ -51,7 +52,7 @@ export default function PartnerDetail() {
   // Campaign click handler
   const handleCampaignClick = (campaign: any) => {
     setSelectedCampaign(campaign);
-    setActiveTab("campaign-editor");
+    setActiveCampaignTab(`edit-${campaign.id}`);
   };
   const [isOpportunitiesListsCollapsed, setIsOpportunitiesListsCollapsed] = useState(false);
   const [isCustomerListsCollapsed, setIsCustomerListsCollapsed] = useState(false);
@@ -1328,18 +1329,6 @@ export default function PartnerDetail() {
                   >
                     Campaigns
                   </button>
-                  {selectedCampaign && (
-                    <button 
-                      onClick={() => setActiveTab("campaign-editor")}
-                      className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
-                        activeTab === "campaign-editor" 
-                          ? "bg-[#E1E4FB] text-[#3E4DC4]" 
-                          : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
-                      }`}
-                    >
-                      Edit: {selectedCampaign.name}
-                    </button>
-                  )}
                   <button 
                     onClick={() => setActiveTab("contacts")}
                     className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
@@ -3291,44 +3280,78 @@ export default function PartnerDetail() {
         )}
 
         {activeTab === "campaigns" && (
-          <PartnerCampaignsView 
-            partnerId={id || ''} 
-            partnerName={partner?.name}
-            onCampaignClick={handleCampaignClick}
-          />
-        )}
-
-        {activeTab === "campaign-editor" && selectedCampaign && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Edit Campaign: {selectedCampaign.name}
-                </h3>
-                <p className="text-sm text-gray-500">
-                  Partner-specific campaign configuration
-                </p>
-              </div>
-              <Button 
-                variant="outline" 
-                onClick={() => {
-                  setSelectedCampaign(null);
-                  setActiveTab("campaigns");
-                }}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Campaigns
-              </Button>
+          <div>
+            {/* Campaign Subtabs Navigation */}
+            <div className="border-b border-gray-200 mb-3 -mt-6">
+              <nav className="flex space-x-1">
+                <button 
+                  onClick={() => setActiveCampaignTab("overview")}
+                  className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md ${
+                    activeCampaignTab === "overview" 
+                      ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
+                      : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                  }`}
+                >
+                  Overview
+                </button>
+                {selectedCampaign && (
+                  <button 
+                    onClick={() => setActiveCampaignTab(`edit-${selectedCampaign.id}`)}
+                    className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md ${
+                      activeCampaignTab === `edit-${selectedCampaign.id}` 
+                        ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
+                        : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                    }`}
+                  >
+                    Edit: {selectedCampaign.name}
+                  </button>
+                )}
+              </nav>
             </div>
-            
-            <PartnerCampaignBuilder 
-              campaignId={selectedCampaign.id} 
-              partnerId={id || ''} 
-              onBack={() => {
-                setSelectedCampaign(null);
-                setActiveTab("campaigns");
-              }}
-            />
+
+            {/* Campaign Overview Tab */}
+            {activeCampaignTab === "overview" && (
+              <PartnerCampaignsView 
+                partnerId={id || ''} 
+                partnerName={partner?.name}
+                onCampaignClick={handleCampaignClick}
+              />
+            )}
+
+            {/* Campaign Edit Tab */}
+            {selectedCampaign && activeCampaignTab === `edit-${selectedCampaign.id}` && (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Edit Campaign: {selectedCampaign.name}
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Partner-specific campaign configuration
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      setSelectedCampaign(null);
+                      setActiveCampaignTab("overview");
+                    }}
+                  >
+                    <ArrowLeft className="w-4 h-4 mr-2" />
+                    Back to Overview
+                  </Button>
+                </div>
+                
+                <PartnerCampaignBuilder 
+                  campaignId={selectedCampaign.id} 
+                  partnerId={id || ''} 
+                  onBack={() => {
+                    setSelectedCampaign(null);
+                    setActiveCampaignTab("overview");
+                  }}
+                />
+              </div>
+            )}
           </div>
         )}
 
