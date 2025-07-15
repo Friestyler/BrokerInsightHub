@@ -2671,14 +2671,61 @@ export default function PartnerDetailBrokerPOV() {
                               </div>
                             </td>
                             <td className="px-3 py-4 text-sm text-gray-900 w-[160px] min-w-[160px]">
-                              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                campaign.status === 'active' ? 'bg-green-100 text-green-800' :
-                                campaign.status === 'draft' ? 'bg-gray-100 text-gray-800' :
-                                campaign.status === 'template' ? 'bg-blue-100 text-blue-800' :
-                                'bg-gray-100 text-gray-800'
-                              }`}>
-                                {campaign.status}
-                              </span>
+                              {(() => {
+                                // Calculate the actual status based on campaign data
+                                const status = campaign.status || 'draft';
+                                const emailsSent = campaign.emails_sent || 0;
+                                const recipientsCount = campaign.recipients?.length || 0;
+                                const hasNewContacts = campaign.new_contacts_added || false;
+                                const isPaused = campaign.is_paused || false;
+                                const isStopped = campaign.is_stopped || false;
+                                const isScheduled = campaign.scheduled_time && new Date(campaign.scheduled_time) > new Date();
+                                
+                                // Determine the actual status based on campaign state
+                                let actualStatus = status;
+                                let label = 'Draft';
+                                let colorClass = 'bg-gray-100 text-gray-800';
+                                
+                                if (isStopped) {
+                                  actualStatus = 'stopped';
+                                  label = 'Stopped';
+                                  colorClass = 'bg-red-100 text-red-800';
+                                } else if (isPaused) {
+                                  actualStatus = 'paused';
+                                  label = 'Paused';
+                                  colorClass = 'bg-orange-100 text-orange-800';
+                                } else if (isScheduled) {
+                                  actualStatus = 'scheduled';
+                                  label = 'Scheduled';
+                                  colorClass = 'bg-indigo-100 text-indigo-800';
+                                } else if (hasNewContacts) {
+                                  actualStatus = 'new_contacts';
+                                  label = 'New Contacts';
+                                  colorClass = 'bg-purple-100 text-purple-800';
+                                } else if (emailsSent > 0 && emailsSent < recipientsCount) {
+                                  actualStatus = 'partially_sent';
+                                  label = 'Partially Sent';
+                                  colorClass = 'bg-yellow-100 text-yellow-800';
+                                } else if (emailsSent > 0 && emailsSent >= recipientsCount) {
+                                  actualStatus = 'sent';
+                                  label = 'Sent';
+                                  colorClass = 'bg-blue-100 text-blue-800';
+                                } else if (status === 'in_progress' || status === 'active') {
+                                  actualStatus = 'running';
+                                  label = 'Running';
+                                  colorClass = 'bg-green-100 text-green-800';
+                                } else if (status === 'draft') {
+                                  actualStatus = 'draft';
+                                  label = 'Draft';
+                                  colorClass = 'bg-gray-100 text-gray-800';
+                                }
+                                
+                                return (
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClass}`}>
+                                    {label}
+                                  </span>
+                                );
+                              })()}
                             </td>
                             <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
                               {campaign.status === 'draft' ? 5 : (Array.isArray(campaign.recipients) ? campaign.recipients.length : (campaign.recipients || 0))}

@@ -73,111 +73,106 @@ const SortableTableHead = ({
   );
 };
 
-const getStatusConfig = (status: string) => {
-  switch (status) {
+const getStatusConfig = (campaign: any) => {
+  // Calculate the actual status based on campaign data
+  const status = campaign.status || 'draft';
+  const emailsSent = campaign.emails_sent || 0;
+  const recipientsCount = campaign.recipients?.length || 0;
+  const hasNewContacts = campaign.new_contacts_added || false;
+  const isPaused = campaign.is_paused || false;
+  const isStopped = campaign.is_stopped || false;
+  const isScheduled = campaign.scheduled_time && new Date(campaign.scheduled_time) > new Date();
+  
+  // Determine the actual status based on campaign state
+  let actualStatus = status;
+  let label = 'Draft';
+  
+  if (isStopped) {
+    actualStatus = 'stopped';
+    label = 'Stopped';
+  } else if (isPaused) {
+    actualStatus = 'paused';
+    label = 'Paused';
+  } else if (isScheduled) {
+    actualStatus = 'scheduled';
+    label = 'Scheduled';
+  } else if (hasNewContacts) {
+    actualStatus = 'new_contacts';
+    label = 'New Contacts';
+  } else if (emailsSent > 0 && emailsSent < recipientsCount) {
+    actualStatus = 'partially_sent';
+    label = 'Partially Sent';
+  } else if (emailsSent > 0 && emailsSent >= recipientsCount) {
+    actualStatus = 'sent';
+    label = 'Sent';
+  } else if (status === 'in_progress' || status === 'active') {
+    actualStatus = 'running';
+    label = 'Running';
+  } else if (status === 'draft') {
+    actualStatus = 'draft';
+    label = 'Draft';
+  }
+  
+  // Return color and icon based on actual status
+  switch (actualStatus) {
     case 'draft':
       return {
         color: 'bg-gray-100 text-gray-800 border-gray-200',
         icon: Edit2,
-        label: 'Draft',
-        description: 'Campaign is being prepared'
-      };
-    case 'sent_once':
-      return {
-        color: 'bg-green-100 text-green-800 border-green-200',
-        icon: Send,
-        label: 'Sent Once',
-        description: 'Campaign was sent and completed'
-      };
-    case 'sent_open':
-      return {
-        color: 'bg-blue-100 text-blue-800 border-blue-200',
-        icon: RefreshCw,
-        label: 'Sent & Open',
-        description: 'Campaign is sent and accepting new contacts'
-      };
-    case 'in_progress':
-      return {
-        color: 'bg-purple-100 text-purple-800 border-purple-200',
-        icon: Play,
-        label: 'In Progress',
-        description: 'Campaign is actively running'
-      };
-    case 'stopped':
-      return {
-        color: 'bg-orange-100 text-orange-800 border-orange-200',
-        icon: Pause,
-        label: 'Stopped',
-        description: 'Campaign has been paused'
-      };
-    case 'archived':
-      return {
-        color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-        icon: Archive,
-        label: 'Archived',
-        description: 'Campaign is archived and inactive'
+        label: 'Draft'
       };
     case 'scheduled':
       return {
         color: 'bg-indigo-100 text-indigo-800 border-indigo-200',
         icon: Clock,
-        label: 'Scheduled',
-        description: 'Campaign is scheduled to be sent'
+        label: 'Scheduled'
+      };
+    case 'running':
+      return {
+        color: 'bg-green-100 text-green-800 border-green-200',
+        icon: Play,
+        label: 'Running'
+      };
+    case 'partially_sent':
+      return {
+        color: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+        icon: Send,
+        label: 'Partially Sent'
+      };
+    case 'sent':
+      return {
+        color: 'bg-blue-100 text-blue-800 border-blue-200',
+        icon: CheckCircle,
+        label: 'Sent'
+      };
+    case 'new_contacts':
+      return {
+        color: 'bg-purple-100 text-purple-800 border-purple-200',
+        icon: Users,
+        label: 'New Contacts'
+      };
+    case 'paused':
+      return {
+        color: 'bg-orange-100 text-orange-800 border-orange-200',
+        icon: Pause,
+        label: 'Paused'
+      };
+    case 'stopped':
+      return {
+        color: 'bg-red-100 text-red-800 border-red-200',
+        icon: Archive,
+        label: 'Stopped'
       };
     default:
       return {
         color: 'bg-gray-100 text-gray-800 border-gray-200',
         icon: Edit2,
-        label: status.replace('_', ' '),
-        description: 'Campaign status'
+        label: label
       };
   }
 };
 
-const getAvailableStatusTransitions = (currentStatus: string) => {
-  switch (currentStatus) {
-    case 'draft':
-      return [
-        { value: 'scheduled', label: 'Schedule', icon: Clock, description: 'Schedule for later sending' },
-        { value: 'in_progress', label: 'Start Now', icon: Play, description: 'Begin campaign immediately' }
-      ];
-    case 'scheduled':
-      return [
-        { value: 'in_progress', label: 'Start Now', icon: Play, description: 'Begin campaign immediately' },
-        { value: 'draft', label: 'Back to Draft', icon: Edit2, description: 'Return to draft for editing' },
-        { value: 'stopped', label: 'Cancel', icon: Pause, description: 'Cancel scheduled sending' }
-      ];
-    case 'in_progress':
-      return [
-        { value: 'sent_once', label: 'Complete', icon: CheckCircle, description: 'Mark as completed' },
-        { value: 'sent_open', label: 'Keep Open', icon: RefreshCw, description: 'Keep accepting new contacts' },
-        { value: 'stopped', label: 'Stop', icon: Pause, description: 'Pause campaign' }
-      ];
-    case 'sent_once':
-      return [
-        { value: 'sent_open', label: 'Reopen', icon: RefreshCw, description: 'Allow new contacts to be added' },
-        { value: 'archived', label: 'Archive', icon: Archive, description: 'Move to archived' }
-      ];
-    case 'sent_open':
-      return [
-        { value: 'sent_once', label: 'Close', icon: CheckCircle, description: 'Close to new contacts' },
-        { value: 'stopped', label: 'Stop', icon: Pause, description: 'Pause campaign' },
-        { value: 'archived', label: 'Archive', icon: Archive, description: 'Move to archived' }
-      ];
-    case 'stopped':
-      return [
-        { value: 'in_progress', label: 'Resume', icon: Play, description: 'Resume campaign' },
-        { value: 'archived', label: 'Archive', icon: Archive, description: 'Move to archived' },
-        { value: 'draft', label: 'Back to Draft', icon: Edit2, description: 'Return to draft for editing' }
-      ];
-    case 'archived':
-      return [
-        { value: 'draft', label: 'Restore to Draft', icon: Edit2, description: 'Restore for editing' }
-      ];
-    default:
-      return [];
-  }
-};
+
 
 const getEntityColor = (entityType: string) => {
   switch (entityType) {
@@ -208,12 +203,7 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
     }
   };
 
-  const handleStatusChange = (campaignId: number, newStatus: string) => {
-    // TODO: Implement API call to update campaign status
-    console.log('Updating campaign status:', { campaignId, newStatus });
-    // This would trigger a mutation to update the status in the database
-    // After successful update, the query cache would be invalidated to refetch data
-  };
+
 
   const handleCampaignClick = async (campaign: any, e: React.MouseEvent) => {
     // Don't trigger when clicking on checkbox or actions
@@ -483,51 +473,19 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
                     </div>
                   </div>
                 </td>
-                <td className="px-3 py-4 text-sm w-[160px]" onClick={(e) => e.stopPropagation()}>
+                <td className="px-3 py-4 text-sm w-[160px]">
                   {(() => {
-                    const statusConfig = getStatusConfig(campaign.status);
+                    const statusConfig = getStatusConfig(campaign);
                     const StatusIcon = statusConfig.icon;
-                    const availableTransitions = getAvailableStatusTransitions(campaign.status);
                     
                     return (
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border hover:bg-opacity-80 transition-all cursor-pointer ${statusConfig.color}`}
-                          >
-                            <StatusIcon className="w-3 h-3" />
-                            {statusConfig.label}
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="start" className="w-56">
-                          <div className="px-2 py-1.5 text-xs text-gray-500 border-b">
-                            Change status for "{campaign.name}"
-                          </div>
-                          {availableTransitions.map((transition) => {
-                            const TransitionIcon = transition.icon;
-                            return (
-                              <DropdownMenuItem
-                                key={transition.value}
-                                onClick={() => handleStatusChange(campaign.id, transition.value)}
-                                className="flex items-center gap-3 py-2"
-                              >
-                                <TransitionIcon className="w-4 h-4 text-gray-500" />
-                                <div>
-                                  <div className="font-medium">{transition.label}</div>
-                                  <div className="text-xs text-gray-500">{transition.description}</div>
-                                </div>
-                              </DropdownMenuItem>
-                            );
-                          })}
-                          {availableTransitions.length === 0 && (
-                            <DropdownMenuItem disabled className="text-gray-500 text-xs">
-                              No status changes available
-                            </DropdownMenuItem>
-                          )}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
+                      <Badge
+                        variant="outline"
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border ${statusConfig.color}`}
+                      >
+                        <StatusIcon className="w-3 h-3" />
+                        {statusConfig.label}
+                      </Badge>
                     );
                   })()}
                 </td>
