@@ -231,12 +231,14 @@ export default function RecipientSelector({
         const customer = getCustomerForOpportunity(item.id);
         const customerContacts = customer ? getContactsForCustomer(customer.id) : [];
         
-        // Add the opportunity
+        // Add the opportunity with partner information
         newRecipients.push({
           ...item,
           type: 'opportunity',
           recipientKey: `opportunity-${item.id}`,
-          customerInfo: customer
+          customerInfo: customer,
+          partnerId: item.partner_id || item.partnerId,
+          partnerName: item.partner_name || item.partnerName
         });
         
         // Auto-select the customer
@@ -248,7 +250,9 @@ export default function RecipientSelector({
               ...customer,
               type: 'customer',
               recipientKey: customerKey,
-              opportunityInfo: item
+              opportunityInfo: item,
+              partnerId: item.partner_id || item.partnerId,
+              partnerName: item.partner_name || item.partnerName
             });
           }
           
@@ -263,6 +267,8 @@ export default function RecipientSelector({
                 recipientKey: contactKey,
                 customerInfo: customer,
                 opportunityInfo: item,
+                partnerId: item.partner_id || item.partnerId,
+                partnerName: item.partner_name || item.partnerName,
                 email: contact.email || ''
               });
             }
@@ -355,12 +361,14 @@ export default function RecipientSelector({
           const customer = getCustomerForOpportunity(opp.id);
           const customerContacts = customer ? getContactsForCustomer(customer.id) : [];
           
-          // Add the opportunity
+          // Add the opportunity with partner information
           newRecipients.push({
             ...opp,
             type: 'opportunity',
             recipientKey: `opportunity-${opp.id}`,
-            customerInfo: customer
+            customerInfo: customer,
+            partnerId: opp.partner_id || opp.partnerId,
+            partnerName: opp.partner_name || opp.partnerName
           });
           
           // Auto-select the customer
@@ -372,7 +380,9 @@ export default function RecipientSelector({
                 ...customer,
                 type: 'customer',
                 recipientKey: customerKey,
-                opportunityInfo: opp
+                opportunityInfo: opp,
+                partnerId: opp.partner_id || opp.partnerId,
+                partnerName: opp.partner_name || opp.partnerName
               });
             }
             
@@ -387,6 +397,8 @@ export default function RecipientSelector({
                   recipientKey: contactKey,
                   customerInfo: customer,
                   opportunityInfo: opp,
+                  partnerId: opp.partner_id || opp.partnerId,
+                  partnerName: opp.partner_name || opp.partnerName,
                   email: contact.email || ''
                 });
               }
