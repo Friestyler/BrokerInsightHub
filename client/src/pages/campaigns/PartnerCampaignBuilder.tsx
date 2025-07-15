@@ -554,32 +554,88 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
               <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
                 {/* Header */}
                 <div className="px-4 py-3 border-b border-gray-200 bg-white">
-                  <div className="flex items-center justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      <Button 
-                        size="sm" 
-                        variant="outline"
-                        className="text-xs h-7 px-3 border-gray-300 hover:bg-gray-50"
-                        onClick={() => {
-                          toast({
-                            title: "Upload Contacts",
-                            description: "Contact upload functionality will be implemented soon."
+                  {(() => {
+                    // Calculate if there are missing contacts for Upload Contacts button styling
+                    const partnerRecipients = campaign.recipients || [];
+                    const companiesMap = new Map();
+                    
+                    partnerRecipients.forEach((recipient: any) => {
+                      let companyName = '';
+                      
+                      if (recipient.customerInfo?.name) {
+                        companyName = recipient.customerInfo.name;
+                      } else if (recipient.customerName) {
+                        companyName = recipient.customerName;
+                      } else if (recipient.clientName) {
+                        companyName = recipient.clientName;
+                      } else if (recipient.type === 'customer' && recipient.name) {
+                        companyName = recipient.name;
+                      } else if (recipient.type === 'opportunity' && recipient.title) {
+                        companyName = recipient.title;
+                      } else if (recipient.name) {
+                        companyName = recipient.name;
+                      } else if (recipient.title) {
+                        companyName = recipient.title;
+                      } else if (recipient.company) {
+                        companyName = recipient.company;
+                      }
+                      
+                      if (companyName) {
+                        if (!companiesMap.has(companyName)) {
+                          companiesMap.set(companyName, {
+                            name: companyName,
+                            recipients: [],
+                            contactsCount: 0
                           });
-                        }}
-                      >
-                        <Upload className="h-3 w-3 mr-1" />
-                        Upload Contacts
-                      </Button>
-                      <Button 
-                        size="sm" 
-                        className="text-xs h-7 px-3 bg-gray-900 hover:bg-gray-800 text-white rounded-md"
-                        onClick={handleAddContact}
-                      >
-                        <Plus className="h-3 w-3 mr-1" />
-                        Add Customer
-                      </Button>
-                    </div>
-                  </div>
+                        }
+                        
+                        const company = companiesMap.get(companyName);
+                        company.recipients.push(recipient);
+                        
+                        // Count contacts (recipients with email addresses)
+                        if (recipient.email || recipient.contactInfo?.email) {
+                          company.contactsCount++;
+                        }
+                      }
+                    });
+                    
+                    const companies = Array.from(companiesMap.values());
+                    const companiesWithoutContacts = companies.filter(company => company.contactsCount === 0);
+                    const hasMissingContacts = companiesWithoutContacts.length > 0;
+                    
+                    return (
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-2">
+                          <Button 
+                            size="sm" 
+                            variant="outline"
+                            className={`text-xs h-7 px-3 ${
+                              hasMissingContacts 
+                                ? 'border-orange-500 text-orange-600 hover:bg-orange-50' 
+                                : 'border-gray-300 hover:bg-gray-50'
+                            }`}
+                            onClick={() => {
+                              toast({
+                                title: "Upload Contacts",
+                                description: "Contact upload functionality will be implemented soon."
+                              });
+                            }}
+                          >
+                            <Upload className="h-3 w-3 mr-1" />
+                            Upload Contacts
+                          </Button>
+                          <Button 
+                            size="sm" 
+                            className="text-xs h-7 px-3 bg-gray-900 hover:bg-gray-800 text-white rounded-md"
+                            onClick={handleAddContact}
+                          >
+                            <Plus className="h-3 w-3 mr-1" />
+                            Add Customer
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })()}
                   
                   <div className="relative mb-3">
                     <input
@@ -590,44 +646,96 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                     <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
                   </div>
                   
-                  <div className="flex gap-1">
-                    <Button 
-                      size="sm" 
-                      variant={contactFilter === 'all' ? 'default' : 'outline'}
-                      className={`text-xs h-7 px-2 rounded-md ${
-                        contactFilter === 'all' 
-                          ? 'bg-gray-900 hover:bg-gray-800 text-white' 
-                          : 'border-gray-300 hover:bg-gray-50'
-                      }`}
-                      onClick={() => setContactFilter('all')}
-                    >
-                      All
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant={contactFilter === 'with_contacts' ? 'default' : 'outline'}
-                      className={`text-xs h-7 px-2 rounded-md ${
-                        contactFilter === 'with_contacts' 
-                          ? 'bg-gray-900 hover:bg-gray-800 text-white' 
-                          : 'border-gray-300 hover:bg-gray-50'
-                      }`}
-                      onClick={() => setContactFilter('with_contacts')}
-                    >
-                      With Contacts
-                    </Button>
-                    <Button 
-                      size="sm" 
-                      variant={contactFilter === 'without_contacts' ? 'default' : 'outline'}
-                      className={`text-xs h-7 px-2 rounded-md ${
-                        contactFilter === 'without_contacts' 
-                          ? 'bg-gray-900 hover:bg-gray-800 text-white' 
-                          : 'border-gray-300 hover:bg-gray-50'
-                      }`}
-                      onClick={() => setContactFilter('without_contacts')}
-                    >
-                      Without Contacts
-                    </Button>
-                  </div>
+                  {(() => {
+                    // Calculate if there are missing contacts
+                    const partnerRecipients = campaign.recipients || [];
+                    const companiesMap = new Map();
+                    
+                    partnerRecipients.forEach((recipient: any) => {
+                      let companyName = '';
+                      
+                      if (recipient.customerInfo?.name) {
+                        companyName = recipient.customerInfo.name;
+                      } else if (recipient.customerName) {
+                        companyName = recipient.customerName;
+                      } else if (recipient.clientName) {
+                        companyName = recipient.clientName;
+                      } else if (recipient.type === 'customer' && recipient.name) {
+                        companyName = recipient.name;
+                      } else if (recipient.type === 'opportunity' && recipient.title) {
+                        companyName = recipient.title;
+                      } else if (recipient.name) {
+                        companyName = recipient.name;
+                      } else if (recipient.title) {
+                        companyName = recipient.title;
+                      } else if (recipient.company) {
+                        companyName = recipient.company;
+                      }
+                      
+                      if (companyName) {
+                        if (!companiesMap.has(companyName)) {
+                          companiesMap.set(companyName, {
+                            name: companyName,
+                            recipients: [],
+                            contactsCount: 0
+                          });
+                        }
+                        
+                        const company = companiesMap.get(companyName);
+                        company.recipients.push(recipient);
+                        
+                        // Count contacts (recipients with email addresses)
+                        if (recipient.email || recipient.contactInfo?.email) {
+                          company.contactsCount++;
+                        }
+                      }
+                    });
+                    
+                    const companies = Array.from(companiesMap.values());
+                    const companiesWithoutContacts = companies.filter(company => company.contactsCount === 0);
+                    const hasMissingContacts = companiesWithoutContacts.length > 0;
+                    
+                    return (
+                      <div className="flex gap-1">
+                        <Button 
+                          size="sm" 
+                          variant={contactFilter === 'all' ? 'default' : 'outline'}
+                          className={`text-xs h-7 px-2 rounded-md ${
+                            contactFilter === 'all' 
+                              ? 'bg-gray-900 hover:bg-gray-800 text-white' 
+                              : 'border-gray-300 hover:bg-gray-50'
+                          }`}
+                          onClick={() => setContactFilter('all')}
+                        >
+                          All
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant={contactFilter === 'with_contacts' ? 'default' : 'outline'}
+                          className={`text-xs h-7 px-2 rounded-md ${
+                            contactFilter === 'with_contacts' 
+                              ? 'bg-gray-900 hover:bg-gray-800 text-white' 
+                              : 'border-gray-300 hover:bg-gray-50'
+                          }`}
+                          onClick={() => setContactFilter('with_contacts')}
+                        >
+                          With Contacts
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant={contactFilter === 'without_contacts' ? 'default' : 'outline'}
+                          className={`text-xs h-7 px-2 rounded-md ${
+                            contactFilter === 'without_contacts' 
+                              ? (hasMissingContacts ? 'bg-orange-500 hover:bg-orange-600 text-white' : 'bg-gray-900 hover:bg-gray-800 text-white')
+                              : (hasMissingContacts ? 'border-orange-500 text-orange-600 hover:bg-orange-50' : 'border-gray-300 hover:bg-gray-50')
+                          }`}
+                          onClick={() => setContactFilter('without_contacts')}
+                        >
+                          Without Contacts
+                        </Button>
+                      </div>
+                    );
+                  })()}
                 </div>
                 
                 {/* Company List */}
@@ -929,18 +1037,18 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                                           size="sm" 
                                           className="text-xs h-6 px-2 text-gray-500 hover:text-gray-700"
                                           onClick={() => {
-                                            const currentState = customerSuggestionsCollapsed[customerName] ?? true; // Default to collapsed for customers with no contacts
+                                            const currentState = customerSuggestionsCollapsed[customerName] ?? false; // Default to open for customers with no contacts
                                             setCustomerSuggestionsCollapsed(prev => ({
                                               ...prev,
                                               [customerName]: !currentState
                                             }));
                                           }}
                                         >
-                                          {(customerSuggestionsCollapsed[customerName] ?? true) ? 'Show' : 'Hide'}
+                                          {(customerSuggestionsCollapsed[customerName] ?? false) ? 'Hide' : 'Show'}
                                         </Button>
                                       </div>
                                       
-                                      {!(customerSuggestionsCollapsed[customerName] ?? true) && (
+                                      {!(customerSuggestionsCollapsed[customerName] ?? false) && (
                                         <>
                                           <p className="text-xs text-gray-500 mb-4">We found these additional potential contacts for {customerName}. Click to add them instantly.</p>
                                           
