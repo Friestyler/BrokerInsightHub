@@ -677,7 +677,7 @@ export default function PortfolioInsights() {
           onClick={() => setActiveSection('dashboard')}
         >
           <BarChart3 className="h-4 w-4 mr-2" />
-          Dashboard
+          Category Overview
         </Button>
 
         <Button 
