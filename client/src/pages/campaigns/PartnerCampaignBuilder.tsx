@@ -606,11 +606,9 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                   <div className="p-3 space-y-2">
                     {/* Partner-specific Recipients */}
                     {(() => {
-                      // Filter recipients to only show those assigned to this partner
-                      const partnerRecipients = (campaign.recipients || []).filter((recipient: any) => 
-                        recipient.assigned_partner_id === partnerId || 
-                        recipient.partnerInfo?.id === partnerId
-                      );
+                      // Show all recipients for partner campaign workflow
+                      // When a campaign is assigned to a partner, they should see all recipients
+                      const partnerRecipients = campaign.recipients || [];
 
                       // Extract unique companies from partner recipients
                       const companiesMap = new Map();
@@ -619,26 +617,30 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                         let companyName = '';
                         let companyType = '';
                         
+                        // Extract company name from various fields
                         if (recipient.customerInfo?.name) {
                           companyName = recipient.customerInfo.name;
-                          companyType = recipient.customerInfo.type || 'Business';
-                        } else if (recipient.customerInfo?.title) {
-                          companyName = recipient.customerInfo.title;
-                          companyType = 'Business';
+                          companyType = 'Customer';
+                        } else if (recipient.customerName) {
+                          companyName = recipient.customerName;
+                          companyType = 'Customer';
+                        } else if (recipient.clientName) {
+                          companyName = recipient.clientName;
+                          companyType = 'Customer';
                         } else if (recipient.type === 'customer' && recipient.name) {
                           companyName = recipient.name;
-                          companyType = 'Business';
-                        } else if (recipient.type === 'customer' && recipient.title) {
-                          companyName = recipient.title;
-                          companyType = 'Business';
+                          companyType = 'Customer';
                         } else if (recipient.type === 'opportunity' && recipient.title) {
                           companyName = recipient.title;
                           companyType = 'Opportunity';
                         } else if (recipient.name) {
                           companyName = recipient.name;
-                          companyType = 'Business';
+                          companyType = 'Contact';
                         } else if (recipient.title) {
                           companyName = recipient.title;
+                          companyType = 'Business';
+                        } else if (recipient.company) {
+                          companyName = recipient.company;
                           companyType = 'Business';
                         }
                         
