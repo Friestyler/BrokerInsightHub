@@ -314,6 +314,403 @@ function AssignPartnersSection({ campaignData, onAssignComplete }: AssignPartner
   );
 }
 
+// Customer Partner Assignment Interface Component
+interface CustomerPartnerAssignmentInterfaceProps {
+  campaignData: any;
+  onAssignmentsChange: (updatedRecipients: any[]) => void;
+}
+
+function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange }: CustomerPartnerAssignmentInterfaceProps) {
+  const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
+  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
+  const [selectedPartnersForAssignment, setSelectedPartnersForAssignment] = useState<number[]>([]);
+  const [assignmentType, setAssignmentType] = useState<'individual' | 'list'>('individual');
+  const { toast } = useToast();
+
+  // Fetch partners for assignment
+  const { data: allPartners = [] } = useQuery({
+    queryKey: ['/api/partners'],
+    enabled: showAssignmentModal
+  });
+
+  // Fetch saved partner lists
+  const { data: savedPartnerLists = [] } = useQuery({
+    queryKey: ['/api/saved-lists'],
+    enabled: showAssignmentModal && assignmentType === 'list'
+  });
+
+  // Group recipients by customer to show customer-centric view
+  const customerGroups = (() => {
+    const groups = new Map();
+    
+    campaignData.recipients.forEach((recipient: any) => {
+      const customerId = recipient.customerInfo?.id || recipient.id;
+      const customerName = recipient.customerInfo?.name || recipient.name || 'Unknown Customer';
+      
+      if (!groups.has(customerId)) {
+        groups.set(customerId, {
+          id: customerId,
+          name: customerName,
+          recipients: [],
+          assignedPartners: new Set(),
+          hasAssignedPartners: false
+        });
+      }
+      
+      const group = groups.get(customerId);
+      group.recipients.push(recipient);
+      
+      // Check for partner assignments
+      const partnerId = recipient.partnerId || recipient.assigned_partner_id || recipient.partnerInfo?.id;
+      const partnerName = recipient.partnerName || recipient.partnerInfo?.name;
+      
+      if (partnerId && partnerName) {
+        group.assignedPartners.add({ id: partnerId, name: partnerName });
+        group.hasAssignedPartners = true;
+      }
+    });
+    
+    return Array.from(groups.values());
+  })();
+
+  // Separate assigned and unassigned customers
+  const assignedCustomers = customerGroups.filter(group => group.hasAssignedPartners);
+  const unassignedCustomers = customerGroups.filter(group => !group.hasAssignedPartners);
+
+  // Handle customer selection
+  const handleCustomerToggle = (customerId: string) => {
+    setSelectedCustomers(prev => 
+      prev.includes(customerId) 
+        ? prev.filter(id => id !== customerId)
+        : [...prev, customerId]
+    );
+  };
+
+  // Handle select all
+  const handleSelectAll = () => {
+    const allCustomerIds = customerGroups.map(group => group.id.toString());
+    setSelectedCustomers(allCustomerIds);
+  };
+
+  // Handle clear selection
+  const handleClearSelection = () => {
+    setSelectedCustomers([]);
+  };
+
+  // Handle partner assignment
+  const handleAssignToPartners = async () => {
+    if (selectedCustomers.length === 0) {
+      toast({
+        title: "No customers selected",
+        description: "Please select at least one customer to assign.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (selectedPartnersForAssignment.length === 0) {
+      toast({
+        title: "No partners selected",
+        description: "Please select at least one partner for assignment.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Update recipients with partner assignments
+      const updatedRecipients = campaignData.recipients.map((recipient: any) => {
+        const customerId = recipient.customerInfo?.id || recipient.id;
+        
+        if (selectedCustomers.includes(customerId.toString())) {
+          // Assign the first selected partner (for demo purposes)
+          const assignedPartner = allPartners.find((p: any) => p.id === selectedPartnersForAssignment[0]);
+          return {
+            ...recipient,
+            partnerId: assignedPartner.id,
+            partnerName: assignedPartner.name,
+            assigned_partner_id: assignedPartner.id,
+            partnerInfo: assignedPartner
+          };
+        }
+        return recipient;
+      });
+
+      onAssignmentsChange(updatedRecipients);
+      setShowAssignmentModal(false);
+      setSelectedCustomers([]);
+      setSelectedPartnersForAssignment([]);
+
+      toast({
+        title: "Assignment successful",
+        description: `${selectedCustomers.length} customer(s) assigned to ${selectedPartnersForAssignment.length} partner(s).`
+      });
+    } catch (error) {
+      toast({
+        title: "Assignment failed",
+        description: "Failed to assign customers to partners. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Summary Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white rounded-lg border p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+              <Users className="h-4 w-4 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900">Total Customers</p>
+              <p className="text-2xl font-bold text-gray-900">{customerGroups.length}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg border p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+              <UserCheck className="h-4 w-4 text-green-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900">Assigned</p>
+              <p className="text-2xl font-bold text-green-600">{assignedCustomers.length}</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg border p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+              <AlertCircle className="h-4 w-4 text-orange-600" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-gray-900">Unassigned</p>
+              <p className="text-2xl font-bold text-orange-600">{unassignedCustomers.length}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Action Bar */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleSelectAll}
+            disabled={customerGroups.length === 0}
+          >
+            Select All
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleClearSelection}
+            disabled={selectedCustomers.length === 0}
+          >
+            Clear Selection
+          </Button>
+          {selectedCustomers.length > 0 && (
+            <Badge variant="secondary" className="ml-2">
+              {selectedCustomers.length} selected
+            </Badge>
+          )}
+        </div>
+        
+        <Button 
+          onClick={() => setShowAssignmentModal(true)}
+          disabled={selectedCustomers.length === 0}
+          className="gap-2"
+        >
+          <Users className="h-4 w-4" />
+          Assign to Partners ({selectedCustomers.length})
+        </Button>
+      </div>
+
+      {/* Customer List */}
+      <div className="bg-white rounded-lg border">
+        <div className="px-4 py-3 border-b">
+          <h3 className="font-medium text-gray-900">Customers and Partner Assignments</h3>
+        </div>
+        
+        <div className="divide-y">
+          {customerGroups.map((group) => (
+            <div key={group.id} className="px-4 py-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Checkbox
+                    checked={selectedCustomers.includes(group.id.toString())}
+                    onCheckedChange={() => handleCustomerToggle(group.id.toString())}
+                  />
+                  <div>
+                    <h4 className="font-medium text-gray-900">{group.name}</h4>
+                    <p className="text-sm text-gray-500">{group.recipients.length} recipient(s)</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {group.hasAssignedPartners ? (
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                        <UserCheck className="h-3 w-3 mr-1" />
+                        Assigned
+                      </Badge>
+                      <div className="text-sm text-gray-600">
+                        {Array.from(group.assignedPartners).map((partner: any) => partner.name).join(', ')}
+                      </div>
+                    </div>
+                  ) : (
+                    <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
+                      <AlertCircle className="h-3 w-3 mr-1" />
+                      Unassigned
+                    </Badge>
+                  )}
+                </div>
+              </div>
+              
+              {/* Show recipient details */}
+              <div className="mt-3 ml-8 space-y-1">
+                {group.recipients.slice(0, 3).map((recipient: any, index: number) => (
+                  <div key={index} className="text-sm text-gray-600">
+                    {recipient.type === 'opportunity' && (
+                      <span className="inline-flex items-center gap-1">
+                        <Target className="h-3 w-3" />
+                        {recipient.title || 'Opportunity'}
+                      </span>
+                    )}
+                    {recipient.type === 'contact' && (
+                      <span className="inline-flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        {recipient.full_name || `${recipient.first_name} ${recipient.last_name}` || 'Contact'}
+                      </span>
+                    )}
+                  </div>
+                ))}
+                {group.recipients.length > 3 && (
+                  <div className="text-sm text-gray-500">
+                    +{group.recipients.length - 3} more recipient(s)
+                  </div>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Assignment Modal */}
+      <Dialog open={showAssignmentModal} onOpenChange={setShowAssignmentModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Assign Customers to Partners</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="p-3 bg-blue-50 rounded-lg">
+              <p className="text-sm text-blue-800">
+                Assigning {selectedCustomers.length} customer(s) to partner(s)
+              </p>
+            </div>
+            
+            {/* Assignment Type Selection */}
+            <div className="space-y-3">
+              <h4 className="font-medium text-gray-900">Assignment Type</h4>
+              <div className="flex gap-4">
+                <Button 
+                  variant={assignmentType === 'individual' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setAssignmentType('individual')}
+                >
+                  Individual Partners
+                </Button>
+                <Button 
+                  variant={assignmentType === 'list' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setAssignmentType('list')}
+                >
+                  Partner Lists
+                </Button>
+              </div>
+            </div>
+            
+            {/* Partner Selection */}
+            {assignmentType === 'individual' && (
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-900">Select Partners</h4>
+                <div className="max-h-48 overflow-y-auto border rounded-lg p-2">
+                  {allPartners.map((partner: any) => (
+                    <div key={partner.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
+                      <Checkbox
+                        checked={selectedPartnersForAssignment.includes(partner.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedPartnersForAssignment(prev => [...prev, partner.id]);
+                          } else {
+                            setSelectedPartnersForAssignment(prev => prev.filter(id => id !== partner.id));
+                          }
+                        }}
+                      />
+                      <div>
+                        <p className="font-medium text-sm">{partner.name}</p>
+                        <p className="text-xs text-gray-500">{partner.email}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            {/* Partner Lists Selection */}
+            {assignmentType === 'list' && (
+              <div className="space-y-3">
+                <h4 className="font-medium text-gray-900">Select Partner Lists</h4>
+                <div className="max-h-48 overflow-y-auto border rounded-lg p-2">
+                  {savedPartnerLists.filter((list: any) => list.entity_type === 'partners').map((list: any) => (
+                    <div key={list.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
+                      <Checkbox
+                        checked={selectedPartnersForAssignment.includes(list.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedPartnersForAssignment(prev => [...prev, list.id]);
+                          } else {
+                            setSelectedPartnersForAssignment(prev => prev.filter(id => id !== list.id));
+                          }
+                        }}
+                      />
+                      <div>
+                        <p className="font-medium text-sm">{list.name}</p>
+                        <p className="text-xs text-gray-500">{list.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+            
+            <div className="flex justify-end gap-3 pt-4 border-t">
+              <Button 
+                variant="outline" 
+                onClick={() => setShowAssignmentModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleAssignToPartners}
+                disabled={selectedPartnersForAssignment.length === 0}
+              >
+                Assign to Partners
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}
+
 export default function CampaignFromTemplate({ params }: CampaignFromTemplateProps) {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
@@ -2645,47 +3042,22 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
       case 7:
         return (
-          <div className="space-y-8">
+          <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-xl font-medium text-gray-900 mb-2">Assign Campaign</h2>
-              <p className="text-gray-600">Assign this campaign to partners for collaboration</p>
+              <p className="text-gray-600">Manage customer-to-partner assignments for campaign collaboration</p>
             </div>
 
-            <div className="max-w-2xl mx-auto space-y-6">
-              {!campaignData.id && (
-                <div className="bg-amber-50 border border-amber-200 rounded-lg p-4">
-                  <div className="flex items-center gap-2 text-amber-800">
-                    <AlertCircle className="h-5 w-5" />
-                    <p className="font-medium">Campaign must be saved first</p>
-                  </div>
-                  <p className="text-sm text-amber-700 mt-1">
-                    Please save your campaign before assigning it to partners. Click "Create Campaign" to continue.
-                  </p>
-                </div>
-              )}
-              
-              <div className="flex justify-center">
-                <Dialog open={sharePartnersDialogOpen} onOpenChange={setSharePartnersDialogOpen}>
-                  <DialogTrigger asChild>
-                    <Button 
-                      className="gap-2"
-                      disabled={!campaignData.id}
-                    >
-                      <Users className="h-4 w-4" />
-                      Assign to Partner(s)
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                    <DialogHeader>
-                      <DialogTitle>Assign Campaign to Partners</DialogTitle>
-                    </DialogHeader>
-                    <AssignPartnersSection 
-                      campaignData={campaignData}
-                      onAssignComplete={() => setSharePartnersDialogOpen(false)}
-                    />
-                  </DialogContent>
-                </Dialog>
-              </div>
+            <div className="max-w-7xl mx-auto">
+              <CustomerPartnerAssignmentInterface 
+                campaignData={campaignData}
+                onAssignmentsChange={(updatedRecipients) => {
+                  setCampaignData(prev => ({
+                    ...prev,
+                    recipients: updatedRecipients
+                  }));
+                }}
+              />
             </div>
           </div>
         );
