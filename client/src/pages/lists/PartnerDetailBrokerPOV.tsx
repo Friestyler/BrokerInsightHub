@@ -2435,10 +2435,35 @@ export default function PartnerDetailBrokerPOV() {
 
           {activeTab === "campaigns" && (
             <div className="space-y-6">
-              
+              {/* Campaign Tab Navigation */}
+              <div className="bg-white rounded-lg border border-gray-200">
+                <div className="border-b border-gray-200">
+                  <nav className="flex space-x-8 px-6" aria-label="Tabs">
+                    <button
+                      onClick={() => setSelectedCampaign(null)}
+                      className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                        !selectedCampaign
+                          ? 'border-[#5567E5] text-[#5567E5]'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      Overview
+                    </button>
+                    {selectedCampaign && (
+                      <button
+                        className="py-4 px-1 border-b-2 border-[#5567E5] text-[#5567E5] font-medium text-sm"
+                      >
+                        Edit: {selectedCampaign.name}
+                      </button>
+                    )}
+                  </nav>
+                </div>
 
-              {campaignsLoading ? (
-                <div className="animate-pulse space-y-6">
+                {/* Overview Tab Content */}
+                {!selectedCampaign && (
+                  <div className="p-6">
+                    {campaignsLoading ? (
+                      <div className="animate-pulse space-y-6">
                   {/* Summary cards skeleton */}
                   <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
                     {[1, 2, 3, 4, 5].map((i) => (
@@ -2493,8 +2518,6 @@ export default function PartnerDetailBrokerPOV() {
                               </span>
                               <button
                                 onClick={() => {
-                                  // Stay within partner detail page context
-                                  setActiveTab('campaign-editor');
                                   setSelectedCampaign(campaign);
                                 }}
                                 className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
@@ -2743,7 +2766,6 @@ export default function PartnerDetailBrokerPOV() {
                               className="px-3 py-4 text-sm text-gray-900 w-[160px] min-w-[160px] cursor-pointer"
                               onClick={() => {
                                 setSelectedCampaign(campaign);
-                                setActiveTab("campaign-editor");
                               }}
                             >
                               {(() => {
@@ -2840,7 +2862,6 @@ export default function PartnerDetailBrokerPOV() {
                               className="px-3 py-4 text-sm text-gray-900 w-[100px] cursor-pointer"
                               onClick={() => {
                                 setSelectedCampaign(campaign);
-                                setActiveTab("campaign-editor");
                               }}
                             >
                               {campaign.status === 'draft' ? 5 : (Array.isArray(campaign.recipients) ? campaign.recipients.length : (campaign.recipients || 0))}
@@ -2849,7 +2870,6 @@ export default function PartnerDetailBrokerPOV() {
                               className="px-3 py-4 text-sm text-gray-900 w-[100px] cursor-pointer"
                               onClick={() => {
                                 setSelectedCampaign(campaign);
-                                setActiveTab("campaign-editor");
                               }}
                             >
                               {campaign.status === 'draft' ? (
@@ -2871,7 +2891,6 @@ export default function PartnerDetailBrokerPOV() {
                               className="px-3 py-4 text-sm text-gray-900 w-[100px] cursor-pointer"
                               onClick={() => {
                                 setSelectedCampaign(campaign);
-                                setActiveTab("campaign-editor");
                               }}
                             >
                               {campaign.status === 'draft' ? (
@@ -2886,7 +2905,6 @@ export default function PartnerDetailBrokerPOV() {
                               className="px-3 py-4 text-sm text-gray-900 w-[100px] cursor-pointer"
                               onClick={() => {
                                 setSelectedCampaign(campaign);
-                                setActiveTab("campaign-editor");
                               }}
                             >
                               {campaign.status === 'draft' ? (
@@ -2899,7 +2917,6 @@ export default function PartnerDetailBrokerPOV() {
                               className="px-3 py-4 text-sm text-gray-900 w-[120px] cursor-pointer"
                               onClick={() => {
                                 setSelectedCampaign(campaign);
-                                setActiveTab("campaign-editor");
                               }}
                             >
                               {campaign.created_at ? new Date(campaign.created_at).toLocaleDateString() : '-'}
@@ -2914,41 +2931,26 @@ export default function PartnerDetailBrokerPOV() {
                   )}
                 </>
               )}
+                  </div>
+                )}
+
+                {/* Campaign Editor Tab Content */}
+                {selectedCampaign && (
+                  <div className="p-6">
+                    <PartnerCampaignBuilder 
+                      campaignId={selectedCampaign.id}
+                      partnerId={4} // Mevas BV partner ID
+                      onComplete={() => {
+                        setSelectedCampaign(null);
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
-          {/* Campaign Editor Tab */}
-          {activeTab === "campaign-editor" && selectedCampaign && (
-            <div className="bg-white rounded-lg border border-gray-200">
-              <div className="p-4 border-b border-gray-200">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium text-gray-900">Edit Campaign: {selectedCampaign.name}</h3>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => {
-                      setSelectedCampaign(null);
-                      setActiveTab("campaigns");
-                    }}
-                  >
-                    Back to Campaigns
-                  </Button>
-                </div>
-              </div>
-              
-              {/* Embedded Campaign Builder */}
-              <div className="p-6">
-                <PartnerCampaignBuilder 
-                  campaignId={selectedCampaign.id}
-                  partnerId={4} // Mevas BV partner ID
-                  onComplete={() => {
-                    setSelectedCampaign(null);
-                    setActiveTab("campaigns");
-                  }}
-                />
-              </div>
-            </div>
-          )}
+
         </div>
       </div>
 
