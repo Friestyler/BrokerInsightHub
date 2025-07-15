@@ -2746,9 +2746,7 @@ export default function PartnerDetailBrokerPOV() {
                             <td 
                               className="px-3 py-4 text-sm text-gray-900 w-[250px] cursor-pointer"
                               onClick={() => {
-                                // Stay within partner detail page context
                                 setSelectedCampaign(campaign);
-                                setActiveTab("campaign-editor");
                               }}
                             >
                               <div className="max-w-[230px]">
