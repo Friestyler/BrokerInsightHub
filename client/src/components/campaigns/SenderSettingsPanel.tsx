@@ -53,7 +53,6 @@ export default function SenderSettingsPanel({
           </div>
         </CardContent>
       </Card>
-
       {/* Email Sending Configuration */}
       <Card>
         <CardHeader>
@@ -71,9 +70,7 @@ export default function SenderSettingsPanel({
                 <div className="flex-1">
                   <Label htmlFor="qollabi_default" className="font-medium">
                     {isPartnerMode ? 'Use Default Email' : 'Use Qollabi Default Email'}
-                    <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">
-                      Recommended
-                    </span>
+                    <span className="ml-2 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded">Default</span>
                   </Label>
                   <p className="text-sm text-gray-600 mt-1">
                     {isPartnerMode 
