@@ -377,6 +377,50 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
     }
   });
   
+  // Handler for pausing campaign
+  const handlePauseCampaign = async () => {
+    try {
+      await apiRequest('POST', `/api/${envId}/campaigns/${campaignId}/pause`);
+      
+      toast({
+        title: "Campaign paused",
+        description: "Campaign has been paused and will not send any more emails."
+      });
+      
+      // Refresh campaign data
+      queryClient.invalidateQueries({ queryKey: [`/api/${envId}/campaigns`, campaignId] });
+    } catch (error) {
+      console.error('Error pausing campaign:', error);
+      toast({
+        title: "Failed to pause campaign",
+        description: "Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Handler for stopping campaign
+  const handleStopCampaign = async () => {
+    try {
+      await apiRequest('POST', `/api/${envId}/campaigns/${campaignId}/stop`);
+      
+      toast({
+        title: "Campaign stopped",
+        description: "Campaign has been permanently stopped."
+      });
+      
+      // Refresh campaign data
+      queryClient.invalidateQueries({ queryKey: [`/api/${envId}/campaigns`, campaignId] });
+    } catch (error) {
+      console.error('Error stopping campaign:', error);
+      toast({
+        title: "Failed to stop campaign",
+        description: "Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+  
   // Handle saving campaign data
   const handleSave = async () => {
     if (!campaignData) return;
@@ -687,8 +731,11 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                   <SendScheduleButton
                     onSendNow={handleBulkSendAll}
                     onScheduleSend={handleScheduleSend}
+                    onPause={handlePauseCampaign}
+                    onStop={handleStopCampaign}
                     hasRecipients={allReadyContacts > 0}
                     variant="bulk"
+                    campaignStatus={campaignData?.status || 'draft'}
                   />
                 );
               }
@@ -1388,10 +1435,13 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                                                 <SendScheduleButton
                                                   onSendNow={() => handleSendSingleEmail(contact, email)}
                                                   onScheduleSend={(scheduledTime) => handleScheduleSingleEmail(contact, email, scheduledTime)}
+                                                  onPause={handlePauseCampaign}
+                                                  onStop={handleStopCampaign}
                                                   disabled={sendEmailMutation.isPending}
                                                   hasRecipients={hasEmail}
                                                   variant="single"
                                                   size="sm"
+                                                  campaignStatus={campaignData?.status || 'draft'}
                                                 />
                                               )}
                                             </div>
@@ -1426,10 +1476,13 @@ export default function PartnerCampaignBuilder({ params, campaignId: propCampaig
                                             <SendScheduleButton
                                               onSendNow={() => handleSendSingleEmail(contact, { subject, blocks: emailBlocks })}
                                               onScheduleSend={(scheduledTime) => handleScheduleSingleEmail(contact, { subject, blocks: emailBlocks }, scheduledTime)}
+                                              onPause={handlePauseCampaign}
+                                              onStop={handleStopCampaign}
                                               disabled={sendEmailMutation.isPending}
                                               hasRecipients={hasEmail}
                                               variant="single"
                                               size="sm"
+                                              campaignStatus={campaignData?.status || 'draft'}
                                             />
                                           )}
                                         </div>

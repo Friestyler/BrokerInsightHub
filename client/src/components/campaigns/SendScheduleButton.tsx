@@ -4,26 +4,32 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Send, Calendar, Clock, ChevronDown } from "lucide-react";
+import { Send, Calendar, Clock, ChevronDown, Pause, Square } from "lucide-react";
 
 interface SendScheduleButtonProps {
   onSendNow: () => void;
   onScheduleSend: (scheduledTime: string) => void;
+  onPause?: () => void;
+  onStop?: () => void;
   disabled?: boolean;
   isLoading?: boolean;
   hasRecipients?: boolean;
   variant?: 'single' | 'bulk';
   size?: 'sm' | 'default';
+  campaignStatus?: string;
 }
 
 export default function SendScheduleButton({
   onSendNow,
   onScheduleSend,
+  onPause,
+  onStop,
   disabled = false,
   isLoading = false,
   hasRecipients = true,
   variant = 'single',
-  size = 'default'
+  size = 'default',
+  campaignStatus = 'draft'
 }: SendScheduleButtonProps) {
   const [showScheduleDialog, setShowScheduleDialog] = useState(false);
   const [scheduledDateTime, setScheduledDateTime] = useState('');
@@ -106,6 +112,18 @@ export default function SendScheduleButton({
               <Calendar className="h-4 w-4 mr-2" />
               Schedule to send
             </DropdownMenuItem>
+            {(campaignStatus === 'running' || campaignStatus === 'scheduled') && onPause && (
+              <DropdownMenuItem onClick={onPause}>
+                <Pause className="h-4 w-4 mr-2" />
+                Pause campaign
+              </DropdownMenuItem>
+            )}
+            {(campaignStatus !== 'draft' && campaignStatus !== 'stopped') && onStop && (
+              <DropdownMenuItem onClick={onStop}>
+                <Square className="h-4 w-4 mr-2" />
+                Stop campaign
+              </DropdownMenuItem>
+            )}
           </DropdownMenuContent>
         </DropdownMenu>
 
@@ -188,6 +206,18 @@ export default function SendScheduleButton({
             <Calendar className="h-4 w-4 mr-2" />
             Schedule to send
           </DropdownMenuItem>
+          {(campaignStatus === 'running' || campaignStatus === 'scheduled') && onPause && (
+            <DropdownMenuItem onClick={onPause}>
+              <Pause className="h-4 w-4 mr-2" />
+              Pause campaign
+            </DropdownMenuItem>
+          )}
+          {(campaignStatus !== 'draft' && campaignStatus !== 'stopped') && onStop && (
+            <DropdownMenuItem onClick={onStop}>
+              <Square className="h-4 w-4 mr-2" />
+              Stop campaign
+            </DropdownMenuItem>
+          )}
         </DropdownMenuContent>
       </DropdownMenu>
 

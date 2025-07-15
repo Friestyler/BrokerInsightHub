@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -187,6 +188,19 @@ const getEntityColor = (entityType: string) => {
     default:
       return 'bg-gray-100 text-gray-800 border-gray-200';
   }
+};
+
+const getAllPossibleStatuses = () => {
+  return [
+    { value: 'draft', label: 'Draft', description: 'Campaign not yet sent' },
+    { value: 'scheduled', label: 'Scheduled', description: 'Campaign scheduled to send' },
+    { value: 'running', label: 'Running', description: 'Campaign is actively sending' },
+    { value: 'partially_sent', label: 'Partially Sent', description: 'Some recipients received emails' },
+    { value: 'sent', label: 'Sent', description: 'All recipients received emails' },
+    { value: 'new_contacts', label: 'New Contacts', description: 'New contacts added after last send' },
+    { value: 'paused', label: 'Paused', description: 'Campaign temporarily stopped' },
+    { value: 'stopped', label: 'Stopped', description: 'Campaign permanently stopped' }
+  ];
 };
 
 export default function CampaignsTable({ campaigns, selectedCampaigns, onSelectionChange, isPartnerView, partnerId, onCampaignClick }: CampaignsTableProps) {
@@ -477,8 +491,9 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
                   {(() => {
                     const statusConfig = getStatusConfig(campaign);
                     const StatusIcon = statusConfig.icon;
+                    const allStatuses = getAllPossibleStatuses();
                     
-                    return (
+                    const statusBadge = (
                       <Badge
                         variant="outline"
                         className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border ${statusConfig.color}`}
@@ -487,6 +502,34 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
                         {statusConfig.label}
                       </Badge>
                     );
+                    
+                    // Show tooltip for draft campaigns with all possible statuses
+                    if (statusConfig.label === 'Draft') {
+                      return (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <div className="inline-block cursor-help">
+                                {statusBadge}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent side="bottom" className="max-w-xs">
+                              <div className="space-y-1">
+                                <p className="font-medium">All possible statuses:</p>
+                                {allStatuses.map(status => (
+                                  <div key={status.value} className="flex items-center gap-2 text-xs">
+                                    <span className="font-medium">{status.label}:</span>
+                                    <span className="text-gray-600">{status.description}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      );
+                    }
+                    
+                    return statusBadge;
                   })()}
                 </td>
                 <td className="px-3 py-4 text-sm w-[120px]">

@@ -1304,6 +1304,56 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     }
   };
 
+  // Handler for pausing campaign
+  const handlePauseCampaign = async () => {
+    try {
+      await apiRequest('POST', `/api/degoudse/campaigns/${campaignId}/pause`);
+      
+      toast({
+        title: "Campaign paused",
+        description: "Campaign has been paused and will not send any more emails."
+      });
+      
+      // Refresh campaign data
+      if (campaignId) {
+        queryClient.invalidateQueries({ queryKey: [`/api/campaigns/${campaignId}`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/degoudse/campaigns/${campaignId}`] });
+      }
+    } catch (error) {
+      console.error('Error pausing campaign:', error);
+      toast({
+        title: "Failed to pause campaign",
+        description: "Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Handler for stopping campaign
+  const handleStopCampaign = async () => {
+    try {
+      await apiRequest('POST', `/api/degoudse/campaigns/${campaignId}/stop`);
+      
+      toast({
+        title: "Campaign stopped",
+        description: "Campaign has been permanently stopped."
+      });
+      
+      // Refresh campaign data
+      if (campaignId) {
+        queryClient.invalidateQueries({ queryKey: [`/api/campaigns/${campaignId}`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/degoudse/campaigns/${campaignId}`] });
+      }
+    } catch (error) {
+      console.error('Error stopping campaign:', error);
+      toast({
+        title: "Failed to stop campaign",
+        description: "Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Handler for bulk sending all ready emails for a specific company
   const handleBulkSend = async (companyName: string) => {
     try {
@@ -3145,9 +3195,12 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                                               <SendScheduleButton
                                                 onSendNow={() => handleSendSingleEmail(contact, email)}
                                                 onScheduleSend={(scheduledTime) => handleScheduleSingleEmail(contact, email, scheduledTime)}
+                                                onPause={handlePauseCampaign}
+                                                onStop={handleStopCampaign}
                                                 hasRecipients={hasEmail}
                                                 variant="single"
                                                 size="sm"
+                                                campaignStatus={campaignData.status || 'draft'}
                                               />
                                             )}
                                           </div>
@@ -3427,8 +3480,11 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                     <SendScheduleButton
                       onSendNow={handleBulkSendAll}
                       onScheduleSend={handleScheduleSend}
+                      onPause={handlePauseCampaign}
+                      onStop={handleStopCampaign}
                       hasRecipients={allReadyContacts > 0}
                       variant="bulk"
+                      campaignStatus={campaignData.status || 'draft'}
                     />
                   )}
                 </>
