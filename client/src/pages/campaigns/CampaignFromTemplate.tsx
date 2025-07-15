@@ -325,6 +325,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [selectedPartnersForAssignment, setSelectedPartnersForAssignment] = useState<number[]>([]);
   const [assignmentType, setAssignmentType] = useState<'individual' | 'list'>('individual');
+  const [filterStatus, setFilterStatus] = useState<'all' | 'assigned' | 'unassigned'>('all');
   const { toast } = useToast();
 
   // Fetch partners for assignment
@@ -376,6 +377,47 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
   // Separate assigned and unassigned customers
   const assignedCustomers = customerGroups.filter(group => group.hasAssignedPartners);
   const unassignedCustomers = customerGroups.filter(group => !group.hasAssignedPartners);
+  
+  // Filter customers based on status
+  const filteredCustomers = (() => {
+    switch (filterStatus) {
+      case 'assigned':
+        return assignedCustomers;
+      case 'unassigned':
+        return unassignedCustomers;
+      default:
+        return customerGroups;
+    }
+  })();
+  
+  // Calculate email counts
+  const totalEmails = campaignData.recipients.filter((r: any) => r.email || r.contactInfo?.email).length;
+  const assignedEmails = assignedCustomers.reduce((sum, group) => 
+    sum + group.recipients.filter((r: any) => r.email || r.contactInfo?.email).length, 0
+  );
+  const unassignedEmails = unassignedCustomers.reduce((sum, group) => 
+    sum + group.recipients.filter((r: any) => r.email || r.contactInfo?.email).length, 0
+  );
+  
+  // Get unique assigned partners (show each partner only once)
+  const uniqueAssignedPartners = (() => {
+    const partnersMap = new Map();
+    assignedCustomers.forEach(group => {
+      Array.from(group.assignedPartners).forEach((partner: any) => {
+        if (!partnersMap.has(partner.id)) {
+          partnersMap.set(partner.id, {
+            ...partner,
+            customerCount: 0,
+            emailCount: 0
+          });
+        }
+        const partnerData = partnersMap.get(partner.id);
+        partnerData.customerCount++;
+        partnerData.emailCount += group.recipients.filter((r: any) => r.email || r.contactInfo?.email).length;
+      });
+    });
+    return Array.from(partnersMap.values());
+  })();
 
   // Handle customer selection
   const handleCustomerToggle = (customerId: string) => {
@@ -388,7 +430,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
 
   // Handle select all
   const handleSelectAll = () => {
-    const allCustomerIds = customerGroups.map(group => group.id.toString());
+    const allCustomerIds = filteredCustomers.map(group => group.id.toString());
     setSelectedCustomers(allCustomerIds);
   };
 
@@ -456,6 +498,31 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
 
   return (
     <div className="space-y-6">
+      {/* Filter Buttons */}
+      <div className="flex items-center gap-3">
+        <Button
+          variant={filterStatus === 'all' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setFilterStatus('all')}
+        >
+          All ({customerGroups.length})
+        </Button>
+        <Button
+          variant={filterStatus === 'assigned' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setFilterStatus('assigned')}
+        >
+          Assigned ({assignedCustomers.length})
+        </Button>
+        <Button
+          variant={filterStatus === 'unassigned' ? 'default' : 'outline'}
+          size="sm"
+          onClick={() => setFilterStatus('unassigned')}
+        >
+          Unassigned ({unassignedCustomers.length})
+        </Button>
+      </div>
+
       {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="bg-white rounded-lg border p-4">
@@ -466,6 +533,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
             <div>
               <p className="text-sm font-medium text-gray-900">Total Customers</p>
               <p className="text-2xl font-bold text-gray-900">{customerGroups.length}</p>
+              <p className="text-xs text-gray-500 mt-1">{totalEmails} emails</p>
             </div>
           </div>
         </div>
@@ -478,6 +546,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
             <div>
               <p className="text-sm font-medium text-gray-900">Assigned</p>
               <p className="text-2xl font-bold text-green-600">{assignedCustomers.length}</p>
+              <p className="text-xs text-gray-500 mt-1">{assignedEmails} emails</p>
             </div>
           </div>
         </div>
@@ -490,6 +559,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
             <div>
               <p className="text-sm font-medium text-gray-900">Unassigned</p>
               <p className="text-2xl font-bold text-orange-600">{unassignedCustomers.length}</p>
+              <p className="text-xs text-gray-500 mt-1">{unassignedEmails} emails</p>
             </div>
           </div>
         </div>
@@ -502,9 +572,9 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
             variant="outline" 
             size="sm" 
             onClick={handleSelectAll}
-            disabled={customerGroups.length === 0}
+            disabled={filteredCustomers.length === 0}
           >
-            Select All
+            Select All ({filteredCustomers.length})
           </Button>
           <Button 
             variant="outline" 
@@ -531,14 +601,49 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
         </Button>
       </div>
 
+      {/* Assigned Partners Section */}
+      {filterStatus !== 'unassigned' && uniqueAssignedPartners.length > 0 && (
+        <div className="bg-white rounded-lg border">
+          <div className="px-4 py-3 border-b">
+            <h3 className="font-medium text-gray-900">Assigned Partners</h3>
+          </div>
+          
+          <div className="divide-y">
+            {uniqueAssignedPartners.map((partner) => (
+              <div key={partner.id} className="px-4 py-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                      <UserCheck className="h-4 w-4 text-green-600" />
+                    </div>
+                    <div>
+                      <h4 className="font-medium text-gray-900">{partner.name}</h4>
+                      <p className="text-sm text-gray-500">
+                        {partner.customerCount} customer(s) • {partner.emailCount} email(s)
+                      </p>
+                    </div>
+                  </div>
+                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                    Partner
+                  </Badge>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Customer List */}
       <div className="bg-white rounded-lg border">
         <div className="px-4 py-3 border-b">
-          <h3 className="font-medium text-gray-900">Customers and Partner Assignments</h3>
+          <h3 className="font-medium text-gray-900">
+            {filterStatus === 'all' ? 'All Customers' : 
+             filterStatus === 'assigned' ? 'Assigned Customers' : 'Unassigned Customers'}
+          </h3>
         </div>
         
         <div className="divide-y">
-          {customerGroups.map((group) => (
+          {filteredCustomers.map((group) => (
             <div key={group.id} className="px-4 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -1828,7 +1933,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     },
     {
       number: 7,
-      title: 'Assign',
+      title: 'Assign (optional)',
       description: getStepDescription(7),
       component: 'share'
     }
