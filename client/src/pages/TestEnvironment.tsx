@@ -25,8 +25,9 @@ export default function TestEnvironment() {
     localStorage.setItem('userId', '1');
     localStorage.setItem('userName', 'Test User');
     
-    // Initialize stable environment to nn
-    const stopOverride = initializeStableEnvironment('nn');
+    // Initialize stable environment to user's selected environment
+    const userSelectedEnv = localStorage.getItem('selectedEnvironment') || 'degoudse';
+    const stopOverride = initializeStableEnvironment(userSelectedEnv);
     setOverride(() => stopOverride);
     
     // Run diagnostic
@@ -105,11 +106,11 @@ export default function TestEnvironment() {
               </div>
               
               <div className="p-4 bg-white rounded-lg border">
-                <h3 className="font-semibold mb-2">Expected: Nationale Nederlanden</h3>
+                <h3 className="font-semibold mb-2">Expected: {environment.name}</h3>
                 <div className="text-sm text-gray-600">
-                  <p>Target Environment: nn</p>
-                  <p>Should show: NN Group logo</p>
-                  <p>Should show: "Nationale Nederlanden" name</p>
+                  <p>Target Environment: {environment.id}</p>
+                  <p>Should show: {environment.name} logo</p>
+                  <p>Should show: "{environment.name}" name</p>
                 </div>
               </div>
             </div>
@@ -167,16 +168,16 @@ export default function TestEnvironment() {
               <h3 className="font-semibold mb-4">Test Links</h3>
               <div className="space-y-2">
                 <a 
-                  href="/broker-view/partner/1?auto-login=true&env=nn" 
+                  href={`/broker-view/partner/1?auto-login=true&env=${environment.id}`}
                   className="block text-blue-600 hover:underline"
                 >
-                  Partner Detail (Broker View) - Auto-login + NN Environment
+                  Partner Detail (Broker View) - Auto-login + {environment.name} Environment
                 </a>
                 <a 
-                  href="/partners/1?auto-login=true&env=nn" 
+                  href={`/partners/1?auto-login=true&env=${environment.id}`}
                   className="block text-blue-600 hover:underline"
                 >
-                  Partner Detail (Normal View) - Auto-login + NN Environment
+                  Partner Detail (Normal View) - Auto-login + {environment.name} Environment
                 </a>
               </div>
             </div>
