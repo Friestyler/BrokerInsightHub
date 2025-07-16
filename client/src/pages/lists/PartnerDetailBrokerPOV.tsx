@@ -20,48 +20,19 @@ import PartnerCampaignBuilder from "@/pages/campaigns/PartnerCampaignBuilder";
 import { BrokerLayout } from "@/components/layouts/BrokerLayout";
 import PartnerCampaignShareModal from "@/components/campaigns/PartnerCampaignShareModal";
 import { checkEnvironmentConsistency } from "@/utils/cacheBreaker";
+import { getEnvironmentBrandingOverride, forceEnvironmentUpdate, detectEnvironmentMismatch } from "@/utils/environmentOverride";
 import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
 import baloiseLogoPng from "@assets/Baloise_1750499789244.png";
 import deGoudseLogo from "@assets/De_Goudse_logo_1749670246231.png";
 import qollabiLogo from "@assets/logo_qollabi_O_dark.png";
 import concordiaLogo from "@assets/images-Concordia_1752649338540.png";
 
-// Front-end only environment branding mapping
+// USE OVERRIDE SYSTEM TO BYPASS BROWSER CACHING
 const getEnvironmentBranding = (envId: string) => {
   console.log('🚨 BROKER VIEW - getEnvironmentBranding called with envId:', envId);
   
-  let result;
-  switch(envId) {
-    case 'baloise':
-      result = {
-        logo: baloiseLogoPng,
-        name: 'Baloise',
-        partnerName: 'Baloise'
-      };
-      break;
-    case 'nn':
-      result = {
-        logo: nnLogo,
-        name: 'Nationale Nederlanden',
-        partnerName: 'Nationale Nederlanden'
-      };
-      break;
-    case 'concordia':
-      result = {
-        logo: concordiaLogo,
-        name: 'Concordia',
-        partnerName: 'Concordia'
-      };
-      break;
-    case 'degoudse':
-    default:
-      result = {
-        logo: deGoudseLogo,
-        name: 'De Goudse',
-        partnerName: 'De Goudse'
-      };
-      break;
-  }
+  // Force environment update to bypass caching
+  const result = getEnvironmentBrandingOverride(envId);
   
   console.log('🚨 BROKER VIEW - getEnvironmentBranding result:', result);
   return result;
@@ -72,7 +43,7 @@ const getEnvironmentBranding = (envId: string) => {
 export default function PartnerDetailBrokerPOV() {
   console.log('🚨🚨🚨 PartnerDetailBrokerPOV COMPONENT IS RENDERING!!! 🚨🚨🚨');
   
-  // NUCLEAR CACHE BUSTING - Force complete page reload on environment mismatch
+  // DOM MANIPULATION MISMATCH DETECTION - BYPASS ALL CACHING
   useEffect(() => {
     // Skip cache check if we're already in a reload cycle
     const urlParams = new URLSearchParams(window.location.search);
@@ -80,14 +51,20 @@ export default function PartnerDetailBrokerPOV() {
       return;
     }
     
-    // Check environment consistency and trigger nuclear cache break if needed
-    const isConsistent = checkEnvironmentConsistency();
+    // Check for DOM mismatches and force update
+    const checkMismatch = () => {
+      const hasMismatch = detectEnvironmentMismatch();
+      if (hasMismatch) {
+        console.log('🚨 DOM MISMATCH DETECTED - FORCING ENVIRONMENT UPDATE');
+        forceEnvironmentUpdate();
+      }
+    };
     
-    if (!isConsistent) {
-      console.log('🚨 TRIGGERING NUCLEAR CACHE BREAK');
-      // The checkEnvironmentConsistency function will handle the reload
-      return;
-    }
+    // Check immediately and then every 1 second
+    checkMismatch();
+    const interval = setInterval(checkMismatch, 1000);
+    
+    return () => clearInterval(interval);
   }, []);
   
   const { partnerId } = useParams<{ partnerId: string }>();
@@ -933,12 +910,13 @@ export default function PartnerDetailBrokerPOV() {
                   src={environmentLogo} 
                   alt={`${partner.name} Logo`}
                   className="w-full h-full object-contain p-1"
+                  data-environment-logo
                 />
               </div>
             </div>
             <div className="flex-1">
               <div className="flex items-center space-x-4 mb-1">
-                <h1 key={`partner-name-${actualCurrentEnvironment}-${renderKey}`} className="text-2xl font-bold text-gray-900">{partner.name}</h1>
+                <h1 key={`partner-name-${actualCurrentEnvironment}-${renderKey}`} className="text-2xl font-bold text-gray-900" data-environment-name>{partner.name}</h1>
                 <div className="flex items-center space-x-2">
                   <Button 
                     variant="ghost" 
