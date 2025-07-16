@@ -92,7 +92,12 @@ export default function PartnerDetailBrokerPOV() {
     const envFromStorage = localStorage.getItem('selectedEnvironment');
     const envFromWindow = (window as any).selectedEnvironment;
     const currentEnv = envFromWindow || envFromStorage || 'degoudse';
-    console.log('🚨 BROKER VIEW - getCurrentEnvironment called:', { envFromStorage, envFromWindow, currentEnv });
+    console.log('🚨 BROKER VIEW - getCurrentEnvironment called:', { 
+      envFromStorage, 
+      envFromWindow, 
+      currentEnv,
+      allLocalStorage: Object.keys(localStorage).map(key => ({ key, value: localStorage.getItem(key) }))
+    });
     return currentEnv;
   };
 
