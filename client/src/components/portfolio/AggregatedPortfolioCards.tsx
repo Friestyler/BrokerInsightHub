@@ -120,8 +120,8 @@ function formatNumber(num: number): string {
 
 // Get coverage color based on thresholds matching Amazon/Willis reference
 function getCoverageColor(percentage: number): string {
-  if (percentage >= 80) return '#10B981'; // Green for excellent coverage (80%+)
-  if (percentage >= 30) return '#F59E0B'; // Orange for improving coverage (30-79%)
+  if (percentage >= 70) return '#10B981'; // Green for excellent coverage (70%+)
+  if (percentage >= 30) return '#F59E0B'; // Orange for improving coverage (30-69%)
   return '#EF4444'; // Red for needs attention (<30%)
 }
 
