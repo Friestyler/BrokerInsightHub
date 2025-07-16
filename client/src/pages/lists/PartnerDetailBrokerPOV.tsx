@@ -264,11 +264,21 @@ export default function PartnerDetailBrokerPOV() {
     concordia: getEnvironmentBranding('concordia')
   });
   
+  // DEBUGGING: Check logo functions
+  console.log('🚨 LOGO TRACE - getBrokerLogo(actualCurrentEnvironment):', getBrokerLogo(actualCurrentEnvironment));
+  console.log('🚨 LOGO TRACE - getBrokerLogo(baloise):', getBrokerLogo('baloise'));
+  console.log('🚨 LOGO TRACE - getEnvironmentBranding(baloise).logo:', getEnvironmentBranding('baloise').logo);
+  console.log('🚨 LOGO TRACE - environmentLogo variable:', environmentLogo);
+  
   // Force partner name to be Baloise for debugging
   if (partner.name !== 'Baloise') {
     console.log('🚨 PARTNER NAME OVERRIDE - Original name:', partner.name, 'Forcing to Baloise');
     partner.name = 'Baloise';
   }
+  
+  // Force logo to be Baloise logo for debugging
+  const forcedBaloiselogo = baloiseLogoPng;
+  console.log('🚨 LOGO OVERRIDE - Forced Baloise logo:', forcedBaloiselogo);
 
   // Fetch broker campaigns (shared campaigns)
   const { data: brokerCampaigns = [], isLoading: campaignsLoading } = useQuery({
@@ -847,7 +857,7 @@ export default function PartnerDetailBrokerPOV() {
             <div className="flex-shrink-0 mr-4">
               <div className="w-16 h-16 rounded-lg overflow-hidden bg-white border border-gray-200 flex items-center justify-center">
                 <img 
-                  src={environmentLogo} 
+                  src={forcedBaloiselogo} 
                   alt={`${partner.name} Logo`}
                   className="w-full h-full object-contain p-1"
                 />
