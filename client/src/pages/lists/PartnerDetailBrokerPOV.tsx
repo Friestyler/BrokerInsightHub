@@ -165,21 +165,7 @@ export default function PartnerDetailBrokerPOV() {
     };
   }, [currentEnvironment]);
 
-  // Additional polling check to ensure environment stays in sync
-  useEffect(() => {
-    const checkEnvironment = () => {
-      const newEnv = getCurrentEnvironment();
-      if (newEnv !== currentEnvironment) {
-        console.log('🚨 BROKER VIEW - Environment drift detected, correcting:', { from: currentEnvironment, to: newEnv });
-        setCurrentEnvironment(newEnv);
-        setRenderKey(prev => prev + 1);
-      }
-    };
-
-    const intervalId = setInterval(checkEnvironment, 1000); // Check every second
-    
-    return () => clearInterval(intervalId);
-  }, [currentEnvironment]);
+  // Removed polling check to prevent infinite loops
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Dropdown state for filters
@@ -255,85 +241,27 @@ export default function PartnerDetailBrokerPOV() {
   const environmentLogo = getBrokerLogo(actualCurrentEnvironment);
   const partner = getPartnerInfoForEnvironment(actualCurrentEnvironment);
   
-  // Immediate visual consistency check on render - with aggressive cache busting
+  // Simple environment logging without aggressive cache busting
   useEffect(() => {
-    const checkVisualConsistency = () => {
-      const currentDisplayedPartner = document.querySelector('h1')?.textContent;
-      const currentDisplayedLogo = document.querySelector('img[alt*="Logo"]')?.src;
-      
-      if (currentDisplayedPartner && currentDisplayedPartner !== partner.name) {
-        console.log('🚨 IMMEDIATE VISUAL MISMATCH - Forcing hard refresh with cache bust:', {
-          displayed: currentDisplayedPartner,
-          expected: partner.name,
-          environment: actualCurrentEnvironment,
-          logoSrc: currentDisplayedLogo
-        });
-        
-        // Force hard reload with aggressive cache clearing
-        const currentUrl = window.location.href.split('?')[0];
-        const timestamp = Date.now();
-        
-        // Clear all caches and force reload
-        if ('caches' in window) {
-          caches.keys().then(names => {
-            names.forEach(name => caches.delete(name));
-          });
-        }
-        
-        // Force reload with cache bust
-        window.location.replace(currentUrl + '?cacheBust=' + timestamp + '&reload=true');
-      }
-    };
-    
-    // Check immediately and after DOM updates
-    checkVisualConsistency();
-    const timer = setTimeout(checkVisualConsistency, 100);
-    return () => clearTimeout(timer);
-  }, [partner.name, actualCurrentEnvironment]);
+    console.log('🎯 BROKER VIEW - Environment and partner info:', {
+      environment: actualCurrentEnvironment,
+      partnerName: partner.name,
+      logoSrc: environmentLogo
+    });
+  }, [partner.name, actualCurrentEnvironment, environmentLogo]);
   
-  // Force environment consistency check - with aggressive cache busting
+  // Simple environment sync without aggressive cache busting
   useEffect(() => {
-    const forceEnvironmentUpdate = () => {
-      const freshEnv = localStorage.getItem('selectedEnvironment') || 'degoudse';
-      const currentDisplayedPartner = document.querySelector('h1')?.textContent;
-      
-      // Check if there's a mismatch between localStorage and what's displayed
-      const expectedPartnerName = getPartnerInfoForEnvironment(freshEnv).name;
-      const isVisuallyOutOfSync = currentDisplayedPartner && currentDisplayedPartner !== expectedPartnerName;
-      
-      console.log('🚨 CACHE DETECTION:', {
-        freshEnv,
-        currentEnvironment, 
-        currentDisplayedPartner,
-        expectedPartnerName,
-        isVisuallyOutOfSync,
-        envMismatch: freshEnv !== currentEnvironment
-      });
-      
-      if (freshEnv !== currentEnvironment || isVisuallyOutOfSync) {
-        console.log('🚨 FORCE UPDATE - Environment/visual mismatch detected, forcing update:', { 
-          current: currentEnvironment, 
-          fresh: freshEnv,
-          displayed: currentDisplayedPartner,
-          expected: expectedPartnerName
-        });
-        
-        // Force hard refresh if visual display is out of sync
-        if (isVisuallyOutOfSync) {
-          console.log('🚨 VISUAL SYNC LOST - Forcing hard refresh');
-          window.location.reload();
-          return;
-        }
-        
+    const syncEnvironment = () => {
+      const freshEnv = getCurrentEnvironment();
+      if (freshEnv !== currentEnvironment) {
+        console.log('🎯 BROKER VIEW - Environment sync:', { from: currentEnvironment, to: freshEnv });
         setCurrentEnvironment(freshEnv);
         setRenderKey(prev => prev + 1);
       }
-      (window as any).lastEnvironmentUpdate = Date.now();
     };
     
-    forceEnvironmentUpdate();
-    const interval = setInterval(forceEnvironmentUpdate, 2000);
-    return () => clearInterval(interval);
+    syncEnvironment();
   }, [currentEnvironment]);
 
   // Fetch broker campaigns (shared campaigns)
