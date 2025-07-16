@@ -11,7 +11,6 @@ import { useEnvironment } from "../contexts/EnvironmentContext";
 import deGoudseLogo from "../assets/de-goudse-logo.png";
 import baloiseLogo from "../assets/baloise-logo.png";
 import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
-import concordiaLogo from "@assets/concordia_logo_1752648291090.png";
 
 interface EnvironmentSelectorProps {
   collapsed?: boolean;
@@ -26,7 +25,6 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
     if (envId === 'degoudse') return deGoudseLogo;
     if (envId === 'baloise') return baloiseLogo;
     if (envId === 'nn') return nnLogo;
-    if (envId === 'concordia') return concordiaLogo;
     return null;
   };
   
