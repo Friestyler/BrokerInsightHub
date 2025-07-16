@@ -57,6 +57,7 @@ import TemplatesPage from "@/pages/campaigns/TemplatesPage";
 import CampaignFromTemplate from "@/pages/campaigns/CampaignFromTemplate";
 import NewCampaign from "@/pages/campaigns/NewCampaign";
 import PartnerCampaignBuilder from "@/pages/campaigns/PartnerCampaignBuilder";
+import TestEnvironment from "@/pages/TestEnvironment";
 
 // Temporary placeholder components for other list pages
 const ProjectsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Projects List (Coming Soon)</h1></div>;
@@ -81,6 +82,9 @@ function Router() {
   <Route path="/partner/campaigns/:campaignId" component={PartnerCampaignBuilder} />
   <Route path="/broker-view/opportunity/:opportunityId" component={OpportunityDetailBrokerPOV} />
   <Route path="/broker-view/partner/:partnerId" component={PartnerDetailBrokerPOV} />
+  
+  {/* Test Environment Route - Direct access without login */}
+  <Route path="/test-environment" component={TestEnvironment} />
 
   {/* Iframe routes for Salesforce integration */}
   <Route path="/iframe/partner/:id" component={PartnerIframeView} />
