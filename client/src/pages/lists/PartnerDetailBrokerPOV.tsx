@@ -251,27 +251,67 @@ export default function PartnerDetailBrokerPOV() {
   const environmentLogo = getBrokerLogo(actualCurrentEnvironment);
   const partner = getPartnerInfoForEnvironment(actualCurrentEnvironment);
   
-  // Force environment consistency check 
+  // Immediate visual consistency check on render
+  useEffect(() => {
+    const checkVisualConsistency = () => {
+      const currentDisplayedPartner = document.querySelector('h1')?.textContent;
+      if (currentDisplayedPartner && currentDisplayedPartner !== partner.name) {
+        console.log('🚨 IMMEDIATE VISUAL MISMATCH - Forcing hard refresh:', {
+          displayed: currentDisplayedPartner,
+          expected: partner.name,
+          environment: actualCurrentEnvironment
+        });
+        window.location.reload();
+      }
+    };
+    
+    // Check after a short delay to allow DOM to update
+    const timer = setTimeout(checkVisualConsistency, 100);
+    return () => clearTimeout(timer);
+  }, [partner.name, actualCurrentEnvironment]);
+  
+  // Force environment consistency check - with aggressive cache busting
   useEffect(() => {
     const forceEnvironmentUpdate = () => {
       const freshEnv = localStorage.getItem('selectedEnvironment') || 'degoudse';
-      if (freshEnv !== currentEnvironment) {
-        console.log('🚨 FORCE UPDATE - Environment mismatch detected, forcing update:', { 
+      const currentDisplayedPartner = document.querySelector('h1')?.textContent;
+      
+      // Check if there's a mismatch between localStorage and what's displayed
+      const expectedPartnerName = getPartnerInfoForEnvironment(freshEnv).name;
+      const isVisuallyOutOfSync = currentDisplayedPartner && currentDisplayedPartner !== expectedPartnerName;
+      
+      console.log('🚨 CACHE DETECTION:', {
+        freshEnv,
+        currentEnvironment, 
+        currentDisplayedPartner,
+        expectedPartnerName,
+        isVisuallyOutOfSync,
+        envMismatch: freshEnv !== currentEnvironment
+      });
+      
+      if (freshEnv !== currentEnvironment || isVisuallyOutOfSync) {
+        console.log('🚨 FORCE UPDATE - Environment/visual mismatch detected, forcing update:', { 
           current: currentEnvironment, 
-          fresh: freshEnv 
+          fresh: freshEnv,
+          displayed: currentDisplayedPartner,
+          expected: expectedPartnerName
         });
+        
+        // Force hard refresh if visual display is out of sync
+        if (isVisuallyOutOfSync) {
+          console.log('🚨 VISUAL SYNC LOST - Forcing hard refresh');
+          window.location.reload();
+          return;
+        }
+        
         setCurrentEnvironment(freshEnv);
         setRenderKey(prev => prev + 1);
-        // Force page refresh if environment is severely out of sync
-        if (Math.abs(Date.now() - (window as any).lastEnvironmentUpdate || 0) > 5000) {
-          window.location.reload();
-        }
       }
       (window as any).lastEnvironmentUpdate = Date.now();
     };
     
     forceEnvironmentUpdate();
-    const interval = setInterval(forceEnvironmentUpdate, 1000);
+    const interval = setInterval(forceEnvironmentUpdate, 2000);
     return () => clearInterval(interval);
   }, [currentEnvironment]);
 
