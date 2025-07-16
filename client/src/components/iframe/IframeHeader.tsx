@@ -47,15 +47,18 @@ export function IframeHeader({ entityType, entityName, entityDescription, users,
             <p className="text-sm text-gray-600">{entityDescription}</p>
           </div>
         </div>
-        {/* NN Logo and Partner View link */}
+        {/* Partner View link with conditional NN logo (only for Willis) */}
         <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-white rounded-md border border-gray-200 flex items-center justify-center">
-            <img 
-              src={nnLogo} 
-              alt="Nationale Nederlanden Logo"
-              className="w-full h-full object-contain"
-            />
-          </div>
+          {/* Show NN logo only for Willis partner */}
+          {entityName === 'Willis B.V' && (
+            <div className="w-8 h-8 bg-white rounded-md border border-gray-200 flex items-center justify-center">
+              <img 
+                src={nnLogo} 
+                alt="Nationale Nederlanden Logo"
+                className="w-full h-full object-contain"
+              />
+            </div>
+          )}
           <a 
             href={`https://b2467d66-de54-4dad-ac15-590957373315-00-213iiygb34s0.janeway.replit.dev/broker-view/${entityType}/${entityId}?tab=opportunities&list=39`}
             target="_blank"
