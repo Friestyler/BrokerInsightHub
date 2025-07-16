@@ -56,47 +56,13 @@ const getEnvironmentBranding = (envId: string) => {
 export default function PartnerDetailBrokerPOV() {
   console.log('🚨🚨🚨 PartnerDetailBrokerPOV COMPONENT IS RENDERING!!! 🚨🚨🚨');
   
-  // RESPECT USER'S ENVIRONMENT CHOICE - NO FORCED OVERRIDES
-  useEffect(() => {
-    console.log('🎯 BROKER VIEW - Respecting user environment choice');
-    
-    // Let the stable environment switching system handle environment selection
-    // No forced overrides - component will display whatever environment the user selected
-    
-    return () => {
-      // Clean up any existing processes
-      console.log('🧹 BROKER VIEW - Component cleanup');
-    };
-  }, []);
-  
   const { partnerId } = useParams<{ partnerId: string }>();
   const { toast } = useToast();
   
-  // Get URL parameters for tab and list selection
+  // Get URL parameters for tab and list selection - MUST BE FIRST
   const urlParams = new URLSearchParams(window.location.search);
   const listParam = urlParams.get('list');
   const envParam = urlParams.get('env');
-  
-  const [activeTab, setActiveTab] = useState("products");
-  const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
-  
-  // State for filtering
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTag, setSelectedTag] = useState("all");
-  const [selectedUnit, setSelectedUnit] = useState("all");
-
-  // State for campaign selection and sharing
-  const [selectedCampaigns, setSelectedCampaigns] = useState<number[]>([]);
-  const [showCampaignShareModal, setShowCampaignShareModal] = useState(false);
-
-  // Opportunities toolbar state management
-  const [showListsDropdown, setShowListsDropdown] = useState(false);
-  const [activeOpportunitiesList, setActiveOpportunitiesList] = useState<any>(null);
-  const [filterText, setFilterText] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
-  const [selectedCustomer, setSelectedCustomer] = useState('');
-  const [selectedOpportunityType, setSelectedOpportunityType] = useState('');
-  const [renderKey, setRenderKey] = useState(0);
   
   // Get current environment directly with cache busting
   const getCurrentEnvironment = () => {
@@ -121,6 +87,48 @@ export default function PartnerDetailBrokerPOV() {
   };
 
   const [currentEnvironment, setCurrentEnvironment] = useState(getCurrentEnvironment());
+  
+  // BROKER VIEW URL PARAMETER PROCESSING
+  useEffect(() => {
+    console.log('🎯 BROKER VIEW - Processing URL parameter:', envParam);
+    
+    // If URL parameter exists, update the environment
+    if (envParam && envParam !== localStorage.getItem('selectedEnvironment')) {
+      console.log('🎯 BROKER VIEW - Setting environment from URL parameter:', envParam);
+      localStorage.setItem('selectedEnvironment', envParam);
+      
+      // Force environment change event
+      window.dispatchEvent(new CustomEvent('environmentChanged', { detail: envParam }));
+      
+      // Update current environment state
+      setCurrentEnvironment(envParam);
+    }
+    
+    return () => {
+      console.log('🧹 BROKER VIEW - Component cleanup');
+    };
+  }, [envParam]);
+  
+  const [activeTab, setActiveTab] = useState("products");
+  const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
+  
+  // State for filtering
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTag, setSelectedTag] = useState("all");
+  const [selectedUnit, setSelectedUnit] = useState("all");
+
+  // State for campaign selection and sharing
+  const [selectedCampaigns, setSelectedCampaigns] = useState<number[]>([]);
+  const [showCampaignShareModal, setShowCampaignShareModal] = useState(false);
+
+  // Opportunities toolbar state management
+  const [showListsDropdown, setShowListsDropdown] = useState(false);
+  const [activeOpportunitiesList, setActiveOpportunitiesList] = useState<any>(null);
+  const [filterText, setFilterText] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState('');
+  const [selectedOpportunityType, setSelectedOpportunityType] = useState('');
+  const [renderKey, setRenderKey] = useState(0);
 
   // Always use fresh environment value to ensure we get the latest
   const actualCurrentEnvironment = getCurrentEnvironment();
