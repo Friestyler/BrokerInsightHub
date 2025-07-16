@@ -109,12 +109,20 @@ function calculateCustomerWeightedValue(customers: any[], opportunities: any[] =
   }
 }
 
-// Fetch customers from database with pagination
-const useCustomersData = (page: number = 1, limit: number = 100) => {
+// Fetch customers from database with pagination and search
+const useCustomersData = (page: number = 1, limit: number = 100, search: string = '', filters: any = {}) => {
   return useQuery({
-    queryKey: ['/api/customers', page, limit],
+    queryKey: ['/api/customers', page, limit, search, filters],
     queryFn: async () => {
-      const result = await apiRequest('GET', `/api/customers?page=${page}&limit=${limit}`);
+      const params = new URLSearchParams();
+      params.append('page', page.toString());
+      params.append('limit', limit.toString());
+      if (search) params.append('search', search);
+      if (filters.industry && filters.industry.length > 0) params.append('industry', filters.industry.join(','));
+      if (filters.size && filters.size.length > 0) params.append('size', filters.size.join(','));
+      if (filters.status && filters.status.length > 0) params.append('status', filters.status.join(','));
+      
+      const result = await apiRequest('GET', `/api/customers?${params.toString()}`);
       return result;
     },
     staleTime: 0,
@@ -241,8 +249,8 @@ export default function CustomersPageClean({ smartListFilter }: CustomersPageCle
     });
   }, [selectedStatus, selectedIndustry, selectedSize]);
   
-  // Data fetching with pagination
-  const { data: customersResponse, isLoading, error } = useCustomersData(currentPage, itemsPerPage);
+  // Data fetching with pagination, search, and filters
+  const { data: customersResponse, isLoading, error } = useCustomersData(currentPage, itemsPerPage, searchTerm, activeFilters);
   
   // Fetch opportunities for accurate value calculations
   const { data: opportunities = [] } = useQuery({
@@ -320,49 +328,13 @@ export default function CustomersPageClean({ smartListFilter }: CustomersPageCle
     list.entity_type === 'customers'
   );
 
-  // Filter and search logic with comprehensive error handling
-  const filteredCustomers = customers.filter((customer: any) => {
-    try {
-      if (!customer || typeof customer !== 'object') return false;
-      
-      const customerName = customer.name || '';
-      const customerIndustry = customer.industry || '';
-      const customerSize = customer.size || '';
-      const customerStatus = customer.status || 'active';
-      const customerId = customer.id || 0;
-      
-      const matchesSearch = customerName.toLowerCase().includes((searchTerm || '').toLowerCase());
-      const matchesIndustry = !activeFilters?.industry?.length || activeFilters.industry.includes(customerIndustry);
-      const matchesSize = !activeFilters?.size?.length || activeFilters.size.includes(customerSize);
-      const matchesStatus = !activeFilters?.status?.length || activeFilters.status.includes(customerStatus);
-      
-      // Apply list filtering if an active list is selected
-      const matchesList = !activeList || !activeList.members || activeList.members.includes(customerId);
-      
-      // Apply smart list filtering (simulated logic based on smart list criteria)
-      const matchesSmartList = !smartListFilter || (() => {
-        // This is a simplified filtering logic based on smart list criteria
-        // In a real implementation, this would be more sophisticated
-        switch (smartListFilter.id) {
-          case 1: // Retirement Prospects
-            return customer.opportunityCount > 0 && customer.industry !== 'Tech';
-          case 2: // Contract Renewals
-            return customer.opportunityCount > 0;
-          case 3: // SME Health Coverage Gap
-            return customer.size === 'Medium' || customer.size === 'Small';
-          case 4: // Liability Cross-sell
-            return customer.opportunityCount === 0 && customer.industry !== 'Finance';
-          default:
-            return true;
-        }
-      })();
-      
-      return matchesSearch && matchesIndustry && matchesSize && matchesStatus && matchesList && matchesSmartList;
-    } catch (error) {
-      console.error('Error filtering customer:', error, customer);
-      return false;
-    }
-  });
+  // Since we're doing server-side filtering, use customers directly
+  const filteredCustomers = customers;
+
+  // Reset pagination when search or filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, activeFilters]);
 
   // Handle customer selection with error handling
   const handleCustomerSelect = (customerId: number) => {

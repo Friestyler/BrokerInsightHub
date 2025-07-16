@@ -4631,17 +4631,55 @@ Return as JSON in this exact format:
     const limit = parseInt(req.query.limit as string) || 100;
     const offset = (page - 1) * limit;
     
+    // Add search and filter parameters
+    const search = req.query.search as string || '';
+    const industryFilter = req.query.industry as string || '';
+    const sizeFilter = req.query.size as string || '';
+    const statusFilter = req.query.status as string || '';
+    
     // Add caching headers
     res.set('Cache-Control', 'public, max-age=60');
     
     try {
       const envPool = pool;
       
-      // Get total count and summary statistics, excluding original seed customers (IDs 1-10)
+      // Build WHERE clause for search and filters
+      let whereClause = 'WHERE c.id > 10';
+      const queryParams = [];
+      let paramIndex = 1;
+      
+      if (search) {
+        whereClause += ` AND c.name ILIKE $${paramIndex}`;
+        queryParams.push(`%${search}%`);
+        paramIndex++;
+      }
+      
+      if (industryFilter) {
+        const industries = industryFilter.split(',');
+        whereClause += ` AND c.industry = ANY($${paramIndex})`;
+        queryParams.push(industries);
+        paramIndex++;
+      }
+      
+      if (sizeFilter) {
+        const sizes = sizeFilter.split(',');
+        whereClause += ` AND c.size = ANY($${paramIndex})`;
+        queryParams.push(sizes);
+        paramIndex++;
+      }
+      
+      if (statusFilter) {
+        const statuses = statusFilter.split(',');
+        whereClause += ` AND c.status = ANY($${paramIndex})`;
+        queryParams.push(statuses);
+        paramIndex++;
+      }
+      
+      // Get total count and summary statistics with filters
       const [countResult, summaryResult] = await Promise.all([
         envPool.query(`
-          SELECT COUNT(*) as total_count FROM degoudse.customers WHERE id > 10
-        `),
+          SELECT COUNT(*) as total_count FROM degoudse.customers c ${whereClause}
+        `, queryParams),
         envPool.query(`
           SELECT 
             COUNT(DISTINCT c.id) as total_customers,
@@ -4651,8 +4689,8 @@ Return as JSON in this exact format:
           FROM degoudse.customers c
           LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
           LEFT JOIN degoudse.opportunities o ON co.opportunity_id = o.id
-          WHERE c.id > 10
-        `)
+          ${whereClause}
+        `, queryParams)
       ]);
       
       const totalCount = parseInt(countResult.rows[0].total_count);
@@ -4662,7 +4700,11 @@ Return as JSON in this exact format:
       console.log(`Customer pagination debug: totalCount=${totalCount}, limit=${limit}, totalPages=${totalPages}, currentPage=${page}`);
       console.log(`Count query result:`, countResult.rows[0]);
       
-      // Query with pagination, excluding original seed customers (IDs 1-10)
+      // Query with pagination and filters
+      const limitParam = paramIndex++;
+      const offsetParam = paramIndex++;
+      const finalQueryParams = [...queryParams, limit, offset];
+      
       const result = await envPool.query(`
         SELECT c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt",
                COUNT(DISTINCT pc.partner_id) as partner_count,
@@ -4679,11 +4721,11 @@ Return as JSON in this exact format:
           JOIN degoudse.opportunities o2 ON o2.id = co2.opportunity_id
           GROUP BY co2.customer_id
         ) opp_values ON opp_values.customer_id = c.id
-        WHERE c.id > 10
+        ${whereClause}
         GROUP BY c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt", opp_values.total_opportunity_value
         ORDER BY c.id
-        LIMIT $1 OFFSET $2
-      `, [limit, offset]);
+        LIMIT $${limitParam} OFFSET $${offsetParam}
+      `, finalQueryParams);
       
       console.log('Raw SQL result for customers:', result.rows.slice(0, 2));
       
