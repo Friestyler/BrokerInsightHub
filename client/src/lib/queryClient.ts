@@ -40,7 +40,7 @@ export function getEnvironmentUrl(url: string): string {
   // All environments (degoudse, baloise, nn, concordia) should use the degoudse backend data
   if (envId === 'degoudse' || envId === 'baloise' || envId === 'nn' || envId === 'concordia') {
     // All environments use degoudse data backend
-    if (url.startsWith('/api/') && !url.includes('/degoudse/') && !url.includes('/baloise/') && !url.includes('/nn/')) {
+    if (url.startsWith('/api/') && !url.includes('/degoudse/') && !url.includes('/baloise/') && !url.includes('/nn/') && !url.includes('/concordia/')) {
       const newUrl = url.replace('/api/', `/api/degoudse/`);
       console.log('Environment URL transformed:', { from: url, to: newUrl });
       return newUrl;
@@ -53,6 +53,11 @@ export function getEnvironmentUrl(url: string): string {
     }
     if (url.includes('/nn/')) {
       const newUrl = url.replace('/api/nn/', '/api/degoudse/');
+      console.log('Environment URL transformed:', { from: url, to: newUrl });
+      return newUrl;
+    }
+    if (url.includes('/concordia/')) {
+      const newUrl = url.replace('/api/concordia/', '/api/degoudse/');
       console.log('Environment URL transformed:', { from: url, to: newUrl });
       return newUrl;
     }
