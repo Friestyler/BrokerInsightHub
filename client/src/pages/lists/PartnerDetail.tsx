@@ -26,7 +26,6 @@ import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTa
 import { WhiteSpaceMatrix } from "@/components/entity/WhiteSpaceMatrixSimplified";
 import { SmartCrossSell } from "@/components/portfolio/SmartCrossSell";
 import nnLogo from "@assets/NN.AS_1751813752232.png";
-import baloiseLogoPng from "@assets/Baloise_1750499789244.png";
 
 export default function PartnerDetail() {
   const { id } = useParams();
@@ -1187,20 +1186,6 @@ export default function PartnerDetail() {
                         <img 
                           src={nnLogo} 
                           alt="NN Group" 
-                          className="w-4 h-4 rounded-sm mr-1.5 object-cover"
-                        />
-                        Partner View
-                      </a>
-                    )}
-                    {/* Induver Partner Link - positioned next to Details button */}
-                    {parseInt(id!) === 26 && (
-                      <a
-                        href="/broker-view/partner/26?tab=opportunities"
-                        className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center transition-colors"
-                      >
-                        <img 
-                          src={baloiseLogoPng} 
-                          alt="Baloise" 
                           className="w-4 h-4 rounded-sm mr-1.5 object-cover"
                         />
                         Partner View
