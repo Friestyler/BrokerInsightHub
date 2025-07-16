@@ -68,6 +68,15 @@ export default function PartnerDetailBrokerPOV() {
 
   // Always use fresh environment value to ensure we get the latest
   const actualCurrentEnvironment = getCurrentEnvironment();
+  
+  // Force re-evaluation of partner info every render to ensure correct environment
+  const forceEnvironmentCheck = () => {
+    const env = getCurrentEnvironment();
+    console.log('🚨 FORCE CHECK - Environment from storage:', localStorage.getItem('selectedEnvironment'));
+    console.log('🚨 FORCE CHECK - Environment from window:', (window as any).selectedEnvironment);
+    console.log('🚨 FORCE CHECK - Final environment:', env);
+    return env;
+  };
 
   // Debug logs after state declarations
   console.log('🚨 BROKER VIEW - RENDER - Render key:', renderKey);
@@ -241,12 +250,14 @@ export default function PartnerDetailBrokerPOV() {
   };
   
   // Use the actual current environment instead of stale state
-  const environmentLogo = getBrokerLogo(actualCurrentEnvironment);
-  const partner = getPartnerInfoForEnvironment(actualCurrentEnvironment);
+  const finalEnvironment = forceEnvironmentCheck();
+  const environmentLogo = getBrokerLogo(finalEnvironment);
+  const partner = getPartnerInfoForEnvironment(finalEnvironment);
   
-  console.log('Broker POV - Using environment logo:', environmentLogo);
-  console.log('Broker POV - Partner name:', partner.name);
-  console.log('Environment ID (actual):', actualCurrentEnvironment);
+  console.log('🚨 BROKER POV - Using environment logo:', environmentLogo);
+  console.log('🚨 BROKER POV - Partner name:', partner.name);
+  console.log('🚨 BROKER POV - Environment ID (final):', finalEnvironment);
+  console.log('🚨 BROKER POV - Partner object:', partner);
 
   // Fetch broker campaigns (shared campaigns)
   const { data: brokerCampaigns = [], isLoading: campaignsLoading } = useQuery({
