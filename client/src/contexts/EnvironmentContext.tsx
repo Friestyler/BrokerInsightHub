@@ -3,6 +3,7 @@ import acmeLogo from "../assets/acme-logo.svg";
 import qollabiLogo from "../assets/qollabi-placeholder.svg";
 import baloiseLogoPng from "../assets/baloise-logo.png";
 import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
+import concordiaLogo from "@assets/concordia_logo_1752648291090.png";
 
 export interface Environment {
   id: string;
@@ -41,6 +42,13 @@ const FALLBACK_ENVIRONMENTS: Environment[] = [
     logo: nnLogo,
     apiBaseUrl: "/api/degoudse", // Same backend data as De Goudse
     databaseId: "degoudse"
+  },
+  { 
+    id: "concordia", 
+    name: "Concordia", 
+    logo: concordiaLogo,
+    apiBaseUrl: "/api/degoudse", // Same backend data as De Goudse
+    databaseId: "degoudse"
   }
 ];
 
@@ -59,8 +67,8 @@ export const EnvironmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [environments, setEnvironments] = useState<Environment[]>(FALLBACK_ENVIRONMENTS);
   const [environment, setEnvironmentState] = useState<Environment>(() => {
     const savedEnvId = localStorage.getItem('selectedEnvironment');
-    // Allow all available environments: degoudse, baloise, and nn
-    if (savedEnvId && (savedEnvId === 'degoudse' || savedEnvId === 'baloise' || savedEnvId === 'nn')) {
+    // Allow all available environments: degoudse, baloise, nn, and concordia
+    if (savedEnvId && (savedEnvId === 'degoudse' || savedEnvId === 'baloise' || savedEnvId === 'nn' || savedEnvId === 'concordia')) {
       return FALLBACK_ENVIRONMENTS.find(env => env.id === savedEnvId) || FALLBACK_ENVIRONMENTS[0];
     }
     // Default to degoudse if no valid environment is saved
