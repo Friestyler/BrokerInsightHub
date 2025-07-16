@@ -494,20 +494,20 @@ Create a concise, professional comment (max 200 words) that highlights the oppor
   };
 
   const getCoverageColor = (percentage: number) => {
-    if (percentage >= 80) return 'text-green-600';
+    if (percentage >= 75) return 'text-green-600';
     if (percentage >= 30) return 'text-orange-600';
     return 'text-red-600';
   };
 
   const getCoverageProgressColor = (percentage: number) => {
-    if (percentage >= 80) return 'bg-green-500';
+    if (percentage >= 75) return 'bg-green-500';
     if (percentage >= 30) return 'bg-orange-500';
     return 'bg-red-500';
   };
 
   // Simple coverage performance color system for circles only
   const getCoverageCircleColor = (coveragePercentage: number) => {
-    if (coveragePercentage >= 80) {
+    if (coveragePercentage >= 75) {
       return '#10B981'; // Green for excellent coverage
     } else if (coveragePercentage >= 30) {
       return '#F59E0B'; // Orange for improving coverage
