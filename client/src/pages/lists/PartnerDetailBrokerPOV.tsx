@@ -12,11 +12,13 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Search } from "lucide-react";
+import { ArrowLeft, Search, Bot, Copy, Users, Trash2, MoreHorizontal, MessageSquare } from "lucide-react";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import EntityAvatar from "@/components/EntityAvatar";
 import PartnerCampaignBuilder from "@/pages/campaigns/PartnerCampaignBuilder";
 import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTab";
+import { WhiteSpaceMatrix } from "@/components/entity/WhiteSpaceMatrixSimplified";
+import { SmartCrossSell } from "@/components/portfolio/SmartCrossSell";
 
 import { BrokerLayout } from "@/components/layouts/BrokerLayout";
 import PartnerCampaignShareModal from "@/components/campaigns/PartnerCampaignShareModal";
@@ -114,13 +116,22 @@ export default function PartnerDetailBrokerPOV() {
   }, [envParam]);
   
   const [activeTab, setActiveTab] = useState("products");
-  const [productSubtab, setProductSubtab] = useState("overview");
+  const [activeProductTab, setActiveProductTab] = useState("overview");
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   
-  // State for filtering
+  // OKR Plans state variables
+  const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState("all");
   const [selectedUnit, setSelectedUnit] = useState("all");
+  const [selectedRange, setSelectedRange] = useState("all");
+  const [selectedMetricForComment, setSelectedMetricForComment] = useState<any>(null);
+  const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
+  const [comment, setComment] = useState("");
+  const [visibleToPartner, setVisibleToPartner] = useState(false);
+  const [assignedTo, setAssignedTo] = useState("");
+  
+  // State for filtering
 
   // State for campaign selection and sharing
   const [selectedCampaigns, setSelectedCampaigns] = useState<number[]>([]);
@@ -767,6 +778,12 @@ export default function PartnerDetailBrokerPOV() {
     queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/okr-tags`),
   });
 
+  // Fetch users for comment assignment
+  const { data: users } = useQuery({
+    queryKey: [`/api/${actualCurrentEnvironment}/users`],
+    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/users`),
+  });
+
   // Get metrics assigned to Mevas BV (partner_id 12)
   // Template assignments use template_id to reference metrics, and entity_id for the partner
   const assignedMetrics = allMetrics?.filter((metric: any) => {
@@ -796,6 +813,90 @@ export default function PartnerDetailBrokerPOV() {
     
     return matchesSearch && matchesTag && matchesUnit;
   });
+
+  // OKR Plans helper functions
+  const handleMetricSelect = (metricId: number, checked: boolean) => {
+    if (checked) {
+      setSelectedMetrics(prev => [...prev, metricId]);
+    } else {
+      setSelectedMetrics(prev => prev.filter(id => id !== metricId));
+    }
+  };
+
+  const handleAddComment = (metric: any) => {
+    setSelectedMetricForComment(metric);
+    setIsCommentDialogOpen(true);
+  };
+
+  // Create comment mutation for OKR metrics
+  const createCommentMutation = useMutation({
+    mutationFn: async (data: { content: string; visible_to_partner: boolean; entityType: string; entityId: number; assignedTo?: string; metricId?: number }) => {
+      const envId = localStorage.getItem('selectedEnvironment') || 'degoudse';
+      
+      if (data.metricId) {
+        const response = await fetch(`/api/${envId}/okr/comments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            metricId: data.metricId,
+            partnerId: data.entityId,
+            comment: data.content,
+            userId: 1, // Default user ID
+          }),
+        });
+        if (!response.ok) {
+          const errorData = await response.text();
+          throw new Error(`Failed to create OKR comment: ${errorData}`);
+        }
+        return response.json();
+      } else {
+        // Use general comment endpoint
+        const response = await fetch(`/api/${envId}/comments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data),
+        });
+        if (!response.ok) {
+          const errorData = await response.text();
+          throw new Error(`Failed to create comment: ${errorData}`);
+        }
+        return response.json();
+      }
+    },
+    onSuccess: () => {
+      toast({
+        title: "Comment added",
+        description: "Your comment has been added successfully.",
+      });
+      setIsCommentDialogOpen(false);
+      setComment("");
+      setSelectedMetricForComment(null);
+      setVisibleToPartner(false);
+      setAssignedTo("");
+      // Invalidate and refetch comments
+      queryClient.invalidateQueries({ queryKey: [`/api/okr/comments`] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleSubmitComment = () => {
+    if (!comment.trim() || !selectedMetricForComment) return;
+    
+    createCommentMutation.mutate({
+      content: comment,
+      visible_to_partner: visibleToPartner,
+      entityType: 'partner',
+      entityId: parseInt(partnerId!),
+      assignedTo: assignedTo || undefined,
+      metricId: selectedMetricForComment.id,
+    });
+  };
 
   // Group metrics by their tags
   const groupedMetrics = filteredMetrics.reduce((acc: any, metric: any) => {
@@ -1291,35 +1392,75 @@ export default function PartnerDetailBrokerPOV() {
           )}
 
           {activeTab === "products" && (
-            <div className="space-y-4">
-              {/* Product subtab navigation */}
-              <div className="bg-white rounded-lg border">
-                <div className="px-6 py-4 border-b">
-                  <div className="flex space-x-6">
-                    <button
-                      onClick={() => setProductSubtab("overview")}
-                      className={`px-4 py-2 text-sm font-medium rounded-md ${
-                        productSubtab === "overview" 
-                          ? "bg-[#5567E5] text-white" 
-                          : "text-gray-500 hover:text-gray-700"
-                      }`}
-                    >
-                      Overview
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Product content */}
-                <div className="p-6">
-                  {productSubtab === "overview" && (
-                    <PortfolioOverviewTab 
-                      partnerId={partnerId} 
-                      partnerName={partner.name || "Partner"}
-                    />
-                  )}
-                </div>
+            <div className="bg-white rounded-lg border">
+              <div className="border-b border-gray-200 mb-3 -mt-6">
+                <nav className="flex space-x-1">
+                  <button 
+                    onClick={() => setActiveProductTab("overview")}
+                    className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md ${
+                      activeProductTab === "overview" 
+                        ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
+                        : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                    }`}
+                  >
+                    Overview
+                  </button>
+                  <button 
+                    onClick={() => setActiveProductTab("smart-cross-sell")}
+                    className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md flex items-center gap-2 ${
+                      activeProductTab === "smart-cross-sell" 
+                        ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
+                        : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                    }`}
+                  >
+                    <Bot className="w-4 h-4" />
+                    Smart Cross Sell
+                  </button>
+                  <button 
+                    onClick={() => setActiveProductTab("matrix")}
+                    className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md ${
+                      activeProductTab === "matrix" 
+                        ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
+                        : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                    }`}
+                  >
+                    Matrix
+                  </button>
+                </nav>
               </div>
+
+              {/* Product Overview Tab */}
+              {activeProductTab === "overview" && (
+                <div className="p-6">
+                  <PortfolioOverviewTab 
+                    entityType="partners" 
+                    entityId={partnerId || ""} 
+                  />
+                </div>
+              )}
+
+              {/* Cross-sell Matrix Tab - ONLY this tab uses WhiteSpaceMatrix */}
+              {activeProductTab === "matrix" && (
+                <div className="p-6">
+                  <WhiteSpaceMatrix 
+                    entityType="partner" 
+                    entityId={partnerId || ""} 
+                    entityName={partner?.name}
+                    onCreateOpportunity={() => {/* Opportunity creation logic */}}
+                    onCreateCampaign={() => {/* Campaign creation logic */}}
+                    onCreateList={() => {/* List creation logic */}}
+                  />
+                </div>
+              )}
             </div>
+          )}
+
+          {activeTab === "products" && activeProductTab === "smart-cross-sell" && (
+            <SmartCrossSell 
+              entityType="partners" 
+              entityId={partnerId || ""} 
+              onCreateOpportunity={() => {/* Opportunity creation logic */}}
+            />
           )}
 
           {activeTab === "opportunities" && (
