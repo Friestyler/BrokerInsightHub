@@ -17,9 +17,10 @@ export const stableStartupSequence = () => {
   localStorage.setItem('userName', 'Test User');
   console.log('✅ AUTOMATIC LOGIN COMPLETE');
   
-  // Step 2: Initialize stable environment
+  // Step 2: Initialize stable environment - respect user's choice
   console.log('🎯 STEP 2: STABLE ENVIRONMENT INITIALIZATION');
-  const stopEnvironment = initializeStableEnvironment('nn');
+  const userSelectedEnvironment = localStorage.getItem('selectedEnvironment') || 'degoudse';
+  const stopEnvironment = initializeStableEnvironment(userSelectedEnvironment);
   console.log('✅ STABLE ENVIRONMENT INITIALIZED');
   
   // Step 3: DOM stabilization
@@ -29,11 +30,11 @@ export const stableStartupSequence = () => {
   }, 500);
   
   console.log('✅ STABLE STARTUP SEQUENCE COMPLETE');
-  console.log('🎯 TARGET ENVIRONMENT: nn (Nationale Nederlanden)');
+  console.log('🎯 USER SELECTED ENVIRONMENT:', userSelectedEnvironment);
   
   return {
     success: true,
-    environment: 'nn',
+    environment: userSelectedEnvironment,
     stopEnvironment
   };
 };
