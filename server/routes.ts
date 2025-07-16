@@ -5492,7 +5492,7 @@ Return as JSON in this exact format:
         WHERE pc.partner_id = $1 AND cpa.is_active = true
       `, [partnerId]);
       
-      // Get category coverage breakdown - product coverage per category
+      // Get category coverage breakdown - customer coverage per category
       const categoryResult = await envPool.query(`
         WITH partner_customers AS (
           SELECT DISTINCT customer_id 
@@ -5504,14 +5504,10 @@ Return as JSON in this exact format:
             parent_cat.id as categoryId,
             parent_cat.name as categoryName,
             parent_cat.color as categoryColor,
-            COUNT(DISTINCT cpa.product_template_id) as products_covered,
-            COUNT(DISTINCT pt.id) as total_products_in_category,
+            COUNT(DISTINCT cpa.customer_id) as customers_with_products,
+            (SELECT COUNT(*) FROM partner_customers) as total_customers,
             COALESCE(SUM(pt.premium_value), 0) as current_premium,
-            CASE 
-              WHEN COUNT(DISTINCT pt.id) > 0 THEN 
-                ROUND(COUNT(DISTINCT cpa.product_template_id) * 100.0 / COUNT(DISTINCT pt.id), 1)
-              ELSE 0
-            END as coverage_percentage
+            ROUND(COUNT(DISTINCT cpa.customer_id) * 100.0 / (SELECT COUNT(*) FROM partner_customers), 1) as coverage_percentage
           FROM degoudse.categories parent_cat
           LEFT JOIN degoudse.categories c ON c.parent_id = parent_cat.id OR c.id = parent_cat.id
           LEFT JOIN degoudse.product_templates pt ON pt.category_id = c.id
@@ -5572,8 +5568,8 @@ Return as JSON in this exact format:
           categoryId: cat.categoryid,
           categoryName: cat.categoryname,
           categoryColor: cat.categorycolor,
-          productsCovered: parseInt(cat.products_covered || '0'),
-          totalProducts: parseInt(cat.total_products_in_category || '0'),
+          productsCovered: parseInt(cat.customers_with_products || '0'),
+          totalProducts: parseInt(cat.total_customers || '0'),
           coveragePercentage: parseFloat(cat.coverage_percentage || '0'),
           currentPremium: parseFloat(cat.current_premium || '0'),
           gapValue: 0 // Will calculate properly later if needed
