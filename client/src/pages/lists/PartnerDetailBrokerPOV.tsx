@@ -70,6 +70,37 @@ const getEnvironmentBranding = (envId: string) => {
 
 export default function PartnerDetailBrokerPOV() {
   console.log('🚨🚨🚨 PartnerDetailBrokerPOV COMPONENT IS RENDERING!!! 🚨🚨🚨');
+  
+  // AGGRESSIVE CACHE BUSTING - Check environment consistency on component mount
+  useEffect(() => {
+    const handleCacheConsistency = () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const hasReloadFlag = urlParams.get('reload') === 'true';
+      
+      if (hasReloadFlag) {
+        // Remove reload flag and continue
+        const cleanUrl = window.location.href.split('?')[0];
+        window.history.replaceState({}, '', cleanUrl);
+        return;
+      }
+      
+      // Check if browser has stale cached data
+      const currentEnv = localStorage.getItem('selectedEnvironment') || 'degoudse';
+      const cachedEnv = sessionStorage.getItem('lastBrokerEnvironment');
+      
+      if (cachedEnv && cachedEnv !== currentEnv) {
+        console.log('🚨 STALE CACHE DETECTED - Forcing reload:', { cached: cachedEnv, current: currentEnv });
+        sessionStorage.setItem('lastBrokerEnvironment', currentEnv);
+        window.location.replace(window.location.href + '?cacheBust=' + Date.now() + '&reload=true');
+        return;
+      }
+      
+      sessionStorage.setItem('lastBrokerEnvironment', currentEnv);
+    };
+    
+    handleCacheConsistency();
+  }, []);
+  
   const { partnerId } = useParams<{ partnerId: string }>();
   const { toast } = useToast();
   
@@ -251,21 +282,38 @@ export default function PartnerDetailBrokerPOV() {
   const environmentLogo = getBrokerLogo(actualCurrentEnvironment);
   const partner = getPartnerInfoForEnvironment(actualCurrentEnvironment);
   
-  // Immediate visual consistency check on render
+  // Immediate visual consistency check on render - with aggressive cache busting
   useEffect(() => {
     const checkVisualConsistency = () => {
       const currentDisplayedPartner = document.querySelector('h1')?.textContent;
+      const currentDisplayedLogo = document.querySelector('img[alt*="Logo"]')?.src;
+      
       if (currentDisplayedPartner && currentDisplayedPartner !== partner.name) {
-        console.log('🚨 IMMEDIATE VISUAL MISMATCH - Forcing hard refresh:', {
+        console.log('🚨 IMMEDIATE VISUAL MISMATCH - Forcing hard refresh with cache bust:', {
           displayed: currentDisplayedPartner,
           expected: partner.name,
-          environment: actualCurrentEnvironment
+          environment: actualCurrentEnvironment,
+          logoSrc: currentDisplayedLogo
         });
-        window.location.reload();
+        
+        // Force hard reload with aggressive cache clearing
+        const currentUrl = window.location.href.split('?')[0];
+        const timestamp = Date.now();
+        
+        // Clear all caches and force reload
+        if ('caches' in window) {
+          caches.keys().then(names => {
+            names.forEach(name => caches.delete(name));
+          });
+        }
+        
+        // Force reload with cache bust
+        window.location.replace(currentUrl + '?cacheBust=' + timestamp + '&reload=true');
       }
     };
     
-    // Check after a short delay to allow DOM to update
+    // Check immediately and after DOM updates
+    checkVisualConsistency();
     const timer = setTimeout(checkVisualConsistency, 100);
     return () => clearTimeout(timer);
   }, [partner.name, actualCurrentEnvironment]);
