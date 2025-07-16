@@ -246,9 +246,14 @@ export default function PartnerDetailBrokerPOV() {
   const environmentLogo = getBrokerLogo(actualCurrentEnvironment);
   const partner = getPartnerInfoForEnvironment(actualCurrentEnvironment);
   
+  // TEMPORARY FIX: Force partner name to be based on environment
+  if (actualCurrentEnvironment === 'baloise') {
+    partner.name = 'Baloise';
+  }
+  
   console.log('🚨 BROKER POV - COMPONENT RENDERED!!!');
   console.log('🚨 BROKER POV - Using environment logo:', environmentLogo);
-  console.log('🚨 BROKER POV - Partner name:', partner.name);
+  console.log('🚨 BROKER POV - Partner name (after fix):', partner.name);
   console.log('🚨 BROKER POV - Environment ID (actual):', actualCurrentEnvironment);
   console.log('🚨 BROKER POV - Environment branding:', getEnvironmentBranding(actualCurrentEnvironment));
   console.log('🚨 BROKER POV - Full partner object:', partner);
