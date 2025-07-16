@@ -4,6 +4,7 @@ import qollabiLogo from "@assets/logo_qollabi_O_dark.png";
 import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
 import baloiseLogoPng from "@assets/Baloise_1750499789244.png";
 import deGoudseLogo from "@assets/De_Goudse_logo_1749670246231.png";
+import concordiaLogo from "@assets/images-Concordia_1752649338540.png";
 
 // Shared Broker Layout Component
 export function BrokerLayout({ children }: { children: React.ReactNode }) {
@@ -61,6 +62,7 @@ export function BrokerLayout({ children }: { children: React.ReactNode }) {
     baloise: baloiseLogoPng,
     nn: nnLogo,
     qollabi: qollabiLogo,
+    concordia: concordiaLogo,
     // Add new environments here as they're added
     // Example: newenv: newEnvLogo,
   };
