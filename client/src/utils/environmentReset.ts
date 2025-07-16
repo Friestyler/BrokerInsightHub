@@ -75,84 +75,27 @@ export const forceEnvironmentReset = (targetEnv: string = 'nn') => {
   console.log(`✅ ENVIRONMENT RESET TO ${targetEnv} COMPLETE`);
 };
 
-// ENVIRONMENT MONITORING - CONTINUOUS CHECK
+// ENVIRONMENT MONITORING - DISABLED (CAUSED CONFLICTS WITH STABLE SWITCHING)
+// This monitoring system was detecting environment switches as "drift" and forcing them back
+// Replaced with stable switching system that doesn't require aggressive monitoring
 export const startEnvironmentMonitoring = (targetEnv: string = 'nn') => {
-  console.log(`👁️ STARTING ENVIRONMENT MONITORING FOR: ${targetEnv}`);
+  console.log(`🚫 ENVIRONMENT MONITORING DISABLED - USING STABLE SWITCHING`);
   
-  const monitorInterval = setInterval(() => {
-    const currentStoredEnv = localStorage.getItem('selectedEnvironment');
-    const branding = ENVIRONMENT_MAPPING[targetEnv as keyof typeof ENVIRONMENT_MAPPING];
-    
-    if (currentStoredEnv !== targetEnv || !branding) {
-      console.log(`🚨 ENVIRONMENT DRIFT DETECTED - CORRECTING`);
-      forceEnvironmentReset(targetEnv);
-    }
-    
-    // Check DOM elements
-    const logoElements = document.querySelectorAll('[data-environment-logo]');
-    const nameElements = document.querySelectorAll('[data-environment-name]');
-    
-    logoElements.forEach(el => {
-      const img = el as HTMLImageElement;
-      if (!img.src.includes(branding.logo.split('/').pop() || '')) {
-        img.src = branding.logo;
-        console.log(`🔄 CORRECTED LOGO: ${branding.logo}`);
-      }
-    });
-    
-    nameElements.forEach(el => {
-      if (el.textContent !== branding.name) {
-        el.textContent = branding.name;
-        console.log(`🔄 CORRECTED NAME: ${branding.name}`);
-      }
-    });
-    
-  }, 1000); // Check every second
-  
-  // Return stop function
+  // Return dummy stop function to maintain API compatibility
   return () => {
-    clearInterval(monitorInterval);
-    console.log('⏹️ ENVIRONMENT MONITORING STOPPED');
+    console.log('⏹️ ENVIRONMENT MONITORING STOPPED (WAS DISABLED)');
   };
 };
 
-// COMPLETE ENVIRONMENT OVERRIDE
+// COMPLETE ENVIRONMENT OVERRIDE - DISABLED (CAUSED CONFLICTS)
+// This override system was too aggressive and prevented proper environment switching
+// Replaced with stable switching system that allows legitimate environment changes
 export const completeEnvironmentOverride = (targetEnv: string = 'nn') => {
-  console.log(`💣 COMPLETE ENVIRONMENT OVERRIDE TO: ${targetEnv}`);
+  console.log(`🚫 COMPLETE ENVIRONMENT OVERRIDE DISABLED - USING STABLE SWITCHING`);
   
-  // Force reset
-  forceEnvironmentReset(targetEnv);
-  
-  // Start monitoring
-  const stopMonitoring = startEnvironmentMonitoring(targetEnv);
-  
-  // Override React context
-  const overrideContext = () => {
-    const environmentContext = document.querySelector('[data-testid="environment-context"]');
-    if (environmentContext) {
-      environmentContext.setAttribute('data-forced-env', targetEnv);
-    }
-  };
-  
-  // Override immediately and periodically
-  overrideContext();
-  const contextInterval = setInterval(overrideContext, 500);
-  
-  // Override getEnvironmentBranding function
-  const originalGetEnvironmentBranding = (window as any).getEnvironmentBranding;
-  (window as any).getEnvironmentBranding = () => {
-    return ENVIRONMENT_MAPPING[targetEnv as keyof typeof ENVIRONMENT_MAPPING];
-  };
-  
-  console.log(`💣 COMPLETE ENVIRONMENT OVERRIDE ACTIVE`);
-  
-  // Return cleanup function
+  // Return dummy cleanup function to maintain API compatibility
   return () => {
-    stopMonitoring();
-    clearInterval(contextInterval);
-    if (originalGetEnvironmentBranding) {
-      (window as any).getEnvironmentBranding = originalGetEnvironmentBranding;
-    }
+    console.log('⏹️ ENVIRONMENT OVERRIDE STOPPED (WAS DISABLED)');
   };
 };
 

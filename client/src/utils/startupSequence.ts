@@ -59,8 +59,13 @@ export const executeStartupSequence = async () => {
   return { success: true, environment: TARGET_ENV, stopOverride };
 };
 
-// IMMEDIATE EXECUTION ON IMPORT
-if (typeof window !== 'undefined') {
+// DISABLED - REPLACED BY STABLE STARTUP SEQUENCE
+// The old monitoring system was causing conflicts with the new stable system
+// All functionality has been moved to stableStartupSequence.ts
+console.log('🚫 OLD STARTUP SEQUENCE DISABLED - USING STABLE VERSION');
+
+// IMMEDIATE EXECUTION ON IMPORT - DISABLED
+if (false && typeof window !== 'undefined') {
   // Check if we should run startup sequence
   const urlParams = new URLSearchParams(window.location.search);
   const shouldRunStartup = !urlParams.get('startup') || urlParams.get('startup') !== 'complete';
