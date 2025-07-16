@@ -268,7 +268,7 @@ export default function PartnerDetailBrokerPOV() {
   const { data: allOpportunities = [], isLoading: opportunitiesLoading } = useQuery({
     queryKey: [`/api/${actualCurrentEnvironment}/opportunities`, activeOpportunitiesList?.id],
     queryFn: () => {
-      const listParam = activeOpportunitiesList?.id ? `?listId=${activeOpportunitiesList.id}` : '';
+      const listParam = activeOpportunitiesList?.id ? `?listId=${activeOpportunitiesList.id}&brokerView=true` : '?brokerView=true';
       return apiRequest('GET', `/api/${actualCurrentEnvironment}/opportunities${listParam}`);
     },
     staleTime: 2 * 60 * 1000,
