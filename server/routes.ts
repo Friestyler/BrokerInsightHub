@@ -1267,10 +1267,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             WHEN t.entity_type = 'customer' THEN c.name
             ELSE NULL
           END as entity_name
-        FROM ${envId}.activity_tasks t
-        LEFT JOIN ${envId}.partners p ON t.entity_type = 'partner' AND t.entity_id = p.id
-        LEFT JOIN ${envId}.opportunities o ON t.entity_type = 'opportunity' AND t.entity_id = o.id  
-        LEFT JOIN ${envId}.customers c ON t.entity_type = 'customer' AND t.entity_id = c.id
+        FROM degoudse.activity_tasks t
+        LEFT JOIN degoudse.partners p ON t.entity_type = 'partner' AND t.entity_id = p.id
+        LEFT JOIN degoudse.opportunities o ON t.entity_type = 'opportunity' AND t.entity_id = o.id  
+        LEFT JOIN degoudse.customers c ON t.entity_type = 'customer' AND t.entity_id = c.id
       `;
 
       // Fetch comments from activity_comments table
@@ -1294,10 +1294,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             WHEN c.entity_type = 'customer' THEN cu.name
             ELSE NULL
           END as entity_name
-        FROM ${envId}.activity_comments c
-        LEFT JOIN ${envId}.partners p ON c.entity_type = 'partner' AND c.entity_id = p.id
-        LEFT JOIN ${envId}.opportunities o ON c.entity_type = 'opportunity' AND c.entity_id = o.id  
-        LEFT JOIN ${envId}.customers cu ON c.entity_type = 'customer' AND c.entity_id = cu.id
+        FROM degoudse.activity_comments c
+        LEFT JOIN degoudse.partners p ON c.entity_type = 'partner' AND c.entity_id = p.id
+        LEFT JOIN degoudse.opportunities o ON c.entity_type = 'opportunity' AND c.entity_id = o.id  
+        LEFT JOIN degoudse.customers cu ON c.entity_type = 'customer' AND c.entity_id = cu.id
       `;
 
       console.log('Executing tasks query...');
@@ -2502,7 +2502,7 @@ Prioritize actions that:
       
       const result = await envPool.query(`
         SELECT id, name, email, role, partner_id, created_at, updated_at
-        FROM ${envId}.users 
+        FROM degoudse.users 
         ORDER BY name
       `);
       
@@ -2623,6 +2623,80 @@ Prioritize actions that:
     } catch (error) {
       console.error('Error fetching De Goudse users:', error);
       res.status(500).json({ error: 'Failed to fetch users' });
+    }
+  });
+
+  // Environment-specific partners endpoint that routes to degoudse schema
+  app.get('/api/:envId/partners', async (req, res) => {
+    const { envId } = req.params;
+    
+    try {
+      const envPool = pool;
+      
+      // Direct query with relationship counts from opportunities table, excluding original seed partners except partner 4 (De Goudse)
+      const result = await envPool.query(`
+        SELECT p.id, p.name, p.description, p.status, p.location, p.contact_email, 
+               p.primary_contact, p.region, p.assigned_user_ids, p.owner_id,
+               p.linked_opportunity_ids, p.created_at, p.updated_at,
+               u.name as owner_name,
+               COALESCE(rel.opportunity_count, 0) as opportunity_count,
+               COALESCE(pc_rel.customer_count, 0) as customer_count,
+               COALESCE(rel.total_opportunity_value, 0) as total_opportunity_value,
+               COALESCE(rel.total_weighted_value, 0) as total_weighted_value,
+               COALESCE(contact_rel.contact_count, 0) as contact_count
+        FROM degoudse.partners p
+        LEFT JOIN degoudse.users u ON p.owner_id = u.id
+        LEFT JOIN (
+          SELECT "partnerId", 
+                 COUNT(*) as opportunity_count,
+                 SUM(COALESCE("estimatedValue", 0)) as total_opportunity_value,
+                 SUM(COALESCE("estimatedValue", 0) * COALESCE(probability, 0) / 100.0) as total_weighted_value
+          FROM degoudse.opportunities 
+          WHERE "partnerId" IS NOT NULL AND id > 16
+          GROUP BY "partnerId"
+        ) rel ON p.id = rel."partnerId"
+        LEFT JOIN (
+          SELECT partner_id,
+                 COUNT(DISTINCT customer_id) as customer_count
+          FROM degoudse.partner_customers
+          GROUP BY partner_id
+        ) pc_rel ON p.id = pc_rel.partner_id
+        LEFT JOIN (
+          SELECT COUNT(*) as contact_count, 'placeholder' as partner_reference
+          FROM degoudse.contacts 
+          WHERE is_active = true
+        ) contact_rel ON true
+        WHERE p.id = 4 OR p.id > 10
+        ORDER BY p.id
+      `);
+      
+      const partners = result.rows.map((partner: any) => ({
+        id: partner.id,
+        name: partner.name,
+        description: partner.description,
+        status: partner.status,
+        location: partner.location,
+        contactEmail: partner.contact_email,
+        primaryContact: partner.primary_contact,
+        region: partner.region,
+        assignedUserIds: partner.assigned_user_ids,
+        ownerId: partner.owner_id,
+        ownerName: partner.owner_name,
+        linkedOpportunityIds: partner.linked_opportunity_ids,
+        createdAt: partner.created_at,
+        updatedAt: partner.updated_at,
+        opportunities: partner.opportunity_count || 0,
+        customers: partner.customer_count || 0,
+        totalOpportunityValue: partner.total_opportunity_value || 0,
+        totalWeightedValue: partner.total_weighted_value || 0,
+        contacts: partner.contact_count || 0
+      }));
+      
+      console.log(`Returning ${partners.length} partners from ${envId} environment`);
+      res.json(partners);
+    } catch (error) {
+      console.error(`Error fetching partners from ${envId}:`, error);
+      res.status(500).json({ error: 'Failed to fetch partners' });
     }
   });
 
@@ -2924,10 +2998,10 @@ Prioritize actions that:
           cpa.customer_contract_start_date as contract_start_date,
           cpa.customer_contract_end_date as contract_end_date,
           cpa.is_active as contract_status
-        FROM ${envId}.customers c
-        INNER JOIN ${envId}.partner_customers pc ON c.id = pc.customer_id
-        INNER JOIN ${envId}.customer_product_assignments cpa ON c.id = cpa.customer_id
-        INNER JOIN ${envId}.product_templates pt ON cpa.product_template_id = pt.id
+        FROM degoudse.customers c
+        INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
+        INNER JOIN degoudse.customer_product_assignments cpa ON c.id = cpa.customer_id
+        INNER JOIN degoudse.product_templates pt ON cpa.product_template_id = pt.id
         WHERE pc.partner_id = $1 
           AND pt.id = $2 
           AND cpa.is_active = true
@@ -4625,6 +4699,107 @@ Return as JSON in this exact format:
     }
   });
 
+  // Environment-specific customers endpoint that routes to degoudse schema
+  app.get('/api/:envId/customers', async (req, res) => {
+    const { envId } = req.params;
+    
+    // Add pagination parameters
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 100;
+    const offset = (page - 1) * limit;
+    
+    // Add caching headers
+    res.set('Cache-Control', 'public, max-age=60');
+    
+    try {
+      const envPool = pool;
+      
+      // Get total count and summary statistics, excluding original seed customers (IDs 1-10)
+      const [countResult, summaryResult] = await Promise.all([
+        envPool.query(`
+          SELECT COUNT(*) as total_count FROM degoudse.customers WHERE id > 10
+        `),
+        envPool.query(`
+          SELECT 
+            COUNT(DISTINCT c.id) as total_customers,
+            COUNT(DISTINCT co.opportunity_id) as total_opportunities,
+            COALESCE(SUM(CASE WHEN o."estimatedValue" IS NOT NULL THEN o."estimatedValue" ELSE 0 END), 0) as total_value,
+            COALESCE(SUM(CASE WHEN o."estimatedValue" IS NOT NULL THEN o."estimatedValue" * o.probability / 100.0 ELSE 0 END), 0) as weighted_value
+          FROM degoudse.customers c
+          LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
+          LEFT JOIN degoudse.opportunities o ON co.opportunity_id = o.id
+          WHERE c.id > 10
+        `)
+      ]);
+      
+      const totalCount = parseInt(countResult.rows[0].total_count);
+      const totalPages = Math.ceil(totalCount / limit);
+      const summary = summaryResult.rows[0];
+      
+      console.log(`Customer pagination debug: totalCount=${totalCount}, limit=${limit}, totalPages=${totalPages}, currentPage=${page}`);
+      console.log(`Count query result:`, countResult.rows[0]);
+      
+      // Query with pagination, excluding original seed customers (IDs 1-10)
+      const result = await envPool.query(`
+        SELECT c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt",
+               COUNT(DISTINCT pc.partner_id) as partner_count,
+               COUNT(DISTINCT co.opportunity_id) as opportunity_count,
+               COUNT(DISTINCT prod_c.product_id) as product_count,
+               COALESCE(opp_values.total_opportunity_value, 0) as total_opportunity_value
+        FROM degoudse.customers c
+        LEFT JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
+        LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
+        LEFT JOIN degoudse.product_customers prod_c ON c.id = prod_c.customer_id
+        LEFT JOIN (
+          SELECT co.customer_id, SUM(o."estimatedValue") as total_opportunity_value
+          FROM degoudse.customer_opportunities co
+          JOIN degoudse.opportunities o ON co.opportunity_id = o.id
+          GROUP BY co.customer_id
+        ) opp_values ON c.id = opp_values.customer_id
+        WHERE c.id > 10
+        GROUP BY c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt", opp_values.total_opportunity_value
+        ORDER BY c.id
+        LIMIT $1 OFFSET $2
+      `, [limit, offset]);
+      
+      const customers = result.rows.map((customer: any) => ({
+        id: customer.id,
+        name: customer.name,
+        description: customer.description,
+        ownerId: customer.ownerId,
+        createdAt: customer.createdAt,
+        updatedAt: customer.updatedAt,
+        partners: customer.partner_count || 0,
+        opportunities: customer.opportunity_count || 0,
+        products: customer.product_count || 0,
+        totalOpportunityValue: customer.total_opportunity_value || 0
+      }));
+      
+      console.log(`Returning ${customers.length} customers from ${envId} environment (page ${page}/${totalPages})`);
+      
+      res.json({
+        customers,
+        pagination: {
+          page,
+          limit,
+          totalPages,
+          totalCount,
+          hasNextPage: page < totalPages,
+          hasPreviousPage: page > 1
+        },
+        summary: {
+          totalCustomers: parseInt(summary.total_customers),
+          totalOpportunities: parseInt(summary.total_opportunities),
+          totalValue: parseFloat(summary.total_value),
+          weightedValue: parseFloat(summary.weighted_value)
+        }
+      });
+    } catch (error) {
+      console.error(`Error fetching customers from ${envId}:`, error);
+      res.status(500).json({ error: 'Failed to fetch customers' });
+    }
+  });
+
   app.get('/api/degoudse/customers', async (req, res) => {
     // Add pagination parameters
     const page = parseInt(req.query.page as string) || 1;
@@ -5791,6 +5966,150 @@ Return as JSON in this exact format:
     } catch (error) {
       console.error('Error creating saved list in De Goudse:', error);
       res.status(500).json({ error: 'Failed to create saved list' });
+    }
+  });
+
+  // Environment-specific opportunities endpoint that routes to degoudse schema
+  app.get('/api/:envId/opportunities', async (req, res) => {
+    const { envId } = req.params;
+    
+    try {
+      const envPool = pool;
+      
+      // Check if this is a broker request by looking at the referer header
+      const referer = req.get('Referer') || '';
+      const isBrokerRequest = referer.includes('/broker-view') || req.query.brokerView === 'true';
+      
+      // Extract list ID from query parameters for broker requests
+      const listId = req.query.listId ? parseInt(req.query.listId as string) : null;
+      
+      console.log(`Opportunities request from ${envId} - Referer: ${referer}, isBrokerRequest: ${isBrokerRequest}, listId: ${listId}`);
+      
+      let result;
+      
+      if (isBrokerRequest) {
+        // Check for broker-partner mappings only for broker requests
+        const brokerMappingResult = await envPool.query(`
+          SELECT partner_id FROM degoudse.broker_partner_mappings 
+          WHERE broker_user_id = $1 AND environment_id = $2 AND is_active = true
+        `, [1, envId]);
+        
+        if (brokerMappingResult.rows.length > 0) {
+          // This is a broker with restricted access - show opportunities from shared lists only
+          console.log('Broker access detected - showing opportunities from shared lists');
+          
+          // If a specific list is requested, filter by list members
+          if (listId) {
+            console.log(`Broker requesting specific list ${listId} - applying list member filtering`);
+            
+            // Get list members
+            const listResult = await envPool.query(`
+              SELECT members FROM degoudse.saved_lists 
+              WHERE id = $1 AND entity_type = 'opportunities'
+            `, [listId]);
+            
+            if (listResult.rows.length > 0) {
+              const members = listResult.rows[0].members || [];
+              const memberIds = members.map((member: any) => member.id).filter(Boolean);
+              
+              console.log(`List ${listId} members:`, memberIds);
+              
+              if (memberIds.length > 0) {
+                const placeholders = memberIds.map((_: any, index: number) => `$${index + 1}`).join(',');
+                result = await envPool.query(`
+                  SELECT o.*, p.name as partner_name, c.name as customer_name
+                  FROM degoudse.opportunities o
+                  LEFT JOIN degoudse.partners p ON o."partnerId" = p.id
+                  LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
+                  LEFT JOIN degoudse.customers c ON co.customer_id = c.id
+                  WHERE o.id IN (${placeholders})
+                  ORDER BY o.id DESC
+                `, memberIds);
+              } else {
+                result = { rows: [] };
+              }
+            } else {
+              result = { rows: [] };
+            }
+          } else {
+            // Show all opportunities from shared lists
+            const sharedListsResult = await envPool.query(`
+              SELECT id, members FROM degoudse.saved_lists 
+              WHERE entity_type = 'opportunities' AND is_shared = true
+            `);
+            
+            let allOpportunityIds: number[] = [];
+            sharedListsResult.rows.forEach((list: any) => {
+              const members = list.members || [];
+              const memberIds = members.map((member: any) => member.id).filter(Boolean);
+              allOpportunityIds = [...allOpportunityIds, ...memberIds];
+            });
+            
+            // Remove duplicates
+            allOpportunityIds = [...new Set(allOpportunityIds)];
+            
+            console.log(`All shared opportunity IDs for broker:`, allOpportunityIds);
+            
+            if (allOpportunityIds.length > 0) {
+              const placeholders = allOpportunityIds.map((_: any, index: number) => `$${index + 1}`).join(',');
+              result = await envPool.query(`
+                SELECT o.*, p.name as partner_name, c.name as customer_name
+                FROM degoudse.opportunities o
+                LEFT JOIN degoudse.partners p ON o."partnerId" = p.id
+                LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
+                LEFT JOIN degoudse.customers c ON co.customer_id = c.id
+                WHERE o.id IN (${placeholders})
+                ORDER BY o.id DESC
+              `, allOpportunityIds);
+            } else {
+              result = { rows: [] };
+            }
+          }
+        } else {
+          // No broker mapping found, show all opportunities
+          result = await envPool.query(`
+            SELECT o.*, p.name as partner_name, c.name as customer_name
+            FROM degoudse.opportunities o
+            LEFT JOIN degoudse.partners p ON o."partnerId" = p.id
+            LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
+            LEFT JOIN degoudse.customers c ON co.customer_id = c.id
+            ORDER BY o.id DESC
+          `);
+        }
+      } else {
+        // Non-broker request - show all opportunities
+        result = await envPool.query(`
+          SELECT o.*, p.name as partner_name, c.name as customer_name
+          FROM degoudse.opportunities o
+          LEFT JOIN degoudse.partners p ON o."partnerId" = p.id
+          LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
+          LEFT JOIN degoudse.customers c ON co.customer_id = c.id
+          ORDER BY o.id DESC
+        `);
+      }
+      
+      const opportunities = result.rows.map((opportunity: any) => ({
+        id: opportunity.id,
+        title: opportunity.title,
+        description: opportunity.description,
+        stage: opportunity.stage,
+        status: opportunity.status,
+        expectedCloseDate: opportunity.expected_close_date,
+        estimatedValue: opportunity.estimatedValue,
+        probability: opportunity.probability,
+        partnerId: opportunity.partnerId,
+        partnerName: opportunity.partner_name,
+        customerName: opportunity.customer_name,
+        ownerId: opportunity.ownerId,
+        createdAt: opportunity.createdAt,
+        updatedAt: opportunity.updatedAt
+      }));
+      
+      console.log(`Returning ${opportunities.length} opportunities from ${envId} environment`);
+      res.json(opportunities);
+    } catch (error) {
+      console.error(`Error fetching opportunities from ${envId}:`, error);
+      res.status(500).json({ error: 'Failed to fetch opportunities' });
     }
   });
 
@@ -10301,8 +10620,8 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         try {
           let query = `
             SELECT c.*, u.name as created_by_name 
-            FROM ${envId}.campaigns c
-            LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
+            FROM degoudse.campaigns c
+            LEFT JOIN degoudse.users u ON c.created_by_id = u.id
             WHERE c.is_template = false AND c.status != 'archived'
           `;
           
@@ -10311,7 +10630,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
           // If partner_id is specified, filter campaigns linked to that partner
           if (partner_id) {
             // Get the partner name first to search by name in recipients
-            const partnerResult = await pool.query(`SELECT name FROM ${envId}.partners WHERE id = $1`, [partner_id]);
+            const partnerResult = await pool.query(`SELECT name FROM degoudse.partners WHERE id = $1`, [partner_id]);
             if (partnerResult.rows.length > 0) {
               const partnerName = partnerResult.rows[0].name;
               
@@ -10319,8 +10638,8 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
               query = `
                 WITH campaign_matches AS (
                   SELECT DISTINCT c.id
-                  FROM ${envId}.campaigns c
-                  LEFT JOIN ${envId}.campaign_shares cs ON c.id = cs.campaign_id
+                  FROM degoudse.campaigns c
+                  LEFT JOIN degoudse.campaign_shares cs ON c.id = cs.campaign_id
                   WHERE c.is_template = false AND c.status != 'archived'
                   AND (
                     (c.recipients::text LIKE '%"name": "' || $1 || '"%' 
@@ -10338,8 +10657,8 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
                        c.button_color, c.follow_up_emails, c.target_entity_type, c.recipients,
                        c.emails_sent, c.emails_opened, c.open_rate, c.total_clicks,
                        u.name as created_by_name 
-                FROM ${envId}.campaigns c
-                LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
+                FROM degoudse.campaigns c
+                LEFT JOIN degoudse.users u ON c.created_by_id = u.id
                 INNER JOIN campaign_matches cm ON c.id = cm.id
               `;
               queryParams.push(partnerName, partner_id, partner_id);
@@ -11464,8 +11783,8 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         SELECT 
           c.*,
           u.name as created_by_name
-        FROM ${envId}.campaigns c
-        LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
+        FROM degoudse.campaigns c
+        LEFT JOIN degoudse.users u ON c.created_by_id = u.id
         WHERE c.is_template = true AND COALESCE(c.status, 'draft') != 'archived'
         ORDER BY c.created_at DESC
       `);
