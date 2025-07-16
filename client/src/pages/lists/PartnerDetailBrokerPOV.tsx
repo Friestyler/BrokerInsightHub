@@ -21,6 +21,8 @@ import { BrokerLayout } from "@/components/layouts/BrokerLayout";
 import PartnerCampaignShareModal from "@/components/campaigns/PartnerCampaignShareModal";
 import { checkEnvironmentConsistency } from "@/utils/cacheBreaker";
 import { getEnvironmentBrandingOverride, forceEnvironmentUpdate, detectEnvironmentMismatch } from "@/utils/environmentOverride";
+import { runComprehensiveDiagnostic } from "@/utils/environmentDiagnostics";
+import "@/utils/consoleCommands";
 import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
 import baloiseLogoPng from "@assets/Baloise_1750499789244.png";
 import deGoudseLogo from "@assets/De_Goudse_logo_1749670246231.png";
@@ -43,7 +45,7 @@ const getEnvironmentBranding = (envId: string) => {
 export default function PartnerDetailBrokerPOV() {
   console.log('🚨🚨🚨 PartnerDetailBrokerPOV COMPONENT IS RENDERING!!! 🚨🚨🚨');
   
-  // DOM MANIPULATION MISMATCH DETECTION - BYPASS ALL CACHING
+  // COMPREHENSIVE DIAGNOSTIC SYSTEM - SYSTEMATIC TESTING
   useEffect(() => {
     // Skip cache check if we're already in a reload cycle
     const urlParams = new URLSearchParams(window.location.search);
@@ -51,18 +53,30 @@ export default function PartnerDetailBrokerPOV() {
       return;
     }
     
+    // Run comprehensive diagnostic on component mount
+    console.log('🔍 COMPONENT MOUNT - RUNNING COMPREHENSIVE DIAGNOSTIC');
+    setTimeout(() => {
+      runComprehensiveDiagnostic();
+    }, 100);
+    
     // Check for DOM mismatches and force update
     const checkMismatch = () => {
       const hasMismatch = detectEnvironmentMismatch();
       if (hasMismatch) {
         console.log('🚨 DOM MISMATCH DETECTED - FORCING ENVIRONMENT UPDATE');
         forceEnvironmentUpdate();
+        
+        // Re-run diagnostic after force update
+        setTimeout(() => {
+          console.log('🔍 POST-UPDATE DIAGNOSTIC');
+          runComprehensiveDiagnostic();
+        }, 100);
       }
     };
     
-    // Check immediately and then every 1 second
+    // Check immediately and then every 2 seconds
     checkMismatch();
-    const interval = setInterval(checkMismatch, 1000);
+    const interval = setInterval(checkMismatch, 2000);
     
     return () => clearInterval(interval);
   }, []);
