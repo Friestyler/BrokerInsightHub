@@ -19,13 +19,14 @@ import PartnerCampaignBuilder from "@/pages/campaigns/PartnerCampaignBuilder";
 
 import { BrokerLayout } from "@/components/layouts/BrokerLayout";
 import PartnerCampaignShareModal from "@/components/campaigns/PartnerCampaignShareModal";
-import { checkEnvironmentConsistency } from "@/utils/cacheBreaker";
-import { getEnvironmentBrandingOverride, forceEnvironmentUpdate, detectEnvironmentMismatch } from "@/utils/environmentOverride";
-import { runComprehensiveDiagnostic } from "@/utils/environmentDiagnostics";
-import "@/utils/consoleCommands";
-import "@/utils/nuclearCacheDestroy";
-import { completeEnvironmentOverride } from "@/utils/environmentReset";
-import "@/utils/startupSequence";
+// REMOVED PROBLEMATIC IMPORTS THAT CAUSE AUTHENTICATION ISSUES
+// import { checkEnvironmentConsistency } from "@/utils/cacheBreaker";
+// import { getEnvironmentBrandingOverride, forceEnvironmentUpdate, detectEnvironmentMismatch } from "@/utils/environmentOverride";
+// import { runComprehensiveDiagnostic } from "@/utils/environmentDiagnostics";
+// import "@/utils/consoleCommands";
+// import "@/utils/nuclearCacheDestroy";
+// import { completeEnvironmentOverride } from "@/utils/environmentReset";
+// import "@/utils/startupSequence";
 import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
 import baloiseLogoPng from "@assets/Baloise_1750499789244.png";
 import deGoudseLogo from "@assets/De_Goudse_logo_1749670246231.png";

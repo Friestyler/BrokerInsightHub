@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'wouter';
-import { performNuclearCacheBreak } from '@/utils/cacheBreaker';
+// REMOVED: import { performNuclearCacheBreak } from '@/utils/cacheBreaker';
 import qollabiLogo from "@assets/logo_qollabi_O_dark.png";
 import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
 import baloiseLogoPng from "@assets/Baloise_1750499789244.png";
@@ -27,13 +27,13 @@ export function BrokerLayout({ children }: { children: React.ReactNode }) {
         currentEnv
       });
       
-      // Nuclear cache break if we detect environment mismatch
-      const lastKnownEnv = sessionStorage.getItem('brokerLayoutEnvironment');
-      if (lastKnownEnv && lastKnownEnv !== currentEnv) {
-        console.log('🚨 BROKER LAYOUT - Environment mismatch detected, triggering nuclear cache break');
-        performNuclearCacheBreak();
-        return;
-      }
+      // DISABLED: Nuclear cache break that was causing logout issues
+      // const lastKnownEnv = sessionStorage.getItem('brokerLayoutEnvironment');
+      // if (lastKnownEnv && lastKnownEnv !== currentEnv) {
+      //   console.log('🚨 BROKER LAYOUT - Environment mismatch detected, triggering nuclear cache break');
+      //   performNuclearCacheBreak();
+      //   return;
+      // }
       
       sessionStorage.setItem('brokerLayoutEnvironment', currentEnv);
       setCurrentEnvironment(currentEnv);
