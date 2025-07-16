@@ -8,11 +8,10 @@ import { useEffect, useState } from 'react';
 import { useEnvironment } from '@/contexts/EnvironmentContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { completeEnvironmentOverride } from '@/utils/environmentReset';
+import { stableEnvironmentSwitch, initializeStableEnvironment } from '@/utils/stableEnvironmentSwitch';
 import { runComprehensiveDiagnostic } from '@/utils/environmentDiagnostics';
 import "@/utils/consoleCommands";
 import "@/utils/nuclearCacheDestroy";
-import "@/utils/startupSequence";
 
 export default function TestEnvironment() {
   const { environment, setEnvironment, environments } = useEnvironment();
@@ -26,8 +25,8 @@ export default function TestEnvironment() {
     localStorage.setItem('userId', '1');
     localStorage.setItem('userName', 'Test User');
     
-    // Force environment to nn
-    const stopOverride = completeEnvironmentOverride('nn');
+    // Initialize stable environment to nn
+    const stopOverride = initializeStableEnvironment('nn');
     setOverride(() => stopOverride);
     
     // Run diagnostic
@@ -59,11 +58,11 @@ export default function TestEnvironment() {
   };
 
   const testEnvironmentSwitch = (envId: string) => {
-    console.log(`🧪 TESTING ENVIRONMENT SWITCH TO: ${envId}`);
+    console.log(`🧪 TESTING STABLE ENVIRONMENT SWITCH TO: ${envId}`);
     if (override) override();
     
-    const stopOverride = completeEnvironmentOverride(envId);
-    setOverride(() => stopOverride);
+    // Use stable environment switch
+    stableEnvironmentSwitch(envId);
     
     setTimeout(() => {
       updateCurrentState();

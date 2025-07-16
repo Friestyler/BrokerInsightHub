@@ -59,6 +59,9 @@ import NewCampaign from "@/pages/campaigns/NewCampaign";
 import PartnerCampaignBuilder from "@/pages/campaigns/PartnerCampaignBuilder";
 import TestEnvironment from "@/pages/TestEnvironment";
 
+// Import stable startup sequence
+import "@/utils/stableStartupSequence";
+
 // Temporary placeholder components for other list pages
 const ProjectsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Projects List (Coming Soon)</h1></div>;
 
