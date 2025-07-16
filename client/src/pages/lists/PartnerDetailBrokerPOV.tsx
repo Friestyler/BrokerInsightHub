@@ -19,6 +19,7 @@ import PartnerCampaignBuilder from "@/pages/campaigns/PartnerCampaignBuilder";
 
 import { BrokerLayout } from "@/components/layouts/BrokerLayout";
 import PartnerCampaignShareModal from "@/components/campaigns/PartnerCampaignShareModal";
+import { checkEnvironmentConsistency } from "@/utils/cacheBreaker";
 import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
 import baloiseLogoPng from "@assets/Baloise_1750499789244.png";
 import deGoudseLogo from "@assets/De_Goudse_logo_1749670246231.png";
@@ -71,34 +72,22 @@ const getEnvironmentBranding = (envId: string) => {
 export default function PartnerDetailBrokerPOV() {
   console.log('🚨🚨🚨 PartnerDetailBrokerPOV COMPONENT IS RENDERING!!! 🚨🚨🚨');
   
-  // AGGRESSIVE CACHE BUSTING - Check environment consistency on component mount
+  // NUCLEAR CACHE BUSTING - Force complete page reload on environment mismatch
   useEffect(() => {
-    const handleCacheConsistency = () => {
-      const urlParams = new URLSearchParams(window.location.search);
-      const hasReloadFlag = urlParams.get('reload') === 'true';
-      
-      if (hasReloadFlag) {
-        // Remove reload flag and continue
-        const cleanUrl = window.location.href.split('?')[0];
-        window.history.replaceState({}, '', cleanUrl);
-        return;
-      }
-      
-      // Check if browser has stale cached data
-      const currentEnv = localStorage.getItem('selectedEnvironment') || 'degoudse';
-      const cachedEnv = sessionStorage.getItem('lastBrokerEnvironment');
-      
-      if (cachedEnv && cachedEnv !== currentEnv) {
-        console.log('🚨 STALE CACHE DETECTED - Forcing reload:', { cached: cachedEnv, current: currentEnv });
-        sessionStorage.setItem('lastBrokerEnvironment', currentEnv);
-        window.location.replace(window.location.href + '?cacheBust=' + Date.now() + '&reload=true');
-        return;
-      }
-      
-      sessionStorage.setItem('lastBrokerEnvironment', currentEnv);
-    };
+    // Skip cache check if we're already in a reload cycle
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.get('nuclear') || urlParams.get('reload')) {
+      return;
+    }
     
-    handleCacheConsistency();
+    // Check environment consistency and trigger nuclear cache break if needed
+    const isConsistent = checkEnvironmentConsistency();
+    
+    if (!isConsistent) {
+      console.log('🚨 TRIGGERING NUCLEAR CACHE BREAK');
+      // The checkEnvironmentConsistency function will handle the reload
+      return;
+    }
   }, []);
   
   const { partnerId } = useParams<{ partnerId: string }>();
