@@ -64,14 +64,19 @@ export default function PartnerDetailBrokerPOV() {
   const listParam = urlParams.get('list');
   const envParam = urlParams.get('env');
   
-  // BROKER VIEW ENVIRONMENT DETECTION - FORCE CORRECT ENVIRONMENT
+  // BROKER VIEW ENVIRONMENT DETECTION - RESPECT URL PARAMS WITH FALLBACK
   const getCurrentEnvironment = () => {
-    // For broker view, if no env parameter is provided, force it to "degoudse" (default broker environment)
     const envFromUrl = envParam;
-    const currentEnv = envFromUrl || 'degoudse'; // Always default to degoudse for broker view
+    const envFromStorage = localStorage.getItem('selectedEnvironment');
     
-    console.log('🎯 BROKER VIEW - FORCED ENVIRONMENT DETECTION:', { 
+    // If URL has env parameter, use it
+    // Otherwise, check localStorage for user's selection
+    // Final fallback to degoudse for broker view
+    const currentEnv = envFromUrl || envFromStorage || 'degoudse';
+    
+    console.log('🎯 BROKER VIEW - ENVIRONMENT DETECTION:', { 
       envFromUrl, 
+      envFromStorage,
       currentEnv,
       urlParams: window.location.search
     });
@@ -81,19 +86,25 @@ export default function PartnerDetailBrokerPOV() {
 
   const [currentEnvironment, setCurrentEnvironment] = useState(getCurrentEnvironment());
   
-  // BROKER VIEW ENVIRONMENT FORCING - IMMEDIATE SETUP
+  // BROKER VIEW ENVIRONMENT SETUP - ONLY FORCE IF URL PARAM EXISTS
   useEffect(() => {
     const targetEnv = getCurrentEnvironment();
-    console.log('🎯 BROKER VIEW - FORCING ENVIRONMENT TO:', targetEnv);
+    console.log('🎯 BROKER VIEW - ENVIRONMENT SETUP:', { envParam, targetEnv });
     
-    // ALWAYS force the environment for broker view (regardless of current localStorage)
-    localStorage.setItem('selectedEnvironment', targetEnv);
-    
-    // Force environment change event
-    window.dispatchEvent(new CustomEvent('environmentChanged', { detail: targetEnv }));
-    
-    // Update current environment state
-    setCurrentEnvironment(targetEnv);
+    // Only force environment change if URL has env parameter
+    if (envParam && envParam !== localStorage.getItem('selectedEnvironment')) {
+      console.log('🎯 BROKER VIEW - FORCING ENVIRONMENT FROM URL:', envParam);
+      localStorage.setItem('selectedEnvironment', envParam);
+      
+      // Force environment change event
+      window.dispatchEvent(new CustomEvent('environmentChanged', { detail: envParam }));
+      
+      // Update current environment state
+      setCurrentEnvironment(envParam);
+    } else {
+      // Just update state to match current detected environment
+      setCurrentEnvironment(targetEnv);
+    }
     
     return () => {
       console.log('🧹 BROKER VIEW - Component cleanup');

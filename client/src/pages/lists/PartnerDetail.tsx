@@ -1205,7 +1205,7 @@ export default function PartnerDetail() {
                     {/* Willis Partner Link - positioned next to Details button */}
                     {parseInt(id!) === 1 && (
                       <a
-                        href="/broker-view/partner/1?tab=opportunities&list=39"
+                        href={`/broker-view/partner/1?tab=opportunities&list=39&env=${environment.id}`}
                         className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center transition-colors"
                       >
                         <img 
@@ -1865,7 +1865,7 @@ export default function PartnerDetail() {
                                                 console.log('Opening broker view for list:', list.id);
                                                 // Redirect to the connected partner's detail page (Baloise = partner ID 1) with the list opened
                                                 const connectedPartnerId = 1; // Baloise is the connected partner
-                                                window.open(`/broker-view/partner/${connectedPartnerId}?tab=opportunities&list=${list.id}`, '_blank');
+                                                window.open(`/broker-view/partner/${connectedPartnerId}?tab=opportunities&list=${list.id}&env=${environment.id}`, '_blank');
                                                 setActiveDropdownId(null);
                                               }}
                                             >
