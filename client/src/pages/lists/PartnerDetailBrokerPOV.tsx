@@ -252,6 +252,8 @@ export default function PartnerDetailBrokerPOV() {
   console.log('🚨 BROKER POV - Environment ID (actual):', actualCurrentEnvironment);
   console.log('🚨 BROKER POV - Environment branding:', getEnvironmentBranding(actualCurrentEnvironment));
   console.log('🚨 BROKER POV - Full partner object:', partner);
+  console.log('🚨 BROKER POV - URL PARAMS:', { tab: urlParams.get('tab'), list: urlParams.get('list') });
+  console.log('🚨 BROKER POV - WINDOW LOCATION:', window.location.href);
 
   // Fetch broker campaigns (shared campaigns)
   const { data: brokerCampaigns = [], isLoading: campaignsLoading } = useQuery({
