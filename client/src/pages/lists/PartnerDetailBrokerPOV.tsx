@@ -64,45 +64,36 @@ export default function PartnerDetailBrokerPOV() {
   const listParam = urlParams.get('list');
   const envParam = urlParams.get('env');
   
-  // Get current environment directly with cache busting
+  // BROKER VIEW ENVIRONMENT DETECTION - FORCE CORRECT ENVIRONMENT
   const getCurrentEnvironment = () => {
-    // Force fresh read from localStorage to avoid browser caching
-    const envFromStorage = localStorage.getItem('selectedEnvironment');
-    const envFromWindow = (window as any).selectedEnvironment;
-    const envFromUrl = envParam; // URL parameter takes precedence for broker view
-    const currentEnv = envFromUrl || envFromWindow || envFromStorage || 'degoudse';
+    // For broker view, if no env parameter is provided, force it to "degoudse" (default broker environment)
+    const envFromUrl = envParam;
+    const currentEnv = envFromUrl || 'degoudse'; // Always default to degoudse for broker view
     
-    // Cache busting log with timestamp
-    const timestamp = new Date().toISOString();
-    console.log('🚨 BROKER VIEW - getCurrentEnvironment called at:', timestamp, { 
-      envFromStorage, 
-      envFromWindow, 
-      envFromUrl,
+    console.log('🎯 BROKER VIEW - FORCED ENVIRONMENT DETECTION:', { 
+      envFromUrl, 
       currentEnv,
-      cacheTimestamp: timestamp,
-      allLocalStorage: Object.keys(localStorage).map(key => ({ key, value: localStorage.getItem(key) }))
+      urlParams: window.location.search
     });
-    console.log('🚨 BROKER VIEW - getCurrentEnvironment RESULT:', currentEnv);
+    
     return currentEnv;
   };
 
   const [currentEnvironment, setCurrentEnvironment] = useState(getCurrentEnvironment());
   
-  // BROKER VIEW URL PARAMETER PROCESSING
+  // BROKER VIEW ENVIRONMENT FORCING - IMMEDIATE SETUP
   useEffect(() => {
-    console.log('🎯 BROKER VIEW - Processing URL parameter:', envParam);
+    const targetEnv = getCurrentEnvironment();
+    console.log('🎯 BROKER VIEW - FORCING ENVIRONMENT TO:', targetEnv);
     
-    // If URL parameter exists, update the environment
-    if (envParam && envParam !== localStorage.getItem('selectedEnvironment')) {
-      console.log('🎯 BROKER VIEW - Setting environment from URL parameter:', envParam);
-      localStorage.setItem('selectedEnvironment', envParam);
-      
-      // Force environment change event
-      window.dispatchEvent(new CustomEvent('environmentChanged', { detail: envParam }));
-      
-      // Update current environment state
-      setCurrentEnvironment(envParam);
-    }
+    // ALWAYS force the environment for broker view (regardless of current localStorage)
+    localStorage.setItem('selectedEnvironment', targetEnv);
+    
+    // Force environment change event
+    window.dispatchEvent(new CustomEvent('environmentChanged', { detail: targetEnv }));
+    
+    // Update current environment state
+    setCurrentEnvironment(targetEnv);
     
     return () => {
       console.log('🧹 BROKER VIEW - Component cleanup');
