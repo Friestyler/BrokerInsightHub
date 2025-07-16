@@ -23,6 +23,8 @@ import { checkEnvironmentConsistency } from "@/utils/cacheBreaker";
 import { getEnvironmentBrandingOverride, forceEnvironmentUpdate, detectEnvironmentMismatch } from "@/utils/environmentOverride";
 import { runComprehensiveDiagnostic } from "@/utils/environmentDiagnostics";
 import "@/utils/consoleCommands";
+import "@/utils/nuclearCacheDestroy";
+import { completeEnvironmentOverride } from "@/utils/environmentReset";
 import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
 import baloiseLogoPng from "@assets/Baloise_1750499789244.png";
 import deGoudseLogo from "@assets/De_Goudse_logo_1749670246231.png";
@@ -45,7 +47,7 @@ const getEnvironmentBranding = (envId: string) => {
 export default function PartnerDetailBrokerPOV() {
   console.log('🚨🚨🚨 PartnerDetailBrokerPOV COMPONENT IS RENDERING!!! 🚨🚨🚨');
   
-  // COMPREHENSIVE DIAGNOSTIC SYSTEM - SYSTEMATIC TESTING
+  // NUCLEAR ENVIRONMENT OVERRIDE - FORCE CORRECT ENVIRONMENT
   useEffect(() => {
     // Skip cache check if we're already in a reload cycle
     const urlParams = new URLSearchParams(window.location.search);
@@ -53,32 +55,32 @@ export default function PartnerDetailBrokerPOV() {
       return;
     }
     
-    // Run comprehensive diagnostic on component mount
-    console.log('🔍 COMPONENT MOUNT - RUNNING COMPREHENSIVE DIAGNOSTIC');
-    setTimeout(() => {
-      runComprehensiveDiagnostic();
-    }, 100);
+    // IMMEDIATE ENVIRONMENT OVERRIDE - FORCE NN ENVIRONMENT
+    console.log('💣 COMPONENT MOUNT - ACTIVATING COMPLETE ENVIRONMENT OVERRIDE');
+    const stopOverride = completeEnvironmentOverride('nn');
     
-    // Check for DOM mismatches and force update
+    // Run comprehensive diagnostic after override
+    setTimeout(() => {
+      console.log('🔍 POST-OVERRIDE DIAGNOSTIC');
+      runComprehensiveDiagnostic();
+    }, 500);
+    
+    // Additional mismatch detection as backup
     const checkMismatch = () => {
       const hasMismatch = detectEnvironmentMismatch();
       if (hasMismatch) {
-        console.log('🚨 DOM MISMATCH DETECTED - FORCING ENVIRONMENT UPDATE');
+        console.log('🚨 DOM MISMATCH DETECTED - RE-FORCING ENVIRONMENT UPDATE');
         forceEnvironmentUpdate();
-        
-        // Re-run diagnostic after force update
-        setTimeout(() => {
-          console.log('🔍 POST-UPDATE DIAGNOSTIC');
-          runComprehensiveDiagnostic();
-        }, 100);
       }
     };
     
-    // Check immediately and then every 2 seconds
-    checkMismatch();
-    const interval = setInterval(checkMismatch, 2000);
+    // Check every 3 seconds as backup
+    const interval = setInterval(checkMismatch, 3000);
     
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      stopOverride();
+    };
   }, []);
   
   const { partnerId } = useParams<{ partnerId: string }>();
