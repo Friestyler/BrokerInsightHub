@@ -16,6 +16,7 @@ import { ArrowLeft, Search } from "lucide-react";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import EntityAvatar from "@/components/EntityAvatar";
 import PartnerCampaignBuilder from "@/pages/campaigns/PartnerCampaignBuilder";
+import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTab";
 
 import { BrokerLayout } from "@/components/layouts/BrokerLayout";
 import PartnerCampaignShareModal from "@/components/campaigns/PartnerCampaignShareModal";
@@ -113,6 +114,7 @@ export default function PartnerDetailBrokerPOV() {
   }, [envParam]);
   
   const [activeTab, setActiveTab] = useState("products");
+  const [productSubtab, setProductSubtab] = useState("overview");
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
   
   // State for filtering
@@ -1290,26 +1292,31 @@ export default function PartnerDetailBrokerPOV() {
 
           {activeTab === "products" && (
             <div className="space-y-4">
+              {/* Product subtab navigation */}
               <div className="bg-white rounded-lg border">
-                <div className="p-6">
-                  <div className="text-center py-12">
-                    <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                        <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                        <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-                      </svg>
-                    </div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">Products Portfolio</h3>
-                    <p className="text-gray-500">View and manage products associated with this partner</p>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="mt-4 cursor-not-allowed opacity-50"
-                      disabled
+                <div className="px-6 py-4 border-b">
+                  <div className="flex space-x-6">
+                    <button
+                      onClick={() => setProductSubtab("overview")}
+                      className={`px-4 py-2 text-sm font-medium rounded-md ${
+                        productSubtab === "overview" 
+                          ? "bg-[#5567E5] text-white" 
+                          : "text-gray-500 hover:text-gray-700"
+                      }`}
                     >
-                      Add product assignment
-                    </Button>
+                      Overview
+                    </button>
                   </div>
+                </div>
+                
+                {/* Product content */}
+                <div className="p-6">
+                  {productSubtab === "overview" && (
+                    <PortfolioOverviewTab 
+                      partnerId={partnerId} 
+                      partnerName={partner.name || "Partner"}
+                    />
+                  )}
                 </div>
               </div>
             </div>
