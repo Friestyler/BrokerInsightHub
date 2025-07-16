@@ -9303,13 +9303,13 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       
       if (entityType && entityType.trim()) {
         const result = await envPool.query(
-          `SELECT * FROM ${envId}.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC`,
+          `SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC`,
           [entityType]
         );
         res.json(result.rows);
       } else {
         const result = await envPool.query(
-          `SELECT * FROM ${envId}.saved_lists ORDER BY created_at DESC`
+          `SELECT * FROM degoudse.saved_lists ORDER BY created_at DESC`
         );
         res.json(result.rows);
       }
@@ -9389,7 +9389,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       const envPool = pool;
       
       const result = await envPool.query(
-        `UPDATE ${envId}.saved_lists 
+        `UPDATE degoudse.saved_lists 
          SET 
            name = $1,
            description = $2,
@@ -9483,8 +9483,8 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       
       const result = await envPool.query(
         `SELECT lc.*, u.name as user_name, u.email as user_email 
-         FROM ${envId}.list_collaborators lc
-         LEFT JOIN ${envId}.users u ON lc.user_id = u.id
+         FROM degoudse.list_collaborators lc
+         LEFT JOIN degoudse.users u ON lc.user_id = u.id
          WHERE lc.list_id = $1 AND lc.is_active = true
          ORDER BY lc.invited_at ASC`,
         [parseInt(listId)]
@@ -9637,8 +9637,8 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         SELECT sl.*, 
                COUNT(lc.id) as collaborator_count,
                CASE WHEN COUNT(lc.id) > 0 THEN true ELSE false END as has_collaborators
-        FROM ${envId}.saved_lists sl
-        LEFT JOIN ${envId}.list_collaborators lc ON sl.id = lc.list_id AND lc.is_active = true
+        FROM degoudse.saved_lists sl
+        LEFT JOIN degoudse.list_collaborators lc ON sl.id = lc.list_id AND lc.is_active = true
       `;
       const params = [];
       const conditions = [];
@@ -9687,7 +9687,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       
       console.log(`Saved views API: entityType=${entityType}, envId=${envId}`);
       
-      let query = `SELECT * FROM ${envId}.saved_views`;
+      let query = `SELECT * FROM degoudse.saved_views`;
       const params = [];
       
       if (entityType) {
