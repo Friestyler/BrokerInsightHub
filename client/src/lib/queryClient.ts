@@ -37,8 +37,8 @@ export function getEnvironmentUrl(url: string): string {
     return url;
   }
   
-  // All environments (degoudse, baloise, nn) should use the degoudse backend data
-  if (envId === 'degoudse' || envId === 'baloise' || envId === 'nn') {
+  // All environments (degoudse, baloise, nn, concordia) should use the degoudse backend data
+  if (envId === 'degoudse' || envId === 'baloise' || envId === 'nn' || envId === 'concordia') {
     // All environments use degoudse data backend
     if (url.startsWith('/api/') && !url.includes('/degoudse/') && !url.includes('/baloise/') && !url.includes('/nn/')) {
       const newUrl = url.replace('/api/', `/api/degoudse/`);
