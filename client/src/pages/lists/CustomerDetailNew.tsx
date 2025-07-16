@@ -1177,7 +1177,7 @@ export default function CustomerDetailNew() {
                   : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
               }`}
             >
-              Products ({Array.isArray(relatedProducts) ? relatedProducts.length : 0})
+              Products ({Array.isArray(assignedProducts) ? assignedProducts.length : 0})
             </button>
             <button 
               onClick={() => setActiveTab("partners")}
