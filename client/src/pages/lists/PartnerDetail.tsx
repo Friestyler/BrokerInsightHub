@@ -1202,20 +1202,21 @@ export default function PartnerDetail() {
                     >
                       Details
                     </Button>
-                    {/* Willis Partner Link - positioned next to Details button */}
-                    {parseInt(id!) === 1 && (
-                      <a
-                        href={`/broker-view/partner/1?tab=opportunities&list=39&env=${environment.id}`}
-                        className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center transition-colors"
-                      >
+                    {/* Partner View Link - positioned next to Details button */}
+                    <a
+                      href={`/broker-view/partner/${id}?tab=opportunities&list=39&env=${environment.id}`}
+                      className="text-sm text-blue-600 hover:text-blue-800 hover:underline flex items-center transition-colors"
+                    >
+                      {/* Show NN logo only for Willis B.V */}
+                      {partner?.name === 'Willis B.V' && (
                         <img 
                           src={nnLogo} 
                           alt="NN Group" 
                           className="w-4 h-4 rounded-sm mr-1.5 object-cover"
                         />
-                        Partner View
-                      </a>
-                    )}
+                      )}
+                      Partner View
+                    </a>
                   </div>
                 </div>
                 
