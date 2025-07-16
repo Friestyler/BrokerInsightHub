@@ -38,11 +38,11 @@ const getEnvironmentBranding = (envId: string) => {
   
   // Use simple environment mapping based on user selection
   const brandingMap = {
-    'nn': { logo: nnLogo, name: 'Nationale Nederlanden' },
-    'baloise': { logo: baloiseLogoPng, name: 'Baloise' },
-    'concordia': { logo: concordiaLogo, name: 'Concordia' },
-    'degoudse': { logo: deGoudseLogo, name: 'De Goudse' },
-    'myqollabi': { logo: qollabiLogo, name: 'Qollabi' }
+    'nn': { logo: nnLogo, name: 'Nationale Nederlanden', partnerName: 'Nationale Nederlanden' },
+    'baloise': { logo: baloiseLogoPng, name: 'Baloise', partnerName: 'Baloise' },
+    'concordia': { logo: concordiaLogo, name: 'Concordia', partnerName: 'Concordia' },
+    'degoudse': { logo: deGoudseLogo, name: 'De Goudse', partnerName: 'De Goudse' },
+    'myqollabi': { logo: qollabiLogo, name: 'Qollabi', partnerName: 'Qollabi' }
   };
   
   const result = brandingMap[envId as keyof typeof brandingMap] || brandingMap.degoudse;
@@ -75,6 +75,7 @@ export default function PartnerDetailBrokerPOV() {
   // Get URL parameters for tab and list selection
   const urlParams = new URLSearchParams(window.location.search);
   const listParam = urlParams.get('list');
+  const envParam = urlParams.get('env');
   
   const [activeTab, setActiveTab] = useState("products");
   const [selectedCampaign, setSelectedCampaign] = useState<any>(null);
@@ -102,13 +103,15 @@ export default function PartnerDetailBrokerPOV() {
     // Force fresh read from localStorage to avoid browser caching
     const envFromStorage = localStorage.getItem('selectedEnvironment');
     const envFromWindow = (window as any).selectedEnvironment;
-    const currentEnv = envFromWindow || envFromStorage || 'degoudse';
+    const envFromUrl = envParam; // URL parameter takes precedence for broker view
+    const currentEnv = envFromUrl || envFromWindow || envFromStorage || 'degoudse';
     
     // Cache busting log with timestamp
     const timestamp = new Date().toISOString();
     console.log('🚨 BROKER VIEW - getCurrentEnvironment called at:', timestamp, { 
       envFromStorage, 
       envFromWindow, 
+      envFromUrl,
       currentEnv,
       cacheTimestamp: timestamp,
       allLocalStorage: Object.keys(localStorage).map(key => ({ key, value: localStorage.getItem(key) }))
