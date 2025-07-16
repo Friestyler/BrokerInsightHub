@@ -27,33 +27,43 @@ import concordiaLogo from "@assets/images-Concordia_1752649338540.png";
 
 // Front-end only environment branding mapping
 const getEnvironmentBranding = (envId: string) => {
+  console.log('🚨 BROKER VIEW - getEnvironmentBranding called with envId:', envId);
+  
+  let result;
   switch(envId) {
     case 'baloise':
-      return {
+      result = {
         logo: baloiseLogoPng,
         name: 'Baloise',
         partnerName: 'Baloise'
       };
+      break;
     case 'nn':
-      return {
+      result = {
         logo: nnLogo,
         name: 'Nationale Nederlanden',
         partnerName: 'Nationale Nederlanden'
       };
+      break;
     case 'concordia':
-      return {
+      result = {
         logo: concordiaLogo,
         name: 'Concordia',
         partnerName: 'Concordia'
       };
+      break;
     case 'degoudse':
     default:
-      return {
+      result = {
         logo: deGoudseLogo,
         name: 'De Goudse',
         partnerName: 'De Goudse'
       };
+      break;
   }
+  
+  console.log('🚨 BROKER VIEW - getEnvironmentBranding result:', result);
+  return result;
 };
 
 
@@ -98,6 +108,7 @@ export default function PartnerDetailBrokerPOV() {
       currentEnv,
       allLocalStorage: Object.keys(localStorage).map(key => ({ key, value: localStorage.getItem(key) }))
     });
+    console.log('🚨 BROKER VIEW - getCurrentEnvironment RESULT:', currentEnv);
     return currentEnv;
   };
 
@@ -204,8 +215,10 @@ export default function PartnerDetailBrokerPOV() {
 
   // Get partner information based on selected environment (front-end only hack)
   const getPartnerInfoForEnvironment = (envId: string) => {
+    console.log('🚨 BROKER VIEW - getPartnerInfoForEnvironment called with envId:', envId);
     const branding = getEnvironmentBranding(envId);
-    return {
+    console.log('🚨 BROKER VIEW - branding result:', branding);
+    const partnerInfo = {
       id: envId,
       name: branding.partnerName,
       description: `Insurance company that shared this list with Regional Insurance Partners`,
@@ -214,6 +227,8 @@ export default function PartnerDetailBrokerPOV() {
       location: 'Netherlands',
       phone: '+31 70 344 2000'
     };
+    console.log('🚨 BROKER VIEW - partnerInfo result:', partnerInfo);
+    return partnerInfo;
   };
 
   // For broker view, show the appropriate partner based on selected environment
@@ -230,6 +245,7 @@ export default function PartnerDetailBrokerPOV() {
   const environmentLogo = getBrokerLogo(actualCurrentEnvironment);
   const partner = getPartnerInfoForEnvironment(actualCurrentEnvironment);
   
+  console.log('🚨 BROKER POV - COMPONENT RENDERED!!!');
   console.log('🚨 BROKER POV - Using environment logo:', environmentLogo);
   console.log('🚨 BROKER POV - Partner name:', partner.name);
   console.log('🚨 BROKER POV - Environment ID (actual):', actualCurrentEnvironment);
