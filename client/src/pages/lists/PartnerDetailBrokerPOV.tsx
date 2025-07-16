@@ -98,15 +98,20 @@ export default function PartnerDetailBrokerPOV() {
   const [selectedOpportunityType, setSelectedOpportunityType] = useState('');
   const [renderKey, setRenderKey] = useState(0);
   
-  // Get current environment directly
+  // Get current environment directly with cache busting
   const getCurrentEnvironment = () => {
+    // Force fresh read from localStorage to avoid browser caching
     const envFromStorage = localStorage.getItem('selectedEnvironment');
     const envFromWindow = (window as any).selectedEnvironment;
     const currentEnv = envFromWindow || envFromStorage || 'degoudse';
-    console.log('🚨 BROKER VIEW - getCurrentEnvironment called:', { 
+    
+    // Cache busting log with timestamp
+    const timestamp = new Date().toISOString();
+    console.log('🚨 BROKER VIEW - getCurrentEnvironment called at:', timestamp, { 
       envFromStorage, 
       envFromWindow, 
       currentEnv,
+      cacheTimestamp: timestamp,
       allLocalStorage: Object.keys(localStorage).map(key => ({ key, value: localStorage.getItem(key) }))
     });
     console.log('🚨 BROKER VIEW - getCurrentEnvironment RESULT:', currentEnv);
@@ -242,9 +247,33 @@ export default function PartnerDetailBrokerPOV() {
     return branding.logo;
   };
   
-  // Use the actual current environment instead of stale state
+  // Use the actual current environment instead of stale state - force cache bust
   const environmentLogo = getBrokerLogo(actualCurrentEnvironment);
   const partner = getPartnerInfoForEnvironment(actualCurrentEnvironment);
+  
+  // Force environment consistency check 
+  useEffect(() => {
+    const forceEnvironmentUpdate = () => {
+      const freshEnv = localStorage.getItem('selectedEnvironment') || 'degoudse';
+      if (freshEnv !== currentEnvironment) {
+        console.log('🚨 FORCE UPDATE - Environment mismatch detected, forcing update:', { 
+          current: currentEnvironment, 
+          fresh: freshEnv 
+        });
+        setCurrentEnvironment(freshEnv);
+        setRenderKey(prev => prev + 1);
+        // Force page refresh if environment is severely out of sync
+        if (Math.abs(Date.now() - (window as any).lastEnvironmentUpdate || 0) > 5000) {
+          window.location.reload();
+        }
+      }
+      (window as any).lastEnvironmentUpdate = Date.now();
+    };
+    
+    forceEnvironmentUpdate();
+    const interval = setInterval(forceEnvironmentUpdate, 1000);
+    return () => clearInterval(interval);
+  }, [currentEnvironment]);
 
   // Fetch broker campaigns (shared campaigns)
   const { data: brokerCampaigns = [], isLoading: campaignsLoading } = useQuery({
@@ -823,6 +852,7 @@ export default function PartnerDetailBrokerPOV() {
             <div className="flex-shrink-0 mr-4">
               <div className="w-16 h-16 rounded-lg overflow-hidden bg-white border border-gray-200 flex items-center justify-center">
                 <img 
+                  key={`partner-logo-${actualCurrentEnvironment}-${renderKey}`}
                   src={environmentLogo} 
                   alt={`${partner.name} Logo`}
                   className="w-full h-full object-contain p-1"
@@ -831,7 +861,7 @@ export default function PartnerDetailBrokerPOV() {
             </div>
             <div className="flex-1">
               <div className="flex items-center space-x-4 mb-1">
-                <h1 className="text-2xl font-bold text-gray-900">{partner.name}</h1>
+                <h1 key={`partner-name-${actualCurrentEnvironment}-${renderKey}`} className="text-2xl font-bold text-gray-900">{partner.name}</h1>
                 <div className="flex items-center space-x-2">
                   <Button 
                     variant="ghost" 
