@@ -32,14 +32,22 @@ import deGoudseLogo from "@assets/De_Goudse_logo_1749670246231.png";
 import qollabiLogo from "@assets/logo_qollabi_O_dark.png";
 import concordiaLogo from "@assets/images-Concordia_1752649338540.png";
 
-// USE OVERRIDE SYSTEM TO BYPASS BROWSER CACHING
+// GET ENVIRONMENT BRANDING - RESPECTS USER SELECTION
 const getEnvironmentBranding = (envId: string) => {
-  console.log('🚨 BROKER VIEW - getEnvironmentBranding called with envId:', envId);
+  console.log('🎯 BROKER VIEW - getEnvironmentBranding called with envId:', envId);
   
-  // Force environment update to bypass caching
-  const result = getEnvironmentBrandingOverride(envId);
+  // Use simple environment mapping based on user selection
+  const brandingMap = {
+    'nn': { logo: nnLogo, name: 'Nationale Nederlanden' },
+    'baloise': { logo: baloiseLogoPng, name: 'Baloise' },
+    'concordia': { logo: concordiaLogo, name: 'Concordia' },
+    'degoudse': { logo: deGoudseLogo, name: 'De Goudse' },
+    'myqollabi': { logo: qollabiLogo, name: 'Qollabi' }
+  };
   
-  console.log('🚨 BROKER VIEW - getEnvironmentBranding result:', result);
+  const result = brandingMap[envId as keyof typeof brandingMap] || brandingMap.degoudse;
+  
+  console.log('🎯 BROKER VIEW - getEnvironmentBranding result:', result);
   return result;
 };
 
@@ -48,39 +56,16 @@ const getEnvironmentBranding = (envId: string) => {
 export default function PartnerDetailBrokerPOV() {
   console.log('🚨🚨🚨 PartnerDetailBrokerPOV COMPONENT IS RENDERING!!! 🚨🚨🚨');
   
-  // NUCLEAR ENVIRONMENT OVERRIDE - FORCE CORRECT ENVIRONMENT
+  // RESPECT USER'S ENVIRONMENT CHOICE - NO FORCED OVERRIDES
   useEffect(() => {
-    // Skip cache check if we're already in a reload cycle
-    const urlParams = new URLSearchParams(window.location.search);
-    if (urlParams.get('nuclear') || urlParams.get('reload')) {
-      return;
-    }
+    console.log('🎯 BROKER VIEW - Respecting user environment choice');
     
-    // IMMEDIATE ENVIRONMENT OVERRIDE - FORCE NN ENVIRONMENT
-    console.log('💣 COMPONENT MOUNT - ACTIVATING COMPLETE ENVIRONMENT OVERRIDE');
-    const stopOverride = completeEnvironmentOverride('nn');
-    
-    // Run comprehensive diagnostic after override
-    setTimeout(() => {
-      console.log('🔍 POST-OVERRIDE DIAGNOSTIC');
-      runComprehensiveDiagnostic();
-    }, 500);
-    
-    // Additional mismatch detection as backup
-    const checkMismatch = () => {
-      const hasMismatch = detectEnvironmentMismatch();
-      if (hasMismatch) {
-        console.log('🚨 DOM MISMATCH DETECTED - RE-FORCING ENVIRONMENT UPDATE');
-        forceEnvironmentUpdate();
-      }
-    };
-    
-    // Check every 3 seconds as backup
-    const interval = setInterval(checkMismatch, 3000);
+    // Let the stable environment switching system handle environment selection
+    // No forced overrides - component will display whatever environment the user selected
     
     return () => {
-      clearInterval(interval);
-      stopOverride();
+      // Clean up any existing processes
+      console.log('🧹 BROKER VIEW - Component cleanup');
     };
   }, []);
   
@@ -152,7 +137,8 @@ export default function PartnerDetailBrokerPOV() {
       setRenderKey(prev => prev + 1);
     };
 
-    // Listen for both storage and custom events
+    // Listen for stable environment changes
+    window.addEventListener('stableEnvironmentChanged', handleEnvironmentChange);
     window.addEventListener('environmentChanged', handleEnvironmentChange);
     window.addEventListener('storage', handleEnvironmentChange);
     
@@ -169,6 +155,7 @@ export default function PartnerDetailBrokerPOV() {
     window.addEventListener('focus', handleFocus);
     
     return () => {
+      window.removeEventListener('stableEnvironmentChanged', handleEnvironmentChange);
       window.removeEventListener('environmentChanged', handleEnvironmentChange);
       window.removeEventListener('storage', handleEnvironmentChange);
       window.removeEventListener('focus', handleFocus);
