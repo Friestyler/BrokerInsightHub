@@ -26,6 +26,31 @@ import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTa
 import { WhiteSpaceMatrix } from "@/components/entity/WhiteSpaceMatrixSimplified";
 import { SmartCrossSell } from "@/components/portfolio/SmartCrossSell";
 import nnLogo from "@assets/NN.AS_1751813752232.png";
+import baloiseLogoPng from "@assets/Baloise_1750499789244.png";
+import concordiaLogo from "@assets/images-Concordia_1752649338540.png";
+
+// Environment-specific branding function
+const getEnvironmentBranding = (envId: string) => {
+  const branding = {
+    degoudse: { 
+      name: 'De Goudse', 
+      logo: undefined
+    },
+    baloise: { 
+      name: 'Baloise', 
+      logo: baloiseLogoPng
+    },
+    nn: { 
+      name: 'Nationale Nederlanden', 
+      logo: nnLogo
+    },
+    concordia: { 
+      name: 'Concordia', 
+      logo: concordiaLogo
+    }
+  };
+  return branding[envId] || branding.degoudse;
+};
 
 export default function PartnerDetail() {
   const { id } = useParams();
@@ -1811,7 +1836,7 @@ export default function PartnerDetail() {
                                               <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
                                               <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                                             </svg>
-                                            <span className="text-xs text-gray-500">Shared by De Goudse</span>
+                                            <span className="text-xs text-gray-500">Shared by {getEnvironmentBranding(environment.id).name}</span>
                                           </div>
                                         )}
                                       </div>
@@ -3983,7 +4008,7 @@ export default function PartnerDetail() {
                                               <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
                                               <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                                             </svg>
-                                            <span className="text-xs text-gray-500">Shared by De Goudse</span>
+                                            <span className="text-xs text-gray-500">Shared by {getEnvironmentBranding(environment.id).name}</span>
                                           </div>
                                         )}
                                       </div>
