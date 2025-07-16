@@ -784,17 +784,17 @@ export default function PartnerDetailBrokerPOV() {
     queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/users`),
   });
 
-  // Get metrics assigned to Mevas BV (partner_id 12)
+  // Get metrics assigned to the current partner
   // Template assignments use template_id to reference metrics, and entity_id for the partner
   const assignedMetrics = allMetrics?.filter((metric: any) => {
     return templateAssignments?.some((assignment: any) => 
-      assignment.template_id === metric.id && assignment.entity_id === 12
+      assignment.template_id === metric.id && assignment.entity_id === parseInt(partnerId || '12')
     );
   }) || [];
 
   console.log('Broker view - Template assignments:', templateAssignments);
   console.log('Broker view - All metrics:', allMetrics);
-  console.log('Broker view - Assigned metrics for Mevas BV:', assignedMetrics);
+  console.log('Broker view - Assigned metrics for current partner:', assignedMetrics);
   console.log('Broker view - Tags:', tags);
 
   const okrMetrics = assignedMetrics;
@@ -1405,27 +1405,7 @@ export default function PartnerDetailBrokerPOV() {
                   >
                     Overview
                   </button>
-                  <button 
-                    onClick={() => setActiveProductTab("smart-cross-sell")}
-                    className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md flex items-center gap-2 ${
-                      activeProductTab === "smart-cross-sell" 
-                        ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
-                        : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
-                    }`}
-                  >
-                    <Bot className="w-4 h-4" />
-                    Smart Cross Sell
-                  </button>
-                  <button 
-                    onClick={() => setActiveProductTab("matrix")}
-                    className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md ${
-                      activeProductTab === "matrix" 
-                        ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
-                        : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
-                    }`}
-                  >
-                    Matrix
-                  </button>
+                  {/* Smart Cross Sell and Matrix tabs are hidden in Partner POV */}
                 </nav>
               </div>
 
@@ -1439,29 +1419,11 @@ export default function PartnerDetailBrokerPOV() {
                 </div>
               )}
 
-              {/* Cross-sell Matrix Tab - ONLY this tab uses WhiteSpaceMatrix */}
-              {activeProductTab === "matrix" && (
-                <div className="p-6">
-                  <WhiteSpaceMatrix 
-                    entityType="partner" 
-                    entityId={partnerId || ""} 
-                    entityName={partner?.name}
-                    onCreateOpportunity={() => {/* Opportunity creation logic */}}
-                    onCreateCampaign={() => {/* Campaign creation logic */}}
-                    onCreateList={() => {/* List creation logic */}}
-                  />
-                </div>
-              )}
+              {/* Smart Cross Sell and Matrix tabs are hidden in Partner POV */}
             </div>
           )}
 
-          {activeTab === "products" && activeProductTab === "smart-cross-sell" && (
-            <SmartCrossSell 
-              entityType="partners" 
-              entityId={partnerId || ""} 
-              onCreateOpportunity={() => {/* Opportunity creation logic */}}
-            />
-          )}
+          {/* Smart Cross Sell tab is hidden in Partner POV */}
 
           {activeTab === "opportunities" && (
             <div className="space-y-4">
