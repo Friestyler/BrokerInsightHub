@@ -1093,23 +1093,7 @@ function OpportunitiesTable() {
                                 {activeDropdownId === list.id && (
                                   <div className="absolute right-0 top-full mt-1 w-48 rounded-md border border-[#E6E7F1] bg-white shadow-md z-50">
                                     <div className="p-1">
-                                      <button
-                                        className="flex w-full items-center px-2 py-1.5 text-sm rounded-sm hover:bg-slate-100 text-left"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          // Navigate to broker view
-                                          window.open(`/broker-view/list/${list.id}`, '_blank');
-                                          setActiveDropdownId(null);
-                                          setShowListsDropdown(false);
-                                        }}
-                                      >
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                                          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-                                          <polyline points="10 17 15 12 10 7"></polyline>
-                                          <line x1="15" y1="12" x2="3" y2="12"></line>
-                                        </svg>
-                                        Open list as partner
-                                      </button>
+
                                       <button
                                         className="flex w-full items-center px-2 py-1.5 text-sm rounded-sm hover:bg-red-50 text-red-600 text-left"
                                         onClick={(e) => {
