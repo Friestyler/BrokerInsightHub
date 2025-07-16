@@ -114,21 +114,27 @@ const useCustomersData = (page: number = 1, limit: number = 100, search: string 
   return useQuery({
     queryKey: ['/api/customers', page, limit, search, filters],
     queryFn: async () => {
-      const params = new URLSearchParams();
-      params.append('page', page.toString());
-      params.append('limit', limit.toString());
-      if (search) params.append('search', search);
-      if (filters.industry && filters.industry.length > 0) params.append('industry', filters.industry.join(','));
-      if (filters.size && filters.size.length > 0) params.append('size', filters.size.join(','));
-      if (filters.status && filters.status.length > 0) params.append('status', filters.status.join(','));
-      
-      const result = await apiRequest('GET', `/api/customers?${params.toString()}`);
-      return result;
+      try {
+        const params = new URLSearchParams();
+        params.append('page', page.toString());
+        params.append('limit', limit.toString());
+        if (search && search.length >= 2) params.append('search', search);
+        if (filters.industry && filters.industry.length > 0) params.append('industry', filters.industry.join(','));
+        if (filters.size && filters.size.length > 0) params.append('size', filters.size.join(','));
+        if (filters.status && filters.status.length > 0) params.append('status', filters.status.join(','));
+        
+        const result = await apiRequest('GET', `/api/customers?${params.toString()}`);
+        return result;
+      } catch (error) {
+        console.error('Error fetching customers:', error);
+        return { data: [], pagination: { total: 0, page: 1, totalPages: 1 } };
+      }
     },
-    staleTime: 0,
-    gcTime: 0,
+    enabled: !search || search.length >= 2, // Only search if term is >= 2 characters
+    staleTime: 30000, // 30 seconds
+    gcTime: 5 * 60 * 1000, // 5 minutes
     refetchOnMount: true,
-    refetchOnWindowFocus: true,
+    refetchOnWindowFocus: false,
   });
 };
 
@@ -187,6 +193,7 @@ export default function CustomersPageClean({ smartListFilter }: CustomersPageCle
   // State management
   const [isEditingList, setIsEditingList] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
   const [activeFilters, setActiveFilters] = useState({
     industry: [] as string[],
@@ -235,6 +242,20 @@ export default function CustomersPageClean({ smartListFilter }: CustomersPageCle
   const [selectedSize, setSelectedSize] = useState('all');
   const [selectedType, setSelectedType] = useState('all');
 
+  // Debounce search term to prevent rapid API calls
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 500);
+    
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  // Reset pagination when search term or filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearchTerm, activeFilters]);
+
   // Column visibility state
   const [visibleColumns, setVisibleColumns] = useState([
     'customer', 'product', 'partner', 'industry', 'type', 'status', 'value', 'template'
@@ -250,7 +271,7 @@ export default function CustomersPageClean({ smartListFilter }: CustomersPageCle
   }, [selectedStatus, selectedIndustry, selectedSize]);
   
   // Data fetching with pagination, search, and filters
-  const { data: customersResponse, isLoading, error } = useCustomersData(currentPage, itemsPerPage, searchTerm, activeFilters);
+  const { data: customersResponse, isLoading, error } = useCustomersData(currentPage, itemsPerPage, debouncedSearchTerm, activeFilters);
   
   // Fetch opportunities for accurate value calculations
   const { data: opportunities = [] } = useQuery({
