@@ -12983,6 +12983,193 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
     }
   });
 
+  // ======================================================================
+  // BALOISE ENVIRONMENT ROUTES (serve degoudse data with baloise branding)
+  // ======================================================================
+  
+  // Baloise Partners
+  app.get('/api/baloise/partners', async (req, res) => {
+    try {
+      const result = await pool.query('SELECT * FROM degoudse.partners ORDER BY id');
+      console.log(`Returning ${result.rows.length} partners from degoudse schema for baloise environment`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching partners for baloise:', error);
+      res.status(500).json({ error: 'Failed to fetch partners' });
+    }
+  });
+
+  // Baloise Customers
+  app.get('/api/baloise/customers', async (req, res) => {
+    try {
+      const result = await pool.query('SELECT * FROM degoudse.customers ORDER BY id');
+      console.log(`Returning ${result.rows.length} customers from degoudse schema for baloise environment`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching customers for baloise:', error);
+      res.status(500).json({ error: 'Failed to fetch customers' });
+    }
+  });
+
+  // Baloise Opportunities
+  app.get('/api/baloise/opportunities', async (req, res) => {
+    try {
+      const result = await pool.query('SELECT * FROM degoudse.opportunities ORDER BY id');
+      console.log(`Returning ${result.rows.length} opportunities from degoudse schema for baloise environment`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching opportunities for baloise:', error);
+      res.status(500).json({ error: 'Failed to fetch opportunities' });
+    }
+  });
+
+  // Baloise Saved Lists
+  app.get('/api/baloise/saved-lists', async (req, res) => {
+    try {
+      const entityType = req.query.entity_type as string;
+      const partnerId = req.query.partner_id as string;
+      
+      let query = `
+        SELECT sl.*, 
+               COUNT(lc.id) as collaborator_count,
+               CASE WHEN COUNT(lc.id) > 0 THEN true ELSE false END as has_collaborators
+        FROM degoudse.saved_lists sl
+        LEFT JOIN degoudse.list_collaborators lc ON sl.id = lc.list_id AND lc.is_active = true
+      `;
+      const params = [];
+      const conditions = [];
+      
+      if (entityType) {
+        conditions.push(`sl.entity_type = $${params.length + 1}`);
+        params.push(entityType);
+      }
+      
+      if (partnerId) {
+        conditions.push(`sl.partner_id = $${params.length + 1}`);
+        params.push(parseInt(partnerId));
+      }
+      
+      if (conditions.length > 0) {
+        query += ` WHERE ${conditions.join(' AND ')}`;
+      }
+      
+      query += ` GROUP BY sl.id ORDER BY sl.created_at DESC`;
+      
+      const result = await pool.query(query, params);
+      console.log(`Returning ${result.rows.length} saved lists from degoudse schema for baloise environment`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching saved lists for baloise:', error);
+      res.status(500).json({ error: 'Failed to fetch saved lists' });
+    }
+  });
+
+  // Baloise Saved Views
+  app.get('/api/baloise/saved-views', async (req, res) => {
+    try {
+      const entityType = req.query.entity_type as string;
+      
+      let query = `SELECT * FROM degoudse.saved_views`;
+      const params = [];
+      
+      if (entityType) {
+        query += ` WHERE entity_type = $1`;
+        params.push(entityType);
+      }
+      
+      query += ` ORDER BY created_at DESC`;
+      
+      const result = await pool.query(query, params);
+      console.log(`Returning ${result.rows.length} saved views from degoudse schema for baloise environment`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching saved views for baloise:', error);
+      res.status(500).json({ error: 'Failed to fetch saved views' });
+    }
+  });
+
+  // Baloise OKR Metrics
+  app.get('/api/baloise/okr-metrics', async (req, res) => {
+    try {
+      const result = await pool.query('SELECT * FROM degoudse.okr_metrics ORDER BY id');
+      console.log(`Returning ${result.rows.length} OKR metrics from degoudse schema for baloise environment`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching OKR metrics for baloise:', error);
+      res.status(500).json({ error: 'Failed to fetch OKR metrics' });
+    }
+  });
+
+  // Baloise OKR Tags
+  app.get('/api/baloise/okr-tags', async (req, res) => {
+    try {
+      const result = await pool.query('SELECT * FROM degoudse.okr_tags ORDER BY name ASC');
+      console.log(`Returning ${result.rows.length} OKR tags from degoudse schema for baloise environment`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching OKR tags for baloise:', error);
+      res.status(500).json({ error: 'Failed to fetch OKR tags' });
+    }
+  });
+
+  // Baloise Template Assignments
+  app.get('/api/baloise/template-assignments/:entityType', async (req, res) => {
+    try {
+      const entityType = req.params.entityType;
+      const result = await pool.query(`SELECT * FROM degoudse.okr_template_assignments WHERE entity_type = $1`, [entityType]);
+      console.log(`Returning ${result.rows.length} template assignments from degoudse schema for baloise environment`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching template assignments for baloise:', error);
+      res.status(500).json({ error: 'Failed to fetch template assignments' });
+    }
+  });
+
+  // Baloise Products
+  app.get('/api/baloise/products', async (req, res) => {
+    try {
+      const result = await pool.query('SELECT * FROM degoudse.products ORDER BY id');
+      console.log(`Returning ${result.rows.length} products from degoudse schema for baloise environment`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching products for baloise:', error);
+      res.status(500).json({ error: 'Failed to fetch products' });
+    }
+  });
+
+  // Baloise Campaigns
+  app.get('/api/baloise/campaigns', async (req, res) => {
+    try {
+      const result = await pool.query('SELECT * FROM degoudse.campaigns ORDER BY created_at DESC');
+      console.log(`Returning ${result.rows.length} campaigns from degoudse schema for baloise environment`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching campaigns for baloise:', error);
+      res.status(500).json({ error: 'Failed to fetch campaigns' });
+    }
+  });
+
+  // Baloise Broker Shared Lists
+  app.get('/api/baloise/broker/shared-lists', async (req, res) => {
+    try {
+      const result = await pool.query(`
+        SELECT sl.*, 
+               COUNT(lc.id) as collaborator_count,
+               CASE WHEN COUNT(lc.id) > 0 THEN true ELSE false END as has_collaborators
+        FROM degoudse.saved_lists sl
+        LEFT JOIN degoudse.list_collaborators lc ON sl.id = lc.list_id AND lc.is_active = true
+        WHERE sl.is_shared = true
+        GROUP BY sl.id 
+        ORDER BY sl.created_at DESC
+      `);
+      console.log(`Found ${result.rows.length} shared lists available to brokers for baloise environment`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching broker shared lists for baloise:', error);
+      res.status(500).json({ error: 'Failed to fetch broker shared lists' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

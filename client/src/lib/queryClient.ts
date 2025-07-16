@@ -37,30 +37,16 @@ export function getEnvironmentUrl(url: string): string {
     return url;
   }
   
-  // All environments (degoudse, baloise, nn, concordia) should use the degoudse backend data
+  // Environment-specific API routing for proper multi-environment support
   if (envId === 'degoudse' || envId === 'baloise' || envId === 'nn' || envId === 'concordia') {
-    // All environments use degoudse data backend
+    // Use the actual environment for API calls instead of forcing degoudse
     if (url.startsWith('/api/') && !url.includes('/degoudse/') && !url.includes('/baloise/') && !url.includes('/nn/') && !url.includes('/concordia/')) {
-      const newUrl = url.replace('/api/', `/api/degoudse/`);
+      const newUrl = url.replace('/api/', `/api/${envId}/`);
       console.log('Environment URL transformed:', { from: url, to: newUrl });
       return newUrl;
     }
-    // If URL already has environment prefix, redirect to degoudse
-    if (url.includes('/baloise/')) {
-      const newUrl = url.replace('/api/baloise/', '/api/degoudse/');
-      console.log('Environment URL transformed:', { from: url, to: newUrl });
-      return newUrl;
-    }
-    if (url.includes('/nn/')) {
-      const newUrl = url.replace('/api/nn/', '/api/degoudse/');
-      console.log('Environment URL transformed:', { from: url, to: newUrl });
-      return newUrl;
-    }
-    if (url.includes('/concordia/')) {
-      const newUrl = url.replace('/api/concordia/', '/api/degoudse/');
-      console.log('Environment URL transformed:', { from: url, to: newUrl });
-      return newUrl;
-    }
+    // Don't redirect environment-specific URLs - let them use their proper environment
+    return url;
   }
   
   // For other environments, prefix the URL with the environment path
