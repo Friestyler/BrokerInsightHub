@@ -254,6 +254,21 @@ export default function PartnerDetailBrokerPOV() {
   console.log('🚨 BROKER POV - Full partner object:', partner);
   console.log('🚨 BROKER POV - URL PARAMS:', { tab: urlParams.get('tab'), list: urlParams.get('list') });
   console.log('🚨 BROKER POV - WINDOW LOCATION:', window.location.href);
+  
+  // DEBUGGING: Check if partner name is being overridden anywhere
+  console.log('🚨 PARTNER NAME TRACE - Direct function call:', getPartnerInfoForEnvironment(actualCurrentEnvironment).name);
+  console.log('🚨 PARTNER NAME TRACE - Direct function call with baloise:', getPartnerInfoForEnvironment('baloise').name);
+  console.log('🚨 PARTNER NAME TRACE - All environment branding:', {
+    degoudse: getEnvironmentBranding('degoudse'),
+    baloise: getEnvironmentBranding('baloise'),
+    concordia: getEnvironmentBranding('concordia')
+  });
+  
+  // Force partner name to be Baloise for debugging
+  if (partner.name !== 'Baloise') {
+    console.log('🚨 PARTNER NAME OVERRIDE - Original name:', partner.name, 'Forcing to Baloise');
+    partner.name = 'Baloise';
+  }
 
   // Fetch broker campaigns (shared campaigns)
   const { data: brokerCampaigns = [], isLoading: campaignsLoading } = useQuery({
