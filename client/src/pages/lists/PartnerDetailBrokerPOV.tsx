@@ -69,6 +69,7 @@ const getEnvironmentBranding = (envId: string) => {
 
 
 export default function PartnerDetailBrokerPOV() {
+  console.log('🚨🚨🚨 PartnerDetailBrokerPOV COMPONENT IS RENDERING!!! 🚨🚨🚨');
   const { partnerId } = useParams<{ partnerId: string }>();
   const { toast } = useToast();
   
