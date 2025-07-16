@@ -108,12 +108,12 @@ export function BrokerLayout({ children }: { children: React.ReactNode }) {
       {/* Sidebar - using same structure as main sidebar */}
       <div className={`${sidebarCollapsed ? "w-16" : "w-16 md:w-64"} environment-selector-bg flex flex-col h-full overflow-hidden transition-all duration-300 relative`}>
         
-        {/* Environment Logo */}
+        {/* Qollabi Logo - Static for broker view */}
         <div className="pt-4 px-4 pb-1 flex justify-center md:justify-start flex-shrink-0">
           <div className={`${sidebarCollapsed ? "w-10 h-10" : "w-12 h-12"} flex items-center justify-center`}>
             <img 
-              src={environmentLogo} 
-              alt={`${environmentName} Logo`} 
+              src={qollabiLogo} 
+              alt="Qollabi Logo" 
               className="max-w-full max-h-full object-contain"
             />
           </div>

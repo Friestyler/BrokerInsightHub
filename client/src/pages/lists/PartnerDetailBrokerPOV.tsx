@@ -245,40 +245,6 @@ export default function PartnerDetailBrokerPOV() {
   // Use the actual current environment instead of stale state
   const environmentLogo = getBrokerLogo(actualCurrentEnvironment);
   const partner = getPartnerInfoForEnvironment(actualCurrentEnvironment);
-  
-  console.log('🚨 BROKER POV - COMPONENT RENDERED!!!');
-  console.log('🚨 BROKER POV - Using environment logo:', environmentLogo);
-  console.log('🚨 BROKER POV - Partner name:', partner.name);
-  console.log('🚨 BROKER POV - Environment ID (actual):', actualCurrentEnvironment);
-  console.log('🚨 BROKER POV - Environment branding:', getEnvironmentBranding(actualCurrentEnvironment));
-  console.log('🚨 BROKER POV - Full partner object:', partner);
-  console.log('🚨 BROKER POV - URL PARAMS:', { tab: urlParams.get('tab'), list: urlParams.get('list') });
-  console.log('🚨 BROKER POV - WINDOW LOCATION:', window.location.href);
-  
-  // DEBUGGING: Check if partner name is being overridden anywhere
-  console.log('🚨 PARTNER NAME TRACE - Direct function call:', getPartnerInfoForEnvironment(actualCurrentEnvironment).name);
-  console.log('🚨 PARTNER NAME TRACE - Direct function call with baloise:', getPartnerInfoForEnvironment('baloise').name);
-  console.log('🚨 PARTNER NAME TRACE - All environment branding:', {
-    degoudse: getEnvironmentBranding('degoudse'),
-    baloise: getEnvironmentBranding('baloise'),
-    concordia: getEnvironmentBranding('concordia')
-  });
-  
-  // DEBUGGING: Check logo functions
-  console.log('🚨 LOGO TRACE - getBrokerLogo(actualCurrentEnvironment):', getBrokerLogo(actualCurrentEnvironment));
-  console.log('🚨 LOGO TRACE - getBrokerLogo(baloise):', getBrokerLogo('baloise'));
-  console.log('🚨 LOGO TRACE - getEnvironmentBranding(baloise).logo:', getEnvironmentBranding('baloise').logo);
-  console.log('🚨 LOGO TRACE - environmentLogo variable:', environmentLogo);
-  
-  // Force partner name to be Baloise for debugging
-  if (partner.name !== 'Baloise') {
-    console.log('🚨 PARTNER NAME OVERRIDE - Original name:', partner.name, 'Forcing to Baloise');
-    partner.name = 'Baloise';
-  }
-  
-  // Force logo to be Baloise logo for debugging
-  const forcedBaloiselogo = baloiseLogoPng;
-  console.log('🚨 LOGO OVERRIDE - Forced Baloise logo:', forcedBaloiselogo);
 
   // Fetch broker campaigns (shared campaigns)
   const { data: brokerCampaigns = [], isLoading: campaignsLoading } = useQuery({
@@ -857,7 +823,7 @@ export default function PartnerDetailBrokerPOV() {
             <div className="flex-shrink-0 mr-4">
               <div className="w-16 h-16 rounded-lg overflow-hidden bg-white border border-gray-200 flex items-center justify-center">
                 <img 
-                  src={forcedBaloiselogo} 
+                  src={environmentLogo} 
                   alt={`${partner.name} Logo`}
                   className="w-full h-full object-contain p-1"
                 />
