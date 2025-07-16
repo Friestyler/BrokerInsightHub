@@ -72,6 +72,13 @@ export const stableEnvironmentSwitch = (targetEnv: string) => {
   });
   window.dispatchEvent(event);
   
+  // Dispatch event for EnvironmentContext to listen to
+  const stableEnvironmentEvent = new CustomEvent('stableEnvironmentChanged', {
+    detail: { environmentId: targetEnv }
+  });
+  window.dispatchEvent(stableEnvironmentEvent);
+  console.log(`🎯 STABLE ENVIRONMENT SWITCH - Dispatched stableEnvironmentChanged event for: ${targetEnv}`);
+  
   console.log(`✅ STABLE ENVIRONMENT SWITCH TO ${targetEnv} COMPLETE`);
   
   return branding;

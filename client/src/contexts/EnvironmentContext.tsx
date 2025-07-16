@@ -96,6 +96,46 @@ export const EnvironmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
     loadEnvironments();
   }, []);
   
+  // Listen for environment changes from stable switching system
+  useEffect(() => {
+    const handleEnvironmentChange = (event: CustomEvent) => {
+      const { environmentId } = event.detail;
+      console.log('🎯 ENVIRONMENT CONTEXT - Received stable environment change:', environmentId);
+      
+      // Update the environment state to match the stable switching system
+      const newEnv = environments.find(e => e.id === environmentId);
+      if (newEnv) {
+        setEnvironmentState(newEnv);
+        localStorage.setItem('selectedEnvironment', newEnv.id);
+        window.__APP_ENV__ = newEnv.id;
+        (window as any).selectedEnvironment = newEnv.id;
+        console.log('🎯 ENVIRONMENT CONTEXT - Updated to:', newEnv.id);
+      }
+    };
+    
+    // Listen for stable environment changes
+    window.addEventListener('stableEnvironmentChanged', handleEnvironmentChange as EventListener);
+    
+    // Also listen for localStorage changes in case of external updates
+    const handleStorageChange = () => {
+      const savedEnvId = localStorage.getItem('selectedEnvironment');
+      if (savedEnvId) {
+        const newEnv = environments.find(e => e.id === savedEnvId);
+        if (newEnv && newEnv.id !== environment.id) {
+          setEnvironmentState(newEnv);
+          console.log('🎯 ENVIRONMENT CONTEXT - Updated from localStorage:', newEnv.id);
+        }
+      }
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    return () => {
+      window.removeEventListener('stableEnvironmentChanged', handleEnvironmentChange as EventListener);
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, [environments, environment.id]);
+  
   const setEnvironment = (envId: string) => {
     const newEnv = environments.find(e => e.id === envId) || environments[0];
     setEnvironmentState(newEnv);
