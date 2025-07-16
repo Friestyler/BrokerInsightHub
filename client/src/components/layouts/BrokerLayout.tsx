@@ -86,6 +86,8 @@ export function BrokerLayout({ children }: { children: React.ReactNode }) {
         return 'Baloise';
       case 'nn':
         return 'Nationale Nederlanden';
+      case 'concordia':
+        return 'Concordia';
       default:
         return 'De Goudse';
     }

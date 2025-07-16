@@ -23,6 +23,38 @@ import nnLogo from "@assets/NN_Group_logo_1751474283145.jpeg";
 import baloiseLogoPng from "@assets/Baloise_1750499789244.png";
 import deGoudseLogo from "@assets/De_Goudse_logo_1749670246231.png";
 import qollabiLogo from "@assets/logo_qollabi_O_dark.png";
+import concordiaLogo from "@assets/images-Concordia_1752649338540.png";
+
+// Front-end only environment branding mapping
+const getEnvironmentBranding = (envId: string) => {
+  switch(envId) {
+    case 'baloise':
+      return {
+        logo: baloiseLogoPng,
+        name: 'Baloise',
+        partnerName: 'Baloise'
+      };
+    case 'nn':
+      return {
+        logo: nnLogo,
+        name: 'Nationale Nederlanden',
+        partnerName: 'Nationale Nederlanden'
+      };
+    case 'concordia':
+      return {
+        logo: concordiaLogo,
+        name: 'Concordia',
+        partnerName: 'Concordia'
+      };
+    case 'degoudse':
+    default:
+      return {
+        logo: deGoudseLogo,
+        name: 'De Goudse',
+        partnerName: 'De Goudse'
+      };
+  }
+};
 
 
 
@@ -165,79 +197,28 @@ export default function PartnerDetailBrokerPOV() {
     }
   }, [editingStageId, editStageDropdownRef]);
 
-  // Get partner information based on selected environment
+  // Get partner information based on selected environment (front-end only hack)
   const getPartnerInfoForEnvironment = (envId: string) => {
-    switch (envId) {
-      case 'degoudse':
-        return {
-          id: 'degoudse',
-          name: 'De Goudse',
-          description: 'Insurance company that shared this list with Regional Insurance Partners',
-          primary_contact: 'Partnership Manager',
-          contact_email: 'partnerships@degoudse.nl',
-          location: 'Netherlands',
-          phone: '+31 70 344 2000'
-        };
-      case 'baloise':
-        return {
-          id: 'baloise',
-          name: 'Baloise',
-          description: 'Insurance company that shared this list with Regional Insurance Partners',
-          primary_contact: 'Partnership Manager',
-          contact_email: 'partnerships@baloise.nl',
-          location: 'Netherlands',
-          phone: '+31 30 295 4000'
-        };
-      case 'nn':
-        return {
-          id: 'nn',
-          name: 'Nationale Nederlanden',
-          description: 'Insurance company that shared this list with Regional Insurance Partners',
-          primary_contact: 'Partnership Manager',
-          contact_email: 'partnerships@nn.nl',
-          location: 'Netherlands',
-          phone: '+31 20 123 4567'
-        };
-      case 'qollabi':
-        return {
-          id: 'qollabi',
-          name: 'Qollabi',
-          description: 'Insurance platform that shared this list with Regional Insurance Partners',
-          primary_contact: 'Partnership Manager',
-          contact_email: 'partnerships@qollabi.com',
-          location: 'Netherlands',
-          phone: '+31 20 000 0000'
-        };
-      default:
-        return {
-          id: 'degoudse',
-          name: 'De Goudse',
-          description: 'Insurance company that shared this list with Regional Insurance Partners',
-          primary_contact: 'Partnership Manager',
-          contact_email: 'partnerships@degoudse.nl',
-          location: 'Netherlands',
-          phone: '+31 70 344 2000'
-        };
-    }
+    const branding = getEnvironmentBranding(envId);
+    return {
+      id: envId,
+      name: branding.partnerName,
+      description: `Insurance company that shared this list with Regional Insurance Partners`,
+      primary_contact: 'Partnership Manager',
+      contact_email: `partnerships@${envId}.nl`,
+      location: 'Netherlands',
+      phone: '+31 70 344 2000'
+    };
   };
 
   // For broker view, show the appropriate partner based on selected environment
   console.log('Broker POV - Current environment (state):', currentEnvironment);
   console.log('Broker POV - Current environment (actual):', actualCurrentEnvironment);
   
-  // Comprehensive logo mapping system for all environments - easily extensible
-  const environmentLogos = {
-    degoudse: deGoudseLogo,
-    baloise: baloiseLogoPng,
-    nn: nnLogo,
-    qollabi: qollabiLogo,
-    // Add new environments here as they're added
-    // Example: newenv: newEnvLogo,
-  };
-
-  // Get the correct logo for broker view with fallback
+  // Get the correct logo for broker view with fallback (using environment branding)
   const getBrokerLogo = (envId: string) => {
-    return environmentLogos[envId as keyof typeof environmentLogos] || deGoudseLogo;
+    const branding = getEnvironmentBranding(envId);
+    return branding.logo;
   };
   
   // Use the actual current environment instead of stale state
@@ -1384,7 +1365,7 @@ export default function PartnerDetailBrokerPOV() {
                                               <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
                                               <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                                             </svg>
-                                            <span className="text-xs text-gray-500">Shared by De Goudse</span>
+                                            <span className="text-xs text-gray-500">Shared by {partner.name}</span>
                                           </div>
                                         )}
                                       </div>
