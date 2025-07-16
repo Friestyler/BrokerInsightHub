@@ -234,6 +234,7 @@ export default function PartnerDetailBrokerPOV() {
   console.log('🚨 BROKER POV - Partner name:', partner.name);
   console.log('🚨 BROKER POV - Environment ID (actual):', actualCurrentEnvironment);
   console.log('🚨 BROKER POV - Environment branding:', getEnvironmentBranding(actualCurrentEnvironment));
+  console.log('🚨 BROKER POV - Full partner object:', partner);
 
   // Fetch broker campaigns (shared campaigns)
   const { data: brokerCampaigns = [], isLoading: campaignsLoading } = useQuery({
