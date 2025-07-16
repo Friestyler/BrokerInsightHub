@@ -71,9 +71,9 @@ export const EnvironmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
     if (savedEnvId && (savedEnvId === 'degoudse' || savedEnvId === 'baloise' || savedEnvId === 'nn' || savedEnvId === 'concordia')) {
       return FALLBACK_ENVIRONMENTS.find(env => env.id === savedEnvId) || FALLBACK_ENVIRONMENTS[0];
     }
-    // Default to degoudse if no valid environment is saved
-    localStorage.setItem('selectedEnvironment', 'degoudse');
-    return FALLBACK_ENVIRONMENTS[0];
+    // Default to nn for testing purposes - should display Nationale Nederlanden
+    localStorage.setItem('selectedEnvironment', 'nn');
+    return FALLBACK_ENVIRONMENTS.find(env => env.id === 'nn') || FALLBACK_ENVIRONMENTS[0];
   });
 
   // Load environments - use fallback environments directly for demo
