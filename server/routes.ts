@@ -11362,6 +11362,128 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
     }
   });
 
+  // Campaign Partner Attachments API endpoint
+  app.post('/api/:envId/campaigns/:campaignId/attachments', async (req, res) => {
+    try {
+      const { envId, campaignId } = req.params;
+      const { customerAttachments, contactAttachments } = req.body;
+      
+      console.log(`Updating campaign ${campaignId} partner attachments in ${envId} environment`);
+      
+      if (envId === 'degoudse') {
+        // Update customers with partner attachments
+        for (const customerAttachment of customerAttachments) {
+          const { customerId, partnerId, partnerName } = customerAttachment;
+          
+          try {
+            // Update customer partner assignment
+            await pool.query(`
+              UPDATE ${envId}.customers 
+              SET partner_id = $1, partner_name = $2, updated_at = NOW() 
+              WHERE id = $3
+            `, [partnerId, partnerName, customerId]);
+            
+            // Update or create partner-customer relationship
+            await pool.query(`
+              INSERT INTO ${envId}.partner_customers (partner_id, customer_id, created_at)
+              VALUES ($1, $2, NOW())
+              ON CONFLICT (partner_id, customer_id) DO NOTHING
+            `, [partnerId, customerId]);
+            
+          } catch (updateError) {
+            console.error(`Error updating customer ${customerId} attachment:`, updateError);
+          }
+        }
+        
+        // Update contacts with partner attachments
+        for (const contactAttachment of contactAttachments) {
+          const { contactId, customerId, partnerId, partnerName } = contactAttachment;
+          
+          try {
+            // Update contact partner assignment
+            await pool.query(`
+              UPDATE ${envId}.contacts 
+              SET partner_id = $1, partner_name = $2, updated_at = NOW() 
+              WHERE id = $3
+            `, [partnerId, partnerName, contactId]);
+            
+            // Also update the associated customer
+            await pool.query(`
+              UPDATE ${envId}.customers 
+              SET partner_id = $1, partner_name = $2, updated_at = NOW() 
+              WHERE id = $3
+            `, [partnerId, partnerName, customerId]);
+            
+          } catch (updateError) {
+            console.error(`Error updating contact ${contactId} attachment:`, updateError);
+          }
+        }
+        
+        // Fetch updated campaign recipients
+        const campaignResult = await pool.query(`
+          SELECT recipients FROM ${envId}.campaigns WHERE id = $1
+        `, [campaignId]);
+        
+        if (campaignResult.rows.length > 0) {
+          const campaign = campaignResult.rows[0];
+          
+          // Update campaign recipients with new partner information
+          let updatedRecipients = campaign.recipients || [];
+          
+          // Apply customer attachments
+          customerAttachments.forEach(attachment => {
+            updatedRecipients = updatedRecipients.map((recipient: any) => {
+              if (recipient.customerInfo?.id === parseInt(attachment.customerId) ||
+                  recipient.clientId === parseInt(attachment.customerId)) {
+                return {
+                  ...recipient,
+                  partnerId: attachment.partnerId,
+                  partnerName: attachment.partnerName
+                };
+              }
+              return recipient;
+            });
+          });
+          
+          // Apply contact attachments
+          contactAttachments.forEach(attachment => {
+            updatedRecipients = updatedRecipients.map((recipient: any) => {
+              if (recipient.id === parseInt(attachment.contactId) ||
+                  recipient.contactId === parseInt(attachment.contactId)) {
+                return {
+                  ...recipient,
+                  partnerId: attachment.partnerId,
+                  partnerName: attachment.partnerName
+                };
+              }
+              return recipient;
+            });
+          });
+          
+          // Update campaign with new recipients
+          await pool.query(`
+            UPDATE ${envId}.campaigns 
+            SET recipients = $1, updated_at = NOW() 
+            WHERE id = $2
+          `, [JSON.stringify(updatedRecipients), campaignId]);
+          
+          res.json({ 
+            success: true, 
+            recipients: updatedRecipients,
+            message: 'Partner attachments updated successfully' 
+          });
+        } else {
+          res.status(404).json({ error: 'Campaign not found' });
+        }
+      } else {
+        res.status(400).json({ error: 'Environment not supported' });
+      }
+    } catch (error) {
+      console.error('Error updating campaign partner attachments:', error);
+      res.status(500).json({ error: 'Failed to update partner attachments' });
+    }
+  });
+
   app.get('/api/campaigns/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);

@@ -332,27 +332,45 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
   const [viewMode, setViewMode] = useState<'contacts' | 'partners'>('contacts');
   const { toast } = useToast();
   
-  // Fetch all partners for selection
+  // Fetch all partners for selection and attachment operations
   const { data: allPartners = [] } = useQuery({
-    queryKey: ['/api/partners'],
-    enabled: showAttachmentModal
+    queryKey: ['/api/partners']
   });
   
-  // Group recipients by customer to show customer-centric view (as per briefing)
+  // Fetch all customers for proper customer data
+  const { data: allCustomers = [] } = useQuery({
+    queryKey: ['/api/customers']
+  });
+  
+  // Fetch all contacts for proper contact data
+  const { data: allContacts = [] } = useQuery({
+    queryKey: ['/api/contacts']
+  });
+  
+  // Group recipients by customer using actual database data
   const customerGroups = (() => {
     const groups = new Map();
     
     if (campaignData.recipients) {
       campaignData.recipients.forEach((recipient: any) => {
-        // Group by customer/company name
-        const customerKey = recipient.customerInfo?.name || recipient.name || 'Unknown Customer';
+        // Get actual customer data from database
+        const customerId = recipient.customerInfo?.id || recipient.clientId || recipient.id;
+        const customerData = allCustomers && allCustomers.length > 0 ? allCustomers.find((c: any) => c.id === customerId) : null;
+        
+        // Use customer name as key but store actual database IDs
+        const customerKey = recipient.customerInfo?.name || recipient.name || customerData?.name || 'Unknown Customer';
         
         if (!groups.has(customerKey)) {
+          // Find the partner attached to this customer
+          const partnerData = allPartners.find((p: any) => p.id === (recipient.partnerId || customerData?.partnerId));
+          
           groups.set(customerKey, {
-            id: customerKey,
+            id: customerId || customerKey, // Use actual customer ID
             name: customerKey,
+            databaseId: customerId, // Store actual database ID separately
             contacts: [],
-            defaultPartner: 'Mevas BV', // Default partner
+            defaultPartner: partnerData?.name || recipient.partnerName || null,
+            defaultPartnerId: partnerData?.id || recipient.partnerId || null,
             expanded: false,
             selected: false,
             attachedPartners: new Set(),
@@ -360,22 +378,32 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
           });
         }
         
-        // Add contact to customer group
-        const contactName = recipient.full_name || 
-                           `${recipient.first_name || ''} ${recipient.last_name || ''}`.trim() || 
-                           recipient.email || 
-                           'Contact';
-        
-        const contact = {
-          id: recipient.email || recipient.id || 'unknown',
-          name: contactName,
-          email: recipient.email || recipient.contactInfo?.email || '',
-          attachedPartner: recipient.partnerName || null,
-          isManualOverride: false,
-          attachmentSource: recipient.partnerName ? 'default' : null
-        };
-        
-        groups.get(customerKey).contacts.push(contact);
+        // Add contact to customer group with actual contact data
+        if (recipient.type === 'contact' || recipient.email || recipient.contactInfo?.email) {
+          const contactId = recipient.id || recipient.contactId;
+          const contactData = allContacts.find((c: any) => c.id === contactId);
+          
+          const contactName = recipient.full_name || 
+                             `${recipient.first_name || ''} ${recipient.last_name || ''}`.trim() || 
+                             contactData?.first_name && contactData?.last_name ? 
+                             `${contactData.first_name} ${contactData.last_name}` : 
+                             recipient.email || 
+                             'Contact';
+          
+          const contact = {
+            id: contactId || recipient.email || 'unknown',
+            databaseId: contactId, // Store actual database ID
+            name: contactName,
+            email: recipient.email || recipient.contactInfo?.email || contactData?.email || '',
+            customerId: customerId, // Link to actual customer
+            attachedPartner: recipient.partnerName || null,
+            attachedPartnerId: recipient.partnerId || null,
+            isManualOverride: false,
+            attachmentSource: recipient.partnerName ? 'default' : null
+          };
+          
+          groups.get(customerKey).contacts.push(contact);
+        }
         
         // Track attached partners
         if (recipient.partnerName) {
@@ -443,12 +471,66 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
     });
   };
 
-  // Handle partner attachment
+  // Mutation for updating partner attachments
+  const attachToPartnersMutation = useMutation({
+    mutationFn: async (attachmentData: {
+      campaignId: string;
+      customerAttachments: Array<{
+        customerId: string;
+        partnerId: number;
+        partnerName: string;
+      }>;
+      contactAttachments: Array<{
+        contactId: string;
+        customerId: string;
+        partnerId: number;
+        partnerName: string;
+      }>;
+    }) => {
+      const response = await fetch(`/api/degoudse/campaigns/${attachmentData.campaignId}/attachments`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(attachmentData)
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update partner attachments');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // Update the campaign data with new attachments
+      onAttachmentsChange(data.recipients);
+      
+      // Clear selections and close modal
+      setSelectedContacts([]);
+      setSelectedPartnersForAttachment([]);
+      setShowAttachmentModal(false);
+      
+      toast({
+        title: "Success",
+        description: "Partner attachments updated successfully!",
+        variant: "default"
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update partner attachments",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Handle partner attachment with proper database operations
   const handleAttachToPartners = async () => {
     if (selectedContacts.length === 0) {
       toast({
-        title: "No contacts selected",
-        description: "Please select at least one contact to attach.",
+        title: "No items selected",
+        description: "Please select at least one customer or contact to attach.",
         variant: "destructive"
       });
       return;
@@ -464,33 +546,53 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
     }
 
     try {
-      // Update recipients with partner attachments
-      const updatedRecipients = campaignData.recipients.map((recipient: any) => {
-        const contactKey = recipient.email || recipient.id || 'unknown';
+      // Separate customer and contact selections
+      const customerAttachments: any[] = [];
+      const contactAttachments: any[] = [];
+      
+      selectedContacts.forEach(selectedId => {
+        // Check if this is a customer selection
+        const customer = customerGroups.find(group => 
+          group.id.toString() === selectedId || group.databaseId?.toString() === selectedId
+        );
         
-        if (selectedContacts.includes(contactKey.toString())) {
-          // Assign the first selected partner (for demo purposes)
+        if (customer && customer.databaseId) {
+          // Assign the first selected partner (could be randomized for multiple partners)
           const assignedPartner = allPartners.find((p: any) => p.id === selectedPartnersForAttachment[0]);
-          return {
-            ...recipient,
+          
+          customerAttachments.push({
+            customerId: customer.databaseId.toString(),
             partnerId: assignedPartner.id,
-            partnerName: assignedPartner.name,
-            assigned_partner_id: assignedPartner.id,
-            partnerInfo: assignedPartner
-          };
+            partnerName: assignedPartner.name
+          });
+        } else {
+          // Check if this is a contact selection
+          customerGroups.forEach(group => {
+            const contact = group.contacts.find(c => 
+              c.id.toString() === selectedId || c.databaseId?.toString() === selectedId
+            );
+            
+            if (contact && contact.databaseId) {
+              const assignedPartner = allPartners.find((p: any) => p.id === selectedPartnersForAttachment[0]);
+              
+              contactAttachments.push({
+                contactId: contact.databaseId.toString(),
+                customerId: group.databaseId?.toString() || group.id.toString(),
+                partnerId: assignedPartner.id,
+                partnerName: assignedPartner.name
+              });
+            }
+          });
         }
-        return recipient;
       });
-
-      onAttachmentsChange(updatedRecipients);
-      setShowAttachmentModal(false);
-      setSelectedContacts([]);
-      setSelectedPartnersForAttachment([]);
-
-      toast({
-        title: "Attachment successful",
-        description: `${selectedContacts.length} contact(s) attached to ${selectedPartnersForAttachment.length} partner(s).`
+      
+      // Execute the attachment mutation
+      await attachToPartnersMutation.mutateAsync({
+        campaignId: campaignData.id.toString(),
+        customerAttachments,
+        contactAttachments
       });
+      
     } catch (error) {
       toast({
         title: "Attachment failed",
