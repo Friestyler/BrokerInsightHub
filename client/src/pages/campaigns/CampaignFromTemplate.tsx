@@ -1079,7 +1079,16 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
               <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                 <h4 className="font-medium text-blue-900 mb-2">Current Assignment</h4>
                 <div className="text-sm text-blue-800">
-                  <p><strong>Type:</strong> {editingAttachment.type === 'customer' ? 'Customer' : 'Contact'}</p>
+                  <p><strong>Selected:</strong> {(() => {
+                    if (editingAttachment.type === 'customer') {
+                      const customer = customerGroups.find(g => g.id.toString() === editingAttachment.customerId || g.databaseId?.toString() === editingAttachment.customerId);
+                      return customer ? customer.name : 'Customer';
+                    } else {
+                      const customer = customerGroups.find(g => g.id.toString() === editingAttachment.customerId || g.databaseId?.toString() === editingAttachment.customerId);
+                      const contact = customer?.contacts.find(c => c.id.toString() === editingAttachment.contactId || c.databaseId?.toString() === editingAttachment.contactId);
+                      return contact ? `${contact.first_name} ${contact.last_name}` : 'Contact';
+                    }
+                  })()}</p>
                   <p><strong>Current Partner:</strong> {editingAttachment.currentPartnerName || 'None'}</p>
                 </div>
               </div>
@@ -1090,7 +1099,25 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
               <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                 <h4 className="font-medium text-green-900 mb-2">Selected Items</h4>
                 <div className="text-sm text-green-800">
-                  <p>{selectedContacts.length} customer(s) and contact(s) selected for attachment</p>
+                  <p><strong>Selected:</strong> {(() => {
+                    if (selectedContacts.length === 1) {
+                      // Find the contact name
+                      const contactId = selectedContacts[0];
+                      for (const customerGroup of customerGroups) {
+                        const contact = customerGroup.contacts.find(c => 
+                          c.id.toString() === contactId || 
+                          c.databaseId?.toString() === contactId ||
+                          `${customerGroup.id}-${c.id}` === contactId ||
+                          `${customerGroup.databaseId}-${c.id}` === contactId
+                        );
+                        if (contact) {
+                          return `${contact.first_name} ${contact.last_name}`;
+                        }
+                      }
+                      return '1 contact';
+                    }
+                    return `${selectedContacts.length} contacts`;
+                  })()}</p>
                 </div>
               </div>
             )}
@@ -1203,7 +1230,14 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                                   {list.name}
                                 </label>
                                 <p className="text-xs text-gray-500">
-                                  {list.partner_count || 0} partners • {list.description || 'No description'}
+                                  {(() => {
+                                    const partnerIds = Array.isArray(list.members) 
+                                      ? list.members 
+                                      : (Array.isArray(list.partner_ids) 
+                                        ? list.partner_ids 
+                                        : JSON.parse(list.partner_ids || '[]'));
+                                    return partnerIds.length;
+                                  })()} partners • {list.description || 'No description'}
                                 </p>
                               </div>
                             </div>
@@ -1233,9 +1267,11 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                               <div className="text-xs font-medium text-gray-700 mb-2">Partners in this list:</div>
                               <div className="space-y-1">
                                 {(() => {
-                                  const partnerIds = Array.isArray(list.partner_ids) 
-                                    ? list.partner_ids 
-                                    : JSON.parse(list.partner_ids || '[]');
+                                  const partnerIds = Array.isArray(list.members) 
+                                    ? list.members 
+                                    : (Array.isArray(list.partner_ids) 
+                                      ? list.partner_ids 
+                                      : JSON.parse(list.partner_ids || '[]'));
                                   
                                   return partnerIds.map((partnerId: number) => {
                                     const partner = allPartners.find((p: any) => p.id === partnerId);
@@ -1298,10 +1334,12 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                 // Add partners from selected lists
                 selectedPartnerLists.forEach(listId => {
                   const partnerList = savedPartnerLists.find(list => list.id === listId);
-                  if (partnerList && partnerList.partner_ids) {
-                    const listPartnerIds = Array.isArray(partnerList.partner_ids) 
-                      ? partnerList.partner_ids 
-                      : JSON.parse(partnerList.partner_ids || '[]');
+                  if (partnerList) {
+                    const listPartnerIds = Array.isArray(partnerList.members) 
+                      ? partnerList.members 
+                      : (Array.isArray(partnerList.partner_ids) 
+                        ? partnerList.partner_ids 
+                        : JSON.parse(partnerList.partner_ids || '[]'));
                     totalPartners += listPartnerIds.length;
                   }
                 });
@@ -1311,10 +1349,12 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                   ...selectedPartnersForAttachment,
                   ...selectedPartnerLists.flatMap(listId => {
                     const partnerList = savedPartnerLists.find(list => list.id === listId);
-                    if (partnerList && partnerList.partner_ids) {
-                      const listPartnerIds = Array.isArray(partnerList.partner_ids) 
-                        ? partnerList.partner_ids 
-                        : JSON.parse(partnerList.partner_ids || '[]');
+                    if (partnerList) {
+                      const listPartnerIds = Array.isArray(partnerList.members) 
+                        ? partnerList.members 
+                        : (Array.isArray(partnerList.partner_ids) 
+                          ? partnerList.partner_ids 
+                          : JSON.parse(partnerList.partner_ids || '[]'));
                       return listPartnerIds;
                     }
                     return [];
