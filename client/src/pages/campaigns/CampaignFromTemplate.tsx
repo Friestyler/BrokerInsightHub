@@ -501,30 +501,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
     <div className="space-y-6">
 
 
-      {/* Select All and Attach Button */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <Checkbox
-            id="select-all"
-            checked={selectedContacts.length === customerGroups.length}
-            onCheckedChange={selectedContacts.length === customerGroups.length ? handleClearSelection : handleSelectAll}
-          />
-          <label htmlFor="select-all" className="text-sm font-medium text-gray-700">
-            Select All ({customerGroups.length})
-          </label>
-        </div>
-        
-        {selectedContacts.length > 0 && (
-          <Button
-            onClick={() => setShowAttachmentModal(true)}
-            size="sm"
-            className="gap-2"
-          >
-            <Users className="h-4 w-4" />
-            Attach to Partners ({selectedContacts.length})
-          </Button>
-        )}
-      </div>
+
 
       {/* Status Summary Cards */}
       <div className="grid grid-cols-3 gap-4 mb-6">
@@ -587,6 +564,31 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         </button>
       </div>
 
+      {/* Select All and Attach Button */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="select-all"
+            checked={selectedContacts.length === customerGroups.length}
+            onCheckedChange={selectedContacts.length === customerGroups.length ? handleClearSelection : handleSelectAll}
+          />
+          <label htmlFor="select-all" className="text-sm font-medium text-gray-700">
+            Select All ({customerGroups.length})
+          </label>
+        </div>
+        
+        {selectedContacts.length > 0 && (
+          <Button
+            onClick={() => setShowAttachmentModal(true)}
+            size="sm"
+            className="gap-2"
+          >
+            <Users className="h-4 w-4" />
+            Attach to Partners ({selectedContacts.length})
+          </Button>
+        )}
+      </div>
+
       {/* Customer List */}
       <div className="bg-white rounded-lg border">
         
@@ -598,14 +600,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
               return true; // 'all' case
             });
             
-            if (filteredCustomers.length === 0) {
-              return (
-                <div className="text-center py-8 text-gray-500">
-                  <Building className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                  <p>No customers match the selected filter</p>
-                </div>
-              );
-            }
+
             
             return filteredCustomers.map((customer) => (
             <div key={customer.id} className="p-4">
