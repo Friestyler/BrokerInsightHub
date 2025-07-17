@@ -4285,7 +4285,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                   // Change campaign status to assigned
                   assignCampaignMutation.mutate({ campaignId: campaignData.id });
                 }} 
-                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 text-sm font-medium relative z-50 cursor-pointer"
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 text-sm font-medium relative z-50 cursor-pointer"
                 disabled={!campaignData.id || assignCampaignMutation.isPending}
                 style={{ pointerEvents: 'auto' }}
               >
