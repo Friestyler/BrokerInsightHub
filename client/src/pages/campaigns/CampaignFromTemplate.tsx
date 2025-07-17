@@ -411,10 +411,13 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
     );
   };
 
-  // Handle select all customers
+  // Handle select all customers and contacts
   const handleSelectAll = () => {
     const allCustomerIds = customerGroups.map(group => group.id.toString());
-    setSelectedContacts(allCustomerIds);
+    const allContactIds = customerGroups.flatMap(group => 
+      group.contacts.map(contact => contact.id.toString())
+    );
+    setSelectedContacts([...allCustomerIds, ...allContactIds]);
   };
 
   // Handle clear selection
@@ -569,11 +572,11 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         <div className="flex items-center gap-2">
           <Checkbox
             id="select-all"
-            checked={selectedContacts.length === customerGroups.length}
-            onCheckedChange={selectedContacts.length === customerGroups.length ? handleClearSelection : handleSelectAll}
+            checked={selectedContacts.length === (customerGroups.length + customerGroups.reduce((sum, group) => sum + group.contacts.length, 0))}
+            onCheckedChange={selectedContacts.length === (customerGroups.length + customerGroups.reduce((sum, group) => sum + group.contacts.length, 0)) ? handleClearSelection : handleSelectAll}
           />
           <label htmlFor="select-all" className="text-sm font-medium text-gray-700">
-            Select All ({customerGroups.length})
+            Select All ({customerGroups.length + customerGroups.reduce((sum, group) => sum + group.contacts.length, 0)})
           </label>
         </div>
         
@@ -607,6 +610,16 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
               {/* Customer Header Row */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
+                  <Checkbox
+                    checked={selectedContacts.includes(customer.id)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedContacts([...selectedContacts, customer.id]);
+                      } else {
+                        setSelectedContacts(selectedContacts.filter(id => id !== customer.id));
+                      }
+                    }}
+                  />
                   <button
                     onClick={() => handleCustomerExpand(customer.id)}
                     className="flex items-center gap-2 text-left"
@@ -658,6 +671,16 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                   {customer.contacts.map((contact) => (
                     <div key={contact.id} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
+                        <Checkbox
+                          checked={selectedContacts.includes(contact.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedContacts([...selectedContacts, contact.id]);
+                            } else {
+                              setSelectedContacts(selectedContacts.filter(id => id !== contact.id));
+                            }
+                          }}
+                        />
                         <User className="h-4 w-4 text-gray-500" />
                         <div>
                           <p className="font-medium text-gray-900">{contact.name}</p>
