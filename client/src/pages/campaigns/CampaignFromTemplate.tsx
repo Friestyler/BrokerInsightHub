@@ -330,6 +330,13 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
   const [attachmentType, setAttachmentType] = useState<'individual' | 'list'>('individual');
   const [filterStatus, setFilterStatus] = useState<'all' | 'attached' | 'unattached'>('all');
   const [viewMode, setViewMode] = useState<'contacts' | 'partners'>('contacts');
+  const { toast } = useToast();
+  
+  // Fetch all partners for selection
+  const { data: allPartners = [] } = useQuery({
+    queryKey: ['/api/partners'],
+    enabled: showAttachmentModal
+  });
   
   // Mock data for contact and partner attachment
   // Group recipients by contact to show contact-centric view
