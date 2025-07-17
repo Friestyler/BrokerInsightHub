@@ -4285,9 +4285,19 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                   // Change campaign status to assigned
                   assignCampaignMutation.mutate({ campaignId: campaignData.id });
                 }} 
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 text-sm font-medium relative z-50 cursor-pointer"
+                className="text-white px-6 py-2 text-sm font-medium relative z-50 cursor-pointer hover:opacity-90"
                 disabled={!campaignData.id || assignCampaignMutation.isPending}
-                style={{ pointerEvents: 'auto' }}
+                style={{ 
+                  pointerEvents: 'auto',
+                  backgroundColor: '#10b981',
+                  borderColor: '#10b981'
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = '#059669';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = '#10b981';
+                }}
               >
                 {assignCampaignMutation.isPending ? 'Assigning...' : 'Assign to partners'}
               </Button>
