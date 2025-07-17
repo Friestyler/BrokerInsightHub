@@ -4122,11 +4122,14 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               />
               
               {/* Green "Assign to partners" button */}
-              <div className="mt-8 flex justify-center">
+              <div className="mt-8 flex justify-center bg-red-100 p-4 border-2 border-red-500">
                 <Button 
                   onClick={() => {
+                    console.log('Button clicked - campaignData.id:', campaignData.id);
                     if (campaignData.id) {
                       assignCampaignMutation.mutate({ campaignId: campaignData.id });
+                    } else {
+                      console.log('No campaign ID available');
                     }
                   }} 
                   className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg font-medium"
