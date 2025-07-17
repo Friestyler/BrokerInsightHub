@@ -1123,19 +1123,22 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                 <h4 className="font-medium text-green-900 mb-2">Selected Items</h4>
                 <div className="text-sm text-green-800">
                   <p><strong>Selected:</strong> {(() => {
-                    if (selectedContacts.length === 1) {
-                      const contactId = selectedContacts[0];
-                      
+                    // Count actual contacts (not customers)
+                    let actualContacts = [];
+                    
+                    for (const contactId of selectedContacts) {
                       // Check if it's a customer selection first
                       const customer = customerGroups.find(g => 
                         g.id.toString() === contactId || 
                         g.databaseId?.toString() === contactId
                       );
                       if (customer) {
-                        return customer.name;
+                        // Add all contacts from this customer
+                        actualContacts.push(...customer.contacts);
+                        continue;
                       }
                       
-                      // Then check for contact selection
+                      // Then check for individual contact selection
                       for (const customerGroup of customerGroups) {
                         const contact = customerGroup.contacts.find(c => 
                           c.id.toString() === contactId || 
@@ -1144,39 +1147,35 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                           `${customerGroup.databaseId}-${c.databaseId}` === contactId
                         );
                         if (contact) {
-                          return contact.name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || 'Contact';
+                          actualContacts.push(contact);
+                          break;
                         }
                       }
-                      return '1 contact';
-                    } else if (selectedContacts.length > 1) {
-                      const contactNames = [];
-                      for (const contactId of selectedContacts) {
-                        // Check if it's a customer selection first
-                        const customer = customerGroups.find(g => 
-                          g.id.toString() === contactId || 
-                          g.databaseId?.toString() === contactId
-                        );
-                        if (customer) {
-                          contactNames.push(customer.name);
-                          continue;
-                        }
-                        
-                        // Then check for contact selection
-                        for (const customerGroup of customerGroups) {
-                          const contact = customerGroup.contacts.find(c => 
-                            c.id.toString() === contactId || 
-                            c.databaseId?.toString() === contactId ||
-                            `${customerGroup.id}-${c.id}` === contactId ||
-                            `${customerGroup.databaseId}-${c.databaseId}` === contactId
-                          );
-                          if (contact) {
-                            contactNames.push(contact.name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || 'Contact');
-                            break;
-                          }
-                        }
-                      }
-                      return contactNames.length > 0 ? contactNames.join(', ') : `${selectedContacts.length} contacts`;
                     }
+                    
+                    // Remove duplicates based on contact ID
+                    const uniqueContacts = actualContacts.filter((contact, index, self) => 
+                      index === self.findIndex(c => c.id === contact.id || c.databaseId === contact.databaseId)
+                    );
+                    
+                    const contactCount = uniqueContacts.length;
+                    
+                    if (contactCount === 1) {
+                      const contact = uniqueContacts[0];
+                      return contact.name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || 'Contact';
+                    } else if (contactCount > 1) {
+                      if (contactCount <= 3) {
+                        // Show names for small lists
+                        const names = uniqueContacts.map(contact => 
+                          contact.name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || 'Contact'
+                        );
+                        return names.join(', ');
+                      } else {
+                        // Just show count for larger lists
+                        return `${contactCount} contacts`;
+                      }
+                    }
+                    
                     return '0 contacts';
                   })()}</p>
                 </div>
