@@ -824,7 +824,23 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
             className="gap-2"
           >
             <Users className="h-4 w-4" />
-            Attach to Partners ({selectedContacts.length})
+            Attach to Partners ({(() => {
+              // Count actual contacts selected
+              let contactCount = 0;
+              selectedContacts.forEach(selectedId => {
+                // Find the contact in customer groups
+                customerGroups.forEach(group => {
+                  const contact = group.contacts.find(c => 
+                    c.databaseId?.toString() === selectedId.toString() || 
+                    c.id?.toString() === selectedId.toString()
+                  );
+                  if (contact) {
+                    contactCount++;
+                  }
+                });
+              });
+              return contactCount;
+            })()})
           </Button>
         )}
       </div>
@@ -848,12 +864,29 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Checkbox
-                    checked={selectedContacts.includes(customer.id)}
+                    checked={(() => {
+                      // Check if all contacts for this customer are selected
+                      const customerContactIds = customer.contacts.map(contact => 
+                        contact.databaseId || contact.id
+                      );
+                      return customerContactIds.length > 0 && 
+                             customerContactIds.every(id => selectedContacts.includes(id));
+                    })()}
                     onCheckedChange={(checked) => {
                       if (checked) {
-                        setSelectedContacts([...selectedContacts, customer.id]);
+                        // When selecting a customer, automatically select all their contacts
+                        const customerContactIds = customer.contacts.map(contact => 
+                          contact.databaseId || contact.id
+                        );
+                        setSelectedContacts([...selectedContacts, ...customerContactIds]);
                       } else {
-                        setSelectedContacts(selectedContacts.filter(id => id !== customer.id));
+                        // When deselecting a customer, remove all their contacts
+                        const customerContactIds = customer.contacts.map(contact => 
+                          contact.databaseId || contact.id
+                        );
+                        setSelectedContacts(selectedContacts.filter(id => 
+                          !customerContactIds.includes(id)
+                        ));
                       }
                     }}
                   />
