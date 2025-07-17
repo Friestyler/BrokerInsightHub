@@ -1086,13 +1086,47 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                 <h4 className="font-medium text-blue-900 mb-2">Current Assignment</h4>
                 <div className="text-sm text-blue-800">
                   <p><strong>Selected:</strong> {(() => {
+                    console.log('Edit attachment debug:', { 
+                      editingAttachment, 
+                      customerGroups: customerGroups.map(g => ({ 
+                        id: g.id, 
+                        databaseId: g.databaseId, 
+                        name: g.name, 
+                        contacts: g.contacts.map(c => ({ 
+                          id: c.id, 
+                          databaseId: c.databaseId, 
+                          name: c.name, 
+                          first_name: c.first_name, 
+                          last_name: c.last_name 
+                        })) 
+                      })) 
+                    });
+                    
                     if (editingAttachment.type === 'customer') {
-                      const customer = customerGroups.find(g => g.id.toString() === editingAttachment.customerId || g.databaseId?.toString() === editingAttachment.customerId);
+                      const customer = customerGroups.find(g => 
+                        g.id.toString() === editingAttachment.customerId || 
+                        g.databaseId?.toString() === editingAttachment.customerId
+                      );
                       return customer ? customer.name : 'Customer';
                     } else {
-                      const customer = customerGroups.find(g => g.id.toString() === editingAttachment.customerId || g.databaseId?.toString() === editingAttachment.customerId);
-                      const contact = customer?.contacts.find(c => c.id.toString() === editingAttachment.contactId || c.databaseId?.toString() === editingAttachment.contactId);
-                      return contact ? `${contact.first_name} ${contact.last_name}` : 'Contact';
+                      const customer = customerGroups.find(g => 
+                        g.id.toString() === editingAttachment.customerId || 
+                        g.databaseId?.toString() === editingAttachment.customerId
+                      );
+                      
+                      if (customer) {
+                        const contact = customer.contacts.find(c => 
+                          c.id.toString() === editingAttachment.contactId || 
+                          c.databaseId?.toString() === editingAttachment.contactId ||
+                          c.name === editingAttachment.contactId // Try name match as fallback
+                        );
+                        
+                        if (contact) {
+                          return contact.name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || 'Contact';
+                        }
+                      }
+                      
+                      return 'Contact';
                     }
                   })()}</p>
                   <p><strong>Current Partner:</strong> {editingAttachment.currentPartnerName || 'None'}</p>
