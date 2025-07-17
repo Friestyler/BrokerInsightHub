@@ -379,27 +379,27 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         }
         
         // Add contact to customer group with actual contact data
-        if (recipient.type === 'contact' || recipient.email || recipient.contactInfo?.email) {
+        if (recipient && (recipient.type === 'contact' || recipient.email || recipient.contactInfo?.email)) {
           const contactId = recipient.id || recipient.contactId;
           const contactData = allContacts.find((c: any) => c.id === contactId);
           
-          const contactName = recipient.full_name || 
-                             `${recipient.first_name || ''} ${recipient.last_name || ''}`.trim() || 
-                             contactData?.first_name && contactData?.last_name ? 
+          const contactName = recipient?.full_name || 
+                             `${recipient?.first_name || ''} ${recipient?.last_name || ''}`.trim() || 
+                             (contactData?.first_name && contactData?.last_name ? 
                              `${contactData.first_name} ${contactData.last_name}` : 
-                             recipient.email || 
-                             'Contact';
+                             recipient?.email || 
+                             'Contact');
           
           const contact = {
-            id: contactId || recipient.email || 'unknown',
+            id: contactId || recipient?.email || 'unknown',
             databaseId: contactId, // Store actual database ID
             name: contactName,
-            email: recipient.email || recipient.contactInfo?.email || contactData?.email || '',
+            email: recipient?.email || recipient?.contactInfo?.email || contactData?.email || '',
             customerId: customerId, // Link to actual customer
-            attachedPartner: recipient.partnerName || null,
-            attachedPartnerId: recipient.partnerId || null,
+            attachedPartner: recipient?.partnerName || null,
+            attachedPartnerId: recipient?.partnerId || null,
             isManualOverride: false,
-            attachmentSource: recipient.partnerName ? 'default' : null
+            attachmentSource: recipient?.partnerName ? 'default' : null
           };
           
           groups.get(customerKey).contacts.push(contact);
