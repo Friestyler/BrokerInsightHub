@@ -1107,22 +1107,60 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                 <div className="text-sm text-green-800">
                   <p><strong>Selected:</strong> {(() => {
                     if (selectedContacts.length === 1) {
-                      // Find the contact name
                       const contactId = selectedContacts[0];
+                      
+                      // Check if it's a customer selection first
+                      const customer = customerGroups.find(g => 
+                        g.id.toString() === contactId || 
+                        g.databaseId?.toString() === contactId
+                      );
+                      if (customer) {
+                        return customer.name;
+                      }
+                      
+                      // Then check for contact selection
                       for (const customerGroup of customerGroups) {
                         const contact = customerGroup.contacts.find(c => 
                           c.id.toString() === contactId || 
                           c.databaseId?.toString() === contactId ||
                           `${customerGroup.id}-${c.id}` === contactId ||
-                          `${customerGroup.databaseId}-${c.id}` === contactId
+                          `${customerGroup.databaseId}-${c.databaseId}` === contactId
                         );
                         if (contact) {
                           return `${contact.first_name} ${contact.last_name}`;
                         }
                       }
                       return '1 contact';
+                    } else if (selectedContacts.length > 1) {
+                      const contactNames = [];
+                      for (const contactId of selectedContacts) {
+                        // Check if it's a customer selection first
+                        const customer = customerGroups.find(g => 
+                          g.id.toString() === contactId || 
+                          g.databaseId?.toString() === contactId
+                        );
+                        if (customer) {
+                          contactNames.push(customer.name);
+                          continue;
+                        }
+                        
+                        // Then check for contact selection
+                        for (const customerGroup of customerGroups) {
+                          const contact = customerGroup.contacts.find(c => 
+                            c.id.toString() === contactId || 
+                            c.databaseId?.toString() === contactId ||
+                            `${customerGroup.id}-${c.id}` === contactId ||
+                            `${customerGroup.databaseId}-${c.databaseId}` === contactId
+                          );
+                          if (contact) {
+                            contactNames.push(`${contact.first_name} ${contact.last_name}`);
+                            break;
+                          }
+                        }
+                      }
+                      return contactNames.length > 0 ? contactNames.join(', ') : `${selectedContacts.length} contacts`;
                     }
-                    return `${selectedContacts.length} contacts`;
+                    return '0 contacts';
                   })()}</p>
                 </div>
               </div>
