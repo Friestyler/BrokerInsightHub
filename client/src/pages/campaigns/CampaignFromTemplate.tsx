@@ -713,11 +713,6 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
       {/* Unattached Partners Section (shown only when filter is 'unattached') */}
       {attachmentFilter === 'unattached' && (
         <div className="bg-white rounded-lg border mt-6">
-          <div className="p-4 border-b">
-            <h3 className="text-lg font-semibold text-gray-900">Unattached Partners</h3>
-            <p className="text-sm text-gray-500 mt-1">Partners available for attachment</p>
-          </div>
-          
           <div className="divide-y">
             {allPartners.filter((partner: any) => 
               !customerGroups.some(customer => 
