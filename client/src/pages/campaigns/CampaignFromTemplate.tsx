@@ -6,6 +6,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Edit, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Share, DollarSign, Home, Car, Umbrella, Building, UserCheck, TrendingDown, Plane, Search, User, AlertCircle, Upload, Calendar, Clock, ChevronDown, ChevronRight, AlertTriangle } from "lucide-react";
 import { useLocation, useRoute, useParams } from 'wouter';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
@@ -337,6 +338,9 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
     currentPartnerName?: string;
     type: 'customer' | 'contact';
   } | null>(null);
+  const [partnerSelectionTab, setPartnerSelectionTab] = useState<'individual' | 'lists'>('individual');
+  const [selectedPartnerLists, setSelectedPartnerLists] = useState<number[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
   
   // Fetch all partners for selection and attachment operations
@@ -352,6 +356,12 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
   // Fetch all contacts for proper contact data
   const { data: allContacts = [] } = useQuery({
     queryKey: ['/api/contacts']
+  });
+  
+  // Fetch saved partner lists
+  const { data: savedPartnerLists = [] } = useQuery({
+    queryKey: ['/api/saved-lists'],
+    select: (data) => data.filter((list: any) => list.entity_type === 'partners')
   });
   
   // Group recipients by customer using actual database data
@@ -477,6 +487,9 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
   const resetModalState = () => {
     setEditingAttachment(null);
     setSelectedPartnersForAttachment([]);
+    setSelectedPartnerLists([]);
+    setPartnerSelectionTab('individual');
+    setSearchTerm('');
     setShowAttachmentModal(false);
   };
 
@@ -612,16 +625,43 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         return;
       }
 
-      if (selectedPartnersForAttachment.length === 0) {
+      if (selectedPartnersForAttachment.length === 0 && selectedPartnerLists.length === 0) {
         toast({
           title: "No partners selected",
-          description: "Please select at least one partner for attachment.",
+          description: "Please select at least one partner or partner list for attachment.",
           variant: "destructive"
         });
         return;
       }
 
       try {
+        // Collect all partner IDs from individual selections and partner lists
+        let allPartnerIds: number[] = [...selectedPartnersForAttachment];
+        
+        // Add partners from selected lists
+        for (const listId of selectedPartnerLists) {
+          const partnerList = savedPartnerLists.find(list => list.id === listId);
+          if (partnerList && partnerList.partner_ids) {
+            // Parse partner IDs from the list
+            const listPartnerIds = Array.isArray(partnerList.partner_ids) 
+              ? partnerList.partner_ids 
+              : JSON.parse(partnerList.partner_ids || '[]');
+            allPartnerIds = [...allPartnerIds, ...listPartnerIds];
+          }
+        }
+        
+        // Remove duplicates
+        allPartnerIds = [...new Set(allPartnerIds)];
+        
+        if (allPartnerIds.length === 0) {
+          toast({
+            title: "No partners found",
+            description: "No partners could be resolved from your selection.",
+            variant: "destructive"
+          });
+          return;
+        }
+        
         // Separate customer and contact selections
         const customerAttachments: any[] = [];
         const contactAttachments: any[] = [];
@@ -633,14 +673,18 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
           );
           
           if (customer && customer.databaseId) {
-            // Assign the first selected partner (could be randomized for multiple partners)
-            const assignedPartner = allPartners.find((p: any) => p.id === selectedPartnersForAttachment[0]);
+            // Randomly assign one of the available partners (or distribute evenly)
+            const randomPartnerIndex = Math.floor(Math.random() * allPartnerIds.length);
+            const assignedPartnerId = allPartnerIds[randomPartnerIndex];
+            const assignedPartner = allPartners.find((p: any) => p.id === assignedPartnerId);
             
-            customerAttachments.push({
-              customerId: customer.databaseId.toString(),
-              partnerId: assignedPartner.id,
-              partnerName: assignedPartner.name
-            });
+            if (assignedPartner) {
+              customerAttachments.push({
+                customerId: customer.databaseId.toString(),
+                partnerId: assignedPartner.id,
+                partnerName: assignedPartner.name
+              });
+            }
           } else {
             // Check if this is a contact selection
             customerGroups.forEach(group => {
@@ -649,14 +693,19 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
               );
               
               if (contact && contact.databaseId) {
-                const assignedPartner = allPartners.find((p: any) => p.id === selectedPartnersForAttachment[0]);
+                // Randomly assign one of the available partners (or distribute evenly)
+                const randomPartnerIndex = Math.floor(Math.random() * allPartnerIds.length);
+                const assignedPartnerId = allPartnerIds[randomPartnerIndex];
+                const assignedPartner = allPartners.find((p: any) => p.id === assignedPartnerId);
                 
-                contactAttachments.push({
-                  contactId: contact.databaseId.toString(),
-                  customerId: group.databaseId?.toString() || group.id.toString(),
-                  partnerId: assignedPartner.id,
-                  partnerName: assignedPartner.name
-                });
+                if (assignedPartner) {
+                  contactAttachments.push({
+                    contactId: contact.databaseId.toString(),
+                    customerId: group.databaseId?.toString() || group.id.toString(),
+                    partnerId: assignedPartner.id,
+                    partnerName: assignedPartner.name
+                  });
+                }
               }
             });
           }
@@ -1044,69 +1093,149 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
               </div>
             )}
 
-            {/* Partner Selection */}
+            {/* Partner Selection with Tabs */}
             <div>
               <h4 className="font-medium text-gray-900 mb-3">
                 {editingAttachment ? 'Select New Partner' : 'Select Partners'}
               </h4>
               
-              {/* Search Bar */}
-              <div className="mb-4">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <input
-                    type="text"
-                    placeholder="Search partners..."
-                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    onChange={(e) => {
-                      // TODO: Implement search functionality
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Partners List */}
-              <div className="max-h-64 overflow-y-auto border rounded-lg">
-                {allPartners.map((partner: any) => (
-                  <div key={partner.id} className="flex items-center gap-3 p-3 hover:bg-gray-50 border-b last:border-b-0">
-                    <Checkbox
-                      id={`partner-${partner.id}`}
-                      checked={selectedPartnersForAttachment.includes(partner.id)}
-                      onCheckedChange={(checked) => {
-                        if (editingAttachment) {
-                          // In edit mode, only allow one partner selection
-                          setSelectedPartnersForAttachment(checked ? [partner.id] : []);
-                        } else {
-                          // In new attachment mode, allow multiple selections
-                          if (checked) {
-                            setSelectedPartnersForAttachment([...selectedPartnersForAttachment, partner.id]);
-                          } else {
-                            setSelectedPartnersForAttachment(selectedPartnersForAttachment.filter(id => id !== partner.id));
-                          }
-                        }
-                      }}
+              <Tabs 
+                value={partnerSelectionTab} 
+                onValueChange={(value) => setPartnerSelectionTab(value as 'individual' | 'lists')}
+                className="w-full"
+              >
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="individual">Individual Partners</TabsTrigger>
+                  <TabsTrigger value="lists">Partner Lists</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="individual" className="space-y-4">
+                  {/* Search Bar */}
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                    <input
+                      type="text"
+                      placeholder="Search partners..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                      className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                     />
-                    <div className="flex items-center gap-3 flex-1">
-                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
-                        <Users className="h-5 w-5 text-gray-500" />
+                  </div>
+
+                  {/* Partners List */}
+                  <div className="max-h-64 overflow-y-auto border rounded-lg">
+                    {allPartners
+                      .filter((partner: any) => 
+                        partner.name.toLowerCase().includes(searchTerm.toLowerCase())
+                      )
+                      .map((partner: any) => (
+                        <div key={partner.id} className="flex items-center gap-3 p-3 hover:bg-gray-50 border-b last:border-b-0">
+                          <Checkbox
+                            id={`partner-${partner.id}`}
+                            checked={selectedPartnersForAttachment.includes(partner.id)}
+                            onCheckedChange={(checked) => {
+                              if (editingAttachment) {
+                                // In edit mode, only allow one partner selection
+                                setSelectedPartnersForAttachment(checked ? [partner.id] : []);
+                              } else {
+                                // In new attachment mode, allow multiple selections
+                                if (checked) {
+                                  setSelectedPartnersForAttachment([...selectedPartnersForAttachment, partner.id]);
+                                } else {
+                                  setSelectedPartnersForAttachment(selectedPartnersForAttachment.filter(id => id !== partner.id));
+                                }
+                              }
+                            }}
+                          />
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                              <Users className="h-5 w-5 text-gray-500" />
+                            </div>
+                            <div>
+                              <label htmlFor={`partner-${partner.id}`} className="text-sm font-medium text-gray-900 cursor-pointer">
+                                {partner.name}
+                              </label>
+                              <p className="text-xs text-gray-500">
+                                {partner.customer_count || 0} customers • {partner.opportunity_count || 0} opportunities
+                              </p>
+                            </div>
+                          </div>
+                          {editingAttachment && partner.id === editingAttachment.currentPartnerId && (
+                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                              Current
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                  </div>
+                </TabsContent>
+                
+                <TabsContent value="lists" className="space-y-4">
+                  <div className="text-sm text-gray-600 mb-4">
+                    Select from saved partner lists to attach multiple partners at once.
+                  </div>
+                  
+                  {/* Partner Lists */}
+                  <div className="max-h-64 overflow-y-auto border rounded-lg">
+                    {savedPartnerLists.length > 0 ? (
+                      savedPartnerLists.map((list: any) => (
+                        <div key={list.id} className="flex items-center gap-3 p-3 hover:bg-gray-50 border-b last:border-b-0">
+                          <Checkbox
+                            id={`list-${list.id}`}
+                            checked={selectedPartnerLists.includes(list.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedPartnerLists([...selectedPartnerLists, list.id]);
+                              } else {
+                                setSelectedPartnerLists(selectedPartnerLists.filter(id => id !== list.id));
+                              }
+                            }}
+                          />
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                              <Users className="h-5 w-5 text-purple-600" />
+                            </div>
+                            <div>
+                              <label htmlFor={`list-${list.id}`} className="text-sm font-medium text-gray-900 cursor-pointer">
+                                {list.name}
+                              </label>
+                              <p className="text-xs text-gray-500">
+                                {list.partner_count || 0} partners • {list.description || 'No description'}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                        <p>No saved partner lists found</p>
+                        <p className="text-xs mt-2">Create partner lists from the Partners page to use them here.</p>
                       </div>
-                      <div>
-                        <label htmlFor={`partner-${partner.id}`} className="text-sm font-medium text-gray-900 cursor-pointer">
-                          {partner.name}
-                        </label>
-                        <p className="text-xs text-gray-500">
-                          {partner.customer_count || 0} customers • {partner.opportunity_count || 0} opportunities
-                        </p>
-                      </div>
-                    </div>
-                    {editingAttachment && partner.id === editingAttachment.currentPartnerId && (
-                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                        Current
-                      </span>
                     )}
                   </div>
-                ))}
-              </div>
+                  
+                  {/* Select All / Clear All buttons for lists */}
+                  {savedPartnerLists.length > 0 && (
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedPartnerLists(savedPartnerLists.map((list: any) => list.id))}
+                      >
+                        Select All Lists
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setSelectedPartnerLists([])}
+                      >
+                        Clear Selection
+                      </Button>
+                    </div>
+                  )}
+                </TabsContent>
+              </Tabs>
             </div>
 
             {/* Attachment Options (New Mode) */}
@@ -1144,7 +1273,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
             </Button>
             <Button 
               onClick={handleAttachToPartners} 
-              disabled={selectedPartnersForAttachment.length === 0}
+              disabled={selectedPartnersForAttachment.length === 0 && selectedPartnerLists.length === 0}
             >
               {editingAttachment ? 'Update Assignment' : 'Attach to Partners'}
             </Button>
