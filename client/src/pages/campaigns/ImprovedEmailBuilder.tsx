@@ -9,7 +9,7 @@ import {
   ChevronUp, Mail, Sparkles, BarChart3, AlertTriangle, 
   UserPlus, HelpCircle, Trophy, DollarSign, Paperclip,
   Upload, Edit3, Eye, GitBranch, Clock, MousePointer,
-  Code, Zap, Database
+  Code, Zap, Database, Send, CheckSquare, User, Calendar
 } from "lucide-react";
 
 interface EmailBlock {
@@ -32,12 +32,34 @@ interface EmailBlock {
   };
 }
 
-interface EmailCondition {
+interface FlowCondition {
   type: 'not_clicked' | 'always' | 'not_opened' | 'custom';
   customPrompt?: string;
   generatedLogic?: string;
 }
 
+interface FlowStep {
+  id: string;
+  type: 'email' | 'letter' | 'task';
+  followUpDays: number;
+  condition?: FlowCondition;
+  // Email-specific properties
+  subject?: string;
+  blocks?: EmailBlock[];
+  leftLogo?: File | null;
+  rightLogo?: File | null;
+  // Letter-specific properties
+  letterContent?: string;
+  letterTemplate?: string;
+  // Task-specific properties
+  taskName?: string;
+  taskDescription?: string;
+  dueDate?: string;
+  assignedTo?: string;
+  assignedToType?: 'partner' | 'internal';
+}
+
+// Keep Email interface for backwards compatibility
 interface Email {
   id: string;
   subject: string;
@@ -45,7 +67,7 @@ interface Email {
   followUpDays: number;
   leftLogo: File | null;
   rightLogo: File | null;
-  condition?: EmailCondition;
+  condition?: FlowCondition;
 }
 
 interface ImprovedEmailBuilderProps {
@@ -244,6 +266,57 @@ Status: Ready for deployment`;
     setExpandedEmailIndex(newEmails.length - 1);
   };
 
+  const addNewLetter = () => {
+    const newEmails = [...emails];
+    newEmails.push({
+      id: (newEmails.length + 1).toString(),
+      subject: 'Letter Message',
+      blocks: [{
+        id: generateBlockId(),
+        type: 'text',
+        content: 'Your letter message will be sent as physical mail.',
+        properties: {}
+      }],
+      followUpDays: 7,
+      leftLogo: null,
+      rightLogo: null,
+      condition: { type: 'always' },
+      // Add letter-specific properties
+      letterContent: '',
+      letterTemplate: 'default'
+    } as any);
+    onEmailsChange(newEmails);
+    onActiveEmailChange(newEmails.length - 1);
+    setExpandedEmailIndex(newEmails.length - 1);
+  };
+
+  const addNewTask = () => {
+    const newEmails = [...emails];
+    newEmails.push({
+      id: (newEmails.length + 1).toString(),
+      subject: 'Task Assignment',
+      blocks: [{
+        id: generateBlockId(),
+        type: 'text',
+        content: 'New task created in campaign flow.',
+        properties: {}
+      }],
+      followUpDays: 7,
+      leftLogo: null,
+      rightLogo: null,
+      condition: { type: 'always' },
+      // Add task-specific properties
+      taskName: '',
+      taskDescription: '',
+      dueDate: '',
+      assignedTo: '',
+      assignedToType: 'partner'
+    } as any);
+    onEmailsChange(newEmails);
+    onActiveEmailChange(newEmails.length - 1);
+    setExpandedEmailIndex(newEmails.length - 1);
+  };
+
   const generateCustomLogic = (prompt: string): string => {
     // AI-powered logic generation based on user prompt
     const logicTemplates = {
@@ -339,17 +412,28 @@ Status: Ready for deployment`;
         <div className="space-y-3 mb-8">
           {emails.map((email, index) => (
             <div key={email.id}>
-              {/* Email Card */}
+              {/* Flow Step Card */}
               <div className="border rounded-lg bg-white hover:shadow-sm transition-shadow">
                 <div className="p-6 flex items-center justify-between cursor-pointer" 
                      onClick={() => setExpandedEmailIndex(index)}>
                   <div className="flex items-center gap-4">
-                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                      <Mail className="h-5 w-5 text-blue-600" />
+                    {/* Step Type Icon */}
+                    <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+                      (email as any).taskName ? 'bg-purple-100' : 
+                      (email as any).letterContent !== undefined ? 'bg-green-100' : 'bg-blue-100'
+                    }`}>
+                      {(email as any).taskName ? (
+                        <CheckSquare className="h-5 w-5 text-purple-600" />
+                      ) : (email as any).letterContent !== undefined ? (
+                        <Send className="h-5 w-5 text-green-600" />
+                      ) : (
+                        <Mail className="h-5 w-5 text-blue-600" />
+                      )}
                     </div>
                     <div>
                       <h3 className="text-lg font-medium text-gray-900">
-                        Email {index + 1}
+                        {(email as any).taskName ? 'Task' : 
+                         (email as any).letterContent !== undefined ? 'Letter' : 'Email'} {index + 1}
                         {email.followUpDays > 0 && (
                           <span className="ml-2 text-sm text-gray-500">
                             (+{email.followUpDays} days)
@@ -357,7 +441,13 @@ Status: Ready for deployment`;
                         )}
                       </h3>
                       <p className="text-gray-500">
-                        {email.subject || 'No subject set'} • {email.blocks.length} blocks
+                        {(email as any).taskName ? (
+                          (email as any).taskName || 'No task name set'
+                        ) : (email as any).letterContent !== undefined ? (
+                          'Physical mail • ' + (email.blocks.length || 1) + ' blocks'
+                        ) : (
+                          (email.subject || 'No subject set') + ' • ' + email.blocks.length + ' blocks'
+                        )}
                       </p>
                     </div>
                   </div>
@@ -470,16 +560,27 @@ Status: Ready for deployment`;
             </div>
           ))}
 
-          {/* Add Email Button */}
+          {/* Add Flow Step Buttons */}
           <div className="border-2 border-dashed border-gray-300 rounded-lg">
             <div className="p-6 text-center">
               <PlusIcon className="h-8 w-8 mx-auto mb-3 text-gray-400" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Add Follow-up Email</h3>
-              <p className="text-gray-600 mb-4">Create a sequence to increase engagement</p>
-              <Button onClick={addNewEmail} variant="outline" className="gap-2">
-                <PlusIcon className="h-4 w-4" />
-                Add Email
-              </Button>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">Add Flow Step</h3>
+              <p className="text-gray-600 mb-4">Create a multi-channel sequence to increase engagement</p>
+              
+              <div className="flex items-center justify-center gap-3">
+                <Button onClick={addNewEmail} variant="outline" className="gap-2 bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100">
+                  <Mail className="h-4 w-4" />
+                  Add Email
+                </Button>
+                <Button onClick={addNewLetter} variant="outline" className="gap-2 bg-green-50 border-green-200 text-green-700 hover:bg-green-100">
+                  <Send className="h-4 w-4" />
+                  Add Letter
+                </Button>
+                <Button onClick={addNewTask} variant="outline" className="gap-2 bg-purple-50 border-purple-200 text-purple-700 hover:bg-purple-100">
+                  <CheckSquare className="h-4 w-4" />
+                  Add Task
+                </Button>
+              </div>
             </div>
           </div>
         </div>
@@ -488,11 +589,25 @@ Status: Ready for deployment`;
       {/* Expanded Flow Builder */}
       {expandedEmailIndex >= 0 && editingEmail && (
         <div className="bg-white rounded-lg border">
-          {/* Email Header */}
+          {/* Step Header */}
           <div className="p-6 border-b flex items-center justify-between">
             <div className="flex items-center gap-3">
+              {/* Step Type Icon */}
+              <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                (editingEmail as any).taskName ? 'bg-purple-100' : 
+                (editingEmail as any).letterContent !== undefined ? 'bg-green-100' : 'bg-blue-100'
+              }`}>
+                {(editingEmail as any).taskName ? (
+                  <CheckSquare className="h-4 w-4 text-purple-600" />
+                ) : (editingEmail as any).letterContent !== undefined ? (
+                  <Send className="h-4 w-4 text-green-600" />
+                ) : (
+                  <Mail className="h-4 w-4 text-blue-600" />
+                )}
+              </div>
               <h3 className="text-xl font-medium text-gray-900">
-                Email {expandedEmailIndex + 1}
+                {(editingEmail as any).taskName ? 'Task' : 
+                 (editingEmail as any).letterContent !== undefined ? 'Letter' : 'Email'} {expandedEmailIndex + 1}
                 {editingEmail.followUpDays > 0 && (
                   <span className="ml-2 text-sm text-gray-500">
                     (+{editingEmail.followUpDays} days)
@@ -512,17 +627,91 @@ Status: Ready for deployment`;
           <div className="grid grid-cols-4 gap-8 p-6">
             {/* Main Content Area - 3 columns */}
             <div className="col-span-3 space-y-6">
-              {/* Email Settings */}
+              {/* Step Type-Specific Settings */}
               <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Subject Line</label>
-                  <Input
-                    placeholder="Enter email subject..."
-                    value={editingEmail.subject}
-                    onChange={(e) => updateEmailField('subject', e.target.value)}
-                    className="h-11 w-full"
-                  />
-                </div>
+                {/* Task Settings */}
+                {(editingEmail as any).taskName !== undefined && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Task Name</label>
+                      <Input
+                        placeholder="Enter task name..."
+                        value={(editingEmail as any).taskName}
+                        onChange={(e) => updateEmailField('taskName', e.target.value)}
+                        className="h-11 w-full"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Task Description</label>
+                      <Textarea
+                        placeholder="Describe the task details..."
+                        value={(editingEmail as any).taskDescription}
+                        onChange={(e) => updateEmailField('taskDescription', e.target.value)}
+                        className="w-full"
+                        rows={3}
+                      />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Due Date</label>
+                        <Input
+                          type="date"
+                          value={(editingEmail as any).dueDate}
+                          onChange={(e) => updateEmailField('dueDate', e.target.value)}
+                          className="h-11"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Assigned To</label>
+                        <Input
+                          placeholder="Enter assignee name..."
+                          value={(editingEmail as any).assignedTo}
+                          onChange={(e) => updateEmailField('assignedTo', e.target.value)}
+                          className="h-11"
+                        />
+                      </div>
+                    </div>
+                  </>
+                )}
+                
+                {/* Letter Settings */}
+                {(editingEmail as any).letterContent !== undefined && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Letter Content</label>
+                      <Textarea
+                        placeholder="Enter your letter message..."
+                        value={(editingEmail as any).letterContent}
+                        onChange={(e) => updateEmailField('letterContent', e.target.value)}
+                        className="w-full"
+                        rows={6}
+                      />
+                    </div>
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Send className="h-4 w-4 text-green-600" />
+                        <span className="text-sm font-medium text-green-800">Physical Mail</span>
+                      </div>
+                      <p className="text-sm text-green-700">
+                        This content will be sent as real mail using our postal service integration.
+                      </p>
+                    </div>
+                  </>
+                )}
+                
+                {/* Email Settings */}
+                {(editingEmail as any).taskName === undefined && (editingEmail as any).letterContent === undefined && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Subject Line</label>
+                    <Input
+                      placeholder="Enter email subject..."
+                      value={editingEmail.subject}
+                      onChange={(e) => updateEmailField('subject', e.target.value)}
+                      className="h-11 w-full"
+                    />
+                  </div>
+                )}
+                
                 {expandedEmailIndex > 0 && (
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">Follow-up Days</label>
@@ -537,40 +726,43 @@ Status: Ready for deployment`;
                 )}
               </div>
 
-              {/* Logo Upload */}
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Left Logo</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                    <Upload className="h-6 w-6 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm text-gray-600">Click to upload logo</p>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileUpload(e.target.files?.[0] || null, 'leftLogo')}
-                      className="mt-2 text-sm"
-                    />
+              {/* Logo Upload - Only for Emails */}
+              {(editingEmail as any).taskName === undefined && (editingEmail as any).letterContent === undefined && (
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Left Logo</label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                      <Upload className="h-6 w-6 mx-auto mb-2 text-gray-400" />
+                      <p className="text-sm text-gray-600">Click to upload logo</p>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e.target.files?.[0] || null, 'leftLogo')}
+                        className="mt-2 text-sm"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Right Logo</label>
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
+                      <Upload className="h-6 w-6 mx-auto mb-2 text-gray-400" />
+                      <p className="text-sm text-gray-600">Click to upload logo</p>
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileUpload(e.target.files?.[0] || null, 'rightLogo')}
+                        className="mt-2 text-sm"
+                      />
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Right Logo</label>
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-4 text-center">
-                    <Upload className="h-6 w-6 mx-auto mb-2 text-gray-400" />
-                    <p className="text-sm text-gray-600">Click to upload logo</p>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={(e) => handleFileUpload(e.target.files?.[0] || null, 'rightLogo')}
-                      className="mt-2 text-sm"
-                    />
-                  </div>
-                </div>
-              </div>
+              )}
 
-              {/* Flow Builder */}
-              <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-4">Flow Content</h4>
-                <div className="border rounded-lg min-h-[500px] p-6 bg-gray-50">
+              {/* Flow Builder - Only for Emails */}
+              {(editingEmail as any).taskName === undefined && (editingEmail as any).letterContent === undefined && (
+                <div>
+                  <h4 className="text-lg font-medium text-gray-900 mb-4">Flow Content</h4>
+                  <div className="border rounded-lg min-h-[500px] p-6 bg-gray-50">
                   {editingEmail.blocks.map((block, blockIndex) => (
                     <div
                       key={block.id}
@@ -778,12 +970,14 @@ Status: Ready for deployment`;
                     </div>
                   )}
                 </div>
-              </div>
+                </div>
+              )}
 
               {/* Save Button */}
               <div className="flex items-center gap-4 pt-4">
                 <Button onClick={() => saveEmail(expandedEmailIndex)} size="lg" className="gap-2">
-                  Save Email {expandedEmailIndex + 1}
+                  Save {(editingEmail as any).taskName ? 'Task' : 
+                       (editingEmail as any).letterContent !== undefined ? 'Letter' : 'Email'} {expandedEmailIndex + 1}
                 </Button>
                 {expandedEmailIndex === emails.length - 1 && (
                   <Button variant="outline" onClick={addNewEmail} size="lg" className="gap-2">
