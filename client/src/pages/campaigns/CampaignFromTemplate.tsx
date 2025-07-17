@@ -605,14 +605,14 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
           </div>
 
       {/* Assigned Partners Section */}
-      {filterStatus !== 'unassigned' && uniqueAssignedPartners.length > 0 && (
+      {filterStatus !== 'unassigned' && uniqueAttachedPartners.length > 0 && (
         <div className="bg-white rounded-lg border">
           <div className="px-4 py-3 border-b">
             <h3 className="font-medium text-gray-900">Attached Partners</h3>
           </div>
           
           <div className="divide-y">
-            {uniqueAssignedPartners.map((partner) => (
+            {uniqueAttachedPartners.map((partner) => (
               <div key={partner.id} className="px-4 py-4">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
