@@ -11366,9 +11366,9 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
   app.post('/api/:envId/campaigns/:campaignId/attachments', async (req, res) => {
     try {
       const { envId, campaignId } = req.params;
-      const { customerAttachments, contactAttachments } = req.body;
+      const { customerAttachments, contactAttachments, editMode } = req.body;
       
-      console.log(`Updating campaign ${campaignId} partner attachments in ${envId} environment`);
+      console.log(`${editMode ? 'Editing' : 'Updating'} campaign ${campaignId} partner attachments in ${envId} environment`);
       
       if (envId === 'degoudse') {
         // Update customers with partner attachments
@@ -11470,7 +11470,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
           res.json({ 
             success: true, 
             recipients: updatedRecipients,
-            message: 'Partner attachments updated successfully' 
+            message: editMode ? 'Partner attachment updated successfully' : 'Partner attachments updated successfully' 
           });
         } else {
           res.status(404).json({ error: 'Campaign not found' });

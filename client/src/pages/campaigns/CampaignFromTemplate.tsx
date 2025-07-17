@@ -330,6 +330,13 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
   const [attachmentType, setAttachmentType] = useState<'individual' | 'list'>('individual');
   const [filterStatus, setFilterStatus] = useState<'all' | 'attached' | 'unattached'>('all');
   const [viewMode, setViewMode] = useState<'contacts' | 'partners'>('contacts');
+  const [editingAttachment, setEditingAttachment] = useState<{
+    customerId: string;
+    contactId?: string;
+    currentPartnerId?: number;
+    currentPartnerName?: string;
+    type: 'customer' | 'contact';
+  } | null>(null);
   const { toast } = useToast();
   
   // Fetch all partners for selection and attachment operations
@@ -453,6 +460,26 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
     setSelectedContacts([]);
   };
 
+  // Handle edit attachment
+  const handleEditAttachment = (customerId: string, contactId?: string, currentPartnerId?: number, currentPartnerName?: string) => {
+    setEditingAttachment({
+      customerId,
+      contactId,
+      currentPartnerId,
+      currentPartnerName,
+      type: contactId ? 'contact' : 'customer'
+    });
+    setSelectedPartnersForAttachment(currentPartnerId ? [currentPartnerId] : []);
+    setShowAttachmentModal(true);
+  };
+
+  // Reset modal state
+  const resetModalState = () => {
+    setEditingAttachment(null);
+    setSelectedPartnersForAttachment([]);
+    setShowAttachmentModal(false);
+  };
+
   // Handle customer expansion
   const [expandedCustomers, setExpandedCustomers] = useState<Set<string>>(new Set());
   
@@ -508,11 +535,11 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
       // Clear selections and close modal
       setSelectedContacts([]);
       setSelectedPartnersForAttachment([]);
-      setShowAttachmentModal(false);
+      resetModalState();
       
       toast({
         title: "Success",
-        description: "Partner attachments updated successfully!",
+        description: data.message || "Partner attachments updated successfully!",
         variant: "default"
       });
     },
@@ -527,78 +554,129 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
 
   // Handle partner attachment with proper database operations
   const handleAttachToPartners = async () => {
-    if (selectedContacts.length === 0) {
-      toast({
-        title: "No items selected",
-        description: "Please select at least one customer or contact to attach.",
-        variant: "destructive"
-      });
-      return;
-    }
+    if (editingAttachment) {
+      // Edit mode - update specific attachment
+      if (selectedPartnersForAttachment.length === 0) {
+        toast({
+          title: "No partner selected",
+          description: "Please select a partner for this attachment.",
+          variant: "destructive"
+        });
+        return;
+      }
 
-    if (selectedPartnersForAttachment.length === 0) {
-      toast({
-        title: "No partners selected",
-        description: "Please select at least one partner for attachment.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      // Separate customer and contact selections
-      const customerAttachments: any[] = [];
-      const contactAttachments: any[] = [];
-      
-      selectedContacts.forEach(selectedId => {
-        // Check if this is a customer selection
-        const customer = customerGroups.find(group => 
-          group.id.toString() === selectedId || group.databaseId?.toString() === selectedId
-        );
+      try {
+        const partnerId = selectedPartnersForAttachment[0];
+        const partner = allPartners.find((p: any) => p.id === partnerId);
         
-        if (customer && customer.databaseId) {
-          // Assign the first selected partner (could be randomized for multiple partners)
-          const assignedPartner = allPartners.find((p: any) => p.id === selectedPartnersForAttachment[0]);
-          
+        const customerAttachments: any[] = [];
+        const contactAttachments: any[] = [];
+        
+        if (editingAttachment.type === 'customer') {
           customerAttachments.push({
-            customerId: customer.databaseId.toString(),
-            partnerId: assignedPartner.id,
-            partnerName: assignedPartner.name
+            customerId: editingAttachment.customerId,
+            partnerId,
+            partnerName: partner?.name || 'Unknown Partner'
           });
         } else {
-          // Check if this is a contact selection
-          customerGroups.forEach(group => {
-            const contact = group.contacts.find(c => 
-              c.id.toString() === selectedId || c.databaseId?.toString() === selectedId
-            );
-            
-            if (contact && contact.databaseId) {
-              const assignedPartner = allPartners.find((p: any) => p.id === selectedPartnersForAttachment[0]);
-              
-              contactAttachments.push({
-                contactId: contact.databaseId.toString(),
-                customerId: group.databaseId?.toString() || group.id.toString(),
-                partnerId: assignedPartner.id,
-                partnerName: assignedPartner.name
-              });
-            }
+          contactAttachments.push({
+            contactId: editingAttachment.contactId,
+            customerId: editingAttachment.customerId,
+            partnerId,
+            partnerName: partner?.name || 'Unknown Partner'
           });
         }
-      });
-      
-      // Execute the attachment mutation
-      await attachToPartnersMutation.mutateAsync({
-        campaignId: campaignData.id.toString(),
-        customerAttachments,
-        contactAttachments
-      });
-      
-    } catch (error) {
-      toast({
-        title: "Attachment failed",
-        description: "Failed to attach contacts to partners. Please try again.",
-        variant: "destructive"
-      });
+
+        await attachToPartnersMutation.mutateAsync({
+          campaignId: campaignData.id.toString(),
+          customerAttachments,
+          contactAttachments,
+          editMode: true
+        });
+        
+      } catch (error) {
+        toast({
+          title: "Update failed",
+          description: "Failed to update partner attachment. Please try again.",
+          variant: "destructive"
+        });
+      }
+    } else {
+      // New attachment mode - attach multiple items
+      if (selectedContacts.length === 0) {
+        toast({
+          title: "No items selected",
+          description: "Please select at least one customer or contact to attach.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      if (selectedPartnersForAttachment.length === 0) {
+        toast({
+          title: "No partners selected",
+          description: "Please select at least one partner for attachment.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      try {
+        // Separate customer and contact selections
+        const customerAttachments: any[] = [];
+        const contactAttachments: any[] = [];
+        
+        selectedContacts.forEach(selectedId => {
+          // Check if this is a customer selection
+          const customer = customerGroups.find(group => 
+            group.id.toString() === selectedId || group.databaseId?.toString() === selectedId
+          );
+          
+          if (customer && customer.databaseId) {
+            // Assign the first selected partner (could be randomized for multiple partners)
+            const assignedPartner = allPartners.find((p: any) => p.id === selectedPartnersForAttachment[0]);
+            
+            customerAttachments.push({
+              customerId: customer.databaseId.toString(),
+              partnerId: assignedPartner.id,
+              partnerName: assignedPartner.name
+            });
+          } else {
+            // Check if this is a contact selection
+            customerGroups.forEach(group => {
+              const contact = group.contacts.find(c => 
+                c.id.toString() === selectedId || c.databaseId?.toString() === selectedId
+              );
+              
+              if (contact && contact.databaseId) {
+                const assignedPartner = allPartners.find((p: any) => p.id === selectedPartnersForAttachment[0]);
+                
+                contactAttachments.push({
+                  contactId: contact.databaseId.toString(),
+                  customerId: group.databaseId?.toString() || group.id.toString(),
+                  partnerId: assignedPartner.id,
+                  partnerName: assignedPartner.name
+                });
+              }
+            });
+          }
+        });
+        
+        // Execute the attachment mutation
+        await attachToPartnersMutation.mutateAsync({
+          campaignId: campaignData.id.toString(),
+          customerAttachments,
+          contactAttachments,
+          editMode: false
+        });
+        
+      } catch (error) {
+        toast({
+          title: "Attachment failed",
+          description: "Failed to attach contacts to partners. Please try again.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -748,7 +826,17 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-500">Default Partner:</span>
                   <span className="font-medium text-gray-900">{customer.defaultPartner}</span>
-                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="h-6 w-6 p-0"
+                    onClick={() => handleEditAttachment(
+                      customer.id,
+                      undefined,
+                      customer.defaultPartnerId,
+                      customer.defaultPartner
+                    )}
+                  >
                     <Edit className="h-3 w-3" />
                   </Button>
                 </div>
@@ -798,7 +886,17 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                           <span className="text-xs text-orange-600">⚠ Manual</span>
                         )}
                         <span className="font-medium text-gray-900">{contact.attachedPartner || customer.defaultPartner}</span>
-                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-6 w-6 p-0"
+                          onClick={() => handleEditAttachment(
+                            customer.id,
+                            contact.id,
+                            contact.attachedPartnerId || customer.defaultPartnerId,
+                            contact.attachedPartner || customer.defaultPartner
+                          )}
+                        >
                           <Edit className="h-3 w-3" />
                         </Button>
                       </div>
@@ -910,48 +1008,145 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
       )}
 
       {/* Attach to Partners Modal */}
-      <Dialog open={showAttachmentModal} onOpenChange={setShowAttachmentModal}>
-        <DialogContent className="max-w-2xl">
+      <Dialog open={showAttachmentModal} onOpenChange={resetModalState}>
+        <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>Attach Customers to Partners</DialogTitle>
+            <DialogTitle>
+              {editingAttachment ? 'Edit Partner Attachment' : 'Attach Customers to Partners'}
+            </DialogTitle>
             <DialogDescription>
-              Select partners to attach the selected customers to.
+              {editingAttachment 
+                ? `Change the partner assignment for this ${editingAttachment.type}`
+                : 'Select partners to attach the selected customers to.'
+              }
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-4">
+          <div className="space-y-6">
+            {/* Current Assignment Info (Edit Mode) */}
+            {editingAttachment && (
+              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                <h4 className="font-medium text-blue-900 mb-2">Current Assignment</h4>
+                <div className="text-sm text-blue-800">
+                  <p><strong>Type:</strong> {editingAttachment.type === 'customer' ? 'Customer' : 'Contact'}</p>
+                  <p><strong>Current Partner:</strong> {editingAttachment.currentPartnerName || 'None'}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Selected Items Info (New Attachment Mode) */}
+            {!editingAttachment && selectedContacts.length > 0 && (
+              <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                <h4 className="font-medium text-green-900 mb-2">Selected Items</h4>
+                <div className="text-sm text-green-800">
+                  <p>{selectedContacts.length} customer(s) and contact(s) selected for attachment</p>
+                </div>
+              </div>
+            )}
+
             {/* Partner Selection */}
             <div>
-              <h4 className="font-medium text-gray-900">Select Partners</h4>
-              <div className="max-h-48 overflow-y-auto border rounded-lg p-2">
+              <h4 className="font-medium text-gray-900 mb-3">
+                {editingAttachment ? 'Select New Partner' : 'Select Partners'}
+              </h4>
+              
+              {/* Search Bar */}
+              <div className="mb-4">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <input
+                    type="text"
+                    placeholder="Search partners..."
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    onChange={(e) => {
+                      // TODO: Implement search functionality
+                    }}
+                  />
+                </div>
+              </div>
+
+              {/* Partners List */}
+              <div className="max-h-64 overflow-y-auto border rounded-lg">
                 {allPartners.map((partner: any) => (
-                  <div key={partner.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
+                  <div key={partner.id} className="flex items-center gap-3 p-3 hover:bg-gray-50 border-b last:border-b-0">
                     <Checkbox
                       id={`partner-${partner.id}`}
                       checked={selectedPartnersForAttachment.includes(partner.id)}
                       onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedPartnersForAttachment([...selectedPartnersForAttachment, partner.id]);
+                        if (editingAttachment) {
+                          // In edit mode, only allow one partner selection
+                          setSelectedPartnersForAttachment(checked ? [partner.id] : []);
                         } else {
-                          setSelectedPartnersForAttachment(selectedPartnersForAttachment.filter(id => id !== partner.id));
+                          // In new attachment mode, allow multiple selections
+                          if (checked) {
+                            setSelectedPartnersForAttachment([...selectedPartnersForAttachment, partner.id]);
+                          } else {
+                            setSelectedPartnersForAttachment(selectedPartnersForAttachment.filter(id => id !== partner.id));
+                          }
                         }
                       }}
                     />
-                    <label htmlFor={`partner-${partner.id}`} className="text-sm font-medium">
-                      {partner.name}
-                    </label>
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="w-10 h-10 bg-gray-200 rounded-full flex items-center justify-center">
+                        <Users className="h-5 w-5 text-gray-500" />
+                      </div>
+                      <div>
+                        <label htmlFor={`partner-${partner.id}`} className="text-sm font-medium text-gray-900 cursor-pointer">
+                          {partner.name}
+                        </label>
+                        <p className="text-xs text-gray-500">
+                          {partner.customer_count || 0} customers • {partner.opportunity_count || 0} opportunities
+                        </p>
+                      </div>
+                    </div>
+                    {editingAttachment && partner.id === editingAttachment.currentPartnerId && (
+                      <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                        Current
+                      </span>
+                    )}
                   </div>
                 ))}
               </div>
             </div>
+
+            {/* Attachment Options (New Mode) */}
+            {!editingAttachment && (
+              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                <h4 className="font-medium text-yellow-900 mb-2">Assignment Options</h4>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2">
+                    <input 
+                      type="radio" 
+                      name="attachmentMode" 
+                      value="replace" 
+                      className="text-blue-600"
+                      defaultChecked
+                    />
+                    <span className="text-sm text-yellow-800">Replace existing partner assignments</span>
+                  </label>
+                  <label className="flex items-center gap-2">
+                    <input 
+                      type="radio" 
+                      name="attachmentMode" 
+                      value="add" 
+                      className="text-blue-600"
+                    />
+                    <span className="text-sm text-yellow-800">Add additional partner assignments</span>
+                  </label>
+                </div>
+              </div>
+            )}
           </div>
 
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowAttachmentModal(false)}>
+            <Button variant="outline" onClick={resetModalState}>
               Cancel
             </Button>
-            <Button onClick={handleAttachToPartners} disabled={selectedPartnersForAttachment.length === 0}>
-              Attach to Partners
+            <Button 
+              onClick={handleAttachToPartners} 
+              disabled={selectedPartnersForAttachment.length === 0}
+            >
+              {editingAttachment ? 'Update Assignment' : 'Attach to Partners'}
             </Button>
           </DialogFooter>
         </DialogContent>
