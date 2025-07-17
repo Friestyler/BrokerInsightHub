@@ -1156,33 +1156,35 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                 <h4 className="font-medium text-green-900 mb-2">Selected Items</h4>
                 <div className="text-sm text-green-800">
                   <p><strong>Selected:</strong> {(() => {
+                    // Debug logging
+                    console.log('=== MODAL DEBUG ===');
+                    console.log('selectedContacts:', selectedContacts);
+                    console.log('customerGroups:', customerGroups);
+                    console.log('customerGroups[0]?.contacts:', customerGroups[0]?.contacts);
+                    
                     // Count actual contacts (not customers)
                     let actualContacts = [];
                     
                     for (const contactId of selectedContacts) {
-                      // Check if it's a customer selection first
-                      const customer = customerGroups.find(g => 
-                        g.id.toString() === contactId || 
-                        g.databaseId?.toString() === contactId
-                      );
-                      if (customer) {
-                        // Add all contacts from this customer
-                        actualContacts.push(...customer.contacts);
-                        continue;
-                      }
-                      
-                      // Then check for individual contact selection
+                      console.log('Looking for contactId:', contactId);
+                      // Find the contact directly in all customer groups
+                      let foundContact = false;
                       for (const customerGroup of customerGroups) {
-                        const contact = customerGroup.contacts.find(c => 
-                          c.id.toString() === contactId || 
-                          c.databaseId?.toString() === contactId ||
-                          `${customerGroup.id}-${c.id}` === contactId ||
-                          `${customerGroup.databaseId}-${c.databaseId}` === contactId
-                        );
+                        console.log('Checking customer group:', customerGroup.name, 'contacts:', customerGroup.contacts);
+                        const contact = customerGroup.contacts.find(c => {
+                          console.log('Checking contact:', c.id, c.databaseId, 'against', contactId);
+                          return c.databaseId?.toString() === contactId.toString() || 
+                                 c.id?.toString() === contactId.toString();
+                        });
                         if (contact) {
+                          console.log('Found contact:', contact);
                           actualContacts.push(contact);
+                          foundContact = true;
                           break;
                         }
+                      }
+                      if (!foundContact) {
+                        console.log('Contact not found for ID:', contactId);
                       }
                     }
                     
