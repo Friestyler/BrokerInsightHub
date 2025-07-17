@@ -566,7 +566,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         )}
       </div>
 
-      {/* Filter Cards */}
+      {/* Status Summary Cards */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <button
           onClick={() => setAttachmentFilter('all')}
@@ -576,8 +576,14 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
               : 'border-gray-200 hover:border-gray-300'
           }`}
         >
-          <div className="text-2xl font-bold text-gray-900">{customerGroups.length}</div>
+          <div className="flex items-center gap-2 mb-2">
+            <User className="h-5 w-5 text-blue-600" />
+            <span className="text-2xl font-bold text-gray-900">{customerGroups.length}</span>
+          </div>
           <div className="text-sm text-gray-600">Total Customers</div>
+          <div className="text-xs text-gray-500 mt-1">
+            {customerGroups.reduce((sum, customer) => sum + customer.contacts.length, 0)} contacts
+          </div>
         </button>
         
         <button
@@ -588,10 +594,16 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
               : 'border-gray-200 hover:border-gray-300'
           }`}
         >
-          <div className="text-2xl font-bold text-gray-900">
-            {customerGroups.filter(customer => customer.defaultPartner).length}
+          <div className="flex items-center gap-2 mb-2">
+            <UserCheck className="h-5 w-5 text-green-600" />
+            <span className="text-2xl font-bold text-gray-900">
+              {customerGroups.filter(customer => customer.defaultPartner).length}
+            </span>
           </div>
           <div className="text-sm text-gray-600">Attached</div>
+          <div className="text-xs text-gray-500 mt-1">
+            {customerGroups.filter(customer => customer.defaultPartner).reduce((sum, customer) => sum + customer.contacts.length, 0)} contacts
+          </div>
         </button>
         
         <button
@@ -602,10 +614,16 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
               : 'border-gray-200 hover:border-gray-300'
           }`}
         >
-          <div className="text-2xl font-bold text-gray-900">
-            {customerGroups.filter(customer => !customer.defaultPartner).length}
+          <div className="flex items-center gap-2 mb-2">
+            <AlertTriangle className="h-5 w-5 text-orange-600" />
+            <span className="text-2xl font-bold text-gray-900">
+              {customerGroups.filter(customer => !customer.defaultPartner).length}
+            </span>
           </div>
           <div className="text-sm text-gray-600">Unattached</div>
+          <div className="text-xs text-gray-500 mt-1">
+            {customerGroups.filter(customer => !customer.defaultPartner).reduce((sum, customer) => sum + customer.contacts.length, 0)} contacts
+          </div>
         </button>
       </div>
 
@@ -714,56 +732,58 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         </div>
       </div>
 
-      {/* Unattached Partners Section */}
-      <div className="bg-white rounded-lg border">
-        <div className="p-4 border-b">
-          <h3 className="text-lg font-semibold text-gray-900">Unattached Partners</h3>
-          <p className="text-sm text-gray-500 mt-1">Partners available for attachment</p>
-        </div>
-        
-        <div className="p-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+      {/* Unattached Partners Section (shown only when filter is 'unattached') */}
+      {attachmentFilter === 'unattached' && (
+        <div className="bg-white rounded-lg border mt-6">
+          <div className="p-4 border-b">
+            <h3 className="text-lg font-semibold text-gray-900">Unattached Partners</h3>
+            <p className="text-sm text-gray-500 mt-1">Partners available for attachment</p>
+          </div>
+          
+          <div className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+              {allPartners.filter((partner: any) => 
+                !customerGroups.some(customer => 
+                  customer.defaultPartner === partner.name || 
+                  customer.contacts.some(contact => contact.attachedPartner === partner.name)
+                )
+              ).map((partner: any) => (
+                <div key={partner.id} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50">
+                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                    <Users className="h-4 w-4 text-gray-600" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-900">{partner.name}</h4>
+                    <p className="text-sm text-gray-500">Available</p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => {
+                      setSelectedPartnersForAttachment([partner.id]);
+                      setShowAttachmentModal(true);
+                    }}
+                  >
+                    Attach
+                  </Button>
+                </div>
+              ))}
+            </div>
+            
             {allPartners.filter((partner: any) => 
               !customerGroups.some(customer => 
                 customer.defaultPartner === partner.name || 
                 customer.contacts.some(contact => contact.attachedPartner === partner.name)
               )
-            ).map((partner: any) => (
-              <div key={partner.id} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50">
-                <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                  <Users className="h-4 w-4 text-gray-600" />
-                </div>
-                <div className="flex-1">
-                  <h4 className="font-medium text-gray-900">{partner.name}</h4>
-                  <p className="text-sm text-gray-500">Available</p>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => {
-                    setSelectedPartnersForAttachment([partner.id]);
-                    setShowAttachmentModal(true);
-                  }}
-                >
-                  Attach
-                </Button>
+            ).length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p>All partners have been attached to customers</p>
               </div>
-            ))}
+            )}
           </div>
-          
-          {allPartners.filter((partner: any) => 
-            !customerGroups.some(customer => 
-              customer.defaultPartner === partner.name || 
-              customer.contacts.some(contact => contact.attachedPartner === partner.name)
-            )
-          ).length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              <Users className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-              <p>All partners have been attached to customers</p>
-            </div>
-          )}
         </div>
-      </div>
+      )}
 
       {/* Attach to Partners Modal */}
       <Dialog open={showAttachmentModal} onOpenChange={setShowAttachmentModal}>
