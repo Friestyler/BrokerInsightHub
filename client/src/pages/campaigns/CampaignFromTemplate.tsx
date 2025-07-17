@@ -1276,14 +1276,33 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                                   return partnerIds.map((partnerId: number) => {
                                     const partner = allPartners.find((p: any) => p.id === partnerId);
                                     return partner ? (
-                                      <div key={partnerId} className="flex items-center gap-2 text-xs text-gray-600">
+                                      <div key={partnerId} className="flex items-center gap-2 text-xs text-gray-600 hover:bg-gray-100 rounded p-1">
+                                        <Checkbox
+                                          id={`list-partner-${partnerId}`}
+                                          checked={selectedPartnersForAttachment.includes(partnerId)}
+                                          onCheckedChange={(checked) => {
+                                            if (editingAttachment) {
+                                              // In edit mode, only allow one partner selection
+                                              setSelectedPartnersForAttachment(checked ? [partnerId] : []);
+                                            } else {
+                                              // In new attachment mode, allow multiple selections
+                                              if (checked) {
+                                                setSelectedPartnersForAttachment([...selectedPartnersForAttachment, partnerId]);
+                                              } else {
+                                                setSelectedPartnersForAttachment(selectedPartnersForAttachment.filter(id => id !== partnerId));
+                                              }
+                                            }
+                                          }}
+                                        />
                                         <div className="w-4 h-4 bg-gray-300 rounded-full flex items-center justify-center">
                                           <Users className="h-2 w-2 text-gray-500" />
                                         </div>
-                                        <span>{partner.name}</span>
-                                        <span className="text-gray-400">
-                                          ({partner.customer_count || 0} customers)
-                                        </span>
+                                        <label htmlFor={`list-partner-${partnerId}`} className="flex-1 cursor-pointer">
+                                          <span>{partner.name}</span>
+                                          <span className="text-gray-400 ml-1">
+                                            ({partner.customer_count || 0} customers)
+                                          </span>
+                                        </label>
                                       </div>
                                     ) : null;
                                   });
@@ -1329,10 +1348,10 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
             {!editingAttachment && selectedContacts.length > 1 && (
               (() => {
                 // Calculate total partners from individual selections and lists
-                let totalPartners = selectedPartnersForAttachment.length;
+                const individualPartnerIds = selectedPartnersForAttachment;
                 
-                // Add partners from selected lists
-                selectedPartnerLists.forEach(listId => {
+                // Add partners from selected lists (only if not already individually selected)
+                const listPartnerIds = selectedPartnerLists.flatMap(listId => {
                   const partnerList = savedPartnerLists.find(list => list.id === listId);
                   if (partnerList) {
                     const listPartnerIds = Array.isArray(partnerList.members) 
@@ -1340,27 +1359,13 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                       : (Array.isArray(partnerList.partner_ids) 
                         ? partnerList.partner_ids 
                         : JSON.parse(partnerList.partner_ids || '[]'));
-                    totalPartners += listPartnerIds.length;
+                    return listPartnerIds;
                   }
+                  return [];
                 });
                 
-                // Remove duplicates (approximate - we can't know exact duplicates without processing)
-                const uniquePartnerIds = new Set([
-                  ...selectedPartnersForAttachment,
-                  ...selectedPartnerLists.flatMap(listId => {
-                    const partnerList = savedPartnerLists.find(list => list.id === listId);
-                    if (partnerList) {
-                      const listPartnerIds = Array.isArray(partnerList.members) 
-                        ? partnerList.members 
-                        : (Array.isArray(partnerList.partner_ids) 
-                          ? partnerList.partner_ids 
-                          : JSON.parse(partnerList.partner_ids || '[]'));
-                      return listPartnerIds;
-                    }
-                    return [];
-                  })
-                ]);
-                
+                // Remove duplicates
+                const uniquePartnerIds = new Set([...individualPartnerIds, ...listPartnerIds]);
                 const actualTotalPartners = uniquePartnerIds.size;
                 
                 return actualTotalPartners > 1 ? (
