@@ -184,7 +184,7 @@ function AssignPartnersSection({ campaignData, onAssignComplete }: AssignPartner
                 onClick={handleAssignSelected}
                 disabled={selectedPartnersForAssignment.length === 0}
               >
-                Assign to Selected ({selectedPartnersForAssignment.length})
+                Attach to Selected ({selectedPartnersForAssignment.length})
               </Button>
             </div>
           </div>
@@ -238,10 +238,10 @@ function AssignPartnersSection({ campaignData, onAssignComplete }: AssignPartner
             <div className="flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-yellow-600 mt-0.5" />
               <div>
-                <h4 className="font-medium text-yellow-900">No partners assigned</h4>
+                <h4 className="font-medium text-yellow-900">No partners attached</h4>
                 <p className="text-sm text-yellow-700 mt-1">
-                  {itemsWithoutPartners.length} recipient(s) don't have assigned partners. 
-                  You can assign them to partners individually or in bulk.
+                  {itemsWithoutPartners.length} recipient(s) don't have attached partners. 
+                  You can attach them to partners individually or in bulk.
                 </p>
               </div>
             </div>
@@ -443,11 +443,11 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
   };
 
   // Handle partner attachment
-  const handleAssignToPartners = async () => {
+  const handleAttachToPartners = async () => {
     if (selectedCustomers.length === 0) {
       toast({
         title: "No customers selected",
-        description: "Please select at least one customer to assign.",
+        description: "Please select at least one customer to attach.",
         variant: "destructive"
       });
       return;
@@ -487,13 +487,13 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
       setSelectedPartnersForAssignment([]);
 
       toast({
-        title: "Assignment successful",
-        description: `${selectedCustomers.length} customer(s) assigned to ${selectedPartnersForAssignment.length} partner(s).`
+        title: "Attachment successful",
+        description: `${selectedCustomers.length} customer(s) attached to ${selectedPartnersForAssignment.length} partner(s).`
       });
     } catch (error) {
       toast({
-        title: "Assignment failed",
-        description: "Failed to assign customers to partners. Please try again.",
+        title: "Attachment failed",
+        description: "Failed to attach customers to partners. Please try again.",
         variant: "destructive"
       });
     }
@@ -536,7 +536,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
               <UserCheck className="h-4 w-4 text-green-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900">Assigned</p>
+              <p className="text-sm font-medium text-gray-900">Attached</p>
               <p className="text-2xl font-bold text-green-600">{assignedCustomers.length}</p>
               <p className="text-xs text-gray-500 mt-1">{assignedEmails} emails</p>
             </div>
@@ -556,7 +556,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
               <AlertCircle className="h-4 w-4 text-orange-600" />
             </div>
             <div>
-              <p className="text-sm font-medium text-gray-900">Unassigned</p>
+              <p className="text-sm font-medium text-gray-900">Unattached</p>
               <p className="text-2xl font-bold text-orange-600">{unassignedCustomers.length}</p>
               <p className="text-xs text-gray-500 mt-1">{unassignedEmails} emails</p>
             </div>
@@ -596,7 +596,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
           className="gap-2"
         >
           <Users className="h-4 w-4" />
-          Assign to Partners ({selectedCustomers.length})
+          Attach to Partners ({selectedCustomers.length})
         </Button>
       </div>
 
@@ -604,7 +604,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
       {filterStatus !== 'unassigned' && uniqueAssignedPartners.length > 0 && (
         <div className="bg-white rounded-lg border">
           <div className="px-4 py-3 border-b">
-            <h3 className="font-medium text-gray-900">Assigned Partners</h3>
+            <h3 className="font-medium text-gray-900">Attached Partners</h3>
           </div>
           
           <div className="divide-y">
@@ -637,7 +637,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
         <div className="px-4 py-3 border-b">
           <h3 className="font-medium text-gray-900">
             {filterStatus === 'all' ? 'All Customers' : 
-             filterStatus === 'assigned' ? 'Assigned Customers' : 'Unassigned Customers'}
+             filterStatus === 'assigned' ? 'Attached Customers' : 'Unattached Customers'}
           </h3>
         </div>
         
@@ -661,7 +661,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                         <UserCheck className="h-3 w-3 mr-1" />
-                        Assigned
+                        Attached
                       </Badge>
                       <div className="text-sm text-gray-600">
                         {Array.from(group.assignedPartners).map((partner: any) => partner.name).join(', ')}
@@ -670,7 +670,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
                   ) : (
                     <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
                       <AlertCircle className="h-3 w-3 mr-1" />
-                      Unassigned
+                      Unattached
                     </Badge>
                   )}
                 </div>
@@ -705,7 +705,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
         </div>
       </div>
 
-      {/* Assignment Modal */}
+      {/* Attachment Modal */}
       <Dialog open={showAssignmentModal} onOpenChange={setShowAssignmentModal}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
@@ -719,7 +719,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
               </p>
             </div>
             
-            {/* Assignment Type Selection */}
+            {/* Attachment Type Selection */}
             <div className="space-y-3">
               <h4 className="font-medium text-gray-900">Attachment Type</h4>
               <div className="flex gap-4">
@@ -843,7 +843,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
                 Cancel
               </Button>
               <Button 
-                onClick={handleAssignToPartners}
+                onClick={handleAttachToPartners}
                 disabled={selectedPartnersForAssignment.length === 0}
               >
                 Attach to Partners
@@ -2071,7 +2071,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       case 6:
         return 'Save and manage drafts';
       case 7:
-        return 'Assign your campaign';
+        return 'Attach your campaign';
       default:
         return '';
     }
@@ -2116,7 +2116,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     },
     {
       number: 7,
-      title: 'Assign (optional)',
+      title: 'Attach (optional)',
       description: getStepDescription(7),
       component: 'share'
     }
@@ -3353,7 +3353,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
   if (templateLoading || campaignLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-white flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
           <p className="text-gray-600">
@@ -3365,7 +3365,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Header */}
       <div className="bg-white border-b">
         <div className="w-full px-6 py-2">
