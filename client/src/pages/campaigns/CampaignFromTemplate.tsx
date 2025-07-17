@@ -4283,7 +4283,9 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             {/* Assign to Partners Button - show on Step 7 */}
             {currentStep === 7 && (
               <Button 
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   console.log('Button clicked - campaignData.id:', campaignData.id);
                   if (campaignData.id) {
                     assignCampaignMutation.mutate({ campaignId: campaignData.id });
@@ -4291,8 +4293,9 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                     console.log('No campaign ID available');
                   }
                 }} 
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 text-sm font-medium"
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 text-sm font-medium relative z-50 cursor-pointer"
                 disabled={!campaignData.id || assignCampaignMutation.isPending}
+                style={{ pointerEvents: 'auto' }}
               >
                 {assignCampaignMutation.isPending ? 'Assigning...' : 'Assign to partners'}
               </Button>
