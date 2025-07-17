@@ -713,6 +713,11 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
       {/* Unattached Partners Section (shown only when filter is 'unattached') */}
       {attachmentFilter === 'unattached' && (
         <div className="bg-white rounded-lg border mt-6">
+          <div className="p-4 border-b">
+            <h3 className="text-lg font-semibold text-gray-900">Unattached Partners</h3>
+            <p className="text-sm text-gray-500 mt-1">Partners available for attachment</p>
+          </div>
+          
           <div className="divide-y">
             {allPartners.filter((partner: any) => 
               !customerGroups.some(customer => 
@@ -721,28 +726,74 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
               )
             ).map((partner: any) => (
               <div key={partner.id} className="p-4">
+                {/* Partner Header Row - Same structure as customer rows */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                      <Users className="h-4 w-4 text-gray-600" />
-                    </div>
-                    <div>
-                      <h3 className="font-medium text-gray-900">{partner.name}</h3>
-                      <p className="text-sm text-gray-500">Available for attachment</p>
-                    </div>
+                    <Checkbox
+                      checked={selectedContacts.includes(partner.id.toString())}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedContacts([...selectedContacts, partner.id.toString()]);
+                        } else {
+                          setSelectedContacts(selectedContacts.filter(id => id !== partner.id.toString()));
+                        }
+                      }}
+                    />
+                    <button
+                      onClick={() => handleCustomerExpand(partner.id.toString())}
+                      className="flex items-center gap-2 text-left"
+                    >
+                      <ChevronRight 
+                        className={`h-4 w-4 transition-transform ${expandedCustomers.has(partner.id.toString()) ? 'rotate-90' : ''}`}
+                      />
+                      <Users className="h-4 w-4 text-gray-500" />
+                      <div>
+                        <h4 className="font-medium text-gray-900">{partner.name}</h4>
+                        <p className="text-sm text-gray-500">Available for attachment</p>
+                      </div>
+                    </button>
                   </div>
                   
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => {
-                      setSelectedPartnersForAttachment([partner.id]);
-                      setShowAttachmentModal(true);
-                    }}
-                  >
-                    Attach
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-500">Default Partner:</span>
+                    <span className="font-medium text-gray-900">None</span>
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                      <Edit className="h-3 w-3" />
+                    </Button>
+                  </div>
                 </div>
+
+                {/* Partner Details (Expanded) - Similar to contact details */}
+                {expandedCustomers.has(partner.id.toString()) && (
+                  <div className="mt-4 ml-8 space-y-3 border-l-2 border-gray-100 pl-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Checkbox
+                          checked={selectedContacts.includes(`partner-${partner.id}`)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedContacts([...selectedContacts, `partner-${partner.id}`]);
+                            } else {
+                              setSelectedContacts(selectedContacts.filter(id => id !== `partner-${partner.id}`));
+                            }
+                          }}
+                        />
+                        <Users className="h-4 w-4 text-gray-500" />
+                        <div>
+                          <p className="font-medium text-gray-900">{partner.name}</p>
+                          <p className="text-sm text-gray-500">Available for attachment</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs text-orange-600">⚠ Unattached</span>
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
             
