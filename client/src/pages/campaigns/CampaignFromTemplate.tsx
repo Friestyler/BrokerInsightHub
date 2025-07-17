@@ -317,143 +317,120 @@ function AssignPartnersSection({ campaignData, onAssignComplete }: AssignPartner
   );
 }
 
-// Customer Partner Assignment Interface Component
-interface CustomerPartnerAssignmentInterfaceProps {
+// Contact Partner Attachment Interface Component
+interface ContactPartnerAttachmentInterfaceProps {
   campaignData: any;
   onAttachmentsChange: (updatedRecipients: any[]) => void;
 }
 
-function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange }: CustomerPartnerAssignmentInterfaceProps) {
-  const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
-  const [showAssignmentModal, setShowAssignmentModal] = useState(false);
-  const [selectedPartnersForAssignment, setSelectedPartnersForAssignment] = useState<number[]>([]);
+function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }: ContactPartnerAttachmentInterfaceProps) {
+  const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
+  const [showAttachmentModal, setShowAttachmentModal] = useState(false);
+  const [selectedPartnersForAttachment, setSelectedPartnersForAttachment] = useState<number[]>([]);
   const [attachmentType, setAttachmentType] = useState<'individual' | 'list'>('individual');
-  const [filterStatus, setFilterStatus] = useState<'all' | 'assigned' | 'unassigned'>('all');
-  const { toast } = useToast();
-
-  // Fetch partners for attachment
-  const { data: allPartners = [] } = useQuery({
-    queryKey: ['/api/partners'],
-    enabled: showAssignmentModal
-  });
-
-  // Fetch saved partner lists
-  const { data: savedPartnerLists = [] } = useQuery({
-    queryKey: ['/api/saved-lists'],
-    enabled: showAssignmentModal && attachmentType === 'list'
-  });
-
-  // Group recipients by customer to show customer-centric view
-  const customerGroups = (() => {
+  const [filterStatus, setFilterStatus] = useState<'all' | 'attached' | 'unattached'>('all');
+  const [viewMode, setViewMode] = useState<'contacts' | 'partners'>('contacts');
+  
+  // Mock data for contact and partner attachment
+  // Group recipients by contact to show contact-centric view
+  const contactGroups = (() => {
     const groups = new Map();
     
-    campaignData.recipients.forEach((recipient: any) => {
-      const customerId = recipient.customerInfo?.id || recipient.id;
-      const customerName = recipient.customerInfo?.name || recipient.name || 'Unknown Customer';
-      
-      if (!groups.has(customerId)) {
-        groups.set(customerId, {
-          id: customerId,
-          name: customerName,
-          recipients: [],
-          assignedPartners: new Set(),
-          hasAssignedPartners: false
-        });
-      }
-      
-      const group = groups.get(customerId);
-      group.recipients.push(recipient);
-      
-      // Check for partner attachments
-      const partnerId = recipient.partnerId || recipient.assigned_partner_id || recipient.partnerInfo?.id;
-      const partnerName = recipient.partnerName || recipient.partnerInfo?.name;
-      
-      if (partnerId && partnerName) {
-        group.assignedPartners.add({ id: partnerId, name: partnerName });
-        group.hasAssignedPartners = true;
-      }
-    });
+    if (campaignData.recipients) {
+      campaignData.recipients.forEach((recipient: any) => {
+        // Create contact entries for each recipient
+        const contactKey = recipient.email || recipient.id || 'unknown';
+        const contactName = recipient.full_name || 
+                           `${recipient.first_name || ''} ${recipient.last_name || ''}`.trim() || 
+                           recipient.email || 
+                           'Unknown Contact';
+        
+        if (!groups.has(contactKey)) {
+          groups.set(contactKey, {
+            id: contactKey,
+            name: contactName,
+            email: recipient.email || recipient.contactInfo?.email || '',
+            company: recipient.customerInfo?.name || recipient.name || 'Unknown Company',
+            recipients: [],
+            attachedPartners: new Set(),
+            hasAttachedPartners: false
+          });
+        }
+        
+        groups.get(contactKey).recipients.push(recipient);
+      });
+    }
     
     return Array.from(groups.values());
   })();
-
-  // Separate assigned and unassigned customers
-  const assignedCustomers = customerGroups.filter(group => group.hasAssignedPartners);
-  const unassignedCustomers = customerGroups.filter(group => !group.hasAssignedPartners);
   
-  // Filter customers based on status
-  const filteredCustomers = (() => {
-    switch (filterStatus) {
-      case 'assigned':
-        return assignedCustomers;
-      case 'unassigned':
-        return unassignedCustomers;
-      default:
-        return customerGroups;
-    }
-  })();
+  const filteredContacts = contactGroups.filter(contact => {
+    if (filterStatus === 'all') return true;
+    if (filterStatus === 'attached') return contact.hasAttachedPartners;
+    if (filterStatus === 'unattached') return !contact.hasAttachedPartners;
+    return true;
+  });
+  
+
+
   
   // Calculate email counts
-  const totalEmails = campaignData.recipients.filter((r: any) => r.email || r.contactInfo?.email).length;
-  const assignedEmails = assignedCustomers.reduce((sum, group) => 
-    sum + group.recipients.filter((r: any) => r.email || r.contactInfo?.email).length, 0
-  );
-  const unassignedEmails = unassignedCustomers.reduce((sum, group) => 
-    sum + group.recipients.filter((r: any) => r.email || r.contactInfo?.email).length, 0
-  );
+  const totalEmails = contactGroups.length;
+  const attachedEmails = attachedContacts.length;
+  const unattachedEmails = unattachedContacts.length;
   
-  // Get unique assigned partners (show each partner only once)
-  const uniqueAssignedPartners = (() => {
+  // Get unique attached partners (show each partner only once)
+  const uniqueAttachedPartners = (() => {
     const partnersMap = new Map();
-    assignedCustomers.forEach(group => {
-      Array.from(group.assignedPartners).forEach((partner: any) => {
+    attachedContacts.forEach(group => {
+      Array.from(group.attachedPartners).forEach((partner: any) => {
         if (!partnersMap.has(partner.id)) {
           partnersMap.set(partner.id, {
             ...partner,
-            customerCount: 0,
+            contactCount: 0,
             emailCount: 0
           });
         }
         const partnerData = partnersMap.get(partner.id);
-        partnerData.customerCount++;
-        partnerData.emailCount += group.recipients.filter((r: any) => r.email || r.contactInfo?.email).length;
+        partnerData.contactCount++;
+        partnerData.emailCount += group.email ? 1 : 0;
       });
     });
     return Array.from(partnersMap.values());
   })();
 
-  // Handle customer selection
-  const handleCustomerToggle = (customerId: string) => {
-    setSelectedCustomers(prev => 
-      prev.includes(customerId) 
-        ? prev.filter(id => id !== customerId)
-        : [...prev, customerId]
+  // Handle contact selection
+  const handleContactToggle = (contactId: string) => {
+    setSelectedContacts(prev => 
+      prev.includes(contactId) 
+        ? prev.filter(id => id !== contactId)
+        : [...prev, contactId]
     );
   };
 
   // Handle select all
   const handleSelectAll = () => {
-    const allCustomerIds = filteredCustomers.map(group => group.id.toString());
-    setSelectedCustomers(allCustomerIds);
+    const allContactIds = filteredContacts.map(group => group.id.toString());
+    setSelectedContacts(allContactIds);
   };
 
   // Handle clear selection
   const handleClearSelection = () => {
-    setSelectedCustomers([]);
+    setSelectedContacts([]);
   };
 
   // Handle partner attachment
   const handleAttachToPartners = async () => {
-    if (selectedCustomers.length === 0) {
+    if (selectedContacts.length === 0) {
       toast({
-        title: "No customers selected",
-        description: "Please select at least one customer to attach.",
+        title: "No contacts selected",
+        description: "Please select at least one contact to attach.",
         variant: "destructive"
       });
       return;
     }
 
-    if (selectedPartnersForAssignment.length === 0) {
+    if (selectedPartnersForAttachment.length === 0) {
       toast({
         title: "No partners selected",
         description: "Please select at least one partner for attachment.",
@@ -465,11 +442,11 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
     try {
       // Update recipients with partner attachments
       const updatedRecipients = campaignData.recipients.map((recipient: any) => {
-        const customerId = recipient.customerInfo?.id || recipient.id;
+        const contactKey = recipient.email || recipient.id || 'unknown';
         
-        if (selectedCustomers.includes(customerId.toString())) {
+        if (selectedContacts.includes(contactKey.toString())) {
           // Assign the first selected partner (for demo purposes)
-          const assignedPartner = allPartners.find((p: any) => p.id === selectedPartnersForAssignment[0]);
+          const assignedPartner = allPartners.find((p: any) => p.id === selectedPartnersForAttachment[0]);
           return {
             ...recipient,
             partnerId: assignedPartner.id,
@@ -481,19 +458,19 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
         return recipient;
       });
 
-      onAssignmentsChange(updatedRecipients);
-      setShowAssignmentModal(false);
-      setSelectedCustomers([]);
-      setSelectedPartnersForAssignment([]);
+      onAttachmentsChange(updatedRecipients);
+      setShowAttachmentModal(false);
+      setSelectedContacts([]);
+      setSelectedPartnersForAttachment([]);
 
       toast({
         title: "Attachment successful",
-        description: `${selectedCustomers.length} customer(s) attached to ${selectedPartnersForAssignment.length} partner(s).`
+        description: `${selectedContacts.length} contact(s) attached to ${selectedPartnersForAttachment.length} partner(s).`
       });
     } catch (error) {
       toast({
         title: "Attachment failed",
-        description: "Failed to attach customers to partners. Please try again.",
+        description: "Failed to attach contacts to partners. Please try again.",
         variant: "destructive"
       });
     }
@@ -501,104 +478,130 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards - Now function as filter buttons */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div 
-          className={`bg-white rounded-lg border-2 p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
-            filterStatus === 'all' 
-              ? 'border-blue-500 bg-blue-50' 
-              : 'border-gray-200 hover:border-gray-300'
-          }`}
-          onClick={() => setFilterStatus('all')}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-              <Users className="h-4 w-4 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">Total Customers</p>
-              <p className="text-2xl font-bold text-gray-900">{customerGroups.length}</p>
-              <p className="text-xs text-gray-500 mt-1">{totalEmails} emails</p>
-            </div>
-          </div>
-        </div>
-        
-        <div 
-          className={`bg-white rounded-lg border-2 p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
-            filterStatus === 'assigned' 
-              ? 'border-green-500 bg-green-50' 
-              : 'border-gray-200 hover:border-gray-300'
-          }`}
-          onClick={() => setFilterStatus('assigned')}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-              <UserCheck className="h-4 w-4 text-green-600" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">Attached</p>
-              <p className="text-2xl font-bold text-green-600">{assignedCustomers.length}</p>
-              <p className="text-xs text-gray-500 mt-1">{assignedEmails} emails</p>
-            </div>
-          </div>
-        </div>
-        
-        <div 
-          className={`bg-white rounded-lg border-2 p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
-            filterStatus === 'unassigned' 
-              ? 'border-orange-500 bg-orange-50' 
-              : 'border-gray-200 hover:border-gray-300'
-          }`}
-          onClick={() => setFilterStatus('unassigned')}
-        >
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
-              <AlertCircle className="h-4 w-4 text-orange-600" />
-            </div>
-            <div>
-              <p className="text-sm font-medium text-gray-900">Unattached</p>
-              <p className="text-2xl font-bold text-orange-600">{unassignedCustomers.length}</p>
-              <p className="text-xs text-gray-500 mt-1">{unassignedEmails} emails</p>
-            </div>
-          </div>
+      {/* View Mode Toggle */}
+      <div className="flex justify-center">
+        <div className="bg-white rounded-lg border p-1 flex">
+          <Button
+            variant={viewMode === 'contacts' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('contacts')}
+            className="gap-2"
+          >
+            <User className="h-4 w-4" />
+            Contacts View
+          </Button>
+          <Button
+            variant={viewMode === 'partners' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setViewMode('partners')}
+            className="gap-2"
+          >
+            <Users className="h-4 w-4" />
+            Partners View
+          </Button>
         </div>
       </div>
 
-      {/* Action Bar */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleSelectAll}
-            disabled={filteredCustomers.length === 0}
-          >
-            Select All ({filteredCustomers.length})
-          </Button>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={handleClearSelection}
-            disabled={selectedCustomers.length === 0}
-          >
-            Clear Selection
-          </Button>
-          {selectedCustomers.length > 0 && (
-            <Badge variant="secondary" className="ml-2">
-              {selectedCustomers.length} selected
-            </Badge>
-          )}
-        </div>
-        
-        <Button 
-          onClick={() => setShowAssignmentModal(true)}
-          disabled={selectedCustomers.length === 0}
-          className="gap-2"
-        >
-          <Users className="h-4 w-4" />
-          Attach to Partners ({selectedCustomers.length})
-        </Button>
-      </div>
+      {viewMode === 'contacts' ? (
+        <>
+          {/* Summary Cards - Contacts View */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div 
+              className={`bg-white rounded-lg border-2 p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                filterStatus === 'all' 
+                  ? 'border-blue-500 bg-blue-50' 
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+              onClick={() => setFilterStatus('all')}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                  <User className="h-4 w-4 text-blue-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Total Contacts</p>
+                  <p className="text-2xl font-bold text-gray-900">{contactGroups.length}</p>
+                  <p className="text-xs text-gray-500 mt-1">{totalEmails} emails</p>
+                </div>
+              </div>
+            </div>
+            
+            <div 
+              className={`bg-white rounded-lg border-2 p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                filterStatus === 'attached' 
+                  ? 'border-green-500 bg-green-50' 
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+              onClick={() => setFilterStatus('attached')}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+                  <UserCheck className="h-4 w-4 text-green-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Attached</p>
+                  <p className="text-2xl font-bold text-green-600">{attachedContacts.length}</p>
+                  <p className="text-xs text-gray-500 mt-1">{attachedEmails} emails</p>
+                </div>
+              </div>
+            </div>
+            
+            <div 
+              className={`bg-white rounded-lg border-2 p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
+                filterStatus === 'unattached' 
+                  ? 'border-orange-500 bg-orange-50' 
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+              onClick={() => setFilterStatus('unattached')}
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+                  <AlertCircle className="h-4 w-4 text-orange-600" />
+                </div>
+                <div>
+                  <p className="text-sm font-medium text-gray-900">Unattached</p>
+                  <p className="text-2xl font-bold text-orange-600">{unattachedContacts.length}</p>
+                  <p className="text-xs text-gray-500 mt-1">{unattachedEmails} emails</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Bar - Contacts View */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleSelectAll}
+                disabled={filteredContacts.length === 0}
+              >
+                Select All ({filteredContacts.length})
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleClearSelection}
+                disabled={selectedContacts.length === 0}
+              >
+                Clear Selection
+              </Button>
+              {selectedContacts.length > 0 && (
+                <Badge variant="secondary" className="ml-2">
+                  {selectedContacts.length} selected
+                </Badge>
+              )}
+            </div>
+            
+            <Button 
+              onClick={() => setShowAttachmentModal(true)}
+              disabled={selectedContacts.length === 0}
+              className="gap-2"
+            >
+              <Users className="h-4 w-4" />
+              Attach to Partners ({selectedContacts.length})
+            </Button>
+          </div>
 
       {/* Assigned Partners Section */}
       {filterStatus !== 'unassigned' && uniqueAssignedPartners.length > 0 && (
@@ -632,39 +635,40 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
         </div>
       )}
 
-      {/* Customer List */}
-      <div className="bg-white rounded-lg border">
-        <div className="px-4 py-3 border-b">
-          <h3 className="font-medium text-gray-900">
-            {filterStatus === 'all' ? 'All Customers' : 
-             filterStatus === 'assigned' ? 'Attached Customers' : 'Unattached Customers'}
-          </h3>
-        </div>
+          {/* Contact List */}
+          <div className="bg-white rounded-lg border">
+            <div className="px-4 py-3 border-b">
+              <h3 className="font-medium text-gray-900">
+                {filterStatus === 'all' ? 'All Contacts' : 
+                 filterStatus === 'attached' ? 'Attached Contacts' : 'Unattached Contacts'}
+              </h3>
+            </div>
         
         <div className="divide-y">
-          {filteredCustomers.map((group) => (
+          {filteredContacts.map((group) => (
             <div key={group.id} className="px-4 py-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Checkbox
-                    checked={selectedCustomers.includes(group.id.toString())}
-                    onCheckedChange={() => handleCustomerToggle(group.id.toString())}
+                    checked={selectedContacts.includes(group.id.toString())}
+                    onCheckedChange={() => handleContactToggle(group.id.toString())}
                   />
                   <div>
                     <h4 className="font-medium text-gray-900">{group.name}</h4>
-                    <p className="text-sm text-gray-500">{group.recipients.length} recipient(s)</p>
+                    <p className="text-sm text-gray-500">{group.email}</p>
+                    <p className="text-xs text-gray-400">{group.company}</p>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  {group.hasAssignedPartners ? (
+                  {group.hasAttachedPartners ? (
                     <div className="flex items-center gap-2">
                       <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                         <UserCheck className="h-3 w-3 mr-1" />
                         Attached
                       </Badge>
                       <div className="text-sm text-gray-600">
-                        {Array.from(group.assignedPartners).map((partner: any) => partner.name).join(', ')}
+                        {Array.from(group.attachedPartners).map((partner: any) => partner.name).join(', ')}
                       </div>
                     </div>
                   ) : (
@@ -675,47 +679,56 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
                   )}
                 </div>
               </div>
-              
-              {/* Show recipient details */}
-              <div className="mt-3 ml-8 space-y-1">
-                {group.recipients.slice(0, 3).map((recipient: any, index: number) => (
-                  <div key={index} className="text-sm text-gray-600">
-                    {recipient.type === 'opportunity' && (
-                      <span className="inline-flex items-center gap-1">
-                        <Target className="h-3 w-3" />
-                        {recipient.title || 'Opportunity'}
-                      </span>
-                    )}
-                    {recipient.type === 'contact' && (
-                      <span className="inline-flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        {recipient.full_name || `${recipient.first_name} ${recipient.last_name}` || 'Contact'}
-                      </span>
-                    )}
-                  </div>
-                ))}
-                {group.recipients.length > 3 && (
-                  <div className="text-sm text-gray-500">
-                    +{group.recipients.length - 3} more recipient(s)
-                  </div>
-                )}
-              </div>
             </div>
           ))}
         </div>
-      </div>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Partners View */}
+          <div className="bg-white rounded-lg border">
+            <div className="px-4 py-3 border-b">
+              <h3 className="font-medium text-gray-900">Partner Overview</h3>
+            </div>
+            
+            <div className="divide-y">
+              {uniqueAttachedPartners.map((partner) => (
+                <div key={partner.id} className="px-4 py-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+                        <Users className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium text-gray-900">{partner.name}</h4>
+                        <p className="text-sm text-gray-500">
+                          {partner.contactCount} contact(s) • {partner.emailCount} email(s)
+                        </p>
+                      </div>
+                    </div>
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                      Partner
+                    </Badge>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Attachment Modal */}
-      <Dialog open={showAssignmentModal} onOpenChange={setShowAssignmentModal}>
+      <Dialog open={showAttachmentModal} onOpenChange={setShowAttachmentModal}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Attach Customers to Partners</DialogTitle>
+            <DialogTitle>Attach Contacts to Partners</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
             <div className="p-3 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-800">
-                Attaching {selectedCustomers.length} customer(s) to partner(s)
+                Attaching {selectedContacts.length} contact(s) to partner(s)
               </p>
             </div>
             
@@ -748,12 +761,12 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
                   {allPartners.map((partner: any) => (
                     <div key={partner.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
                       <Checkbox
-                        checked={selectedPartnersForAssignment.includes(partner.id)}
+                        checked={selectedPartnersForAttachment.includes(partner.id)}
                         onCheckedChange={(checked) => {
                           if (checked) {
-                            setSelectedPartnersForAssignment(prev => [...prev, partner.id]);
+                            setSelectedPartnersForAttachment(prev => [...prev, partner.id]);
                           } else {
-                            setSelectedPartnersForAssignment(prev => prev.filter(id => id !== partner.id));
+                            setSelectedPartnersForAttachment(prev => prev.filter(id => id !== partner.id));
                           }
                         }}
                       />
@@ -766,7 +779,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
                 </div>
                 
                 {/* Multiple Partner Selection Notice */}
-                {selectedPartnersForAssignment.length > 1 && (
+                {selectedPartnersForAttachment.length > 1 && (
                   <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <div className="flex items-start gap-2">
                       <div className="w-4 h-4 rounded-full bg-yellow-400 flex items-center justify-center mt-0.5">
@@ -777,7 +790,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
                           Random Attachment
                         </p>
                         <p className="text-sm text-yellow-700 mt-1">
-                          Qollabi will randomly attach the selected customers across the {selectedPartnersForAssignment.length} chosen partners to ensure balanced distribution.
+                          Qollabi will randomly attach the selected contacts across the {selectedPartnersForAttachment.length} chosen partners to ensure balanced distribution.
                         </p>
                       </div>
                     </div>
@@ -794,12 +807,12 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
                   {savedPartnerLists.filter((list: any) => list.entity_type === 'partners').map((list: any) => (
                     <div key={list.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
                       <Checkbox
-                        checked={selectedPartnersForAssignment.includes(list.id)}
+                        checked={selectedPartnersForAttachment.includes(list.id)}
                         onCheckedChange={(checked) => {
                           if (checked) {
-                            setSelectedPartnersForAssignment(prev => [...prev, list.id]);
+                            setSelectedPartnersForAttachment(prev => [...prev, list.id]);
                           } else {
-                            setSelectedPartnersForAssignment(prev => prev.filter(id => id !== list.id));
+                            setSelectedPartnersForAttachment(prev => prev.filter(id => id !== list.id));
                           }
                         }}
                       />
@@ -812,7 +825,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
                 </div>
                 
                 {/* Partner Lists Selection Notice - Always show since lists contain multiple partners */}
-                {selectedPartnersForAssignment.length > 0 && (
+                {selectedPartnersForAttachment.length > 0 && (
                   <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
                     <div className="flex items-start gap-2">
                       <div className="w-4 h-4 rounded-full bg-yellow-400 flex items-center justify-center mt-0.5">
@@ -823,9 +836,9 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
                           Random Attachment
                         </p>
                         <p className="text-sm text-yellow-700 mt-1">
-                          {selectedPartnersForAssignment.length === 1 
-                            ? "Qollabi will randomly attach the selected customers across partners from the chosen list to ensure balanced distribution."
-                            : `Qollabi will randomly attach the selected customers across partners from the ${selectedPartnersForAssignment.length} chosen lists to ensure balanced distribution.`
+                          {selectedPartnersForAttachment.length === 1 
+                            ? "Qollabi will randomly attach the selected contacts across partners from the chosen list to ensure balanced distribution."
+                            : `Qollabi will randomly attach the selected contacts across partners from the ${selectedPartnersForAttachment.length} chosen lists to ensure balanced distribution.`
                           }
                         </p>
                       </div>
@@ -838,13 +851,13 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange 
             <div className="flex justify-end gap-3 pt-4 border-t">
               <Button 
                 variant="outline" 
-                onClick={() => setShowAssignmentModal(false)}
+                onClick={() => setShowAttachmentModal(false)}
               >
                 Cancel
               </Button>
               <Button 
                 onClick={handleAttachToPartners}
-                disabled={selectedPartnersForAssignment.length === 0}
+                disabled={selectedPartnersForAttachment.length === 0}
               >
                 Attach to Partners
               </Button>
@@ -3328,12 +3341,12 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-xl font-medium text-gray-900 mb-2">Attach Campaign</h2>
-              <p className="text-gray-600">Manage customer-to-partner attachments for campaign collaboration</p>
+              <h2 className="text-xl font-medium text-gray-900 mb-2">Contact & Partner Attachment</h2>
+              <p className="text-gray-600">Manage contact assignments to partners for effective campaign distribution</p>
             </div>
 
             <div className="max-w-7xl mx-auto">
-              <CustomerPartnerAssignmentInterface 
+              <ContactPartnerAttachmentInterface 
                 campaignData={campaignData}
                 onAttachmentsChange={(updatedRecipients) => {
                   setCampaignData(prev => ({
