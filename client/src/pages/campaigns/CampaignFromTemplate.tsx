@@ -342,6 +342,8 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
   const [selectedPartnerLists, setSelectedPartnerLists] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [expandedPartnerLists, setExpandedPartnerLists] = useState<Set<number>>(new Set());
+  const [optimizationFields, setOptimizationFields] = useState<string[]>([]);
+  const [showOptimizationSettings, setShowOptimizationSettings] = useState(false);
   const { toast } = useToast();
   
   // Fetch all partners for selection and attachment operations
@@ -492,6 +494,8 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
     setPartnerSelectionTab('individual');
     setSearchTerm('');
     setExpandedPartnerLists(new Set());
+    setOptimizationFields([]);
+    setShowOptimizationSettings(false);
     setShowAttachmentModal(false);
   };
 
@@ -606,6 +610,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
           campaignId: campaignData.id.toString(),
           customerAttachments,
           contactAttachments,
+          optimizationFields: optimizationFields,
           editMode: true
         });
         
@@ -718,6 +723,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
           campaignId: campaignData.id.toString(),
           customerAttachments,
           contactAttachments,
+          optimizationFields: optimizationFields,
           editMode: false
         });
         
@@ -1373,11 +1379,72 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                     <div className="flex items-start gap-3">
                       <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
                       <div className="flex-1">
-                        <h4 className="font-medium text-blue-900 mb-1">Random Distribution</h4>
-                        <p className="text-sm text-blue-800">
-                          Qollabi will randomly distribute the {selectedContacts.length} selected contacts across the {actualTotalPartners} chosen partners to ensure balanced assignment. 
-                          Distribution can also be optimized based on matching criteria like postal codes, provinces, or business sectors when available.
+                        <h4 className="font-medium text-blue-900 mb-1">
+                          {optimizationFields.length > 0 ? 'Optimized Distribution' : 'Random Distribution'}
+                        </h4>
+                        <p className="text-sm text-blue-800 mb-3">
+                          {optimizationFields.length > 0 ? (
+                            <>
+                              Qollabi will distribute the {selectedContacts.length} selected contacts across the {actualTotalPartners} chosen partners, 
+                              optimizing assignments based on matching {optimizationFields.join(', ')} for better regional or sector alignment.
+                            </>
+                          ) : (
+                            <>
+                              Qollabi will randomly distribute the {selectedContacts.length} selected contacts across the {actualTotalPartners} chosen partners to ensure balanced assignment.
+                            </>
+                          )}
                         </p>
+                        
+                        {/* Optimization Settings Toggle */}
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowOptimizationSettings(!showOptimizationSettings)}
+                          className="text-blue-700 border-blue-300 hover:bg-blue-100"
+                        >
+                          <Settings className="h-4 w-4 mr-2" />
+                          {showOptimizationSettings ? 'Hide' : 'Configure'} Distribution Settings
+                        </Button>
+                        
+                        {/* Optimization Fields Selection */}
+                        {showOptimizationSettings && (
+                          <div className="mt-4 p-3 bg-white rounded-lg border border-blue-200">
+                            <h5 className="font-medium text-blue-900 mb-2">Optimization Fields</h5>
+                            <p className="text-xs text-blue-700 mb-3">
+                              Select fields to match contacts with partners for better regional or sector alignment:
+                            </p>
+                            <div className="grid grid-cols-2 gap-2">
+                              {[
+                                { value: 'postal_code', label: 'Postal Code' },
+                                { value: 'province', label: 'Province/State' },
+                                { value: 'city', label: 'City' },
+                                { value: 'business_sector', label: 'Business Sector' },
+                                { value: 'company_size', label: 'Company Size' },
+                                { value: 'industry', label: 'Industry' }
+                              ].map((field) => (
+                                <div key={field.value} className="flex items-center gap-2">
+                                  <Checkbox
+                                    id={`optimization-${field.value}`}
+                                    checked={optimizationFields.includes(field.value)}
+                                    onCheckedChange={(checked) => {
+                                      if (checked) {
+                                        setOptimizationFields([...optimizationFields, field.value]);
+                                      } else {
+                                        setOptimizationFields(optimizationFields.filter(f => f !== field.value));
+                                      }
+                                    }}
+                                  />
+                                  <label 
+                                    htmlFor={`optimization-${field.value}`} 
+                                    className="text-xs text-blue-800 cursor-pointer"
+                                  >
+                                    {field.label}
+                                  </label>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
