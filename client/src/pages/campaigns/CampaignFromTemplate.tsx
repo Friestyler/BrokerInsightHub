@@ -4110,8 +4110,20 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               <p className="text-gray-600">Manage contact assignments to partners for effective campaign distribution</p>
             </div>
 
-            {/* Green "Assign to partners" button - TOP POSITION */}
-            <div className="flex justify-center bg-red-100 p-4 border-2 border-red-500 mb-6">
+            <div className="max-w-7xl mx-auto">
+              <ContactPartnerAttachmentInterface 
+                campaignData={campaignData}
+                onAttachmentsChange={(updatedRecipients) => {
+                  setCampaignData(prev => ({
+                    ...prev,
+                    recipients: updatedRecipients
+                  }));
+                }}
+              />
+            </div>
+
+            {/* Green "Assign to partners" button - OUTSIDE mx-auto container */}
+            <div className="flex justify-center bg-red-100 p-4 border-2 border-red-500 mt-8">
               <Button 
                 onClick={() => {
                   console.log('Button clicked - campaignData.id:', campaignData.id);
@@ -4126,36 +4138,6 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               >
                 {assignCampaignMutation.isPending ? 'Assigning...' : 'Assign to partners'}
               </Button>
-            </div>
-
-            <div className="max-w-7xl mx-auto">
-              <ContactPartnerAttachmentInterface 
-                campaignData={campaignData}
-                onAttachmentsChange={(updatedRecipients) => {
-                  setCampaignData(prev => ({
-                    ...prev,
-                    recipients: updatedRecipients
-                  }));
-                }}
-              />
-              
-              {/* Green "Assign to partners" button */}
-              <div className="mt-8 flex justify-center bg-red-100 p-4 border-2 border-red-500">
-                <Button 
-                  onClick={() => {
-                    console.log('Button clicked - campaignData.id:', campaignData.id);
-                    if (campaignData.id) {
-                      assignCampaignMutation.mutate({ campaignId: campaignData.id });
-                    } else {
-                      console.log('No campaign ID available');
-                    }
-                  }} 
-                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg font-medium"
-                  disabled={!campaignData.id || assignCampaignMutation.isPending}
-                >
-                  {assignCampaignMutation.isPending ? 'Assigning...' : 'Assign to partners'}
-                </Button>
-              </div>
             </div>
           </div>
         );
