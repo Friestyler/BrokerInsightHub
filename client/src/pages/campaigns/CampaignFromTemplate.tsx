@@ -593,7 +593,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
       </div>
 
       {/* Customer List */}
-      <div className="bg-white rounded-lg border">
+      <div className="bg-white rounded-lg">
         
         <div className="divide-y">
           {(() => {
@@ -712,7 +712,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
 
       {/* Unattached Partners Section (shown only when filter is 'unattached') */}
       {attachmentFilter === 'unattached' && (
-        <div className="bg-white rounded-lg border mt-6">
+        <div className="bg-white rounded-lg mt-6">
           <div className="divide-y">
             {allPartners.filter((partner: any) => 
               !customerGroups.some(customer => 
