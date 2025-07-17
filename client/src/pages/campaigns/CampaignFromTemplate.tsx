@@ -425,6 +425,9 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
   // Handle customer expansion
   const [expandedCustomers, setExpandedCustomers] = useState<Set<string>>(new Set());
   
+  // Attachment filter state
+  const [attachmentFilter, setAttachmentFilter] = useState<'all' | 'attached' | 'unattached'>('all');
+  
   const handleCustomerExpand = (customerId: string) => {
     setExpandedCustomers(prev => {
       const newSet = new Set(prev);
@@ -563,14 +566,70 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         )}
       </div>
 
-      {/* Contact & Partner Attachment Section */}
+      {/* Filter Cards */}
+      <div className="grid grid-cols-3 gap-4 mb-6">
+        <button
+          onClick={() => setAttachmentFilter('all')}
+          className={`p-4 rounded-lg border text-left transition-all ${
+            attachmentFilter === 'all' 
+              ? 'border-blue-500 bg-blue-50' 
+              : 'border-gray-200 hover:border-gray-300'
+          }`}
+        >
+          <div className="text-2xl font-bold text-gray-900">{customerGroups.length}</div>
+          <div className="text-sm text-gray-600">Total Customers</div>
+        </button>
+        
+        <button
+          onClick={() => setAttachmentFilter('attached')}
+          className={`p-4 rounded-lg border text-left transition-all ${
+            attachmentFilter === 'attached' 
+              ? 'border-green-500 bg-green-50' 
+              : 'border-gray-200 hover:border-gray-300'
+          }`}
+        >
+          <div className="text-2xl font-bold text-gray-900">
+            {customerGroups.filter(customer => customer.defaultPartner).length}
+          </div>
+          <div className="text-sm text-gray-600">Attached</div>
+        </button>
+        
+        <button
+          onClick={() => setAttachmentFilter('unattached')}
+          className={`p-4 rounded-lg border text-left transition-all ${
+            attachmentFilter === 'unattached' 
+              ? 'border-orange-500 bg-orange-50' 
+              : 'border-gray-200 hover:border-gray-300'
+          }`}
+        >
+          <div className="text-2xl font-bold text-gray-900">
+            {customerGroups.filter(customer => !customer.defaultPartner).length}
+          </div>
+          <div className="text-sm text-gray-600">Unattached</div>
+        </button>
+      </div>
+
+      {/* Customer List */}
       <div className="bg-white rounded-lg border">
-        <div className="p-4 border-b">
-          <h3 className="text-lg font-semibold text-gray-900">Contact & Partner Attachment</h3>
-        </div>
         
         <div className="divide-y">
-          {customerGroups.map((customer) => (
+          {(() => {
+            const filteredCustomers = customerGroups.filter(customer => {
+              if (attachmentFilter === 'attached') return customer.defaultPartner;
+              if (attachmentFilter === 'unattached') return !customer.defaultPartner;
+              return true; // 'all' case
+            });
+            
+            if (filteredCustomers.length === 0) {
+              return (
+                <div className="text-center py-8 text-gray-500">
+                  <Building className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                  <p>No customers match the selected filter</p>
+                </div>
+              );
+            }
+            
+            return filteredCustomers.map((customer) => (
             <div key={customer.id} className="p-4">
               {/* Customer Header Row */}
               <div className="flex items-center justify-between">
@@ -650,7 +709,8 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                 </div>
               )}
             </div>
-          ))}
+          ));
+          })()}
         </div>
       </div>
 
