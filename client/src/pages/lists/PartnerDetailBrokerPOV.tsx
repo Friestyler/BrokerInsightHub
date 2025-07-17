@@ -913,17 +913,10 @@ export default function PartnerDetailBrokerPOV() {
     return acc;
   }, {});
 
-  // Get color for tag name
+  // Get color for tag name - use database colors for consistency
   const getTagColor = (tagName: string) => {
-    // Map Mevas BV specific tags to colors
-    if (tagName.includes('Productie Dashboard')) {
-      return '#10B981'; // Green for production dashboard
-    } else if (tagName.includes('Werk in Uitvoering')) {
-      return '#F59E0B'; // Orange for work in progress
-    } else if (tagName.includes('Schade Zakelijk')) {
-      return '#3B82F6'; // Blue for commercial damage
-    }
-    return '#6B7280'; // Default gray
+    const tag = (tags as any[] || []).find((t: any) => t.name === tagName);
+    return tag?.color || '#6B7280'; // Default gray for unknown tags
   };
 
   // Get saved list ID from session storage for back navigation
