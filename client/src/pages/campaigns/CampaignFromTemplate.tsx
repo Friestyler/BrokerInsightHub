@@ -4121,24 +4121,6 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 }}
               />
             </div>
-
-            {/* Green "Assign to partners" button - OUTSIDE mx-auto container */}
-            <div className="flex justify-center bg-red-100 p-4 border-2 border-red-500 mt-8">
-              <Button 
-                onClick={() => {
-                  console.log('Button clicked - campaignData.id:', campaignData.id);
-                  if (campaignData.id) {
-                    assignCampaignMutation.mutate({ campaignId: campaignData.id });
-                  } else {
-                    console.log('No campaign ID available');
-                  }
-                }} 
-                className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg font-medium"
-                disabled={!campaignData.id || assignCampaignMutation.isPending}
-              >
-                {assignCampaignMutation.isPending ? 'Assigning...' : 'Assign to partners'}
-              </Button>
-            </div>
           </div>
         );
 
@@ -4295,6 +4277,24 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 className="gap-2"
               >
                 {createCampaignMutation.isPending ? 'Saving...' : 'Save'}
+              </Button>
+            )}
+            
+            {/* Assign to Partners Button - show on Step 7 */}
+            {currentStep === 7 && (
+              <Button 
+                onClick={() => {
+                  console.log('Button clicked - campaignData.id:', campaignData.id);
+                  if (campaignData.id) {
+                    assignCampaignMutation.mutate({ campaignId: campaignData.id });
+                  } else {
+                    console.log('No campaign ID available');
+                  }
+                }} 
+                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 text-sm font-medium"
+                disabled={!campaignData.id || assignCampaignMutation.isPending}
+              >
+                {assignCampaignMutation.isPending ? 'Assigning...' : 'Assign to partners'}
               </Button>
             )}
             
