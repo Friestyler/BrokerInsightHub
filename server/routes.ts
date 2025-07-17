@@ -6932,6 +6932,10 @@ Return as JSON in this exact format:
         results.push(result.rows[0]);
       }
       
+      // Clear cache after creating template assignments
+      cache.clear();
+      console.log('Cache cleared after creating template assignments');
+      
       res.status(201).json(results);
     } catch (error) {
       console.error('Error creating De Goudse template assignments:', error);
