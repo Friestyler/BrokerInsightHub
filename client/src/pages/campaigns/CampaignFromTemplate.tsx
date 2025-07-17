@@ -2,11 +2,11 @@ import { useState, useEffect, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Edit, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Share, DollarSign, Home, Car, Umbrella, Building, UserCheck, TrendingDown, Plane, Search, User, AlertCircle, Upload, Calendar, Clock, ChevronDown } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Edit, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Share, DollarSign, Home, Car, Umbrella, Building, UserCheck, TrendingDown, Plane, Search, User, AlertCircle, Upload, Calendar, Clock, ChevronDown, ChevronRight, AlertTriangle } from "lucide-react";
 import { useLocation, useRoute, useParams } from 'wouter';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -338,93 +338,103 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
     enabled: showAttachmentModal
   });
   
-  // Mock data for contact and partner attachment
-  // Group recipients by contact to show contact-centric view
-  const contactGroups = (() => {
+  // Group recipients by customer to show customer-centric view (as per briefing)
+  const customerGroups = (() => {
     const groups = new Map();
     
     if (campaignData.recipients) {
       campaignData.recipients.forEach((recipient: any) => {
-        // Create contact entries for each recipient
-        const contactKey = recipient.email || recipient.id || 'unknown';
-        const contactName = recipient.full_name || 
-                           `${recipient.first_name || ''} ${recipient.last_name || ''}`.trim() || 
-                           recipient.email || 
-                           'Unknown Contact';
+        // Group by customer/company name
+        const customerKey = recipient.customerInfo?.name || recipient.name || 'Unknown Customer';
         
-        if (!groups.has(contactKey)) {
-          groups.set(contactKey, {
-            id: contactKey,
-            name: contactName,
-            email: recipient.email || recipient.contactInfo?.email || '',
-            company: recipient.customerInfo?.name || recipient.name || 'Unknown Company',
-            recipients: [],
+        if (!groups.has(customerKey)) {
+          groups.set(customerKey, {
+            id: customerKey,
+            name: customerKey,
+            contacts: [],
+            defaultPartner: 'Mevas BV', // Default partner
+            expanded: false,
+            selected: false,
             attachedPartners: new Set(),
-            hasAttachedPartners: false
+            mixedPartners: false
           });
         }
         
-        groups.get(contactKey).recipients.push(recipient);
+        // Add contact to customer group
+        const contactName = recipient.full_name || 
+                           `${recipient.first_name || ''} ${recipient.last_name || ''}`.trim() || 
+                           recipient.email || 
+                           'Contact';
+        
+        const contact = {
+          id: recipient.email || recipient.id || 'unknown',
+          name: contactName,
+          email: recipient.email || recipient.contactInfo?.email || '',
+          attachedPartner: recipient.partnerName || null,
+          isManualOverride: false,
+          attachmentSource: recipient.partnerName ? 'default' : null
+        };
+        
+        groups.get(customerKey).contacts.push(contact);
+        
+        // Track attached partners
+        if (recipient.partnerName) {
+          groups.get(customerKey).attachedPartners.add(recipient.partnerName);
+        }
       });
     }
+    
+    // Check for mixed partners
+    groups.forEach((group) => {
+      if (group.attachedPartners.size > 1) {
+        group.mixedPartners = true;
+      }
+    });
     
     return Array.from(groups.values());
   })();
   
-  const filteredContacts = contactGroups.filter(contact => {
-    if (filterStatus === 'all') return true;
-    if (filterStatus === 'attached') return contact.hasAttachedPartners;
-    if (filterStatus === 'unattached') return !contact.hasAttachedPartners;
-    return true;
-  });
+  // Calculate totals for summary cards
+  const totalCustomers = customerGroups.length;
+  const totalContacts = customerGroups.reduce((sum, group) => sum + group.contacts.length, 0);
+  const attachedContacts = customerGroups.reduce((sum, group) => {
+    return sum + group.contacts.filter(contact => contact.attachedPartner).length;
+  }, 0);
+  const unattachedContacts = totalContacts - attachedContacts;
   
-  // Define attached and unattached contacts for calculations
-  const attachedContacts = contactGroups.filter(contact => contact.hasAttachedPartners);
-  const unattachedContacts = contactGroups.filter(contact => !contact.hasAttachedPartners);
-  
-  // Calculate email counts
-  const totalEmails = contactGroups.length;
-  const attachedEmails = attachedContacts.length;
-  const unattachedEmails = unattachedContacts.length;
-  
-  // Get unique attached partners (show each partner only once)
-  const uniqueAttachedPartners = (() => {
-    const partnersMap = new Map();
-    attachedContacts.forEach(group => {
-      Array.from(group.attachedPartners).forEach((partner: any) => {
-        if (!partnersMap.has(partner.id)) {
-          partnersMap.set(partner.id, {
-            ...partner,
-            contactCount: 0,
-            emailCount: 0
-          });
-        }
-        const partnerData = partnersMap.get(partner.id);
-        partnerData.contactCount++;
-        partnerData.emailCount += group.email ? 1 : 0;
-      });
-    });
-    return Array.from(partnersMap.values());
-  })();
-
-  // Handle contact selection
-  const handleContactToggle = (contactId: string) => {
+  // Handle customer selection
+  const handleCustomerToggle = (customerId: string) => {
     setSelectedContacts(prev => 
-      prev.includes(contactId) 
-        ? prev.filter(id => id !== contactId)
-        : [...prev, contactId]
+      prev.includes(customerId) 
+        ? prev.filter(id => id !== customerId)
+        : [...prev, customerId]
     );
   };
 
-  // Handle select all
+  // Handle select all customers
   const handleSelectAll = () => {
-    const allContactIds = filteredContacts.map(group => group.id.toString());
-    setSelectedContacts(allContactIds);
+    const allCustomerIds = customerGroups.map(group => group.id.toString());
+    setSelectedContacts(allCustomerIds);
   };
 
   // Handle clear selection
   const handleClearSelection = () => {
     setSelectedContacts([]);
+  };
+
+  // Handle customer expansion
+  const [expandedCustomers, setExpandedCustomers] = useState<Set<string>>(new Set());
+  
+  const handleCustomerExpand = (customerId: string) => {
+    setExpandedCustomers(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(customerId)) {
+        newSet.delete(customerId);
+      } else {
+        newSet.add(customerId);
+      }
+      return newSet;
+    });
   };
 
   // Handle partner attachment
@@ -486,391 +496,214 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
 
   return (
     <div className="space-y-6">
-      {/* View Mode Toggle */}
-      <div className="flex justify-center">
-        <div className="bg-white rounded-lg border p-1 flex">
-          <Button
-            variant={viewMode === 'contacts' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('contacts')}
-            className="gap-2"
-          >
-            <User className="h-4 w-4" />
-            Contacts View
-          </Button>
-          <Button
-            variant={viewMode === 'partners' ? 'default' : 'ghost'}
-            size="sm"
-            onClick={() => setViewMode('partners')}
-            className="gap-2"
-          >
-            <Users className="h-4 w-4" />
-            Partners View
-          </Button>
+      {/* Summary Cards - Following exact design from screenshot */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white rounded-lg border p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
+              <User className="h-4 w-4 text-blue-600" />
+            </div>
+            <div>
+              <p className="text-xl font-bold text-blue-600">{totalCustomers}</p>
+              <p className="text-sm text-gray-900">Total Customers</p>
+              <p className="text-xs text-gray-500">{totalContacts} contacts</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg border p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
+              <UserCheck className="h-4 w-4 text-green-600" />
+            </div>
+            <div>
+              <p className="text-xl font-bold text-green-600">{attachedContacts}</p>
+              <p className="text-sm text-gray-900">Attached</p>
+              <p className="text-xs text-gray-500">{attachedContacts} contacts</p>
+            </div>
+          </div>
+        </div>
+        
+        <div className="bg-white rounded-lg border p-4">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+              <AlertTriangle className="h-4 w-4 text-orange-600" />
+            </div>
+            <div>
+              <p className="text-xl font-bold text-orange-600">{unattachedContacts}</p>
+              <p className="text-sm text-gray-900">Unattached</p>
+              <p className="text-xs text-gray-500">{unattachedContacts} contacts</p>
+            </div>
+          </div>
         </div>
       </div>
 
-      {viewMode === 'contacts' ? (
-        <>
-          {/* Summary Cards - Contacts View */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div 
-              className={`bg-white rounded-lg border-2 p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                filterStatus === 'all' 
-                  ? 'border-blue-500 bg-blue-50' 
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-              onClick={() => setFilterStatus('all')}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                  <User className="h-4 w-4 text-blue-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Total Contacts</p>
-                  <p className="text-2xl font-bold text-gray-900">{contactGroups.length}</p>
-                  <p className="text-xs text-gray-500 mt-1">{totalEmails} emails</p>
-                </div>
-              </div>
-            </div>
-            
-            <div 
-              className={`bg-white rounded-lg border-2 p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                filterStatus === 'attached' 
-                  ? 'border-green-500 bg-green-50' 
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-              onClick={() => setFilterStatus('attached')}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                  <UserCheck className="h-4 w-4 text-green-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Attached</p>
-                  <p className="text-2xl font-bold text-green-600">{attachedContacts.length}</p>
-                  <p className="text-xs text-gray-500 mt-1">{attachedEmails} emails</p>
-                </div>
-              </div>
-            </div>
-            
-            <div 
-              className={`bg-white rounded-lg border-2 p-4 cursor-pointer transition-all duration-200 hover:shadow-md ${
-                filterStatus === 'unattached' 
-                  ? 'border-orange-500 bg-orange-50' 
-                  : 'border-gray-200 hover:border-gray-300'
-              }`}
-              onClick={() => setFilterStatus('unattached')}
-            >
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
-                  <AlertCircle className="h-4 w-4 text-orange-600" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium text-gray-900">Unattached</p>
-                  <p className="text-2xl font-bold text-orange-600">{unattachedContacts.length}</p>
-                  <p className="text-xs text-gray-500 mt-1">{unattachedEmails} emails</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Action Bar - Contacts View */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleSelectAll}
-                disabled={filteredContacts.length === 0}
-              >
-                Select All ({filteredContacts.length})
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={handleClearSelection}
-                disabled={selectedContacts.length === 0}
-              >
-                Clear Selection
-              </Button>
-              {selectedContacts.length > 0 && (
-                <Badge variant="secondary" className="ml-2">
-                  {selectedContacts.length} selected
-                </Badge>
-              )}
-            </div>
-            
-            <Button 
-              onClick={() => setShowAttachmentModal(true)}
-              disabled={selectedContacts.length === 0}
-              className="gap-2"
-            >
-              <Users className="h-4 w-4" />
-              Attach to Partners ({selectedContacts.length})
-            </Button>
-          </div>
-
-      {/* Assigned Partners Section */}
-      {filterStatus !== 'unassigned' && uniqueAttachedPartners.length > 0 && (
-        <div className="bg-white rounded-lg border">
-          <div className="px-4 py-3 border-b">
-            <h3 className="font-medium text-gray-900">Attached Partners</h3>
-          </div>
-          
-          <div className="divide-y">
-            {uniqueAttachedPartners.map((partner) => (
-              <div key={partner.id} className="px-4 py-4">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-                      <UserCheck className="h-4 w-4 text-green-600" />
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-gray-900">{partner.name}</h4>
-                      <p className="text-sm text-gray-500">
-                        {partner.customerCount} customer(s) • {partner.emailCount} email(s)
-                      </p>
-                    </div>
-                  </div>
-                  <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                    Partner
-                  </Badge>
-                </div>
-              </div>
-            ))}
-          </div>
+      {/* Select All and Attach Button */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="select-all"
+            checked={selectedContacts.length === customerGroups.length}
+            onCheckedChange={selectedContacts.length === customerGroups.length ? handleClearSelection : handleSelectAll}
+          />
+          <label htmlFor="select-all" className="text-sm font-medium text-gray-700">
+            Select All ({customerGroups.length})
+          </label>
         </div>
-      )}
+        
+        {selectedContacts.length > 0 && (
+          <Button
+            onClick={() => setShowAttachmentModal(true)}
+            size="sm"
+            className="gap-2"
+          >
+            <Users className="h-4 w-4" />
+            Attach to Partners ({selectedContacts.length})
+          </Button>
+        )}
+      </div>
 
-          {/* Contact List */}
-          <div className="bg-white rounded-lg border">
-            <div className="px-4 py-3 border-b">
-              <h3 className="font-medium text-gray-900">
-                {filterStatus === 'all' ? 'All Contacts' : 
-                 filterStatus === 'attached' ? 'Attached Contacts' : 'Unattached Contacts'}
-              </h3>
-            </div>
+      {/* Contact & Partner Attachment Section */}
+      <div className="bg-white rounded-lg border">
+        <div className="p-4 border-b">
+          <h3 className="text-lg font-semibold text-gray-900">Contact & Partner Attachment</h3>
+        </div>
         
         <div className="divide-y">
-          {filteredContacts.map((group) => (
-            <div key={group.id} className="px-4 py-4">
+          {customerGroups.map((customer) => (
+            <div key={customer.id} className="p-4">
+              {/* Customer Header Row */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Checkbox
-                    checked={selectedContacts.includes(group.id.toString())}
-                    onCheckedChange={() => handleContactToggle(group.id.toString())}
+                    id={`customer-${customer.id}`}
+                    checked={selectedContacts.includes(customer.id)}
+                    onCheckedChange={() => handleCustomerToggle(customer.id)}
                   />
-                  <div>
-                    <h4 className="font-medium text-gray-900">{group.name}</h4>
-                    <p className="text-sm text-gray-500">{group.email}</p>
-                    <p className="text-xs text-gray-400">{group.company}</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  {group.hasAttachedPartners ? (
-                    <div className="flex items-center gap-2">
-                      <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
-                        <UserCheck className="h-3 w-3 mr-1" />
-                        Attached
-                      </Badge>
-                      <div className="text-sm text-gray-600">
-                        {Array.from(group.attachedPartners).map((partner: any) => partner.name).join(', ')}
-                      </div>
+                  <button
+                    onClick={() => handleCustomerExpand(customer.id)}
+                    className="flex items-center gap-2 text-left"
+                  >
+                    <ChevronRight 
+                      className={`h-4 w-4 transition-transform ${expandedCustomers.has(customer.id) ? 'rotate-90' : ''}`}
+                    />
+                    <Building className="h-4 w-4 text-gray-500" />
+                    <div>
+                      <h4 className="font-medium text-gray-900">{customer.name}</h4>
+                      <p className="text-sm text-gray-500">
+                        Attached to: <span className="text-green-600">{customer.defaultPartner} ({customer.contacts.length})</span>
+                      </p>
                     </div>
-                  ) : (
+                  </button>
+                  
+                  {customer.mixedPartners && (
                     <Badge variant="outline" className="bg-orange-50 text-orange-700 border-orange-200">
-                      <AlertCircle className="h-3 w-3 mr-1" />
-                      Unattached
+                      Mixed Partners
                     </Badge>
                   )}
                 </div>
+                
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500">Default Partner:</span>
+                  <span className="font-medium text-gray-900">{customer.defaultPartner}</span>
+                  <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                    <Edit className="h-3 w-3" />
+                  </Button>
+                </div>
               </div>
+
+              {/* Mixed Partners Warning */}
+              {customer.mixedPartners && (
+                <div className="mt-3 p-3 bg-orange-50 border border-orange-200 rounded-lg flex items-start gap-2">
+                  <AlertTriangle className="h-4 w-4 text-orange-600 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium text-orange-900">Mixed Partners:</p>
+                    <p className="text-sm text-orange-700">
+                      This customer has contacts attached to different partners. Please confirm this is intentional.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Contact Details (Expanded) */}
+              {expandedCustomers.has(customer.id) && (
+                <div className="mt-4 ml-8 space-y-3 border-l-2 border-gray-100 pl-4">
+                  {customer.contacts.map((contact) => (
+                    <div key={contact.id} className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <User className="h-4 w-4 text-gray-500" />
+                        <div>
+                          <p className="font-medium text-gray-900">{contact.name}</p>
+                          <p className="text-sm text-gray-500">{contact.email}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        {contact.attachmentSource === 'default' && (
+                          <span className="text-xs text-blue-600">→ From Default</span>
+                        )}
+                        {contact.isManualOverride && (
+                          <span className="text-xs text-orange-600">⚠ Manual</span>
+                        )}
+                        <span className="font-medium text-gray-900">{contact.attachedPartner || customer.defaultPartner}</span>
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           ))}
         </div>
-          </div>
-        </>
-      ) : (
-        <>
-          {/* Partners View */}
-          <div className="bg-white rounded-lg border">
-            <div className="px-4 py-3 border-b">
-              <h3 className="font-medium text-gray-900">Partner Overview</h3>
-            </div>
-            
-            <div className="divide-y">
-              {uniqueAttachedPartners.map((partner) => (
-                <div key={partner.id} className="px-4 py-4">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-                        <Users className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <h4 className="font-medium text-gray-900">{partner.name}</h4>
-                        <p className="text-sm text-gray-500">
-                          {partner.contactCount} contact(s) • {partner.emailCount} email(s)
-                        </p>
-                      </div>
-                    </div>
-                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
-                      Partner
-                    </Badge>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
+      </div>
 
-      {/* Attachment Modal */}
+      {/* Attach to Partners Modal */}
       <Dialog open={showAttachmentModal} onOpenChange={setShowAttachmentModal}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Attach Contacts to Partners</DialogTitle>
+            <DialogTitle>Attach Customers to Partners</DialogTitle>
+            <DialogDescription>
+              Select partners to attach the selected customers to.
+            </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
-            <div className="p-3 bg-blue-50 rounded-lg">
-              <p className="text-sm text-blue-800">
-                Attaching {selectedContacts.length} contact(s) to partner(s)
-              </p>
-            </div>
-            
-            {/* Attachment Type Selection */}
-            <div className="space-y-3">
-              <h4 className="font-medium text-gray-900">Attachment Type</h4>
-              <div className="flex gap-4">
-                <Button 
-                  variant={attachmentType === 'individual' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setAttachmentType('individual')}
-                >
-                  Individual Partners
-                </Button>
-                <Button 
-                  variant={attachmentType === 'list' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setAttachmentType('list')}
-                >
-                  Partner Lists
-                </Button>
-              </div>
-            </div>
-            
             {/* Partner Selection */}
-            {attachmentType === 'individual' && (
-              <div className="space-y-3">
-                <h4 className="font-medium text-gray-900">Select Partners</h4>
-                <div className="max-h-48 overflow-y-auto border rounded-lg p-2">
-                  {allPartners.map((partner: any) => (
-                    <div key={partner.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
-                      <Checkbox
-                        checked={selectedPartnersForAttachment.includes(partner.id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedPartnersForAttachment(prev => [...prev, partner.id]);
-                          } else {
-                            setSelectedPartnersForAttachment(prev => prev.filter(id => id !== partner.id));
-                          }
-                        }}
-                      />
-                      <div>
-                        <p className="font-medium text-sm">{partner.name}</p>
-                        <p className="text-xs text-gray-500">{partner.email}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Multiple Partner Selection Notice */}
-                {selectedPartnersForAttachment.length > 1 && (
-                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <div className="flex items-start gap-2">
-                      <div className="w-4 h-4 rounded-full bg-yellow-400 flex items-center justify-center mt-0.5">
-                        <span className="text-white text-xs font-bold">!</span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-yellow-800">
-                          Random Attachment
-                        </p>
-                        <p className="text-sm text-yellow-700 mt-1">
-                          Qollabi will randomly attach the selected contacts across the {selectedPartnersForAttachment.length} chosen partners to ensure balanced distribution.
-                        </p>
-                      </div>
-                    </div>
+            <div>
+              <h4 className="font-medium text-gray-900">Select Partners</h4>
+              <div className="max-h-48 overflow-y-auto border rounded-lg p-2">
+                {allPartners.map((partner: any) => (
+                  <div key={partner.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
+                    <Checkbox
+                      id={`partner-${partner.id}`}
+                      checked={selectedPartnersForAttachment.includes(partner.id)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setSelectedPartnersForAttachment([...selectedPartnersForAttachment, partner.id]);
+                        } else {
+                          setSelectedPartnersForAttachment(selectedPartnersForAttachment.filter(id => id !== partner.id));
+                        }
+                      }}
+                    />
+                    <label htmlFor={`partner-${partner.id}`} className="text-sm font-medium">
+                      {partner.name}
+                    </label>
                   </div>
-                )}
+                ))}
               </div>
-            )}
-            
-            {/* Partner Lists Selection */}
-            {attachmentType === 'list' && (
-              <div className="space-y-3">
-                <h4 className="font-medium text-gray-900">Select Partner Lists</h4>
-                <div className="max-h-48 overflow-y-auto border rounded-lg p-2">
-                  {savedPartnerLists.filter((list: any) => list.entity_type === 'partners').map((list: any) => (
-                    <div key={list.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded">
-                      <Checkbox
-                        checked={selectedPartnersForAttachment.includes(list.id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedPartnersForAttachment(prev => [...prev, list.id]);
-                          } else {
-                            setSelectedPartnersForAttachment(prev => prev.filter(id => id !== list.id));
-                          }
-                        }}
-                      />
-                      <div>
-                        <p className="font-medium text-sm">{list.name}</p>
-                        <p className="text-xs text-gray-500">{list.description}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-                
-                {/* Partner Lists Selection Notice - Always show since lists contain multiple partners */}
-                {selectedPartnersForAttachment.length > 0 && (
-                  <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                    <div className="flex items-start gap-2">
-                      <div className="w-4 h-4 rounded-full bg-yellow-400 flex items-center justify-center mt-0.5">
-                        <span className="text-white text-xs font-bold">!</span>
-                      </div>
-                      <div>
-                        <p className="text-sm font-medium text-yellow-800">
-                          Random Attachment
-                        </p>
-                        <p className="text-sm text-yellow-700 mt-1">
-                          {selectedPartnersForAttachment.length === 1 
-                            ? "Qollabi will randomly attach the selected contacts across partners from the chosen list to ensure balanced distribution."
-                            : `Qollabi will randomly attach the selected contacts across partners from the ${selectedPartnersForAttachment.length} chosen lists to ensure balanced distribution.`
-                          }
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-            
-            <div className="flex justify-end gap-3 pt-4 border-t">
-              <Button 
-                variant="outline" 
-                onClick={() => setShowAttachmentModal(false)}
-              >
-                Cancel
-              </Button>
-              <Button 
-                onClick={handleAttachToPartners}
-                disabled={selectedPartnersForAttachment.length === 0}
-              >
-                Attach to Partners
-              </Button>
             </div>
           </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAttachmentModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleAttachToPartners} disabled={selectedPartnersForAttachment.length === 0}>
+              Attach to Partners
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
