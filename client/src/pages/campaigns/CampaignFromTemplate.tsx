@@ -371,8 +371,9 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
     return true;
   });
   
-
-
+  // Define attached and unattached contacts for calculations
+  const attachedContacts = contactGroups.filter(contact => contact.hasAttachedPartners);
+  const unattachedContacts = contactGroups.filter(contact => !contact.hasAttachedPartners);
   
   // Calculate email counts
   const totalEmails = contactGroups.length;

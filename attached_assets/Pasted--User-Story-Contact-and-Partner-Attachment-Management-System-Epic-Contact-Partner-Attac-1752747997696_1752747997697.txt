@@ -1,0 +1,285 @@
+# User Story: Contact and Partner Attachment Management System
+
+## **Epic**: Contact & Partner Attachment per Opportunity (V1.0)
+
+### **User Story**
+
+**As a** campaign manager**I want** to assign specific contacts to specific partners per opportunity with granular control and clear visibility of attachment status**So that** my campaigns are accurate, personalized, and I can quickly identify and resolve missing attachments
+
+---
+
+## **Acceptance Criteria**
+
+### **1. Dashboard Overview**
+
+- **AC1.1**: Display three summary cards showing:
+
+- Total Customers (with total contact count)
+- Attached contacts count
+- Unattached contacts count (highlighted in orange)
+
+
+
+- **AC1.2**: Show bulk selection controls:
+
+- "Select All (X)" checkbox that toggles all customer selections
+- "Attach to Partners (X)" button (disabled when no customers selected)
+
+
+
+
+
+### **2. Customer List Display (Collapsed State)**
+
+- **AC2.1**: All customers display collapsed by default
+- **AC2.2**: Each customer card shows:
+
+- Customer name with building icon
+- Contact count badge (e.g., "3 contacts")
+- Status badges: "Manual Default", "Mixed Partners" (when applicable)
+- **Attachment summary**: "Attached to: Partner A (2), Partner B (1), 2 missing"
+- Default partner button with edit icon
+
+
+
+- **AC2.3**: Color coding for attachment status:
+
+- Green text when all contacts are attached
+- Orange text when contacts are missing attachments
+
+
+
+- **AC2.4**: Expandable chevron (right arrow when collapsed, down arrow when expanded)
+
+
+### **3. Customer List Display (Expanded State)**
+
+- **AC3.1**: Click chevron or customer area to expand/collapse
+- **AC3.2**: Show "Mixed Partners" warning when contacts have different partner assignments
+- **AC3.3**: Display each contact with:
+
+- Contact name and email address
+- Attachment source indicator:
+
+- "From Default" (green) with arrow icon for auto-assigned
+- "Manual" (orange) with edit icon for manually overridden
+
+
+
+- Partner assignment button with current partner name and edit icon
+
+
+
+
+
+### **4. Missing Contact Handling**
+
+- **AC4.1**: **Missing contacts** are contacts without any partner assignment (empty `assignedPartner` field)
+- **AC4.2**: Missing contacts display in collapsed summary as "X missing"
+- **AC4.3**: Missing contacts in expanded view show:
+
+- Contact name and email
+- "No Partner Assigned" or empty partner button
+- Red/orange styling to indicate missing status
+
+
+
+- **AC4.4**: Missing contacts can be assigned through the same modal workflow
+- **AC4.5**: Summary cards count missing contacts in "Unattached" total
+
+
+### **5. Partner Assignment Modal (Individual)**
+
+- **AC5.1**: Triggered by clicking any partner button (including missing assignments)
+- **AC5.2**: Modal shows:
+
+- Title: "Change Partner Attachment"
+- Context: "Changing attachment for [Contact] from [Customer]"
+- Current assignment (if any): "Currently attached to: [Partner]"
+
+
+
+- **AC5.3**: Two tabs available:
+
+- **Individual Partners**: Searchable list with single selection
+- **Partner Lists**: Predefined groups with multiple selection capability
+
+
+
+- **AC5.4**: Individual Partners tab includes:
+
+- Search functionality with real-time filtering
+- Single checkbox selection (radio-like behavior)
+- "Current" badge on currently assigned partner
+- Scrollable list of all available partners
+
+
+
+- **AC5.5**: Partner Lists tab shows predefined groups with descriptions and partner counts
+- **AC5.6**: Action buttons: "Cancel" and "Change Attachment"
+
+
+### **6. Partner Assignment Modal (Bulk)**
+
+- **AC6.1**: Triggered by "Attach to Partners" button when customers are selected
+- **AC6.2**: Modal shows:
+
+- Title: "Attach Customers to Partners"
+- Context: "Attaching X customer(s) to partner(s)"
+
+
+
+- **AC6.3**: Same tab structure as individual modal but allows multiple selections
+- **AC6.4**: Action buttons: "Cancel" and "Attach to Partners"
+
+
+### **7. Assignment Logic & Behavior**
+
+- **AC7.1**: **Default Partner Assignment**:
+
+- Each customer has a default partner
+- New contacts automatically inherit the default partner
+- Changing default partner updates all non-manually-overridden contacts
+
+
+
+- **AC7.2**: **Manual Override Behavior**:
+
+- Individual contact assignments override the default
+- Manual assignments persist when default partner changes
+- Visual indicator shows "Manual" vs "From Default"
+
+
+
+- **AC7.3**: **Missing Contact Assignment**:
+
+- Contacts without partners show as missing in summary
+- Can be assigned through individual modal
+- Once assigned, they follow normal override rules
+
+
+
+- **AC7.4**: **Bulk Assignment**:
+
+- Updates default partner for selected customers
+- Resets all contacts to new default (removes manual overrides)
+- Updates attachment status immediately
+
+
+
+
+
+### **8. Visual Feedback & Notifications**
+
+- **AC8.1**: Toast notifications for successful assignments:
+
+- "Attachment Changed: [Contact] changed to [Partner]"
+- "Attached: Updated X customers to [Partner]"
+
+
+
+- **AC8.2**: Mixed Partners warning:
+
+- Orange alert box when customer has contacts with different partners
+- Message: "Mixed Partners: This customer has contacts attached to different partners. Please confirm this is intentional."
+
+
+
+- **AC8.3**: Loading states during assignment operations
+- **AC8.4**: Visual feedback for missing attachments (orange highlighting)
+
+
+### **9. Data Persistence & State Management**
+
+- **AC9.1**: All assignment changes persist immediately
+- **AC9.2**: Modal state resets on close/cancel
+- **AC9.3**: Expand/collapse state maintained during session
+- **AC9.4**: Selection state cleared after bulk operations
+
+
+---
+
+## **Technical Implementation Notes**
+
+### **Data Structure**
+
+```typescript
+interface Contact {
+  id: string
+  name: string
+  email: string
+  assignedPartner: string | null // null = missing attachment
+  isManualOverride: boolean
+}
+
+interface Customer {
+  id: string
+  name: string
+  defaultPartner: string
+  isDefaultManual: boolean
+  contacts: Contact[]
+  selected: boolean
+  expanded: boolean
+}
+```
+
+### **Missing Contact Logic**
+
+- **Missing Detection**: `contact.assignedPartner === null || contact.assignedPartner === ""`
+- **Summary Calculation**: Count contacts where `assignedPartner` is falsy
+- **Display Logic**: Show "No Partner" or empty state for missing assignments
+- **Assignment Flow**: Same modal workflow, but no "Current" badge shown
+
+
+### **State Updates**
+
+- **Individual Assignment**: Update single contact's `assignedPartner` and `isManualOverride`
+- **Default Partner Change**: Update customer's `defaultPartner` and all non-override contacts
+- **Bulk Assignment**: Reset all selected customers' contacts to new partner (clear overrides)
+
+
+---
+
+## **Testing Scenarios**
+
+### **Missing Contact Scenarios**
+
+1. **New Contact**: Contact created without partner assignment shows as missing
+2. **Removed Assignment**: Previously assigned contact has assignment removed
+3. **Bulk Fix**: Select customers with missing contacts and bulk assign
+4. **Individual Fix**: Click missing contact and assign through modal
+5. **Summary Accuracy**: Collapsed view correctly shows missing count
+
+
+### **Assignment Flow Testing**
+
+1. **Default Inheritance**: New contact inherits customer default
+2. **Manual Override**: Individual assignment overrides default
+3. **Default Change Impact**: Changing default updates non-override contacts only
+4. **Mixed Partners Warning**: Appears when contacts have different partners
+5. **Bulk Reset**: Bulk assignment clears all manual overrides
+
+
+### **UI/UX Testing**
+
+1. **Collapsed Navigation**: All customers start collapsed, expand individually
+2. **Search Functionality**: Partner search filters results in real-time
+3. **Modal Behavior**: Single close button, proper state reset
+4. **Color Coding**: Green for complete, orange for missing attachments
+5. **Responsive Design**: Works on different screen sizes
+
+
+---
+
+## **Definition of Done**
+
+- All acceptance criteria implemented and tested
+- Missing contact detection and display working
+- Modal assignment flow handles missing contacts
+- Summary calculations include missing contact counts
+- Toast notifications provide clear feedback
+- Responsive design tested on mobile/tablet
+- Accessibility standards met (ARIA labels, keyboard navigation)
+- Error handling for API failures
+- Performance optimized for large customer lists
+- Code reviewed and documented
