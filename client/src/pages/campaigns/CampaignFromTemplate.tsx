@@ -4289,15 +4289,15 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 disabled={!campaignData.id || assignCampaignMutation.isPending}
                 style={{ 
                   pointerEvents: 'auto',
-                  backgroundColor: '#22c55e !important',
-                  borderColor: '#22c55e !important',
-                  border: '1px solid #22c55e !important'
+                  backgroundColor: '#16a34a',
+                  borderColor: '#16a34a',
+                  border: '1px solid #16a34a'
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = '#16a34a !important';
+                  e.currentTarget.style.backgroundColor = '#15803d';
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = '#22c55e !important';
+                  e.currentTarget.style.backgroundColor = '#16a34a';
                 }}
               >
                 {assignCampaignMutation.isPending ? 'Assigning...' : 'Assign to partners'}
