@@ -10891,14 +10891,37 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
   app.post('/api/:envId/campaigns/:id/assign', async (req, res) => {
     try {
       const { envId, id } = req.params;
-      const { partner_id, assigned_by, access_level = 'edit', notes } = req.body;
-      
-      if (!partner_id || !assigned_by) {
-        return res.status(400).json({ error: 'Partner ID and assigned_by are required' });
-      }
+      const { partner_id, assigned_by, access_level = 'edit', notes, status } = req.body;
       
       if (envId === 'degoudse') {
         try {
+          // If status is provided, update the campaign status to 'assigned'
+          if (status === 'assigned') {
+            const updateResult = await pool.query(`
+              UPDATE ${envId}.campaigns 
+              SET status = 'assigned', updated_at = CURRENT_TIMESTAMP
+              WHERE id = $1
+              RETURNING *
+            `, [id]);
+            
+            if (updateResult.rows.length === 0) {
+              return res.status(404).json({ error: 'Campaign not found' });
+            }
+            
+            const updatedCampaign = updateResult.rows[0];
+            console.log('Campaign status updated to assigned:', updatedCampaign);
+            res.json({ 
+              message: 'Campaign successfully assigned to partners',
+              campaign: updatedCampaign 
+            });
+            return;
+          }
+          
+          // Original partner-specific assignment logic
+          if (!partner_id || !assigned_by) {
+            return res.status(400).json({ error: 'Partner ID and assigned_by are required' });
+          }
+          
           // Create the assignment record
           const result = await pool.query(`
             INSERT INTO ${envId}.campaign_assignments 
