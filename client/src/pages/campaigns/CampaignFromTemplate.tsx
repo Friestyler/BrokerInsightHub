@@ -499,47 +499,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards - Following exact design from screenshot */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white rounded-lg border p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center">
-              <User className="h-4 w-4 text-blue-600" />
-            </div>
-            <div>
-              <p className="text-xl font-bold text-blue-600">{totalCustomers}</p>
-              <p className="text-sm text-gray-900">Total Customers</p>
-              <p className="text-xs text-gray-500">{totalContacts} contacts</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg border p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center">
-              <UserCheck className="h-4 w-4 text-green-600" />
-            </div>
-            <div>
-              <p className="text-xl font-bold text-green-600">{attachedContacts}</p>
-              <p className="text-sm text-gray-900">Attached</p>
-              <p className="text-xs text-gray-500">{attachedContacts} contacts</p>
-            </div>
-          </div>
-        </div>
-        
-        <div className="bg-white rounded-lg border p-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
-              <AlertTriangle className="h-4 w-4 text-orange-600" />
-            </div>
-            <div>
-              <p className="text-xl font-bold text-orange-600">{unattachedContacts}</p>
-              <p className="text-sm text-gray-900">Unattached</p>
-              <p className="text-xs text-gray-500">{unattachedContacts} contacts</p>
-            </div>
-          </div>
-        </div>
-      </div>
+
 
       {/* Select All and Attach Button */}
       <div className="flex items-center justify-between">
@@ -735,27 +695,25 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
       {/* Unattached Partners Section (shown only when filter is 'unattached') */}
       {attachmentFilter === 'unattached' && (
         <div className="bg-white rounded-lg border mt-6">
-          <div className="p-4 border-b">
-            <h3 className="text-lg font-semibold text-gray-900">Unattached Partners</h3>
-            <p className="text-sm text-gray-500 mt-1">Partners available for attachment</p>
-          </div>
-          
-          <div className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-              {allPartners.filter((partner: any) => 
-                !customerGroups.some(customer => 
-                  customer.defaultPartner === partner.name || 
-                  customer.contacts.some(contact => contact.attachedPartner === partner.name)
-                )
-              ).map((partner: any) => (
-                <div key={partner.id} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-gray-50">
-                  <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
-                    <Users className="h-4 w-4 text-gray-600" />
+          <div className="divide-y">
+            {allPartners.filter((partner: any) => 
+              !customerGroups.some(customer => 
+                customer.defaultPartner === partner.name || 
+                customer.contacts.some(contact => contact.attachedPartner === partner.name)
+              )
+            ).map((partner: any) => (
+              <div key={partner.id} className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center">
+                      <Users className="h-4 w-4 text-gray-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-gray-900">{partner.name}</h3>
+                      <p className="text-sm text-gray-500">Available for attachment</p>
+                    </div>
                   </div>
-                  <div className="flex-1">
-                    <h4 className="font-medium text-gray-900">{partner.name}</h4>
-                    <p className="text-sm text-gray-500">Available</p>
-                  </div>
+                  
                   <Button 
                     variant="outline" 
                     size="sm"
@@ -767,8 +725,8 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                     Attach
                   </Button>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
             
             {allPartners.filter((partner: any) => 
               !customerGroups.some(customer => 
