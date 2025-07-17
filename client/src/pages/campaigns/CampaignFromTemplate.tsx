@@ -461,11 +461,11 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
 
   // Handle select all customers and contacts
   const handleSelectAll = () => {
-    const allCustomerIds = customerGroups.map(group => group.id.toString());
     const allContactIds = customerGroups.flatMap(group => 
-      group.contacts.map(contact => contact.id.toString())
+      group.contacts.map(contact => (contact.databaseId || contact.id).toString())
     );
-    setSelectedContacts([...allCustomerIds, ...allContactIds]);
+    console.log('Select All clicked - selecting contacts:', allContactIds);
+    setSelectedContacts(allContactIds);
   };
 
   // Handle clear selection
@@ -813,11 +813,11 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         <div className="flex items-center gap-2">
           <Checkbox
             id="select-all"
-            checked={selectedContacts.length === (customerGroups.length + customerGroups.reduce((sum, group) => sum + group.contacts.length, 0))}
-            onCheckedChange={selectedContacts.length === (customerGroups.length + customerGroups.reduce((sum, group) => sum + group.contacts.length, 0)) ? handleClearSelection : handleSelectAll}
+            checked={selectedContacts.length === customerGroups.reduce((sum, group) => sum + group.contacts.length, 0)}
+            onCheckedChange={selectedContacts.length === customerGroups.reduce((sum, group) => sum + group.contacts.length, 0) ? handleClearSelection : handleSelectAll}
           />
           <label htmlFor="select-all" className="text-sm font-medium text-gray-700">
-            Select All ({customerGroups.length + customerGroups.reduce((sum, group) => sum + group.contacts.length, 0)})
+            Select All ({customerGroups.reduce((sum, group) => sum + group.contacts.length, 0)})
           </label>
         </div>
         
@@ -956,12 +956,13 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                     <div key={contact.id} className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <Checkbox
-                          checked={selectedContacts.includes(contact.id)}
+                          checked={selectedContacts.includes((contact.databaseId || contact.id).toString())}
                           onCheckedChange={(checked) => {
+                            const contactId = (contact.databaseId || contact.id).toString();
                             if (checked) {
-                              setSelectedContacts([...selectedContacts, contact.id]);
+                              setSelectedContacts([...selectedContacts, contactId]);
                             } else {
-                              setSelectedContacts(selectedContacts.filter(id => id !== contact.id));
+                              setSelectedContacts(selectedContacts.filter(id => id !== contactId));
                             }
                           }}
                         />
@@ -4286,12 +4287,20 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  console.log('Button clicked - campaignData.id:', campaignData.id);
-                  if (campaignData.id) {
-                    assignCampaignMutation.mutate({ campaignId: campaignData.id });
-                  } else {
-                    console.log('No campaign ID available');
+                  console.log('Assign button clicked - campaignData.id:', campaignData.id);
+                  
+                  // First check if campaign is saved
+                  if (!campaignData.id) {
+                    toast({
+                      title: "Campaign not saved",
+                      description: "Please save the campaign before assigning it to partners.",
+                      variant: "destructive"
+                    });
+                    return;
                   }
+                  
+                  // Change campaign status to assigned
+                  assignCampaignMutation.mutate({ campaignId: campaignData.id });
                 }} 
                 className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 text-sm font-medium relative z-50 cursor-pointer"
                 disabled={!campaignData.id || assignCampaignMutation.isPending}
