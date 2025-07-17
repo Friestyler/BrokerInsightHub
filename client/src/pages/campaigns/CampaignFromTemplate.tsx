@@ -1144,7 +1144,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                           `${customerGroup.databaseId}-${c.databaseId}` === contactId
                         );
                         if (contact) {
-                          return `${contact.first_name} ${contact.last_name}`;
+                          return contact.name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || 'Contact';
                         }
                       }
                       return '1 contact';
@@ -1170,7 +1170,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                             `${customerGroup.databaseId}-${c.databaseId}` === contactId
                           );
                           if (contact) {
-                            contactNames.push(`${contact.first_name} ${contact.last_name}`);
+                            contactNames.push(contact.name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || 'Contact');
                             break;
                           }
                         }
