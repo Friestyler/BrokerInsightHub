@@ -1104,9 +1104,10 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                     
                     if (editingAttachment.type === 'customer') {
                       const customer = customerGroups.find(g => 
-                        g.id.toString() === editingAttachment.customerId || 
-                        g.databaseId?.toString() === editingAttachment.customerId
+                        g.id.toString() === editingAttachment.customerId.toString() || 
+                        g.databaseId?.toString() === editingAttachment.customerId.toString()
                       );
+                      console.log('Customer lookup result:', { customer, customerId: editingAttachment.customerId });
                       return customer ? customer.name : 'Customer';
                     } else {
                       const customer = customerGroups.find(g => 
