@@ -7,7 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Edit, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Share, DollarSign, Home, Car, Umbrella, Building, UserCheck, TrendingDown, Plane, Search, User, AlertCircle, Upload, Calendar, Clock, ChevronDown, ChevronRight, AlertTriangle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Edit, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Share, DollarSign, Home, Car, Umbrella, Building, UserCheck, TrendingDown, Plane, Search, User, AlertCircle, Upload, Calendar, Clock, ChevronDown, ChevronRight, ChevronUp, AlertTriangle } from "lucide-react";
 import { useLocation, useRoute, useParams } from 'wouter';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -341,6 +341,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
   const [partnerSelectionTab, setPartnerSelectionTab] = useState<'individual' | 'lists'>('individual');
   const [selectedPartnerLists, setSelectedPartnerLists] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
+  const [expandedPartnerLists, setExpandedPartnerLists] = useState<Set<number>>(new Set());
   const { toast } = useToast();
   
   // Fetch all partners for selection and attachment operations
@@ -490,6 +491,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
     setSelectedPartnerLists([]);
     setPartnerSelectionTab('individual');
     setSearchTerm('');
+    setExpandedPartnerLists(new Set());
     setShowAttachmentModal(false);
   };
 
@@ -1179,31 +1181,80 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                   <div className="max-h-64 overflow-y-auto border rounded-lg">
                     {savedPartnerLists.length > 0 ? (
                       savedPartnerLists.map((list: any) => (
-                        <div key={list.id} className="flex items-center gap-3 p-3 hover:bg-gray-50 border-b last:border-b-0">
-                          <Checkbox
-                            id={`list-${list.id}`}
-                            checked={selectedPartnerLists.includes(list.id)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedPartnerLists([...selectedPartnerLists, list.id]);
-                              } else {
-                                setSelectedPartnerLists(selectedPartnerLists.filter(id => id !== list.id));
+                        <div key={list.id} className="border-b last:border-b-0">
+                          <div className="flex items-center gap-3 p-3 hover:bg-gray-50">
+                            <Checkbox
+                              id={`list-${list.id}`}
+                              checked={selectedPartnerLists.includes(list.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedPartnerLists([...selectedPartnerLists, list.id]);
+                                } else {
+                                  setSelectedPartnerLists(selectedPartnerLists.filter(id => id !== list.id));
+                                }
+                              }}
+                            />
+                            <div className="flex items-center gap-3 flex-1">
+                              <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
+                                <Users className="h-5 w-5 text-purple-600" />
+                              </div>
+                              <div className="flex-1">
+                                <label htmlFor={`list-${list.id}`} className="text-sm font-medium text-gray-900 cursor-pointer">
+                                  {list.name}
+                                </label>
+                                <p className="text-xs text-gray-500">
+                                  {list.partner_count || 0} partners • {list.description || 'No description'}
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                const newExpanded = new Set(expandedPartnerLists);
+                                if (newExpanded.has(list.id)) {
+                                  newExpanded.delete(list.id);
+                                } else {
+                                  newExpanded.add(list.id);
+                                }
+                                setExpandedPartnerLists(newExpanded);
+                              }}
+                            >
+                              {expandedPartnerLists.has(list.id) ? 
+                                <ChevronUp className="h-4 w-4" /> : 
+                                <ChevronDown className="h-4 w-4" />
                               }
-                            }}
-                          />
-                          <div className="flex items-center gap-3 flex-1">
-                            <div className="w-10 h-10 bg-purple-100 rounded-full flex items-center justify-center">
-                              <Users className="h-5 w-5 text-purple-600" />
-                            </div>
-                            <div>
-                              <label htmlFor={`list-${list.id}`} className="text-sm font-medium text-gray-900 cursor-pointer">
-                                {list.name}
-                              </label>
-                              <p className="text-xs text-gray-500">
-                                {list.partner_count || 0} partners • {list.description || 'No description'}
-                              </p>
-                            </div>
+                            </Button>
                           </div>
+                          
+                          {/* Expanded Partner List */}
+                          {expandedPartnerLists.has(list.id) && (
+                            <div className="bg-gray-50 p-3 border-t">
+                              <div className="text-xs font-medium text-gray-700 mb-2">Partners in this list:</div>
+                              <div className="space-y-1">
+                                {(() => {
+                                  const partnerIds = Array.isArray(list.partner_ids) 
+                                    ? list.partner_ids 
+                                    : JSON.parse(list.partner_ids || '[]');
+                                  
+                                  return partnerIds.map((partnerId: number) => {
+                                    const partner = allPartners.find((p: any) => p.id === partnerId);
+                                    return partner ? (
+                                      <div key={partnerId} className="flex items-center gap-2 text-xs text-gray-600">
+                                        <div className="w-4 h-4 bg-gray-300 rounded-full flex items-center justify-center">
+                                          <Users className="h-2 w-2 text-gray-500" />
+                                        </div>
+                                        <span>{partner.name}</span>
+                                        <span className="text-gray-400">
+                                          ({partner.customer_count || 0} customers)
+                                        </span>
+                                      </div>
+                                    ) : null;
+                                  });
+                                })()}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       ))
                     ) : (
@@ -1237,6 +1288,57 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                 </TabsContent>
               </Tabs>
             </div>
+
+            {/* Multi-Partner Distribution Message */}
+            {!editingAttachment && selectedContacts.length > 1 && (
+              (() => {
+                // Calculate total partners from individual selections and lists
+                let totalPartners = selectedPartnersForAttachment.length;
+                
+                // Add partners from selected lists
+                selectedPartnerLists.forEach(listId => {
+                  const partnerList = savedPartnerLists.find(list => list.id === listId);
+                  if (partnerList && partnerList.partner_ids) {
+                    const listPartnerIds = Array.isArray(partnerList.partner_ids) 
+                      ? partnerList.partner_ids 
+                      : JSON.parse(partnerList.partner_ids || '[]');
+                    totalPartners += listPartnerIds.length;
+                  }
+                });
+                
+                // Remove duplicates (approximate - we can't know exact duplicates without processing)
+                const uniquePartnerIds = new Set([
+                  ...selectedPartnersForAttachment,
+                  ...selectedPartnerLists.flatMap(listId => {
+                    const partnerList = savedPartnerLists.find(list => list.id === listId);
+                    if (partnerList && partnerList.partner_ids) {
+                      const listPartnerIds = Array.isArray(partnerList.partner_ids) 
+                        ? partnerList.partner_ids 
+                        : JSON.parse(partnerList.partner_ids || '[]');
+                      return listPartnerIds;
+                    }
+                    return [];
+                  })
+                ]);
+                
+                const actualTotalPartners = uniquePartnerIds.size;
+                
+                return actualTotalPartners > 1 ? (
+                  <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-start gap-3">
+                      <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
+                      <div className="flex-1">
+                        <h4 className="font-medium text-blue-900 mb-1">Random Distribution</h4>
+                        <p className="text-sm text-blue-800">
+                          Qollabi will randomly distribute the {selectedContacts.length} selected contacts across the {actualTotalPartners} chosen partners to ensure balanced assignment. 
+                          Distribution can also be optimized based on matching criteria like postal codes, provinces, or business sectors when available.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                ) : null;
+              })()
+            )}
 
             {/* Attachment Options (New Mode) */}
             {!editingAttachment && (
