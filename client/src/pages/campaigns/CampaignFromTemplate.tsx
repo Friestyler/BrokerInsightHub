@@ -310,7 +310,7 @@ function AssignPartnersSection({ campaignData, onAssignComplete }: AssignPartner
           className="gap-2"
         >
           <Users className="h-4 w-4" />
-          Assign Campaign ({selectedPartnersForAssignment.length})
+          Attach Campaign ({selectedPartnersForAssignment.length})
         </Button>
       </div>
     </div>
@@ -320,18 +320,18 @@ function AssignPartnersSection({ campaignData, onAssignComplete }: AssignPartner
 // Customer Partner Assignment Interface Component
 interface CustomerPartnerAssignmentInterfaceProps {
   campaignData: any;
-  onAssignmentsChange: (updatedRecipients: any[]) => void;
+  onAttachmentsChange: (updatedRecipients: any[]) => void;
 }
 
-function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange }: CustomerPartnerAssignmentInterfaceProps) {
+function CustomerPartnerAssignmentInterface({ campaignData, onAttachmentsChange }: CustomerPartnerAssignmentInterfaceProps) {
   const [selectedCustomers, setSelectedCustomers] = useState<string[]>([]);
   const [showAssignmentModal, setShowAssignmentModal] = useState(false);
   const [selectedPartnersForAssignment, setSelectedPartnersForAssignment] = useState<number[]>([]);
-  const [assignmentType, setAssignmentType] = useState<'individual' | 'list'>('individual');
+  const [attachmentType, setAttachmentType] = useState<'individual' | 'list'>('individual');
   const [filterStatus, setFilterStatus] = useState<'all' | 'assigned' | 'unassigned'>('all');
   const { toast } = useToast();
 
-  // Fetch partners for assignment
+  // Fetch partners for attachment
   const { data: allPartners = [] } = useQuery({
     queryKey: ['/api/partners'],
     enabled: showAssignmentModal
@@ -340,7 +340,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
   // Fetch saved partner lists
   const { data: savedPartnerLists = [] } = useQuery({
     queryKey: ['/api/saved-lists'],
-    enabled: showAssignmentModal && assignmentType === 'list'
+    enabled: showAssignmentModal && attachmentType === 'list'
   });
 
   // Group recipients by customer to show customer-centric view
@@ -364,7 +364,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
       const group = groups.get(customerId);
       group.recipients.push(recipient);
       
-      // Check for partner assignments
+      // Check for partner attachments
       const partnerId = recipient.partnerId || recipient.assigned_partner_id || recipient.partnerInfo?.id;
       const partnerName = recipient.partnerName || recipient.partnerInfo?.name;
       
@@ -442,7 +442,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
     setSelectedCustomers([]);
   };
 
-  // Handle partner assignment
+  // Handle partner attachment
   const handleAssignToPartners = async () => {
     if (selectedCustomers.length === 0) {
       toast({
@@ -456,14 +456,14 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
     if (selectedPartnersForAssignment.length === 0) {
       toast({
         title: "No partners selected",
-        description: "Please select at least one partner for assignment.",
+        description: "Please select at least one partner for attachment.",
         variant: "destructive"
       });
       return;
     }
 
     try {
-      // Update recipients with partner assignments
+      // Update recipients with partner attachments
       const updatedRecipients = campaignData.recipients.map((recipient: any) => {
         const customerId = recipient.customerInfo?.id || recipient.id;
         
@@ -709,31 +709,31 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
       <Dialog open={showAssignmentModal} onOpenChange={setShowAssignmentModal}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Assign Customers to Partners</DialogTitle>
+            <DialogTitle>Attach Customers to Partners</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
             <div className="p-3 bg-blue-50 rounded-lg">
               <p className="text-sm text-blue-800">
-                Assigning {selectedCustomers.length} customer(s) to partner(s)
+                Attaching {selectedCustomers.length} customer(s) to partner(s)
               </p>
             </div>
             
             {/* Assignment Type Selection */}
             <div className="space-y-3">
-              <h4 className="font-medium text-gray-900">Assignment Type</h4>
+              <h4 className="font-medium text-gray-900">Attachment Type</h4>
               <div className="flex gap-4">
                 <Button 
-                  variant={assignmentType === 'individual' ? 'default' : 'outline'}
+                  variant={attachmentType === 'individual' ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => setAssignmentType('individual')}
+                  onClick={() => setAttachmentType('individual')}
                 >
                   Individual Partners
                 </Button>
                 <Button 
-                  variant={assignmentType === 'list' ? 'default' : 'outline'}
+                  variant={attachmentType === 'list' ? 'default' : 'outline'}
                   size="sm"
-                  onClick={() => setAssignmentType('list')}
+                  onClick={() => setAttachmentType('list')}
                 >
                   Partner Lists
                 </Button>
@@ -741,7 +741,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
             </div>
             
             {/* Partner Selection */}
-            {assignmentType === 'individual' && (
+            {attachmentType === 'individual' && (
               <div className="space-y-3">
                 <h4 className="font-medium text-gray-900">Select Partners</h4>
                 <div className="max-h-48 overflow-y-auto border rounded-lg p-2">
@@ -774,10 +774,10 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
                       </div>
                       <div>
                         <p className="text-sm font-medium text-yellow-800">
-                          Random Assignment
+                          Random Attachment
                         </p>
                         <p className="text-sm text-yellow-700 mt-1">
-                          Qollabi will randomly assign the selected customers across the {selectedPartnersForAssignment.length} chosen partners to ensure balanced distribution.
+                          Qollabi will randomly attach the selected customers across the {selectedPartnersForAssignment.length} chosen partners to ensure balanced distribution.
                         </p>
                       </div>
                     </div>
@@ -787,7 +787,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
             )}
             
             {/* Partner Lists Selection */}
-            {assignmentType === 'list' && (
+            {attachmentType === 'list' && (
               <div className="space-y-3">
                 <h4 className="font-medium text-gray-900">Select Partner Lists</h4>
                 <div className="max-h-48 overflow-y-auto border rounded-lg p-2">
@@ -820,12 +820,12 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
                       </div>
                       <div>
                         <p className="text-sm font-medium text-yellow-800">
-                          Random Assignment
+                          Random Attachment
                         </p>
                         <p className="text-sm text-yellow-700 mt-1">
                           {selectedPartnersForAssignment.length === 1 
-                            ? "Qollabi will randomly assign the selected customers across partners from the chosen list to ensure balanced distribution."
-                            : `Qollabi will randomly assign the selected customers across partners from the ${selectedPartnersForAssignment.length} chosen lists to ensure balanced distribution.`
+                            ? "Qollabi will randomly attach the selected customers across partners from the chosen list to ensure balanced distribution."
+                            : `Qollabi will randomly attach the selected customers across partners from the ${selectedPartnersForAssignment.length} chosen lists to ensure balanced distribution.`
                           }
                         </p>
                       </div>
@@ -846,7 +846,7 @@ function CustomerPartnerAssignmentInterface({ campaignData, onAssignmentsChange 
                 onClick={handleAssignToPartners}
                 disabled={selectedPartnersForAssignment.length === 0}
               >
-                Assign to Partners
+                Attach to Partners
               </Button>
             </div>
           </div>
@@ -3328,14 +3328,14 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
         return (
           <div className="space-y-6">
             <div className="text-center">
-              <h2 className="text-xl font-medium text-gray-900 mb-2">Assign Campaign</h2>
-              <p className="text-gray-600">Manage customer-to-partner assignments for campaign collaboration</p>
+              <h2 className="text-xl font-medium text-gray-900 mb-2">Attach Campaign</h2>
+              <p className="text-gray-600">Manage customer-to-partner attachments for campaign collaboration</p>
             </div>
 
             <div className="max-w-7xl mx-auto">
               <CustomerPartnerAssignmentInterface 
                 campaignData={campaignData}
-                onAssignmentsChange={(updatedRecipients) => {
+                onAttachmentsChange={(updatedRecipients) => {
                   setCampaignData(prev => ({
                     ...prev,
                     recipients: updatedRecipients
