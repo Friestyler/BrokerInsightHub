@@ -461,11 +461,10 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
 
   // Handle select all customers and contacts
   const handleSelectAll = () => {
-    const allContactIds = customerGroups.flatMap(group => 
-      group.contacts.map(contact => (contact.databaseId || contact.id).toString())
-    );
-    console.log('Select All clicked - selecting contacts:', allContactIds);
-    setSelectedContacts(allContactIds);
+    // Select all customer checkboxes
+    const allCustomerIds = customerGroups.map(group => (group.databaseId || group.id).toString());
+    console.log('Select All clicked - selecting customers:', allCustomerIds);
+    setSelectedContacts(allCustomerIds);
   };
 
   // Handle clear selection
@@ -813,11 +812,11 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         <div className="flex items-center gap-2">
           <Checkbox
             id="select-all"
-            checked={selectedContacts.length === customerGroups.reduce((sum, group) => sum + group.contacts.length, 0)}
-            onCheckedChange={selectedContacts.length === customerGroups.reduce((sum, group) => sum + group.contacts.length, 0) ? handleClearSelection : handleSelectAll}
+            checked={selectedContacts.length === customerGroups.length}
+            onCheckedChange={selectedContacts.length === customerGroups.length ? handleClearSelection : handleSelectAll}
           />
           <label htmlFor="select-all" className="text-sm font-medium text-gray-700">
-            Select All ({customerGroups.reduce((sum, group) => sum + group.contacts.length, 0)})
+            Select All ({customerGroups.length})
           </label>
         </div>
         
@@ -868,29 +867,13 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Checkbox
-                    checked={(() => {
-                      // Check if all contacts for this customer are selected
-                      const customerContactIds = customer.contacts.map(contact => 
-                        contact.databaseId || contact.id
-                      );
-                      return customerContactIds.length > 0 && 
-                             customerContactIds.every(id => selectedContacts.includes(id));
-                    })()}
+                    checked={selectedContacts.includes((customer.databaseId || customer.id).toString())}
                     onCheckedChange={(checked) => {
+                      const customerId = (customer.databaseId || customer.id).toString();
                       if (checked) {
-                        // When selecting a customer, automatically select all their contacts
-                        const customerContactIds = customer.contacts.map(contact => 
-                          contact.databaseId || contact.id
-                        );
-                        setSelectedContacts([...selectedContacts, ...customerContactIds]);
+                        setSelectedContacts([...selectedContacts, customerId]);
                       } else {
-                        // When deselecting a customer, remove all their contacts
-                        const customerContactIds = customer.contacts.map(contact => 
-                          contact.databaseId || contact.id
-                        );
-                        setSelectedContacts(selectedContacts.filter(id => 
-                          !customerContactIds.includes(id)
-                        ));
+                        setSelectedContacts(selectedContacts.filter(id => id !== customerId));
                       }
                     }}
                   />
@@ -4302,7 +4285,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                   // Change campaign status to assigned
                   assignCampaignMutation.mutate({ campaignId: campaignData.id });
                 }} 
-                className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 text-sm font-medium relative z-50 cursor-pointer"
+                className="bg-green-500 hover:bg-green-600 text-white px-6 py-2 text-sm font-medium relative z-50 cursor-pointer"
                 disabled={!campaignData.id || assignCampaignMutation.isPending}
                 style={{ pointerEvents: 'auto' }}
               >
