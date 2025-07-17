@@ -571,41 +571,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
     }
   });
 
-  // Mutation for assigning entire campaign to partners
-  const assignCampaignMutation = useMutation({
-    mutationFn: async (campaignId: string) => {
-      const response = await fetch(`/api/degoudse/campaigns/${campaignId}/assign`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ status: 'assigned' })
-      });
-      
-      if (!response.ok) {
-        throw new Error('Failed to assign campaign to partners');
-      }
-      
-      return response.json();
-    },
-    onSuccess: (data) => {
-      toast({
-        title: "Success",
-        description: "Campaign successfully assigned to partners!",
-        variant: "default"
-      });
-      
-      // Optionally redirect to campaigns overview or update campaign status
-      // setLocation('/campaigns');
-    },
-    onError: (error) => {
-      toast({
-        title: "Error", 
-        description: error.message || "Failed to assign campaign to partners",
-        variant: "destructive"
-      });
-    }
-  });
+
 
   // Handle partner attachment with proper database operations
   const handleAttachToPartners = async () => {
@@ -773,19 +739,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
     }
   };
 
-  // Function to handle campaign assignment to partners
-  const handleAssignCampaignToPartners = async () => {
-    if (!campaignData.id) {
-      toast({
-        title: "Error",
-        description: "Campaign ID is required for assignment",
-        variant: "destructive"
-      });
-      return;
-    }
 
-    assignCampaignMutation.mutate(campaignData.id);
-  };
 
   return (
     <div className="space-y-6">
@@ -1633,17 +1587,6 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
-      {/* Green "Assign to partners" button */}
-      <div className="mt-8 flex justify-center">
-        <Button 
-          onClick={handleAssignCampaignToPartners} 
-          className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg font-medium"
-          disabled={!campaignData.id || assignCampaignMutation.isPending}
-        >
-          {assignCampaignMutation.isPending ? 'Assigning...' : 'Assign to partners'}
-        </Button>
-      </div>
     </div>
   );
 }
@@ -2585,6 +2528,49 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
         variant: "destructive"
       });
     },
+  });
+
+  // Campaign assignment mutation
+  const assignCampaignMutation = useMutation({
+    mutationFn: async ({ campaignId }: { campaignId: string }) => {
+      const response = await fetch(`/api/degoudse/campaigns/${campaignId}/assign`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ status: 'assigned' })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to assign campaign to partners');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      // Update campaign status in local state
+      setCampaignData(prev => ({
+        ...prev,
+        status: 'assigned'
+      }));
+      
+      // Invalidate campaigns cache
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/degoudse/campaigns'] });
+      
+      toast({
+        title: "Campaign assigned successfully!",
+        description: "Your campaign has been assigned to partners and is now active.",
+        variant: "default"
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Assignment failed",
+        description: error.message || "Failed to assign campaign to partners. Please try again.",
+        variant: "destructive"
+      });
+    }
   });
 
   const handleBack = () => {
@@ -4134,6 +4120,21 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                   }));
                 }}
               />
+              
+              {/* Green "Assign to partners" button */}
+              <div className="mt-8 flex justify-center">
+                <Button 
+                  onClick={() => {
+                    if (campaignData.id) {
+                      assignCampaignMutation.mutate({ campaignId: campaignData.id });
+                    }
+                  }} 
+                  className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg font-medium"
+                  disabled={!campaignData.id || assignCampaignMutation.isPending}
+                >
+                  {assignCampaignMutation.isPending ? 'Assigning...' : 'Assign to partners'}
+                </Button>
+              </div>
             </div>
           </div>
         );
