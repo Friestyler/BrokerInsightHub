@@ -3198,6 +3198,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       if (stepNum === 5) return isStepCompleted(4);
       if (stepNum === 6) return isStepCompleted(5);
       if (stepNum === 7) return isStepCompleted(6);
+      if (stepNum === 8) return isStepCompleted(6); // Step 8 is accessible after Step 6 is completed
       return false;
     }
     
@@ -3209,6 +3210,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     if (stepNum === 5) return isStepCompleted(4); // Settings after Recipients
     if (stepNum === 6) return isStepCompleted(5); // Drafts after Settings
     if (stepNum === 7) return isStepCompleted(6); // Share or Send after Drafts
+    if (stepNum === 8) return isStepCompleted(6); // Summary after Drafts
     return false;
   };
 
@@ -3217,7 +3219,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   };
 
   const updateUrlStep = (step: number) => {
-    const stepNames = ['', 'details', 'entity', 'emails', 'recipients', 'settings', 'share'];
+    const stepNames = ['', 'details', 'entity', 'emails', 'recipients', 'settings', 'share', 'summary'];
     const stepName = stepNames[step] || '';
     
     const url = new URL(window.location.href);
@@ -4720,14 +4722,16 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             )}
             
             {/* Next Button */}
-            <Button
-              onClick={handleNext}
-              disabled={currentStep === totalSteps || !isStepAccessible(currentStep + 1)}
-              className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
-            >
-              Next
-              <ArrowRight className="h-4 w-4" />
-            </Button>
+            {currentStep < totalSteps && (
+              <Button
+                onClick={handleNext}
+                disabled={!isStepAccessible(currentStep + 1)}
+                className="gap-2 bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Next
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            )}
 
           </div>
         </div>
