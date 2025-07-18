@@ -658,7 +658,8 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange, 
           subject: campaignData.emails?.[0]?.subject || '',
           email_body: JSON.stringify(campaignData.emails?.[0]?.blocks || []),
           recipients: campaignData.recipients || [],
-          settings: campaignData.settings || {}
+          settings: campaignData.settings || {},
+          collaboration_enabled: campaignData.collaborationEnabled || false
         };
 
         // Create campaign using direct API call since mutation is not in scope
@@ -2580,6 +2581,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
         objective: campaignDataFromAPI.objective || '',
         icon: campaignDataFromAPI.icon || 'target',
         attachments: campaignDataFromAPI.attachments || [],
+        collaborationEnabled: campaignDataFromAPI.collaboration_enabled || false,
         emails: emails,
         recipients: convertedRecipients,
         settings: campaignDataFromAPI.settings || {
@@ -2684,7 +2686,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
         objective: templateData.objective || '',
         icon: templateData.icon || '',
         attachments: templateData.attachments || [],
-        partnerCollaboration: templateData.collaborationEnabled || false,
+        collaborationEnabled: templateData.collaborationEnabled || false,
         emails: emails
       }));
       
@@ -2876,7 +2878,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       icon: 'mail',
       objective: campaignData.objective,
       is_ai_generated: false,
-      attachments: campaignData.attachments || []
+      attachments: campaignData.attachments || [],
+      collaboration_enabled: campaignData.collaborationEnabled || false
     };
     
     console.log('Campaign payload to be saved:', campaignPayload);
@@ -3454,8 +3457,29 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                   </div>
                 ))}
               </div>
-
-
+              
+              {/* Collaboration with Partners */}
+              <div className="max-w-2xl mx-auto mt-12">
+                <div className="border border-[#E6E7F1] rounded-lg p-6 bg-white">
+                  <div className="flex items-start space-x-4">
+                    <input
+                      type="checkbox"
+                      id="collaboration-edit"
+                      checked={campaignData.collaborationEnabled || false}
+                      onChange={(e) => setCampaignData({ ...campaignData, collaborationEnabled: e.target.checked })}
+                      className="w-6 h-6 text-[#5567E5] bg-white border-gray-300 rounded focus:ring-[#5567E5] focus:ring-2 mt-1"
+                    />
+                    <div className="flex-1">
+                      <label htmlFor="collaboration-edit" className="text-base font-medium text-gray-900 cursor-pointer">
+                        Collaboration with Partners
+                      </label>
+                      <p className="text-sm text-gray-600 mt-2">
+                        Enable this to share your campaign with partners and allow them to customize it for their contacts
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         );

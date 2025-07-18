@@ -10468,8 +10468,8 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
             INSERT INTO ${envId}.campaigns (
               name, type, description, status, created_by_id, subject, email_body, 
               objective, is_template, frequency, target_entity_type, recipients,
-              partner_id, environment_id
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+              partner_id, environment_id, collaboration_enabled
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
             RETURNING *
           `, [
             campaignData.name,
@@ -10485,7 +10485,8 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
             campaignData.target_entity_type || null,
             JSON.stringify(campaignData.recipients || []),
             campaignData.partner_id || null,
-            envId
+            envId,
+            campaignData.collaboration_enabled || false
           ]);
           
           const campaign = result.rows[0];
@@ -10525,8 +10526,9 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
               objective = $7,
               target_entity_type = $8,
               recipients = $9,
+              collaboration_enabled = $10,
               updated_at = CURRENT_TIMESTAMP
-            WHERE id = $10
+            WHERE id = $11
             RETURNING *
           `, [
             campaignData.name,
@@ -10538,6 +10540,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
             campaignData.objective || null,
             campaignData.target_entity_type || null,
             JSON.stringify(campaignData.recipients || []),
+            campaignData.collaboration_enabled || false,
             parseInt(id)
           ]);
           

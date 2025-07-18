@@ -753,23 +753,25 @@ export default function CampaignTemplateCreator() {
               })}
             </div>
             
-            {/* Collaboration with Partners Checkbox */}
+            {/* Collaboration with Partners */}
             <div className="max-w-2xl mx-auto mt-12">
-              <div className="flex items-start space-x-3">
-                <input
-                  type="checkbox"
-                  id="collaboration"
-                  checked={campaignData.collaborationEnabled || false}
-                  onChange={(e) => setCampaignData({ ...campaignData, collaborationEnabled: e.target.checked })}
-                  className="w-5 h-5 text-[#5567E5] bg-white border-gray-300 rounded focus:ring-[#5567E5] focus:ring-2 mt-1"
-                />
-                <div className="flex-1">
-                  <label htmlFor="collaboration" className="text-sm font-medium text-gray-900 cursor-pointer">
-                    Collaboration with Partners
-                  </label>
-                  <p className="text-sm text-gray-500 mt-1">
-                    Enable this to share your campaign with partners and allow them to customize it for their contacts
-                  </p>
+              <div className="border border-[#E6E7F1] rounded-lg p-6 bg-white">
+                <div className="flex items-start space-x-4">
+                  <input
+                    type="checkbox"
+                    id="collaboration"
+                    checked={campaignData.collaborationEnabled || false}
+                    onChange={(e) => setCampaignData({ ...campaignData, collaborationEnabled: e.target.checked })}
+                    className="w-6 h-6 text-[#5567E5] bg-white border-gray-300 rounded focus:ring-[#5567E5] focus:ring-2 mt-1"
+                  />
+                  <div className="flex-1">
+                    <label htmlFor="collaboration" className="text-base font-medium text-gray-900 cursor-pointer">
+                      Collaboration with Partners
+                    </label>
+                    <p className="text-sm text-gray-600 mt-2">
+                      Enable this to share your campaign with partners and allow them to customize it for their contacts
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
