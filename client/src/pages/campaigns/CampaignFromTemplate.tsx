@@ -331,13 +331,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
   const [attachmentType, setAttachmentType] = useState<'individual' | 'list'>('individual');
   const [filterStatus, setFilterStatus] = useState<'all' | 'attached' | 'unattached'>('all');
   const [viewMode, setViewMode] = useState<'contacts' | 'partners'>('contacts');
-  const [editingAttachment, setEditingAttachment] = useState<{
-    customerId: string;
-    contactId?: string;
-    currentPartnerId?: number;
-    currentPartnerName?: string;
-    type: 'customer' | 'contact';
-  } | null>(null);
+  // Remove editingAttachment state since we're not using edit mode anymore
   const [partnerSelectionTab, setPartnerSelectionTab] = useState<'individual' | 'lists'>('individual');
   const [selectedPartnerLists, setSelectedPartnerLists] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -345,15 +339,8 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
   const [optimizationFields, setOptimizationFields] = useState<string[]>([]);
   const [showOptimizationSettings, setShowOptimizationSettings] = useState(false);
   
-  // Draft system for tracking pending changes
+  // Draft system for tracking pending changes - Only contact-level attachments
   const [draftAttachments, setDraftAttachments] = useState<{
-    customerAttachments: Array<{
-      customerId: string;
-      partnerId: number;
-      partnerName: string;
-      originalPartnerId?: number;
-      originalPartnerName?: string;
-    }>;
     contactAttachments: Array<{
       contactId: string;
       customerId: string;
@@ -363,7 +350,6 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
       originalPartnerName?: string;
     }>;
   }>({
-    customerAttachments: [],
     contactAttachments: []
   });
   
@@ -501,51 +487,34 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
 
   // Count pending changes
   const countPendingChanges = () => {
-    return draftAttachments.customerAttachments.length + draftAttachments.contactAttachments.length;
+    return draftAttachments.contactAttachments.length;
   };
 
-  // Apply draft attachment to a customer/contact
-  const applyDraftAttachment = (customerId: string, contactId: string | undefined, partnerId: number, partnerName: string) => {
+  // Apply draft attachment to a contact only
+  const applyDraftAttachment = (customerId: string, contactId: string, partnerId: number, partnerName: string) => {
     const customer = customerGroups.find(g => 
       g.id.toString() === customerId || g.databaseId?.toString() === customerId
     );
     
     if (!customer) return;
 
-    if (contactId) {
-      // Contact attachment
-      const contact = customer.contacts.find(c => 
-        c.id.toString() === contactId || c.databaseId?.toString() === contactId
-      );
-      
-      if (contact) {
-        setDraftAttachments(prev => ({
-          ...prev,
-          contactAttachments: [
-            ...prev.contactAttachments.filter(ca => ca.contactId !== contactId),
-            {
-              contactId,
-              customerId,
-              partnerId,
-              partnerName,
-              originalPartnerId: contact.attachedPartnerId,
-              originalPartnerName: contact.attachedPartner
-            }
-          ]
-        }));
-      }
-    } else {
-      // Customer attachment
+    // Only handle contact attachments
+    const contact = customer.contacts.find(c => 
+      c.id.toString() === contactId || c.databaseId?.toString() === contactId
+    );
+    
+    if (contact) {
       setDraftAttachments(prev => ({
         ...prev,
-        customerAttachments: [
-          ...prev.customerAttachments.filter(ca => ca.customerId !== customerId),
+        contactAttachments: [
+          ...prev.contactAttachments.filter(ca => ca.contactId !== contactId),
           {
+            contactId,
             customerId,
             partnerId,
             partnerName,
-            originalPartnerId: customer.defaultPartnerId,
-            originalPartnerName: customer.defaultPartner
+            originalPartnerId: contact.attachedPartnerId,
+            originalPartnerName: contact.attachedPartner
           }
         ]
       }));
@@ -555,7 +524,6 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
   // Undo all draft changes
   const undoDraftChanges = () => {
     setDraftAttachments({
-      customerAttachments: [],
       contactAttachments: []
     });
     toast({
@@ -565,54 +533,31 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
     });
   };
 
-  // Get effective partner for display (draft or original)
-  const getEffectivePartner = (customerId: string, contactId?: string) => {
-    if (contactId) {
-      // Check for draft contact attachment
-      const draftContact = draftAttachments.contactAttachments.find(ca => ca.contactId === contactId);
-      if (draftContact) {
-        return {
-          partnerId: draftContact.partnerId,
-          partnerName: draftContact.partnerName,
-          isDraft: true
-        };
-      }
-      
-      // Return original contact attachment
-      const customer = customerGroups.find(g => 
-        g.id.toString() === customerId || g.databaseId?.toString() === customerId
-      );
-      const contact = customer?.contacts.find(c => 
-        c.id.toString() === contactId || c.databaseId?.toString() === contactId
-      );
-      
+  // Get effective partner for display (draft or original) - Contact-level only
+  const getEffectivePartner = (customerId: string, contactId: string) => {
+    // Check for draft contact attachment
+    const draftContact = draftAttachments.contactAttachments.find(ca => ca.contactId === contactId);
+    if (draftContact) {
       return {
-        partnerId: contact?.attachedPartnerId || customer?.defaultPartnerId,
-        partnerName: contact?.attachedPartner || customer?.defaultPartner,
-        isDraft: false
-      };
-    } else {
-      // Check for draft customer attachment
-      const draftCustomer = draftAttachments.customerAttachments.find(ca => ca.customerId === customerId);
-      if (draftCustomer) {
-        return {
-          partnerId: draftCustomer.partnerId,
-          partnerName: draftCustomer.partnerName,
-          isDraft: true
-        };
-      }
-      
-      // Return original customer attachment
-      const customer = customerGroups.find(g => 
-        g.id.toString() === customerId || g.databaseId?.toString() === customerId
-      );
-      
-      return {
-        partnerId: customer?.defaultPartnerId,
-        partnerName: customer?.defaultPartner,
-        isDraft: false
+        partnerId: draftContact.partnerId,
+        partnerName: draftContact.partnerName,
+        isDraft: true
       };
     }
+    
+    // Return original contact attachment
+    const customer = customerGroups.find(g => 
+      g.id.toString() === customerId || g.databaseId?.toString() === customerId
+    );
+    const contact = customer?.contacts.find(c => 
+      c.id.toString() === contactId || c.databaseId?.toString() === contactId
+    );
+    
+    return {
+      partnerId: contact?.attachedPartnerId || customer?.defaultPartnerId,
+      partnerName: contact?.attachedPartner || customer?.defaultPartner || 'None',
+      isDraft: false
+    };
   };
 
   // Save draft attachments to database
@@ -628,12 +573,6 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
 
     try {
       // Convert draft attachments to the format expected by the API
-      const customerAttachments = draftAttachments.customerAttachments.map(draft => ({
-        customerId: draft.customerId,
-        partnerId: draft.partnerId,
-        partnerName: draft.partnerName
-      }));
-
       const contactAttachments = draftAttachments.contactAttachments.map(draft => ({
         contactId: draft.contactId,
         customerId: draft.customerId,
@@ -644,7 +583,6 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
       console.log('=== SAVING DRAFT ATTACHMENTS ===');
       console.log('Campaign data:', campaignData);
       console.log('Campaign ID raw:', campaignData?.id);
-      console.log('Customer attachments:', customerAttachments);
       console.log('Contact attachments:', contactAttachments);
 
       // Check if campaign needs to be saved first
@@ -690,7 +628,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
 
       const payload = {
         campaignId: campaignId.toString(),
-        customerAttachments,
+        customerAttachments: [], // No customer-level attachments, only contact-level
         contactAttachments,
         optimizationFields: optimizationFields || [],
         editMode: false
@@ -702,7 +640,6 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
 
       // Clear draft state after successful save
       setDraftAttachments({
-        customerAttachments: [],
         contactAttachments: []
       });
 
@@ -826,103 +763,64 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
 
   // Handle partner attachment with draft system
   const handleAttachToPartners = async () => {
-    if (editingAttachment) {
-      // Edit mode - apply draft attachment
-      if (selectedPartnersForAttachment.length === 0) {
-        toast({
-          title: "No partner selected",
-          description: "Please select a partner for this attachment.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      const partnerId = selectedPartnersForAttachment[0];
-      const partner = allPartners.find((p: any) => p.id === partnerId);
-      
-      if (!partner) {
-        toast({
-          title: "Partner not found",
-          description: "The selected partner could not be found.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      // Apply draft attachment
-      applyDraftAttachment(
-        editingAttachment.customerId,
-        editingAttachment.contactId,
-        partnerId,
-        partner.name
-      );
-      
-      // Close modal and reset state
-      resetModalState();
-      
+    // New attachment mode - attach multiple items
+    if (selectedContacts.length === 0) {
       toast({
-        title: "Draft attachment applied",
-        description: `${editingAttachment.type === 'customer' ? 'Customer' : 'Contact'} will be attached to ${partner.name} when saved.`,
-        variant: "default"
+        title: "No items selected",
+        description: "Please select at least one customer or contact to attach.",
+        variant: "destructive"
       });
-    } else {
-      // New attachment mode - attach multiple items
-      if (selectedContacts.length === 0) {
+      return;
+    }
+
+    if (selectedPartnersForAttachment.length === 0 && selectedPartnerLists.length === 0) {
+      toast({
+        title: "No partners selected",
+        description: "Please select at least one partner or partner list for attachment.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Collect all partner IDs from individual selections and partner lists
+      let allPartnerIds: number[] = [...selectedPartnersForAttachment];
+      
+      // Add partners from selected lists
+      for (const listId of selectedPartnerLists) {
+        const partnerList = savedPartnerLists.find(list => list.id === listId);
+        if (partnerList && partnerList.partner_ids) {
+          // Parse partner IDs from the list
+          const listPartnerIds = Array.isArray(partnerList.partner_ids) 
+            ? partnerList.partner_ids 
+            : JSON.parse(partnerList.partner_ids || '[]');
+          allPartnerIds = [...allPartnerIds, ...listPartnerIds];
+        }
+      }
+      
+      // Remove duplicates
+      allPartnerIds = [...new Set(allPartnerIds)];
+      
+      if (allPartnerIds.length === 0) {
         toast({
-          title: "No items selected",
-          description: "Please select at least one customer or contact to attach.",
+          title: "No partners found",
+          description: "No partners could be resolved from your selection.",
           variant: "destructive"
         });
         return;
       }
-
-      if (selectedPartnersForAttachment.length === 0 && selectedPartnerLists.length === 0) {
-        toast({
-          title: "No partners selected",
-          description: "Please select at least one partner or partner list for attachment.",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      try {
-        // Collect all partner IDs from individual selections and partner lists
-        let allPartnerIds: number[] = [...selectedPartnersForAttachment];
-        
-        // Add partners from selected lists
-        for (const listId of selectedPartnerLists) {
-          const partnerList = savedPartnerLists.find(list => list.id === listId);
-          if (partnerList && partnerList.partner_ids) {
-            // Parse partner IDs from the list
-            const listPartnerIds = Array.isArray(partnerList.partner_ids) 
-              ? partnerList.partner_ids 
-              : JSON.parse(partnerList.partner_ids || '[]');
-            allPartnerIds = [...allPartnerIds, ...listPartnerIds];
-          }
-        }
-        
-        // Remove duplicates
-        allPartnerIds = [...new Set(allPartnerIds)];
-        
-        if (allPartnerIds.length === 0) {
-          toast({
-            title: "No partners found",
-            description: "No partners could be resolved from your selection.",
-            variant: "destructive"
-          });
-          return;
-        }
-        
-        // Apply draft attachments for selected contacts
-        let attachmentCount = 0;
-        
-        selectedContacts.forEach(selectedId => {
-          // Check if this is a customer selection
-          const customer = customerGroups.find(group => 
-            group.id.toString() === selectedId || group.databaseId?.toString() === selectedId
+      
+      // Apply draft attachments for selected contacts
+      let attachmentCount = 0;
+      
+      selectedContacts.forEach(selectedId => {
+        // Check if this is a contact selection
+        customerGroups.forEach(group => {
+          const contact = group.contacts.find(c => 
+            c.id.toString() === selectedId || c.databaseId?.toString() === selectedId
           );
           
-          if (customer && customer.databaseId) {
+          if (contact && contact.databaseId) {
             // Randomly assign one of the available partners (or distribute evenly)
             const randomPartnerIndex = Math.floor(Math.random() * allPartnerIds.length);
             const assignedPartnerId = allPartnerIds[randomPartnerIndex];
@@ -930,57 +828,33 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
             
             if (assignedPartner) {
               applyDraftAttachment(
-                customer.databaseId.toString(),
-                undefined,
+                group.databaseId?.toString() || group.id.toString(),
+                contact.databaseId.toString(),
                 assignedPartner.id,
                 assignedPartner.name
               );
               attachmentCount++;
             }
-          } else {
-            // Check if this is a contact selection
-            customerGroups.forEach(group => {
-              const contact = group.contacts.find(c => 
-                c.id.toString() === selectedId || c.databaseId?.toString() === selectedId
-              );
-              
-              if (contact && contact.databaseId) {
-                // Randomly assign one of the available partners (or distribute evenly)
-                const randomPartnerIndex = Math.floor(Math.random() * allPartnerIds.length);
-                const assignedPartnerId = allPartnerIds[randomPartnerIndex];
-                const assignedPartner = allPartners.find((p: any) => p.id === assignedPartnerId);
-                
-                if (assignedPartner) {
-                  applyDraftAttachment(
-                    group.databaseId?.toString() || group.id.toString(),
-                    contact.databaseId.toString(),
-                    assignedPartner.id,
-                    assignedPartner.name
-                  );
-                  attachmentCount++;
-                }
-              }
-            });
           }
         });
-        
-        // Clear selections and close modal
-        setSelectedContacts([]);
-        resetModalState();
-        
-        toast({
-          title: "Draft attachments applied",
-          description: `${attachmentCount} partner attachment(s) will be saved when you click "Save all changes".`,
-          variant: "default"
-        });
-        
-      } catch (error) {
-        toast({
-          title: "Attachment failed",
-          description: "Failed to attach contacts to partners. Please try again.",
-          variant: "destructive"
-        });
-      }
+      });
+      
+      // Clear selections and close modal
+      setSelectedContacts([]);
+      resetModalState();
+      
+      toast({
+        title: "Draft attachments applied",
+        description: `${attachmentCount} partner attachment(s) will be saved when you click "Save all changes".`,
+        variant: "default"
+      });
+      
+    } catch (error) {
+      toast({
+        title: "Attachment failed",
+        description: "Failed to attach contacts to partners. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -1078,24 +952,20 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
           <Checkbox
             id="select-all"
             checked={(() => {
-              const allCustomerIds = customerGroups.map(group => (group.databaseId || group.id).toString());
               const allContactIds = customerGroups.flatMap(group => 
                 group.contacts.map(contact => (contact.databaseId || contact.id).toString())
               );
-              const allIds = [...allCustomerIds, ...allContactIds];
-              return allIds.length > 0 && allIds.every(id => selectedContacts.includes(id));
+              return allContactIds.length > 0 && allContactIds.every(id => selectedContacts.includes(id));
             })()}
             onCheckedChange={(() => {
-              const allCustomerIds = customerGroups.map(group => (group.databaseId || group.id).toString());
               const allContactIds = customerGroups.flatMap(group => 
                 group.contacts.map(contact => (contact.databaseId || contact.id).toString())
               );
-              const allIds = [...allCustomerIds, ...allContactIds];
-              return allIds.length > 0 && allIds.every(id => selectedContacts.includes(id)) ? handleClearSelection : handleSelectAll;
+              return allContactIds.length > 0 && allContactIds.every(id => selectedContacts.includes(id)) ? handleClearSelection : handleSelectAll;
             })()}
           />
           <label htmlFor="select-all" className="text-sm font-medium text-gray-700">
-            Select All ({customerGroups.length})
+            Select All Contacts ({customerGroups.reduce((total, group) => total + group.contacts.length, 0)})
           </label>
         </div>
         
@@ -1106,7 +976,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
             className="gap-2"
           >
             <Users className="h-4 w-4" />
-            Attach to Partners ({(() => {
+            Attach Contacts to Partners ({(() => {
               // Count actual contacts selected
               let contactCount = 0;
               selectedContacts.forEach(selectedId => {
@@ -1146,20 +1016,24 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Checkbox
-                    checked={selectedContacts.includes((customer.databaseId || customer.id).toString())}
+                    checked={(() => {
+                      const customerContactIds = customer.contacts.map(contact => 
+                        (contact.databaseId || contact.id).toString()
+                      );
+                      return customerContactIds.length > 0 && customerContactIds.every(id => selectedContacts.includes(id));
+                    })()}
                     onCheckedChange={(checked) => {
-                      const customerId = (customer.databaseId || customer.id).toString();
                       const customerContactIds = customer.contacts.map(contact => 
                         (contact.databaseId || contact.id).toString()
                       );
                       
                       if (checked) {
-                        // Select customer and all its contacts
-                        setSelectedContacts([...selectedContacts, customerId, ...customerContactIds]);
+                        // Select all contacts under this customer
+                        setSelectedContacts([...selectedContacts, ...customerContactIds]);
                       } else {
-                        // Deselect customer and all its contacts
+                        // Deselect all contacts under this customer
                         setSelectedContacts(selectedContacts.filter(id => 
-                          id !== customerId && !customerContactIds.includes(id)
+                          !customerContactIds.includes(id)
                         ));
                       }
                     }}
@@ -1188,63 +1062,9 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  {(() => {
-                    const effectivePartner = getEffectivePartner(customer.id.toString());
-                    const draftCustomer = draftAttachments.customerAttachments.find(ca => ca.customerId === customer.id.toString());
-                    
-                    if (effectivePartner.isDraft && draftCustomer) {
-                      return (
-                        <>
-                          <span className="text-sm text-gray-500">Previous Partner:</span>
-                          <span className="font-medium text-gray-900">
-                            {draftCustomer.originalPartnerName || 'None'}
-                          </span>
-                          <span className="text-xs text-gray-500">→</span>
-                          <span className="font-medium text-orange-600">
-                            {effectivePartner.partnerName}
-                          </span>
-                          <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
-                            Draft
-                          </span>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-6 w-6 p-0"
-                            onClick={() => handleEditAttachment(
-                              customer.id.toString(),
-                              undefined,
-                              effectivePartner.partnerId,
-                              effectivePartner.partnerName
-                            )}
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                        </>
-                      );
-                    } else {
-                      return (
-                        <>
-                          <span className="text-sm text-gray-500">Default Partner:</span>
-                          <span className="font-medium text-gray-900">
-                            {effectivePartner.partnerName || 'None'}
-                          </span>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-6 w-6 p-0"
-                            onClick={() => handleEditAttachment(
-                              customer.id.toString(),
-                              undefined,
-                              effectivePartner.partnerId,
-                              effectivePartner.partnerName
-                            )}
-                          >
-                            <Edit className="h-3 w-3" />
-                          </Button>
-                        </>
-                      );
-                    }
-                  })()}
+                  <span className="text-sm text-gray-500">
+                    {customer.contacts.length} {customer.contacts.length === 1 ? 'contact' : 'contacts'}
+                  </span>
                 </div>
               </div>
 
@@ -1271,30 +1091,13 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                           checked={selectedContacts.includes((contact.databaseId || contact.id).toString())}
                           onCheckedChange={(checked) => {
                             const contactId = (contact.databaseId || contact.id).toString();
-                            const customerId = (customer.databaseId || customer.id).toString();
                             
                             if (checked) {
                               // Select this contact
                               setSelectedContacts([...selectedContacts, contactId]);
                             } else {
                               // Deselect this contact
-                              setSelectedContacts(prev => {
-                                const newSelection = prev.filter(id => id !== contactId);
-                                
-                                // Also deselect customer if no contacts are selected
-                                const customerContactIds = customer.contacts.map(c => 
-                                  (c.databaseId || c.id).toString()
-                                );
-                                const hasSelectedContacts = customerContactIds.some(id => 
-                                  newSelection.includes(id)
-                                );
-                                
-                                if (!hasSelectedContacts) {
-                                  return newSelection.filter(id => id !== customerId);
-                                }
-                                
-                                return newSelection;
-                              });
+                              setSelectedContacts(prev => prev.filter(id => id !== contactId));
                             }
                           }}
                         />
@@ -1328,12 +1131,11 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                                   variant="ghost" 
                                   size="sm" 
                                   className="h-6 w-6 p-0"
-                                  onClick={() => handleEditAttachment(
-                                    customer.id.toString(),
-                                    contact.id.toString(),
-                                    effectivePartner.partnerId,
-                                    effectivePartner.partnerName
-                                  )}
+                                  onClick={() => {
+                                    // Open individual contact attachment modal
+                                    setSelectedContacts([contact.id.toString()]);
+                                    setShowAttachmentModal(true);
+                                  }}
                                 >
                                   <Edit className="h-3 w-3" />
                                 </Button>
@@ -1355,12 +1157,11 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                                   variant="ghost" 
                                   size="sm" 
                                   className="h-6 w-6 p-0"
-                                  onClick={() => handleEditAttachment(
-                                    customer.id.toString(),
-                                    contact.id.toString(),
-                                    effectivePartner.partnerId,
-                                    effectivePartner.partnerName
-                                  )}
+                                  onClick={() => {
+                                    // Open individual contact attachment modal
+                                    setSelectedContacts([contact.id.toString()]);
+                                    setShowAttachmentModal(true);
+                                  }}
                                 >
                                   <Edit className="h-3 w-3" />
                                 </Button>
@@ -1482,7 +1283,6 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         console.log('=== SAVE/UNDO BUTTONS DEBUG ===');
         console.log('Draft state check:', {
           pendingCount,
-          customerAttachments: draftAttachments.customerAttachments,
           contactAttachments: draftAttachments.contactAttachments
         });
         console.log('Should show buttons:', pendingCount > 0);
@@ -1537,57 +1337,15 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
       <Dialog open={showAttachmentModal} onOpenChange={resetModalState}>
         <DialogContent className="max-w-3xl">
           <DialogHeader>
-            <DialogTitle>
-              {editingAttachment ? 'Edit Partner Attachment' : 'Attach Customers to Partners'}
-            </DialogTitle>
+            <DialogTitle>Attach Contacts to Partners</DialogTitle>
             <DialogDescription>
-              {editingAttachment 
-                ? `Change the partner assignment for this ${editingAttachment.type}`
-                : 'Select partners to attach the selected customers to.'
-              }
+              Select partners to attach the selected contacts to.
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-6">
-            {/* Current Assignment Info (Edit Mode) */}
-            {editingAttachment && (
-              <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                <h4 className="font-medium text-blue-900 mb-2">Current Assignment</h4>
-                <div className="text-sm text-blue-800">
-                  <p><strong>Selected:</strong> {(() => {
-                    if (editingAttachment.type === 'customer') {
-                      const customer = customerGroups.find(g => 
-                        g.id.toString() === editingAttachment.customerId.toString() || 
-                        g.databaseId?.toString() === editingAttachment.customerId.toString()
-                      );
-                      return customer ? customer.name : 'Customer';
-                    } else {
-                      const customer = customerGroups.find(g => 
-                        g.id.toString() === editingAttachment.customerId.toString() || 
-                        g.databaseId?.toString() === editingAttachment.customerId.toString()
-                      );
-                      
-                      if (customer) {
-                        const contact = customer.contacts.find(c => 
-                          c.id.toString() === editingAttachment.contactId.toString() || 
-                          c.databaseId?.toString() === editingAttachment.contactId.toString()
-                        );
-                        
-                        if (contact) {
-                          return contact.name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim() || 'Contact';
-                        }
-                      }
-                      
-                      return 'Contact';
-                    }
-                  })()}</p>
-                  <p><strong>Current Partner:</strong> {editingAttachment.currentPartnerName || 'None'}</p>
-                </div>
-              </div>
-            )}
-
-            {/* Selected Items Info (New Attachment Mode) */}
-            {!editingAttachment && selectedContacts.length > 0 && (
+            {/* Selected Items Info */}
+            {selectedContacts.length > 0 && (
               <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                 <h4 className="font-medium text-green-900 mb-2">Selected Items</h4>
                 <div className="text-sm text-green-800">
@@ -1694,16 +1452,11 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                             id={`partner-${partner.id}`}
                             checked={selectedPartnersForAttachment.includes(partner.id)}
                             onCheckedChange={(checked) => {
-                              if (editingAttachment) {
-                                // In edit mode, only allow one partner selection
-                                setSelectedPartnersForAttachment(checked ? [partner.id] : []);
+                              // Allow multiple selections
+                              if (checked) {
+                                setSelectedPartnersForAttachment([...selectedPartnersForAttachment, partner.id]);
                               } else {
-                                // In new attachment mode, allow multiple selections
-                                if (checked) {
-                                  setSelectedPartnersForAttachment([...selectedPartnersForAttachment, partner.id]);
-                                } else {
-                                  setSelectedPartnersForAttachment(selectedPartnersForAttachment.filter(id => id !== partner.id));
-                                }
+                                setSelectedPartnersForAttachment(selectedPartnersForAttachment.filter(id => id !== partner.id));
                               }
                             }}
                           />
@@ -1812,16 +1565,11 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                                           id={`list-partner-${partnerId}`}
                                           checked={selectedPartnersForAttachment.includes(partnerId)}
                                           onCheckedChange={(checked) => {
-                                            if (editingAttachment) {
-                                              // In edit mode, only allow one partner selection
-                                              setSelectedPartnersForAttachment(checked ? [partnerId] : []);
+                                            // Allow multiple selections
+                                            if (checked) {
+                                              setSelectedPartnersForAttachment([...selectedPartnersForAttachment, partnerId]);
                                             } else {
-                                              // In new attachment mode, allow multiple selections
-                                              if (checked) {
-                                                setSelectedPartnersForAttachment([...selectedPartnersForAttachment, partnerId]);
-                                              } else {
-                                                setSelectedPartnersForAttachment(selectedPartnersForAttachment.filter(id => id !== partnerId));
-                                              }
+                                              setSelectedPartnersForAttachment(selectedPartnersForAttachment.filter(id => id !== partnerId));
                                             }
                                           }}
                                         />
@@ -1876,7 +1624,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
             </div>
 
             {/* Multi-Partner Distribution Message */}
-            {!editingAttachment && selectedContacts.length > 1 && (
+            {selectedContacts.length > 1 && (
               (() => {
                 // Calculate total partners from individual selections and lists
                 const individualPartnerIds = selectedPartnersForAttachment;
@@ -1977,33 +1725,31 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
               })()
             )}
 
-            {/* Attachment Options (New Mode) */}
-            {!editingAttachment && (
-              <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <h4 className="font-medium text-yellow-900 mb-2">Assignment Options</h4>
-                <div className="space-y-2">
-                  <label className="flex items-center gap-2">
-                    <input 
-                      type="radio" 
-                      name="attachmentMode" 
-                      value="replace" 
-                      className="text-blue-600"
-                      defaultChecked
-                    />
-                    <span className="text-sm text-yellow-800">Replace existing partner assignments</span>
-                  </label>
-                  <label className="flex items-center gap-2">
-                    <input 
-                      type="radio" 
-                      name="attachmentMode" 
-                      value="add" 
-                      className="text-blue-600"
-                    />
-                    <span className="text-sm text-yellow-800">Add additional partner assignments</span>
-                  </label>
-                </div>
+            {/* Assignment Options */}
+            <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+              <h4 className="font-medium text-yellow-900 mb-2">Assignment Options</h4>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2">
+                  <input 
+                    type="radio" 
+                    name="attachmentMode" 
+                    value="replace" 
+                    className="text-blue-600"
+                    defaultChecked
+                  />
+                  <span className="text-sm text-yellow-800">Replace existing partner assignments</span>
+                </label>
+                <label className="flex items-center gap-2">
+                  <input 
+                    type="radio" 
+                    name="attachmentMode" 
+                    value="add" 
+                    className="text-blue-600"
+                  />
+                  <span className="text-sm text-yellow-800">Add additional partner assignments</span>
+                </label>
               </div>
-            )}
+            </div>
           </div>
 
           <DialogFooter>
@@ -2014,7 +1760,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
               onClick={handleAttachToPartners} 
               disabled={selectedPartnersForAttachment.length === 0 && selectedPartnerLists.length === 0}
             >
-              {editingAttachment ? 'Update Assignment' : 'Attach to Partners'}
+              Attach to Partners
             </Button>
           </DialogFooter>
         </DialogContent>
