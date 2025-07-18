@@ -1114,34 +1114,62 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-500">Default Partner:</span>
                   {(() => {
                     const effectivePartner = getEffectivePartner(customer.id.toString());
-                    return (
-                      <>
-                        <span className={`font-medium ${effectivePartner.isDraft ? 'text-orange-600' : 'text-gray-900'}`}>
-                          {effectivePartner.partnerName}
-                        </span>
-                        {effectivePartner.isDraft && (
+                    const draftCustomer = draftAttachments.customerAttachments.find(ca => ca.customerId === customer.id.toString());
+                    
+                    if (effectivePartner.isDraft && draftCustomer) {
+                      return (
+                        <>
+                          <span className="text-sm text-gray-500">Previous Partner:</span>
+                          <span className="font-medium text-gray-900">
+                            {draftCustomer.originalPartnerName || 'None'}
+                          </span>
+                          <span className="text-xs text-gray-500">→</span>
+                          <span className="font-medium text-orange-600">
+                            {effectivePartner.partnerName}
+                          </span>
                           <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
                             Draft
                           </span>
-                        )}
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-6 w-6 p-0"
-                          onClick={() => handleEditAttachment(
-                            customer.id.toString(),
-                            undefined,
-                            effectivePartner.partnerId,
-                            effectivePartner.partnerName
-                          )}
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
-                      </>
-                    );
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0"
+                            onClick={() => handleEditAttachment(
+                              customer.id.toString(),
+                              undefined,
+                              effectivePartner.partnerId,
+                              effectivePartner.partnerName
+                            )}
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                        </>
+                      );
+                    } else {
+                      return (
+                        <>
+                          <span className="text-sm text-gray-500">Default Partner:</span>
+                          <span className="font-medium text-gray-900">
+                            {effectivePartner.partnerName || 'None'}
+                          </span>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 w-6 p-0"
+                            onClick={() => handleEditAttachment(
+                              customer.id.toString(),
+                              undefined,
+                              effectivePartner.partnerId,
+                              effectivePartner.partnerName
+                            )}
+                          >
+                            <Edit className="h-3 w-3" />
+                          </Button>
+                        </>
+                      );
+                    }
                   })()}
                 </div>
               </div>
@@ -1206,37 +1234,65 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                       <div className="flex items-center gap-2">
                         {(() => {
                           const effectivePartner = getEffectivePartner(customer.id.toString(), contact.id.toString());
-                          return (
-                            <>
-                              {contact.attachmentSource === 'default' && !effectivePartner.isDraft && (
-                                <span className="text-xs text-blue-600">→ From Default</span>
-                              )}
-                              {contact.isManualOverride && !effectivePartner.isDraft && (
-                                <span className="text-xs text-orange-600">⚠ Manual</span>
-                              )}
-                              <span className={`font-medium ${effectivePartner.isDraft ? 'text-orange-600' : 'text-gray-900'}`}>
-                                {effectivePartner.partnerName}
-                              </span>
-                              {effectivePartner.isDraft && (
+                          const draftContact = draftAttachments.contactAttachments.find(ca => ca.contactId === contact.id.toString());
+                          
+                          if (effectivePartner.isDraft && draftContact) {
+                            return (
+                              <>
+                                <span className="text-xs text-gray-500">Previous:</span>
+                                <span className="font-medium text-gray-900">
+                                  {draftContact.originalPartnerName || 'None'}
+                                </span>
+                                <span className="text-xs text-gray-500">→</span>
+                                <span className="font-medium text-orange-600">
+                                  {effectivePartner.partnerName}
+                                </span>
                                 <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
                                   Draft
                                 </span>
-                              )}
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-6 w-6 p-0"
-                                onClick={() => handleEditAttachment(
-                                  customer.id.toString(),
-                                  contact.id.toString(),
-                                  effectivePartner.partnerId,
-                                  effectivePartner.partnerName
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => handleEditAttachment(
+                                    customer.id.toString(),
+                                    contact.id.toString(),
+                                    effectivePartner.partnerId,
+                                    effectivePartner.partnerName
+                                  )}
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                              </>
+                            );
+                          } else {
+                            return (
+                              <>
+                                {contact.attachmentSource === 'default' && (
+                                  <span className="text-xs text-blue-600">→ From Default</span>
                                 )}
-                              >
-                                <Edit className="h-3 w-3" />
-                              </Button>
-                            </>
-                          );
+                                {contact.isManualOverride && (
+                                  <span className="text-xs text-orange-600">⚠ Manual</span>
+                                )}
+                                <span className="font-medium text-gray-900">
+                                  {effectivePartner.partnerName}
+                                </span>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm" 
+                                  className="h-6 w-6 p-0"
+                                  onClick={() => handleEditAttachment(
+                                    customer.id.toString(),
+                                    contact.id.toString(),
+                                    effectivePartner.partnerId,
+                                    effectivePartner.partnerName
+                                  )}
+                                >
+                                  <Edit className="h-3 w-3" />
+                                </Button>
+                              </>
+                            );
+                          }
                         })()}
                       </div>
                     </div>
