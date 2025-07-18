@@ -10376,7 +10376,11 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
                     (cs.shared_with_type = 'partner' AND cs.shared_with_id = $3::integer AND cs.is_active = true)
                   )
                 )
-                SELECT c.id, c.name, c.description, c.type, c.category, c.status, c.partner_status,
+                SELECT c.id, c.name, c.description, c.type, c.category, c.status, 
+                       CASE 
+                         WHEN cs.id IS NOT NULL THEN 'shared_with_partner'
+                         ELSE COALESCE(c.partner_status, 'not_shared')
+                       END as partner_status,
                        c.created_by_id, c.sponsor_id, c.list_id, c.subject, c.email_body, 
                        c.email_logo, c.from_name, c.from_email, c.scheduled_time, 
                        c.frequency, c.is_shared, c.is_template, c.tags, c.created_at, 
@@ -10386,6 +10390,10 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
                        u.name as created_by_name 
                 FROM ${envId}.campaigns c
                 LEFT JOIN ${envId}.users u ON c.created_by_id = u.id
+                LEFT JOIN ${envId}.campaign_shares cs ON c.id = cs.campaign_id 
+                  AND cs.shared_with_type = 'partner' 
+                  AND cs.shared_with_id = $3 
+                  AND cs.is_active = true
                 INNER JOIN campaign_matches cm ON c.id = cm.id
               `;
               queryParams.push(partnerName, partner_id, partner_id);
