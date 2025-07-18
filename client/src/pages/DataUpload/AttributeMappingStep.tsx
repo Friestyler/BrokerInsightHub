@@ -238,6 +238,20 @@ export default function AttributeMappingStep({
     });
   };
 
+  // Handle saving template changes
+  const handleSaveTemplate = () => {
+    if (selectedTemplateId === 'none' || !selectedTemplateId) return;
+    
+    const selectedTemplate = templates.find((t: any) => t.id.toString() === selectedTemplateId);
+    if (!selectedTemplate) return;
+    
+    updateTemplateMutation.mutate({
+      id: parseInt(selectedTemplateId),
+      name: selectedTemplate.name,
+      column_mappings: attributeMappings
+    });
+  };
+
   // Monitor changes to attribute mappings to detect template modifications
   useEffect(() => {
     if (selectedTemplateId !== 'none' && originalMappings.length > 0) {
@@ -1113,7 +1127,72 @@ Examples:
         </CardContent>
       </Card>
 
-
+      {/* Navigation Buttons */}
+      <div className="flex justify-between items-center pt-6 border-t">
+        <Button 
+          variant="outline" 
+          onClick={onBack}
+          className="rounded-xl px-6 py-3 border-gray-300 hover:bg-gray-50"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+        
+        <div className="flex items-center gap-3">
+          {/* Save Template Button */}
+          {hasTemplateChanges && selectedTemplateId !== 'none' && (
+            <Button
+              onClick={handleSaveTemplate}
+              disabled={saveTemplateMutation.isPending}
+              variant="outline"
+              className="rounded-xl px-6 py-3"
+            >
+              {saveTemplateMutation.isPending ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Template
+                </>
+              )}
+            </Button>
+          )}
+          
+          {/* Continue Button */}
+          <Button 
+            onClick={() => {
+              // Validate that required attributes are mapped
+              const missingRequired = attributeMappings.filter(mapping => 
+                mapping.isRequired && !mapping.csvColumn && !mapping.isCodeBased
+              );
+              
+              if (missingRequired.length > 0) {
+                toast({
+                  title: "Missing Required Mappings",
+                  description: `Please map the following required attributes: ${missingRequired.map(m => m.attribute).join(', ')}`,
+                  variant: "destructive"
+                });
+                return;
+              }
+              
+              // Save last used template
+              if (selectedTemplateId !== 'none') {
+                saveLastUsedTemplate(parseInt(selectedTemplateId), selectedEntityType || uploadType);
+              }
+              
+              onNext(attributeMappings);
+            }}
+            disabled={attributeMappings.length === 0}
+            className="rounded-xl px-8 py-3 bg-primary hover:bg-primary/90 text-primary-foreground font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            Continue to Processing
+            <ArrowRight className="h-4 w-4 ml-2" />
+          </Button>
+        </div>
+      </div>
     </div>
   );
 }
