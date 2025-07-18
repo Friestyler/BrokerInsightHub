@@ -2834,6 +2834,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
         return 'Save and manage drafts';
       case 7:
         return 'Attach your campaign';
+      case 8:
+        return 'Campaign summary & assign';
       default:
         return '';
     }
@@ -2881,6 +2883,12 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       title: 'Attach (optional)',
       description: getStepDescription(7),
       component: 'share'
+    },
+    {
+      number: 8,
+      title: 'Summary',
+      description: getStepDescription(8),
+      component: 'summary'
     }
   ];
 
@@ -2904,7 +2912,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     if (stepNum === 4) return step4Complete;
     if (stepNum === 5) return step5Complete;
     if (stepNum === 6) return step6Complete;
-    if (stepNum === 7) return false; // Share or Send step - never auto-completed
+    if (stepNum === 7) return false; // Attach step - never auto-completed
+    if (stepNum === 8) return false; // Summary step - never auto-completed
     return false; // Don't auto-complete steps based on current step
   };
 
@@ -4108,6 +4117,110 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
           </div>
         );
 
+      case 8:
+        return (
+          <div className="space-y-6">
+            <div className="text-center">
+              <h2 className="text-xl font-medium text-gray-900 mb-2">Campaign Summary</h2>
+              <p className="text-gray-600">Review your campaign details and assign it to partners</p>
+            </div>
+
+            <div className="max-w-4xl mx-auto space-y-6">
+              {/* Campaign Overview */}
+              <div className="bg-white border rounded-lg p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Campaign Overview</h3>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <span className="text-sm text-gray-500">Name:</span>
+                    <p className="font-medium">{campaignData.name}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Type:</span>
+                    <p className="font-medium capitalize">{campaignData.type || 'Email'}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Target Group:</span>
+                    <p className="font-medium capitalize">{campaignData.entity}</p>
+                  </div>
+                  <div>
+                    <span className="text-sm text-gray-500">Subject:</span>
+                    <p className="font-medium">{campaignData.emails[0]?.subject || 'No subject'}</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Campaign Metrics */}
+              <div className="bg-white border rounded-lg p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Campaign Metrics</h3>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {(() => {
+                    // Calculate metrics from campaign data
+                    const totalOpportunities = campaignData.recipients.filter((r: any) => r.type === 'opportunity').length;
+                    const totalCustomers = campaignData.recipients.filter((r: any) => r.type === 'customer').length;
+                    const totalContacts = campaignData.recipients.filter((r: any) => r.email || r.contactInfo?.email).length;
+                    const contactsWithoutCustomers = campaignData.recipients.filter((r: any) => 
+                      (r.email || r.contactInfo?.email) && !r.clientId && !r.customerId
+                    ).length;
+                    const attachedPartners = new Set(campaignData.recipients
+                      .filter((r: any) => r.assigned_partner_id || r.partnerInfo?.id || r.partnerId)
+                      .map((r: any) => r.assigned_partner_id || r.partnerInfo?.id || r.partnerId)
+                    ).size;
+                    const unattachedPartners = campaignData.recipients.filter((r: any) => 
+                      !r.assigned_partner_id && !r.partnerInfo?.id && !r.partnerId
+                    ).length;
+
+                    return (
+                      <>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-blue-600">{totalOpportunities}</div>
+                          <div className="text-sm text-gray-500">Opportunities</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-green-600">{totalCustomers}</div>
+                          <div className="text-sm text-gray-500">Customers</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-purple-600">{totalContacts}</div>
+                          <div className="text-sm text-gray-500">Contacts</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-bold text-orange-600">{attachedPartners}</div>
+                          <div className="text-sm text-gray-500">Attached Partners</div>
+                        </div>
+                      </>
+                    );
+                  })()}
+                </div>
+              </div>
+
+              {/* Status Information */}
+              <div className="bg-white border rounded-lg p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Campaign Status</h3>
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Campaign Status:</span>
+                    <Badge variant={campaignData.status === 'draft' ? 'secondary' : 'default'}>
+                      {campaignData.status || 'Draft'}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Created:</span>
+                    <span className="text-sm font-medium">
+                      {campaignData.created_at ? new Date(campaignData.created_at).toLocaleDateString() : 'Today'}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-gray-600">Ready to Send:</span>
+                    <span className="text-sm font-medium">
+                      {campaignData.recipients.filter((r: any) => r.email || r.contactInfo?.email).length > 0 ? 'Yes' : 'No'}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -4264,8 +4377,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               </Button>
             )}
             
-            {/* Assign to Partners Button - show on Step 7 */}
-            {currentStep === 7 && (
+            {/* Assign to Partners Button - show on Step 8 */}
+            {currentStep === 8 && (
               <Button 
                 onClick={(e) => {
                   e.preventDefault();
@@ -4314,8 +4427,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 <ArrowRight className="h-4 w-4" />
               </Button>
             ) : (
-              // For step 7, don't show any save/update button
-              currentStep === 7 ? null : (
+              // For step 7 & 8, don't show any save/update button
+              currentStep === 7 || currentStep === 8 ? null : (
                 <Button
                   onClick={handleSave}
                   disabled={!canSave() || createCampaignMutation.isPending || updateCampaignMutation.isPending}
