@@ -95,6 +95,8 @@ export default function PartnerDetail() {
   const [customerComment, setCustomerComment] = useState("");
   const [opportunityComment, setOpportunityComment] = useState("");
   const [isOpportunityModalOpen, setIsOpportunityModalOpen] = useState(false);
+  const [isCommentModalOpen, setIsCommentModalOpen] = useState(false);
+  const [newComment, setNewComment] = useState("");
 
   // Back navigation state
   const [backUrl, setBackUrl] = useState("/partners");
@@ -1092,6 +1094,19 @@ export default function PartnerDetail() {
       entityId: parseInt(id!),
       assignedTo: assignedTo || undefined,
       metricId: selectedMetricForComment.id, // Pass the metric ID for OKR comments
+    });
+  };
+
+  // Handler for the general comment modal
+  const handleAddGeneralComment = () => {
+    if (!newComment.trim()) return;
+    
+    createCrossEntityCommentMutation.mutate({
+      content: newComment,
+      visible_to_partner: false,
+      entityType: 'partner',
+      entityId: parseInt(id!),
+      assignedTo: undefined,
     });
   };
 
@@ -2108,7 +2123,7 @@ export default function PartnerDetail() {
                 Cancel
               </Button>
               <Button
-                onClick={handleAddComment}
+                onClick={handleAddGeneralComment}
                 disabled={!newComment.trim() || createCrossEntityCommentMutation.isPending}
                 className="bg-[#5567E5] hover:bg-[#4556D4] text-white h-8 px-4 rounded-lg font-medium shadow-sm"
               >
