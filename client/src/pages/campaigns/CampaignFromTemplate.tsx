@@ -4311,7 +4311,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                         size="sm"
                         onClick={() => {
                           console.log('Save all changes clicked');
-                          attachToPartnersMutation.mutate(draftAttachments);
+                          saveDraftAttachments();
                         }}
                         disabled={attachToPartnersMutation.isPending}
                         className="gap-2 bg-[#16a34a] hover:bg-[#15803d] text-white"
