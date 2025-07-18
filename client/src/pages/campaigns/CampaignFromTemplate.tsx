@@ -539,26 +539,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange, 
     });
   }
 
-  // Listen for navigation button clicks
-  useEffect(() => {
-    const handleSaveClick = () => {
-      console.log('Save event received in ContactPartnerAttachmentInterface');
-      saveDraftAttachments();
-    };
-    
-    const handleUndoClick = () => {
-      console.log('Undo event received in ContactPartnerAttachmentInterface');
-      undoDraftChanges();
-    };
-    
-    window.addEventListener('step7SaveClicked', handleSaveClick);
-    window.addEventListener('step7UndoClicked', handleUndoClick);
-    
-    return () => {
-      window.removeEventListener('step7SaveClicked', handleSaveClick);
-      window.removeEventListener('step7UndoClicked', handleUndoClick);
-    };
-  }, [saveDraftAttachments, undoDraftChanges]);
+
 
   // Get effective partner for display (draft or original) - Contact-level only
   const getEffectivePartner = (customerId: string, contactId: string) => {
@@ -685,6 +666,27 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange, 
       });
     }
   };
+
+  // Listen for navigation button clicks - placed after function definitions
+  useEffect(() => {
+    const handleSaveClick = () => {
+      console.log('Save event received in ContactPartnerAttachmentInterface');
+      saveDraftAttachments();
+    };
+    
+    const handleUndoClick = () => {
+      console.log('Undo event received in ContactPartnerAttachmentInterface');
+      undoDraftChanges();
+    };
+    
+    window.addEventListener('step7SaveClicked', handleSaveClick);
+    window.addEventListener('step7UndoClicked', handleUndoClick);
+    
+    return () => {
+      window.removeEventListener('step7SaveClicked', handleSaveClick);
+      window.removeEventListener('step7UndoClicked', handleUndoClick);
+    };
+  }, []);
 
   // Reset modal state
   const resetModalState = () => {
