@@ -4632,16 +4632,21 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             {/* Connecting Line Background */}
             <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 z-0" style={{ marginLeft: '4rem', marginRight: '4rem' }} />
             
-            {/* Partner Flow Indicator */}
+            {/* Partner Flow Visual Frame */}
             {campaignData.collaborationEnabled && (
-              <div className="absolute top-0 right-0 flex items-center bg-gradient-to-r from-[#5567E5]/10 to-[#5567E5]/5 rounded-lg px-3 py-1 border border-[#5567E5]/20">
-                <span className="text-xs font-medium text-[#5567E5]">🤝 Partner Flow</span>
+              <div className="absolute top-0 right-0 h-full flex items-center">
+                <div className="h-full bg-gradient-to-r from-[#5567E5]/15 to-[#5567E5]/10 rounded-lg border-2 border-[#5567E5]/30 shadow-sm" 
+                     style={{ 
+                       width: `calc(${(2 / steps.length) * 100}% + 2rem)`,
+                       marginRight: '-1rem'
+                     }}>
+                </div>
               </div>
             )}
             
             {steps.map((step, index) => (
               <div key={step.number} className={`flex flex-col items-center flex-1 relative z-10 ${
-                step.isCollaborationStep ? 'bg-gradient-to-b from-[#5567E5]/5 to-transparent rounded-lg py-1' : ''
+                step.isCollaborationStep ? 'bg-gradient-to-b from-[#5567E5]/8 to-[#5567E5]/3 rounded-lg py-2 px-1' : ''
               }`}>
                 {/* Step Circle */}
                 <div 
