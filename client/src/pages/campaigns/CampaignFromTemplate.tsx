@@ -360,6 +360,12 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange, 
     console.log('Current draftAttachments:', draftAttachments);
     console.log('Contact attachments count:', draftAttachments.contactAttachments.length);
   }, [draftAttachments]);
+
+  // Persist draft attachments to prevent loss on re-render
+  const draftAttachmentsRef = useRef(draftAttachments);
+  useEffect(() => {
+    draftAttachmentsRef.current = draftAttachments;
+  }, [draftAttachments]);
   
   const { toast } = useToast();
   
@@ -601,12 +607,16 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange, 
 
   // Save draft attachments to database
   const saveDraftAttachments = async () => {
+    // Use ref to get the current state in case of re-renders
+    const currentDraftAttachments = draftAttachmentsRef.current;
+    
     console.log('=== SAVE DRAFT ATTACHMENTS DEBUG ===');
     console.log('draftAttachments:', draftAttachments);
+    console.log('draftAttachmentsRef.current:', currentDraftAttachments);
     console.log('countPendingChanges():', countPendingChanges());
-    console.log('contactAttachments length:', draftAttachments.contactAttachments.length);
+    console.log('contactAttachments length:', currentDraftAttachments.contactAttachments.length);
     
-    if (countPendingChanges() === 0) {
+    if (currentDraftAttachments.contactAttachments.length === 0) {
       toast({
         title: "No changes to save",
         description: "There are no pending partner attachment changes.",
@@ -617,7 +627,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange, 
 
     try {
       // Convert draft attachments to the format expected by the API
-      const contactAttachments = draftAttachments.contactAttachments.map(draft => ({
+      const contactAttachments = currentDraftAttachments.contactAttachments.map(draft => ({
         contactId: draft.contactId,
         customerId: draft.customerId,
         partnerId: draft.partnerId,
@@ -4713,7 +4723,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             <Button
               onClick={handleNext}
               disabled={currentStep === totalSteps || !isStepAccessible(currentStep + 1)}
-              className="gap-2"
+              className="gap-2 bg-blue-600 hover:bg-blue-700 text-white"
             >
               Next
               <ArrowRight className="h-4 w-4" />
