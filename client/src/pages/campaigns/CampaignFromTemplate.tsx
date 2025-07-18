@@ -322,6 +322,7 @@ function AssignPartnersSection({ campaignData, onAssignComplete }: AssignPartner
 interface ContactPartnerAttachmentInterfaceProps {
   campaignData: any;
   onAttachmentsChange: (updatedRecipients: any[]) => void;
+  onSaveButtonsChange?: (saveFn: () => void, undoFn: () => void, pendingCount: number) => void;
 }
 
 function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }: ContactPartnerAttachmentInterfaceProps) {
@@ -853,61 +854,6 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
 
   return (
     <div className="space-y-6">
-      {/* Save/Undo Buttons - Top Right */}
-      <div className="flex justify-end">
-        <div className="flex gap-2">
-          {(() => {
-            const pendingCount = countPendingChanges();
-            
-            if (pendingCount === 0) {
-              return null;
-            }
-            
-            return (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    console.log('Undo all changes clicked');
-                    setDraftAttachments({ contactAttachments: [] });
-                    toast({
-                      title: "Changes undone",
-                      description: "All draft partner attachment changes have been undone."
-                    });
-                  }}
-                  className="gap-2"
-                >
-                  <Undo2 className="h-4 w-4" />
-                  Undo
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    console.log('Save all changes clicked');
-                    saveDraftAttachments();
-                  }}
-                  disabled={attachToPartnersMutation.isPending}
-                  className="gap-2 bg-[#16a34a] hover:bg-[#15803d] text-white"
-                >
-                  {attachToPartnersMutation.isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4" />
-                      Save {pendingCount} new relation{pendingCount === 1 ? '' : 's'}
-                    </>
-                  )}
-                </Button>
-              </>
-            );
-          })()}
-        </div>
-      </div>
-
       {/* Status Summary Cards */}
       <div className="grid grid-cols-3 gap-4 mb-6">
         <button
@@ -4562,15 +4508,46 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       <div className="w-full px-6 py-2">
         {/* Navigation */}
         <div className="flex justify-between items-center mb-2">
-          <Button
-            variant="outline"
-            onClick={handlePrevious}
-            disabled={currentStep === 1}
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Previous
-          </Button>
+          <div className="flex gap-3 items-center">
+            <Button
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={currentStep === 1}
+              className="gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Previous
+            </Button>
+            
+            {/* Step 7 - Save/Undo Buttons */}
+            {currentStep === 7 && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    console.log('Undo button clicked from navigation');
+                    // This will be handled by the interface component
+                  }}
+                  className="gap-2"
+                >
+                  <Undo2 className="h-4 w-4" />
+                  Undo
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    console.log('Save button clicked from navigation');
+                    // This will be handled by the interface component
+                  }}
+                  className="gap-2 bg-[#16a34a] hover:bg-[#15803d] text-white"
+                >
+                  <Save className="h-4 w-4" />
+                  Save 1 new relation
+                </Button>
+              </>
+            )}
+          </div>
           
           <div className="flex gap-3 items-center">
             {/* Send All Button - Show on Drafts step */}
