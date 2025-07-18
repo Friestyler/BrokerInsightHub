@@ -1298,71 +1298,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         </div>
       )}
 
-      {/* Save and Undo buttons - ALWAYS VISIBLE FOR DEBUGGING */}
-      {(() => {
-        const pendingCount = countPendingChanges();
-        console.log('🔥 BUTTON DEBUG - pendingCount:', pendingCount);
-        console.log('🔥 BUTTON DEBUG - draftAttachments:', draftAttachments);
-        console.log('🔥 BUTTON DEBUG - contactAttachments length:', draftAttachments.contactAttachments.length);
-        
-        // TEST: Add a fake draft attachment to trigger buttons
-        if (draftAttachments.contactAttachments.length === 0) {
-          console.log('🔥 FORCING DRAFT ATTACHMENT FOR TESTING');
-          draftAttachments.contactAttachments.push({
-            contactId: '104',
-            customerId: '52',
-            partnerId: 2,
-            partnerName: 'Test Partner'
-          });
-        }
-        
-        // FORCE SHOW BUTTONS FOR DEBUGGING
-        return (
-          <div className="mt-6 p-4 bg-red-100 border-2 border-red-500 rounded-lg">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 bg-red-500 rounded-full"></div>
-                <span className="text-sm text-red-700">
-                  DEBUG: pendingCount = {pendingCount}, contactAttachments = {draftAttachments.contactAttachments.length}
-                </span>
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    console.log('🔥 UNDO CLICKED');
-                    undoDraftChanges();
-                  }}
-                  className="text-gray-700 border-gray-300 hover:bg-gray-100"
-                >
-                  <Undo2 className="h-4 w-4 mr-2" />
-                  Undo all changes
-                </Button>
-                <Button
-                  onClick={() => {
-                    console.log('🔥 SAVE CLICKED');
-                    saveDraftAttachments();
-                  }}
-                  disabled={attachToPartnersMutation.isPending}
-                  className="bg-[#16a34a] hover:bg-[#15803d] text-white"
-                >
-                  {attachToPartnersMutation.isPending ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <Save className="h-4 w-4 mr-2" />
-                      Save all {pendingCount} new partner relation{pendingCount === 1 ? '' : 's'}
-                    </>
-                  )}
-                </Button>
-              </div>
-            </div>
-          </div>
-        );
-      })()}
+
 
       {/* Attach to Partners Modal */}
       <Dialog open={showAttachmentModal} onOpenChange={resetModalState}>
@@ -4567,30 +4503,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
 
 
-      {/* CRITICAL DEBUG: FORCED VISIBLE BUTTONS AT THE VERY TOP */}
-      <div className="w-full px-6 py-4 bg-red-600 text-white text-center font-bold">
-        🚨 EMERGENCY DEBUG: BUTTONS SHOULD BE VISIBLE HERE 🚨
-        <div className="flex gap-4 justify-center mt-2">
-          <button 
-            onClick={() => {
-              console.log('🔥 EMERGENCY SAVE CLICKED');
-              alert('EMERGENCY SAVE CLICKED');
-            }}
-            className="px-4 py-2 bg-white text-red-600 rounded font-bold hover:bg-gray-100"
-          >
-            🔥 EMERGENCY SAVE
-          </button>
-          <button 
-            onClick={() => {
-              console.log('🔥 EMERGENCY UNDO CLICKED');
-              alert('EMERGENCY UNDO CLICKED');
-            }}
-            className="px-4 py-2 bg-white text-red-600 rounded font-bold hover:bg-gray-100"
-          >
-            🔥 EMERGENCY UNDO
-          </button>
-        </div>
-      </div>
+
 
       {/* Content */}
       <div className="w-full px-6 py-2">
@@ -4643,6 +4556,55 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               </Button>
             )}
             
+            {/* Save/Undo Buttons - show on Step 7 when there are pending changes */}
+            {currentStep === 7 && (() => {
+              const pendingCount = draftAttachments.contactAttachments.length;
+              
+              if (pendingCount === 0) {
+                return null;
+              }
+              
+              return (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      console.log('Undo all changes clicked');
+                      setDraftAttachments({ contactAttachments: [] });
+                      toast({
+                        title: "Changes undone",
+                        description: "All draft partner attachment changes have been undone."
+                      });
+                    }}
+                    className="gap-2"
+                  >
+                    <Undo2 className="h-4 w-4" />
+                    Undo all changes
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      console.log('Save all changes clicked');
+                      attachToPartnersMutation.mutate(draftAttachments);
+                    }}
+                    disabled={attachToPartnersMutation.isPending}
+                    className="gap-2 bg-[#16a34a] hover:bg-[#15803d] text-white"
+                  >
+                    {attachToPartnersMutation.isPending ? (
+                      <>
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        Saving...
+                      </>
+                    ) : (
+                      <>
+                        <Save className="h-4 w-4" />
+                        Save all {pendingCount} new partner relation{pendingCount === 1 ? '' : 's'}
+                      </>
+                    )}
+                  </Button>
+                </div>
+              );
+            })()}
+
             {/* Assign to Partners Button - show on Step 8 */}
             {currentStep === 8 && (
               <Button 
