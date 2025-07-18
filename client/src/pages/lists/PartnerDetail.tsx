@@ -2108,160 +2108,186 @@ export default function PartnerDetail() {
             {/* Enhanced unified toolbar - same as OpportunitiesPage */}
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <div className="flex flex-col gap-4">
-                {/* Top row with saved lists and views */}
-                <div className="flex flex-wrap items-center justify-between">
-                  {/* Left side - Saved Lists with actions */}
-                  <div className="flex items-center gap-3">
-                    {/* Saved Lists section with collapsible header */}
-                    <div className="relative">
-                      <button 
-                        className="flex items-center space-x-2 px-3 py-2 text-sm font-medium text-gray-700 hover:text-gray-900"
-                        onClick={() => setShowListsDropdown(!showListsDropdown)}
+                {/* Enhanced Saved Lists Section */}
+                <div className="mb-6">
+                  {/* Header with chevron and view mode toggle */}
+                  <div className="flex items-center justify-between mb-4">
+                    <button 
+                      className="flex items-center space-x-2 text-lg font-semibold text-gray-900 hover:text-gray-700"
+                      onClick={() => setShowListsDropdown(!showListsDropdown)}
+                    >
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="16" 
+                        height="16" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        className={`transition-transform ${showListsDropdown ? 'rotate-90' : ''}`}
                       >
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          width="14" 
-                          height="14" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2" 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          className={`transition-transform ${showListsDropdown ? 'rotate-90' : ''}`}
+                        <polyline points="9 18 15 12 9 6" />
+                      </svg>
+                      <span>Saved Lists ({partnerRelevantLists.length})</span>
+                    </button>
+                    
+                    {/* View Mode Toggle - Icon-based */}
+                    {showListsDropdown && (
+                      <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                        <button
+                          className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                            viewMode === 'cards' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                          }`}
+                          onClick={() => setViewMode('cards')}
                         >
-                          <polyline points="9 18 15 12 9 6" />
-                        </svg>
-                        <span className="font-medium">
-                          Saved Lists ({partnerRelevantLists.length})
-                        </span>
-                      </button>
-                      
-                      {/* Collapsible Lists Content */}
-                      {showListsDropdown && (
-                        <div className="mt-2 space-y-2">
-                          {partnerRelevantLists.map((list: any) => (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                            <rect width="7" height="7" x="3" y="3" rx="1"/>
+                            <rect width="7" height="7" x="14" y="3" rx="1"/>
+                            <rect width="7" height="7" x="14" y="14" rx="1"/>
+                            <rect width="7" height="7" x="3" y="14" rx="1"/>
+                          </svg>
+                          Cards
+                        </button>
+                        <button
+                          className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                            viewMode === 'list' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                          }`}
+                          onClick={() => setViewMode('list')}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                            <line x1="8" y1="6" x2="21" y2="6"/>
+                            <line x1="8" y1="12" x2="21" y2="12"/>
+                            <line x1="8" y1="18" x2="21" y2="18"/>
+                            <line x1="3" y1="6" x2="3.01" y2="6"/>
+                            <line x1="3" y1="12" x2="3.01" y2="12"/>
+                            <line x1="3" y1="18" x2="3.01" y2="18"/>
+                          </svg>
+                          List
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Collapsible Lists Content */}
+                  {showListsDropdown && (
+                    <div className={viewMode === 'cards' ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4' : 'space-y-2'}>
+                      {partnerRelevantLists.map((list: any) => {
+                        const totalValue = Math.floor(Math.random() * 5000000);
+                        const growth = Math.floor(Math.random() * 30) - 5; // Can be negative
+                        const growthColor = growth >= 0 ? 'text-green-600' : 'text-red-600';
+                        const growthSign = growth >= 0 ? '+' : '';
+                        
+                        if (viewMode === 'cards') {
+                          return (
                             <div
                               key={list.id}
-                              className={`flex items-center justify-between px-3 py-3 text-sm rounded-lg border ${
-                                activeList?.id === list.id ? 'bg-[#E1E4FB] border-[#3E4DC4] text-[#3E4DC4]' : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+                              className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
+                                activeList?.id === list.id ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200 hover:border-gray-300'
                               }`}
+                              onClick={() => setActiveList(list)}
                             >
-                              <button
-                                className="flex-1 text-left"
-                                onClick={() => {
-                                  setActiveList(list);
-                                }}
-                              >
-                                <div className="flex flex-col space-y-1">
-                                  <div className="flex items-center space-x-2">
-                                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                                    <span className="font-medium">{list.name}</span>
-                                  </div>
-                                  <div className="flex items-center space-x-4 text-xs text-gray-500">
-                                    <span>Opportunities: {list.members?.length || 0}</span>
-                                    <span>Total Value: €{(Math.random() * 5000000).toLocaleString()}</span>
-                                    <span>Growth: +{Math.floor(Math.random() * 20)}%</span>
-                                  </div>
-                                  {list.is_shared && (
-                                    <div className="flex items-center space-x-1">
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
-                                        <circle cx="18" cy="5" r="3"></circle>
-                                        <circle cx="6" cy="12" r="3"></circle>
-                                        <circle cx="18" cy="19" r="3"></circle>
-                                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                                      </svg>
-                                      <span className="text-xs text-gray-500">Shared by {getEnvironmentBranding(environment.id).name}</span>
-                                    </div>
-                                  )}
+                              <div className="mb-3">
+                                <h3 className="font-medium text-gray-900 mb-1">{list.name}</h3>
+                                <p className="text-sm text-gray-500">{list.members?.length || 0} opportunities</p>
+                              </div>
+                              
+                              <div className="mb-3">
+                                <p className="text-lg font-semibold text-gray-900">€{totalValue.toLocaleString()}</p>
+                                <p className="text-xs text-gray-500 flex items-center mt-1">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12 6 12 12 16 14"/>
+                                  </svg>
+                                  Updated {Math.floor(Math.random() * 24)} hours ago
+                                </p>
+                              </div>
+                              
+                              <div className="flex items-center justify-between">
+                                <span className={`text-sm font-medium ${growthColor}`}>
+                                  {growthSign}{growth}%
+                                </span>
+                                <div className="flex items-center space-x-2">
+                                  <button className="p-1 hover:bg-gray-100 rounded">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                                      <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                      <circle cx="12" cy="12" r="3"/>
+                                    </svg>
+                                  </button>
+                                  <button className="p-1 hover:bg-gray-100 rounded">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                                      <circle cx="18" cy="5" r="3"/>
+                                      <circle cx="6" cy="12" r="3"/>
+                                      <circle cx="18" cy="19" r="3"/>
+                                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+                                    </svg>
+                                  </button>
                                 </div>
-                              </button>
+                              </div>
+                            </div>
+                          );
+                        } else {
+                          return (
+                            <div
+                              key={list.id}
+                              className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${
+                                activeList?.id === list.id ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200 hover:border-gray-300'
+                              }`}
+                              onClick={() => setActiveList(list)}
+                            >
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-3">
+                                  <h3 className="font-medium text-gray-900">{list.name}</h3>
+                                  <span className="text-sm text-gray-500">{list.members?.length || 0}</span>
+                                  <span className={`text-sm font-medium ${growthColor}`}>
+                                    {growthSign}{growth}%
+                                  </span>
+                                </div>
+                                <div className="flex items-center space-x-4 mt-1">
+                                  <span className="text-lg font-semibold text-gray-900">€{totalValue.toLocaleString()}</span>
+                                  <span className="text-xs text-gray-500 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                      <circle cx="12" cy="12" r="10"/>
+                                      <polyline points="12 6 12 12 16 14"/>
+                                    </svg>
+                                    {Math.floor(Math.random() * 24)} hours ago
+                                  </span>
+                                </div>
+                              </div>
                               
                               <div className="flex items-center space-x-2">
-                                <button className="p-1 hover:bg-gray-200 rounded">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                                    <circle cx="18" cy="5" r="3"></circle>
-                                    <circle cx="6" cy="12" r="3"></circle>
-                                    <circle cx="18" cy="19" r="3"></circle>
-                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                <button className="flex items-center px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                    <circle cx="12" cy="12" r="3"/>
                                   </svg>
+                                  View
                                 </button>
-                                <button className="p-1 hover:bg-gray-200 rounded">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                                    <circle cx="12" cy="12" r="1"></circle>
-                                    <circle cx="19" cy="12" r="1"></circle>
-                                    <circle cx="5" cy="12" r="1"></circle>
+                                <button className="flex items-center px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                    <circle cx="18" cy="5" r="3"/>
+                                    <circle cx="6" cy="12" r="3"/>
+                                    <circle cx="18" cy="19" r="3"/>
+                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
                                   </svg>
+                                  Share
                                 </button>
                               </div>
                             </div>
-                          ))}
-                        </div>
-                      )}
+                          );
+                        }
+                      })}
                     </div>
-                  </div>
-                  
-                  {/* Right-side action buttons */}
+                  )}
+                </div>
+                
+                {/* Action buttons section */}
+                <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {/* View Mode Toggle */}
-                    <div className="relative">
-                      <button 
-                        className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white hover:bg-gray-50"
-                        onClick={() => setShowViewModeDropdown(!showViewModeDropdown)}
-                      >
-                        <span className="text-gray-700">
-                          {viewMode === 'list' ? 'Lists' : 'Cards'}
-                        </span>
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          width="14" 
-                          height="14" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2" 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          className={`transition-transform ${showViewModeDropdown ? 'rotate-180' : ''}`}
-                        >
-                          <polyline points="6 9 12 15 18 9" />
-                        </svg>
-                      </button>
-                      
-                      {/* View Mode Dropdown */}
-                      {showViewModeDropdown && (
-                        <div className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                          <div className="p-1">
-                            <button
-                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-50 ${
-                                viewMode === 'list' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'
-                              }`}
-                              onClick={() => {
-                                setViewMode('list');
-                                setShowViewModeDropdown(false);
-                              }}
-                            >
-                              Lists
-                            </button>
-                            <button
-                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-50 ${
-                                viewMode === 'cards' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'
-                              }`}
-                              onClick={() => {
-                                setViewMode('cards');
-                                setShowViewModeDropdown(false);
-                              }}
-                            >
-                              Cards
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Show Share and Add to Campaign only for user-created lists */}
+                    {/* Standard action buttons */}
                     {activeList && (
                       <>
                         <Button 
@@ -2296,7 +2322,10 @@ export default function PartnerDetail() {
                         </Button>
                       </>
                     )}
-
+                  </div>
+                  
+                  {/* Edit list functionality */}
+                  <div className="flex items-center gap-2">
                     {/* Edit list button - only shown for non-default lists */}
                     {activeList && (
                       <>
@@ -2367,8 +2396,6 @@ export default function PartnerDetail() {
                         )}
                       </>
                     )}
-
-                    {/* Export and New buttons are now hidden from Partner Details page */}
                   </div>
                 </div>
 
