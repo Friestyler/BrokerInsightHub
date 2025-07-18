@@ -11389,29 +11389,26 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
   app.post('/api/:envId/campaigns/:campaignId/attachments', async (req, res) => {
     try {
       const { envId, campaignId } = req.params;
-      const { customerAttachments, contactAttachments, editMode } = req.body;
+      const { customerAttachments = [], contactAttachments = [], editMode } = req.body;
       
       console.log(`${editMode ? 'Editing' : 'Updating'} campaign ${campaignId} partner attachments in ${envId} environment`);
+      console.log('Customer attachments:', customerAttachments);
+      console.log('Contact attachments:', contactAttachments);
       
       if (envId === 'degoudse') {
         // Update customers with partner attachments
-        for (const customerAttachment of customerAttachments) {
+        for (const customerAttachment of customerAttachments || []) {
           const { customerId, partnerId, partnerName } = customerAttachment;
           
           try {
-            // Update customer partner assignment
-            await pool.query(`
-              UPDATE ${envId}.customers 
-              SET partner_id = $1, partner_name = $2, updated_at = NOW() 
-              WHERE id = $3
-            `, [partnerId, partnerName, customerId]);
-            
-            // Update or create partner-customer relationship
+            // Create or update partner-customer relationship
             await pool.query(`
               INSERT INTO ${envId}.partner_customers (partner_id, customer_id, created_at)
               VALUES ($1, $2, NOW())
               ON CONFLICT (partner_id, customer_id) DO NOTHING
             `, [partnerId, customerId]);
+            
+            console.log(`Updated customer ${customerId} with partner ${partnerId} (${partnerName})`);
             
           } catch (updateError) {
             console.error(`Error updating customer ${customerId} attachment:`, updateError);
@@ -11419,23 +11416,18 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         }
         
         // Update contacts with partner attachments
-        for (const contactAttachment of contactAttachments) {
+        for (const contactAttachment of contactAttachments || []) {
           const { contactId, customerId, partnerId, partnerName } = contactAttachment;
           
           try {
-            // Update contact partner assignment
+            // Create or update partner-customer relationship
             await pool.query(`
-              UPDATE ${envId}.contacts 
-              SET partner_id = $1, partner_name = $2, updated_at = NOW() 
-              WHERE id = $3
-            `, [partnerId, partnerName, contactId]);
+              INSERT INTO ${envId}.partner_customers (partner_id, customer_id, created_at)
+              VALUES ($1, $2, NOW())
+              ON CONFLICT (partner_id, customer_id) DO NOTHING
+            `, [partnerId, customerId]);
             
-            // Also update the associated customer
-            await pool.query(`
-              UPDATE ${envId}.customers 
-              SET partner_id = $1, partner_name = $2, updated_at = NOW() 
-              WHERE id = $3
-            `, [partnerId, partnerName, customerId]);
+            console.log(`Updated contact ${contactId} (customer ${customerId}) with partner ${partnerId} (${partnerName})`);
             
           } catch (updateError) {
             console.error(`Error updating contact ${contactId} attachment:`, updateError);
