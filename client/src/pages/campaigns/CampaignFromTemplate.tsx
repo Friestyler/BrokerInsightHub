@@ -461,10 +461,14 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
 
   // Handle select all customers and contacts
   const handleSelectAll = () => {
-    // Select all customer checkboxes
+    // Select all customer checkboxes AND all their contacts
     const allCustomerIds = customerGroups.map(group => (group.databaseId || group.id).toString());
-    console.log('Select All clicked - selecting customers:', allCustomerIds);
-    setSelectedContacts(allCustomerIds);
+    const allContactIds = customerGroups.flatMap(group => 
+      group.contacts.map(contact => (contact.databaseId || contact.id).toString())
+    );
+    const allIds = [...allCustomerIds, ...allContactIds];
+    console.log('Select All clicked - selecting customers:', allCustomerIds, 'and contacts:', allContactIds);
+    setSelectedContacts(allIds);
   };
 
   // Handle clear selection
@@ -812,8 +816,22 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         <div className="flex items-center gap-2">
           <Checkbox
             id="select-all"
-            checked={selectedContacts.length === customerGroups.length}
-            onCheckedChange={selectedContacts.length === customerGroups.length ? handleClearSelection : handleSelectAll}
+            checked={(() => {
+              const allCustomerIds = customerGroups.map(group => (group.databaseId || group.id).toString());
+              const allContactIds = customerGroups.flatMap(group => 
+                group.contacts.map(contact => (contact.databaseId || contact.id).toString())
+              );
+              const allIds = [...allCustomerIds, ...allContactIds];
+              return allIds.length > 0 && allIds.every(id => selectedContacts.includes(id));
+            })()}
+            onCheckedChange={(() => {
+              const allCustomerIds = customerGroups.map(group => (group.databaseId || group.id).toString());
+              const allContactIds = customerGroups.flatMap(group => 
+                group.contacts.map(contact => (contact.databaseId || contact.id).toString())
+              );
+              const allIds = [...allCustomerIds, ...allContactIds];
+              return allIds.length > 0 && allIds.every(id => selectedContacts.includes(id)) ? handleClearSelection : handleSelectAll;
+            })()}
           />
           <label htmlFor="select-all" className="text-sm font-medium text-gray-700">
             Select All ({customerGroups.length})
@@ -870,10 +888,18 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                     checked={selectedContacts.includes((customer.databaseId || customer.id).toString())}
                     onCheckedChange={(checked) => {
                       const customerId = (customer.databaseId || customer.id).toString();
+                      const customerContactIds = customer.contacts.map(contact => 
+                        (contact.databaseId || contact.id).toString()
+                      );
+                      
                       if (checked) {
-                        setSelectedContacts([...selectedContacts, customerId]);
+                        // Select customer and all its contacts
+                        setSelectedContacts([...selectedContacts, customerId, ...customerContactIds]);
                       } else {
-                        setSelectedContacts(selectedContacts.filter(id => id !== customerId));
+                        // Deselect customer and all its contacts
+                        setSelectedContacts(selectedContacts.filter(id => 
+                          id !== customerId && !customerContactIds.includes(id)
+                        ));
                       }
                     }}
                   />
@@ -942,10 +968,30 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                           checked={selectedContacts.includes((contact.databaseId || contact.id).toString())}
                           onCheckedChange={(checked) => {
                             const contactId = (contact.databaseId || contact.id).toString();
+                            const customerId = (customer.databaseId || customer.id).toString();
+                            
                             if (checked) {
+                              // Select this contact
                               setSelectedContacts([...selectedContacts, contactId]);
                             } else {
-                              setSelectedContacts(selectedContacts.filter(id => id !== contactId));
+                              // Deselect this contact
+                              setSelectedContacts(prev => {
+                                const newSelection = prev.filter(id => id !== contactId);
+                                
+                                // Also deselect customer if no contacts are selected
+                                const customerContactIds = customer.contacts.map(c => 
+                                  (c.databaseId || c.id).toString()
+                                );
+                                const hasSelectedContacts = customerContactIds.some(id => 
+                                  newSelection.includes(id)
+                                );
+                                
+                                if (!hasSelectedContacts) {
+                                  return newSelection.filter(id => id !== customerId);
+                                }
+                                
+                                return newSelection;
+                              });
                             }
                           }}
                         />
