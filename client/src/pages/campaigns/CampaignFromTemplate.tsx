@@ -2011,11 +2011,17 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     return () => window.removeEventListener('step7CountUpdate', handleStep7CountUpdate as EventListener);
   }, []);
 
-  // Clear Step 7 state when entering Step 8
+  // Clear Step 7 state when entering Step 8 - FORCE CLEAR
   useEffect(() => {
     if (currentStep === 8) {
+      console.log('=== FORCING STEP 7 STATE CLEAR ON STEP 8 ===');
       setStep7PendingCount(0);
       setStep7HasPendingChanges(false);
+      // Double clear to ensure state is reset
+      setTimeout(() => {
+        setStep7PendingCount(0);
+        setStep7HasPendingChanges(false);
+      }, 0);
     }
   }, [currentStep]);
 
@@ -4876,8 +4882,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
           </div>
           
           <div className="flex gap-3 items-center">
-            {/* Save Changes Button - Show only for editing campaigns with unsaved changes, excluding step 7 */}
-            {isEditingCampaign && hasUnsavedChanges && changeCount > 0 && currentStep !== 7 && (
+            {/* Save Changes Button - Show only for editing campaigns with unsaved changes, excluding step 7 and step 8 */}
+            {isEditingCampaign && hasUnsavedChanges && changeCount > 0 && currentStep !== 7 && currentStep !== 8 && (
               <>
                 <Button
                   variant="outline"
@@ -4969,8 +4975,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               </Button>
             )}
             
-            {/* Step 7 - Save/Undo Buttons - Show ONLY on Step 7, NEVER on Step 8 */}
-            {currentStep === 7 && step7HasPendingChanges && (
+            {/* Step 7 - Save/Undo Buttons - EXPLICITLY BLOCKED ON STEP 8 */}
+            {currentStep !== 8 && currentStep === 7 && step7HasPendingChanges && (
               <>
                 <Button
                   variant="outline"
