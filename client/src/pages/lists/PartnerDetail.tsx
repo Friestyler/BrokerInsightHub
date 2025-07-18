@@ -1642,14 +1642,12 @@ export default function PartnerDetail() {
         )}
 
         {activeTab === "opportunities" && (
-          <div className="space-y-2">
+          <div className="space-y-4">
+
             {/* Top Views and Filters Section */}
-            <div className="bg-white p-2 rounded-lg shadow-sm">
-              <div className="flex items-center justify-between">
-                <div className="flex-grow">
-                  {/* Empty space for content alignment */}
-                </div>
-                <div className="flex items-center gap-2">
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-3 flex-grow">
                   {/* Saved Views Dropdown */}
                   <div className="relative">
                     <button 
@@ -1741,8 +1739,9 @@ export default function PartnerDetail() {
                   </div>
                   
                   {/* Unified Filter Button */}
-                  <div className="relative" ref={unifiedFilterDropdownRef}>
-                    <button 
+                  <div className="flex items-center gap-2 ml-3">
+                    <div className="relative" ref={unifiedFilterDropdownRef}>
+                      <button 
                         className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
                           selectedStatus || selectedCustomer || selectedInsuranceDescription
                             ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
@@ -1940,12 +1939,12 @@ export default function PartnerDetail() {
             </div>
 
             {/* Enhanced unified toolbar - same as OpportunitiesPage */}
-            <div className="bg-white p-2 rounded-lg shadow-sm">
-              <div className="flex flex-col gap-2">
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <div className="flex flex-col gap-4">
                 {/* Enhanced Saved Lists Section */}
-                <div className="mb-2">
+                <div className="mb-6">
                   {/* Header with chevron and view mode toggle */}
-                  <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center justify-between mb-4">
                     <button 
                       className="flex items-center space-x-2 text-lg font-semibold text-gray-900 hover:text-gray-700"
                       onClick={() => setShowListsDropdown(!showListsDropdown)}
@@ -2512,7 +2511,6 @@ export default function PartnerDetail() {
               </Table>
             </div>
           </div>
-        </div>
         )}
 
         {activeTab === "customers" && (
