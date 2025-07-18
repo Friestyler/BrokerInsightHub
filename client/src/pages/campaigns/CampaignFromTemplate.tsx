@@ -353,6 +353,13 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange, 
   }>({
     contactAttachments: []
   });
+
+  // Debug: Log when draftAttachments changes
+  useEffect(() => {
+    console.log('=== DRAFT ATTACHMENTS STATE CHANGE ===');
+    console.log('Current draftAttachments:', draftAttachments);
+    console.log('Contact attachments count:', draftAttachments.contactAttachments.length);
+  }, [draftAttachments]);
   
   const { toast } = useToast();
   
@@ -4702,6 +4709,15 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               </Button>
             )}
             
+            {/* Next Button */}
+            <Button
+              onClick={handleNext}
+              disabled={currentStep === totalSteps || !isStepAccessible(currentStep + 1)}
+              className="gap-2"
+            >
+              Next
+              <ArrowRight className="h-4 w-4" />
+            </Button>
 
           </div>
         </div>
