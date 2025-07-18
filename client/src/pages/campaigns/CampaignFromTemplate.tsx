@@ -4545,16 +4545,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               );
             })()}
             
-            {/* Save Campaign Button - show when campaign not saved yet */}
-            {!campaignData.id && isStepCompleted(1) && isStepCompleted(2) && isStepCompleted(3) && isStepCompleted(4) && isStepCompleted(5) && (
-              <Button
-                onClick={handleSave}
-                disabled={createCampaignMutation.isPending || updateCampaignMutation.isPending}
-                className="gap-2"
-              >
-                {createCampaignMutation.isPending ? 'Saving...' : 'Save'}
-              </Button>
-            )}
+
             
 
 
@@ -4598,30 +4589,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               </Button>
             )}
             
-            {currentStep < totalSteps ? (
-              <Button
-                onClick={handleNext}
-                disabled={!isStepAccessible(currentStep + 1)}
-                className="gap-2"
-              >
-                Next
-                <ArrowRight className="h-4 w-4" />
-              </Button>
-            ) : (
-              // For step 7 & 8, don't show any save/update button
-              currentStep === 7 || currentStep === 8 ? null : (
-                <Button
-                  onClick={handleSave}
-                  disabled={!canSave() || createCampaignMutation.isPending || updateCampaignMutation.isPending}
-                  className="gap-2"
-                >
-                  {isEditingCampaign 
-                    ? (updateCampaignMutation.isPending ? 'Updating...' : 'Update Campaign')
-                    : (createCampaignMutation.isPending ? 'Creating...' : 'Create Campaign')
-                  }
-                </Button>
-              )
-            )}
+
           </div>
         </div>
 
