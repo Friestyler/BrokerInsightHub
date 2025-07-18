@@ -1900,6 +1900,19 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const isNewCampaign = !templateId && !campaignId;
   const isFromTemplate = !!templateId && !campaignId;
   
+  // Handle undo changes functionality
+  const handleUndoChanges = () => {
+    if (originalCampaignData) {
+      setCampaignData(originalCampaignData);
+      setHasUnsavedChanges(false);
+      setChangeCount(0);
+      toast({
+        title: "Changes undone",
+        description: "All changes have been reverted to the original state."
+      });
+    }
+  };
+  
   const [campaignData, setCampaignData] = useState({
     id: undefined, // Add id field to track if campaign is already saved
     name: '',
@@ -4876,16 +4889,27 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
           <div className="flex gap-3 items-center">
             {/* Save Changes Button - Show only for editing campaigns with unsaved changes, excluding step 7 */}
             {isEditingCampaign && hasUnsavedChanges && changeCount > 0 && currentStep !== 7 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleSave}
-                disabled={updateCampaignMutation.isPending}
-                className="gap-2 border-[#5567E5] text-[#5567E5] hover:bg-[#F5F6FE]"
-              >
-                <Save className="h-4 w-4" />
-                {updateCampaignMutation.isPending ? 'Saving...' : `Save ${changeCount} change${changeCount !== 1 ? 's' : ''}`}
-              </Button>
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleUndoChanges}
+                  className="gap-2 border-gray-300 text-gray-600 hover:bg-gray-50"
+                >
+                  <Undo2 className="h-4 w-4" />
+                  Undo changes
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSave}
+                  disabled={updateCampaignMutation.isPending}
+                  className="gap-2 border-[#5567E5] text-[#5567E5] hover:bg-[#F5F6FE]"
+                >
+                  <Save className="h-4 w-4" />
+                  {updateCampaignMutation.isPending ? 'Saving...' : `Save ${changeCount} change${changeCount !== 1 ? 's' : ''}`}
+                </Button>
+              </>
             )}
             {/* Send All Button - Show on Drafts step */}
             {currentStep === 6 && (() => {
