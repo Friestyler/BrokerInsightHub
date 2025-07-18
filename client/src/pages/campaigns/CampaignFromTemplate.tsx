@@ -4548,33 +4548,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
         </div>
       </div>
 
-      {/* FORCED DEBUG BUTTONS AT TOP */}
-      {(() => {
-        const pendingCount = countPendingChanges();
-        return (
-          <div className="w-full px-6 py-2 bg-red-500 text-white font-bold text-center">
-            🔥 DEBUG: pendingCount = {pendingCount}, contactAttachments = {draftAttachments.contactAttachments.length}
-            <div className="flex gap-2 justify-center mt-2">
-              <Button
-                variant="outline"
-                onClick={undoDraftChanges}
-                className="text-red-700 border-red-300 hover:bg-red-100"
-              >
-                <Undo2 className="h-4 w-4 mr-2" />
-                DEBUG UNDO
-              </Button>
-              <Button
-                onClick={saveDraftAttachments}
-                disabled={attachToPartnersMutation.isPending}
-                className="bg-green-600 hover:bg-green-700 text-white"
-              >
-                <Save className="h-4 w-4 mr-2" />
-                DEBUG SAVE
-              </Button>
-            </div>
-          </div>
-        );
-      })()}
+
 
       {/* Content */}
       <div className="w-full px-6 py-2">
