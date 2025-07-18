@@ -594,6 +594,11 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange, 
 
   // Save draft attachments to database
   const saveDraftAttachments = async () => {
+    console.log('=== SAVE DRAFT ATTACHMENTS DEBUG ===');
+    console.log('draftAttachments:', draftAttachments);
+    console.log('countPendingChanges():', countPendingChanges());
+    console.log('contactAttachments length:', draftAttachments.contactAttachments.length);
+    
     if (countPendingChanges() === 0) {
       toast({
         title: "No changes to save",
@@ -1955,6 +1960,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   useEffect(() => {
     const handleStep7CountUpdate = (event: CustomEvent) => {
       const { pendingCount, hasPendingChanges } = event.detail;
+      console.log('=== PARENT COUNT UPDATE ===');
+      console.log('Received count update:', { pendingCount, hasPendingChanges });
       setStep7PendingCount(pendingCount);
       setStep7HasPendingChanges(hasPendingChanges);
     };
