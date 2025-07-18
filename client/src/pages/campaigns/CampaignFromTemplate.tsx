@@ -1305,6 +1305,17 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         console.log('🔥 BUTTON DEBUG - draftAttachments:', draftAttachments);
         console.log('🔥 BUTTON DEBUG - contactAttachments length:', draftAttachments.contactAttachments.length);
         
+        // TEST: Add a fake draft attachment to trigger buttons
+        if (draftAttachments.contactAttachments.length === 0) {
+          console.log('🔥 FORCING DRAFT ATTACHMENT FOR TESTING');
+          draftAttachments.contactAttachments.push({
+            contactId: '104',
+            customerId: '52',
+            partnerId: 2,
+            partnerName: 'Test Partner'
+          });
+        }
+        
         // FORCE SHOW BUTTONS FOR DEBUGGING
         return (
           <div className="mt-6 p-4 bg-red-100 border-2 border-red-500 rounded-lg">
@@ -1318,14 +1329,20 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
               <div className="flex gap-2">
                 <Button
                   variant="outline"
-                  onClick={undoDraftChanges}
+                  onClick={() => {
+                    console.log('🔥 UNDO CLICKED');
+                    undoDraftChanges();
+                  }}
                   className="text-gray-700 border-gray-300 hover:bg-gray-100"
                 >
                   <Undo2 className="h-4 w-4 mr-2" />
                   Undo all changes
                 </Button>
                 <Button
-                  onClick={saveDraftAttachments}
+                  onClick={() => {
+                    console.log('🔥 SAVE CLICKED');
+                    saveDraftAttachments();
+                  }}
                   disabled={attachToPartnersMutation.isPending}
                   className="bg-[#16a34a] hover:bg-[#15803d] text-white"
                 >
@@ -4549,6 +4566,31 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       </div>
 
 
+
+      {/* CRITICAL DEBUG: FORCED VISIBLE BUTTONS AT THE VERY TOP */}
+      <div className="w-full px-6 py-4 bg-red-600 text-white text-center font-bold">
+        🚨 EMERGENCY DEBUG: BUTTONS SHOULD BE VISIBLE HERE 🚨
+        <div className="flex gap-4 justify-center mt-2">
+          <button 
+            onClick={() => {
+              console.log('🔥 EMERGENCY SAVE CLICKED');
+              alert('EMERGENCY SAVE CLICKED');
+            }}
+            className="px-4 py-2 bg-white text-red-600 rounded font-bold hover:bg-gray-100"
+          >
+            🔥 EMERGENCY SAVE
+          </button>
+          <button 
+            onClick={() => {
+              console.log('🔥 EMERGENCY UNDO CLICKED');
+              alert('EMERGENCY UNDO CLICKED');
+            }}
+            className="px-4 py-2 bg-white text-red-600 rounded font-bold hover:bg-gray-100"
+          >
+            🔥 EMERGENCY UNDO
+          </button>
+        </div>
+      </div>
 
       {/* Content */}
       <div className="w-full px-6 py-2">
