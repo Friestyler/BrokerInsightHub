@@ -125,6 +125,7 @@ export default function PartnerDetail() {
   const [selectedCustomer, setSelectedCustomer] = useState("");
   const [selectedInsuranceDescription, setSelectedInsuranceDescription] = useState("");
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [showUnifiedFilterDropdown, setShowUnifiedFilterDropdown] = useState(false);
   const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [showInsuranceDescDropdown, setShowInsuranceDescDropdown] = useState(false);
   const [activeList, setActiveList] = useState<any>(null);
@@ -245,6 +246,7 @@ export default function PartnerDetail() {
   const statusDropdownRef = useRef<HTMLDivElement>(null);
   const customerDropdownRef = useRef<HTMLDivElement>(null);
   const insuranceDescDropdownRef = useRef<HTMLDivElement>(null);
+  const unifiedFilterDropdownRef = useRef<HTMLDivElement>(null);
   const listsDropdownRef = useRef<HTMLDivElement>(null);
   const viewsDropdownRef = useRef<HTMLDivElement>(null);
   const viewsButtonRef = useRef<HTMLButtonElement>(null);
@@ -873,6 +875,9 @@ export default function PartnerDetail() {
       }
       if (viewsDropdownRef.current && !viewsDropdownRef.current.contains(event.target as Node)) {
         setShowViewsDropdown(false);
+      }
+      if (unifiedFilterDropdownRef.current && !unifiedFilterDropdownRef.current.contains(event.target as Node)) {
+        setShowUnifiedFilterDropdown(false);
       }
     }
 
@@ -1733,219 +1738,181 @@ export default function PartnerDetail() {
                     )}
                   </div>
                   
-                  {/* Filter buttons next to the views dropdown */}
+                  {/* Unified Filter Button */}
                   <div className="flex items-center gap-2 ml-3">
-                    {/* Stage Filter Dropdown */}
-                    <div className="relative" ref={statusDropdownRef}>
+                    <div className="relative" ref={unifiedFilterDropdownRef}>
                       <button 
                         className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
-                          selectedStatus 
+                          selectedStatus || selectedCustomer || selectedInsuranceDescription
                             ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
                             : 'border-gray-300 text-gray-700 hover:border-gray-400'
                         }`}
-                        onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                        onClick={() => setShowUnifiedFilterDropdown(!showUnifiedFilterDropdown)}
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                           <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                         </svg>
-                        <span>{selectedStatus ? `Stage: ${selectedStatus}` : 'Stage'}</span>
-                        {selectedStatus && (
-                          <svg 
-                            xmlns="http://www.w3.org/2000/svg" 
-                            width="14" 
-                            height="14" 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            strokeWidth="2" 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            className="ml-2 hover:bg-indigo-100 rounded-full p-0.5 cursor-pointer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedStatus("");
-                            }}
-                          >
-                            <path d="M18 6L6 18"></path>
-                            <path d="M6 6l12 12"></path>
-                          </svg>
-                        )}
+                        <span>Filter</span>
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          width="14" 
+                          height="14" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          className={`ml-2 transition-transform ${showUnifiedFilterDropdown ? 'rotate-180' : ''}`}
+                        >
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
                       </button>
                       
-                      {showStatusDropdown && (
-                        <div className="absolute z-50 mt-1 w-48 rounded-md border border-gray-200 bg-white shadow-lg">
-                          <div className="p-1">
-                            {selectedStatus && (
+                      {showUnifiedFilterDropdown && (
+                        <div className="absolute z-50 mt-1 w-[800px] rounded-md border border-gray-200 bg-white shadow-lg">
+                          <div className="p-4">
+                            <div className="space-y-4">
+                              {/* Stage Filter Row */}
+                              <div className="flex items-center gap-4">
+                                <div className="w-16 text-sm text-gray-700">Where</div>
+                                <div className="flex-1 grid grid-cols-3 gap-4">
+                                  <div>
+                                    <select 
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                      value="Stage"
+                                      disabled
+                                    >
+                                      <option>Stage</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <select 
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                      value="equals"
+                                      disabled
+                                    >
+                                      <option>equals</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <select 
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                      value={selectedStatus}
+                                      onChange={(e) => setSelectedStatus(e.target.value)}
+                                    >
+                                      <option value="">All</option>
+                                      {uniqueStatuses.map((status) => (
+                                        <option key={status} value={status}>{status}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Customer Filter Row */}
+                              <div className="flex items-center gap-4">
+                                <div className="w-16 text-sm text-gray-700">And</div>
+                                <div className="flex-1 grid grid-cols-3 gap-4">
+                                  <div>
+                                    <select 
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                      value="Customer"
+                                      disabled
+                                    >
+                                      <option>Customer</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <select 
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                      value="equals"
+                                      disabled
+                                    >
+                                      <option>equals</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <select 
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                      value={selectedCustomer}
+                                      onChange={(e) => setSelectedCustomer(e.target.value)}
+                                    >
+                                      <option value="">All</option>
+                                      {uniqueCustomers.map((customer) => (
+                                        <option key={customer} value={customer}>{customer}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Insurance Description Filter Row */}
+                              <div className="flex items-center gap-4">
+                                <div className="w-16 text-sm text-gray-700">And</div>
+                                <div className="flex-1 grid grid-cols-3 gap-4">
+                                  <div>
+                                    <select 
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                      value="Insurance"
+                                      disabled
+                                    >
+                                      <option>Insurance</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <select 
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                      value="equals"
+                                      disabled
+                                    >
+                                      <option>equals</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <select 
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                      value={selectedInsuranceDescription}
+                                      onChange={(e) => setSelectedInsuranceDescription(e.target.value)}
+                                    >
+                                      <option value="">All</option>
+                                      {uniqueInsuranceDescriptions.map((description: string) => (
+                                        <option key={description} value={description}>{description}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Action Buttons */}
+                            <div className="flex items-center justify-between mt-4 pt-4 border-t">
                               <button
-                                className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-md"
+                                className="flex items-center text-sm text-red-600 hover:text-red-700"
                                 onClick={() => {
                                   setSelectedStatus("");
-                                  setShowStatusDropdown(false);
-                                }}
-                              >
-                                Clear filter
-                              </button>
-                            )}
-                            {uniqueStatuses.map((status) => (
-                              <button
-                                key={status}
-                                className={`w-full text-left px-3 py-2 text-sm rounded-md ${
-                                  selectedStatus === status 
-                                    ? 'bg-indigo-50 text-indigo-700' 
-                                    : 'text-gray-700 hover:bg-gray-50'
-                                }`}
-                                onClick={() => {
-                                  setSelectedStatus(status);
-                                  setShowStatusDropdown(false);
-                                }}
-                              >
-                                {status}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Customer Filter Dropdown */}
-                    <div className="relative" ref={customerDropdownRef}>
-                      <button 
-                        className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
-                          selectedCustomer 
-                            ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
-                            : 'border-gray-300 text-gray-700 hover:border-gray-400'
-                        }`}
-                        onClick={() => setShowCustomerDropdown(!showCustomerDropdown)}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                        </svg>
-                        <span>{selectedCustomer ? `Customer: ${selectedCustomer}` : 'Customer'}</span>
-                        {selectedCustomer && (
-                          <svg 
-                            xmlns="http://www.w3.org/2000/svg" 
-                            width="14" 
-                            height="14" 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            strokeWidth="2" 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            className="ml-2 hover:bg-indigo-100 rounded-full p-0.5 cursor-pointer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedCustomer("");
-                            }}
-                          >
-                            <path d="M18 6L6 18"></path>
-                            <path d="M6 6l12 12"></path>
-                          </svg>
-                        )}
-                      </button>
-                      
-                      {showCustomerDropdown && (
-                        <div className="absolute z-50 mt-1 w-48 rounded-md border border-gray-200 bg-white shadow-lg">
-                          <div className="p-1">
-                            {selectedCustomer && (
-                              <button
-                                className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-md"
-                                onClick={() => {
                                   setSelectedCustomer("");
-                                  setShowCustomerDropdown(false);
-                                }}
-                              >
-                                Clear filter
-                              </button>
-                            )}
-                            {uniqueCustomers.map((customer) => (
-                              <button
-                                key={customer}
-                                className={`w-full text-left px-3 py-2 text-sm rounded-md ${
-                                  selectedCustomer === customer 
-                                    ? 'bg-indigo-50 text-indigo-700' 
-                                    : 'text-gray-700 hover:bg-gray-50'
-                                }`}
-                                onClick={() => {
-                                  setSelectedCustomer(customer);
-                                  setShowCustomerDropdown(false);
-                                }}
-                              >
-                                {customer}
-                              </button>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Insurance Description Filter Dropdown */}
-                    <div className="relative" ref={insuranceDescDropdownRef}>
-                      <button 
-                        className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
-                          selectedInsuranceDescription 
-                            ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
-                            : 'border-gray-300 text-gray-700 hover:border-gray-400'
-                        }`}
-                        onClick={() => setShowInsuranceDescDropdown(!showInsuranceDescDropdown)}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                        </svg>
-                        <span>{selectedInsuranceDescription ? `Insurance: ${selectedInsuranceDescription.substring(0, 20)}...` : 'Insurance Description'}</span>
-                        {selectedInsuranceDescription && (
-                          <svg 
-                            xmlns="http://www.w3.org/2000/svg" 
-                            width="14" 
-                            height="14" 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            strokeWidth="2" 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            className="ml-2 hover:bg-indigo-100 rounded-full p-0.5 cursor-pointer"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              setSelectedInsuranceDescription("");
-                            }}
-                          >
-                            <path d="M18 6L6 18"></path>
-                            <path d="M6 6l12 12"></path>
-                          </svg>
-                        )}
-                      </button>
-                      
-                      {showInsuranceDescDropdown && (
-                        <div className="absolute z-50 mt-1 w-64 rounded-md border border-gray-200 bg-white shadow-lg">
-                          <div className="p-1">
-                            {selectedInsuranceDescription && (
-                              <button
-                                className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-md"
-                                onClick={() => {
                                   setSelectedInsuranceDescription("");
-                                  setShowInsuranceDescDropdown(false);
                                 }}
                               >
-                                Clear filter
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                  <path d="M18 6L6 18"></path>
+                                  <path d="M6 6l12 12"></path>
+                                </svg>
+                                Clear
                               </button>
-                            )}
-                            {uniqueInsuranceDescriptions.map((description: string) => (
                               <button
-                                key={description}
-                                className={`w-full text-left px-3 py-2 text-sm rounded-md ${
-                                  selectedInsuranceDescription === description 
-                                    ? 'bg-indigo-50 text-indigo-700' 
-                                    : 'text-gray-700 hover:bg-gray-50'
-                                }`}
+                                className="flex items-center text-sm text-green-600 hover:text-green-700"
                                 onClick={() => {
-                                  setSelectedInsuranceDescription(description);
-                                  setShowInsuranceDescDropdown(false);
+                                  setShowUnifiedFilterDropdown(false);
                                 }}
                               >
-                                {description}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                  <path d="M12 5v14M5 12h14"></path>
+                                </svg>
+                                Add filter
                               </button>
-                            ))}
+                            </div>
                           </div>
                         </div>
                       )}
