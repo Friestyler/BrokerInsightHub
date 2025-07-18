@@ -492,11 +492,17 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
 
   // Apply draft attachment to a contact only
   const applyDraftAttachment = (customerId: string, contactId: string, partnerId: number, partnerName: string) => {
+    console.log('=== APPLY DRAFT ATTACHMENT ===');
+    console.log('Input:', { customerId, contactId, partnerId, partnerName });
+    
     const customer = customerGroups.find(g => 
       g.id.toString() === customerId || g.databaseId?.toString() === customerId
     );
     
-    if (!customer) return;
+    if (!customer) {
+      console.log('Customer not found:', customerId);
+      return;
+    }
 
     // Only handle contact attachments
     const contact = customer.contacts.find(c => 
@@ -504,20 +510,27 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
     );
     
     if (contact) {
-      setDraftAttachments(prev => ({
-        ...prev,
-        contactAttachments: [
-          ...prev.contactAttachments.filter(ca => ca.contactId !== contactId),
-          {
-            contactId,
-            customerId,
-            partnerId,
-            partnerName,
-            originalPartnerId: contact.attachedPartnerId,
-            originalPartnerName: contact.attachedPartner
-          }
-        ]
-      }));
+      console.log('Found contact:', contact);
+      setDraftAttachments(prev => {
+        const newState = {
+          ...prev,
+          contactAttachments: [
+            ...prev.contactAttachments.filter(ca => ca.contactId !== contactId),
+            {
+              contactId,
+              customerId,
+              partnerId,
+              partnerName,
+              originalPartnerId: contact.attachedPartnerId,
+              originalPartnerName: contact.attachedPartner
+            }
+          ]
+        };
+        console.log('New draft state:', newState);
+        return newState;
+      });
+    } else {
+      console.log('Contact not found:', contactId);
     }
   };
 
@@ -659,22 +672,8 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
     }
   };
 
-  // Handle edit attachment
-  const handleEditAttachment = (customerId: string, contactId?: string, currentPartnerId?: number, currentPartnerName?: string) => {
-    setEditingAttachment({
-      customerId,
-      contactId,
-      currentPartnerId,
-      currentPartnerName,
-      type: contactId ? 'contact' : 'customer'
-    });
-    setSelectedPartnersForAttachment(currentPartnerId ? [currentPartnerId] : []);
-    setShowAttachmentModal(true);
-  };
-
   // Reset modal state
   const resetModalState = () => {
-    setEditingAttachment(null);
     setSelectedPartnersForAttachment([]);
     setSelectedPartnerLists([]);
     setPartnerSelectionTab('individual');
@@ -1259,11 +1258,17 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
       {/* Save and Undo buttons - only show when there are pending changes */}
       {(() => {
         const pendingCount = countPendingChanges();
+        console.log('=== SAVE/UNDO BUTTONS DEBUG ===');
+        console.log('draftAttachments:', draftAttachments);
+        console.log('pendingCount:', pendingCount);
+        console.log('contactAttachments length:', draftAttachments.contactAttachments.length);
         
         if (pendingCount === 0) {
+          console.log('No pending changes, buttons hidden');
           return null;
         }
         
+        console.log('Showing buttons with pendingCount:', pendingCount);
         return (
           <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-center justify-between">
@@ -1615,7 +1620,25 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                 const uniquePartnerIds = new Set([...individualPartnerIds, ...listPartnerIds]);
                 const actualTotalPartners = uniquePartnerIds.size;
                 
-                return actualTotalPartners > 1 ? (
+                // Also check if the selected contacts are already attached to different partners
+                const selectedContactsCurrentPartners = new Set();
+                selectedContacts.forEach(contactId => {
+                  for (const customerGroup of customerGroups) {
+                    const contact = customerGroup.contacts.find(c => 
+                      c.databaseId?.toString() === contactId.toString() || 
+                      c.id?.toString() === contactId.toString()
+                    );
+                    if (contact && contact.attachedPartnerId) {
+                      selectedContactsCurrentPartners.add(contact.attachedPartnerId);
+                    }
+                  }
+                });
+                
+                // Show warning if we're assigning to multiple partners OR if selected contacts have different current partners
+                const shouldShowMultiPartnerWarning = actualTotalPartners > 1 || 
+                  (selectedContactsCurrentPartners.size > 1 && actualTotalPartners === 0);
+                
+                return shouldShowMultiPartnerWarning ? (
                   <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <div className="flex items-start gap-3">
                       <AlertCircle className="h-5 w-5 text-blue-600 mt-0.5" />
