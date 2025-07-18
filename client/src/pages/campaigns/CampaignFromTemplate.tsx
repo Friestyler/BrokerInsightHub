@@ -647,10 +647,32 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
       console.log('Customer attachments:', customerAttachments);
       console.log('Contact attachments:', contactAttachments);
 
-      // Fix the campaignId issue
-      const campaignId = campaignData?.id || campaignData?.campaignId;
+      // Check if campaign needs to be saved first
+      let campaignId = campaignData?.id || campaignData?.campaignId;
+      
       if (!campaignId) {
-        throw new Error('Campaign ID is missing or undefined');
+        console.log('Campaign not yet saved, saving campaign first...');
+        
+        // Save campaign first
+        const campaignPayload = {
+          name: campaignData.name || 'Campaign with Partner Attachments',
+          description: campaignData.description || '',
+          objective: campaignData.objective || '',
+          entity: campaignData.entity || 'opportunities',
+          icon: campaignData.icon || 'target',
+          status: 'draft',
+          type: 'email',
+          target_entity_type: campaignData.entity || 'opportunities',
+          subject: campaignData.emails?.[0]?.subject || '',
+          email_body: JSON.stringify(campaignData.emails?.[0]?.blocks || []),
+          recipients: campaignData.recipients || [],
+          settings: campaignData.settings || {}
+        };
+
+        const savedCampaign = await createCampaignMutation.mutateAsync(campaignPayload);
+        campaignId = savedCampaign.id;
+        
+        console.log('Campaign saved successfully with ID:', campaignId);
       }
 
       const payload = {
