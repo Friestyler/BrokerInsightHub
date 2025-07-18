@@ -4273,9 +4273,65 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       case 7:
         return (
           <div className="space-y-6">
-            <div className="text-center">
-              <h2 className="text-xl font-medium text-gray-900 mb-2">Contact & Partner Attachment</h2>
-              <p className="text-gray-600">Manage contact assignments to partners for effective campaign distribution</p>
+            {/* Header with Save/Undo buttons */}
+            <div className="flex items-center justify-between">
+              <div className="text-center flex-1">
+                <h2 className="text-xl font-medium text-gray-900 mb-2">Contact & Partner Attachment</h2>
+                <p className="text-gray-600">Manage contact assignments to partners for effective campaign distribution</p>
+              </div>
+              
+              {/* Save/Undo buttons on the right */}
+              <div className="flex gap-2 ml-6">
+                {(() => {
+                  const pendingCount = countPendingChanges();
+                  
+                  if (pendingCount === 0) {
+                    return null;
+                  }
+                  
+                  return (
+                    <>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          console.log('Undo all changes clicked');
+                          setDraftAttachments({ contactAttachments: [] });
+                          toast({
+                            title: "Changes undone",
+                            description: "All draft partner attachment changes have been undone."
+                          });
+                        }}
+                        className="gap-2"
+                      >
+                        <Undo2 className="h-4 w-4" />
+                        Undo
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          console.log('Save all changes clicked');
+                          attachToPartnersMutation.mutate(draftAttachments);
+                        }}
+                        disabled={attachToPartnersMutation.isPending}
+                        className="gap-2 bg-[#16a34a] hover:bg-[#15803d] text-white"
+                      >
+                        {attachToPartnersMutation.isPending ? (
+                          <>
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Saving...
+                          </>
+                        ) : (
+                          <>
+                            <Save className="h-4 w-4" />
+                            Save {pendingCount} new relation{pendingCount === 1 ? '' : 's'}
+                          </>
+                        )}
+                      </Button>
+                    </>
+                  );
+                })()}
+              </div>
             </div>
 
             <div className="max-w-7xl mx-auto">
