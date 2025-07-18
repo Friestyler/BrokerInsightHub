@@ -641,18 +641,26 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         partnerName: draft.partnerName
       }));
 
+      console.log('=== SAVING DRAFT ATTACHMENTS ===');
+      console.log('Campaign data:', campaignData);
+      console.log('Campaign ID raw:', campaignData?.id);
+      console.log('Customer attachments:', customerAttachments);
+      console.log('Contact attachments:', contactAttachments);
+
+      // Fix the campaignId issue
+      const campaignId = campaignData?.id || campaignData?.campaignId;
+      if (!campaignId) {
+        throw new Error('Campaign ID is missing or undefined');
+      }
+
       const payload = {
-        campaignId: campaignData.id.toString(),
+        campaignId: campaignId.toString(),
         customerAttachments,
         contactAttachments,
         optimizationFields: optimizationFields || [],
         editMode: false
       };
 
-      console.log('=== SAVING DRAFT ATTACHMENTS ===');
-      console.log('Campaign ID:', campaignData.id);
-      console.log('Customer attachments:', customerAttachments);
-      console.log('Contact attachments:', contactAttachments);
       console.log('Full payload:', payload);
 
       await attachToPartnersMutation.mutateAsync(payload);
