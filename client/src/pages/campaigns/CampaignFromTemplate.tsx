@@ -1887,6 +1887,14 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const [step7PendingCount, setStep7PendingCount] = useState(0);
   const [step7HasPendingChanges, setStep7HasPendingChanges] = useState(false);
   
+  // Change tracking for save functionality
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [changeCount, setChangeCount] = useState(0);
+  const [showAssignedCampaignModal, setShowAssignedCampaignModal] = useState(false);
+  const [updateStrategy, setUpdateStrategy] = useState<'unassigned' | 'all' | 'future'>('unassigned');
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [originalCampaignData, setOriginalCampaignData] = useState<any>(null);
+  
   // Determine the mode: editing existing campaign, new campaign, or template-based campaign
   const isEditingCampaign = !!campaignId;
   const isNewCampaign = !templateId && !campaignId;
@@ -2020,6 +2028,46 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   useEffect(() => {
     setSelectedCompany(null);
   }, [contactFilter]);
+
+  // Track changes for save functionality
+  useEffect(() => {
+    if (isEditingCampaign && originalCampaignData) {
+      const changes = [];
+      
+      // Check for name changes
+      if (campaignData.name !== originalCampaignData.name) changes.push('Campaign name');
+      
+      // Check for description changes
+      if (campaignData.description !== originalCampaignData.description) changes.push('Description');
+      
+      // Check for objective changes
+      if (campaignData.objective !== originalCampaignData.objective) changes.push('Objective');
+      
+      // Check for entity changes
+      if (campaignData.entity !== originalCampaignData.entity) changes.push('Target group');
+      
+      // Check for collaboration changes
+      if (campaignData.collaborationEnabled !== originalCampaignData.collaborationEnabled) changes.push('Collaboration settings');
+      
+      // Check for email changes
+      if (JSON.stringify(campaignData.emails) !== JSON.stringify(originalCampaignData.emails)) {
+        changes.push('Email content');
+      }
+      
+      // Check for recipient changes
+      if (JSON.stringify(campaignData.recipients) !== JSON.stringify(originalCampaignData.recipients)) {
+        changes.push('Recipients');
+      }
+      
+      // Check for settings changes
+      if (JSON.stringify(campaignData.settings) !== JSON.stringify(originalCampaignData.settings)) {
+        changes.push('Settings');
+      }
+      
+      setChangeCount(changes.length);
+      setHasUnsavedChanges(changes.length > 0);
+    }
+  }, [campaignData, originalCampaignData, isEditingCampaign]);
   
   // Add effect to ensure URL parameters are respected only on initial load
   useEffect(() => {
@@ -2573,7 +2621,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
         entity_mapped_to: campaignDataFromAPI.target_entity_type || ''
       });
 
-      setCampaignData({
+      const processedData = {
         id: campaignDataFromAPI.id, // Set the campaign ID from the API
         name: campaignDataFromAPI.name || '',
         entity: campaignDataFromAPI.target_entity_type || '',
@@ -2592,7 +2640,11 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
           unsubscribeLink: true,
           replyTo: ''
         }
-      });
+      };
+      
+      setCampaignData(processedData);
+      // Store original data for change tracking
+      setOriginalCampaignData(processedData);
     }
   }, [campaignDataFromAPI, isEditingCampaign]);
 
@@ -2895,14 +2947,100 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     const existingCampaignId = campaignId || campaignData.id;
     
     if (existingCampaignId) {
-      // For editing existing campaigns, use the update mutation
+      // For editing existing campaigns, check if campaign is assigned to partners
+      if (isEditingCampaign && campaignData.status === 'assigned') {
+        // Show modal for assigned campaign updates
+        setShowAssignedCampaignModal(true);
+        return;
+      }
+      
+      // Update existing campaign
       console.log('Updating existing campaign with ID:', existingCampaignId);
-      updateCampaignMutation.mutate(campaignPayload);
+      updateCampaignMutation.mutate({
+        campaignId: existingCampaignId,
+        campaignData: campaignPayload
+      });
     } else {
-      // For new campaigns and template-based campaigns
+      // Create new campaign
       console.log('Creating new campaign');
       createCampaignMutation.mutate(campaignPayload);
     }
+  };
+  
+  // Handler for assigned campaign modal
+  const handleAssignedCampaignSave = () => {
+    if (updateStrategy === 'all') {
+      setShowAssignedCampaignModal(false);
+      setShowConfirmationModal(true);
+    } else {
+      // Handle normal save for unassigned or future strategies
+      const campaignPayload = {
+        name: campaignData.name,
+        type: 'email',
+        description: campaignData.description,
+        template_id: isFromTemplate ? parseInt(templateId!) : null,
+        target_entity_type: campaignData.entity,
+        target_entity_id: null,
+        status: 'draft',
+        created_by: 1,
+        emails: campaignData.emails.map(email => ({
+          subject: email.subject,
+          content: JSON.stringify(email.blocks),
+          followUpDays: email.followUpDays
+        })),
+        recipients: campaignData.recipients,
+        settings: campaignData.settings || {},
+        icon: 'mail',
+        objective: campaignData.objective,
+        is_ai_generated: false,
+        attachments: campaignData.attachments || [],
+        collaboration_enabled: campaignData.collaborationEnabled || false,
+        update_strategy: updateStrategy
+      };
+      
+      const existingCampaignId = campaignId || campaignData.id;
+      updateCampaignMutation.mutate({
+        campaignId: existingCampaignId,
+        campaignData: campaignPayload
+      });
+      
+      setShowAssignedCampaignModal(false);
+    }
+  };
+  
+  // Handler for dangerous update confirmation
+  const handleConfirmDangerousUpdate = () => {
+    const campaignPayload = {
+      name: campaignData.name,
+      type: 'email',
+      description: campaignData.description,
+      template_id: isFromTemplate ? parseInt(templateId!) : null,
+      target_entity_type: campaignData.entity,
+      target_entity_id: null,
+      status: 'draft',
+      created_by: 1,
+      emails: campaignData.emails.map(email => ({
+        subject: email.subject,
+        content: JSON.stringify(email.blocks),
+        followUpDays: email.followUpDays
+      })),
+      recipients: campaignData.recipients,
+      settings: campaignData.settings || {},
+      icon: 'mail',
+      objective: campaignData.objective,
+      is_ai_generated: false,
+      attachments: campaignData.attachments || [],
+      collaboration_enabled: campaignData.collaborationEnabled || false,
+      update_strategy: 'all'
+    };
+    
+    const existingCampaignId = campaignId || campaignData.id;
+    updateCampaignMutation.mutate({
+      campaignId: existingCampaignId,
+      campaignData: campaignPayload
+    });
+    
+    setShowConfirmationModal(false);
   };
 
   // Handler for sharing campaign with selected partners
@@ -4741,6 +4879,20 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 </Button>
               </>
             )}
+            
+            {/* Save Changes Button - Show only for editing campaigns with unsaved changes, excluding step 7 */}
+            {isEditingCampaign && hasUnsavedChanges && changeCount > 0 && currentStep !== 7 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleSave}
+                disabled={updateCampaignMutation.isPending}
+                className="gap-2 border-[#5567E5] text-[#5567E5] hover:bg-[#F5F6FE]"
+              >
+                <Save className="h-4 w-4" />
+                {updateCampaignMutation.isPending ? 'Saving...' : `Save ${changeCount} change${changeCount !== 1 ? 's' : ''}`}
+              </Button>
+            )}
           </div>
           
           <div className="flex gap-3 items-center">
@@ -5010,6 +5162,133 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
           setShowContactUploadModal(false);
         }}
       />
+
+      {/* Assigned Campaign Update Modal */}
+      <Dialog open={showAssignedCampaignModal} onOpenChange={setShowAssignedCampaignModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Campaign is Assigned to Partners</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              This campaign has been assigned to partner brokers. How would you like to apply your changes?
+            </p>
+            
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="unassigned"
+                  name="updateStrategy"
+                  value="unassigned"
+                  checked={updateStrategy === 'unassigned'}
+                  onChange={(e) => setUpdateStrategy(e.target.value as 'unassigned' | 'all' | 'future')}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                />
+                <label htmlFor="unassigned" className="text-sm font-medium text-gray-900">
+                  Update unassigned campaigns only
+                </label>
+              </div>
+              <p className="text-xs text-gray-500 ml-6">
+                Changes will only affect campaigns that haven't been assigned to partners yet
+              </p>
+              
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="all"
+                  name="updateStrategy"
+                  value="all"
+                  checked={updateStrategy === 'all'}
+                  onChange={(e) => setUpdateStrategy(e.target.value as 'unassigned' | 'all' | 'future')}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                />
+                <label htmlFor="all" className="text-sm font-medium text-gray-900">
+                  Update all campaigns (including assigned)
+                </label>
+              </div>
+              <p className="text-xs text-gray-500 ml-6">
+                Changes will affect all campaigns, including those already assigned to partners
+              </p>
+              
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="future"
+                  name="updateStrategy"
+                  value="future"
+                  checked={updateStrategy === 'future'}
+                  onChange={(e) => setUpdateStrategy(e.target.value as 'unassigned' | 'all' | 'future')}
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500"
+                />
+                <label htmlFor="future" className="text-sm font-medium text-gray-900">
+                  Apply to future campaigns only
+                </label>
+              </div>
+              <p className="text-xs text-gray-500 ml-6">
+                Changes will only affect new campaigns created after this update
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowAssignedCampaignModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleAssignedCampaignSave}
+              disabled={updateCampaignMutation.isPending}
+            >
+              {updateCampaignMutation.isPending ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirmation Modal for Dangerous Updates */}
+      <Dialog open={showConfirmationModal} onOpenChange={setShowConfirmationModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Confirm Update All Campaigns</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="flex items-center space-x-2 p-3 bg-red-50 rounded-lg">
+              <AlertCircle className="h-5 w-5 text-red-600" />
+              <div>
+                <p className="text-sm font-medium text-red-800">
+                  Warning: This will update all campaigns
+                </p>
+                <p className="text-xs text-red-600">
+                  Including campaigns that have already been assigned to partners
+                </p>
+              </div>
+            </div>
+            
+            <p className="text-sm text-gray-600">
+              Are you sure you want to update all campaigns? This action cannot be undone and will affect partners who are already using these campaigns.
+            </p>
+          </div>
+          
+          <div className="flex justify-end space-x-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={() => setShowConfirmationModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleConfirmDangerousUpdate}
+              disabled={updateCampaignMutation.isPending}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              {updateCampaignMutation.isPending ? 'Updating...' : 'Yes, Update All'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
