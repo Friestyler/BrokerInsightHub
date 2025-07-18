@@ -11713,7 +11713,9 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         fromEmail: template.from_email,
         scheduledTime: template.scheduled_time,
         followUpEmails: template.follow_up_emails || [],
-        collaborationEnabled: template.collaboration_enabled
+        collaborationEnabled: template.collaboration_enabled,
+        target_entity_type: template.target_entity_type,
+        entity: template.target_entity_type  // Map target_entity_type to entity for frontend compatibility
       }));
       
       res.json(templates);
