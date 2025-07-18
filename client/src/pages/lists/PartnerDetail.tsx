@@ -1837,6 +1837,547 @@ export default function PartnerDetail() {
                                               <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
                                               <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                                             </svg>
+                                            <span className="text-xs text-gray-500">Shared by De Goudse</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </button>
+                                    
+                                    {/* Three dots menu for broker view */}
+                                    <div className="relative">
+                                      <button
+                                        className="p-1 hover:bg-gray-200 rounded"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setActiveDropdownId(activeDropdownId === list.id ? null : list.id);
+                                        }}
+                                      >
+                                        <MoreHorizontal className="w-3 h-3" />
+                                      </button>
+                                      
+                                      {/* Dropdown menu */}
+                                      {activeDropdownId === list.id && (
+                                        <div className="absolute right-0 top-full mt-1 w-48 rounded-md border border-[#E6E7F1] bg-white shadow-md z-50">
+                                          <div className="p-1">
+
+                                            {/* Delete list option */}
+                                            <button
+                                              className="flex w-full items-center px-2 py-1.5 text-sm rounded-sm hover:bg-red-50 text-red-600 text-left"
+                                              onClick={(e) => {
+                                                e.stopPropagation();
+                                                setListToDelete(list);
+                                                setShowDeleteListModal(true);
+                                                setActiveDropdownId(null);
+                                              }}
+                                            >
+                                              <Trash2 className="w-4 h-4 mr-2" />
+                                              Delete list
+                                            </button>
+                                          </div>
+                                        </div>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Right-side action buttons */}
+                    <div className="flex items-center gap-2">
+                      {/* Show Share and Add to Campaign only for user-created lists */}
+                      {activeList && (
+                        <>
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="text-indigo-600"
+                            onClick={() => setShowShareListModal(true)}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                              <circle cx="18" cy="5" r="3"></circle>
+                              <circle cx="6" cy="12" r="3"></circle>
+                              <circle cx="18" cy="19" r="3"></circle>
+                              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                            </svg>
+                            Share
+                          </Button>
+                          
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            className="text-indigo-600"
+                            onClick={() => {
+                              alert('This list can be added to a campaign in the Campaigns section');
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                              <path d="M22 2 11 13" />
+                              <path d="M22 2 15 22 11 13 2 9 22 2z" />
+                            </svg>
+                            Add to Campaign
+                          </Button>
+                        </>
+                      )}
+
+                      {/* Edit list button - only shown for non-default lists */}
+                      {activeList && (
+                        <>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className={`text-indigo-600 ${isEditingList ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            onClick={() => {
+                              if (isEditingList) {
+                                // Cancel edit mode
+                                setIsEditingList(false);
+                                setEditingListId(null);
+                                setEditedListMembers([]);
+                              } else {
+                                // Enter edit mode - use fresh list data
+                                const freshList = activeFilterList || activeList;
+                                console.log('Entering edit mode with fresh list:', freshList);
+                                setIsEditingList(true);
+                                setEditingListId(freshList?.id || null);
+                                setEditedListMembers(freshList?.members || []);
+                              }
+                            }}
+                            disabled={isSavingList}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                            {isEditingList ? 'Cancel' : 'Edit list'}
+                          </Button>
+                          
+                          {/* Save button - only visible in edit mode */}
+                          {isEditingList && (
+                            <Button 
+                              variant="default" 
+                              size="sm" 
+                              className="bg-indigo-600 hover:bg-indigo-700"
+                              onClick={() => {
+                                if (editingListId) {
+                                  setIsSavingList(true);
+                                  editListMutation.mutate({
+                                    listId: editingListId,
+                                    members: editedListMembers
+                                  });
+                                }
+                              }}
+                              disabled={isSavingList}
+                            >
+                              {isSavingList ? (
+                                <>
+                                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                  </svg>
+                                  Saving...
+                                </>
+                              ) : (
+                                <>
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                    <polyline points="7 3 7 8 15 8"></polyline>
+                                  </svg>
+                                  Save changes
+                                </>
+                              )}
+                            </Button>
+                          )}
+                        </>
+                      )}
+
+                      {/* Export and New buttons are now hidden from Partner Details page */}
+                    </div>
+                  </div>
+                  
+                  {/* Right side - Views and Filters */}
+                  <div className="flex items-center gap-3">
+                    {/* Saved Views Dropdown */}
+                    <div className="relative">
+                      <button 
+                        ref={viewsButtonRef}
+                        className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white ${isEditingList ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                        onClick={() => {
+                          if (!isEditingList) {
+                            setShowViewsDropdown(!showViewsDropdown);
+                          }
+                        }}
+                        disabled={isEditingList}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        <span className="text-gray-700">{activeView ? activeView.name : "Select a view"}</span>
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          width="14" 
+                          height="14" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          className={`transition-transform ${showViewsDropdown ? 'rotate-180' : ''}`}
+                        >
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                      </button>
+                      
+                      {/* Saved Views dropdown menu */}
+                      {showViewsDropdown && (
+                        <div ref={viewsDropdownRef} className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-md">
+                          <div className="p-2 border-b">
+                            {savedViews.map(view => (
+                              <div 
+                                key={view.id}
+                                className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${activeView?.id === view.id ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                                onClick={() => {
+                                  setActiveView(view);
+                                  setOriginalViewFilters({
+                                    status: view.filters.stage || undefined,
+                                    customer: view.filters.customer || undefined,
+                                    insuranceDescription: view.filters.insuranceDescription || undefined,
+                                  });
+                                  setFilterText(view.filters.searchText || '');
+                                  setSelectedStatus(view.filters.stage || '');
+                                  setSelectedCustomer(view.filters.customer || '');
+                                  setSelectedInsuranceDescription(view.filters.insuranceDescription || '');
+                                  setShowViewsDropdown(false);
+                                }}
+                              >
+                                <div className="flex items-center">
+                                  {view.name}
+                                </div>
+                                {activeView?.id === view.id && (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                  </svg>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          {activeView && (
+                            <div className="p-2 border-t">
+                              <button 
+                                className="flex w-full items-center p-2 text-sm rounded-md text-indigo-600 hover:bg-indigo-50"
+                                onClick={() => {
+                                  setShowViewsDropdown(false);
+                                  // Clear active view
+                                  setActiveView(null);
+                                  setOriginalViewFilters(null);
+                                  // Reset filters if needed
+                                  setFilterText('');
+                                  setSelectedStatus('');
+                                  setSelectedCustomer('');
+                                  setSelectedInsuranceDescription('');
+                                }}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                  <path d="M18 6L6 18"></path>
+                                  <path d="M6 6l12 12"></path>
+                                </svg>
+                                Clear view
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Filter buttons */}
+                    <div className="flex items-center gap-2">
+                      {/* Stage Filter Dropdown */}
+                      <div className="relative" ref={statusDropdownRef}>
+                        <button 
+                          className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                            selectedStatus 
+                              ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
+                              : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                          }`}
+                          onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                          </svg>
+                          <span>{selectedStatus ? `Stage: ${selectedStatus}` : 'Stage'}</span>
+                          {selectedStatus && (
+                            <svg 
+                              xmlns="http://www.w3.org/2000/svg" 
+                              width="14" 
+                              height="14" 
+                              viewBox="0 0 24 24" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              strokeWidth="2" 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round" 
+                              className="ml-2 hover:bg-indigo-100 rounded-full p-0.5 cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedStatus("");
+                              }}
+                            >
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                          )}
+                        </button>
+                        
+                        {showStatusDropdown && (
+                          <div className="absolute z-50 mt-1 w-48 rounded-md border border-gray-200 bg-white shadow-lg">
+                            <div className="p-1">
+                              {selectedStatus && (
+                                <button
+                                  className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-md"
+                                  onClick={() => {
+                                    setSelectedStatus("");
+                                    setShowStatusDropdown(false);
+                                  }}
+                                >
+                                  Clear filter
+                                </button>
+                              )}
+                              {uniqueStatuses.map((status) => (
+                                <button
+                                  key={status}
+                                  className={`w-full text-left px-3 py-2 text-sm rounded-md ${
+                                    selectedStatus === status 
+                                      ? 'bg-indigo-50 text-indigo-700' 
+                                      : 'text-gray-700 hover:bg-gray-50'
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedStatus(status);
+                                    setShowStatusDropdown(false);
+                                  }}
+                                >
+                                  {status}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Customer Filter Dropdown */}
+                      <div className="relative" ref={customerDropdownRef}>
+                        <button 
+                          className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                            selectedCustomer 
+                              ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
+                              : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                          }`}
+                          onClick={() => setShowCustomerDropdown(!showCustomerDropdown)}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                          </svg>
+                          <span>{selectedCustomer ? `Customer: ${selectedCustomer}` : 'Customer'}</span>
+                          {selectedCustomer && (
+                            <svg 
+                              xmlns="http://www.w3.org/2000/svg" 
+                              width="14" 
+                              height="14" 
+                              viewBox="0 0 24 24" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              strokeWidth="2" 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round" 
+                              className="ml-2 hover:bg-indigo-100 rounded-full p-0.5 cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedCustomer("");
+                              }}
+                            >
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                          )}
+                        </button>
+                        
+                        {showCustomerDropdown && (
+                          <div className="absolute z-50 mt-1 w-48 rounded-md border border-gray-200 bg-white shadow-lg">
+                            <div className="p-1">
+                              {selectedCustomer && (
+                                <button
+                                  className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-md"
+                                  onClick={() => {
+                                    setSelectedCustomer("");
+                                    setShowCustomerDropdown(false);
+                                  }}
+                                >
+                                  Clear filter
+                                </button>
+                              )}
+                              {uniqueCustomers.map((customer) => (
+                                <button
+                                  key={customer}
+                                  className={`w-full text-left px-3 py-2 text-sm rounded-md ${
+                                    selectedCustomer === customer 
+                                      ? 'bg-indigo-50 text-indigo-700' 
+                                      : 'text-gray-700 hover:bg-gray-50'
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedCustomer(customer);
+                                    setShowCustomerDropdown(false);
+                                  }}
+                                >
+                                  {customer}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Insurance Description Filter Dropdown */}
+                      <div className="relative" ref={insuranceDescDropdownRef}>
+                        <button 
+                          className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                            selectedInsuranceDescription 
+                              ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
+                              : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                          }`}
+                          onClick={() => setShowInsuranceDescDropdown(!showInsuranceDescDropdown)}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                          </svg>
+                          <span>{selectedInsuranceDescription ? `Insurance: ${selectedInsuranceDescription.substring(0, 20)}...` : 'Insurance Description'}</span>
+                          {selectedInsuranceDescription && (
+                            <svg 
+                              xmlns="http://www.w3.org/2000/svg" 
+                              width="14" 
+                              height="14" 
+                              viewBox="0 0 24 24" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              strokeWidth="2" 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round" 
+                              className="ml-2 hover:bg-indigo-100 rounded-full p-0.5 cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedInsuranceDescription("");
+                              }}
+                            >
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                          )}
+                        </button>
+                        
+                        {showInsuranceDescDropdown && (
+                          <div className="absolute z-50 mt-1 w-64 rounded-md border border-gray-200 bg-white shadow-lg">
+                            <div className="p-1">
+                              {selectedInsuranceDescription && (
+                                <button
+                                  className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-md"
+                                  onClick={() => {
+                                    setSelectedInsuranceDescription("");
+                                    setShowInsuranceDescDropdown(false);
+                                  }}
+                                >
+                                  Clear filter
+                                </button>
+                              )}
+                              {uniqueInsuranceDescriptions.map((description: string) => (
+                                <button
+                                  key={description}
+                                  className={`w-full text-left px-3 py-2 text-sm rounded-md ${
+                                    selectedInsuranceDescription === description 
+                                      ? 'bg-indigo-50 text-indigo-700' 
+                                      : 'text-gray-700 hover:bg-gray-50'
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedInsuranceDescription(description);
+                                    setShowInsuranceDescDropdown(false);
+                                  }}
+                                >
+                                  {description}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Save as new view button - shows when filters are active and no view is active */}
+                      {!activeView && (selectedStatus || selectedCustomer || selectedInsuranceDescription) && (
+                        <button 
+                          className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7] ml-3"
+                          onClick={() => setShowSaveViewModal(true)}
+                          style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                          </svg>
+                          <span className="text-[#3E4DC4] font-medium">Save as new view</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                      
+                      {/* Dropdown menu */}
+                      {showListsDropdown && (
+                        <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                          <div className="p-2">
+                            {/* Default "All opportunities" option */}
+                            <button
+                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
+                                !activeList ? 'bg-[#E1E4FB] text-[#3E4DC4]' : 'text-gray-700'
+                              }`}
+                              onClick={() => {
+                                setActiveList(null);
+                                setShowListsDropdown(false);
+                              }}
+                            >
+                              <div className="flex items-center space-x-2">
+                                <span>All opportunities</span>
+                              </div>
+                            </button>
+                            
+                            {/* Partner-relevant saved lists */}
+                            {partnerRelevantLists.length > 0 && (
+                              <div className="border-t border-gray-100 my-2 pt-2">
+                                {partnerRelevantLists.map((list: any) => (
+                                  <div
+                                    key={list.id}
+                                    className={`flex items-center justify-between px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
+                                      activeList?.id === list.id ? 'bg-[#E1E4FB] text-[#3E4DC4]' : 'text-gray-700'
+                                    }`}
+                                  >
+                                    <button
+                                      className="flex-1 text-left"
+                                      onClick={() => {
+                                        setActiveList(list);
+                                        setShowListsDropdown(false);
+                                      }}
+                                    >
+                                      <div className="flex flex-col space-y-1">
+                                        <span>{list.name}</span>
+                                        {/* Show share icon and environment name if list is shared */}
+                                        {list.is_shared && (
+                                          <div className="flex items-center space-x-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
+                                              <circle cx="18" cy="5" r="3"></circle>
+                                              <circle cx="6" cy="12" r="3"></circle>
+                                              <circle cx="18" cy="19" r="3"></circle>
+                                              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                            </svg>
                                             <span className="text-xs text-gray-500">Shared by {getEnvironmentBranding(environment.id).name}</span>
                                           </div>
                                         )}
