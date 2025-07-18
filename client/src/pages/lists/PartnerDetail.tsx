@@ -2287,7 +2287,28 @@ export default function PartnerDetail() {
                 {/* Action buttons section */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
-                    {/* Standard action buttons */}
+                    {/* All Opportunities reset button */}
+                    <Button 
+                      variant={!activeList ? "default" : "outline"}
+                      size="sm" 
+                      className={!activeList ? "bg-indigo-600 text-white hover:bg-indigo-700" : "text-indigo-600 hover:bg-indigo-50"}
+                      onClick={() => {
+                        setActiveList(null);
+                        setSelectedOpportunities([]);
+                        setIsEditingList(false);
+                        setEditingListId(null);
+                        setEditedListMembers([]);
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                        <path d="M3 6h18"/>
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                      </svg>
+                      All Opportunities
+                    </Button>
+                    
+                    {/* Standard action buttons - only show when a list is active */}
                     {activeList && (
                       <>
                         <Button 
