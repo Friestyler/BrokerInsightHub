@@ -4558,6 +4558,11 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             
             {/* Save/Undo Buttons - show on Step 7 when there are pending changes */}
             {currentStep === 7 && (() => {
+              // Check if we have draftAttachments state available
+              if (typeof draftAttachments === 'undefined') {
+                return null;
+              }
+              
               const pendingCount = draftAttachments.contactAttachments.length;
               
               if (pendingCount === 0) {
