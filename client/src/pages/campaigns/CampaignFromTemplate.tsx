@@ -3426,6 +3426,12 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       const nextStep = currentStep + 1;
       setCurrentStep(nextStep);
       updateUrlStep(nextStep);
+      
+      // Clear Step 7 draft state when navigating away from Step 7
+      if (currentStep === 7) {
+        setStep7PendingCount(0);
+        setStep7HasPendingChanges(false);
+      }
     }
   };
 
@@ -3434,6 +3440,12 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       const prevStep = currentStep - 1;
       setCurrentStep(prevStep);
       updateUrlStep(prevStep);
+      
+      // Clear Step 7 draft state when navigating away from Step 7
+      if (currentStep === 7) {
+        setStep7PendingCount(0);
+        setStep7HasPendingChanges(false);
+      }
     }
   };
 
@@ -4851,38 +4863,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               Previous
             </Button>
             
-            {/* Step 7 - Save/Undo Buttons - Show only when there are pending changes */}
-            {currentStep === 7 && step7HasPendingChanges && (
-              <>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    console.log('Undo button clicked from navigation');
-                    // Direct function call to ContactPartnerAttachmentInterface functionality
-                    const event = new CustomEvent('step7UndoClicked');
-                    window.dispatchEvent(event);
-                  }}
-                  className="gap-2"
-                >
-                  <Undo2 className="h-4 w-4" />
-                  Undo all changes
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    console.log('Save button clicked from navigation');
-                    // Direct function call to ContactPartnerAttachmentInterface functionality  
-                    const event = new CustomEvent('step7SaveClicked');
-                    window.dispatchEvent(event);
-                  }}
-                  className="gap-2 bg-[#16a34a] hover:bg-[#15803d] text-white"
-                >
-                  <Save className="h-4 w-4" />
-                  Save all {step7PendingCount} new partner relation{step7PendingCount !== 1 ? 's' : ''}
-                </Button>
-              </>
-            )}
+
             
           </div>
           
@@ -4978,6 +4959,39 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               >
                 {assignCampaignMutation.isPending ? 'Assigning...' : 'Assign to partners'}
               </Button>
+            )}
+            
+            {/* Step 7 - Save/Undo Buttons - Show only when there are pending changes in Step 7 */}
+            {currentStep === 7 && step7HasPendingChanges && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    console.log('Undo button clicked from navigation');
+                    // Direct function call to ContactPartnerAttachmentInterface functionality
+                    const event = new CustomEvent('step7UndoClicked');
+                    window.dispatchEvent(event);
+                  }}
+                  className="gap-2"
+                >
+                  <Undo2 className="h-4 w-4" />
+                  Undo all changes
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    console.log('Save button clicked from navigation');
+                    // Direct function call to ContactPartnerAttachmentInterface functionality  
+                    const event = new CustomEvent('step7SaveClicked');
+                    window.dispatchEvent(event);
+                  }}
+                  className="gap-2 bg-[#16a34a] hover:bg-[#15803d] text-white"
+                >
+                  <Save className="h-4 w-4" />
+                  Save all {step7PendingCount} new partner relation{step7PendingCount !== 1 ? 's' : ''}
+                </Button>
+              </>
             )}
             
             {/* Next Button */}
