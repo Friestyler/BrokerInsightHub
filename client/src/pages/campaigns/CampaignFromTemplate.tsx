@@ -7,7 +7,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Edit, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Share, DollarSign, Home, Car, Umbrella, Building, UserCheck, TrendingDown, Plane, Search, User, AlertCircle, Upload, Calendar, Clock, ChevronDown, ChevronRight, ChevronUp, AlertTriangle } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Edit, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, Share, DollarSign, Home, Car, Umbrella, Building, UserCheck, TrendingDown, Plane, Search, User, AlertCircle, Upload, Calendar, Clock, ChevronDown, ChevronRight, ChevronUp, AlertTriangle, Save, Undo2, Loader2 } from "lucide-react";
 import { useLocation, useRoute, useParams } from 'wouter';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -344,6 +344,29 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
   const [expandedPartnerLists, setExpandedPartnerLists] = useState<Set<number>>(new Set());
   const [optimizationFields, setOptimizationFields] = useState<string[]>([]);
   const [showOptimizationSettings, setShowOptimizationSettings] = useState(false);
+  
+  // Draft system for tracking pending changes
+  const [draftAttachments, setDraftAttachments] = useState<{
+    customerAttachments: Array<{
+      customerId: string;
+      partnerId: number;
+      partnerName: string;
+      originalPartnerId?: number;
+      originalPartnerName?: string;
+    }>;
+    contactAttachments: Array<{
+      contactId: string;
+      customerId: string;
+      partnerId: number;
+      partnerName: string;
+      originalPartnerId?: number;
+      originalPartnerName?: string;
+    }>;
+  }>({
+    customerAttachments: [],
+    contactAttachments: []
+  });
+  
   const { toast } = useToast();
   
   // Fetch all partners for selection and attachment operations
@@ -476,6 +499,176 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
     setSelectedContacts([]);
   };
 
+  // Count pending changes
+  const countPendingChanges = () => {
+    return draftAttachments.customerAttachments.length + draftAttachments.contactAttachments.length;
+  };
+
+  // Apply draft attachment to a customer/contact
+  const applyDraftAttachment = (customerId: string, contactId: string | undefined, partnerId: number, partnerName: string) => {
+    const customer = customerGroups.find(g => 
+      g.id.toString() === customerId || g.databaseId?.toString() === customerId
+    );
+    
+    if (!customer) return;
+
+    if (contactId) {
+      // Contact attachment
+      const contact = customer.contacts.find(c => 
+        c.id.toString() === contactId || c.databaseId?.toString() === contactId
+      );
+      
+      if (contact) {
+        setDraftAttachments(prev => ({
+          ...prev,
+          contactAttachments: [
+            ...prev.contactAttachments.filter(ca => ca.contactId !== contactId),
+            {
+              contactId,
+              customerId,
+              partnerId,
+              partnerName,
+              originalPartnerId: contact.attachedPartnerId,
+              originalPartnerName: contact.attachedPartner
+            }
+          ]
+        }));
+      }
+    } else {
+      // Customer attachment
+      setDraftAttachments(prev => ({
+        ...prev,
+        customerAttachments: [
+          ...prev.customerAttachments.filter(ca => ca.customerId !== customerId),
+          {
+            customerId,
+            partnerId,
+            partnerName,
+            originalPartnerId: customer.defaultPartnerId,
+            originalPartnerName: customer.defaultPartner
+          }
+        ]
+      }));
+    }
+  };
+
+  // Undo all draft changes
+  const undoDraftChanges = () => {
+    setDraftAttachments({
+      customerAttachments: [],
+      contactAttachments: []
+    });
+    toast({
+      title: "Changes undone",
+      description: "All draft partner attachments have been cleared.",
+      variant: "default"
+    });
+  };
+
+  // Get effective partner for display (draft or original)
+  const getEffectivePartner = (customerId: string, contactId?: string) => {
+    if (contactId) {
+      // Check for draft contact attachment
+      const draftContact = draftAttachments.contactAttachments.find(ca => ca.contactId === contactId);
+      if (draftContact) {
+        return {
+          partnerId: draftContact.partnerId,
+          partnerName: draftContact.partnerName,
+          isDraft: true
+        };
+      }
+      
+      // Return original contact attachment
+      const customer = customerGroups.find(g => 
+        g.id.toString() === customerId || g.databaseId?.toString() === customerId
+      );
+      const contact = customer?.contacts.find(c => 
+        c.id.toString() === contactId || c.databaseId?.toString() === contactId
+      );
+      
+      return {
+        partnerId: contact?.attachedPartnerId || customer?.defaultPartnerId,
+        partnerName: contact?.attachedPartner || customer?.defaultPartner,
+        isDraft: false
+      };
+    } else {
+      // Check for draft customer attachment
+      const draftCustomer = draftAttachments.customerAttachments.find(ca => ca.customerId === customerId);
+      if (draftCustomer) {
+        return {
+          partnerId: draftCustomer.partnerId,
+          partnerName: draftCustomer.partnerName,
+          isDraft: true
+        };
+      }
+      
+      // Return original customer attachment
+      const customer = customerGroups.find(g => 
+        g.id.toString() === customerId || g.databaseId?.toString() === customerId
+      );
+      
+      return {
+        partnerId: customer?.defaultPartnerId,
+        partnerName: customer?.defaultPartner,
+        isDraft: false
+      };
+    }
+  };
+
+  // Save draft attachments to database
+  const saveDraftAttachments = async () => {
+    if (countPendingChanges() === 0) {
+      toast({
+        title: "No changes to save",
+        description: "There are no pending partner attachment changes.",
+        variant: "default"
+      });
+      return;
+    }
+
+    try {
+      // Convert draft attachments to the format expected by the API
+      const customerAttachments = draftAttachments.customerAttachments.map(draft => ({
+        customerId: draft.customerId,
+        partnerId: draft.partnerId,
+        partnerName: draft.partnerName
+      }));
+
+      const contactAttachments = draftAttachments.contactAttachments.map(draft => ({
+        contactId: draft.contactId,
+        customerId: draft.customerId,
+        partnerId: draft.partnerId,
+        partnerName: draft.partnerName
+      }));
+
+      await attachToPartnersMutation.mutateAsync({
+        campaignId: campaignData.id.toString(),
+        customerAttachments,
+        contactAttachments,
+        optimizationFields: optimizationFields,
+        editMode: false
+      });
+
+      // Clear draft state after successful save
+      setDraftAttachments({
+        customerAttachments: [],
+        contactAttachments: []
+      });
+
+      toast({
+        title: "Partner attachments saved",
+        description: `Successfully saved ${countPendingChanges()} partner attachment(s) to the database.`,
+        variant: "default"
+      });
+    } catch (error) {
+      toast({
+        title: "Save failed",
+        description: "Failed to save partner attachments. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
   // Handle edit attachment
   const handleEditAttachment = (customerId: string, contactId?: string, currentPartnerId?: number, currentPartnerName?: string) => {
     setEditingAttachment({
@@ -576,10 +769,10 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
 
 
 
-  // Handle partner attachment with proper database operations
+  // Handle partner attachment with draft system
   const handleAttachToPartners = async () => {
     if (editingAttachment) {
-      // Edit mode - update specific attachment
+      // Edit mode - apply draft attachment
       if (selectedPartnersForAttachment.length === 0) {
         toast({
           title: "No partner selected",
@@ -589,43 +782,34 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         return;
       }
 
-      try {
-        const partnerId = selectedPartnersForAttachment[0];
-        const partner = allPartners.find((p: any) => p.id === partnerId);
-        
-        const customerAttachments: any[] = [];
-        const contactAttachments: any[] = [];
-        
-        if (editingAttachment.type === 'customer') {
-          customerAttachments.push({
-            customerId: editingAttachment.customerId,
-            partnerId,
-            partnerName: partner?.name || 'Unknown Partner'
-          });
-        } else {
-          contactAttachments.push({
-            contactId: editingAttachment.contactId,
-            customerId: editingAttachment.customerId,
-            partnerId,
-            partnerName: partner?.name || 'Unknown Partner'
-          });
-        }
-
-        await attachToPartnersMutation.mutateAsync({
-          campaignId: campaignData.id.toString(),
-          customerAttachments,
-          contactAttachments,
-          optimizationFields: optimizationFields,
-          editMode: true
-        });
-        
-      } catch (error) {
+      const partnerId = selectedPartnersForAttachment[0];
+      const partner = allPartners.find((p: any) => p.id === partnerId);
+      
+      if (!partner) {
         toast({
-          title: "Update failed",
-          description: "Failed to update partner attachment. Please try again.",
+          title: "Partner not found",
+          description: "The selected partner could not be found.",
           variant: "destructive"
         });
+        return;
       }
+
+      // Apply draft attachment
+      applyDraftAttachment(
+        editingAttachment.customerId,
+        editingAttachment.contactId,
+        partnerId,
+        partner.name
+      );
+      
+      // Close modal and reset state
+      resetModalState();
+      
+      toast({
+        title: "Draft attachment applied",
+        description: `${editingAttachment.type === 'customer' ? 'Customer' : 'Contact'} will be attached to ${partner.name} when saved.`,
+        variant: "default"
+      });
     } else {
       // New attachment mode - attach multiple items
       if (selectedContacts.length === 0) {
@@ -674,9 +858,8 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
           return;
         }
         
-        // Separate customer and contact selections
-        const customerAttachments: any[] = [];
-        const contactAttachments: any[] = [];
+        // Apply draft attachments for selected contacts
+        let attachmentCount = 0;
         
         selectedContacts.forEach(selectedId => {
           // Check if this is a customer selection
@@ -691,11 +874,13 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
             const assignedPartner = allPartners.find((p: any) => p.id === assignedPartnerId);
             
             if (assignedPartner) {
-              customerAttachments.push({
-                customerId: customer.databaseId.toString(),
-                partnerId: assignedPartner.id,
-                partnerName: assignedPartner.name
-              });
+              applyDraftAttachment(
+                customer.databaseId.toString(),
+                undefined,
+                assignedPartner.id,
+                assignedPartner.name
+              );
+              attachmentCount++;
             }
           } else {
             // Check if this is a contact selection
@@ -711,25 +896,27 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                 const assignedPartner = allPartners.find((p: any) => p.id === assignedPartnerId);
                 
                 if (assignedPartner) {
-                  contactAttachments.push({
-                    contactId: contact.databaseId.toString(),
-                    customerId: group.databaseId?.toString() || group.id.toString(),
-                    partnerId: assignedPartner.id,
-                    partnerName: assignedPartner.name
-                  });
+                  applyDraftAttachment(
+                    group.databaseId?.toString() || group.id.toString(),
+                    contact.databaseId.toString(),
+                    assignedPartner.id,
+                    assignedPartner.name
+                  );
+                  attachmentCount++;
                 }
               }
             });
           }
         });
         
-        // Execute the attachment mutation
-        await attachToPartnersMutation.mutateAsync({
-          campaignId: campaignData.id.toString(),
-          customerAttachments,
-          contactAttachments,
-          optimizationFields: optimizationFields,
-          editMode: false
+        // Clear selections and close modal
+        setSelectedContacts([]);
+        resetModalState();
+        
+        toast({
+          title: "Draft attachments applied",
+          description: `${attachmentCount} partner attachment(s) will be saved when you click "Save all changes".`,
+          variant: "default"
         });
         
       } catch (error) {
@@ -928,20 +1115,34 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                 
                 <div className="flex items-center gap-2">
                   <span className="text-sm text-gray-500">Default Partner:</span>
-                  <span className="font-medium text-gray-900">{customer.defaultPartner}</span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="h-6 w-6 p-0"
-                    onClick={() => handleEditAttachment(
-                      customer.id.toString(),
-                      undefined,
-                      customer.defaultPartnerId,
-                      customer.defaultPartner
-                    )}
-                  >
-                    <Edit className="h-3 w-3" />
-                  </Button>
+                  {(() => {
+                    const effectivePartner = getEffectivePartner(customer.id.toString());
+                    return (
+                      <>
+                        <span className={`font-medium ${effectivePartner.isDraft ? 'text-orange-600' : 'text-gray-900'}`}>
+                          {effectivePartner.partnerName}
+                        </span>
+                        {effectivePartner.isDraft && (
+                          <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
+                            Draft
+                          </span>
+                        )}
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-6 w-6 p-0"
+                          onClick={() => handleEditAttachment(
+                            customer.id.toString(),
+                            undefined,
+                            effectivePartner.partnerId,
+                            effectivePartner.partnerName
+                          )}
+                        >
+                          <Edit className="h-3 w-3" />
+                        </Button>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -1003,26 +1204,40 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                       </div>
                       
                       <div className="flex items-center gap-2">
-                        {contact.attachmentSource === 'default' && (
-                          <span className="text-xs text-blue-600">→ From Default</span>
-                        )}
-                        {contact.isManualOverride && (
-                          <span className="text-xs text-orange-600">⚠ Manual</span>
-                        )}
-                        <span className="font-medium text-gray-900">{contact.attachedPartner || customer.defaultPartner}</span>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-6 w-6 p-0"
-                          onClick={() => handleEditAttachment(
-                            customer.id.toString(),
-                            contact.id.toString(),
-                            contact.attachedPartnerId || customer.defaultPartnerId,
-                            contact.attachedPartner || customer.defaultPartner
-                          )}
-                        >
-                          <Edit className="h-3 w-3" />
-                        </Button>
+                        {(() => {
+                          const effectivePartner = getEffectivePartner(customer.id.toString(), contact.id.toString());
+                          return (
+                            <>
+                              {contact.attachmentSource === 'default' && !effectivePartner.isDraft && (
+                                <span className="text-xs text-blue-600">→ From Default</span>
+                              )}
+                              {contact.isManualOverride && !effectivePartner.isDraft && (
+                                <span className="text-xs text-orange-600">⚠ Manual</span>
+                              )}
+                              <span className={`font-medium ${effectivePartner.isDraft ? 'text-orange-600' : 'text-gray-900'}`}>
+                                {effectivePartner.partnerName}
+                              </span>
+                              {effectivePartner.isDraft && (
+                                <span className="text-xs text-orange-600 bg-orange-50 px-2 py-1 rounded">
+                                  Draft
+                                </span>
+                              )}
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-6 w-6 p-0"
+                                onClick={() => handleEditAttachment(
+                                  customer.id.toString(),
+                                  contact.id.toString(),
+                                  effectivePartner.partnerId,
+                                  effectivePartner.partnerName
+                                )}
+                              >
+                                <Edit className="h-3 w-3" />
+                              </Button>
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
                   ))}
@@ -1127,6 +1342,47 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                 <p>All partners have been attached to customers</p>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Save and Undo Buttons */}
+      {countPendingChanges() > 0 && (
+        <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="h-2 w-2 bg-orange-500 rounded-full"></div>
+              <span className="text-sm text-gray-700">
+                You have {countPendingChanges()} pending partner attachment change(s)
+              </span>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={undoDraftChanges}
+                className="text-gray-700 border-gray-300 hover:bg-gray-100"
+              >
+                <Undo2 className="h-4 w-4 mr-2" />
+                Undo all changes
+              </Button>
+              <Button
+                onClick={saveDraftAttachments}
+                disabled={attachToPartnersMutation.isPending}
+                className="bg-[#16a34a] hover:bg-[#15803d] text-white"
+              >
+                {attachToPartnersMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save all {countPendingChanges()} new partner relation{countPendingChanges() === 1 ? '' : 's'}
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
       )}
