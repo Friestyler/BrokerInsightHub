@@ -862,28 +862,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
 
   return (
     <div className="space-y-6">
-      {/* URGENT TEST: Force buttons to top */}
-      <div className="fixed top-0 left-0 w-full bg-red-500 text-white p-4 z-[9999]">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-sm">URGENT TEST: Draft count: {countPendingChanges()}</span>
-          </div>
-          <div className="flex gap-2">
-            <button
-              onClick={undoDraftChanges}
-              className="px-4 py-2 bg-white text-red-500 rounded"
-            >
-              Undo TEST
-            </button>
-            <button
-              onClick={saveDraftAttachments}
-              className="px-4 py-2 bg-green-500 text-white rounded"
-            >
-              Save TEST ({countPendingChanges()})
-            </button>
-          </div>
-        </div>
-      </div>
+
 
       {/* Status Summary Cards */}
       <div className="grid grid-cols-3 gap-4 mb-6">
@@ -1277,28 +1256,21 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         </div>
       )}
 
-      {/* Save and Undo Buttons - ALWAYS VISIBLE FOR DEBUGGING */}
+      {/* Save and Undo buttons - only show when there are pending changes */}
       {(() => {
         const pendingCount = countPendingChanges();
-        console.log('=== SAVE/UNDO BUTTONS DEBUG ===');
-        console.log('Draft state check:', {
-          pendingCount,
-          contactAttachments: draftAttachments.contactAttachments
-        });
-        console.log('Should show buttons:', pendingCount > 0);
         
-        // TEMPORARILY ALWAYS SHOW BUTTONS FOR DEBUGGING
+        if (pendingCount === 0) {
+          return null;
+        }
+        
         return (
-          <div className="mt-6 p-4 bg-orange-100 border-2 border-orange-400 rounded-lg" style={{
-            position: 'relative',
-            zIndex: 1000,
-            minHeight: '80px'
-          }}>
+          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="h-2 w-2 bg-orange-500 rounded-full"></div>
+                <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
                 <span className="text-sm text-gray-700">
-                  DEBUG: You have {pendingCount} pending partner attachment change(s)
+                  You have {pendingCount} pending partner attachment change{pendingCount === 1 ? '' : 's'}
                 </span>
               </div>
               <div className="flex gap-2">
@@ -1414,7 +1386,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
             {/* Partner Selection with Tabs */}
             <div>
               <h4 className="font-medium text-gray-900 mb-3">
-                {editingAttachment ? 'Select New Partner' : 'Select Partners'}
+                Select Partners
               </h4>
               
               <Tabs 
@@ -1473,11 +1445,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                               </p>
                             </div>
                           </div>
-                          {editingAttachment && partner.id === editingAttachment.currentPartnerId && (
-                            <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                              Current
-                            </span>
-                          )}
+
                         </div>
                       ))}
                   </div>
