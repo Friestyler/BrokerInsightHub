@@ -325,7 +325,7 @@ interface ContactPartnerAttachmentInterfaceProps {
   onSaveButtonsChange?: (saveFn: () => void, undoFn: () => void, pendingCount: number) => void;
 }
 
-function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }: ContactPartnerAttachmentInterfaceProps) {
+function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange, onSaveButtonsChange }: ContactPartnerAttachmentInterfaceProps) {
   const [selectedContacts, setSelectedContacts] = useState<string[]>([]);
   const [showAttachmentModal, setShowAttachmentModal] = useState(false);
   const [selectedPartnersForAttachment, setSelectedPartnersForAttachment] = useState<number[]>([]);
@@ -537,7 +537,27 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
       description: "All draft partner attachments have been cleared.",
       variant: "default"
     });
-  };
+  }
+
+  // Notify parent component about draft state changes via window object
+  useEffect(() => {
+    // Set handlers on window for navigation buttons to access
+    window.step7Handlers = {
+      saveHandler: saveDraftAttachments,
+      undoHandler: undoDraftChanges,
+      pendingCount: countPendingChanges()
+    };
+    
+    // Trigger a re-render of the navigation by forcing a custom event
+    window.dispatchEvent(new CustomEvent('step7HandlersChanged'));
+    
+    // Cleanup on unmount
+    return () => {
+      if (window.step7Handlers) {
+        delete window.step7Handlers;
+      }
+    };
+  }, [draftAttachments]);
 
   // Get effective partner for display (draft or original) - Contact-level only
   const getEffectivePartner = (customerId: string, contactId: string) => {
@@ -4519,31 +4539,35 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               Previous
             </Button>
             
-            {/* Step 7 - Save/Undo Buttons */}
-            {currentStep === 7 && (
+            {/* Step 7 - Save/Undo Buttons - these will be populated from ContactPartnerAttachmentInterface */}
+            {currentStep === 7 && window.step7Handlers && window.step7Handlers.pendingCount > 0 && (
               <>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => {
                     console.log('Undo button clicked from navigation');
-                    // This will be handled by the interface component
+                    if (window.step7Handlers?.undoHandler) {
+                      window.step7Handlers.undoHandler();
+                    }
                   }}
                   className="gap-2"
                 >
                   <Undo2 className="h-4 w-4" />
-                  Undo
+                  Undo all changes
                 </Button>
                 <Button
                   size="sm"
                   onClick={() => {
                     console.log('Save button clicked from navigation');
-                    // This will be handled by the interface component
+                    if (window.step7Handlers?.saveHandler) {
+                      window.step7Handlers.saveHandler();
+                    }
                   }}
                   className="gap-2 bg-[#16a34a] hover:bg-[#15803d] text-white"
                 >
                   <Save className="h-4 w-4" />
-                  Save 1 new relation
+                  Save all {window.step7Handlers.pendingCount} new partner relation{window.step7Handlers.pendingCount !== 1 ? 's' : ''}
                 </Button>
               </>
             )}
