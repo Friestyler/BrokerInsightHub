@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -38,6 +39,7 @@ export default function PartnerCampaignsView({ partnerId, partnerName, onCampaig
   const [selectedCampaigns, setSelectedCampaigns] = useState<number[]>([]);
   const [selectedFilter, setSelectedFilter] = useState<string>('all');
   const [showShareModal, setShowShareModal] = useState(false);
+  const [showWarningDialog, setShowWarningDialog] = useState(false);
   const { environment } = useEnvironment();
   const { toast } = useToast();
 
@@ -116,6 +118,22 @@ export default function PartnerCampaignsView({ partnerId, partnerName, onCampaig
   }, [campaigns]);
 
 
+
+  // Handle warning dialog confirmation
+  const handleWarningContinue = () => {
+    setShowWarningDialog(false);
+    setShowShareModal(true);
+  };
+
+  const handleWarningCancel = () => {
+    setShowWarningDialog(false);
+  };
+
+  // Handle share button click - show warning first
+  const handleShareClick = () => {
+    if (selectedCampaigns.length === 0) return;
+    setShowWarningDialog(true);
+  };
 
   const handleBulkDelete = async () => {
     if (selectedCampaigns.length === 0) return;
@@ -230,7 +248,7 @@ export default function PartnerCampaignsView({ partnerId, partnerName, onCampaig
               variant="outline" 
               size="sm" 
               className="flex items-center gap-2"
-              onClick={() => setShowShareModal(true)}
+              onClick={handleShareClick}
             >
               <Share2 className="w-4 h-4" />
               Share with partner
@@ -281,6 +299,35 @@ export default function PartnerCampaignsView({ partnerId, partnerName, onCampaig
         />
       )}
       
+      {/* Warning Dialog */}
+      <Dialog open={showWarningDialog} onOpenChange={setShowWarningDialog}>
+        <DialogContent className="sm:max-w-md bg-white text-[#282A3F]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle className="h-5 w-5 text-orange-500" />
+              Campaign Sharing Warning
+            </DialogTitle>
+            <DialogDescription className="text-gray-600">
+              Once you proceed to share this campaign with the partner, it will be locked for editing on your side. You will no longer be able to make changes to this campaign. Do you want to continue?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleWarningCancel}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleWarningContinue}
+              className="bg-orange-500 hover:bg-orange-600 text-white"
+            >
+              Continue
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Share Campaign Modal */}
       <PartnerCampaignShareModal
         isOpen={showShareModal}
