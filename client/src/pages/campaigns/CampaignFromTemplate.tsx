@@ -1017,7 +1017,22 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                     />
                     <Building className="h-4 w-4 text-gray-500" />
                     <div>
-                      <h4 className="font-medium text-gray-900">{customer.name}</h4>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-medium text-gray-900">{customer.name}</h4>
+                        {(() => {
+                          const customerDraftChanges = draftAttachments.contactAttachments.filter(ca => 
+                            ca.customerId === customer.id.toString() || ca.customerId === customer.databaseId?.toString()
+                          );
+                          if (customerDraftChanges.length > 0) {
+                            return (
+                              <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200 text-xs">
+                                {customerDraftChanges.length} Draft Change{customerDraftChanges.length === 1 ? '' : 's'}
+                              </Badge>
+                            );
+                          }
+                          return null;
+                        })()}
+                      </div>
                       <p className="text-sm text-gray-500">
                         {customer.contacts.length} contact(s)
                       </p>
@@ -1037,6 +1052,42 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
                   </span>
                 </div>
               </div>
+
+              {/* Draft Changes Summary */}
+              {(() => {
+                const customerDraftChanges = draftAttachments.contactAttachments.filter(ca => 
+                  ca.customerId === customer.id.toString() || ca.customerId === customer.databaseId?.toString()
+                );
+                
+                if (customerDraftChanges.length > 0) {
+                  return (
+                    <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-start gap-2">
+                      <div className="h-2 w-2 bg-blue-500 rounded-full mt-2"></div>
+                      <div className="flex-1">
+                        <p className="text-sm font-medium text-blue-900">Draft Changes:</p>
+                        <p className="text-sm text-blue-700">
+                          {customerDraftChanges.length} contact{customerDraftChanges.length === 1 ? '' : 's'} will be reassigned to different partners when saved.
+                        </p>
+                        <div className="mt-2 space-y-1">
+                          {customerDraftChanges.map((change) => {
+                            const contact = customer.contacts.find(c => c.id.toString() === change.contactId);
+                            return (
+                              <div key={change.contactId} className="text-xs text-blue-600 flex items-center gap-2">
+                                <span className="font-medium">{contact?.name || 'Unknown Contact'}</span>
+                                <span>:</span>
+                                <span className="text-gray-600">{change.originalPartnerName || 'None'}</span>
+                                <span>→</span>
+                                <span className="font-medium">{change.partnerName}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
 
               {/* Mixed Partners Warning */}
               {customer.mixedPartners && (
