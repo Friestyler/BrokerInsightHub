@@ -2112,10 +2112,6 @@ export default function PartnerDetail() {
                 <div className="flex flex-wrap items-center justify-between">
                   {/* Left side - Saved Lists with actions */}
                   <div className="flex items-center gap-3">
-                    {/* Lists heading */}
-                    <div className="flex flex-col mr-2">
-                      <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
-                    </div>
                     {/* Saved Lists section with collapsible header */}
                     <div className="relative">
                       <button 
