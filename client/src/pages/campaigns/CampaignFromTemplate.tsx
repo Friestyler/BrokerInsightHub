@@ -685,12 +685,6 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         const savedCampaign = await response.json();
         campaignId = savedCampaign.id;
         
-        // Update local campaign data with new ID
-        setCampaignData(prev => ({
-          ...prev,
-          id: savedCampaign.id
-        }));
-        
         console.log('Campaign saved successfully with ID:', campaignId);
       }
 
