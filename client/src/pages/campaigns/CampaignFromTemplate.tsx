@@ -2011,6 +2011,14 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     return () => window.removeEventListener('step7CountUpdate', handleStep7CountUpdate as EventListener);
   }, []);
 
+  // Clear Step 7 state when entering Step 8
+  useEffect(() => {
+    if (currentStep === 8) {
+      setStep7PendingCount(0);
+      setStep7HasPendingChanges(false);
+    }
+  }, [currentStep]);
+
   // Initialize suggestions state for each customer based on whether they have existing contacts
   useEffect(() => {
     const newState: Record<string, boolean> = {};
@@ -4961,7 +4969,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               </Button>
             )}
             
-            {/* Step 7 - Save/Undo Buttons - Show only when there are pending changes in Step 7 */}
+            {/* Step 7 - Save/Undo Buttons - Show only when there are pending changes in Step 7 (never show on Step 8) */}
             {currentStep === 7 && step7HasPendingChanges && (
               <>
                 <Button
