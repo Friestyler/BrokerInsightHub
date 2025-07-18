@@ -510,20 +510,34 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange, 
     );
     
     if (contact) {
-      setDraftAttachments(prev => ({
-        ...prev,
-        contactAttachments: [
-          ...prev.contactAttachments.filter(ca => ca.contactId !== contactId),
-          {
-            contactId,
-            customerId,
-            partnerId,
-            partnerName,
-            originalPartnerId: contact.attachedPartnerId,
-            originalPartnerName: contact.attachedPartner
+      setDraftAttachments(prev => {
+        const newAttachments = {
+          ...prev,
+          contactAttachments: [
+            ...prev.contactAttachments.filter(ca => ca.contactId !== contactId),
+            {
+              contactId,
+              customerId,
+              partnerId,
+              partnerName,
+              originalPartnerId: contact.attachedPartnerId,
+              originalPartnerName: contact.attachedPartner
+            }
+          ]
+        };
+        
+        // Emit count update to parent
+        const pendingCount = newAttachments.contactAttachments.length;
+        const countUpdateEvent = new CustomEvent('step7CountUpdate', {
+          detail: {
+            pendingCount,
+            hasPendingChanges: pendingCount > 0
           }
-        ]
-      }));
+        });
+        window.dispatchEvent(countUpdateEvent);
+        
+        return newAttachments;
+      });
     }
   };
 
@@ -532,6 +546,16 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange, 
     setDraftAttachments({
       contactAttachments: []
     });
+    
+    // Emit count update to parent
+    const countUpdateEvent = new CustomEvent('step7CountUpdate', {
+      detail: {
+        pendingCount: 0,
+        hasPendingChanges: false
+      }
+    });
+    window.dispatchEvent(countUpdateEvent);
+    
     toast({
       title: "Changes undone",
       description: "All draft partner attachments have been cleared.",
@@ -650,6 +674,15 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange, 
       setDraftAttachments({
         contactAttachments: []
       });
+
+      // Emit count update to parent
+      const countUpdateEvent = new CustomEvent('step7CountUpdate', {
+        detail: {
+          pendingCount: 0,
+          hasPendingChanges: false
+        }
+      });
+      window.dispatchEvent(countUpdateEvent);
 
       toast({
         title: "Partner attachments saved",
@@ -1827,6 +1860,10 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const [suggestionsCollapsed, setSuggestionsCollapsed] = useState(false);
   const [showContactUploadModal, setShowContactUploadModal] = useState(false);
   
+  // Step 7 draft state for navigation buttons
+  const [step7PendingCount, setStep7PendingCount] = useState(0);
+  const [step7HasPendingChanges, setStep7HasPendingChanges] = useState(false);
+  
   // Determine the mode: editing existing campaign, new campaign, or template-based campaign
   const isEditingCampaign = !!campaignId;
   const isNewCampaign = !templateId && !campaignId;
@@ -1913,6 +1950,18 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const [editingEmailSubject, setEditingEmailSubject] = useState('');
   const [editingEmailContent, setEditingEmailContent] = useState('');
   const [customizations, setCustomizations] = useState<{[key: string]: any}>({});
+
+  // Event listener for Step 7 draft count updates
+  useEffect(() => {
+    const handleStep7CountUpdate = (event: CustomEvent) => {
+      const { pendingCount, hasPendingChanges } = event.detail;
+      setStep7PendingCount(pendingCount);
+      setStep7HasPendingChanges(hasPendingChanges);
+    };
+
+    window.addEventListener('step7CountUpdate', handleStep7CountUpdate as EventListener);
+    return () => window.removeEventListener('step7CountUpdate', handleStep7CountUpdate as EventListener);
+  }, []);
 
   // Initialize suggestions state for each customer based on whether they have existing contacts
   useEffect(() => {
@@ -4542,8 +4591,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               Previous
             </Button>
             
-            {/* Step 7 - Save/Undo Buttons - Always visible for testing */}
-            {currentStep === 7 && (
+            {/* Step 7 - Save/Undo Buttons - Show only when there are pending changes */}
+            {currentStep === 7 && step7HasPendingChanges && (
               <>
                 <Button
                   variant="outline"
@@ -4570,7 +4619,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                   className="gap-2 bg-[#16a34a] hover:bg-[#15803d] text-white"
                 >
                   <Save className="h-4 w-4" />
-                  Save all 1 new partner relation
+                  Save all {step7PendingCount} new partner relation{step7PendingCount !== 1 ? 's' : ''}
                 </Button>
               </>
             )}
