@@ -1403,45 +1403,54 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
       )}
 
       {/* Save and Undo Buttons */}
-      {countPendingChanges() > 0 && (
-        <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="h-2 w-2 bg-orange-500 rounded-full"></div>
-              <span className="text-sm text-gray-700">
-                You have {countPendingChanges()} pending partner attachment change(s)
-              </span>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={undoDraftChanges}
-                className="text-gray-700 border-gray-300 hover:bg-gray-100"
-              >
-                <Undo2 className="h-4 w-4 mr-2" />
-                Undo all changes
-              </Button>
-              <Button
-                onClick={saveDraftAttachments}
-                disabled={attachToPartnersMutation.isPending}
-                className="bg-[#16a34a] hover:bg-[#15803d] text-white"
-              >
-                {attachToPartnersMutation.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Saving...
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save all {countPendingChanges()} new partner relation{countPendingChanges() === 1 ? '' : 's'}
-                  </>
-                )}
-              </Button>
+      {(() => {
+        const pendingCount = countPendingChanges();
+        console.log('Draft state check:', {
+          pendingCount,
+          customerAttachments: draftAttachments.customerAttachments,
+          contactAttachments: draftAttachments.contactAttachments
+        });
+        
+        return pendingCount > 0 ? (
+          <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="h-2 w-2 bg-orange-500 rounded-full"></div>
+                <span className="text-sm text-gray-700">
+                  You have {pendingCount} pending partner attachment change(s)
+                </span>
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  onClick={undoDraftChanges}
+                  className="text-gray-700 border-gray-300 hover:bg-gray-100"
+                >
+                  <Undo2 className="h-4 w-4 mr-2" />
+                  Undo all changes
+                </Button>
+                <Button
+                  onClick={saveDraftAttachments}
+                  disabled={attachToPartnersMutation.isPending}
+                  className="bg-[#16a34a] hover:bg-[#15803d] text-white"
+                >
+                  {attachToPartnersMutation.isPending ? (
+                    <>
+                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="h-4 w-4 mr-2" />
+                      Save all {pendingCount} new partner relation{pendingCount === 1 ? '' : 's'}
+                    </>
+                  )}
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        ) : null;
+      })()}
 
       {/* Attach to Partners Modal */}
       <Dialog open={showAttachmentModal} onOpenChange={resetModalState}>
