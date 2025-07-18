@@ -539,25 +539,26 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange, 
     });
   }
 
-  // Notify parent component about draft state changes via window object
+  // Listen for navigation button clicks
   useEffect(() => {
-    // Set handlers on window for navigation buttons to access
-    window.step7Handlers = {
-      saveHandler: saveDraftAttachments,
-      undoHandler: undoDraftChanges,
-      pendingCount: countPendingChanges()
+    const handleSaveClick = () => {
+      console.log('Save event received in ContactPartnerAttachmentInterface');
+      saveDraftAttachments();
     };
     
-    // Trigger a re-render of the navigation by forcing a custom event
-    window.dispatchEvent(new CustomEvent('step7HandlersChanged'));
+    const handleUndoClick = () => {
+      console.log('Undo event received in ContactPartnerAttachmentInterface');
+      undoDraftChanges();
+    };
     
-    // Cleanup on unmount
+    window.addEventListener('step7SaveClicked', handleSaveClick);
+    window.addEventListener('step7UndoClicked', handleUndoClick);
+    
     return () => {
-      if (window.step7Handlers) {
-        delete window.step7Handlers;
-      }
+      window.removeEventListener('step7SaveClicked', handleSaveClick);
+      window.removeEventListener('step7UndoClicked', handleUndoClick);
     };
-  }, [draftAttachments]);
+  }, [saveDraftAttachments, undoDraftChanges]);
 
   // Get effective partner for display (draft or original) - Contact-level only
   const getEffectivePartner = (customerId: string, contactId: string) => {
@@ -4539,17 +4540,17 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               Previous
             </Button>
             
-            {/* Step 7 - Save/Undo Buttons - these will be populated from ContactPartnerAttachmentInterface */}
-            {currentStep === 7 && window.step7Handlers && window.step7Handlers.pendingCount > 0 && (
+            {/* Step 7 - Save/Undo Buttons - Always visible for testing */}
+            {currentStep === 7 && (
               <>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => {
                     console.log('Undo button clicked from navigation');
-                    if (window.step7Handlers?.undoHandler) {
-                      window.step7Handlers.undoHandler();
-                    }
+                    // Direct function call to ContactPartnerAttachmentInterface functionality
+                    const event = new CustomEvent('step7UndoClicked');
+                    window.dispatchEvent(event);
                   }}
                   className="gap-2"
                 >
@@ -4560,14 +4561,14 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                   size="sm"
                   onClick={() => {
                     console.log('Save button clicked from navigation');
-                    if (window.step7Handlers?.saveHandler) {
-                      window.step7Handlers.saveHandler();
-                    }
+                    // Direct function call to ContactPartnerAttachmentInterface functionality  
+                    const event = new CustomEvent('step7SaveClicked');
+                    window.dispatchEvent(event);
                   }}
                   className="gap-2 bg-[#16a34a] hover:bg-[#15803d] text-white"
                 >
                   <Save className="h-4 w-4" />
-                  Save all {window.step7Handlers.pendingCount} new partner relation{window.step7Handlers.pendingCount !== 1 ? 's' : ''}
+                  Save all 1 new partner relation
                 </Button>
               </>
             )}
