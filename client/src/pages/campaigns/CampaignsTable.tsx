@@ -173,6 +173,49 @@ const getStatusConfig = (campaign: any) => {
   }
 };
 
+const getPartnerStatusConfig = (campaign: any) => {
+  const partnerStatus = campaign.partner_status || 'not_shared';
+  
+  switch (partnerStatus) {
+    case 'not_shared':
+      return {
+        color: 'bg-gray-100 text-gray-800 border-gray-200',
+        icon: Users,
+        label: 'Not Shared'
+      };
+    case 'shared_with_partner':
+      return {
+        color: 'bg-blue-100 text-blue-800 border-blue-200',
+        icon: Users,
+        label: 'Shared with Partner'
+      };
+    case 'campaign_running':
+      return {
+        color: 'bg-green-100 text-green-800 border-green-200',
+        icon: Play,
+        label: 'Campaign Running'
+      };
+    case 'campaign_finished':
+      return {
+        color: 'bg-purple-100 text-purple-800 border-purple-200',
+        icon: CheckCircle,
+        label: 'Campaign Finished'
+      };
+    case 'campaign_paused':
+      return {
+        color: 'bg-orange-100 text-orange-800 border-orange-200',
+        icon: Pause,
+        label: 'Campaign Paused'
+      };
+    default:
+      return {
+        color: 'bg-gray-100 text-gray-800 border-gray-200',
+        icon: Users,
+        label: 'Not Shared'
+      };
+  }
+};
+
 
 
 const getEntityColor = (entityType: string) => {
@@ -413,6 +456,15 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
               Status
             </SortableTableHead>
             <SortableTableHead 
+              sortKey="partner_status" 
+              currentSortKey={sortField} 
+              currentDirection={sortDirection} 
+              onSort={handleSort} 
+              className="w-[160px] min-w-[160px]"
+            >
+              Partner Status
+            </SortableTableHead>
+            <SortableTableHead 
               sortKey="target_entity_type" 
               currentSortKey={sortField} 
               currentDirection={sortDirection} 
@@ -530,6 +582,22 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
                     }
                     
                     return statusBadge;
+                  })()}
+                </td>
+                <td className="px-3 py-4 text-sm w-[160px]">
+                  {(() => {
+                    const partnerStatusConfig = getPartnerStatusConfig(campaign);
+                    const PartnerStatusIcon = partnerStatusConfig.icon;
+                    
+                    return (
+                      <Badge
+                        variant="outline"
+                        className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium border ${partnerStatusConfig.color}`}
+                      >
+                        <PartnerStatusIcon className="w-3 h-3" />
+                        {partnerStatusConfig.label}
+                      </Badge>
+                    );
                   })()}
                 </td>
                 <td className="px-3 py-4 text-sm w-[120px]">

@@ -10376,7 +10376,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
                     (cs.shared_with_type = 'partner' AND cs.shared_with_id = $3::integer AND cs.is_active = true)
                   )
                 )
-                SELECT c.id, c.name, c.description, c.type, c.category, c.status, 
+                SELECT c.id, c.name, c.description, c.type, c.category, c.status, c.partner_status,
                        c.created_by_id, c.sponsor_id, c.list_id, c.subject, c.email_body, 
                        c.email_logo, c.from_name, c.from_email, c.scheduled_time, 
                        c.frequency, c.is_shared, c.is_template, c.tags, c.created_at, 
@@ -10408,6 +10408,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
             type: campaign.type || 'cross_sell',
             description: campaign.description || '',
             status: campaign.status || 'draft',
+            partner_status: campaign.partner_status || 'not_shared',
             created_by_id: campaign.created_by_id,
             created_by_name: campaign.created_by_name || 'Unknown User',
             created_at: campaign.created_at,
@@ -10685,6 +10686,15 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
               DO UPDATE SET updated_at = NOW()
               RETURNING *
             `, flatValues);
+            
+            // Update partner_status for all shared campaigns
+            for (const campaignId of campaignIds) {
+              await pool.query(`
+                UPDATE ${envId}.campaigns 
+                SET partner_status = 'shared_with_partner', updated_at = NOW()
+                WHERE id = $1
+              `, [parseInt(campaignId)]);
+            }
             
             res.json({ 
               message: 'Campaigns shared successfully', 

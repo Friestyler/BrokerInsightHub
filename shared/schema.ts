@@ -1203,6 +1203,7 @@ export const campaigns = pgTable("campaigns", {
   partner_id: integer("partner_id"), // ID of the partner this campaign is associated with
   environment_id: text("environment_id"), // environment this campaign belongs to (e.g., "degoudse")
   status: text("status").notNull().default("draft"), // draft, scheduled, in_progress, sent, archived
+  partner_status: text("partner_status").default("not_shared"), // not_shared, shared_with_partner, campaign_running, campaign_finished, campaign_paused
   created_by: integer("created_by").notNull().references(() => users.id),
   created_at: timestamp("created_at").notNull().defaultNow(),
   updated_at: timestamp("updated_at").notNull().defaultNow(),
@@ -1240,6 +1241,7 @@ export const campaignAssignments = pgTable("campaign_assignments", {
   assigned_at: timestamp("assigned_at").notNull().defaultNow(),
   access_level: text("access_level").notNull().default("edit"), // view, edit, admin
   status: text("status").notNull().default("active"), // active, inactive, revoked
+  partner_status: text("partner_status").default("shared_with_partner"), // shared_with_partner, campaign_running, campaign_finished, campaign_paused
   notes: text("notes"),
   created_at: timestamp("created_at").notNull().defaultNow(),
   updated_at: timestamp("updated_at").notNull().defaultNow(),
