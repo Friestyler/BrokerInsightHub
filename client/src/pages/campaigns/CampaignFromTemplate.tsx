@@ -1402,22 +1402,29 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         </div>
       )}
 
-      {/* Save and Undo Buttons */}
+      {/* Save and Undo Buttons - ALWAYS VISIBLE FOR DEBUGGING */}
       {(() => {
         const pendingCount = countPendingChanges();
+        console.log('=== SAVE/UNDO BUTTONS DEBUG ===');
         console.log('Draft state check:', {
           pendingCount,
           customerAttachments: draftAttachments.customerAttachments,
           contactAttachments: draftAttachments.contactAttachments
         });
+        console.log('Should show buttons:', pendingCount > 0);
         
-        return pendingCount > 0 ? (
-          <div className="mt-6 p-4 bg-gray-50 border border-gray-200 rounded-lg">
+        // TEMPORARILY ALWAYS SHOW BUTTONS FOR DEBUGGING
+        return (
+          <div className="mt-6 p-4 bg-orange-100 border-2 border-orange-400 rounded-lg" style={{
+            position: 'relative',
+            zIndex: 1000,
+            minHeight: '80px'
+          }}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 bg-orange-500 rounded-full"></div>
                 <span className="text-sm text-gray-700">
-                  You have {pendingCount} pending partner attachment change(s)
+                  DEBUG: You have {pendingCount} pending partner attachment change(s)
                 </span>
               </div>
               <div className="flex gap-2">
@@ -1449,7 +1456,7 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
               </div>
             </div>
           </div>
-        ) : null;
+        );
       })()}
 
       {/* Attach to Partners Modal */}
