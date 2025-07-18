@@ -1899,6 +1899,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     objective: '',
     icon: 'target',
     attachments: [],
+    partnerCollaboration: false, // Add partner collaboration flag
     emails: [{
       id: '1',
       subject: '',
@@ -3126,7 +3127,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     }
   };
 
-  const steps = [
+  const baseSteps = [
     {
       number: 1,
       title: 'Campaign Details',
@@ -3162,20 +3163,27 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       title: 'Drafts & Send',
       description: getStepDescription(6),
       component: 'drafts'
-    },
+    }
+  ];
+
+  const collaborationSteps = [
     {
       number: 7,
       title: 'Attach (optional)',
       description: getStepDescription(7),
-      component: 'share'
+      component: 'share',
+      isCollaborationStep: true
     },
     {
       number: 8,
       title: 'Summary',
       description: getStepDescription(8),
-      component: 'summary'
+      component: 'summary',
+      isCollaborationStep: true
     }
   ];
+
+  const steps = campaignData.partnerCollaboration ? [...baseSteps, ...collaborationSteps] : baseSteps;
 
   const totalSteps = steps.length;
   const progress = (currentStep / totalSteps) * 100;
@@ -3203,6 +3211,12 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   };
 
   const isStepAccessible = (stepNum: number): boolean => {
+    // Check if collaboration steps are enabled
+    const isCollaborationStep = stepNum >= 7;
+    if (isCollaborationStep && !campaignData.partnerCollaboration) {
+      return false; // Collaboration steps are not accessible when feature is disabled
+    }
+    
     // In edit mode or when using a template, make all steps accessible up to the current + 1
     if (isEditingCampaign || isFromTemplate) {
       // For editing campaigns and templates, allow navigation to all steps that are completed or within reasonable bounds
@@ -3212,8 +3226,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       if (stepNum === 4) return isStepCompleted(3);
       if (stepNum === 5) return isStepCompleted(4);
       if (stepNum === 6) return isStepCompleted(5);
-      if (stepNum === 7) return isStepCompleted(6);
-      if (stepNum === 8) return isStepCompleted(6); // Step 8 is accessible after Step 6 is completed
+      if (stepNum === 7) return isStepCompleted(6) && campaignData.partnerCollaboration;
+      if (stepNum === 8) return isStepCompleted(6) && campaignData.partnerCollaboration; // Step 8 is accessible after Step 6 is completed
       return false;
     }
     
@@ -3224,8 +3238,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     if (stepNum === 4) return isStepCompleted(3); // Recipients after Flow Builder
     if (stepNum === 5) return isStepCompleted(4); // Settings after Recipients
     if (stepNum === 6) return isStepCompleted(5); // Drafts after Settings
-    if (stepNum === 7) return isStepCompleted(6); // Share or Send after Drafts
-    if (stepNum === 8) return isStepCompleted(6); // Summary after Drafts
+    if (stepNum === 7) return isStepCompleted(6) && campaignData.partnerCollaboration; // Share or Send after Drafts (only if collaboration enabled)
+    if (stepNum === 8) return isStepCompleted(6) && campaignData.partnerCollaboration; // Summary after Drafts (only if collaboration enabled)
     return false;
   };
 
@@ -3344,6 +3358,34 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                     </button>
                   ))}
                 </div>
+              </div>
+
+              {/* Partner Collaboration Checkbox */}
+              <div className="border-t pt-6">
+                <div className="flex items-center space-x-3">
+                  <input
+                    id="partner-collaboration"
+                    type="checkbox"
+                    checked={Boolean(campaignData.partnerCollaboration)}
+                    onChange={(e) => {
+                      const newValue = e.target.checked;
+                      setCampaignData({ ...campaignData, partnerCollaboration: newValue });
+                      
+                      // If turning off collaboration while on step 7 or 8, redirect to step 6
+                      if (!newValue && currentStep >= 7) {
+                        setCurrentStep(6);
+                        updateUrlStep(6);
+                      }
+                    }}
+                    className="h-4 w-4 text-[#5567E5] focus:ring-[#5567E5] border-gray-300 rounded"
+                  />
+                  <label htmlFor="partner-collaboration" className="text-sm font-medium text-gray-700">
+                    Collaboration with Partners
+                  </label>
+                </div>
+                <p className="text-xs text-gray-500 mt-1 ml-7">
+                  Enable this to share your campaign with partners and allow them to customize it for their contacts
+                </p>
               </div>
             </div>
           </div>
@@ -4574,9 +4616,9 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 <div 
                   className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium transition-all cursor-pointer relative ${
                     isStepCompleted(step.number) 
-                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      ? (step.isCollaborationStep ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-blue-600 text-white hover:bg-blue-700')
                       : currentStep === step.number 
-                        ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-50' 
+                        ? (step.isCollaborationStep ? 'bg-purple-100 text-purple-600 ring-2 ring-purple-50' : 'bg-blue-100 text-blue-600 ring-2 ring-blue-50')
                         : isStepAccessible(step.number)
                           ? 'bg-gray-200 text-gray-500 hover:bg-gray-300'
                           : 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-60'
@@ -4594,9 +4636,16 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 {/* Step Text */}
                 <div className="mt-1 text-center">
                   <p className={`text-xs font-medium ${
-                    currentStep === step.number ? 'text-blue-600' : 'text-gray-900'
+                    currentStep === step.number 
+                      ? (step.isCollaborationStep ? 'text-purple-600' : 'text-blue-600')
+                      : step.isCollaborationStep 
+                        ? 'text-purple-900' 
+                        : 'text-gray-900'
                   }`}>{step.title}</p>
                   <p className="text-xs text-gray-500 mt-0">{step.description}</p>
+                  {step.isCollaborationStep && (
+                    <p className="text-xs text-purple-600 mt-0.5 font-medium">Partner Feature</p>
+                  )}
                 </div>
               </div>
             ))}
