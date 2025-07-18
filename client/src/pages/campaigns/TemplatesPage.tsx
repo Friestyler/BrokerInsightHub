@@ -21,8 +21,7 @@ interface EmailTemplate {
 
 export default function TemplatesPage() {
   const [, setLocation] = useLocation();
-  const [selectedEntityFilter, setSelectedEntityFilter] = useState<string>('all');
-  const [selectedCategoryFilter, setSelectedCategoryFilter] = useState<string>('all');
+  const [selectedFilter, setSelectedFilter] = useState<string>('all');
   
   const { data: templates, isLoading } = useQuery<EmailTemplate[]>({
     queryKey: ['/api/campaign-templates']
@@ -30,48 +29,10 @@ export default function TemplatesPage() {
 
   const allTemplates = templates || [];
   
-  // Function to determine category based on template name
-  const getCategoryFromName = (name: string): string => {
-    const lowerName = name.toLowerCase();
-    
-    if (lowerName.includes('einde termijn ipt')) {
-      return 'life-renewal';
-    }
-    
-    if (lowerName.includes('van pensioenverzekering naar lange termijnsparen')) {
-      return 'life-cross-sell';
-    }
-    
-    if (lowerName.includes('cyber upsell')) {
-      return 'non-life-cross-sell';
-    }
-    
-    if (lowerName.includes('auto + legal campaign')) {
-      return 'auto-legal';
-    }
-    
-    return 'other';
-  };
-  
-  // Filter templates based on selected entity type and category
-  let templateList = selectedEntityFilter === 'all' 
+  // Filter templates based on selected filter
+  let templateList = selectedFilter === 'all' 
     ? allTemplates 
-    : allTemplates.filter(template => template.entity === selectedEntityFilter);
-    
-  // Apply category filter
-  if (selectedCategoryFilter !== 'all') {
-    templateList = templateList.filter(template => 
-      getCategoryFromName(template.name) === selectedCategoryFilter
-    );
-  }
-
-  // Get unique entity types from templates for filter options
-  const entityMap: { [key: string]: boolean } = {};
-  allTemplates.forEach(template => {
-    entityMap[template.entity] = true;
-  });
-  const uniqueEntities = Object.keys(entityMap);
-  const entityTypes = ['all', ...uniqueEntities];
+    : allTemplates.filter(template => template.entity === selectedFilter);
 
   const handleCreateTemplate = () => {
     setLocation('/campaigns/create-template');
@@ -225,33 +186,32 @@ export default function TemplatesPage() {
           Create new template
         </Button>
       </div>
-      {/* Category Filters */}
+      {/* Filters */}
       <div className="space-y-3">
         <div className="flex flex-wrap gap-1">
           {[
-            { id: 'all', label: 'All Templates', icon: Globe },
-            { id: 'life-renewal', label: 'Life renewal (end-term)', icon: Clock },
-            { id: 'life-cross-sell', label: 'Life cross sell', icon: TrendingUp },
-            { id: 'non-life-cross-sell', label: 'Non-life cross sell', icon: Zap },
-            { id: 'auto-legal', label: 'Auto + legal', icon: Car }
-          ].map((category) => {
-            const isActive = selectedCategoryFilter === category.id;
-            const IconComponent = category.icon;
+            { id: 'all', label: 'All campaigns', icon: Globe },
+            { id: 'partners', label: 'Partners', icon: Users },
+            { id: 'customers', label: 'Customers', icon: Building2 },
+            { id: 'opportunities', label: 'Opportunities', icon: Target },
+            { id: 'internal', label: 'Internal', icon: Building }
+          ].map((filter) => {
+            const isActive = selectedFilter === filter.id;
+            const IconComponent = filter.icon;
             
             return (
               <Button
-                key={category.id}
+                key={filter.id}
                 variant="ghost"
-                size="sm"
                 className={`flex items-center gap-2 ${
                   isActive 
-                    ? 'bg-blue-50 text-blue-700 hover:bg-blue-100' 
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                    ? 'bg-[#E1E4FB] text-[#3E4DC4]' 
+                    : 'text-gray-600 hover:bg-[#F5F6FE] hover:text-[#5567E5]'
                 }`}
-                onClick={() => setSelectedCategoryFilter(category.id)}
+                onClick={() => setSelectedFilter(filter.id)}
               >
-                <IconComponent className="h-3 w-3" />
-                {category.label}
+                <IconComponent className="h-4 w-4" />
+                {filter.label}
               </Button>
             );
           })}
