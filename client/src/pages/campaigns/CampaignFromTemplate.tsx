@@ -3460,22 +3460,45 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               
               {/* Collaboration with Partners */}
               <div className="max-w-2xl mx-auto mt-12">
-                <div className="border-2 border-[#5567E5] rounded-lg p-6 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg">
-                  <div className="flex items-start space-x-4">
-                    <input
-                      type="checkbox"
-                      id="collaboration-edit"
-                      checked={campaignData.collaborationEnabled || false}
-                      onChange={(e) => setCampaignData({ ...campaignData, collaborationEnabled: e.target.checked })}
-                      className="w-7 h-7 text-[#5567E5] bg-white border-2 border-[#5567E5] rounded focus:ring-[#5567E5] focus:ring-3 mt-1 shadow-sm"
-                    />
-                    <div className="flex-1">
-                      <label htmlFor="collaboration-edit" className="text-lg font-semibold text-[#5567E5] cursor-pointer">
-                        🤝 Collaboration with Partners
+                <div className="group relative bg-white border border-gray-200 rounded-2xl p-8 shadow-sm hover:shadow-md transition-all duration-300 hover:border-[#5567E5]/30">
+                  {/* Subtle background gradient */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#5567E5]/5 via-transparent to-[#5567E5]/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                  
+                  <div className="relative flex items-start space-x-5">
+                    {/* Custom styled checkbox */}
+                    <div className="relative flex-shrink-0">
+                      <input
+                        type="checkbox"
+                        id="collaboration-edit"
+                        checked={campaignData.collaborationEnabled || false}
+                        onChange={(e) => setCampaignData({ ...campaignData, collaborationEnabled: e.target.checked })}
+                        className="sr-only"
+                      />
+                      <label 
+                        htmlFor="collaboration-edit" 
+                        className="relative flex items-center justify-center w-8 h-8 border-2 border-gray-300 rounded-lg cursor-pointer transition-all duration-200 hover:border-[#5567E5] hover:bg-[#5567E5]/5 group-hover:border-[#5567E5]/60"
+                      >
+                        {campaignData.collaborationEnabled && (
+                          <div className="absolute inset-0 bg-[#5567E5] rounded-lg flex items-center justify-center">
+                            <Check className="h-4 w-4 text-white" />
+                          </div>
+                        )}
                       </label>
-                      <p className="text-sm text-gray-700 mt-2 font-medium">
-                        Enable this to share your campaign with partners and allow them to customize it for their contacts
-                      </p>
+                    </div>
+                    
+                    <div className="flex-1 min-w-0">
+                      <label htmlFor="collaboration-edit" className="cursor-pointer block">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xl">🤝</span>
+                          <h3 className="text-lg font-semibold text-gray-900 group-hover:text-[#5567E5] transition-colors duration-200">
+                            Partner Collaboration
+                          </h3>
+                        </div>
+                        <p className="text-sm text-gray-600 leading-relaxed">
+                          Share your campaign with partners and allow them to customize it for their contacts. 
+                          <span className="text-gray-500"> Adds partner attachment and summary steps.</span>
+                        </p>
+                      </label>
                     </div>
                   </div>
                 </div>
@@ -4609,15 +4632,24 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             {/* Connecting Line Background */}
             <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 z-0" style={{ marginLeft: '4rem', marginRight: '4rem' }} />
             
+            {/* Partner Flow Indicator */}
+            {campaignData.collaborationEnabled && (
+              <div className="absolute top-0 right-0 flex items-center bg-gradient-to-r from-[#5567E5]/10 to-[#5567E5]/5 rounded-lg px-3 py-1 border border-[#5567E5]/20">
+                <span className="text-xs font-medium text-[#5567E5]">🤝 Partner Flow</span>
+              </div>
+            )}
+            
             {steps.map((step, index) => (
-              <div key={step.number} className="flex flex-col items-center flex-1 relative z-10">
+              <div key={step.number} className={`flex flex-col items-center flex-1 relative z-10 ${
+                step.isCollaborationStep ? 'bg-gradient-to-b from-[#5567E5]/5 to-transparent rounded-lg py-1' : ''
+              }`}>
                 {/* Step Circle */}
                 <div 
                   className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium transition-all cursor-pointer relative ${
                     isStepCompleted(step.number) 
-                      ? (step.isCollaborationStep ? 'bg-purple-600 text-white hover:bg-purple-700' : 'bg-blue-600 text-white hover:bg-blue-700')
+                      ? (step.isCollaborationStep ? 'bg-[#5567E5] text-white hover:bg-[#4956D4] shadow-md' : 'bg-blue-600 text-white hover:bg-blue-700')
                       : currentStep === step.number 
-                        ? (step.isCollaborationStep ? 'bg-purple-100 text-purple-600 ring-2 ring-purple-50' : 'bg-blue-100 text-blue-600 ring-2 ring-blue-50')
+                        ? (step.isCollaborationStep ? 'bg-[#5567E5]/10 text-[#5567E5] ring-2 ring-[#5567E5]/20 shadow-sm' : 'bg-blue-100 text-blue-600 ring-2 ring-blue-50')
                         : isStepAccessible(step.number)
                           ? 'bg-gray-200 text-gray-500 hover:bg-gray-300'
                           : 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-60'
@@ -4636,15 +4668,12 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 <div className="mt-1 text-center">
                   <p className={`text-xs font-medium ${
                     currentStep === step.number 
-                      ? (step.isCollaborationStep ? 'text-purple-600' : 'text-blue-600')
+                      ? (step.isCollaborationStep ? 'text-[#5567E5]' : 'text-blue-600')
                       : step.isCollaborationStep 
-                        ? 'text-purple-900' 
+                        ? 'text-[#5567E5]/80' 
                         : 'text-gray-900'
                   }`}>{step.title}</p>
                   <p className="text-xs text-gray-500 mt-0">{step.description}</p>
-                  {step.isCollaborationStep && (
-                    <p className="text-xs text-purple-600 mt-0.5 font-medium">Partner Feature</p>
-                  )}
                 </div>
               </div>
             ))}

@@ -755,22 +755,45 @@ export default function CampaignTemplateCreator() {
             
             {/* Collaboration with Partners */}
             <div className="max-w-2xl mx-auto mt-12">
-              <div className="border-2 border-[#5567E5] rounded-lg p-6 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg">
-                <div className="flex items-start space-x-4">
-                  <input
-                    type="checkbox"
-                    id="collaboration"
-                    checked={campaignData.collaborationEnabled || false}
-                    onChange={(e) => setCampaignData({ ...campaignData, collaborationEnabled: e.target.checked })}
-                    className="w-7 h-7 text-[#5567E5] bg-white border-2 border-[#5567E5] rounded focus:ring-[#5567E5] focus:ring-3 mt-1 shadow-sm"
-                  />
-                  <div className="flex-1">
-                    <label htmlFor="collaboration" className="text-lg font-semibold text-[#5567E5] cursor-pointer">
-                      🤝 Collaboration with Partners
+              <div className="group relative bg-white border border-gray-200 rounded-2xl p-8 shadow-sm hover:shadow-md transition-all duration-300 hover:border-[#5567E5]/30">
+                {/* Subtle background gradient */}
+                <div className="absolute inset-0 bg-gradient-to-br from-[#5567E5]/5 via-transparent to-[#5567E5]/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                
+                <div className="relative flex items-start space-x-5">
+                  {/* Custom styled checkbox */}
+                  <div className="relative flex-shrink-0">
+                    <input
+                      type="checkbox"
+                      id="collaboration"
+                      checked={campaignData.collaborationEnabled || false}
+                      onChange={(e) => setCampaignData({ ...campaignData, collaborationEnabled: e.target.checked })}
+                      className="sr-only"
+                    />
+                    <label 
+                      htmlFor="collaboration" 
+                      className="relative flex items-center justify-center w-8 h-8 border-2 border-gray-300 rounded-lg cursor-pointer transition-all duration-200 hover:border-[#5567E5] hover:bg-[#5567E5]/5 group-hover:border-[#5567E5]/60"
+                    >
+                      {campaignData.collaborationEnabled && (
+                        <div className="absolute inset-0 bg-[#5567E5] rounded-lg flex items-center justify-center">
+                          <Check className="h-4 w-4 text-white" />
+                        </div>
+                      )}
                     </label>
-                    <p className="text-sm text-gray-700 mt-2 font-medium">
-                      Enable this to share your campaign with partners and allow them to customize it for their contacts
-                    </p>
+                  </div>
+                  
+                  <div className="flex-1 min-w-0">
+                    <label htmlFor="collaboration" className="cursor-pointer block">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-xl">🤝</span>
+                        <h3 className="text-lg font-semibold text-gray-900 group-hover:text-[#5567E5] transition-colors duration-200">
+                          Partner Collaboration
+                        </h3>
+                      </div>
+                      <p className="text-sm text-gray-600 leading-relaxed">
+                        Share your campaign with partners and allow them to customize it for their contacts. 
+                        <span className="text-gray-500"> Adds partner attachment and summary steps.</span>
+                      </p>
+                    </label>
                   </div>
                 </div>
               </div>
