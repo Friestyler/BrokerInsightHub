@@ -2541,7 +2541,7 @@ export default function PartnerDetail() {
                   </div>
                 </div>
                 
-                {/* Bottom row with search, views, and filters */}
+                {/* Bottom row with search field only */}
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="flex flex-wrap items-center gap-3 flex-grow">
                     {/* Search field */}
