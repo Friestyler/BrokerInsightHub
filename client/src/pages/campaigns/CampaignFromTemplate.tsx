@@ -933,9 +933,28 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
 
   return (
     <div className="space-y-6">
-
-
-
+      {/* URGENT TEST: Force buttons to top */}
+      <div className="fixed top-0 left-0 w-full bg-red-500 text-white p-4 z-[9999]">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">URGENT TEST: Draft count: {countPendingChanges()}</span>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={undoDraftChanges}
+              className="px-4 py-2 bg-white text-red-500 rounded"
+            >
+              Undo TEST
+            </button>
+            <button
+              onClick={saveDraftAttachments}
+              className="px-4 py-2 bg-green-500 text-white rounded"
+            >
+              Save TEST ({countPendingChanges()})
+            </button>
+          </div>
+        </div>
+      </div>
 
       {/* Status Summary Cards */}
       <div className="grid grid-cols-3 gap-4 mb-6">
