@@ -4969,7 +4969,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               </Button>
             )}
             
-            {/* Step 7 - Save/Undo Buttons - Show only when there are pending changes in Step 7 (never show on Step 8) */}
+            {/* Step 7 - Save/Undo Buttons - Show ONLY on Step 7, NEVER on Step 8 */}
             {currentStep === 7 && step7HasPendingChanges && (
               <>
                 <Button
