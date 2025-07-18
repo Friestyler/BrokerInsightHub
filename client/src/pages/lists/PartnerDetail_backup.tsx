@@ -2209,62 +2209,6 @@ export default function PartnerDetail() {
                   
                   {/* Right-side action buttons */}
                   <div className="flex items-center gap-2">
-                    {/* View Mode Toggle */}
-                    <div className="relative">
-                      <button 
-                        className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white hover:bg-gray-50"
-                        onClick={() => setShowViewModeDropdown(!showViewModeDropdown)}
-                      >
-                        <span className="text-gray-700">
-                          {viewMode === 'list' ? 'Lists' : 'Cards'}
-                        </span>
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          width="14" 
-                          height="14" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2" 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          className={`transition-transform ${showViewModeDropdown ? 'rotate-180' : ''}`}
-                        >
-                          <polyline points="6 9 12 15 18 9" />
-                        </svg>
-                      </button>
-                      
-                      {/* View Mode Dropdown */}
-                      {showViewModeDropdown && (
-                        <div className="absolute right-0 top-full mt-1 w-32 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                          <div className="p-1">
-                            <button
-                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-50 ${
-                                viewMode === 'list' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'
-                              }`}
-                              onClick={() => {
-                                setViewMode('list');
-                                setShowViewModeDropdown(false);
-                              }}
-                            >
-                              Lists
-                            </button>
-                            <button
-                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-50 ${
-                                viewMode === 'cards' ? 'bg-indigo-50 text-indigo-700' : 'text-gray-700'
-                              }`}
-                              onClick={() => {
-                                setViewMode('cards');
-                                setShowViewModeDropdown(false);
-                              }}
-                            >
-                              Cards
-                            </button>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
                     {/* Show Share and Add to Campaign only for user-created lists */}
                     {activeList && (
                       <>
