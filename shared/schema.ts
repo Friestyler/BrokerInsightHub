@@ -534,6 +534,7 @@ export const campaignTemplates = pgTable("campaign_templates", {
   icon: text("icon"),
   status: text("status").notNull().default("draft"), // 'draft', 'published'
   attachments: json("attachments").$type<Array<{id: string, name: string, type: string, size: number}>>().default([]),
+  collaborationEnabled: boolean("collaboration_enabled").notNull().default(false), // enables partner collaboration features
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),

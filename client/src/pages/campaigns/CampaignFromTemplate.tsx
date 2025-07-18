@@ -1899,7 +1899,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     objective: '',
     icon: 'target',
     attachments: [],
-    partnerCollaboration: false, // Add partner collaboration flag
+    partnerCollaboration: false, // Will be set from template data
     emails: [{
       id: '1',
       subject: '',
@@ -2684,6 +2684,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
         objective: templateData.objective || '',
         icon: templateData.icon || '',
         attachments: templateData.attachments || [],
+        partnerCollaboration: templateData.collaborationEnabled || false,
         emails: emails
       }));
       
@@ -3360,33 +3361,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 </div>
               </div>
 
-              {/* Partner Collaboration Checkbox */}
-              <div className="border-t pt-6">
-                <div className="flex items-center space-x-3">
-                  <input
-                    id="partner-collaboration"
-                    type="checkbox"
-                    checked={Boolean(campaignData.partnerCollaboration)}
-                    onChange={(e) => {
-                      const newValue = e.target.checked;
-                      setCampaignData({ ...campaignData, partnerCollaboration: newValue });
-                      
-                      // If turning off collaboration while on step 7 or 8, redirect to step 6
-                      if (!newValue && currentStep >= 7) {
-                        setCurrentStep(6);
-                        updateUrlStep(6);
-                      }
-                    }}
-                    className="h-4 w-4 text-[#5567E5] focus:ring-[#5567E5] border-gray-300 rounded"
-                  />
-                  <label htmlFor="partner-collaboration" className="text-sm font-medium text-gray-700">
-                    Collaboration with Partners
-                  </label>
-                </div>
-                <p className="text-xs text-gray-500 mt-1 ml-7">
-                  Enable this to share your campaign with partners and allow them to customize it for their contacts
-                </p>
-              </div>
+
             </div>
           </div>
         );

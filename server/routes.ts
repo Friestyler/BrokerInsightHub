@@ -11690,7 +11690,8 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         fromName: template.from_name,
         fromEmail: template.from_email,
         scheduledTime: template.scheduled_time,
-        followUpEmails: template.follow_up_emails || []
+        followUpEmails: template.follow_up_emails || [],
+        collaborationEnabled: template.collaboration_enabled
       }));
       
       res.json(templates);
@@ -11746,7 +11747,8 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         follow_up_emails: template.follow_up_emails || [],
         scheduled_time: template.scheduled_time,
         target_entity_type: template.target_entity_type,
-        icon: template.icon
+        icon: template.icon,
+        collaborationEnabled: template.collaboration_enabled
       };
       
       res.json(templateData);
@@ -11760,7 +11762,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
   app.post('/api/:envId/campaign-templates', async (req, res) => {
     try {
       const { envId } = req.params;
-      const { name, description, objective, entity, icon, status, attachments, emails } = req.body;
+      const { name, description, objective, entity, icon, status, attachments, emails, collaborationEnabled } = req.body;
       
       console.log('Campaign template creation request:', { name, description, objective, entity, icon, status, emails: emails?.length });
       
@@ -11776,10 +11778,10 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       
       // Insert template into campaigns table
       const templateResult = await pool.query(`
-        INSERT INTO degoudse.campaigns (name, description, objective, icon, status, is_template, type, created_by_id, target_entity_type)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        INSERT INTO degoudse.campaigns (name, description, objective, icon, status, is_template, type, created_by_id, target_entity_type, collaboration_enabled)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         RETURNING id
-      `, [name, description || '', objective || '', icon, status || 'draft', true, 'email', createdBy, entity]);
+      `, [name, description || '', objective || '', icon, status || 'draft', true, 'email', createdBy, entity, collaborationEnabled || false]);
       
       const templateId = templateResult.rows[0].id;
       
@@ -11819,7 +11821,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
   app.put('/api/:envId/campaign-templates/:id', async (req, res) => {
     try {
       const { envId, id } = req.params;
-      const { name, description, objective, entity, icon, status, attachments, emails } = req.body;
+      const { name, description, objective, entity, icon, status, attachments, emails, collaborationEnabled } = req.body;
       
       await pool.query('BEGIN');
       
@@ -11845,8 +11847,8 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       await pool.query(`
         UPDATE ${envId}.campaigns 
         SET name = $1, description = $2, objective = $3, target_entity_type = $4, icon = $5, status = $6, 
-            subject = $7, email_body = $8, follow_up_emails = $9, updated_at = NOW()
-        WHERE id = $10 AND is_template = true
+            subject = $7, email_body = $8, follow_up_emails = $9, collaboration_enabled = $10, updated_at = NOW()
+        WHERE id = $11 AND is_template = true
       `, [
         name, 
         description, 
@@ -11857,6 +11859,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         emails && emails.length > 0 ? emails[0].subject : '', 
         emailBody, 
         JSON.stringify(followUpEmails), 
+        collaborationEnabled || false,
         id
       ]);
       
