@@ -1892,6 +1892,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const isFromTemplate = !!templateId && !campaignId;
   
   const [campaignData, setCampaignData] = useState({
+    id: undefined, // Add id field to track if campaign is already saved
     name: '',
     entity: '',
     description: '',
@@ -2571,6 +2572,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       });
 
       setCampaignData({
+        id: campaignDataFromAPI.id, // Set the campaign ID from the API
         name: campaignDataFromAPI.name || '',
         entity: campaignDataFromAPI.target_entity_type || '',
         description: campaignDataFromAPI.description || '',
@@ -2746,7 +2748,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   // Update campaign mutation
   const updateCampaignMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch(`/api/degoudse/campaigns/${campaignId}`, {
+      const actualCampaignId = campaignId || campaignData.id;
+      const response = await fetch(`/api/degoudse/campaigns/${actualCampaignId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -2762,10 +2765,11 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     },
     onSuccess: () => {
       // Invalidate campaigns cache to refresh the overview list
+      const actualCampaignId = campaignId || campaignData.id;
       queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
       queryClient.invalidateQueries({ queryKey: ['/api/degoudse/campaigns'] });
-      queryClient.invalidateQueries({ queryKey: [`/api/campaigns/${campaignId}`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/degoudse/campaigns/${campaignId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/campaigns/${actualCampaignId}`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/degoudse/campaigns/${actualCampaignId}`] });
       
       toast({
         title: "Campaign updated successfully!",
@@ -2874,13 +2878,24 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     };
     
     console.log('Campaign payload to be saved:', campaignPayload);
+    console.log('Campaign save debug:', {
+      campaignId: campaignId,
+      campaignDataId: campaignData.id,
+      isEditingCampaign: isEditingCampaign,
+      isNewCampaign: isNewCampaign,
+      isFromTemplate: isFromTemplate
+    });
     
-    if (isEditingCampaign) {
-      // For editing, use the update mutation
-      console.log('Updating existing campaign with ID:', campaignId);
+    // Check if this is an existing campaign (either from URL or already saved)
+    const existingCampaignId = campaignId || campaignData.id;
+    
+    if (existingCampaignId) {
+      // For editing existing campaigns, use the update mutation
+      console.log('Updating existing campaign with ID:', existingCampaignId);
       updateCampaignMutation.mutate(campaignPayload);
     } else {
       // For new campaigns and template-based campaigns
+      console.log('Creating new campaign');
       createCampaignMutation.mutate(campaignPayload);
     }
   };
