@@ -1,0 +1,111 @@
+# User Story: Saved Lists Management
+
+## As a sales manager, I want to manage and interact with my saved opportunity lists so that I can efficiently organize, view, and share different collections of opportunities with my team.
+
+---
+
+## **Acceptance Criteria**
+
+### **📋 List Overview & Organization**
+
+- **GIVEN** I have 15+ saved opportunity lists
+- **WHEN** I view the Saved Lists section
+- **THEN** I should see all lists displayed with their names, opportunity counts, and values
+- **AND** each list should have a unique color theme for visual distinction
+- **AND** I should see trend indicators (+/-%) for each list's performance
+
+
+### **🎨 Visual Design & Color Coding**
+
+- **GIVEN** multiple saved lists exist
+- **WHEN** I view the lists
+- **THEN** each list should have a distinct color scheme (green, blue, purple, orange, etc.)
+- **AND** the selected/active list should be highlighted with a blue ring and colored background
+- **AND** trend indicators should be color-coded (green for positive, red for negative)
+- **AND** status badges should reflect list activity (active, completed, inactive)
+
+
+### **👁️ View Mode Selection**
+
+- **GIVEN** I'm viewing the Saved Lists section
+- **WHEN** I want to change how lists are displayed
+- **THEN** I should see Cards/List toggle buttons next to "Saved Lists" title
+- **AND** I can switch between card view (visual grid) and list view (compact rows)
+- **AND** both views should maintain all functionality (filtering, sharing, actions)
+- **AND** my view preference should persist during the session
+
+
+### **🔽 Collapsible Interface**
+
+- **GIVEN** I want to focus on opportunity details
+- **WHEN** I click the chevron arrow next to "Saved Lists"
+- **THEN** the lists section should collapse, showing only the header
+- **AND** if a list is selected, I should see "Filtered: [List Name]" badge
+- **AND** the view toggle should be hidden when collapsed
+- **AND** I can expand again to access all list management features
+
+
+### **🎯 List Selection & Filtering**
+
+- **GIVEN** I want to view opportunities from a specific list
+- **WHEN** I click on any list card/row
+- **THEN** that list should become visually selected (blue ring + colored background)
+- **AND** the opportunities section below should filter to show only that list's opportunities
+- **AND** the main header should update to show "[List Name] • X opportunities"
+- **AND** the filter should persist even when lists are collapsed
+
+
+### **📤 Instant Sharing**
+
+- **GIVEN** I want to share a specific list with my team
+- **WHEN** I click the "Share" button on any list
+- **THEN** the sharing action should trigger immediately without additional navigation
+- **AND** I should receive confirmation that the list is being shared
+- **AND** the share action should work in both card and list view modes
+- **AND** sharing should not affect the current list selection/filtering
+
+
+### **⚡ Quick Actions**
+
+- **GIVEN** I'm managing multiple lists
+- **WHEN** I interact with list cards/rows
+- **THEN** I should see "View" and "Share" buttons prominently displayed
+- **AND** I should see a "..." menu for additional actions (Edit, Duplicate, Export, Delete)
+- **AND** all actions should be accessible via hover states in card view
+- **AND** actions should be immediately visible in list view
+
+
+### **📱 Responsive Behavior**
+
+- **GIVEN** I'm using different screen sizes
+- **WHEN** I view the saved lists
+- **THEN** the card grid should adapt from 1 to 5 columns based on screen width
+- **AND** the list view should remain functional on mobile devices
+- **AND** all interactive elements should be touch-friendly
+- **AND** the interface should scroll smoothly when there are 15+ lists
+
+
+### **🔍 Visual Feedback**
+
+- **GIVEN** I'm interacting with the lists
+- **WHEN** I hover over cards in card view
+- **THEN** I should see subtle scale animation and shadow effects
+- **AND** action buttons should appear/fade with smooth transitions
+- **WHEN** I hover over rows in list view
+- **THEN** I should see background color change and action button reveals
+- **AND** the selected list should always be clearly distinguishable from others
+
+
+---
+
+## **Definition of Done**
+
+- All 15+ lists display with unique color coding
+- Cards/List view toggle works and is positioned next to "Saved Lists"
+- Collapse/expand functionality works smoothly
+- List selection filters opportunities correctly
+- Share buttons trigger immediate actions
+- Responsive design works across all screen sizes
+- Visual feedback and animations are smooth and intuitive
+- Selected list state persists across view changes and collapse states
+- All interactive elements are accessible and touch-friendly
