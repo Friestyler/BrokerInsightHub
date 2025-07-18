@@ -669,8 +669,27 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
           settings: campaignData.settings || {}
         };
 
-        const savedCampaign = await createCampaignMutation.mutateAsync(campaignPayload);
+        // Create campaign using direct API call since mutation is not in scope
+        const response = await fetch('/api/degoudse/campaigns', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(campaignPayload)
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to create campaign: ${response.statusText}`);
+        }
+        
+        const savedCampaign = await response.json();
         campaignId = savedCampaign.id;
+        
+        // Update local campaign data with new ID
+        setCampaignData(prev => ({
+          ...prev,
+          id: savedCampaign.id
+        }));
         
         console.log('Campaign saved successfully with ID:', campaignId);
       }
