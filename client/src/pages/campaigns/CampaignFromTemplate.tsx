@@ -3191,6 +3191,19 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
   const totalSteps = steps.length;
   const progress = (currentStep / totalSteps) * 100;
+  
+  // Calculate progress line width based on completed steps, not current step
+  const getProgressLineWidth = () => {
+    let completedSteps = 0;
+    for (let i = 1; i <= totalSteps; i++) {
+      if (isStepCompleted(i)) {
+        completedSteps = i;
+      } else {
+        break;
+      }
+    }
+    return completedSteps;
+  };
 
   const isStepCompleted = (stepNum: number): boolean => {
     const step1Complete = Boolean(campaignData.name && campaignData.icon);
@@ -3209,9 +3222,9 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     if (stepNum === 4) return step4Complete;
     if (stepNum === 5) return step5Complete;
     if (stepNum === 6) return step6Complete;
-    if (stepNum === 7) return false; // Attach step - never auto-completed
+    if (stepNum === 7) return currentStep > 7; // Only completed if we've moved past it
     if (stepNum === 8) return false; // Summary step - never auto-completed
-    return false; // Don't auto-complete steps based on current step
+    return false;
   };
 
   const isStepAccessible = (stepNum: number): boolean => {
@@ -4670,7 +4683,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               className="absolute top-4 left-0 h-0.5 bg-blue-600 z-5 transition-all duration-300"
               style={{ 
                 marginLeft: '4rem',
-                width: `calc(${((currentStep - 1) / (steps.length - 1)) * 100}% - 8rem + ${((currentStep - 1) / (steps.length - 1)) * 8}rem)`
+                width: `calc(${((getProgressLineWidth() - 1) / (steps.length - 1)) * 100}% - 8rem + ${((getProgressLineWidth() - 1) / (steps.length - 1)) * 8}rem)`
               }}
             />
           </div>
