@@ -2956,10 +2956,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       
       // Update existing campaign
       console.log('Updating existing campaign with ID:', existingCampaignId);
-      updateCampaignMutation.mutate({
-        campaignId: existingCampaignId,
-        campaignData: campaignPayload
-      });
+      updateCampaignMutation.mutate(campaignPayload);
     } else {
       // Create new campaign
       console.log('Creating new campaign');
@@ -2999,10 +2996,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       };
       
       const existingCampaignId = campaignId || campaignData.id;
-      updateCampaignMutation.mutate({
-        campaignId: existingCampaignId,
-        campaignData: campaignPayload
-      });
+      updateCampaignMutation.mutate(campaignPayload);
       
       setShowAssignedCampaignModal(false);
     }
@@ -3035,10 +3029,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     };
     
     const existingCampaignId = campaignId || campaignData.id;
-    updateCampaignMutation.mutate({
-      campaignId: existingCampaignId,
-      campaignData: campaignPayload
-    });
+    updateCampaignMutation.mutate(campaignPayload);
     
     setShowConfirmationModal(false);
   };
@@ -4880,6 +4871,9 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               </>
             )}
             
+          </div>
+          
+          <div className="flex gap-3 items-center">
             {/* Save Changes Button - Show only for editing campaigns with unsaved changes, excluding step 7 */}
             {isEditingCampaign && hasUnsavedChanges && changeCount > 0 && currentStep !== 7 && (
               <Button
@@ -4893,9 +4887,6 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 {updateCampaignMutation.isPending ? 'Saving...' : `Save ${changeCount} change${changeCount !== 1 ? 's' : ''}`}
               </Button>
             )}
-          </div>
-          
-          <div className="flex gap-3 items-center">
             {/* Send All Button - Show on Drafts step */}
             {currentStep === 6 && (() => {
               // Count all ready contacts across ALL customers in the campaign
