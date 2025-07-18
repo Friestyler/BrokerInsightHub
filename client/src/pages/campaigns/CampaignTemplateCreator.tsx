@@ -421,16 +421,16 @@ export default function CampaignTemplateCreator() {
   const getStepDescription = (stepNumber: number) => {
     switch (stepNumber) {
       case 1:
+        if (campaignData.name) {
+          return `Template: ${campaignData.name}`;
+        }
+        return 'Configure template settings';
+      case 2:
         if (campaignData.entity) {
           const selectedEntity = entityOptions.find(opt => opt.id === campaignData.entity);
           return `Selected: ${selectedEntity?.title}`;
         }
         return 'Select your target audience';
-      case 2:
-        if (campaignData.name) {
-          return `Template: ${campaignData.name}`;
-        }
-        return 'Configure template settings';
       case 3:
         if (campaignData.emails[0].subject) {
           return `Subject: ${campaignData.emails[0].subject.substring(0, 30)}${campaignData.emails[0].subject.length > 30 ? '...' : ''}`;
@@ -444,15 +444,15 @@ export default function CampaignTemplateCreator() {
   const steps = [
     {
       number: 1,
-      title: 'Choose Target Group',
+      title: 'Template Details',
       description: getStepDescription(1),
-      component: 'entity'
+      component: 'details'
     },
     {
       number: 2,
-      title: 'Template Details',
+      title: 'Choose Target Group',
       description: getStepDescription(2),
-      component: 'details'
+      component: 'entity'
     },
     {
       number: 3,
@@ -464,11 +464,11 @@ export default function CampaignTemplateCreator() {
 
   const totalSteps = steps.length;
   
-  // Calculate progress based on step completion and target group selection
+  // Calculate progress based on step completion and template name
   const calculateProgress = () => {
     if (currentStep === 1) {
-      // Step 1: Show 0% if no target group selected, 33% if selected
-      return campaignData.entity ? 33 : 0;
+      // Step 1: Show 0% if no template name, 33% if named
+      return campaignData.name ? 33 : 0;
     } else {
       // For other steps, use normal step-based calculation
       return (currentStep / totalSteps) * 100;
@@ -523,8 +523,8 @@ export default function CampaignTemplateCreator() {
   };
 
   const isStepCompleted = (stepNum: number): boolean => {
-    if (stepNum === 1) return Boolean(campaignData.entity);
-    if (stepNum === 2) return Boolean(campaignData.name && campaignData.icon);
+    if (stepNum === 1) return Boolean(campaignData.name && campaignData.icon);
+    if (stepNum === 2) return Boolean(campaignData.entity);
     if (stepNum === 3) {
       // Check if we have a subject for the first email - blocks are optional for basic validation
       const firstEmail = campaignData.emails[0];
@@ -555,6 +555,80 @@ export default function CampaignTemplateCreator() {
   const renderStepContent = () => {
     switch (currentStep) {
       case 1:
+        return (
+          <div className="space-y-8">
+            <div className="text-center mt-8">
+              <p className="text-gray-600 text-center text-[14px]">Configure your template settings</p>
+            </div>
+            <div className="max-w-2xl mx-auto space-y-6">
+              <div>
+                <Label className="block mb-2">Template Name</Label>
+                <Input
+                  placeholder="Campaign Template"
+                  value={campaignData.name}
+                  onChange={(e) => setCampaignData({ ...campaignData, name: e.target.value })}
+                  className="h-12"
+                />
+              </div>
+              
+              <div>
+                <Label className="block mb-2">Description</Label>
+                <Textarea
+                  placeholder="Brief description of this template's purpose..."
+                  value={campaignData.description}
+                  onChange={(e) => setCampaignData({ ...campaignData, description: e.target.value })}
+                  className="min-h-[100px]"
+                />
+              </div>
+
+              <div>
+                <Label className="block mb-2">Template Objective</Label>
+                <Textarea
+                  placeholder="What outcome should this template achieve?"
+                  value={campaignData.objective}
+                  onChange={(e) => setCampaignData({ ...campaignData, objective: e.target.value })}
+                  className="min-h-[100px]"
+                />
+              </div>
+
+              <div>
+                <Label className="block mb-3">Choose Icon</Label>
+                <div className="grid grid-cols-8 gap-3">
+                  {[
+                    { id: 'heart', icon: Heart, color: 'bg-pink-500' },
+                    { id: 'building2', icon: Building2, color: 'bg-purple-500' },
+                    { id: 'sun', icon: Sun, color: 'bg-orange-500' },
+                    { id: 'car', icon: Car, color: 'bg-blue-500' },
+                    { id: 'calendar', icon: Calendar, color: 'bg-green-500' },
+                    { id: 'shield', icon: Shield, color: 'bg-indigo-500' },
+                    { id: 'star', icon: Star, color: 'bg-purple-500' },
+                    { id: 'mail', icon: Mail, color: 'bg-gray-500' }
+                  ].map((iconOption) => {
+                    const IconComponent = iconOption.icon;
+                    return (
+                      <button
+                        key={iconOption.id}
+                        type="button"
+                        onClick={() => setCampaignData({ ...campaignData, icon: iconOption.id })}
+                        className={`relative p-3 rounded-lg transition-all duration-200 ${
+                          campaignData.icon === iconOption.id 
+                            ? 'ring-2 ring-[#5567E5]' 
+                            : 'hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className={`w-8 h-8 ${iconOption.color} rounded flex items-center justify-center`}>
+                          <IconComponent className="h-4 w-4 text-white" />
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      
+      case 2:
         return (
           <div className="space-y-8">
             <div className="text-center mt-8">
@@ -674,85 +748,6 @@ export default function CampaignTemplateCreator() {
                   </button>
                 );
               })}
-            </div>
-          </div>
-        );
-      
-      case 2:
-        return (
-          <div className="space-y-8">
-            <div className="text-center mt-8">
-              <p className="text-gray-600 text-center text-[14px]">Configure your template settings</p>
-            </div>
-            <div className="max-w-2xl mx-auto space-y-6">
-              <div>
-                <Label className="block mb-2">Template Name</Label>
-                <Input
-                  placeholder={`${entityOptions.find(opt => opt.id === campaignData.entity)?.title} Template`}
-                  value={campaignData.name}
-                  onChange={(e) => setCampaignData({ ...campaignData, name: e.target.value })}
-                  className="h-12"
-                />
-              </div>
-              
-              <div>
-                <Label className="block mb-2">Description</Label>
-                <Textarea
-                  placeholder="Brief description of this template's purpose..."
-                  value={campaignData.description}
-                  onChange={(e) => setCampaignData({ ...campaignData, description: e.target.value })}
-                  className="min-h-[100px]"
-                />
-              </div>
-
-              <div>
-                <Label className="block mb-2">Template Objective</Label>
-                <Textarea
-                  placeholder="What outcome should this template achieve?"
-                  value={campaignData.objective}
-                  onChange={(e) => setCampaignData({ ...campaignData, objective: e.target.value })}
-                  className="min-h-[100px]"
-                />
-              </div>
-
-              <div>
-                <Label className="block mb-3">Choose Icon</Label>
-                <div className="grid grid-cols-8 gap-3">
-                  {[
-                    { id: 'heart', icon: Heart, color: 'bg-pink-500' },
-                    { id: 'building2', icon: Building2, color: 'bg-purple-500' },
-                    { id: 'sun', icon: Sun, color: 'bg-orange-500' },
-                    { id: 'car', icon: Car, color: 'bg-blue-500' },
-                    { id: 'calendar', icon: Calendar, color: 'bg-green-500' },
-                    { id: 'shield', icon: Shield, color: 'bg-indigo-500' },
-                    { id: 'star', icon: Star, color: 'bg-purple-500' },
-                    { id: 'mail', icon: Mail, color: 'bg-gray-500' }
-                  ].map((iconOption) => {
-                    const IconComponent = iconOption.icon;
-                    return (
-                      <button
-                        key={iconOption.id}
-                        type="button"
-                        onClick={() => setCampaignData({ ...campaignData, icon: iconOption.id })}
-                        className={`relative p-3 rounded-lg transition-all duration-200 ${
-                          campaignData.icon === iconOption.id 
-                            ? 'ring-2 ring-[#5567E5]' 
-                            : 'hover:bg-gray-50'
-                        }`}
-                      >
-                        <div className={`w-8 h-8 ${iconOption.color} rounded flex items-center justify-center`}>
-                          <IconComponent className="h-4 w-4 text-white" />
-                        </div>
-                        {campaignData.icon === iconOption.id && (
-                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-[#5567E5] rounded-full flex items-center justify-center">
-                            <Check className="h-2 w-2 text-white" />
-                          </div>
-                        )}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
             </div>
           </div>
         );
