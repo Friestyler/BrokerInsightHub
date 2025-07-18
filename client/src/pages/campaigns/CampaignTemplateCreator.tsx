@@ -634,6 +634,39 @@ export default function CampaignTemplateCreator() {
             <div className="text-center mt-8">
               <p className="text-gray-600 text-center text-[14px] font-normal">Select the type of audience you want to create a template for</p>
             </div>
+            
+            {/* Prominent Collaboration with Partners Section */}
+            <div className="max-w-4xl mx-auto mb-8">
+              <div className="bg-gradient-to-r from-[#5567E5] to-[#667AE6] rounded-2xl p-6 text-white shadow-lg">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-4">
+                    <div className="w-16 h-16 bg-white bg-opacity-20 rounded-2xl flex items-center justify-center">
+                      <Users className="h-8 w-8 text-white" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-bold mb-2">Collaboration with Partners</h3>
+                      <p className="text-blue-100 text-sm leading-relaxed">
+                        Create templates that can be shared with your broker network.<br/>
+                        Enable partners to assign customers and manage campaigns collaboratively.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Sparkles className="h-5 w-5 text-yellow-300" />
+                    <span className="text-sm font-medium bg-white bg-opacity-20 px-3 py-1 rounded-full">
+                      Recommended
+                    </span>
+                  </div>
+                </div>
+                <div className="mt-4 pt-4 border-t border-white border-opacity-20">
+                  <p className="text-blue-100 text-xs">
+                    💡 <strong>Pro tip:</strong> Partner collaboration templates unlock advanced features like customer assignment, 
+                    shared campaign management, and broker-specific customization options in steps 7-8.
+                  </p>
+                </div>
+              </div>
+            </div>
+            
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
               {entityOptions.map((option) => {
                 const isSelected = campaignData.entity === option.id;
