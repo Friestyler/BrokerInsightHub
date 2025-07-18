@@ -641,13 +641,21 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         partnerName: draft.partnerName
       }));
 
-      await attachToPartnersMutation.mutateAsync({
+      const payload = {
         campaignId: campaignData.id.toString(),
         customerAttachments,
         contactAttachments,
-        optimizationFields: optimizationFields,
+        optimizationFields: optimizationFields || [],
         editMode: false
-      });
+      };
+
+      console.log('=== SAVING DRAFT ATTACHMENTS ===');
+      console.log('Campaign ID:', campaignData.id);
+      console.log('Customer attachments:', customerAttachments);
+      console.log('Contact attachments:', contactAttachments);
+      console.log('Full payload:', payload);
+
+      await attachToPartnersMutation.mutateAsync(payload);
 
       // Clear draft state after successful save
       setDraftAttachments({
@@ -661,9 +669,11 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         variant: "default"
       });
     } catch (error) {
+      console.error('=== SAVE DRAFT ATTACHMENTS ERROR ===');
+      console.error('Error:', error);
       toast({
         title: "Save failed",
-        description: "Failed to save partner attachments. Please try again.",
+        description: `Failed to save partner attachments: ${error.message}. Please try again.`,
         variant: "destructive"
       });
     }
@@ -728,6 +738,8 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         partnerId: number;
         partnerName: string;
       }>;
+      optimizationFields?: string[];
+      editMode?: boolean;
     }) => {
       const response = await fetch(`/api/degoudse/campaigns/${attachmentData.campaignId}/attachments`, {
         method: 'POST',
