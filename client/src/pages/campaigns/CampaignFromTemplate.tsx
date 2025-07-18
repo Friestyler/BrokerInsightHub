@@ -3460,20 +3460,20 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               
               {/* Collaboration with Partners */}
               <div className="max-w-2xl mx-auto mt-12">
-                <div className="border border-[#E6E7F1] rounded-lg p-6 bg-white">
+                <div className="border-2 border-[#5567E5] rounded-lg p-6 bg-gradient-to-r from-blue-50 to-indigo-50 shadow-lg">
                   <div className="flex items-start space-x-4">
                     <input
                       type="checkbox"
                       id="collaboration-edit"
                       checked={campaignData.collaborationEnabled || false}
                       onChange={(e) => setCampaignData({ ...campaignData, collaborationEnabled: e.target.checked })}
-                      className="w-6 h-6 text-[#5567E5] bg-white border-gray-300 rounded focus:ring-[#5567E5] focus:ring-2 mt-1"
+                      className="w-7 h-7 text-[#5567E5] bg-white border-2 border-[#5567E5] rounded focus:ring-[#5567E5] focus:ring-3 mt-1 shadow-sm"
                     />
                     <div className="flex-1">
-                      <label htmlFor="collaboration-edit" className="text-base font-medium text-gray-900 cursor-pointer">
-                        Collaboration with Partners
+                      <label htmlFor="collaboration-edit" className="text-lg font-semibold text-[#5567E5] cursor-pointer">
+                        🤝 Collaboration with Partners
                       </label>
-                      <p className="text-sm text-gray-600 mt-2">
+                      <p className="text-sm text-gray-700 mt-2 font-medium">
                         Enable this to share your campaign with partners and allow them to customize it for their contacts
                       </p>
                     </div>
