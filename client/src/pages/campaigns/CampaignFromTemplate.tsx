@@ -1298,21 +1298,21 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
         </div>
       )}
 
-      {/* Save and Undo buttons - only show when there are pending changes */}
+      {/* Save and Undo buttons - ALWAYS VISIBLE FOR DEBUGGING */}
       {(() => {
         const pendingCount = countPendingChanges();
+        console.log('🔥 BUTTON DEBUG - pendingCount:', pendingCount);
+        console.log('🔥 BUTTON DEBUG - draftAttachments:', draftAttachments);
+        console.log('🔥 BUTTON DEBUG - contactAttachments length:', draftAttachments.contactAttachments.length);
         
-        if (pendingCount === 0) {
-          return null;
-        }
-        
+        // FORCE SHOW BUTTONS FOR DEBUGGING
         return (
-          <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="mt-6 p-4 bg-red-100 border-2 border-red-500 rounded-lg">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <div className="h-2 w-2 bg-blue-500 rounded-full"></div>
-                <span className="text-sm text-gray-700">
-                  You have {pendingCount} pending partner attachment change{pendingCount === 1 ? '' : 's'}
+                <div className="h-2 w-2 bg-red-500 rounded-full"></div>
+                <span className="text-sm text-red-700">
+                  DEBUG: pendingCount = {pendingCount}, contactAttachments = {draftAttachments.contactAttachments.length}
                 </span>
               </div>
               <div className="flex gap-2">
@@ -4547,6 +4547,34 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
           </div>
         </div>
       </div>
+
+      {/* FORCED DEBUG BUTTONS AT TOP */}
+      {(() => {
+        const pendingCount = countPendingChanges();
+        return (
+          <div className="w-full px-6 py-2 bg-red-500 text-white font-bold text-center">
+            🔥 DEBUG: pendingCount = {pendingCount}, contactAttachments = {draftAttachments.contactAttachments.length}
+            <div className="flex gap-2 justify-center mt-2">
+              <Button
+                variant="outline"
+                onClick={undoDraftChanges}
+                className="text-red-700 border-red-300 hover:bg-red-100"
+              >
+                <Undo2 className="h-4 w-4 mr-2" />
+                DEBUG UNDO
+              </Button>
+              <Button
+                onClick={saveDraftAttachments}
+                disabled={attachToPartnersMutation.isPending}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                <Save className="h-4 w-4 mr-2" />
+                DEBUG SAVE
+              </Button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Content */}
       <div className="w-full px-6 py-2">
