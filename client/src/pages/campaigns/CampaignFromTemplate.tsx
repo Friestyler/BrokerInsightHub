@@ -434,16 +434,21 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
           groups.get(customerKey).contacts.push(contact);
         }
         
-        // Track attached partners
-        if (recipient.partnerName) {
-          groups.get(customerKey).attachedPartners.add(recipient.partnerName);
-        }
+
       });
     }
     
-    // Check for mixed partners
+    // Check for mixed partners - only check if contacts within a customer group have different partners
     groups.forEach((group) => {
-      if (group.attachedPartners.size > 1) {
+      const contactPartners = new Set();
+      group.contacts.forEach(contact => {
+        if (contact.attachedPartner) {
+          contactPartners.add(contact.attachedPartner);
+        }
+      });
+      
+      // Only mark as mixed if this specific customer group has contacts with different partners
+      if (contactPartners.size > 1) {
         group.mixedPartners = true;
       }
     });
@@ -492,17 +497,11 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
 
   // Apply draft attachment to a contact only
   const applyDraftAttachment = (customerId: string, contactId: string, partnerId: number, partnerName: string) => {
-    console.log('=== APPLY DRAFT ATTACHMENT ===');
-    console.log('Input:', { customerId, contactId, partnerId, partnerName });
-    
     const customer = customerGroups.find(g => 
       g.id.toString() === customerId || g.databaseId?.toString() === customerId
     );
     
-    if (!customer) {
-      console.log('Customer not found:', customerId);
-      return;
-    }
+    if (!customer) return;
 
     // Only handle contact attachments
     const contact = customer.contacts.find(c => 
@@ -510,27 +509,20 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
     );
     
     if (contact) {
-      console.log('Found contact:', contact);
-      setDraftAttachments(prev => {
-        const newState = {
-          ...prev,
-          contactAttachments: [
-            ...prev.contactAttachments.filter(ca => ca.contactId !== contactId),
-            {
-              contactId,
-              customerId,
-              partnerId,
-              partnerName,
-              originalPartnerId: contact.attachedPartnerId,
-              originalPartnerName: contact.attachedPartner
-            }
-          ]
-        };
-        console.log('New draft state:', newState);
-        return newState;
-      });
-    } else {
-      console.log('Contact not found:', contactId);
+      setDraftAttachments(prev => ({
+        ...prev,
+        contactAttachments: [
+          ...prev.contactAttachments.filter(ca => ca.contactId !== contactId),
+          {
+            contactId,
+            customerId,
+            partnerId,
+            partnerName,
+            originalPartnerId: contact.attachedPartnerId,
+            originalPartnerName: contact.attachedPartner
+          }
+        ]
+      }));
     }
   };
 
@@ -1258,17 +1250,11 @@ function ContactPartnerAttachmentInterface({ campaignData, onAttachmentsChange }
       {/* Save and Undo buttons - only show when there are pending changes */}
       {(() => {
         const pendingCount = countPendingChanges();
-        console.log('=== SAVE/UNDO BUTTONS DEBUG ===');
-        console.log('draftAttachments:', draftAttachments);
-        console.log('pendingCount:', pendingCount);
-        console.log('contactAttachments length:', draftAttachments.contactAttachments.length);
         
         if (pendingCount === 0) {
-          console.log('No pending changes, buttons hidden');
           return null;
         }
         
-        console.log('Showing buttons with pendingCount:', pendingCount);
         return (
           <div className="mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-center justify-between">
