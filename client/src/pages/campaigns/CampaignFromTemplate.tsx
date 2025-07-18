@@ -4633,16 +4633,14 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 z-0" style={{ marginLeft: '4rem', marginRight: '4rem' }} />
             
             {steps.map((step, index) => (
-              <div key={step.number} className={`flex flex-col items-center flex-1 relative z-10 ${
-                step.isCollaborationStep && campaignData.collaborationEnabled ? 'bg-gradient-to-b from-[#5567E5]/8 to-[#5567E5]/3 rounded-lg py-2 px-1' : ''
-              }`}>
+              <div key={step.number} className="flex flex-col items-center flex-1 relative z-10">
                 {/* Step Circle */}
                 <div 
                   className={`flex items-center justify-center w-6 h-6 rounded-full text-xs font-medium transition-all cursor-pointer relative ${
                     isStepCompleted(step.number) 
-                      ? (step.isCollaborationStep ? 'bg-[#5567E5] text-white hover:bg-[#4956D4] shadow-md' : 'bg-blue-600 text-white hover:bg-blue-700')
+                      ? 'bg-blue-600 text-white hover:bg-blue-700'
                       : currentStep === step.number 
-                        ? (step.isCollaborationStep ? 'bg-[#5567E5]/10 text-[#5567E5] ring-2 ring-[#5567E5]/20 shadow-sm' : 'bg-blue-100 text-blue-600 ring-2 ring-blue-50')
+                        ? 'bg-blue-100 text-blue-600 ring-2 ring-blue-50'
                         : isStepAccessible(step.number)
                           ? 'bg-gray-200 text-gray-500 hover:bg-gray-300'
                           : 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-60'
@@ -4660,11 +4658,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 {/* Step Text */}
                 <div className="mt-1 text-center">
                   <p className={`text-xs font-medium ${
-                    currentStep === step.number 
-                      ? (step.isCollaborationStep ? 'text-[#5567E5]' : 'text-blue-600')
-                      : step.isCollaborationStep 
-                        ? 'text-[#5567E5]/80' 
-                        : 'text-gray-900'
+                    currentStep === step.number ? 'text-blue-600' : 'text-gray-900'
                   }`}>{step.title}</p>
                   <p className="text-xs text-gray-500 mt-0">{step.description}</p>
                 </div>
