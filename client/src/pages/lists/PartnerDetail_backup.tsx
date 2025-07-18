@@ -1779,35 +1779,9 @@ export default function PartnerDetail() {
                       <span>Saved Lists ({partnerRelevantLists.length})</span>
                     </button>
                   </div>
-                  
-                  {/* Collapsed lists section */}
-                  {!isOpportunitiesListsCollapsed && (
-                    <div className="space-y-2">
-                      <div className="relative" ref={dropdownRef}>
-                        <button 
-                          className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
-                          onClick={() => setShowListsDropdown(!showListsDropdown)}
-                        >
-                          <span className="font-medium text-[#282A3F]">
-                            {activeList ? activeList.name : 'All opportunities'}
-                          </span>
-                          <svg 
-                            xmlns="http://www.w3.org/2000/svg" 
-                            width="14" 
-                            height="14" 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            strokeWidth="2" 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round" 
-                            className={`transition-transform ${showListsDropdown ? 'rotate-180' : ''}`}
-                          >
-                            <polyline points="6 9 12 15 18 9" />
-                          </svg>
-                        </button>
-                        
-                        {showListsDropdown && (
+                      
+                      {/* Dropdown menu */}
+                      {showListsDropdown && (
                         <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                           <div className="p-2">
                             {/* Default "All opportunities" option */}
@@ -1903,10 +1877,9 @@ export default function PartnerDetail() {
                       )}
                     </div>
                   </div>
-                </div>
-                
-                {/* Right-side action buttons */}
-                <div className="flex items-center gap-2">
+                  
+                  {/* Right-side action buttons */}
+                  <div className="flex items-center gap-2">
                     {/* Show Share and Add to Campaign only for user-created lists */}
                     {activeList && (
                       <>
