@@ -167,7 +167,7 @@ export default function PartnerDetail() {
   const [activeView, setActiveView] = useState<any>(null);
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
   const [originalViewFilters, setOriginalViewFilters] = useState<any>(null);
-  const [isEditingList, setIsEditingList] = useState(false);
+
   
   // Stage editing state
   const [editingStageId, setEditingStageId] = useState<number | null>(null);
@@ -239,9 +239,7 @@ export default function PartnerDetail() {
       }));
     }
   };
-  const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
-  const [isSavingList, setIsSavingList] = useState(false);
-  const [editingListId, setEditingListId] = useState<number | null>(null);
+
   const [renderKey, setRenderKey] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const statusDropdownRef = useRef<HTMLDivElement>(null);
@@ -558,91 +556,7 @@ export default function PartnerDetail() {
     }
   });
 
-  // Mutation for updating list members (edit list functionality)
-  const editListMutation = useMutation({
-    mutationFn: async ({ listId, members }: { listId: number, members: number[] }) => {
-      try {
-        // Include the existing list data to preserve other fields
-        const updateData = {
-          name: activeList?.name,
-          description: activeList?.description,
-          members,
-          filters: activeList?.filters || {},
-          is_shared: activeList?.is_shared || false
-        };
-        console.log('Sending edit list request:', { listId, updateData });
-        
-        // Make the API request with environment header
-        const envUrl = `/api/saved-lists/${listId}`;
-        const currentEnv = window.__APP_ENV__ || localStorage.getItem('selectedEnvironment') || 'myqollabi';
-        const finalUrl = currentEnv !== 'myqollabi' ? envUrl.replace('/api/', `/api/${currentEnv}/`) : envUrl;
-        
-        const response = await fetch(finalUrl, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-Environment': currentEnv,
-            'x-environment-id': currentEnv
-          },
-          body: JSON.stringify(updateData),
-          credentials: 'include'
-        });
-        
-        if (!response.ok) {
-          const errorText = await response.text();
-          throw new Error(`${response.status}: ${errorText}`);
-        }
-        
-        const result = await response.json();
-        console.log('Edit list response:', result);
-        return result;
-      } catch (error) {
-        console.error('Edit list request failed:', error);
-        throw error;
-      }
-    },
-    onSuccess: (data) => {
-      console.log('Edit list response:', data);
-      // Invalidate both environment-specific and generic queries
-      const currentEnv = window.__APP_ENV__ || localStorage.getItem('selectedEnvironment') || 'myqollabi';
-      
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities', 'partner', id] });
-      
-      // Environment-specific invalidations
-      if (currentEnv !== 'myqollabi') {
-        queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/saved-lists`] });
-        queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/saved-lists`, 'opportunities', 'partner', id] });
-      }
-      
-      toast({
-        title: "List updated",
-        description: "Your changes to the list have been saved.",
-      });
-      
-      // Only update activeList if we're editing the currently active list
-      if (editingListId === activeList?.id) {
-        setActiveList(data);
-      }
-      
-      // Reset editing state completely
-      setIsEditingList(false);
-      setEditingListId(null);
-      setEditedListMembers([]);
-      setIsSavingList(false);
-      setRenderKey(prev => prev + 1);
-      console.log('=== MUTATION SUCCESS COMPLETE ===');
-    },
-    onError: (error) => {
-      console.error('Edit list mutation error:', error);
-      toast({
-        title: "Error updating list",
-        description: `Failed to update the list: ${error.message || 'Unknown error'}`,
-        variant: "destructive"
-      });
-      setIsSavingList(false);
-    }
-  });
+
 
   // Mutation for creating cross-entity comments
   const createCrossEntityCommentMutation = useMutation({
@@ -845,12 +759,7 @@ export default function PartnerDetail() {
 
   const activeFilterList = getActiveListForFiltering();
   
-  // Initialize edit mode when a list is selected
-  useEffect(() => {
-    if (activeFilterList && isEditingList) {
-      setEditedListMembers(activeFilterList.members || []);
-    }
-  }, [activeFilterList, isEditingList]);
+
 
   // Handle click outside to close filter dropdowns
   useEffect(() => {
@@ -914,7 +823,7 @@ export default function PartnerDetail() {
     }
     
     // If a specific list is selected, filter by its members
-    if (activeFilterList && !isEditingList) {
+    if (activeFilterList) {
       // If the list has members (specific opportunity IDs), only show those
       if (activeFilterList.members && activeFilterList.members.length > 0) {
         return activeFilterList.members.includes(opportunity.id);
@@ -930,46 +839,23 @@ export default function PartnerDetail() {
 
   // Selection helper functions
   const toggleSelectOpportunity = (opportunityId: number) => {
-    if (isEditingList) {
-      // In edit mode, update the edited list members
-      setEditedListMembers(prev => 
-        prev.includes(opportunityId) 
-          ? prev.filter(id => id !== opportunityId)
-          : [...prev, opportunityId]
-      );
-    } else {
-      // Normal selection mode
-      setSelectedOpportunities(prev => 
-        prev.includes(opportunityId) 
-          ? prev.filter(id => id !== opportunityId)
-          : [...prev, opportunityId]
-      );
-    }
+    setSelectedOpportunities(prev => 
+      prev.includes(opportunityId) 
+        ? prev.filter(id => id !== opportunityId)
+        : [...prev, opportunityId]
+    );
   };
 
   // Helper function to check if an opportunity is selected
   const isOpportunitySelected = (opportunityId: number) => {
-    if (isEditingList) {
-      return editedListMembers.includes(opportunityId);
-    }
     return selectedOpportunities.includes(opportunityId);
   };
 
   const toggleSelectAll = () => {
-    if (isEditingList) {
-      // In edit mode, toggle all opportunities in/out of the list
-      if (editedListMembers.length === filteredOpportunities.length && filteredOpportunities.length > 0) {
-        setEditedListMembers([]);
-      } else {
-        setEditedListMembers(filteredOpportunities.map(opp => opp.id));
-      }
+    if (selectedOpportunities.length === filteredOpportunities.length && filteredOpportunities.length > 0) {
+      setSelectedOpportunities([]);
     } else {
-      // Normal selection mode
-      if (selectedOpportunities.length === filteredOpportunities.length && filteredOpportunities.length > 0) {
-        setSelectedOpportunities([]);
-      } else {
-        setSelectedOpportunities(filteredOpportunities.map(opp => opp.id));
-      }
+      setSelectedOpportunities(filteredOpportunities.map(opp => opp.id));
     }
   };
 
@@ -1778,13 +1664,10 @@ export default function PartnerDetail() {
                   <div className="relative">
                     <button 
                       ref={viewsButtonRef}
-                      className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white ${isEditingList ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                      className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white hover:bg-gray-50"
                       onClick={() => {
-                        if (!isEditingList) {
-                          setShowViewsDropdown(!showViewsDropdown);
-                        }
+                        setShowViewsDropdown(!showViewsDropdown);
                       }}
-                      disabled={isEditingList}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
                         <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
@@ -2429,160 +2312,51 @@ export default function PartnerDetail() {
                       </>
                     )}
                     
-                    {/* Edit list button only appears when a specific list is active */}
-                    {activeList && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-gray-600"
-                        onClick={() => {
-                          setIsEditingList(!isEditingList);
-                          if (!isEditingList) {
-                            setEditingListId(activeList.id);
-                            setEditedListMembers([...activeList.members]);
-                          } else {
-                            setEditingListId(null);
-                            setEditedListMembers([]);
-                          }
-                        }}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                        </svg>
-                        {isEditingList ? 'Cancel' : 'Edit list'}
-                      </Button>
-                    )}
+
                   </div>
                   
-                  {/* Edit list functionality */}
-                  <div className="flex items-center gap-2">
-                    {/* Edit list button - only shown for non-default lists */}
-                    {activeList && (
-                      <>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          className={`text-indigo-600 ${isEditingList ? 'opacity-50 cursor-not-allowed' : ''}`}
-                          onClick={() => {
-                            if (isEditingList) {
-                              // Cancel edit mode
-                              setIsEditingList(false);
-                              setEditingListId(null);
-                              setEditedListMembers([]);
-                            } else {
-                              // Enter edit mode - use fresh list data
-                              const freshList = activeFilterList || activeList;
-                              console.log('Entering edit mode with fresh list:', freshList);
-                              setIsEditingList(true);
-                              setEditingListId(freshList?.id || null);
-                              setEditedListMembers(freshList?.members || []);
-                            }
-                          }}
-                          disabled={isSavingList}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                          </svg>
-                          {isEditingList ? 'Cancel' : 'Edit list'}
-                        </Button>
-                        
-                        {/* Save button - only visible in edit mode */}
-                        {isEditingList && (
-                          <Button 
-                            variant="default" 
-                            size="sm" 
-                            className="bg-indigo-600 hover:bg-indigo-700"
-                            onClick={() => {
-                              if (editingListId) {
-                                setIsSavingList(true);
-                                editListMutation.mutate({
-                                  listId: editingListId,
-                                  members: editedListMembers
-                                });
-                              }
-                            }}
-                            disabled={isSavingList}
-                          >
-                            {isSavingList ? (
-                              <>
-                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                </svg>
-                                Saving...
-                              </>
-                            ) : (
-                              <>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                                  <polyline points="7 3 7 8 15 8"></polyline>
-                                </svg>
-                                Save changes
-                              </>
-                            )}
-                          </Button>
-                        )}
-                      </>
-                    )}
-                  </div>
+
                 </div>
 
               </div>
             </div>
 
-            {/* Bulk actions bar - only visible when opportunities are selected or editing list */}
-            {(selectedOpportunities.length > 0 || (isEditingList && editedListMembers.length > 0)) && (
+            {/* Bulk actions bar - only visible when opportunities are selected */}
+            {selectedOpportunities.length > 0 && (
               <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
                 <div className="flex items-center">
-                  {isEditingList ? (
-                    <span className="text-indigo-700 font-medium mr-2">
-                      {editedListMembers.length} {editedListMembers.length === 1 ? 'opportunity' : 'opportunities'} in list
-                    </span>
-                  ) : (
-                    <span className="text-indigo-700 font-medium mr-2">
-                      {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected
-                    </span>
-                  )}
+                  <span className="text-indigo-700 font-medium mr-2">
+                    {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected
+                  </span>
                   <Button 
                     variant="ghost" 
                     size="sm"
                     className="text-gray-600"
-                    onClick={() => {
-                      if (isEditingList) {
-                        setEditedListMembers([]);
-                      } else {
-                        setSelectedOpportunities([]);
-                      }
-                    }}
+                    onClick={() => setSelectedOpportunities([])}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                       <path d="M18 6 6 18"></path>
                       <path d="m6 6 12 12"></path>
                     </svg>
-                    {isEditingList ? 'Clear list' : 'Clear selection'}
+                    Clear selection
                   </Button>
                 </div>
                 
-                {/* Show regular actions only when not in edit mode */}
-                {!isEditingList && (
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="text-indigo-600"
-                      onClick={() => setShowSaveListModal(true)}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                        <polyline points="7 3 7 8 15 8"></polyline>
-                      </svg>
-                      Add to list
-                    </Button>
-                  </div>
-                )}
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="text-indigo-600"
+                    onClick={() => setShowSaveListModal(true)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                      <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                      <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    Add to list
+                  </Button>
+                </div>
               </div>
             )}
 
@@ -2630,14 +2404,10 @@ export default function PartnerDetail() {
                   <TableRow>
                     <TableHead className="w-12 group">
                       <div className={`transition-opacity ${
-                        (isEditingList ? editedListMembers.length > 0 : selectedOpportunities.length > 0) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                        selectedOpportunities.length > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                       }`}>
                         <Checkbox 
-                          checked={
-                            isEditingList 
-                              ? editedListMembers.length === filteredOpportunities.length && filteredOpportunities.length > 0
-                              : selectedOpportunities.length === filteredOpportunities.length && filteredOpportunities.length > 0
-                          }
+                          checked={selectedOpportunities.length === filteredOpportunities.length && filteredOpportunities.length > 0}
                           onCheckedChange={toggleSelectAll}
                         />
                       </div>
