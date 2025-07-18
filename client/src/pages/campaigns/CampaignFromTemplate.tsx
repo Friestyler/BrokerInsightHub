@@ -3187,7 +3187,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     }
   ];
 
-  const steps = campaignData.partnerCollaboration ? [...baseSteps, ...collaborationSteps] : baseSteps;
+  const steps = campaignData.collaborationEnabled ? [...baseSteps, ...collaborationSteps] : baseSteps;
 
   const totalSteps = steps.length;
   const progress = (currentStep / totalSteps) * 100;
@@ -3217,7 +3217,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const isStepAccessible = (stepNum: number): boolean => {
     // Check if collaboration steps are enabled
     const isCollaborationStep = stepNum >= 7;
-    if (isCollaborationStep && !campaignData.partnerCollaboration) {
+    if (isCollaborationStep && !campaignData.collaborationEnabled) {
       return false; // Collaboration steps are not accessible when feature is disabled
     }
     
@@ -3230,8 +3230,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       if (stepNum === 4) return isStepCompleted(3);
       if (stepNum === 5) return isStepCompleted(4);
       if (stepNum === 6) return isStepCompleted(5);
-      if (stepNum === 7) return isStepCompleted(6) && campaignData.partnerCollaboration;
-      if (stepNum === 8) return isStepCompleted(6) && campaignData.partnerCollaboration; // Step 8 is accessible after Step 6 is completed
+      if (stepNum === 7) return isStepCompleted(6) && campaignData.collaborationEnabled;
+      if (stepNum === 8) return isStepCompleted(6) && campaignData.collaborationEnabled; // Step 8 is accessible after Step 6 is completed
       return false;
     }
     
@@ -3242,8 +3242,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     if (stepNum === 4) return isStepCompleted(3); // Recipients after Flow Builder
     if (stepNum === 5) return isStepCompleted(4); // Settings after Recipients
     if (stepNum === 6) return isStepCompleted(5); // Drafts after Settings
-    if (stepNum === 7) return isStepCompleted(6) && campaignData.partnerCollaboration; // Share or Send after Drafts (only if collaboration enabled)
-    if (stepNum === 8) return isStepCompleted(6) && campaignData.partnerCollaboration; // Summary after Drafts (only if collaboration enabled)
+    if (stepNum === 7) return isStepCompleted(6) && campaignData.collaborationEnabled; // Share or Send after Drafts (only if collaboration enabled)
+    if (stepNum === 8) return isStepCompleted(6) && campaignData.collaborationEnabled; // Summary after Drafts (only if collaboration enabled)
     return false;
   };
 
