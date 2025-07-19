@@ -549,7 +549,7 @@ export default function PartnerDetail() {
       queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
       toast({
         title: "Segment View Saved",
-        description: "Your opportunities segment view has been saved successfully"
+        description: "Your opportunities segment view with filters and field settings has been saved successfully"
       });
       setShowSaveOpportunityViewModal(false);
       setOpportunityViewNameInput('');
@@ -1817,6 +1817,10 @@ export default function PartnerDetail() {
                             setHasActiveOpportunityFilters(
                               viewFilters.status || viewFilters.stage || viewFilters.size || viewFilters.type
                             );
+                            // Apply the saved view field visibility settings
+                            if (view.field_visibility) {
+                              setOpportunityVisibleFields(view.field_visibility);
+                            }
                             setShowOpportunityViewsDropdown(false);
                           }}
                         >
@@ -2569,15 +2573,14 @@ export default function PartnerDetail() {
                         />
                       </div>
                     </TableHead>
-                    <TableHead>Opportunity</TableHead>
-                    <TableHead>Customer</TableHead>
+                    {opportunityVisibleFields.title && <TableHead>Opportunity</TableHead>}
+                    {opportunityVisibleFields.customer && <TableHead>Customer</TableHead>}
                     <TableHead>Related contacts</TableHead>
-
-                    <TableHead>Start Date</TableHead>
-                    <TableHead>Insurance Description</TableHead>
-                    <TableHead className="w-[180px]">Stage</TableHead>
-                    <TableHead>Value</TableHead>
-                    <TableHead>Close Date</TableHead>
+                    {opportunityVisibleFields.type && <TableHead>Start Date</TableHead>}
+                    {opportunityVisibleFields.type && <TableHead>Insurance Description</TableHead>}
+                    {opportunityVisibleFields.stage && <TableHead className="w-[180px]">Stage</TableHead>}
+                    {opportunityVisibleFields.value && <TableHead>Value</TableHead>}
+                    {opportunityVisibleFields.lastActivity && <TableHead>Close Date</TableHead>}
                     <TableHead className="w-12">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -2594,84 +2597,97 @@ export default function PartnerDetail() {
                           />
                         </div>
                       </TableCell>
-                      <TableCell>
-                        <Link 
-                          href={`/lists/opportunities/${opportunity.id}`}
-                          onClick={() => {
-                            // Store the current partner detail page as the referrer for smart back navigation
-                            sessionStorage.setItem('opportunityReferrer', window.location.pathname);
-                          }}
-                        >
-                          <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
-                            {opportunity.title}
+                      {opportunityVisibleFields.title && (
+                        <TableCell>
+                          <Link 
+                            href={`/lists/opportunities/${opportunity.id}`}
+                            onClick={() => {
+                              // Store the current partner detail page as the referrer for smart back navigation
+                              sessionStorage.setItem('opportunityReferrer', window.location.pathname);
+                            }}
+                          >
+                            <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
+                              {opportunity.title}
+                            </span>
+                          </Link>
+                        </TableCell>
+                      )}
+                      {opportunityVisibleFields.customer && (
+                        <TableCell>
+                          <span className="text-gray-900">
+                            {opportunity.clientName || 'Unknown Customer'}
                           </span>
-                        </Link>
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-gray-900">
-                          {opportunity.clientName || 'Unknown Customer'}
-                        </span>
-                      </TableCell>
+                        </TableCell>
+                      )}
                       <TableCell>
                         <span className="text-gray-600">
                           {opportunity.contactCount || 0}
                         </span>
                       </TableCell>
-
-                      <TableCell>
-                        {opportunity.start_date ? new Date(opportunity.start_date).toLocaleDateString() : 'Not set'}
-                      </TableCell>
-                      <TableCell>
-                        <span className="text-gray-900">
-                          {opportunity.insurance_description || 'No description'}
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        <div className="relative">
-                          {editingStageId === opportunity.id ? (
-                            <div 
-                              ref={(el) => setStageDropdownRef(el)}
-                              className="relative"
-                            >
-                              <div className="absolute top-0 left-0 z-50 bg-white border border-gray-300 rounded-md shadow-lg min-w-[150px]">
-                                {OPPORTUNITY_STAGES.map((stage) => (
-                                  <button
-                                    key={stage}
-                                    className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 first:rounded-t-md last:rounded-b-md ${
-                                      stage === opportunity.stage ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
-                                    }`}
-                                    onClick={() => {
-                                      if (stage !== opportunity.stage) {
-                                        updateOpportunityStage.mutate({
-                                          opportunityId: opportunity.id,
-                                          stage: stage
-                                        });
-                                      } else {
-                                        setEditingStageId(null);
-                                      }
-                                    }}
-                                  >
-                                    {stage}
-                                  </button>
-                                ))}
+                      {opportunityVisibleFields.type && (
+                        <TableCell>
+                          {opportunity.start_date ? new Date(opportunity.start_date).toLocaleDateString() : 'Not set'}
+                        </TableCell>
+                      )}
+                      {opportunityVisibleFields.type && (
+                        <TableCell>
+                          <span className="text-gray-900">
+                            {opportunity.insurance_description || 'No description'}
+                          </span>
+                        </TableCell>
+                      )}
+                      {opportunityVisibleFields.stage && (
+                        <TableCell>
+                          <div className="relative">
+                            {editingStageId === opportunity.id ? (
+                              <div 
+                                ref={(el) => setStageDropdownRef(el)}
+                                className="relative"
+                              >
+                                <div className="absolute top-0 left-0 z-50 bg-white border border-gray-300 rounded-md shadow-lg min-w-[150px]">
+                                  {OPPORTUNITY_STAGES.map((stage) => (
+                                    <button
+                                      key={stage}
+                                      className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 first:rounded-t-md last:rounded-b-md ${
+                                        stage === opportunity.stage ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
+                                      }`}
+                                      onClick={() => {
+                                        if (stage !== opportunity.stage) {
+                                          updateOpportunityStage.mutate({
+                                            opportunityId: opportunity.id,
+                                            stage: stage
+                                          });
+                                        } else {
+                                          setEditingStageId(null);
+                                        }
+                                      }}
+                                    >
+                                      {stage}
+                                    </button>
+                                  ))}
+                                </div>
                               </div>
-                            </div>
-                          ) : (
-                            <button
-                              className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors cursor-pointer"
-                              onClick={() => setEditingStageId(opportunity.id)}
-                            >
-                              {opportunity.stage}
-                            </button>
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        €{opportunity.estimated_value ? Number(opportunity.estimated_value).toLocaleString() : '0'}
-                      </TableCell>
-                      <TableCell>
-                        {opportunity.expected_close_date ? new Date(opportunity.expected_close_date).toLocaleDateString() : 'Not set'}
-                      </TableCell>
+                            ) : (
+                              <button
+                                className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors cursor-pointer"
+                                onClick={() => setEditingStageId(opportunity.id)}
+                              >
+                                {opportunity.stage}
+                              </button>
+                            )}
+                          </div>
+                        </TableCell>
+                      )}
+                      {opportunityVisibleFields.value && (
+                        <TableCell>
+                          €{opportunity.estimated_value ? Number(opportunity.estimated_value).toLocaleString() : '0'}
+                        </TableCell>
+                      )}
+                      {opportunityVisibleFields.lastActivity && (
+                        <TableCell>
+                          {opportunity.expected_close_date ? new Date(opportunity.expected_close_date).toLocaleDateString() : 'Not set'}
+                        </TableCell>
+                      )}
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -4769,7 +4785,7 @@ export default function PartnerDetail() {
           <DialogHeader>
             <DialogTitle>Save as segment view</DialogTitle>
             <DialogDescription className="text-sm text-[#282A3F]">
-              Save your current opportunity filter settings as a segment view that you can easily access later.
+              Save your current opportunity filter settings and field visibility as a segment view that you can easily access later.
             </DialogDescription>
           </DialogHeader>
           
@@ -4787,35 +4803,54 @@ export default function PartnerDetail() {
             </div>
             
             <div className="bg-[#EBEEFB] p-4 rounded-md border border-[#D4D9F3]">
-              <div className="text-sm font-medium mb-2 text-[#282A3F]">Filters saved in this view</div>
+              <div className="text-sm font-medium mb-2 text-[#282A3F]">Settings saved in this view</div>
               <div className="space-y-2">
+                <div className="text-sm font-medium text-[#3E4DC4]">Filters:</div>
                 {opportunityFilters.status !== 'All' && (
-                  <div className="flex items-center text-sm">
-                    <span className="font-medium w-32 text-[#3E4DC4]">Status:</span>
+                  <div className="flex items-center text-sm ml-2">
+                    <span className="font-medium w-20 text-[#3E4DC4]">Status:</span>
                     <span className="text-[#282A3F]">{opportunityFilters.status}</span>
                   </div>
                 )}
                 {opportunityFilters.stage !== 'All' && (
-                  <div className="flex items-center text-sm">
-                    <span className="font-medium w-32 text-[#3E4DC4]">Stage:</span>
+                  <div className="flex items-center text-sm ml-2">
+                    <span className="font-medium w-20 text-[#3E4DC4]">Stage:</span>
                     <span className="text-[#282A3F]">{opportunityFilters.stage}</span>
                   </div>
                 )}
                 {opportunityFilters.size !== 'All' && (
-                  <div className="flex items-center text-sm">
-                    <span className="font-medium w-32 text-[#3E4DC4]">Size:</span>
+                  <div className="flex items-center text-sm ml-2">
+                    <span className="font-medium w-20 text-[#3E4DC4]">Size:</span>
                     <span className="text-[#282A3F]">{opportunityFilters.size}</span>
                   </div>
                 )}
                 {opportunityFilters.type !== 'All' && (
-                  <div className="flex items-center text-sm">
-                    <span className="font-medium w-32 text-[#3E4DC4]">Type:</span>
+                  <div className="flex items-center text-sm ml-2">
+                    <span className="font-medium w-20 text-[#3E4DC4]">Type:</span>
                     <span className="text-[#282A3F]">{opportunityFilters.type}</span>
                   </div>
                 )}
                 {!hasActiveOpportunityFilters && (
-                  <div className="text-sm text-[#5F6585] italic">No filters currently applied</div>
+                  <div className="text-sm text-[#5F6585] italic ml-2">No filters currently applied</div>
                 )}
+                
+                <div className="text-sm font-medium text-[#3E4DC4] mt-3">Visible Fields:</div>
+                <div className="ml-2 text-sm text-[#282A3F]">
+                  {Object.entries(opportunityVisibleFields).filter(([key, visible]) => visible).map(([key]) => {
+                    const fieldNames: { [key: string]: string } = {
+                      title: 'Opportunity',
+                      customer: 'Customer',
+                      stage: 'Stage',
+                      value: 'Value',
+                      priority: 'Priority',
+                      type: 'Type',
+                      size: 'Size',
+                      accountManager: 'Account Manager',
+                      lastActivity: 'Last Activity'
+                    };
+                    return fieldNames[key];
+                  }).join(', ')}
+                </div>
               </div>
             </div>
           </div>
@@ -4837,6 +4872,7 @@ export default function PartnerDetail() {
                     size: opportunityFilters.size !== 'All' ? opportunityFilters.size : undefined,
                     type: opportunityFilters.type !== 'All' ? opportunityFilters.type : undefined
                   },
+                  field_visibility: opportunityVisibleFields,
                   is_shared: false
                 });
               }}
