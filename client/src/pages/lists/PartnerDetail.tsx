@@ -1707,6 +1707,132 @@ export default function PartnerDetail() {
 
         {activeTab === "opportunities" && (
           <div className="space-y-4">
+            {/* Filter Section - positioned below tab separator on the right */}
+            <div className="flex justify-end">
+              <div className="relative" ref={opportunityFilterDropdownRef}>
+                <button
+                  onClick={() => setShowOpportunityFilter(!showOpportunityFilter)}
+                  className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-colors ${
+                    hasActiveOpportunityFilters 
+                      ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                  </svg>
+                  Filter
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${showOpportunityFilter ? 'rotate-180' : ''}`}>
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                </button>
+
+                {showOpportunityFilter && (
+                  <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700 w-16">Where</span>
+                        <select
+                          value={opportunityFilters.status}
+                          onChange={(e) => updateOpportunityFilter('status', e.target.value)}
+                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                        >
+                          <option value="All">Status</option>
+                          {uniqueOpportunityStatuses.map(status => (
+                            <option key={status} value={status}>{status}</option>
+                          ))}
+                        </select>
+                        <span className="text-sm text-gray-500 w-16">equals</span>
+                        <select
+                          value={opportunityFilters.status}
+                          onChange={(e) => updateOpportunityFilter('status', e.target.value)}
+                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                        >
+                          <option value="All">All</option>
+                          {uniqueOpportunityStatuses.map(status => (
+                            <option key={status} value={status}>{status}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700 w-16">And</span>
+                        <select className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+                          <option>Type</option>
+                        </select>
+                        <span className="text-sm text-gray-500 w-16">equals</span>
+                        <select
+                          value={opportunityFilters.type}
+                          onChange={(e) => updateOpportunityFilter('type', e.target.value)}
+                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                        >
+                          <option value="All">All</option>
+                          {uniqueOpportunityTypes.map(type => (
+                            <option key={type} value={type}>{type}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700 w-16">And</span>
+                        <select className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+                          <option>Size</option>
+                        </select>
+                        <span className="text-sm text-gray-500 w-16">equals</span>
+                        <select
+                          value={opportunityFilters.size}
+                          onChange={(e) => updateOpportunityFilter('size', e.target.value)}
+                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                        >
+                          <option value="All">All</option>
+                          {uniqueOpportunitySizes.map(size => (
+                            <option key={size} value={size}>{size}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700 w-16">And</span>
+                        <select className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+                          <option>Stage</option>
+                        </select>
+                        <span className="text-sm text-gray-500 w-16">equals</span>
+                        <select
+                          value={opportunityFilters.stage}
+                          onChange={(e) => updateOpportunityFilter('stage', e.target.value)}
+                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                        >
+                          <option value="All">All</option>
+                          {uniqueOpportunityStatuses.map(stage => (
+                            <option key={stage} value={stage}>{stage}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                        <button
+                          onClick={clearOpportunityFilters}
+                          className="text-sm text-red-600 hover:text-red-700 flex items-center gap-1"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M18 6 6 18"/>
+                            <path d="m6 6 12 12"/>
+                          </svg>
+                          Clear
+                        </button>
+                        <button className="text-sm text-green-600 hover:text-green-700 flex items-center gap-1">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"/>
+                            <line x1="5" y1="12" x2="19" y2="12"/>
+                          </svg>
+                          Add filter
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
 
             {/* Enhanced unified toolbar - same as OpportunitiesPage */}
             <div className="bg-white p-4 rounded-lg shadow-sm">
@@ -2003,148 +2129,21 @@ export default function PartnerDetail() {
                   )}
                 </div>
                 
-                <div className="flex items-center gap-4">
-                  {/* Search opportunities bar */}
-                  <div className="relative w-60">
-                    <input
-                      type="text"
-                      placeholder="Search opportunities..."
-                      value={filterText}
-                      onChange={(e) => setFilterText(e.target.value)}
-                      className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
-                    />
-                    <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                      </svg>
-                    </button>
-                  </div>
-
-                  {/* Opportunities Filter */}
-                  <div className="relative" ref={opportunityFilterDropdownRef}>
-                    <button
-                      onClick={() => setShowOpportunityFilter(!showOpportunityFilter)}
-                      className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-colors ${
-                        hasActiveOpportunityFilters 
-                          ? 'bg-blue-50 border-blue-200 text-blue-700' 
-                          : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                      }`}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-                      </svg>
-                      Filter
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${showOpportunityFilter ? 'rotate-180' : ''}`}>
-                        <polyline points="6 9 12 15 18 9"/>
-                      </svg>
-                    </button>
-
-                    {showOpportunityFilter && (
-                      <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
-                        <div className="space-y-4">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-700 w-16">Where</span>
-                            <select
-                              value={opportunityFilters.status}
-                              onChange={(e) => updateOpportunityFilter('status', e.target.value)}
-                              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
-                            >
-                              <option value="All">Status</option>
-                              {uniqueOpportunityStatuses.map(status => (
-                                <option key={status} value={status}>{status}</option>
-                              ))}
-                            </select>
-                            <span className="text-sm text-gray-500 w-16">equals</span>
-                            <select
-                              value={opportunityFilters.status}
-                              onChange={(e) => updateOpportunityFilter('status', e.target.value)}
-                              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
-                            >
-                              <option value="All">All</option>
-                              {uniqueOpportunityStatuses.map(status => (
-                                <option key={status} value={status}>{status}</option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-700 w-16">And</span>
-                            <select className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
-                              <option>Type</option>
-                            </select>
-                            <span className="text-sm text-gray-500 w-16">equals</span>
-                            <select
-                              value={opportunityFilters.type}
-                              onChange={(e) => updateOpportunityFilter('type', e.target.value)}
-                              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
-                            >
-                              <option value="All">All</option>
-                              {uniqueOpportunityTypes.map(type => (
-                                <option key={type} value={type}>{type}</option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-700 w-16">And</span>
-                            <select className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
-                              <option>Size</option>
-                            </select>
-                            <span className="text-sm text-gray-500 w-16">equals</span>
-                            <select
-                              value={opportunityFilters.size}
-                              onChange={(e) => updateOpportunityFilter('size', e.target.value)}
-                              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
-                            >
-                              <option value="All">All</option>
-                              {uniqueOpportunitySizes.map(size => (
-                                <option key={size} value={size}>{size}</option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-700 w-16">And</span>
-                            <select className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
-                              <option>Stage</option>
-                            </select>
-                            <span className="text-sm text-gray-500 w-16">equals</span>
-                            <select
-                              value={opportunityFilters.stage}
-                              onChange={(e) => updateOpportunityFilter('stage', e.target.value)}
-                              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
-                            >
-                              <option value="All">All</option>
-                              {uniqueOpportunityStatuses.map(stage => (
-                                <option key={stage} value={stage}>{stage}</option>
-                              ))}
-                            </select>
-                          </div>
-
-                          <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-                            <button
-                              onClick={clearOpportunityFilters}
-                              className="text-sm text-red-600 hover:text-red-700 flex items-center gap-1"
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M18 6 6 18"/>
-                                <path d="m6 6 12 12"/>
-                              </svg>
-                              Clear
-                            </button>
-                            <button className="text-sm text-green-600 hover:text-green-700 flex items-center gap-1">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <line x1="12" y1="5" x2="12" y2="19"/>
-                                <line x1="5" y1="12" x2="19" y2="12"/>
-                              </svg>
-                              Add filter
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                  </div>
+                {/* Search opportunities bar */}
+                <div className="relative w-60">
+                  <input
+                    type="text"
+                    placeholder="Search opportunities..."
+                    value={filterText}
+                    onChange={(e) => setFilterText(e.target.value)}
+                    className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+                  />
+                  <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                  </button>
                 </div>
                 
                 {/* Action buttons section - only show when opportunities are selected from the table */}
