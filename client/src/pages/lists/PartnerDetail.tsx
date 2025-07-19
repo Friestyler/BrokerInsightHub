@@ -1968,8 +1968,11 @@ export default function PartnerDetail() {
                     
                     {/* Show selected list when collapsed */}
                     {!showListsDropdown && activeList && (
-                      <div className="bg-gray-100 px-3 py-1 rounded-full">
-                        <span className="text-sm text-gray-700">Filtered: {activeList.name}</span>
+                      <div className="bg-gray-100 px-3 py-1 rounded-full flex items-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600">
+                          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                        </svg>
+                        <span className="text-sm text-gray-700">{activeList.name}</span>
                       </div>
                     )}
                     
