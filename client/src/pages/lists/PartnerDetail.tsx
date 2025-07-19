@@ -136,7 +136,7 @@ export default function PartnerDetail() {
   const [saveListMode, setSaveListMode] = useState<'new' | 'existing'>('new');
   
   // View mode state for opportunities
-  const [viewMode, setViewMode] = useState<'list' | 'cards'>('list');
+  const [viewMode, setViewMode] = useState<'list' | 'cards'>('cards');
   const [showViewModeDropdown, setShowViewModeDropdown] = useState(false);
   
   // Customer-specific state for enhanced unified toolbar
