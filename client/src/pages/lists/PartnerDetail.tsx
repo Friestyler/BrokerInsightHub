@@ -208,12 +208,59 @@ export default function PartnerDetail() {
 
   // Function to detect changes in opportunity view
   const hasOpportunityChanges = () => {
-    if (!activeOpportunityView) return false;
+    // If we have an active view, check against original state
+    if (activeOpportunityView && (originalOpportunityFilters || originalOpportunityVisibleFields)) {
+      const filtersChanged = originalOpportunityFilters && JSON.stringify(opportunityFilters) !== JSON.stringify(originalOpportunityFilters);
+      const fieldsChanged = originalOpportunityVisibleFields && JSON.stringify(opportunityVisibleFields) !== JSON.stringify(originalOpportunityVisibleFields);
+      return filtersChanged || fieldsChanged;
+    }
     
-    const filtersChanged = originalOpportunityFilters && JSON.stringify(opportunityFilters) !== JSON.stringify(originalOpportunityFilters);
-    const fieldsChanged = originalOpportunityVisibleFields && JSON.stringify(opportunityVisibleFields) !== JSON.stringify(originalOpportunityVisibleFields);
+    // If no active view, check if any filters are changed from default "All" state
+    if (!activeOpportunityView) {
+      const hasFilterChanges = opportunityFilters.status !== 'All' || 
+                              opportunityFilters.stage !== 'All' || 
+                              opportunityFilters.size !== 'All' || 
+                              opportunityFilters.type !== 'All';
+      
+      // Check if fields are different from default (all visible except Customer)
+      const defaultFields = {
+        title: true,
+        customer: false,
+        stage: true,
+        value: true,
+        priority: false,
+        type: true,
+        size: true,
+        accountManager: false,
+        lastActivity: false
+      };
+      const hasFieldChanges = JSON.stringify(opportunityVisibleFields) !== JSON.stringify(defaultFields);
+      
+      return hasFilterChanges || hasFieldChanges;
+    }
     
-    return filtersChanged || fieldsChanged;
+    return false;
+  };
+
+  const hasFieldChanges = () => {
+    // If we have an active view, check against original fields
+    if (activeOpportunityView && originalOpportunityVisibleFields) {
+      return JSON.stringify(opportunityVisibleFields) !== JSON.stringify(originalOpportunityVisibleFields);
+    }
+    
+    // If no active view, check against default field state
+    const defaultFields = {
+      title: true,
+      customer: false,
+      stage: true,
+      value: true,
+      priority: false,
+      type: true,
+      size: true,
+      accountManager: false,
+      lastActivity: false
+    };
+    return JSON.stringify(opportunityVisibleFields) !== JSON.stringify(defaultFields);
   };
 
   // Function to save original state when view is applied
@@ -1985,7 +2032,11 @@ export default function PartnerDetail() {
               <div className="relative" ref={opportunityFieldsDropdownRef}>
                 <button
                   onClick={() => setShowOpportunityFieldsDropdown(!showOpportunityFieldsDropdown)}
-                  className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+                  className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-colors ${
+                    hasFieldChanges() 
+                      ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <rect x="3" y="3" width="7" height="7"/>
