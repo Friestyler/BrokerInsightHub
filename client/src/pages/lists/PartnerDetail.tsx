@@ -1844,10 +1844,10 @@ export default function PartnerDetail() {
         )}
 
         {activeTab === "opportunities" && (
-          <div className="space-y-4">
+          <div className="space-y-1">
             {/* Save/Update/Clear View Buttons - Show when any changes detected */}
             {hasOpportunityChanges() && (
-              <div className="flex justify-end items-center gap-2 px-4 pt-2">
+              <div className="flex justify-end items-center gap-2 px-4 py-1">
                 <button
                   onClick={() => {
                     // Reset both filters and fields to original state
@@ -1920,7 +1920,7 @@ export default function PartnerDetail() {
             )}
 
             {/* Filter Section - positioned below tab separator on the right */}
-            <div className="flex justify-end items-center gap-3 px-4">
+            <div className="flex justify-end items-center gap-2 px-4 py-1">
               {/* Segment View Button */}
               <div className="relative">
                 <button 
@@ -2287,12 +2287,12 @@ export default function PartnerDetail() {
             </div>
 
             {/* Enhanced unified toolbar - same as OpportunitiesPage */}
-            <div className="bg-white p-4 rounded-lg shadow-sm">
-              <div className="flex flex-col gap-4">
+            <div className="bg-white px-4 py-2 rounded-lg shadow-sm">
+              <div className="flex flex-col gap-2">
                 {/* Enhanced Saved Lists Section */}
-                <div className="mb-6">
+                <div className="mb-2">
                   {/* Header with chevron and view mode toggle */}
-                  <div className="flex items-center justify-start gap-4 mb-4">
+                  <div className="flex items-center justify-start gap-4 mb-2">
                     <button 
                       className="flex items-center space-x-2 text-lg font-semibold text-gray-900 hover:text-gray-700"
                       onClick={() => setShowListsDropdown(!showListsDropdown)}
@@ -2648,7 +2648,7 @@ export default function PartnerDetail() {
 
             {/* Bulk actions bar - only visible when opportunities are selected */}
             {selectedOpportunities.length > 0 && (
-              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
+              <div className="bg-indigo-50 px-4 py-2 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-2">
                 <div className="flex items-center">
                   <span className="text-indigo-700 font-medium mr-2">
                     {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected
@@ -2686,20 +2686,20 @@ export default function PartnerDetail() {
             )}
 
             {/* Statistics overview cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="bg-white p-4 rounded-md border border-gray-200">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+              <div className="bg-white px-4 py-2 rounded-md border border-gray-200">
                 <div className="text-xl font-semibold text-[#282A3F]">{filteredOpportunities.length}</div>
                 <div className="text-sm text-gray-500">Total Opportunities</div>
               </div>
               
-              <div className="bg-white p-4 rounded-md border border-gray-200">
+              <div className="bg-white px-4 py-2 rounded-md border border-gray-200">
                 <div className="text-xl font-semibold text-[#282A3F]">
                   €{filteredOpportunities.reduce((sum: number, opp: any) => sum + (Number(opp.estimated_value) || 0), 0).toLocaleString()}
                 </div>
                 <div className="text-sm text-gray-500">Total Value Opportunities</div>
               </div>
               
-              <div className="bg-white p-4 rounded-md border border-gray-200">
+              <div className="bg-white px-4 py-2 rounded-md border border-gray-200">
                 <div className="text-xl font-semibold text-[#282A3F]">
                   €{Math.round(filteredOpportunities.reduce((sum: number, opp: any) => {
                     const value = Number(opp.estimated_value) || 0;
@@ -2723,7 +2723,7 @@ export default function PartnerDetail() {
             </div>
 
             {/* Opportunities Table */}
-            <div className="bg-white rounded-lg shadow-sm" id="opportunities-table">
+            <div className="bg-white rounded-lg shadow-sm mt-2" id="opportunities-table">
               <Table>
                 <TableHeader>
                   <TableRow>
