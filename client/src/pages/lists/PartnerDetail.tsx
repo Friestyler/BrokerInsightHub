@@ -1397,8 +1397,8 @@ export default function PartnerDetail() {
           <PartnerActivityHub partnerId={parseInt(id!)} partnerName={partner?.name || 'Partner'} />
 
           {/* Tabs */}
-          <div className="border-b border-gray-200 mt-6">
-            <nav className="flex space-x-2 mb-3">
+          <div className="border-b border-gray-200 mt-2">
+            <nav className="flex space-x-2 mb-1">
               <button 
                 onClick={() => setActiveTab("products")}
                 className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
@@ -1470,7 +1470,7 @@ export default function PartnerDetail() {
         </div>
       )}
       {/* Content area */}
-      <div className="px-6 py-6 bg-white">
+      <div className="px-6 py-2 bg-white">
         {activeTab === "okr-plans" && (
           <div className="space-y-6">
             {/* Filters Section - Exact same as template page */}
