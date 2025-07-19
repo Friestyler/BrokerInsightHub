@@ -2,7 +2,7 @@ import { useState, useEffect, createContext, useContext, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { FieldsDropdown } from '@/components/shared/FieldsDropdown';
+
 
 // Create a context for list editing state
 interface ListEditingContextType {
@@ -329,6 +329,10 @@ function PartnersTable() {
     template: true
   });
   
+  // Fields dropdown state  
+  const [showFieldsDropdown, setShowFieldsDropdown] = useState(false);
+  const fieldsDropdownRef = useRef<HTMLDivElement>(null);
+
   // Field labels for column visibility
   const fieldLabels = {
     name: 'Partner',
@@ -341,6 +345,36 @@ function PartnersTable() {
     contacts: 'Contacts',
     template: 'Template'
   };
+
+  // Check if field selections have changed from default
+  const hasFieldChanges = () => {
+    const defaultFields = {
+      name: true,
+      industry: true,
+      size: true,
+      region: true,
+      status: true,
+      customers: true,
+      opportunities: true,
+      contacts: true,
+      template: true
+    };
+    return JSON.stringify(visibleColumns) !== JSON.stringify(defaultFields);
+  };
+
+  // Close fields dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (fieldsDropdownRef.current && !fieldsDropdownRef.current.contains(event.target as Node)) {
+        setShowFieldsDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
   
   // Dropdown state for filters
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
@@ -1359,12 +1393,130 @@ function PartnersTable() {
               </div>
               
               {/* Fields Dropdown */}
-              <FieldsDropdown
-                visibleFields={visibleColumns}
-                onFieldsChange={setVisibleColumns}
-                fieldLabels={fieldLabels}
-                className="ml-2"
-              />
+              <div ref={fieldsDropdownRef} className="relative ml-2">
+                <button
+                  onClick={() => setShowFieldsDropdown(!showFieldsDropdown)}
+                  className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-colors ${
+                    hasFieldChanges() 
+                      ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2"/>
+                    <path d="M9 3v18"/>
+                    <path d="M15 3v18"/>
+                  </svg>
+                  Fields
+                  <span className="text-xs text-gray-500">
+                    ({Object.values(visibleColumns).filter(Boolean).length}/{Object.keys(visibleColumns).length})
+                  </span>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="12" 
+                    height="12" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round"
+                    className={`transition-transform ${showFieldsDropdown ? 'rotate-180' : ''}`}
+                  >
+                    <path d="m6 9 6 6 6-6"/>
+                  </svg>
+                </button>
+
+                {showFieldsDropdown && (
+                  <div className="absolute right-0 top-full mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                    {/* Header */}
+                    <div className="p-4 border-b border-gray-100">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium text-gray-900">Column Visibility</h3>
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={() => {
+                              const allSelected = Object.values(visibleColumns).every(Boolean);
+                              if (allSelected) {
+                                // Keep name always visible, uncheck others
+                                setVisibleColumns({
+                                  name: true,
+                                  industry: false,
+                                  size: false,
+                                  region: false,
+                                  status: false,
+                                  customers: false,
+                                  opportunities: false,
+                                  contacts: false,
+                                  template: false
+                                });
+                              } else {
+                                // Select all
+                                setVisibleColumns({
+                                  name: true,
+                                  industry: true,
+                                  size: true,
+                                  region: true,
+                                  status: true,
+                                  customers: true,
+                                  opportunities: true,
+                                  contacts: true,
+                                  template: true
+                                });
+                              }
+                            }}
+                            className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                          >
+                            {Object.values(visibleColumns).every(Boolean) ? 'Unselect All' : 'Select All'}
+                          </button>
+                          <button 
+                            onClick={() => {
+                              setVisibleColumns({
+                                name: true,
+                                industry: true,
+                                size: true,
+                                region: true,
+                                status: true,
+                                customers: true,
+                                opportunities: true,
+                                contacts: true,
+                                template: true
+                              });
+                            }}
+                            className="text-xs text-gray-500 hover:text-gray-700"
+                          >
+                            Reset
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Field Options */}
+                    <div className="p-2 max-h-80 overflow-y-auto">
+                      {Object.entries(fieldLabels).map(([key, label]) => (
+                        <label key={key} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={visibleColumns[key as keyof typeof visibleColumns]}
+                            onChange={(e) => {
+                              setVisibleColumns({
+                                ...visibleColumns,
+                                [key]: e.target.checked
+                              });
+                            }}
+                            disabled={key === 'name'} // Keep Partner column always visible
+                            className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded disabled:opacity-50"
+                          />
+                          <span className={`text-sm ${key === 'name' ? 'text-gray-500' : 'text-gray-700'}`}>
+                            {label}
+                            {key === 'name' && <span className="text-xs text-gray-400 ml-1">(always visible)</span>}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
               
               {/* Action buttons - only shown when filters have changed from an existing view or no view is selected */}
               {/* Determine if filters have changed from the active view */}
