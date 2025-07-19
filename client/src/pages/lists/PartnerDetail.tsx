@@ -202,6 +202,32 @@ export default function PartnerDetail() {
   });
   const opportunityFieldsDropdownRef = useRef<HTMLDivElement>(null);
 
+  // Change detection state for opportunities
+  const [originalOpportunityFilters, setOriginalOpportunityFilters] = useState<any>(null);
+  const [originalOpportunityVisibleFields, setOriginalOpportunityVisibleFields] = useState<any>(null);
+
+  // Function to detect changes in opportunity view
+  const hasOpportunityChanges = () => {
+    if (!activeOpportunityView) return false;
+    
+    const filtersChanged = originalOpportunityFilters && JSON.stringify(opportunityFilters) !== JSON.stringify(originalOpportunityFilters);
+    const fieldsChanged = originalOpportunityVisibleFields && JSON.stringify(opportunityVisibleFields) !== JSON.stringify(originalOpportunityVisibleFields);
+    
+    return filtersChanged || fieldsChanged;
+  };
+
+  // Function to save original state when view is applied
+  const saveOriginalOpportunityState = (view: any) => {
+    const viewFilters = view.filters || {};
+    setOriginalOpportunityFilters({
+      status: viewFilters.status || 'All',
+      stage: viewFilters.stage || 'All',
+      size: viewFilters.size || 'All',
+      type: viewFilters.type || 'All'
+    });
+    setOriginalOpportunityVisibleFields(view.field_visibility || opportunityVisibleFields);
+  };
+
   
   // Stage editing state
   const [editingStageId, setEditingStageId] = useState<number | null>(null);
@@ -1821,6 +1847,8 @@ export default function PartnerDetail() {
                             if (view.field_visibility) {
                               setOpportunityVisibleFields(view.field_visibility);
                             }
+                            // Save original state for change detection
+                            saveOriginalOpportunityState(view);
                             setShowOpportunityViewsDropdown(false);
                           }}
                         >
@@ -1853,6 +1881,9 @@ export default function PartnerDetail() {
                               type: 'All'
                             });
                             setHasActiveOpportunityFilters(false);
+                            // Clear change detection state
+                            setOriginalOpportunityFilters(null);
+                            setOriginalOpportunityVisibleFields(null);
                           }}
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
@@ -1866,6 +1897,8 @@ export default function PartnerDetail() {
                   </div>
                 )}
               </div>
+
+
 
               {/* Fields Button */}
               <div className="relative" ref={opportunityFieldsDropdownRef}>

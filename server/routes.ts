@@ -5707,17 +5707,17 @@ Return as JSON in this exact format:
   app.put('/api/degoudse/saved-views/:id', async (req, res) => {
     try {
       const { id } = req.params;
-      const { name, description, filters, is_shared } = req.body;
+      const { name, description, filters, field_visibility, is_shared } = req.body;
       const envPool = pool;
       
-      console.log(`FIXED: Updating saved view ${id} in degoudse:`, { name, filters });
+      console.log(`FIXED: Updating saved view ${id} in degoudse:`, { name, filters, field_visibility });
       
       const result = await envPool.query(`
         UPDATE degoudse.saved_views 
-        SET name = $1, description = $2, filters = $3, is_shared = $4, updated_at = NOW()
-        WHERE id = $5
+        SET name = $1, description = $2, filters = $3, field_visibility = $4, is_shared = $5, updated_at = NOW()
+        WHERE id = $6
         RETURNING *
-      `, [name, description || '', JSON.stringify(filters || {}), is_shared || false, parseInt(id)]);
+      `, [name, description || '', JSON.stringify(filters || {}), JSON.stringify(field_visibility || {}), is_shared || false, parseInt(id)]);
       
       if (result.rows.length === 0) {
         return res.status(404).json({ error: 'Saved view not found' });
