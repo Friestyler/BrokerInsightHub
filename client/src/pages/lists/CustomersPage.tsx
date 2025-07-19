@@ -61,12 +61,26 @@ export default function CustomersPage() {
   const [showFilter, setShowFilter] = useState(false);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
+  const [showFieldsDropdown, setShowFieldsDropdown] = useState(false);
   const [showSaveViewModal, setShowSaveViewModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
   const [activeList, setActiveList] = useState<SavedList | null>(null);
   const [newViewName, setNewViewName] = useState('');
+  
+  // Visible fields state
+  const [visibleFields, setVisibleFields] = useState({
+    name: true,
+    industry: true,
+    size: true,
+    opportunityCount: true,
+    totalValue: true,
+    status: true
+  });
+  
+  // Filter state management
+  const [hasActiveFilters, setHasActiveFilters] = useState(false);
   
   // Form data
   const [customerFormData, setCustomerFormData] = useState({
@@ -135,7 +149,12 @@ export default function CustomersPage() {
 
   // Filter functions
   const updateFilter = (key: keyof CustomerFilters, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
+    const newFilters = { ...filters, [key]: value };
+    setFilters(newFilters);
+    
+    // Check if any filters are active (not 'All')
+    const hasActive = Object.values(newFilters).some(val => val !== 'All');
+    setHasActiveFilters(hasActive);
   };
 
   const clearFilters = () => {
@@ -332,6 +351,26 @@ export default function CustomersPage() {
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
               </button>
+
+              {showFieldsDropdown && (
+                <div className="absolute z-50 mt-1 w-48 rounded-md border border-[#E6E7F1] bg-white shadow-md">
+                  <div className="p-2">
+                    <div className="space-y-2">
+                      {Object.entries(visibleFields).map(([key, value]) => (
+                        <label key={key} className="flex items-center space-x-2 text-sm cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={value}
+                            onChange={(e) => setVisibleFields(prev => ({ ...prev, [key]: e.target.checked }))}
+                            className="rounded border-gray-300"
+                          />
+                          <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Filter Button */}
@@ -352,6 +391,83 @@ export default function CustomersPage() {
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
               </button>
+
+              {showFilter && (
+                <div className="absolute z-50 mt-1 right-0 w-[600px] rounded-md border border-[#E6E7F1] bg-white shadow-md">
+                  <div className="p-4 space-y-4">
+                    {/* Where Status equals All */}
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-gray-600 w-12">Where</span>
+                      <select 
+                        value="status"
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                      >
+                        <option value="status">Status</option>
+                        <option value="industry">Industry</option>
+                        <option value="size">Size</option>
+                      </select>
+                      <span className="text-sm text-gray-500">equals</span>
+                      <select
+                        value={filters.status}
+                        onChange={(e) => updateFilter('status', e.target.value)}
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                      >
+                        <option value="All">All</option>
+                        <option value="Active">Active</option>
+                        <option value="Inactive">Inactive</option>
+                      </select>
+                    </div>
+
+                    {/* And Industry equals All */}
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-gray-600 w-12">And</span>
+                      <select 
+                        value="industry"
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                      >
+                        <option value="industry">Industry</option>
+                        <option value="status">Status</option>
+                        <option value="size">Size</option>
+                      </select>
+                      <span className="text-sm text-gray-500">equals</span>
+                      <select
+                        value={filters.industry}
+                        onChange={(e) => updateFilter('industry', e.target.value)}
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                      >
+                        <option value="All">All</option>
+                        <option value="Insurance">Insurance</option>
+                        <option value="Finance">Finance</option>
+                        <option value="Technology">Technology</option>
+                      </select>
+                    </div>
+
+                    {/* And Size equals All */}
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-gray-600 w-12">And</span>
+                      <select 
+                        value="size"
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                      >
+                        <option value="size">Size</option>
+                        <option value="status">Status</option>
+                        <option value="industry">Industry</option>
+                      </select>
+                      <span className="text-sm text-gray-500">equals</span>
+                      <select
+                        value={filters.size || 'All'}
+                        onChange={(e) => updateFilter('size', e.target.value)}
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                      >
+                        <option value="All">All</option>
+                        <option value="Small">Small</option>
+                        <option value="Medium">Medium</option>
+                        <option value="Large">Large</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
