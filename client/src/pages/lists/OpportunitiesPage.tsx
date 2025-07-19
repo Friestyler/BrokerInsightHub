@@ -33,8 +33,36 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { ShareModal } from "@/components/ShareModal";
 import { FieldsSelector } from "@/components/shared/FieldsSelector";
+import { 
+  Search, 
+  Plus, 
+  X, 
+  Bookmark, 
+  BarChart3, 
+  ChevronDown, 
+  Filter,
+  LayoutGrid,
+  List
+} from 'lucide-react';
 
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
+
+// Type definitions (matching CustomersPage pattern)
+interface SavedList {
+  id: number;
+  name: string;
+  description?: string;
+  entity_type: string;
+  members?: any[];
+}
+
+interface SavedView {
+  id: number;
+  name: string;
+  entity_type: string;
+  filters?: any;
+  fields?: any;
+}
 
 // Fetch opportunities from database
 const useOpportunitiesData = () => {
@@ -446,9 +474,73 @@ function OpportunitiesTable() {
   const [visibleColumns, setVisibleColumns] = useState([
     'opportunity', 'customer', 'partner', 'stage', 'value', 'probability', 'template'
   ]);
-  
 
+  // Enhanced toolbar state management (identical to CustomersPage pattern)
+  const [showListsDropdown, setShowListsDropdown] = useState(false);
+  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
+  const [showSegmentViewsDropdown, setShowSegmentViewsDropdown] = useState(false);
+  const [showFieldsDropdown, setShowFieldsDropdown] = useState(false);
+  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
+  const [showFilter, setShowFilter] = useState(false);
+  const [viewMode, setViewMode] = useState<'cards' | 'list'>('list');
+  const [activeList, setActiveList] = useState<any>(null);
+  const [activeView, setActiveView] = useState<any>(null);
+  const [newViewName, setNewViewName] = useState('');
   
+  // Visible fields state matching opportunities data structure
+  const [visibleFields, setVisibleFields] = useState({
+    title: true,
+    customer: true,
+    partner: true,
+    stage: true,
+    value: true,
+    probability: true,
+    status: true
+  });
+
+  // Filter state
+  const [filters, setFilters] = useState({
+    status: 'All',
+    stage: 'All',
+    type: 'All'
+  });
+  const [hasActiveFilters, setHasActiveFilters] = useState(false);
+
+  // Helper functions for toolbar functionality (matching CustomersPage pattern)
+  const hasChanges = () => {
+    const hasFilterChanges = filters.status !== 'All' || filters.stage !== 'All' || filters.type !== 'All';
+    const hasFieldChanges = JSON.stringify(visibleFields) !== JSON.stringify({
+      title: true,
+      customer: true,
+      partner: true,
+      stage: true,
+      value: true,
+      probability: true,
+      status: true
+    });
+    return hasFilterChanges || hasFieldChanges || !!activeView;
+  };
+
+  const clearAllChanges = () => {
+    setActiveList(null);
+    setActiveView(null);
+    setFilters({ status: 'All', stage: 'All', type: 'All' });
+    setVisibleFields({
+      title: true,
+      customer: true,
+      partner: true,
+      stage: true,
+      value: true,
+      probability: true,
+      status: true
+    });
+    setFilterText('');
+  };
+
+  const updateFilter = (key: string, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
+
   // Database-driven filter options extracted from opportunities data
   const statusOptions = Array.from(new Set(opportunities.map((opp: any) => opp.status || '').filter(Boolean))).sort();
   const typeOptions = Array.from(new Set(opportunities.map((opp: any) => opp.type || '').filter(Boolean))).sort();
@@ -580,20 +672,12 @@ function OpportunitiesTable() {
     }
   });
 
-  // Segment Views state - using database data
-  const [activeView, setActiveView] = useState<SavedView | null>(null);
-  const [showSaveSegmentViewModal, setShowSaveSegmentViewModal] = useState(false);
-  const [showSegmentViewsDropdown, setShowSegmentViewsDropdown] = useState(false);
-  const [segmentViewNameInput, setSegmentViewNameInput] = useState('');
-  
-  // State for saved lists - using database data
-  const [activeList, setActiveList] = useState<any>(null);
+  // Additional UI state
   const [showSaveListModal, setShowSaveListModal] = useState(false);
   const [showAccountMappingModal, setShowAccountMappingModal] = useState(false);
   const [selectedMappingFields, setSelectedMappingFields] = useState<string[]>([]);
   const [showShareListModal, setShowShareListModal] = useState(false);
   const [shareListData, setShareListData] = useState<any>(null);
-  const [showListsDropdown, setShowListsDropdown] = useState(false);
   const [showRenameListModal, setShowRenameListModal] = useState(false);
   const [showDeleteListModal, setShowDeleteListModal] = useState(false);
   const [listToRename, setListToRename] = useState<SavedList | null>(null);
@@ -968,7 +1052,208 @@ function OpportunitiesTable() {
         </Card>
       </div>
 
-      {/* Opportunities table - without toolbar functionalities */}
+      {/* Enhanced Toolbar Section */}
+      <div className="bg-white mx-4 rounded-lg shadow-sm border border-[#E6E7F1]">
+        {/* Main Controls Row */}
+        <div className="flex items-center justify-between px-4 py-2">
+          {/* Left side - Saved Lists */}
+          <div className="flex items-center gap-4">
+            <button 
+              className="flex items-center space-x-2 text-lg font-semibold text-gray-900 hover:text-gray-700"
+              onClick={() => setShowListsDropdown(!showListsDropdown)}
+            >
+              {showListsDropdown ? (
+                <ChevronDown width="16" height="16" className="transition-transform" />
+              ) : (
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  className="transition-transform"
+                >
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              )}
+              <span>Saved Lists ({opportunitySavedListsData.length})</span>
+            </button>
+
+            {/* Cards/List View Toggle */}
+            {showListsDropdown && (
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setViewMode('cards')}
+                  className={`p-1 rounded transition-colors ${
+                    viewMode === 'cards' ? 'bg-gray-200' : 'hover:bg-gray-100'
+                  }`}
+                >
+                  <LayoutGrid width="16" height="16" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-1 rounded transition-colors ${
+                    viewMode === 'list' ? 'bg-gray-200' : 'hover:bg-gray-100'
+                  }`}
+                >
+                  <List width="16" height="16" />
+                </button>
+              </div>
+            )}
+          </div>
+          
+          {/* Right side - Controls with Clear/Save above */}
+          <div className="flex flex-col items-end gap-2">
+            {/* Clear and Save buttons stacked on top */}
+            {(activeList || hasChanges()) && (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={clearAllChanges}
+                  className="text-sm text-gray-600 hover:text-gray-800 flex items-center gap-1"
+                >
+                  <X width="14" height="14" />
+                  Clear
+                </button>
+                
+                <button
+                  onClick={() => setShowSaveViewModal(true)}
+                  className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                >
+                  <Bookmark width="14" height="14" />
+                  Save as segment view
+                </button>
+              </div>
+            )}
+            
+            {/* Main controls row */}
+            <div className="flex items-center gap-3">
+            {/* Segment View Button */}
+            <div className="relative">
+              <button 
+                className="flex items-center space-x-2 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50"
+                onClick={() => setShowViewsDropdown(!showViewsDropdown)}
+              >
+                <BarChart3 width="14" height="14" />
+                <span>Segment view</span>
+                <ChevronDown width="14" height="14" />
+              </button>
+            </div>
+
+            {/* Fields Button */}
+            <div className="relative">
+              <button 
+                className="flex items-center space-x-2 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50"
+                onClick={() => setShowFieldsDropdown(!showFieldsDropdown)}
+              >
+                <span>Fields (6/6)</span>
+                <ChevronDown width="14" height="14" />
+              </button>
+            </div>
+
+            {/* Filter Button */}
+            <div className="relative">
+              <button 
+                className="flex items-center space-x-2 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50"
+                onClick={() => setShowFilter(!showFilter)}
+              >
+                <Filter width="14" height="14" />
+                <span>Filter</span>
+                <ChevronDown width="14" height="14" />
+              </button>
+              
+              {/* Filter Dropdown */}
+              {showFilter && (
+                <div className="absolute right-0 top-full mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                  <div className="p-4 space-y-4">
+                    <div className="flex items-center space-x-3">
+                      <select
+                        value="status"
+                        onChange={() => {}}
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                      >
+                        <option value="status">Status</option>
+                        <option value="stage">Stage</option>
+                        <option value="type">Type</option>
+                      </select>
+                      <span className="text-sm text-gray-500">equals</span>
+                      <select
+                        value={filters.status || 'All'}
+                        onChange={(e) => updateFilter('status', e.target.value)}
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                      >
+                        <option value="All">All</option>
+                        <option value="Open">Open</option>
+                        <option value="Qualifying">Qualifying</option>
+                        <option value="Proposal">Proposal</option>
+                        <option value="Closed Won">Closed Won</option>
+                        <option value="Closed Lost">Closed Lost</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          </div>
+        </div>
+        
+        {/* Search Bar Row */}
+        <div className="px-4 pb-2">
+          <div className="relative w-60">
+            <input
+              type="text"
+              placeholder="Search opportunities..."
+              value={filterText}
+              onChange={(e) => setFilterText(e.target.value)}
+              className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+            />
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+          </div>
+        </div>
+
+        {/* Lists Cards Display */}
+        {showListsDropdown && (
+          <div className="px-4 pb-4">
+            <div className={`grid ${
+              viewMode === 'cards' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
+            } gap-3`}>
+              {opportunitySavedListsData.map((list: SavedList) => {
+                const isSelected = activeList?.id === list.id;
+                return (
+                  <div
+                    key={list.id}
+                    className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
+                      isSelected 
+                        ? 'border-[#5567E5] bg-[#F8F9FF] shadow-sm' 
+                        : 'border-[#E6E7F1] bg-white hover:border-[#D6D7E4] hover:shadow-sm'
+                    }`}
+                    onClick={() => setActiveList(isSelected ? null : list)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-medium text-gray-900">{list.name}</h3>
+                      <Badge variant="secondary" className="text-xs">
+                        {list.members?.length || 0} items
+                      </Badge>
+                    </div>
+                    {list.description && (
+                      <p className="text-sm text-gray-500 mb-3">{list.description}</p>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Opportunities table */}
       <div className="mx-4">
         <div className="overflow-x-auto">
           <table className="w-full">
