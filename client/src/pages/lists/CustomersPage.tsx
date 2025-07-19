@@ -340,51 +340,7 @@ export default function CustomersPage() {
         </Card>
       </div>
 
-      {/* Bulk actions bar */}
-      {selectedCustomers.length > 0 && (
-        <div className="mx-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <span className="font-medium text-blue-900">
-              {selectedCustomers.length} customer{selectedCustomers.length !== 1 ? 's' : ''} selected
-            </span>
-            <button
-              onClick={() => setSelectedCustomers([])}
-              className="text-blue-600 hover:text-blue-800 text-sm"
-            >
-              Clear selection
-            </button>
-          </div>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowAddToListModal(true)}
-              className="border-blue-300 text-blue-700 hover:bg-blue-100"
-            >
-              <Plus className="w-4 h-4 mr-1" />
-              Add to list
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowAddToCampaignModal(true)}
-              className="border-blue-300 text-blue-700 hover:bg-blue-100"
-            >
-              <MessageSquare className="w-4 h-4 mr-1" />
-              Add to campaign
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowAssignTemplateModal(true)}
-              className="border-blue-300 text-blue-700 hover:bg-blue-100"
-            >
-              <Target className="w-4 h-4 mr-1" />
-              Assign template
-            </Button>
-          </div>
-        </div>
-      )}
+
 
       {/* Enhanced Toolbar Section */}
       <div className="bg-white mx-4 rounded-lg shadow-sm border border-[#E6E7F1]">
@@ -737,6 +693,52 @@ export default function CustomersPage() {
           </div>
         )}
       </div>
+
+      {/* Dynamic bulk actions bar - appears below saved lists when items are selected */}
+      {selectedCustomers.length > 0 && (
+        <div className="mx-4 mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-3">
+            <span className="font-medium text-blue-900">
+              {selectedCustomers.length} customer{selectedCustomers.length !== 1 ? 's' : ''} selected
+            </span>
+            <button
+              onClick={() => setSelectedCustomers([])}
+              className="text-blue-600 hover:text-blue-800 text-sm"
+            >
+              Clear selection
+            </button>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAddToListModal(true)}
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Add to list
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAddToCampaignModal(true)}
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+            >
+              <MessageSquare className="w-4 h-4 mr-1" />
+              Add to campaign
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAssignTemplateModal(true)}
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+            >
+              <Target className="w-4 h-4 mr-1" />
+              Assign template
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Customers table */}
       <div className="mx-4">

@@ -42,7 +42,9 @@ import {
   ChevronDown, 
   Filter,
   LayoutGrid,
-  List
+  List,
+  MessageSquare,
+  Target
 } from 'lucide-react';
 
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
@@ -1081,77 +1083,7 @@ function OpportunitiesTable() {
       </div>
 
       {/* Bulk actions bar */}
-      <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4 mx-4" style={{ minHeight: '64px' }}>
-        {selectedOpportunities.length > 0 ? (
-          <>
-            <div className="flex items-center">
-              <span className="text-indigo-700 font-medium mr-2">
-                {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected
-              </span>
-              <Button 
-                variant="ghost" 
-                size="sm"
-                className="text-gray-600"
-                onClick={() => setSelectedOpportunities([])}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                  <path d="M18 6 6 18"></path>
-                  <path d="m6 6 12 12"></path>
-                </svg>
-                Clear selection
-              </Button>
-            </div>
-            
-            <div className="flex items-center gap-2 flex-wrap">
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="bg-white border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-                onClick={() => setShowAddToListModal(true)}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
-                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
-                </svg>
-                Add to List
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="bg-white border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-                onClick={() => setShowAddToCampaignModal(true)}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                </svg>
-                Add to Campaign
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="bg-white border-indigo-200 text-indigo-700 hover:bg-indigo-50"
-                onClick={() => setShowAssignTemplateModal(true)}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                  <path d="M9 12l2 2 4-4"></path>
-                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-                </svg>
-                Assign Template
-              </Button>
-            </div>
-          </>
-        ) : (
-          <div className="flex items-center justify-center w-full min-h-[32px]">
-            <div className="flex items-center text-gray-500">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                <path d="M9 12l2 2 4-4"></path>
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-              </svg>
-              <span className="text-sm">Select at least one opportunity from the list to perform bulk actions</span>
-            </div>
-          </div>
-        )}
-      </div>
+
 
       {/* Enhanced Toolbar Section */}
       <div className="bg-white mx-4 rounded-lg shadow-sm border border-[#E6E7F1]">
@@ -1481,6 +1413,52 @@ function OpportunitiesTable() {
           </div>
         )}
       </div>
+
+      {/* Dynamic bulk actions bar - appears below saved lists when items are selected */}
+      {selectedOpportunities.length > 0 && (
+        <div className="mx-4 mb-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between shadow-sm">
+          <div className="flex items-center gap-3">
+            <span className="font-medium text-blue-900">
+              {selectedOpportunities.length} opportunit{selectedOpportunities.length !== 1 ? 'ies' : 'y'} selected
+            </span>
+            <button
+              onClick={() => setSelectedOpportunities([])}
+              className="text-blue-600 hover:text-blue-800 text-sm"
+            >
+              Clear selection
+            </button>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAddToListModal(true)}
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Add to list
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAddToCampaignModal(true)}
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+            >
+              <MessageSquare className="w-4 h-4 mr-1" />
+              Add to campaign
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAssignTemplateModal(true)}
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+            >
+              <Target className="w-4 h-4 mr-1" />
+              Assign template
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Opportunities table */}
       <div className="mx-4">
