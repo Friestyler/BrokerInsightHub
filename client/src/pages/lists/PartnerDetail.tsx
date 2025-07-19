@@ -143,14 +143,50 @@ export default function PartnerDetail() {
   const [customerViewMode, setCustomerViewMode] = useState<'list' | 'cards'>('cards');
   const [showShareCustomerListModal, setShowShareCustomerListModal] = useState(false);
   
+  // Customer filters state
+  const [showCustomerFilter, setShowCustomerFilter] = useState(false);
+  const [customerFilters, setCustomerFilters] = useState({
+    status: 'All',
+    industry: 'All', 
+    size: 'All',
+    region: 'All'
+  });
+  const [hasActiveCustomerFilters, setHasActiveCustomerFilters] = useState(false);
+
+  // Customer saved views state
+  const [activeCustomerView, setActiveCustomerView] = useState<any>(null);
+  const [showCustomerViewsDropdown, setShowCustomerViewsDropdown] = useState(false);
+  const [showSaveCustomerViewModal, setShowSaveCustomerViewModal] = useState(false);
+  const [customerViewNameInput, setCustomerViewNameInput] = useState('');
+  const customerViewsDropdownRef = useRef<HTMLDivElement>(null);
+  const customerViewsButtonRef = useRef<HTMLButtonElement>(null);
+
+  // Customer fields visibility state
+  const [showCustomerFieldsDropdown, setShowCustomerFieldsDropdown] = useState(false);
+  const [customerVisibleFields, setCustomerVisibleFields] = useState({
+    name: true,
+    industry: true,
+    region: true,
+    contactPerson: true,
+    phone: true,
+    email: true,
+    opportunities: true,
+    totalValue: true,
+    lastActivity: true
+  });
+  const customerFieldsDropdownRef = useRef<HTMLDivElement>(null);
+  const customerFilterDropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Change detection state for customers
+  const [originalCustomerFilters, setOriginalCustomerFilters] = useState<any>(null);
+  const [originalCustomerVisibleFields, setOriginalCustomerVisibleFields] = useState<any>(null);
+  
   // Customer-specific state for enhanced unified toolbar
   const [customerSearchText, setCustomerSearchText] = useState('');
   const [selectedCustomerStatus, setSelectedCustomerStatus] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('');
   const [activeCustomerList, setActiveCustomerList] = useState<any>(null);
   const [showCustomerListsDropdown, setShowCustomerListsDropdown] = useState(false);
-  const [activeCustomerView, setActiveCustomerView] = useState<any>(null);
-  const [showCustomerViewsDropdown, setShowCustomerViewsDropdown] = useState(false);
   const [showCustomerStatusDropdown, setShowCustomerStatusDropdown] = useState(false);
   const [showIndustryDropdown, setShowIndustryDropdown] = useState(false);
 
@@ -167,7 +203,6 @@ export default function PartnerDetail() {
   const [selectedProducts, setSelectedProducts] = useState<number[]>([]);
 
   // Contacts-specific state for enhanced unified toolbar
-  const [showCustomerFilter, setShowCustomerFilter] = useState(false);
   const [showStatusFilter, setShowStatusFilter] = useState(false);
   const [activeView, setActiveView] = useState<any>(null);
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
@@ -454,6 +489,23 @@ export default function PartnerDetail() {
     createdAt: new Date(view.created_at)
   }));
 
+  // Fetch customer saved views
+  const { data: customerSavedViewsData = [] } = useQuery({
+    queryKey: ['/api/saved-views'],
+    queryFn: () => apiRequest('GET', '/api/saved-views?entity_type=customers'),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+
+  // Convert customer database records to local interface format
+  const customerSavedViews = customerSavedViewsData.map((view: any) => ({
+    id: view.id.toString(),
+    name: view.name,
+    description: view.description,
+    filters: view.filters || {},
+    createdBy: view.created_by,
+    createdAt: new Date(view.created_at)
+  }));
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -616,6 +668,51 @@ export default function PartnerDetail() {
       toast({
         title: "Error",
         description: "Failed to save view. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Customer view mutations
+  const createCustomerViewMutation = useMutation({
+    mutationFn: async (viewData: any) => {
+      return await apiRequest('POST', '/api/saved-views', viewData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
+      toast({
+        title: "Segment View Saved",
+        description: "Your customers segment view with filters and field settings has been saved successfully"
+      });
+      setShowSaveCustomerViewModal(false);
+      setCustomerViewNameInput('');
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to save view. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const updateCustomerViewMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      return await apiRequest('PUT', `/api/saved-views/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
+      toast({
+        title: "Segment View Updated",
+        description: "Your customers segment view has been updated with the latest filters and field settings"
+      });
+      setOriginalCustomerFilters(null);
+      setOriginalCustomerVisibleFields(null);
+    },
+    onError: () => {
+      toast({
+        title: "Error", 
+        description: "Failed to update view. Please try again.",
         variant: "destructive"
       });
     }
@@ -872,13 +969,7 @@ export default function PartnerDetail() {
     gcTime: 0,
   });
 
-  // Fetch customer saved views
-  const { data: customerSavedViews } = useQuery({
-    queryKey: ['/api/saved-views', 'customers'],
-    queryFn: () => apiRequest('GET', '/api/saved-views?entity_type=customers'),
-    staleTime: 0,
-    gcTime: 0,
-  });
+
 
   // Fetch campaigns linked to this partner
 
@@ -946,7 +1037,8 @@ export default function PartnerDetail() {
 
   // Extract customer filter values from database API
   const uniqueCustomerStatuses = (customerFilterOptions as any)?.statuses || [];
-  const uniqueIndustries = (customerFilterOptions as any)?.industries || [];
+  const uniqueCustomerIndustries = (customerFilterOptions as any)?.industries || [];
+  const uniqueCustomerRegions = [...new Set((relatedCustomers as any[] || []).map((c: any) => c.region).filter(Boolean))];
 
   // Opportunities filter management
   const clearOpportunityFilters = () => {
@@ -966,6 +1058,48 @@ export default function PartnerDetail() {
     // Check if any filter is active
     const hasActive = Object.values(newFilters).some(val => val !== 'All');
     setHasActiveOpportunityFilters(hasActive);
+  };
+
+  // Customer filter helper functions
+  const clearCustomerFilters = () => {
+    setCustomerFilters({
+      status: 'All',
+      industry: 'All',
+      size: 'All', 
+      region: 'All'
+    });
+    setHasActiveCustomerFilters(false);
+  };
+
+  const updateCustomerFilter = (key: string, value: string) => {
+    const newFilters = { ...customerFilters, [key]: value };
+    setCustomerFilters(newFilters);
+    
+    // Check if any filter is active
+    const hasActive = Object.values(newFilters).some(val => val !== 'All');
+    setHasActiveCustomerFilters(hasActive);
+  };
+
+  // Customer change detection functions
+  const hasCustomerFieldChanges = () => {
+    if (activeCustomerView && originalCustomerVisibleFields) {
+      return JSON.stringify(customerVisibleFields) !== JSON.stringify(originalCustomerVisibleFields);
+    }
+    
+    const allFieldsVisible = Object.values(customerVisibleFields).every(Boolean);
+    return !allFieldsVisible;
+  };
+
+  const hasCustomerFilterChanges = () => {
+    if (activeCustomerView && originalCustomerFilters) {
+      return JSON.stringify(customerFilters) !== JSON.stringify(originalCustomerFilters);
+    }
+    
+    return hasActiveCustomerFilters;
+  };
+
+  const hasCustomerChanges = () => {
+    return hasCustomerFieldChanges() || hasCustomerFilterChanges();
   };
 
   // Extract unique values for opportunity filters from the data
@@ -1044,6 +1178,76 @@ export default function PartnerDetail() {
     
     return true;
   });
+
+  // Customer filtering logic
+  // Use relatedCustomers as base data for customer functionality
+  const customers = relatedCustomers || [];
+  
+  const filteredCustomers = (customers as any[] || []).filter((customer: any) => {
+    // Filter by search text
+    if (customerSearchText) {
+      const searchLower = customerSearchText.toLowerCase();
+      const matchesSearch = 
+        customer.name?.toLowerCase().includes(searchLower) ||
+        customer.industry?.toLowerCase().includes(searchLower) ||
+        customer.contact_person?.toLowerCase().includes(searchLower) ||
+        customer.phone?.toLowerCase().includes(searchLower) ||
+        customer.email?.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
+    }
+    
+    // Apply customer filters
+    if (customerFilters.status !== 'All' && customer.status !== customerFilters.status) {
+      return false;
+    }
+    
+    if (customerFilters.industry !== 'All' && customer.industry !== customerFilters.industry) {
+      return false;
+    }
+    
+    if (customerFilters.region !== 'All' && customer.region !== customerFilters.region) {
+      return false;
+    }
+    
+    if (customerFilters.size !== 'All') {
+      const opportunityCount = customer.opportunities_count || 0;
+      let matchesSize = false;
+      
+      switch (customerFilters.size) {
+        case 'Small (<5 opportunities)':
+          matchesSize = opportunityCount < 5;
+          break;
+        case 'Medium (5-20 opportunities)':
+          matchesSize = opportunityCount >= 5 && opportunityCount <= 20;
+          break;
+        case 'Large (>20 opportunities)':
+          matchesSize = opportunityCount > 20;
+          break;
+      }
+      
+      if (!matchesSize) return false;
+    }
+    
+    // Legacy filter support
+    if (selectedCustomerStatus && customer.status !== selectedCustomerStatus) {
+      return false;
+    }
+    
+    if (selectedIndustry && customer.industry !== selectedIndustry) {
+      return false;
+    }
+    
+    // If a specific list is selected, filter by its members
+    if (activeCustomerList) {
+      if (activeCustomerList.members && activeCustomerList.members.length > 0) {
+        return activeCustomerList.members.includes(customer.id);
+      }
+    }
+    
+    return true;
+  });
+
+
 
   // Selection helper functions
   const toggleSelectOpportunity = (opportunityId: number) => {
@@ -3222,6 +3426,398 @@ export default function PartnerDetail() {
               </div>
             </div>
 
+            {/* Save/Update/Clear View Buttons for customers - Show when any changes detected */}
+            {hasCustomerChanges() && (
+              <div className="flex justify-end items-center gap-2 px-4 py-1">
+                <button
+                  onClick={() => {
+                    // Reset both filters and fields to original state
+                    if (originalCustomerFilters) {
+                      setCustomerFilters(originalCustomerFilters);
+                    }
+                    if (originalCustomerVisibleFields) {
+                      setCustomerVisibleFields(originalCustomerVisibleFields);
+                    }
+                    // If no active view, reset to default state
+                    if (!activeCustomerView) {
+                      setCustomerFilters({
+                        status: 'All',
+                        industry: 'All',
+                        size: 'All',
+                        region: 'All'
+                      });
+                      setCustomerVisibleFields({
+                        name: true,
+                        industry: true,
+                        region: true,
+                        contactPerson: true,
+                        phone: true,
+                        email: true,
+                        opportunities: true,
+                        totalValue: true,
+                        lastActivity: true
+                      });
+                    }
+                    // Clear change detection state
+                    setOriginalCustomerFilters(null);
+                    setOriginalCustomerVisibleFields(null);
+                  }}
+                  className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                  Clear
+                </button>
+                <button
+                  onClick={() => setShowSaveCustomerViewModal(true)}
+                  className="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                >
+                  <Bookmark className="w-3 h-3" />
+                  Save as segment view
+                </button>
+                {activeCustomerView && (
+                  <button
+                    onClick={() => {
+                      // Update existing view with both filters and fields
+                      const updateData = {
+                        name: activeCustomerView.name,
+                        description: activeCustomerView.description || '',
+                        filters: customerFilters,
+                        field_visibility: customerVisibleFields,
+                        is_shared: activeCustomerView.is_shared || false
+                      };
+                      
+                      updateCustomerViewMutation.mutate({
+                        id: activeCustomerView.id,
+                        data: updateData
+                      });
+                    }}
+                    className="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                  >
+                    <Bookmark className="w-3 h-3" />
+                    Update segment view
+                  </button>
+                )}
+              </div>
+            )}
+            
+            {/* Filter Section for customers - positioned below tab separator on the right */}
+            <div className="flex justify-end items-center gap-2 px-4">
+              {/* Segment View Button */}
+              <div className="relative">
+                <button 
+                  ref={customerViewsButtonRef}
+                  className={`flex items-center space-x-2 px-3 h-8 border border-[#E6E7F1] rounded-md text-sm font-medium bg-white hover:bg-gray-50`}
+                  onClick={() => setShowCustomerViewsDropdown(!showCustomerViewsDropdown)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  <span className="text-gray-700">{activeCustomerView ? activeCustomerView.name : "Segment view"}</span>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="14" 
+                    height="14" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className={`transition-transform ${showCustomerViewsDropdown ? 'rotate-180' : ''}`}
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+
+                {showCustomerViewsDropdown && (
+                  <div ref={customerViewsDropdownRef} className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-md">
+                    <div className="p-2 border-b">
+                      {customerSavedViewsData?.map((view: any) => (
+                        <div 
+                          key={view.id}
+                          className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${activeCustomerView?.id === view.id.toString() ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                          onClick={() => {
+                            setActiveCustomerView(view);
+                            // Apply the saved view filters
+                            const viewFilters = view.filters || {};
+                            setCustomerFilters({
+                              status: viewFilters.status || 'All',
+                              industry: viewFilters.industry || 'All',
+                              size: viewFilters.size || 'All',
+                              region: viewFilters.region || 'All'
+                            });
+                            setHasActiveCustomerFilters(
+                              viewFilters.status || viewFilters.industry || viewFilters.size || viewFilters.region
+                            );
+                            
+                            // Apply the saved field visibility
+                            if (view.field_visibility) {
+                              setCustomerVisibleFields(view.field_visibility);
+                            }
+                            
+                            // Store original state for change detection
+                            setOriginalCustomerFilters(viewFilters);
+                            setOriginalCustomerVisibleFields(view.field_visibility);
+                            
+                            setShowCustomerViewsDropdown(false);
+                          }}
+                        >
+                          <span>{view.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="p-2">
+                      <button 
+                        className="w-full text-left px-2 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-md"
+                        onClick={() => {
+                          setShowSaveCustomerViewModal(true);
+                          setShowCustomerViewsDropdown(false);
+                        }}
+                      >
+                        + New view
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Fields Button */}
+              <div className="relative" ref={customerFieldsDropdownRef}>
+                <button
+                  onClick={() => setShowCustomerFieldsDropdown(!showCustomerFieldsDropdown)}
+                  className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-colors ${
+                    hasCustomerFieldChanges() 
+                      ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                  </svg>
+                  Fields
+                  <span className="text-xs text-gray-500">
+                    ({Object.values(customerVisibleFields).filter(Boolean).length}/{Object.keys(customerVisibleFields).length})
+                  </span>
+                </button>
+
+                {showCustomerFieldsDropdown && (
+                  <div className="absolute right-0 top-full mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                    {/* Header */}
+                    <div className="p-4 border-b border-gray-100">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium text-gray-900">Column Visibility</h3>
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={() => {
+                              const allSelected = Object.values(customerVisibleFields).every(Boolean);
+                              if (allSelected) {
+                                // Keep name always visible, uncheck others
+                                setCustomerVisibleFields({
+                                  name: true,
+                                  industry: false,
+                                  region: false,
+                                  contactPerson: false,
+                                  phone: false,
+                                  email: false,
+                                  opportunities: false,
+                                  totalValue: false,
+                                  lastActivity: false
+                                });
+                              } else {
+                                // Select all
+                                setCustomerVisibleFields({
+                                  name: true,
+                                  industry: true,
+                                  region: true,
+                                  contactPerson: true,
+                                  phone: true,
+                                  email: true,
+                                  opportunities: true,
+                                  totalValue: true,
+                                  lastActivity: true
+                                });
+                              }
+                            }}
+                            className="text-xs text-blue-600 hover:text-blue-700"
+                          >
+                            {Object.values(customerVisibleFields).every(Boolean) ? 'Deselect All' : 'Select All'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Field List */}
+                    <div className="p-4 space-y-3">
+                      {Object.entries(customerVisibleFields).map(([field, visible]) => (
+                        <label key={field} className="flex items-center space-x-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={visible}
+                            onChange={(e) => {
+                              setCustomerVisibleFields(prev => ({
+                                ...prev,
+                                [field]: e.target.checked
+                              }));
+                            }}
+                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                          />
+                          <span className="text-sm text-gray-700">
+                            {field === 'name' && 'Customer Name'}
+                            {field === 'industry' && 'Industry'}
+                            {field === 'region' && 'Region'}
+                            {field === 'contactPerson' && 'Contact Person'}
+                            {field === 'phone' && 'Phone'}
+                            {field === 'email' && 'Email'}
+                            {field === 'opportunities' && 'Opportunities'}
+                            {field === 'totalValue' && 'Total Value'}
+                            {field === 'lastActivity' && 'Last Activity'}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Filter Button */}
+              <div className="relative" ref={customerFilterDropdownRef}>
+                <button
+                  onClick={() => setShowCustomerFilter(!showCustomerFilter)}
+                  className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-colors ${
+                    hasActiveCustomerFilters 
+                      ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                  }`}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                  </svg>
+                  Filter
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${showCustomerFilter ? 'rotate-180' : ''}`}>
+                    <polyline points="6 9 12 15 18 9"/>
+                  </svg>
+                </button>
+
+                {showCustomerFilter && (
+                  <div className="absolute right-0 top-full mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700 w-12 flex-shrink-0">Where</span>
+                        <select
+                          value={customerFilters.status}
+                          onChange={(e) => updateCustomerFilter('status', e.target.value)}
+                          className="w-24 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white flex-shrink-0"
+                        >
+                          <option value="All">Status</option>
+                          {uniqueCustomerStatuses.map(status => (
+                            <option key={status} value={status}>{status}</option>
+                          ))}
+                        </select>
+                        <span className="text-sm text-gray-500 w-12 flex-shrink-0 text-center">equals</span>
+                        <select
+                          value={customerFilters.status}
+                          onChange={(e) => updateCustomerFilter('status', e.target.value)}
+                          className="flex-1 min-w-0 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                        >
+                          <option value="All">All</option>
+                          {uniqueCustomerStatuses.map(status => (
+                            <option key={status} value={status}>{status}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700 w-12 flex-shrink-0">And</span>
+                        <select
+                          value={customerFilters.industry}
+                          onChange={(e) => updateCustomerFilter('industry', e.target.value)}
+                          className="w-24 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white flex-shrink-0"
+                        >
+                          <option value="All">Industry</option>
+                          {uniqueCustomerIndustries.map(industry => (
+                            <option key={industry} value={industry}>{industry}</option>
+                          ))}
+                        </select>
+                        <span className="text-sm text-gray-500 w-12 flex-shrink-0 text-center">equals</span>
+                        <select
+                          value={customerFilters.industry}
+                          onChange={(e) => updateCustomerFilter('industry', e.target.value)}
+                          className="flex-1 min-w-0 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                        >
+                          <option value="All">All</option>
+                          {uniqueCustomerIndustries.map(industry => (
+                            <option key={industry} value={industry}>{industry}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700 w-12 flex-shrink-0">And</span>
+                        <select
+                          value={customerFilters.region}
+                          onChange={(e) => updateCustomerFilter('region', e.target.value)}
+                          className="w-24 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white flex-shrink-0"
+                        >
+                          <option value="All">Region</option>
+                          {uniqueCustomerRegions.map(region => (
+                            <option key={region} value={region}>{region}</option>
+                          ))}
+                        </select>
+                        <span className="text-sm text-gray-500 w-12 flex-shrink-0 text-center">equals</span>
+                        <select
+                          value={customerFilters.region}
+                          onChange={(e) => updateCustomerFilter('region', e.target.value)}
+                          className="flex-1 min-w-0 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                        >
+                          <option value="All">All</option>
+                          {uniqueCustomerRegions.map(region => (
+                            <option key={region} value={region}>{region}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700 w-12 flex-shrink-0">And</span>
+                        <select
+                          value={customerFilters.size}
+                          onChange={(e) => updateCustomerFilter('size', e.target.value)}
+                          className="w-24 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white flex-shrink-0"
+                        >
+                          <option value="All">Size</option>
+                          <option value="Small (<5 opportunities)">Small</option>
+                          <option value="Medium (5-20 opportunities)">Medium</option>
+                          <option value="Large (>20 opportunities)">Large</option>
+                        </select>
+                        <span className="text-sm text-gray-500 w-12 flex-shrink-0 text-center">equals</span>
+                        <select
+                          value={customerFilters.size}
+                          onChange={(e) => updateCustomerFilter('size', e.target.value)}
+                          className="flex-1 min-w-0 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                        >
+                          <option value="All">All</option>
+                          <option value="Small (<5 opportunities)">Small (&lt;5 opportunities)</option>
+                          <option value="Medium (5-20 opportunities)">Medium (5-20 opportunities)</option>
+                          <option value="Large (>20 opportunities)">Large (&gt;20 opportunities)</option>
+                        </select>
+                      </div>
+
+                      <div className="pt-3 border-t border-gray-100">
+                        <button
+                          onClick={clearCustomerFilters}
+                          className="w-full px-3 py-2 text-sm text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
+                        >
+                          Clear all filters
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
             {/* Bulk actions bar for customers - only visible when customers are selected */}
             {selectedCustomers.length > 0 && (
               <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
@@ -5307,6 +5903,122 @@ export default function PartnerDetail() {
               }}
             >
               Save Segment View
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Save Customer View Modal */}
+      <Dialog 
+        open={showSaveCustomerViewModal} 
+        onOpenChange={(open) => {
+          if (open) {
+            setCustomerViewNameInput('');
+          }
+          setShowSaveCustomerViewModal(open);
+        }}>
+        <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-[32px]">
+          <DialogHeader>
+            <DialogTitle>Save as segment view</DialogTitle>
+            <DialogDescription className="text-sm text-[#282A3F]">
+              Save your current customer filter settings and field visibility as a segment view that you can easily access later.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="customerViewName">Segment View Name<span className="text-red-500">*</span></Label>
+              <Input 
+                id="customerViewName" 
+                placeholder="Enter a name for this segment view"
+                maxLength={50}
+                value={customerViewNameInput}
+                onChange={(e) => setCustomerViewNameInput(e.target.value)}
+              />
+              <p className="text-xs text-gray-500">Maximum 50 characters</p>
+            </div>
+            
+            <div className="bg-[#EBEEFB] p-4 rounded-md border border-[#D4D9F3]">
+              <div className="text-sm font-medium mb-2 text-[#282A3F]">Settings saved in this view</div>
+              <div className="space-y-2">
+                <div className="text-sm font-medium text-[#3E4DC4]">Filters:</div>
+                {customerFilters.status !== 'All' && (
+                  <div className="flex items-center text-sm ml-2">
+                    <span className="font-medium w-20 text-[#3E4DC4]">Status:</span>
+                    <span className="text-[#282A3F]">{customerFilters.status}</span>
+                  </div>
+                )}
+                {customerFilters.industry !== 'All' && (
+                  <div className="flex items-center text-sm ml-2">
+                    <span className="font-medium w-20 text-[#3E4DC4]">Industry:</span>
+                    <span className="text-[#282A3F]">{customerFilters.industry}</span>
+                  </div>
+                )}
+                {customerFilters.region !== 'All' && (
+                  <div className="flex items-center text-sm ml-2">
+                    <span className="font-medium w-20 text-[#3E4DC4]">Region:</span>
+                    <span className="text-[#282A3F]">{customerFilters.region}</span>
+                  </div>
+                )}
+                {customerFilters.size !== 'All' && (
+                  <div className="flex items-center text-sm ml-2">
+                    <span className="font-medium w-20 text-[#3E4DC4]">Size:</span>
+                    <span className="text-[#282A3F]">{customerFilters.size}</span>
+                  </div>
+                )}
+                {!hasActiveCustomerFilters && (
+                  <div className="text-sm text-gray-500 ml-2">No filters applied</div>
+                )}
+                
+                <div className="text-sm font-medium text-[#3E4DC4] mt-3">Visible Fields:</div>
+                <div className="ml-2 text-sm text-[#282A3F]">
+                  {Object.entries(customerVisibleFields)
+                    .filter(([_, visible]) => visible)
+                    .map(([field, _]) => {
+                      const fieldLabels: { [key: string]: string } = {
+                        name: 'Customer Name',
+                        industry: 'Industry',
+                        region: 'Region',
+                        contactPerson: 'Contact Person',
+                        phone: 'Phone',
+                        email: 'Email',
+                        opportunities: 'Opportunities',
+                        totalValue: 'Total Value',
+                        lastActivity: 'Last Activity'
+                      };
+                      return fieldLabels[field];
+                    })
+                    .join(', ')}
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => setShowSaveCustomerViewModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              onClick={() => {
+                if (customerViewNameInput.trim()) {
+                  createCustomerViewMutation.mutate({
+                    name: customerViewNameInput.trim(),
+                    description: '',
+                    entity_type: 'customers',
+                    filters: customerFilters,
+                    field_visibility: customerVisibleFields,
+                    is_shared: false
+                  });
+                }
+              }}
+              disabled={!customerViewNameInput.trim() || createCustomerViewMutation.isPending}
+            >
+              {createCustomerViewMutation.isPending ? 'Saving...' : 'Save View'}
             </Button>
           </DialogFooter>
         </DialogContent>
