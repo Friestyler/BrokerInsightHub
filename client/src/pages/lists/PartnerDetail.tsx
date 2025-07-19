@@ -187,6 +187,21 @@ export default function PartnerDetail() {
   const opportunityViewsDropdownRef = useRef<HTMLDivElement>(null);
   const opportunityViewsButtonRef = useRef<HTMLButtonElement>(null);
 
+  // Opportunities fields state
+  const [showOpportunityFieldsDropdown, setShowOpportunityFieldsDropdown] = useState(false);
+  const [opportunityVisibleFields, setOpportunityVisibleFields] = useState({
+    title: true,
+    customer: true,
+    stage: true,
+    value: true,
+    priority: true,
+    type: true,
+    size: true,
+    accountManager: true,
+    lastActivity: true
+  });
+  const opportunityFieldsDropdownRef = useRef<HTMLDivElement>(null);
+
   
   // Stage editing state
   const [editingStageId, setEditingStageId] = useState<number | null>(null);
@@ -831,6 +846,9 @@ export default function PartnerDetail() {
       if (opportunityViewsDropdownRef.current && !opportunityViewsDropdownRef.current.contains(event.target as Node) &&
           opportunityViewsButtonRef.current && !opportunityViewsButtonRef.current.contains(event.target as Node)) {
         setShowOpportunityViewsDropdown(false);
+      }
+      if (opportunityFieldsDropdownRef.current && !opportunityFieldsDropdownRef.current.contains(event.target as Node)) {
+        setShowOpportunityFieldsDropdown(false);
       }
     }
 
@@ -1841,6 +1859,131 @@ export default function PartnerDetail() {
                         </button>
                       </div>
                     )}
+                  </div>
+                )}
+              </div>
+
+              {/* Fields Button */}
+              <div className="relative" ref={opportunityFieldsDropdownRef}>
+                <button
+                  onClick={() => setShowOpportunityFieldsDropdown(!showOpportunityFieldsDropdown)}
+                  className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="7" height="7"/>
+                    <rect x="14" y="3" width="7" height="7"/>
+                    <rect x="14" y="14" width="7" height="7"/>
+                    <rect x="3" y="14" width="7" height="7"/>
+                  </svg>
+                  Fields
+                  <span className="text-xs text-gray-500">
+                    ({Object.values(opportunityVisibleFields).filter(Boolean).length}/{Object.keys(opportunityVisibleFields).length})
+                  </span>
+                </button>
+
+                {showOpportunityFieldsDropdown && (
+                  <div className="absolute right-0 top-full mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                    {/* Header */}
+                    <div className="p-4 border-b border-gray-100">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-sm font-medium text-gray-900">Column Visibility</h3>
+                        <div className="flex items-center gap-2">
+                          <button 
+                            onClick={() => {
+                              const allSelected = Object.values(opportunityVisibleFields).every(Boolean);
+                              if (allSelected) {
+                                // Keep title always visible, uncheck others
+                                setOpportunityVisibleFields({
+                                  title: true,
+                                  customer: false,
+                                  stage: false,
+                                  value: false,
+                                  priority: false,
+                                  type: false,
+                                  size: false,
+                                  accountManager: false,
+                                  lastActivity: false
+                                });
+                              } else {
+                                // Select all
+                                setOpportunityVisibleFields({
+                                  title: true,
+                                  customer: true,
+                                  stage: true,
+                                  value: true,
+                                  priority: true,
+                                  type: true,
+                                  size: true,
+                                  accountManager: true,
+                                  lastActivity: true
+                                });
+                              }
+                            }}
+                            className="text-xs text-indigo-600 hover:text-indigo-700 font-medium transition-colors"
+                          >
+                            {Object.values(opportunityVisibleFields).every(Boolean) ? 'Clear' : 'Select All'}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Field List */}
+                    <div className="p-2 max-h-64 overflow-y-auto">
+                      {[
+                        { key: 'title', label: 'Title', required: true },
+                        { key: 'customer', label: 'Customer' },
+                        { key: 'stage', label: 'Stage' },
+                        { key: 'value', label: 'Value' },
+                        { key: 'priority', label: 'Priority' },
+                        { key: 'type', label: 'Type' },
+                        { key: 'size', label: 'Size' },
+                        { key: 'accountManager', label: 'Account Manager' },
+                        { key: 'lastActivity', label: 'Last Activity' }
+                      ].map((field) => (
+                        <div key={field.key} className="flex items-center p-2 rounded-md hover:bg-gray-50 transition-colors">
+                          <div className="flex items-center flex-1 gap-3">
+                            <div className="relative">
+                              <input
+                                type="checkbox"
+                                id={`opportunity-field-${field.key}`}
+                                checked={opportunityVisibleFields[field.key as keyof typeof opportunityVisibleFields]}
+                                disabled={field.required}
+                                onChange={(e) => {
+                                  setOpportunityVisibleFields(prev => ({
+                                    ...prev,
+                                    [field.key]: e.target.checked
+                                  }));
+                                }}
+                                className="sr-only"
+                              />
+                              <label
+                                htmlFor={`opportunity-field-${field.key}`}
+                                className={`
+                                  flex items-center justify-center w-5 h-5 rounded border-2 cursor-pointer transition-all duration-200
+                                  ${field.required ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}
+                                  ${opportunityVisibleFields[field.key as keyof typeof opportunityVisibleFields]
+                                    ? 'bg-indigo-600 border-indigo-600 text-white shadow-sm' 
+                                    : 'bg-white border-gray-300 hover:border-indigo-300'
+                                  }
+                                `}
+                              >
+                                {opportunityVisibleFields[field.key as keyof typeof opportunityVisibleFields] && (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                  </svg>
+                                )}
+                              </label>
+                            </div>
+                            <span className={`text-sm ${field.required ? 'text-gray-500' : 'text-gray-700'}`}>
+                              {field.label}
+                              {field.required && (
+                                <span className="text-xs text-gray-400 ml-1">(Required)</span>
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
