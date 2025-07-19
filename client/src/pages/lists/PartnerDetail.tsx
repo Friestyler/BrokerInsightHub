@@ -162,6 +162,7 @@ export default function PartnerDetail() {
   const customerViewsButtonRef = useRef<HTMLButtonElement>(null);
 
   // Customer fields visibility state
+  const [showCustomerFields, setShowCustomerFields] = useState(false);
   const [showCustomerFieldsDropdown, setShowCustomerFieldsDropdown] = useState(false);
   const [customerVisibleFields, setCustomerVisibleFields] = useState({
     name: true,
