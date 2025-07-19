@@ -1865,25 +1865,25 @@ export default function PartnerDetail() {
                 </button>
 
                 {showOpportunityFilter && (
-                  <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
+                  <div className="absolute right-0 top-full mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
                     <div className="space-y-4">
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-gray-700 w-16">Where</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700 w-12 flex-shrink-0">Where</span>
                         <select
                           value={opportunityFilters.status}
                           onChange={(e) => updateOpportunityFilter('status', e.target.value)}
-                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                          className="w-24 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white flex-shrink-0"
                         >
                           <option value="All">Status</option>
                           {uniqueOpportunityStatuses.map(status => (
                             <option key={status} value={status}>{status}</option>
                           ))}
                         </select>
-                        <span className="text-sm text-gray-500 w-16">equals</span>
+                        <span className="text-sm text-gray-500 w-12 flex-shrink-0 text-center">equals</span>
                         <select
                           value={opportunityFilters.status}
                           onChange={(e) => updateOpportunityFilter('status', e.target.value)}
-                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                          className="flex-1 min-w-0 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white"
                         >
                           <option value="All">All</option>
                           {uniqueOpportunityStatuses.map(status => (
@@ -1892,16 +1892,16 @@ export default function PartnerDetail() {
                         </select>
                       </div>
 
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-gray-700 w-16">And</span>
-                        <select className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700 w-12 flex-shrink-0">And</span>
+                        <select className="w-24 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white flex-shrink-0">
                           <option>Type</option>
                         </select>
-                        <span className="text-sm text-gray-500 w-16">equals</span>
+                        <span className="text-sm text-gray-500 w-12 flex-shrink-0 text-center">equals</span>
                         <select
                           value={opportunityFilters.type}
                           onChange={(e) => updateOpportunityFilter('type', e.target.value)}
-                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                          className="flex-1 min-w-0 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white"
                         >
                           <option value="All">All</option>
                           {uniqueOpportunityTypes.map(type => (
@@ -1910,16 +1910,16 @@ export default function PartnerDetail() {
                         </select>
                       </div>
 
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-gray-700 w-16">And</span>
-                        <select className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700 w-12 flex-shrink-0">And</span>
+                        <select className="w-24 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white flex-shrink-0">
                           <option>Size</option>
                         </select>
-                        <span className="text-sm text-gray-500 w-16">equals</span>
+                        <span className="text-sm text-gray-500 w-12 flex-shrink-0 text-center">equals</span>
                         <select
                           value={opportunityFilters.size}
                           onChange={(e) => updateOpportunityFilter('size', e.target.value)}
-                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                          className="flex-1 min-w-0 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white"
                         >
                           <option value="All">All</option>
                           {uniqueOpportunitySizes.map(size => (
@@ -1928,16 +1928,16 @@ export default function PartnerDetail() {
                         </select>
                       </div>
 
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-medium text-gray-700 w-16">And</span>
-                        <select className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium text-gray-700 w-12 flex-shrink-0">And</span>
+                        <select className="w-24 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white flex-shrink-0">
                           <option>Stage</option>
                         </select>
-                        <span className="text-sm text-gray-500 w-16">equals</span>
+                        <span className="text-sm text-gray-500 w-12 flex-shrink-0 text-center">equals</span>
                         <select
                           value={opportunityFilters.stage}
                           onChange={(e) => updateOpportunityFilter('stage', e.target.value)}
-                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                          className="flex-1 min-w-0 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white"
                         >
                           <option value="All">All</option>
                           {uniqueOpportunityStatuses.map(stage => (
