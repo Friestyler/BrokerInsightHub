@@ -700,7 +700,7 @@ function PartnersPage() {
             )}
 
             {showFilter && (
-              <div className="absolute z-50 mt-1 w-[600px] rounded-md border border-[#E6E7F1] bg-white shadow-md">
+              <div className="absolute z-50 mt-1 right-0 w-[600px] rounded-md border border-[#E6E7F1] bg-white shadow-md">
                 <div className="p-4 space-y-4">
                   {/* Where Status equals All */}
                   <div className="flex items-center gap-3">
@@ -800,16 +800,7 @@ function PartnersPage() {
                     </select>
                   </div>
 
-                  {/* Clear button at bottom */}
-                  <div className="pt-2">
-                    <button
-                      onClick={clearFilters}
-                      className="text-sm text-red-600 hover:text-red-700 flex items-center gap-1"
-                    >
-                      <X width="14" height="14" />
-                      Clear
-                    </button>
-                  </div>
+
                 </div>
               </div>
             )}
