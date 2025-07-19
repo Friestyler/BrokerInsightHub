@@ -1728,24 +1728,25 @@ export default function PartnerDetail() {
                 </button>
 
                 {showOpportunityFilter && (
-                  <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-3">
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-3 gap-2 items-center">
-                        <span className="text-sm font-medium text-gray-700">Where</span>
+                  <div className="absolute right-0 top-full mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-gray-700 w-16">Where</span>
                         <select
                           value={opportunityFilters.status}
                           onChange={(e) => updateOpportunityFilter('status', e.target.value)}
-                          className="px-2 py-1.5 text-xs border border-gray-300 rounded bg-white"
+                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
                         >
                           <option value="All">Status</option>
                           {uniqueOpportunityStatuses.map(status => (
                             <option key={status} value={status}>{status}</option>
                           ))}
                         </select>
+                        <span className="text-sm text-gray-500 w-16">equals</span>
                         <select
                           value={opportunityFilters.status}
                           onChange={(e) => updateOpportunityFilter('status', e.target.value)}
-                          className="px-2 py-1.5 text-xs border border-gray-300 rounded bg-white"
+                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
                         >
                           <option value="All">All</option>
                           {uniqueOpportunityStatuses.map(status => (
@@ -1754,15 +1755,16 @@ export default function PartnerDetail() {
                         </select>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-2 items-center">
-                        <span className="text-sm font-medium text-gray-700">And</span>
-                        <select className="px-2 py-1.5 text-xs border border-gray-300 rounded bg-white">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-gray-700 w-16">And</span>
+                        <select className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
                           <option>Type</option>
                         </select>
+                        <span className="text-sm text-gray-500 w-16">equals</span>
                         <select
                           value={opportunityFilters.type}
                           onChange={(e) => updateOpportunityFilter('type', e.target.value)}
-                          className="px-2 py-1.5 text-xs border border-gray-300 rounded bg-white"
+                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
                         >
                           <option value="All">All</option>
                           {uniqueOpportunityTypes.map(type => (
@@ -1771,15 +1773,16 @@ export default function PartnerDetail() {
                         </select>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-2 items-center">
-                        <span className="text-sm font-medium text-gray-700">And</span>
-                        <select className="px-2 py-1.5 text-xs border border-gray-300 rounded bg-white">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-gray-700 w-16">And</span>
+                        <select className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
                           <option>Size</option>
                         </select>
+                        <span className="text-sm text-gray-500 w-16">equals</span>
                         <select
                           value={opportunityFilters.size}
                           onChange={(e) => updateOpportunityFilter('size', e.target.value)}
-                          className="px-2 py-1.5 text-xs border border-gray-300 rounded bg-white"
+                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
                         >
                           <option value="All">All</option>
                           {uniqueOpportunitySizes.map(size => (
@@ -1788,15 +1791,16 @@ export default function PartnerDetail() {
                         </select>
                       </div>
 
-                      <div className="grid grid-cols-3 gap-2 items-center">
-                        <span className="text-sm font-medium text-gray-700">And</span>
-                        <select className="px-2 py-1.5 text-xs border border-gray-300 rounded bg-white">
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm font-medium text-gray-700 w-16">And</span>
+                        <select className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white">
                           <option>Stage</option>
                         </select>
+                        <span className="text-sm text-gray-500 w-16">equals</span>
                         <select
                           value={opportunityFilters.stage}
                           onChange={(e) => updateOpportunityFilter('stage', e.target.value)}
-                          className="px-2 py-1.5 text-xs border border-gray-300 rounded bg-white"
+                          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
                         >
                           <option value="All">All</option>
                           {uniqueOpportunityStatuses.map(stage => (
