@@ -2315,11 +2315,23 @@ export default function PartnerDetail() {
                     
                     {/* Show selected list when collapsed */}
                     {!showListsDropdown && activeList && (
-                      <div className="bg-gray-100 px-3 py-1 rounded-full flex items-center space-x-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-600">
+                      <div className="bg-indigo-100 px-3 py-1 rounded-full flex items-center space-x-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
                           <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
                         </svg>
-                        <span className="text-sm text-gray-700">{activeList.name}</span>
+                        <span className="text-sm text-indigo-700">{activeList.name}</span>
+                        <button 
+                          className="ml-1 hover:bg-indigo-200 rounded-full p-0.5 transition-colors"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveList(null);
+                          }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                          </svg>
+                        </button>
                       </div>
                     )}
                     
@@ -2482,7 +2494,7 @@ export default function PartnerDetail() {
                             <div
                               key={list.id}
                               className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
-                                activeList?.id === list.id ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200 hover:border-gray-300'
+                                activeList?.id === list.id ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-gray-200 hover:border-gray-300'
                               }`}
                               onClick={() => setActiveList(list)}
                             >
