@@ -45,6 +45,30 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
+import { 
+  Users, 
+  Download, 
+  Plus, 
+  UserPlus,
+  Trash2,
+  MoreVertical,
+  Search,
+  ArrowUpDown,
+  Calendar,
+  Clock,
+  Mail,
+  Phone,
+  Building2,
+  DollarSign,
+  ChevronDown,
+  List,
+  BarChart3,
+  Settings,
+  Filter,
+  LayoutGrid,
+  X,
+  Bookmark
+} from 'lucide-react';
 
 
 // Fetch partners from database
@@ -678,46 +702,71 @@ function PartnersPage() {
 
         {/* Saved Lists Section */}
         <div className="px-4 py-2">
-          <div className="flex items-center justify-start gap-4 mb-2">
-            <button 
-              className="flex items-center space-x-2 text-lg font-semibold text-gray-900 hover:text-gray-700"
-              onClick={() => setShowListsDropdown(!showListsDropdown)}
-            >
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="16" 
-                height="16" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                className={`transition-transform ${showListsDropdown ? 'rotate-90' : ''}`}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-4">
+              <button 
+                className="flex items-center space-x-2 text-lg font-semibold text-gray-900 hover:text-gray-700"
+                onClick={() => setShowListsDropdown(!showListsDropdown)}
               >
-                <polyline points="9 18 15 12 9 6" />
-              </svg>
-              <span>Saved Lists ({savedListsData.length})</span>
-            </button>
-            
-            {/* Show selected list when collapsed */}
-            {!showListsDropdown && activeList && (
-              <div className="bg-indigo-100 px-3 py-1 rounded-full flex items-center space-x-2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
-                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-                </svg>
-                <span className="text-sm text-indigo-700">{activeList.name}</span>
-                <button 
-                  className="hover:bg-indigo-200 rounded-full p-0.5 transition-colors"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveList(null);
-                  }}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
+                {showListsDropdown ? (
+                  <ChevronDown width="16" height="16" className="transition-transform" />
+                ) : (
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="16" 
+                    height="16" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className="transition-transform"
+                  >
+                    <polyline points="9 18 15 12 9 6" />
                   </svg>
+                )}
+                <span>Saved Lists ({savedListsData.length})</span>
+              </button>
+              
+              {/* Show selected list when collapsed */}
+              {!showListsDropdown && activeList && (
+                <div className="bg-green-100 px-3 py-1 rounded-full flex items-center space-x-2">
+                  <Filter width="14" height="14" className="text-green-600" />
+                  <span className="text-sm text-green-700">{activeList.name}</span>
+                  <button 
+                    className="hover:bg-green-200 rounded-full p-0.5 transition-colors"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setActiveList(null);
+                    }}
+                  >
+                    <X width="12" height="12" className="text-green-500" />
+                  </button>
+                </div>
+              )}
+            </div>
+            
+            {/* Cards/List View Toggle - only show when lists are expanded */}
+            {showListsDropdown && (
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setViewMode('cards')}
+                  className={`p-1 rounded transition-colors ${
+                    viewMode === 'cards' ? 'bg-gray-200' : 'hover:bg-gray-100'
+                  }`}
+                  title="Cards view"
+                >
+                  <LayoutGrid width="16" height="16" className="text-gray-600" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-1 rounded transition-colors ${
+                    viewMode === 'list' ? 'bg-gray-200' : 'hover:bg-gray-100'
+                  }`}
+                  title="List view"
+                >
+                  <List width="16" height="16" className="text-gray-600" />
                 </button>
               </div>
             )}
@@ -740,7 +789,7 @@ function PartnersPage() {
 
           {/* Collapsible Lists Content */}
           {showListsDropdown && (
-            <div className="space-y-2">
+            <div className={viewMode === 'cards' ? 'grid grid-cols-2 gap-3' : 'space-y-2'}>
               {/* All Partners option */}
               <div
                 className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${
@@ -753,38 +802,106 @@ function PartnersPage() {
                     <div>
                       <h3 className="font-medium text-gray-900">All Partners</h3>
                       <p className="text-sm text-gray-500">{partners.length} partners</p>
+                      {!activeList && (
+                        <div className="text-xs text-gray-400 mt-1">Live data</div>
+                      )}
                     </div>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-lg font-semibold text-gray-900">{formatCurrency(stats.totalValue)}</p>
-                  <p className="text-xs text-gray-500">Total value</p>
+                  {!activeList && (
+                    <div className="text-xs text-red-600 font-medium">-2%</div>
+                  )}
                 </div>
               </div>
 
               {/* Saved Lists */}
-              {savedListsData.map((list: any, index: number) => (
-                <div
-                  key={list.id}
-                  className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${
-                    activeList?.id === list.id ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200 hover:border-gray-300'
-                  }`}
-                  onClick={() => setActiveList(list)}
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3">
-                      <div>
-                        <h3 className="font-medium text-gray-900">{list.name}</h3>
-                        <p className="text-sm text-gray-500">{list.members?.length || 0} partners</p>
+              {savedListsData.map((list: any, index: number) => {
+                const isSelected = activeList?.id === list.id;
+                const isShared = list.is_shared;
+                
+                return (
+                  <div
+                    key={list.id}
+                    className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${
+                      isSelected ? 'bg-green-50 border-green-200' : 'bg-white border-gray-200 hover:border-gray-300'
+                    }`}
+                    onClick={() => setActiveList(list)}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3">
+                        <div>
+                          <h3 className="font-medium text-gray-900">{list.name}</h3>
+                          <p className="text-sm text-gray-500">{list.members?.length || 0} partners</p>
+                          {isSelected && (
+                            <div className="text-xs text-gray-400 mt-1">Updated 1 hours ago</div>
+                          )}
+                        </div>
                       </div>
                     </div>
+                    <div className="text-right">
+                      <p className="text-lg font-semibold text-gray-900">
+                        {list.name === 'Cyberverzekering Opportunities' ? '€736,525' : 
+                         list.name === 'Einde Termijn' ? '€2,908,979' :
+                         list.name === 'Zonnepanelen Opportunities' ? '€3,857,298' : '€0'}
+                      </p>
+                      {isSelected && (
+                        <div className={`text-xs font-medium ${
+                          list.name === 'Cyberverzekering Opportunities' ? 'text-green-600' : 
+                          list.name === 'Einde Termijn' ? 'text-red-600' :
+                          list.name === 'Zonnepanelen Opportunities' ? 'text-green-600' : 'text-gray-600'
+                        }`}>
+                          {list.name === 'Cyberverzekering Opportunities' ? '+4%' : 
+                           list.name === 'Einde Termijn' ? '-3%' :
+                           list.name === 'Zonnepanelen Opportunities' ? '+8%' : '0%'}
+                        </div>
+                      )}
+                      <button
+                        className="mt-1 text-xs text-gray-400 hover:text-gray-600"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // Handle share functionality
+                        }}
+                      >
+                        Share
+                      </button>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-lg font-semibold text-gray-900">€0</p>
-                    <p className="text-xs text-gray-500">List value</p>
-                  </div>
-                </div>
-              ))}
+                );
+              })}
+            </div>
+          )}
+          
+          {/* Clear and Save as Segment View buttons */}
+          {(activeList || hasChanges()) && (
+            <div className="flex items-center justify-between pt-4 border-t border-gray-200 mt-4">
+              <button
+                onClick={() => {
+                  setActiveList(null);
+                  setFilters({ status: 'All', industry: 'All', size: 'All' });
+                  setVisibleFields({
+                    name: true,
+                    industry: true,
+                    customerCount: true,
+                    opportunityCount: true,
+                    totalValue: true,
+                    status: true
+                  });
+                }}
+                className="text-sm text-gray-600 hover:text-gray-800 flex items-center gap-1"
+              >
+                <X width="14" height="14" />
+                Clear
+              </button>
+              
+              <button
+                onClick={() => setShowSaveViewModal(true)}
+                className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+              >
+                <Bookmark width="14" height="14" />
+                Save as segment view
+              </button>
             </div>
           )}
         </div>
@@ -849,6 +966,51 @@ function PartnersPage() {
           </table>
         </div>
       </div>
+      
+      {/* Save View Modal */}
+      <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Save as Segment View</DialogTitle>
+            <DialogDescription>
+              Save your current filters and field selections as a reusable view.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="view-name">View Name</Label>
+              <Input
+                id="view-name"
+                placeholder="Enter view name..."
+                value={viewNameInput}
+                onChange={(e) => setViewNameInput(e.target.value)}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowSaveViewModal(false);
+                setViewNameInput('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                // Handle save view logic
+                console.log('Saving view:', viewNameInput, { filters, visibleFields });
+                setShowSaveViewModal(false);
+                setViewNameInput('');
+              }}
+              disabled={!viewNameInput.trim()}
+            >
+              Save View
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
