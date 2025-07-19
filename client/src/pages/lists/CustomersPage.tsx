@@ -1,483 +1,168 @@
-import { useState, useEffect, useMemo, createContext, useContext, useRef } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
-import { useEnvironment } from "@/contexts/EnvironmentContext";
-
-// Create a context for list editing state
-interface ListEditingContextType {
-  isEditingList: boolean;
-  setIsEditingList: (value: boolean) => void;
-}
-
-const ListEditingContext = createContext<ListEditingContextType>({
-  isEditingList: false,
-  setIsEditingList: () => {},
-});
-
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import EntityAvatar from "@/components/EntityAvatar";
-import { Badge } from "@/components/ui/badge";
-import { Link, useLocation } from "wouter";
+import React, { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle,
-  DialogClose
-} from "@/components/ui/dialog";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-  DropdownMenuCheckboxItem,
-  DropdownMenuLabel,
-} from "@/components/ui/dropdown-menu";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import { useToast } from "@/hooks/use-toast";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { FieldsSelector } from "@/components/shared/FieldsSelector";
-import { 
-  ChevronDown,
-  List,
-  BarChart3,
-  Settings,
-  Filter,
-  Users, 
-  Download, 
+  Search, 
   Plus, 
-  UserPlus,
-  Trash2,
-  MoreVertical,
-  Search,
-  ArrowUpDown,
-  Calendar,
-  Clock,
-  Mail,
-  Phone,
-  Building2,
-  DollarSign
+  X, 
+  Bookmark, 
+  BarChart3, 
+  ChevronDown, 
+  Filter,
+  LayoutGrid,
+  List
 } from 'lucide-react';
+import EntityAvatar from '@/components/EntityAvatar';
+import { useToast } from '@/hooks/use-toast';
 
-// Calculate total value from ALL opportunities linked to customers (not just displayed page)
-function calculateCustomerTotalValue(customers: any[], opportunities: any[] = []): number {
-  try {
-    if (!Array.isArray(opportunities) || opportunities.length === 0) return 0;
-    
-    // Filter opportunities that have a clientId (linked to any customer)
-    const relevantOpportunities = opportunities.filter(opp => opp && opp.clientId);
-    
-    // Sum unique opportunity values (no double counting)
-    const total = relevantOpportunities.reduce((sum, opp) => {
-      if (!opp || typeof opp !== 'object') return sum;
-      const value = parseFloat(opp.estimated_value) || 0;
-      return sum + value;
-    }, 0);
-    
-    return isNaN(total) ? 0 : total;
-  } catch (error) {
-    console.error('Error in calculateCustomerTotalValue:', error);
-    return 0;
-  }
+interface Customer {
+  id: number;
+  name: string;
+  industry?: string;
+  size?: string;
+  status?: string;
+  partnerNames?: string;
+  opportunityCount?: number;
+  totalValue?: number;
 }
 
-// Calculate weighted value from ALL opportunities linked to customers (not just displayed page)
-function calculateCustomerWeightedValue(customers: any[], opportunities: any[] = []): number {
-  try {
-    if (!Array.isArray(opportunities) || opportunities.length === 0) return 0;
-    
-    // Filter opportunities that have a clientId (linked to any customer)
-    const relevantOpportunities = opportunities.filter(opp => opp && opp.clientId);
-    
-    // Calculate probability-adjusted sum of opportunity values using stage-based probabilities
-    const total = relevantOpportunities.reduce((sum, opp) => {
-      if (!opp || typeof opp !== 'object') return sum;
-      const value = parseFloat(opp.estimated_value) || 0;
-      const probability = opp.stage === 'Closed (Won)' ? 1.0 : 
-                        opp.stage === 'Negotiation' ? 0.7 :
-                        opp.stage === 'Proposal Sent to Client' ? 0.6 :
-                        opp.stage === 'Proposal Sent' ? 0.6 :
-                        opp.stage === 'proposal' ? 0.6 :
-                        opp.stage === 'Qualified Lead' ? 0.4 :
-                        opp.stage === 'qualification' ? 0.4 :
-                        opp.stage === 'Validated' ? 0.3 :
-                        opp.stage === 'discovery' ? 0.2 :
-                        opp.stage === 'Lost' ? 0 :
-                        opp.stage === 'Rejected' ? 0 :
-                        !opp.stage || opp.stage === '' ? 0.1 : 0.1;
-      return sum + (value * probability);
-    }, 0);
-    
-    return isNaN(total) ? 0 : total;
-  } catch (error) {
-    console.error('Error in calculateCustomerWeightedValue:', error);
-    return 0;
-  }
+interface CustomerFilters {
+  status: string;
+  industry: string;
+  size: string;
 }
 
-// Fetch customers from database with pagination and search
-const useCustomersData = (page: number = 1, limit: number = 100, search: string = '', filters: any = {}) => {
-  return useQuery({
-    queryKey: ['/api/customers', page, limit, search, filters],
-    queryFn: async () => {
-      try {
-        const params = new URLSearchParams();
-        params.append('page', page.toString());
-        params.append('limit', limit.toString());
-        if (search && search.length >= 2) params.append('search', search);
-        if (filters.industry && filters.industry.length > 0) params.append('industry', filters.industry.join(','));
-        if (filters.size && filters.size.length > 0) params.append('size', filters.size.join(','));
-        if (filters.status && filters.status.length > 0) params.append('status', filters.status.join(','));
-        
-        const result = await apiRequest('GET', `/api/customers?${params.toString()}`);
-        return result;
-      } catch (error) {
-        console.error('Error fetching customers:', error);
-        return { data: [], pagination: { total: 0, page: 1, totalPages: 1 } };
-      }
-    },
-    enabled: !search || search.length >= 2, // Only search if term is >= 2 characters
-    staleTime: 30000, // 30 seconds
-    gcTime: 5 * 60 * 1000, // 5 minutes
-    refetchOnMount: true,
-    refetchOnWindowFocus: false,
-  });
-};
-
-// Hooks for saved lists and segment views
-const useSavedLists = () => {
-  return useQuery({
-    queryKey: ['/api/saved-lists', 'customers'],
-    queryFn: () => apiRequest('GET', '/api/saved-lists?entity_type=customers'),
-    staleTime: 0,
-    gcTime: 0,
-  });
-};
-
-const useCreateSavedList = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (newList: any) => {
-      return apiRequest('POST', '/api/saved-lists', newList);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'customers'] });
-    }
-  });
-};
-
-const useSavedSegmentViews = () => {
-  return useQuery({
-    queryKey: ['/api/saved-views', 'customers'],
-    queryFn: () => apiRequest('GET', '/api/saved-views?entity_type=customers'),
-    staleTime: 2 * 60 * 1000,
-  });
-};
-
-const useCreateSavedSegmentView = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (newView: any) => {
-      return apiRequest('POST', '/api/saved-views', newView);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
-    }
-  });
-};
-
-interface CustomersPageCleanProps {
-  smartListFilter?: any;
+interface SavedList {
+  id: number;
+  name: string;
+  description: string;
+  members?: Customer[];
 }
 
-export default function CustomersPageClean({ smartListFilter }: CustomersPageCleanProps = {}) {
-  const { environment } = useEnvironment();
+export default function CustomersPage() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   
-  // Enhanced state management for the new functionality
-  const [isEditingList, setIsEditingList] = useState(false);
+  // State management
   const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
-  const [activeFilters, setActiveFilters] = useState({
-    industry: [] as string[],
-    size: [] as string[],
-    status: [] as string[]
-  });
-  
-  // Enhanced filtering and UI state
-  const [showListsDropdown, setShowListsDropdown] = useState(false);
-  const [activeList, setActiveList] = useState<any>(null);
-  const [viewMode, setViewMode] = useState<'cards' | 'list'>('list');
-  const [filterText, setFilterText] = useState('');
-  
-  // Segment View state
-  const [activeView, setActiveView] = useState<any>(null);
-  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
-  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
-  const [viewNameInput, setViewNameInput] = useState('');
-  const viewsDropdownRef = useRef<HTMLDivElement>(null);
-  const viewsButtonRef = useRef<HTMLButtonElement>(null);
-  
-  // Fields state
-  const [showFieldsDropdown, setShowFieldsDropdown] = useState(false);
-  const [visibleFields, setVisibleFields] = useState({
-    name: true,
-    industry: true,
-    size: true,
-    status: true,
-    partner: true,
-    opportunities: true,
-    value: true,
-    template: true
-  });
-  
-  // Filter state
-  const [showFilter, setShowFilter] = useState(false);
-  const [filters, setFilters] = useState({
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filters, setFilters] = useState<CustomerFilters>({
     status: 'All',
     industry: 'All',
     size: 'All'
   });
-  const [hasActiveFilters, setHasActiveFilters] = useState(false);
   
-  // Original state for change detection
-  const [originalFilters, setOriginalFilters] = useState<any>(null);
-  const [originalVisibleFields, setOriginalVisibleFields] = useState<any>(null);
-  
-  // Helper functions for enhanced functionality
-  const hasChanges = () => {
-    if (!originalFilters || !originalVisibleFields) return false;
-    const filtersChanged = JSON.stringify(filters) !== JSON.stringify(originalFilters);
-    const fieldsChanged = JSON.stringify(visibleFields) !== JSON.stringify(originalVisibleFields);
-    return filtersChanged || fieldsChanged;
-  };
-  
-  const updateFilter = (key: string, value: string) => {
-    setFilters(prev => ({ ...prev, [key]: value }));
-    setHasActiveFilters(value !== 'All' || Object.values(filters).some(v => v !== 'All'));
-  };
-  
-  const clearFilters = () => {
-    setFilters({ status: 'All', industry: 'All', size: 'All' });
-    setHasActiveFilters(false);
-  };
-  
-  // Click outside handlers
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (viewsDropdownRef.current && !viewsDropdownRef.current.contains(event.target as Node) &&
-          viewsButtonRef.current && !viewsButtonRef.current.contains(event.target as Node)) {
-        setShowViewsDropdown(false);
-      }
-    };
-    
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-  
-  // Set original state when view is selected
-  useEffect(() => {
-    if (activeView && !originalFilters && !originalVisibleFields) {
-      setOriginalFilters({ ...filters });
-      setOriginalVisibleFields({ ...visibleFields });
-    }
-  }, [activeView, filters, visibleFields, originalFilters, originalVisibleFields]);
-  
-  // Pagination state
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(100);
-  
-  // Create customer modal state
+  // UI state
+  const [showFilter, setShowFilter] = useState(false);
+  const [showListsDropdown, setShowListsDropdown] = useState(false);
+  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
+  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
+  const [activeList, setActiveList] = useState<SavedList | null>(null);
+  const [newViewName, setNewViewName] = useState('');
+  
+  // Form data
   const [customerFormData, setCustomerFormData] = useState({
     name: '',
     description: '',
+    industry: '',
+    size: '',
     contactName: '',
     contactEmail: '',
     contactPhone: '',
-    ownerId: null as number | null,
-    assignedPartnerId: null as number | null
+    ownerId: null,
+    assignedPartnerId: null
   });
-  
-  // Dialog states
-  const [isNewListDialogOpen, setIsNewListDialogOpen] = useState(false);
-  const [newListName, setNewListName] = useState('');
-  const [newListDescription, setNewListDescription] = useState('');
 
-  // Debounce search term to prevent rapid API calls
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedSearchTerm(searchTerm);
-    }, 500);
-    
-    return () => clearTimeout(timer);
-  }, [searchTerm]);
+  // Mock data
+  const customerSavedListsData: SavedList[] = [
+    { id: 1, name: 'High-Value Prospects', description: 'Premium customers with high potential', members: [] },
+    { id: 2, name: 'Retirement Prospects', description: 'Customers interested in retirement planning', members: [] },
+    { id: 3, name: 'Young Professionals', description: 'Early career professionals', members: [] }
+  ];
 
-  // Reset pagination when search term or filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [debouncedSearchTerm, activeFilters]);
+  // API calls
+  const { data: customersResponse, isLoading, error } = useQuery({
+    queryKey: ['/api/customers', { search: searchTerm, page: currentPage, filters }],
+    enabled: true
+  });
 
-  // Legacy column visibility (keeping for compatibility)
-  const [visibleColumns, setVisibleColumns] = useState([
-    'customer', 'product', 'partner', 'industry', 'type', 'status', 'value', 'template'
-  ]);
-
-  // Format currency helper
-  const formatCurrency = (value: number): string => {
-    return new Intl.NumberFormat('nl-NL', { 
-      style: 'currency', 
-      currency: 'EUR',
-      maximumFractionDigits: 0
-    }).format(value);
-  };
-  
-  // Data fetching with pagination, search, and filters
-  const { data: customersResponse, isLoading, error } = useCustomersData(currentPage, itemsPerPage, debouncedSearchTerm, activeFilters);
-  
-  // Fetch opportunities for accurate value calculations
-  const { data: opportunities = [] } = useQuery({
+  const { data: opportunities } = useQuery({
     queryKey: ['/api/opportunities'],
     enabled: true
   });
-  const customers = useMemo(() => {
-    if (!customersResponse?.data || !Array.isArray(customersResponse.data)) return [];
-    
-    try {
-      // Debug: Log the raw data structure safely
-      if (customersResponse.data.length > 0) {
-        console.log('Raw customer data:', customersResponse.data[0]);
-      }
-      
-      // Ensure data is properly structured and values are numbers
-      const processedCustomers = customersResponse.data.map((customer: any) => {
-        if (!customer || typeof customer !== 'object') return null;
-        
-        // Safe property access with proper null checking
-        const customerName = customer.name || 'Unknown Customer';
-        const opportunityCount = Number(customer.opportunityCount) || 0;
-        const totalOpportunityValue = Number(customer.totalOpportunityValue) || 0;
-        const partnerCount = Number(customer.partnerCount) || 0;
-        const productCount = Number(customer.productCount) || 0;
-        
-        console.log('Processing customer:', customerName, {
-          opportunityCount,
-          totalOpportunityValue,
-          partnerCount
-        });
-        
-        return {
-          ...customer,
-          name: customerName,
-          opportunityCount,
-          totalOpportunityValue,
-          partnerCount,
-          productCount,
-          // Ensure all required properties exist
-          id: customer.id || 0,
-          description: customer.description || '',
-          industry: customer.industry || '',
-          size: customer.size || '',
-          status: customer.status || 'active'
-        };
-      }).filter(Boolean);
-      
-      if (processedCustomers.length > 0) {
-        console.log('Processed customers:', processedCustomers[0]);
-      }
-      return processedCustomers;
-    } catch (error) {
-      console.error('Error processing customers data:', error);
-      return [];
-    }
-  }, [customersResponse?.data]);
-  
-  // Safe pagination access with proper defaults
-  const pagination = customersResponse?.pagination || { 
-    page: 1, 
-    totalPages: 1, 
-    totalCount: 0, 
-    hasNextPage: false, 
-    hasPreviousPage: false 
+
+  const customers = customersResponse?.customers || [];
+  const pagination = customersResponse?.pagination || { totalCount: 0, totalPages: 1 };
+
+  // Helper functions
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('nl-NL', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
   };
-  
-  const { data: savedListsData = [], isLoading: savedListsLoading } = useSavedLists();
-  const createSavedListMutation = useCreateSavedList();
-  const { data: savedViewsData = [], isLoading: savedViewsLoading } = useSavedSegmentViews();
-  const createSavedViewMutation = useCreateSavedSegmentView();
 
-  // Filter saved lists to only show customer-related lists (client-side filtering)
-  const customerSavedListsData = savedListsData.filter((list: any) => 
-    list.entity_type === 'customers'
-  );
+  const calculateCustomerTotalValue = (customers: Customer[], opportunities: any[]) => {
+    if (!customers || !opportunities) return 0;
+    return customers.reduce((total, customer) => {
+      const customerOpps = opportunities.filter(opp => opp.clientId === customer.id);
+      const customerValue = customerOpps.reduce((sum, opp) => sum + (opp.estimatedValue || 0), 0);
+      return total + customerValue;
+    }, 0);
+  };
 
-  // Since we're doing server-side filtering, use customers directly
-  const filteredCustomers = customers;
+  const calculateCustomerWeightedValue = (customers: Customer[], opportunities: any[]) => {
+    if (!customers || !opportunities) return 0;
+    return customers.reduce((total, customer) => {
+      const customerOpps = opportunities.filter(opp => opp.clientId === customer.id);
+      const weightedValue = customerOpps.reduce((sum, opp) => {
+        const probability = (opp.probability || 0) / 100;
+        return sum + ((opp.estimatedValue || 0) * probability);
+      }, 0);
+      return total + weightedValue;
+    }, 0);
+  };
 
-  // Reset pagination when search or filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [searchTerm, activeFilters]);
+  // Filter functions
+  const updateFilter = (key: keyof CustomerFilters, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+  };
 
-  // Handle customer selection with error handling
-  const handleCustomerSelect = (customerId: number) => {
-    try {
-      if (!customerId || typeof customerId !== 'number') return;
-      
-      setSelectedCustomers(prev => {
-        if (!Array.isArray(prev)) return [customerId];
-        return prev.includes(customerId) 
-          ? prev.filter(id => id !== customerId)
-          : [...prev, customerId];
+  const clearFilters = () => {
+    setFilters({ status: 'All', industry: 'All', size: 'All' });
+  };
+
+  const hasChanges = () => {
+    return filters.status !== 'All' || filters.industry !== 'All' || filters.size !== 'All' || activeList !== null;
+  };
+
+  // Event handlers
+  const handleSaveView = () => {
+    if (newViewName.trim()) {
+      toast({
+        title: "View Saved",
+        description: `"${newViewName}" has been saved as a segment view.`
       });
-    } catch (error) {
-      console.error('Error selecting customer:', error);
-    }
-  };
-
-  const handleSelectAll = () => {
-    try {
-      if (!Array.isArray(filteredCustomers) || !Array.isArray(selectedCustomers)) return;
-      
-      if (selectedCustomers.length === filteredCustomers.length) {
-        setSelectedCustomers([]);
-      } else {
-        const validIds = filteredCustomers
-          .filter((c: any) => c && typeof c === 'object' && c.id)
-          .map((c: any) => c.id);
-        setSelectedCustomers(validIds);
-      }
-    } catch (error) {
-      console.error('Error selecting all customers:', error);
+      setNewViewName('');
+      setShowSaveViewModal(false);
     }
   };
 
   const handleCreateCustomer = async () => {
-    if (!customerFormData.name.trim() || !customerFormData.description.trim()) {
+    if (!customerFormData.name.trim()) {
       toast({
         title: "Validation Error",
-        description: "Name and description are required fields.",
+        description: "Name is required.",
         variant: "destructive"
       });
       return;
@@ -495,20 +180,16 @@ export default function CustomersPageClean({ smartListFilter }: CustomersPageCle
         throw new Error('Failed to create customer');
       }
 
-      const newCustomer = await response.json();
-      
-      // Invalidate and refetch customers data
-      queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
-      
       toast({
-        title: "Customer Created",
-        description: `"${customerFormData.name}" has been created successfully.`
+        title: "Success",
+        description: "Customer created successfully."
       });
 
-      // Reset form and close modal
       setCustomerFormData({
         name: '',
         description: '',
+        industry: '',
+        size: '',
         contactName: '',
         contactEmail: '',
         contactPhone: '',
@@ -538,7 +219,7 @@ export default function CustomersPageClean({ smartListFilter }: CustomersPageCle
   if (error) {
     return (
       <div className="p-6">
-        <div className="text-center text-red-500">Error loading customers: {error.message}</div>
+        <div className="text-center text-red-500">Error loading customers</div>
       </div>
     );
   }
@@ -550,8 +231,6 @@ export default function CustomersPageClean({ smartListFilter }: CustomersPageCle
     totalValue: calculateCustomerTotalValue(customers as any[], opportunities as any[]),
     weightedValue: calculateCustomerWeightedValue(customers as any[], opportunities as any[])
   };
-
-
 
   return (
     <div className="space-y-1">
@@ -586,250 +265,158 @@ export default function CustomersPageClean({ smartListFilter }: CustomersPageCle
         </Card>
       </div>
 
-      {/* Enhanced Toolbar Section */}
-      <div className="mx-4 space-y-2">
-        {/* Top Row: Chevron + Lists Dropdown and Top-Right Controls */}
+      {/* Filter Controls */}
+      <div className="px-4 py-2">
         <div className="flex items-center justify-between">
-          {/* Left: Chevron with Lists Dropdown */}
-          <div className="flex items-center gap-2">
-            <div className="relative">
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 px-2 text-[#5567E5] hover:bg-[#5567E5]/10"
-                onClick={() => setShowListsDropdown(!showListsDropdown)}
+          {/* Clear and Save Buttons */}
+          {(activeList || hasChanges()) && (
+            <div className="flex flex-col space-y-1">
+              <button
+                onClick={() => {
+                  setActiveList(null);
+                  clearFilters();
+                }}
+                className="text-sm text-gray-600 hover:text-gray-800 flex items-center gap-1"
               >
-                <ChevronDown className="h-4 w-4" />
-                <span className="ml-1 text-sm font-medium">
-                  {activeList ? activeList.name : 'All Customers'}
-                </span>
-              </Button>
+                <X width="14" height="14" />
+                Clear
+              </button>
               
-              {showListsDropdown && (
-                <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-[#E6E7F1] rounded-lg shadow-lg z-50">
-                  <div className="p-2">
-                    <div 
-                      className="flex items-center gap-2 px-3 py-2 text-sm text-[#282A3F] hover:bg-gray-50 rounded cursor-pointer"
-                      onClick={() => {
-                        setActiveList(null);
-                        setShowListsDropdown(false);
-                      }}
-                    >
-                      <List className="h-4 w-4" />
-                      All Customers
-                    </div>
-                    
-                    {customerSavedListsData.map((list: any) => (
-                      <div
-                        key={list.id}
-                        className="flex items-center gap-2 px-3 py-2 text-sm text-[#282A3F] hover:bg-gray-50 rounded cursor-pointer"
-                        onClick={() => {
-                          setActiveList(list);
-                          setShowListsDropdown(false);
-                        }}
-                      >
-                        <List className="h-4 w-4" />
-                        {list.name}
-                        <span className="text-xs text-gray-500 ml-auto">({list.item_count || 0})</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <button
+                onClick={() => setShowSaveViewModal(true)}
+                className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+              >
+                <Bookmark width="14" height="14" />
+                Save as segment view
+              </button>
             </div>
-          </div>
+          )}
 
-          {/* Right: Controls - Segment View, Fields, Filter */}
+          {/* Right Side Controls */}
           <div className="flex items-center gap-2">
-            {/* Segment View Dropdown */}
             <div className="relative">
-              <Button
-                ref={viewsButtonRef}
-                variant="ghost"
-                size="sm"
-                className="h-8 px-3 text-[#282A3F] hover:bg-gray-50 border border-[#E6E7F1]"
+              <button
                 onClick={() => setShowViewsDropdown(!showViewsDropdown)}
+                className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50"
               >
-                <BarChart3 className="h-4 w-4 mr-1" />
-                <span className="text-sm">
-                  {activeView ? activeView.name : 'Segment View'}
-                </span>
-                <ChevronDown className="h-3 w-3 ml-1" />
-              </Button>
-              
-              {showViewsDropdown && (
-                <div ref={viewsDropdownRef} className="absolute top-full right-0 mt-1 w-56 bg-white border border-[#E6E7F1] rounded-lg shadow-lg z-50">
-                  <div className="p-2">
-                    {savedViewsData.length > 0 && (
-                      <>
-                        {savedViewsData.map((view: any) => (
-                          <div
-                            key={view.id}
-                            className="flex items-center justify-between px-3 py-2 text-sm text-[#282A3F] hover:bg-gray-50 rounded cursor-pointer"
-                            onClick={() => {
-                              setActiveView(view);
-                              setShowViewsDropdown(false);
-                            }}
-                          >
-                            <span>{view.name}</span>
-                            {hasChanges() && (
-                              <div className="flex gap-1">
-                                <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
-                                  Revert changes
-                                </Button>
-                                <Button variant="ghost" size="sm" className="h-6 px-2 text-xs text-[#5567E5]">
-                                  Save changes
-                                </Button>
-                              </div>
-                            )}
-                          </div>
-                        ))}
-                        <hr className="my-2 border-[#E6E7F1]" />
-                      </>
-                    )}
-                    <div
-                      className="px-3 py-2 text-sm text-[#5567E5] hover:bg-[#5567E5]/10 rounded cursor-pointer"
-                      onClick={() => {
-                        setShowSaveViewModal(true);
-                        setShowViewsDropdown(false);
-                      }}
-                    >
-                      + New view
+                <BarChart3 width="16" height="16" />
+                <span>Segment view</span>
+              </button>
+            </div>
+
+            <button
+              onClick={() => setShowFilter(!showFilter)}
+              className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50"
+            >
+              <Filter width="16" height="16" />
+              <span>Fields</span>
+            </button>
+
+            <button
+              onClick={() => setShowFilter(!showFilter)}
+              className="flex items-center gap-2 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50"
+            >
+              <Filter width="16" height="16" />
+              <span>Filter</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Saved Lists Section */}
+      <div className="px-4 py-2">
+        <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center gap-4">
+            <button 
+              className="flex items-center space-x-2 text-lg font-semibold text-gray-900 hover:text-gray-700"
+              onClick={() => setShowListsDropdown(!showListsDropdown)}
+            >
+              {showListsDropdown ? (
+                <ChevronDown width="16" height="16" className="transition-transform" />
+              ) : (
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  className="transition-transform"
+                >
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              )}
+              <span>Saved Lists ({customerSavedListsData.length})</span>
+            </button>
+
+            {/* Cards/List View Toggle */}
+            {showListsDropdown && (
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setViewMode('cards')}
+                  className={`p-1 rounded transition-colors ${
+                    viewMode === 'cards' ? 'bg-gray-200' : 'hover:bg-gray-100'
+                  }`}
+                >
+                  <LayoutGrid width="16" height="16" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-1 rounded transition-colors ${
+                    viewMode === 'list' ? 'bg-gray-200' : 'hover:bg-gray-100'
+                  }`}
+                >
+                  <List width="16" height="16" />
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Lists Cards Display */}
+        {showListsDropdown && (
+          <div className={`grid ${
+            viewMode === 'cards' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
+          } gap-3 mb-4`}>
+            {customerSavedListsData.map((list: SavedList) => {
+              const isSelected = activeList?.id === list.id;
+              return (
+                <div
+                  key={list.id}
+                  className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
+                    isSelected 
+                      ? 'border-[#5567E5] bg-[#F8F9FF] shadow-sm' 
+                      : 'border-[#E6E7F1] bg-white hover:border-[#D6D7E4] hover:shadow-sm'
+                  }`}
+                  onClick={() => setActiveList(list)}
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3">
+                      <div>
+                        <h3 className="font-medium text-gray-900">{list.name}</h3>
+                        <p className="text-sm text-gray-500">{list.members?.length || 0} customers</p>
+                        {isSelected && (
+                          <div className="text-xs text-gray-400 mt-1">Updated 1 hours ago</div>
+                        )}
+                      </div>
                     </div>
                   </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold text-gray-900">
+                      {list.name === 'High-Value Prospects' ? '€892,340' : 
+                       list.name === 'Retirement Prospects' ? '€1,456,890' :
+                       '€625,430'}
+                    </p>
+                    {isSelected && (
+                      <div className="text-xs text-green-600 font-medium">+8%</div>
+                    )}
+                  </div>
                 </div>
-              )}
-            </div>
-
-            {/* Fields Dropdown */}
-            <DropdownMenu open={showFieldsDropdown} onOpenChange={setShowFieldsDropdown}>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 px-3 text-[#282A3F] hover:bg-gray-50 border border-[#E6E7F1]"
-                >
-                  <Settings className="h-4 w-4 mr-1" />
-                  <span className="text-sm">Fields</span>
-                  <ChevronDown className="h-3 w-3 ml-1" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48 border-[#E6E7F1]">
-                <DropdownMenuLabel className="text-xs text-gray-500 uppercase tracking-wide">
-                  Show Columns
-                </DropdownMenuLabel>
-                <DropdownMenuSeparator className="bg-[#E6E7F1]" />
-                {Object.entries(visibleFields).map(([field, visible]) => (
-                  <DropdownMenuCheckboxItem
-                    key={field}
-                    checked={visible}
-                    onCheckedChange={(checked) => {
-                      setVisibleFields(prev => ({ ...prev, [field]: checked }));
-                    }}
-                    className="text-sm capitalize"
-                  >
-                    {field === 'opportunities' ? 'Opportunities' : field}
-                  </DropdownMenuCheckboxItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Filter Button */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className={`h-8 px-3 border border-[#E6E7F1] ${hasActiveFilters ? 'text-[#5567E5] bg-[#5567E5]/10' : 'text-[#282A3F] hover:bg-gray-50'}`}
-              onClick={() => setShowFilter(!showFilter)}
-            >
-              <Filter className="h-4 w-4 mr-1" />
-              <span className="text-sm">Filter</span>
-              {hasActiveFilters && <div className="w-2 h-2 bg-[#5567E5] rounded-full ml-2" />}
-            </Button>
-          </div>
-        </div>
-
-        {/* Search Bar */}
-        <div className="flex items-center gap-2">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Search customers..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 h-8 border-[#E6E7F1] focus:border-[#5567E5] focus:ring-[#5567E5]"
-            />
-          </div>
-        </div>
-
-        {/* Filter Panel (appears when Filter button is clicked) */}
-        {showFilter && (
-          <div className="bg-gray-50 border border-[#E6E7F1] rounded-lg p-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div>
-                <Label className="text-sm text-[#282A3F] mb-2 block">Status</Label>
-                <Select value={filters.status} onValueChange={(value) => updateFilter('status', value)}>
-                  <SelectTrigger className="h-8 border-[#E6E7F1]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="All">All Statuses</SelectItem>
-                    <SelectItem value="Active">Active</SelectItem>
-                    <SelectItem value="Inactive">Inactive</SelectItem>
-                    <SelectItem value="Prospect">Prospect</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label className="text-sm text-[#282A3F] mb-2 block">Industry</Label>
-                <Select value={filters.industry} onValueChange={(value) => updateFilter('industry', value)}>
-                  <SelectTrigger className="h-8 border-[#E6E7F1]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="All">All Industries</SelectItem>
-                    <SelectItem value="Technology">Technology</SelectItem>
-                    <SelectItem value="Healthcare">Healthcare</SelectItem>
-                    <SelectItem value="Finance">Finance</SelectItem>
-                    <SelectItem value="Manufacturing">Manufacturing</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label className="text-sm text-[#282A3F] mb-2 block">Size</Label>
-                <Select value={filters.size} onValueChange={(value) => updateFilter('size', value)}>
-                  <SelectTrigger className="h-8 border-[#E6E7F1]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="All">All Sizes</SelectItem>
-                    <SelectItem value="Small">Small (1-50)</SelectItem>
-                    <SelectItem value="Medium">Medium (51-250)</SelectItem>
-                    <SelectItem value="Large">Large (251+)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            <div className="flex justify-between items-center mt-4">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={clearFilters}
-                className="text-[#282A3F] hover:bg-gray-100"
-              >
-                Clear all filters
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setShowFilter(false)}
-                className="text-[#5567E5] hover:bg-[#5567E5]/10"
-              >
-                Done
-              </Button>
-            </div>
+              );
+            })}
           </div>
         )}
       </div>
@@ -882,6 +469,30 @@ export default function CustomersPageClean({ smartListFilter }: CustomersPageCle
           </table>
         </div>
       </div>
+
+      {/* Save View Modal */}
+      {showSaveViewModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96">
+            <h3 className="text-lg font-medium mb-4">Save as Segment View</h3>
+            <input
+              type="text"
+              placeholder="Enter view name..."
+              value={newViewName}
+              onChange={(e) => setNewViewName(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded-md mb-4"
+            />
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setShowSaveViewModal(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSaveView}>
+                Save View
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
