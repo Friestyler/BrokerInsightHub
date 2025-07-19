@@ -807,6 +807,30 @@ function PartnersPage() {
                 )}
                 <span>Saved Lists ({savedListsData.length})</span>
               </button>
+
+              {/* Cards/List View Toggle - show when lists are expanded */}
+              {showListsDropdown && (
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setViewMode('cards')}
+                    className={`p-1 rounded transition-colors ${
+                      viewMode === 'cards' ? 'bg-gray-200' : 'hover:bg-gray-100'
+                    }`}
+                    title="Cards view"
+                  >
+                    <LayoutGrid width="16" height="16" className="text-gray-600" />
+                  </button>
+                  <button
+                    onClick={() => setViewMode('list')}
+                    className={`p-1 rounded transition-colors ${
+                      viewMode === 'list' ? 'bg-gray-200' : 'hover:bg-gray-100'
+                    }`}
+                    title="List view"
+                  >
+                    <List width="16" height="16" className="text-gray-600" />
+                  </button>
+                </div>
+              )}
               
               {/* Show selected list when collapsed */}
               {!showListsDropdown && activeList && (
@@ -825,30 +849,6 @@ function PartnersPage() {
                 </div>
               )}
             </div>
-            
-            {/* Cards/List View Toggle - only show when lists are expanded */}
-            {showListsDropdown && (
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setViewMode('cards')}
-                  className={`p-1 rounded transition-colors ${
-                    viewMode === 'cards' ? 'bg-gray-200' : 'hover:bg-gray-100'
-                  }`}
-                  title="Cards view"
-                >
-                  <LayoutGrid width="16" height="16" className="text-gray-600" />
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`p-1 rounded transition-colors ${
-                    viewMode === 'list' ? 'bg-gray-200' : 'hover:bg-gray-100'
-                  }`}
-                  title="List view"
-                >
-                  <List width="16" height="16" className="text-gray-600" />
-                </button>
-              </div>
-            )}
           </div>
 
           {/* Search Bar */}
