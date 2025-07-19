@@ -67,6 +67,7 @@ export default function CustomersPage() {
   const [isCreating, setIsCreating] = useState(false);
   const [viewMode, setViewMode] = useState<'cards' | 'list'>('cards');
   const [activeList, setActiveList] = useState<SavedList | null>(null);
+  const [activeView, setActiveView] = useState<any | null>(null);
   const [newViewName, setNewViewName] = useState('');
   
   // Visible fields state
@@ -185,11 +186,12 @@ export default function CustomersPage() {
       (key) => visibleFields[key as keyof typeof visibleFields] !== originalFields[key as keyof typeof originalFields]
     );
     
-    return hasFilterChanges || hasFieldChanges || activeList !== null;
+    return hasFilterChanges || hasFieldChanges || activeList !== null || activeView !== null;
   };
 
   const clearAllChanges = () => {
     setActiveList(null);
+    setActiveView(null);
     setFilters({ status: 'All', industry: 'All', size: 'All' });
     setVisibleFields({ ...originalFields });
     setHasActiveFilters(false);
@@ -417,7 +419,26 @@ export default function CustomersPage() {
                         className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${activeView?.id === view.id.toString() ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
                         onClick={() => {
                           setActiveView(view);
+                          setActiveList(null); // Clear active list when selecting a view
                           setShowViewsDropdown(false);
+                          // Apply view filters if available
+                          if (view.filters) {
+                            try {
+                              const viewFilters = JSON.parse(view.filters);
+                              setFilters(viewFilters);
+                            } catch (e) {
+                              console.error('Error parsing view filters:', e);
+                            }
+                          }
+                          // Apply view fields if available
+                          if (view.visible_fields) {
+                            try {
+                              const viewFields = JSON.parse(view.visible_fields);
+                              setVisibleFields(viewFields);
+                            } catch (e) {
+                              console.error('Error parsing view fields:', e);
+                            }
+                          }
                         }}
                       >
                         <span>{view.name}</span>
