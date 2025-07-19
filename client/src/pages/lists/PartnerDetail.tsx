@@ -1844,7 +1844,7 @@ export default function PartnerDetail() {
         )}
 
         {activeTab === "opportunities" && (
-          <div className="space-y-1">
+          <div className="space-y-0">
             {/* Save/Update/Clear View Buttons - Show when any changes detected */}
             {hasOpportunityChanges() && (
               <div className="flex justify-end items-center gap-2 px-4 py-1">
@@ -1920,7 +1920,7 @@ export default function PartnerDetail() {
             )}
 
             {/* Filter Section - positioned below tab separator on the right */}
-            <div className="flex justify-end items-center gap-2 px-4 py-1">
+            <div className="flex justify-end items-center gap-2 px-4">
               {/* Segment View Button */}
               <div className="relative">
                 <button 
@@ -2287,12 +2287,12 @@ export default function PartnerDetail() {
             </div>
 
             {/* Enhanced unified toolbar - same as OpportunitiesPage */}
-            <div className="bg-white px-4 py-2 rounded-lg shadow-sm">
-              <div className="flex flex-col gap-2">
+            <div className="bg-white px-4 py-1 rounded-lg shadow-sm">
+              <div className="flex flex-col gap-1">
                 {/* Enhanced Saved Lists Section */}
-                <div className="mb-2">
+                <div className="mb-1">
                   {/* Header with chevron and view mode toggle */}
-                  <div className="flex items-center justify-start gap-4 mb-2">
+                  <div className="flex items-center justify-start gap-4 mb-1">
                     <button 
                       className="flex items-center space-x-2 text-lg font-semibold text-gray-900 hover:text-gray-700"
                       onClick={() => setShowListsDropdown(!showListsDropdown)}
@@ -2648,7 +2648,7 @@ export default function PartnerDetail() {
 
             {/* Bulk actions bar - only visible when opportunities are selected */}
             {selectedOpportunities.length > 0 && (
-              <div className="bg-indigo-50 px-4 py-2 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-2">
+              <div className="bg-indigo-50 px-4 py-1 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-1">
                 <div className="flex items-center">
                   <span className="text-indigo-700 font-medium mr-2">
                     {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected
@@ -2686,7 +2686,7 @@ export default function PartnerDetail() {
             )}
 
             {/* Statistics overview cards */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
               <div className="bg-white px-4 py-2 rounded-md border border-gray-200">
                 <div className="text-xl font-semibold text-[#282A3F]">{filteredOpportunities.length}</div>
                 <div className="text-sm text-gray-500">Total Opportunities</div>
@@ -2723,7 +2723,7 @@ export default function PartnerDetail() {
             </div>
 
             {/* Opportunities Table */}
-            <div className="bg-white rounded-lg shadow-sm mt-2" id="opportunities-table">
+            <div className="bg-white rounded-lg shadow-sm mt-1" id="opportunities-table">
               <Table>
                 <TableHeader>
                   <TableRow>
