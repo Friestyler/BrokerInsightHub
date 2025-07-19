@@ -284,35 +284,41 @@ export default function CustomersPage() {
         </Card>
       </div>
 
-      {/* Filter Controls */}
-      <div className="px-4 py-2">
-        <div className="flex items-center justify-between">
-          {/* Clear and Save Buttons */}
-          {(activeList || hasChanges()) && (
-            <div className="flex flex-col space-y-1">
-              <button
-                onClick={() => {
-                  setActiveList(null);
-                  clearFilters();
-                }}
-                className="text-sm text-gray-600 hover:text-gray-800 flex items-center gap-1"
-              >
-                <X width="14" height="14" />
-                Clear
-              </button>
-              
-              <button
-                onClick={() => setShowSaveViewModal(true)}
-                className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
-              >
-                <Bookmark width="14" height="14" />
-                Save as segment view
-              </button>
-            </div>
-          )}
-
-          {/* Right Side Controls */}
-          <div className="flex items-center gap-3">
+      {/* Enhanced Toolbar Section */}
+      <div className="bg-white mx-4 rounded-lg shadow-sm border border-[#E6E7F1]">
+        {/* Main Controls Row */}
+        <div className="flex items-center justify-between px-4 py-2">
+          {/* Left side - empty */}
+          <div></div>
+          
+          {/* Right side - Controls with Clear/Save above */}
+          <div className="flex flex-col items-end gap-2">
+            {/* Clear and Save buttons stacked on top */}
+            {(activeList || hasChanges()) && (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    setActiveList(null);
+                    clearFilters();
+                  }}
+                  className="text-sm text-gray-600 hover:text-gray-800 flex items-center gap-1"
+                >
+                  <X width="14" height="14" />
+                  Clear
+                </button>
+                
+                <button
+                  onClick={() => setShowSaveViewModal(true)}
+                  className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                >
+                  <Bookmark width="14" height="14" />
+                  Save as segment view
+                </button>
+              </div>
+            )}
+            
+            {/* Main controls row */}
+            <div className="flex items-center gap-3">
             {/* Segment View Button */}
             <div className="relative">
               <button 
@@ -327,13 +333,40 @@ export default function CustomersPage() {
                   <polyline points="6 9 12 15 18 9" />
                 </svg>
               </button>
+
+              {showViewsDropdown && (
+                <div className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-md">
+                  <div className="p-2 border-b">
+                    {customerSavedViewsData?.map((view: any) => (
+                      <div 
+                        key={view.id}
+                        className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${activeView?.id === view.id.toString() ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                        onClick={() => {
+                          setActiveView(view);
+                          setShowViewsDropdown(false);
+                        }}
+                      >
+                        <span>{view.name}</span>
+                        {activeView?.id === view.id.toString() && (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                        )}
+                      </div>
+                    ))}
+                    {(!customerSavedViewsData || customerSavedViewsData.length === 0) && (
+                      <div className="p-2 text-sm text-gray-500 italic">No saved views</div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Fields Button */}
             <div className="relative">
               <button
                 onClick={() => setShowFieldsDropdown(!showFieldsDropdown)}
-                className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-colors ${
+                className={`flex items-center gap-2 px-3 h-8 text-sm border rounded-md transition-colors ${
                   Object.values(visibleFields).some(v => !v) 
                     ? 'bg-blue-50 border-blue-200 text-blue-700' 
                     : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -377,7 +410,7 @@ export default function CustomersPage() {
             <div className="relative">
               <button
                 onClick={() => setShowFilter(!showFilter)}
-                className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-colors ${
+                className={`flex items-center gap-2 px-3 h-8 text-sm border rounded-md transition-colors ${
                   hasActiveFilters 
                     ? 'bg-blue-50 border-blue-200 text-blue-700' 
                     : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
@@ -469,6 +502,7 @@ export default function CustomersPage() {
                 </div>
               )}
             </div>
+          </div>
           </div>
         </div>
       </div>
