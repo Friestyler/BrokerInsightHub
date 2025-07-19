@@ -1845,6 +1845,80 @@ export default function PartnerDetail() {
 
         {activeTab === "opportunities" && (
           <div className="space-y-4">
+            {/* Save/Update/Clear View Buttons - Show when any changes detected */}
+            {hasOpportunityChanges() && (
+              <div className="flex justify-end items-center gap-2 px-4 pt-2">
+                <button
+                  onClick={() => {
+                    // Reset both filters and fields to original state
+                    if (originalOpportunityFilters) {
+                      setOpportunityFilters(originalOpportunityFilters);
+                    }
+                    if (originalOpportunityVisibleFields) {
+                      setOpportunityVisibleFields(originalOpportunityVisibleFields);
+                    }
+                    // If no active view, reset to default state
+                    if (!activeOpportunityView) {
+                      setOpportunityFilters({
+                        status: 'All',
+                        stage: 'All',
+                        size: 'All',
+                        type: 'All'
+                      });
+                      setOpportunityVisibleFields({
+                        title: true,
+                        customer: true,
+                        stage: true,
+                        value: true,
+                        priority: true,
+                        type: true,
+                        size: true,
+                        accountManager: true,
+                        lastActivity: true
+                      });
+                    }
+                    // Clear change detection state
+                    setOriginalOpportunityFilters(null);
+                    setOriginalOpportunityVisibleFields(null);
+                  }}
+                  className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                  Clear
+                </button>
+                <button
+                  onClick={() => setShowSaveOpportunityViewModal(true)}
+                  className="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                >
+                  <Bookmark className="w-3 h-3" />
+                  Save as segment view
+                </button>
+                {activeOpportunityView && (
+                  <button
+                    onClick={() => {
+                      // Update existing view with both filters and fields
+                      const updateData = {
+                        name: activeOpportunityView.name,
+                        description: activeOpportunityView.description || '',
+                        filters: opportunityFilters,
+                        field_visibility: opportunityVisibleFields,
+                        is_shared: activeOpportunityView.is_shared || false
+                      };
+                      
+                      updateOpportunityViewMutation.mutate({
+                        id: activeOpportunityView.id,
+                        data: updateData
+                      });
+                    }}
+                    className="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                  >
+                    <Bookmark className="w-3 h-3" />
+                    Update segment view
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Filter Section - positioned below tab separator on the right */}
             <div className="flex justify-end items-center gap-3 px-4">
               {/* Segment View Button */}
@@ -1951,63 +2025,7 @@ export default function PartnerDetail() {
 
 
 
-              {/* Save/Update/Clear View Buttons - Show when any changes detected */}
-              {hasOpportunityChanges() && (
-                <>
-                  <button
-                    onClick={() => {
-                      // Reset both filters and fields to original state
-                      if (originalOpportunityFilters) {
-                        setOpportunityFilters(originalOpportunityFilters);
-                      }
-                      if (originalOpportunityVisibleFields) {
-                        setOpportunityVisibleFields(originalOpportunityVisibleFields);
-                      }
-                      // Clear change detection state
-                      setOriginalOpportunityFilters(null);
-                      setOriginalOpportunityVisibleFields(null);
-                    }}
-                    className="flex items-center gap-1 px-3 py-2 text-sm border border-[#E6E7F1] rounded-md bg-white text-gray-700 hover:bg-gray-50 transition-colors"
-                  >
-                    <X className="w-4 h-4" />
-                    Clear
-                  </button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowSaveOpportunityViewModal(true)}
-                    className="h-8 px-3 text-blue-600 border border-blue-200 hover:bg-blue-50"
-                  >
-                    <Bookmark className="w-4 h-4 mr-1" />
-                    Save as segment view
-                  </Button>
-                  {activeOpportunityView && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        // Update existing view with both filters and fields
-                        const updateData = {
-                          name: activeOpportunityView.name,
-                          description: activeOpportunityView.description || '',
-                          filters: opportunityFilters,
-                          field_visibility: opportunityVisibleFields,
-                          is_shared: activeOpportunityView.is_shared || false
-                        };
-                        
-                        updateOpportunityViewMutation.mutate({
-                          id: activeOpportunityView.id,
-                          data: updateData
-                        });
-                      }}
-                      className="h-8 px-3 text-blue-600 border border-blue-200 hover:bg-blue-50"
-                    >
-                      <Bookmark className="w-4 h-4 mr-1" />
-                      Update segment view
-                    </Button>
-                  )}
-                </>
-              )}
+
 
               {/* Fields Button */}
               <div className="relative" ref={opportunityFieldsDropdownRef}>
