@@ -3139,9 +3139,83 @@ export default function PartnerDetail() {
 
             {/* Enhanced saved lists section for customers */}
             <div className="bg-white rounded-lg">
-              <div className="space-y-3 p-0">
-                {/* Saved Lists Section */}
-                <div className="flex items-center justify-start gap-4 mb-1">
+              <div className="space-y-0">
+                {/* Save/Update/Clear View Buttons - Show when any changes detected */}
+                {hasCustomerChanges() && (
+                  <div className="flex justify-end items-center gap-2 px-4 py-1">
+                    <button
+                      onClick={() => {
+                        // Reset both filters and fields to original state
+                        if (originalCustomerFilters) {
+                          setCustomerFilters(originalCustomerFilters);
+                        }
+                        if (originalCustomerVisibleFields) {
+                          setCustomerVisibleFields(originalCustomerVisibleFields);
+                        }
+                        // If no active view, reset to default state
+                        if (!activeCustomerView) {
+                          setCustomerFilters({
+                            status: 'All',
+                            industry: 'All',
+                            region: 'All',
+                            size: 'All'
+                          });
+                          setCustomerVisibleFields({
+                            name: true,
+                            industry: true,
+                            region: true,
+                            contactPerson: true,
+                            phone: true,
+                            email: true,
+                            opportunities: true,
+                            totalValue: true,
+                            lastActivity: true
+                          });
+                        }
+                        // Clear change detection state
+                        setOriginalCustomerFilters(null);
+                        setOriginalCustomerVisibleFields(null);
+                      }}
+                      className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                      Clear
+                    </button>
+                    <button
+                      onClick={() => setShowSaveCustomerViewModal(true)}
+                      className="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                    >
+                      <Bookmark className="w-3 h-3" />
+                      Save as segment view
+                    </button>
+                    {activeCustomerView && (
+                      <button
+                        onClick={() => {
+                          // Update existing view with both filters and fields
+                          const updateData = {
+                            name: activeCustomerView.name,
+                            description: activeCustomerView.description || '',
+                            filters: customerFilters,
+                            field_visibility: customerVisibleFields,
+                            is_shared: activeCustomerView.is_shared || false
+                          };
+                          
+                          updateCustomerViewMutation.mutate({
+                            id: activeCustomerView.id,
+                            data: updateData
+                          });
+                        }}
+                        className="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                      >
+                        <Bookmark className="w-3 h-3" />
+                        Update segment view
+                      </button>
+                    )}
+                  </div>
+                )}
+                {/* Filter Section - positioned below tab separator on the right */}
+                <div className="flex justify-between items-center px-4">
+                  {/* Left side - Saved Lists header */}
                   <button 
                     className="flex items-center space-x-2 text-lg font-semibold text-gray-900 hover:text-gray-700"
                     onClick={() => setShowCustomerListsDropdown(!showCustomerListsDropdown)}
@@ -3162,6 +3236,312 @@ export default function PartnerDetail() {
                     </svg>
                     <span>Saved Lists ({(customerSavedLists as any[] || []).length})</span>
                   </button>
+                  
+                  {/* Right side - Segment View, Fields and Filter buttons */}
+                  <div className="flex justify-end items-center gap-2">
+                    {/* Segment View Button */}
+                    <div className="relative">
+                      <button 
+                        ref={customerViewsButtonRef}
+                        className={`flex items-center space-x-2 px-3 h-8 border border-[#E6E7F1] rounded-md text-sm font-medium bg-white hover:bg-gray-50`}
+                        onClick={() => setShowCustomerViewsDropdown(!showCustomerViewsDropdown)}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        <span className="text-gray-700">{activeCustomerView ? activeCustomerView.name : "Segment view"}</span>
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          width="14" 
+                          height="14" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          className={`transition-transform ${showCustomerViewsDropdown ? 'rotate-180' : ''}`}
+                        >
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                      </button>
+
+                      {showCustomerViewsDropdown && (
+                        <div ref={customerViewsDropdownRef} className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-md">
+                          <div className="p-2 border-b">
+                            {customerSavedViewsData?.map((view: any) => (
+                              <div 
+                                key={view.id}
+                                className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${activeCustomerView?.id === view.id.toString() ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                                onClick={() => {
+                                  setActiveCustomerView(view);
+                                  // Apply the saved view filters
+                                  const viewFilters = view.filters || {};
+                                  setCustomerFilters({
+                                    status: viewFilters.status || 'All',
+                                    industry: viewFilters.industry || 'All',
+                                    size: viewFilters.size || 'All',
+                                    region: viewFilters.region || 'All'
+                                  });
+                                  setHasActiveCustomerFilters(
+                                    viewFilters.status || viewFilters.industry || viewFilters.size || viewFilters.region
+                                  );
+                                  
+                                  // Apply the saved view field visibility settings
+                                  if (view.field_visibility) {
+                                    setCustomerVisibleFields(view.field_visibility);
+                                  }
+                                  // Save original state for change detection
+                                  saveOriginalCustomerState(view);
+                                  setShowCustomerViewsDropdown(false);
+                                }}
+                              >
+                                <div className="flex items-center">
+                                  {view.name}
+                                </div>
+                                {activeCustomerView?.id === view.id.toString() && (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                  </svg>
+                                )}
+                              </div>
+                            ))}
+                            {(!customerSavedViewsData || customerSavedViewsData.length === 0) && (
+                              <div className="p-2 text-sm text-gray-500 italic">No saved views</div>
+                            )}
+                          </div>
+                          {activeCustomerView && (
+                            <div className="p-2">
+                              <button 
+                                className="flex w-full items-center p-2 text-sm rounded-md text-indigo-600 hover:bg-indigo-50"
+                                onClick={() => {
+                                  setActiveCustomerView(null);
+                                  setCustomerFilters({
+                                    status: 'All',
+                                    industry: 'All',
+                                    region: 'All',
+                                    size: 'All'
+                                  });
+                                  setCustomerVisibleFields({
+                                    name: true,
+                                    industry: true,
+                                    region: true,
+                                    contactPerson: true,
+                                    phone: true,
+                                    email: true,
+                                    opportunities: true,
+                                    totalValue: true,
+                                    lastActivity: true
+                                  });
+                                  setHasActiveCustomerFilters(false);
+                                  setShowCustomerViewsDropdown(false);
+                                }}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                  <path d="M3 6h18"></path>
+                                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                                </svg>
+                                Clear view
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Fields Button */}
+                    <div className="relative">
+                      <button
+                        onClick={() => setShowCustomerFields(!showCustomerFields)}
+                        className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-colors h-8 ${
+                          Object.values(customerVisibleFields).some(visible => !visible) 
+                            ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <rect x="3" y="3" width="18" height="18" rx="2"/>
+                          <path d="M9 9h6v6H9z"/>
+                        </svg>
+                        Fields ({Object.values(customerVisibleFields).filter(Boolean).length}/{Object.keys(customerVisibleFields).length})
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${showCustomerFields ? 'rotate-180' : ''}`}>
+                          <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                      </button>
+
+                      {showCustomerFields && (
+                        <div className="absolute right-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
+                          <div className="space-y-3">
+                            <div className="text-sm font-medium text-gray-700 border-b border-gray-100 pb-2">Select visible fields</div>
+                            {Object.entries(customerVisibleFields).map(([field, visible]) => (
+                              <label key={field} className="flex items-center space-x-3 cursor-pointer">
+                                <input
+                                  type="checkbox"
+                                  checked={visible}
+                                  onChange={(e) => setCustomerVisibleFields(prev => ({
+                                    ...prev,
+                                    [field]: e.target.checked
+                                  }))}
+                                  className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 focus:ring-2"
+                                />
+                                <span className="text-sm text-gray-700">
+                                  {field === 'name' && 'Customer Name'}
+                                  {field === 'industry' && 'Industry'}
+                                  {field === 'region' && 'Region'}
+                                  {field === 'contactPerson' && 'Contact Person'}
+                                  {field === 'phone' && 'Phone'}
+                                  {field === 'email' && 'Email'}
+                                  {field === 'opportunities' && 'Opportunities'}
+                                  {field === 'totalValue' && 'Total Value'}
+                                  {field === 'lastActivity' && 'Last Activity'}
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Filter Button */}
+                    <div className="relative" ref={customerFilterDropdownRef}>
+                      <button
+                        onClick={() => setShowCustomerFilter(!showCustomerFilter)}
+                        className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-colors h-8 ${
+                          hasActiveCustomerFilters 
+                            ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                            : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                        }`}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                        </svg>
+                        Filter
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${showCustomerFilter ? 'rotate-180' : ''}`}>
+                          <polyline points="6 9 12 15 18 9"/>
+                        </svg>
+                      </button>
+
+                      {showCustomerFilter && (
+                        <div className="absolute right-0 top-full mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
+                          <div className="space-y-4">
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-gray-700 w-12 flex-shrink-0">Where</span>
+                              <select
+                                value={customerFilters.status}
+                                onChange={(e) => updateCustomerFilter('status', e.target.value)}
+                                className="w-24 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white flex-shrink-0"
+                              >
+                                <option value="All">Status</option>
+                                {uniqueCustomerStatuses.map(status => (
+                                  <option key={status} value={status}>{status}</option>
+                                ))}
+                              </select>
+                              <span className="text-sm text-gray-500 w-12 flex-shrink-0 text-center">equals</span>
+                              <select
+                                value={customerFilters.status}
+                                onChange={(e) => updateCustomerFilter('status', e.target.value)}
+                                className="flex-1 min-w-0 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                              >
+                                <option value="All">All</option>
+                                {uniqueCustomerStatuses.map(status => (
+                                  <option key={status} value={status}>{status}</option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-gray-700 w-12 flex-shrink-0">And</span>
+                              <select
+                                value={customerFilters.industry}
+                                onChange={(e) => updateCustomerFilter('industry', e.target.value)}
+                                className="w-24 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white flex-shrink-0"
+                              >
+                                <option value="All">Industry</option>
+                                {uniqueCustomerIndustries.map(industry => (
+                                  <option key={industry} value={industry}>{industry}</option>
+                                ))}
+                              </select>
+                              <span className="text-sm text-gray-500 w-12 flex-shrink-0 text-center">equals</span>
+                              <select
+                                value={customerFilters.industry}
+                                onChange={(e) => updateCustomerFilter('industry', e.target.value)}
+                                className="flex-1 min-w-0 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                              >
+                                <option value="All">All</option>
+                                {uniqueCustomerIndustries.map(industry => (
+                                  <option key={industry} value={industry}>{industry}</option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-gray-700 w-12 flex-shrink-0">And</span>
+                              <select
+                                value={customerFilters.region}
+                                onChange={(e) => updateCustomerFilter('region', e.target.value)}
+                                className="w-24 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white flex-shrink-0"
+                              >
+                                <option value="All">Region</option>
+                                {uniqueCustomerRegions.map(region => (
+                                  <option key={region} value={region}>{region}</option>
+                                ))}
+                              </select>
+                              <span className="text-sm text-gray-500 w-12 flex-shrink-0 text-center">equals</span>
+                              <select
+                                value={customerFilters.region}
+                                onChange={(e) => updateCustomerFilter('region', e.target.value)}
+                                className="flex-1 min-w-0 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                              >
+                                <option value="All">All</option>
+                                {uniqueCustomerRegions.map(region => (
+                                  <option key={region} value={region}>{region}</option>
+                                ))}
+                              </select>
+                            </div>
+
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-gray-700 w-12 flex-shrink-0">And</span>
+                              <select
+                                value={customerFilters.size}
+                                onChange={(e) => updateCustomerFilter('size', e.target.value)}
+                                className="w-24 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white flex-shrink-0"
+                              >
+                                <option value="All">Size</option>
+                                <option value="Small (<5 opportunities)">Small</option>
+                                <option value="Medium (5-20 opportunities)">Medium</option>
+                                <option value="Large (>20 opportunities)">Large</option>
+                              </select>
+                              <span className="text-sm text-gray-500 w-12 flex-shrink-0 text-center">equals</span>
+                              <select
+                                value={customerFilters.size}
+                                onChange={(e) => updateCustomerFilter('size', e.target.value)}
+                                className="flex-1 min-w-0 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                              >
+                                <option value="All">All</option>
+                                <option value="Small (<5 opportunities)">Small (&lt;5 opportunities)</option>
+                                <option value="Medium (5-20 opportunities)">Medium (5-20 opportunities)</option>
+                                <option value="Large (>20 opportunities)">Large (&gt;20 opportunities)</option>
+                              </select>
+                            </div>
+
+                            <div className="pt-3 border-t border-gray-100">
+                              <button
+                                onClick={clearCustomerFilters}
+                                className="w-full px-3 py-2 text-sm text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
+                              >
+                                Clear all filters
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Saved Lists Content - conditional display */}
+                <div className="space-y-3 p-0">
                   
                   {/* Show selected list when collapsed */}
                   {!showCustomerListsDropdown && activeCustomerList && (() => {
@@ -3499,324 +3879,8 @@ export default function PartnerDetail() {
                 )}
               </div>
             )}
-            
-            {/* Filter Section for customers - positioned below tab separator on the right */}
-            <div className="flex justify-end items-center gap-2 px-4">
-              {/* Segment View Button */}
-              <div className="relative">
-                <button 
-                  ref={customerViewsButtonRef}
-                  className={`flex items-center space-x-2 px-3 h-8 border border-[#E6E7F1] rounded-md text-sm font-medium bg-white hover:bg-gray-50`}
-                  onClick={() => setShowCustomerViewsDropdown(!showCustomerViewsDropdown)}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
-                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                  </svg>
-                  <span className="text-gray-700">{activeCustomerView ? activeCustomerView.name : "Segment view"}</span>
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="14" 
-                    height="14" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    className={`transition-transform ${showCustomerViewsDropdown ? 'rotate-180' : ''}`}
-                  >
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </button>
 
-                {showCustomerViewsDropdown && (
-                  <div ref={customerViewsDropdownRef} className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-md">
-                    <div className="p-2 border-b">
-                      {customerSavedViewsData?.map((view: any) => (
-                        <div 
-                          key={view.id}
-                          className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${activeCustomerView?.id === view.id.toString() ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
-                          onClick={() => {
-                            setActiveCustomerView(view);
-                            // Apply the saved view filters
-                            const viewFilters = view.filters || {};
-                            setCustomerFilters({
-                              status: viewFilters.status || 'All',
-                              industry: viewFilters.industry || 'All',
-                              size: viewFilters.size || 'All',
-                              region: viewFilters.region || 'All'
-                            });
-                            setHasActiveCustomerFilters(
-                              viewFilters.status || viewFilters.industry || viewFilters.size || viewFilters.region
-                            );
-                            
-                            // Apply the saved field visibility
-                            if (view.field_visibility) {
-                              setCustomerVisibleFields(view.field_visibility);
-                            }
-                            
-                            // Store original state for change detection
-                            setOriginalCustomerFilters(viewFilters);
-                            setOriginalCustomerVisibleFields(view.field_visibility);
-                            
-                            setShowCustomerViewsDropdown(false);
-                          }}
-                        >
-                          <span>{view.name}</span>
-                        </div>
-                      ))}
-                    </div>
-                    <div className="p-2">
-                      <button 
-                        className="w-full text-left px-2 py-2 text-sm text-slate-600 hover:bg-slate-50 rounded-md"
-                        onClick={() => {
-                          setShowSaveCustomerViewModal(true);
-                          setShowCustomerViewsDropdown(false);
-                        }}
-                      >
-                        + New view
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
 
-              {/* Fields Button */}
-              <div className="relative" ref={customerFieldsDropdownRef}>
-                <button
-                  onClick={() => setShowCustomerFieldsDropdown(!showCustomerFieldsDropdown)}
-                  className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-colors ${
-                    hasCustomerFieldChanges() 
-                      ? 'bg-blue-50 border-blue-200 text-blue-700' 
-                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect x="3" y="3" width="7" height="7"/>
-                    <rect x="14" y="3" width="7" height="7"/>
-                    <rect x="14" y="14" width="7" height="7"/>
-                    <rect x="3" y="14" width="7" height="7"/>
-                  </svg>
-                  Fields
-                  <span className="text-xs text-gray-500">
-                    ({Object.values(customerVisibleFields).filter(Boolean).length}/{Object.keys(customerVisibleFields).length})
-                  </span>
-                </button>
-
-                {showCustomerFieldsDropdown && (
-                  <div className="absolute right-0 top-full mt-2 w-72 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                    {/* Header */}
-                    <div className="p-4 border-b border-gray-100">
-                      <div className="flex items-center justify-between">
-                        <h3 className="text-sm font-medium text-gray-900">Column Visibility</h3>
-                        <div className="flex items-center gap-2">
-                          <button 
-                            onClick={() => {
-                              const allSelected = Object.values(customerVisibleFields).every(Boolean);
-                              if (allSelected) {
-                                // Keep name always visible, uncheck others
-                                setCustomerVisibleFields({
-                                  name: true,
-                                  industry: false,
-                                  region: false,
-                                  contactPerson: false,
-                                  phone: false,
-                                  email: false,
-                                  opportunities: false,
-                                  totalValue: false,
-                                  lastActivity: false
-                                });
-                              } else {
-                                // Select all
-                                setCustomerVisibleFields({
-                                  name: true,
-                                  industry: true,
-                                  region: true,
-                                  contactPerson: true,
-                                  phone: true,
-                                  email: true,
-                                  opportunities: true,
-                                  totalValue: true,
-                                  lastActivity: true
-                                });
-                              }
-                            }}
-                            className="text-xs text-blue-600 hover:text-blue-700"
-                          >
-                            {Object.values(customerVisibleFields).every(Boolean) ? 'Deselect All' : 'Select All'}
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Field List */}
-                    <div className="p-4 space-y-3">
-                      {Object.entries(customerVisibleFields).map(([field, visible]) => (
-                        <label key={field} className="flex items-center space-x-3 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={visible}
-                            onChange={(e) => {
-                              setCustomerVisibleFields(prev => ({
-                                ...prev,
-                                [field]: e.target.checked
-                              }));
-                            }}
-                            className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                          />
-                          <span className="text-sm text-gray-700">
-                            {field === 'name' && 'Customer Name'}
-                            {field === 'industry' && 'Industry'}
-                            {field === 'region' && 'Region'}
-                            {field === 'contactPerson' && 'Contact Person'}
-                            {field === 'phone' && 'Phone'}
-                            {field === 'email' && 'Email'}
-                            {field === 'opportunities' && 'Opportunities'}
-                            {field === 'totalValue' && 'Total Value'}
-                            {field === 'lastActivity' && 'Last Activity'}
-                          </span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* Filter Button */}
-              <div className="relative" ref={customerFilterDropdownRef}>
-                <button
-                  onClick={() => setShowCustomerFilter(!showCustomerFilter)}
-                  className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-colors ${
-                    hasActiveCustomerFilters 
-                      ? 'bg-blue-50 border-blue-200 text-blue-700' 
-                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
-                  }`}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-                  </svg>
-                  Filter
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${showCustomerFilter ? 'rotate-180' : ''}`}>
-                    <polyline points="6 9 12 15 18 9"/>
-                  </svg>
-                </button>
-
-                {showCustomerFilter && (
-                  <div className="absolute right-0 top-full mt-2 w-96 bg-white border border-gray-200 rounded-lg shadow-lg z-50 p-4">
-                    <div className="space-y-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700 w-12 flex-shrink-0">Where</span>
-                        <select
-                          value={customerFilters.status}
-                          onChange={(e) => updateCustomerFilter('status', e.target.value)}
-                          className="w-24 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white flex-shrink-0"
-                        >
-                          <option value="All">Status</option>
-                          {uniqueCustomerStatuses.map(status => (
-                            <option key={status} value={status}>{status}</option>
-                          ))}
-                        </select>
-                        <span className="text-sm text-gray-500 w-12 flex-shrink-0 text-center">equals</span>
-                        <select
-                          value={customerFilters.status}
-                          onChange={(e) => updateCustomerFilter('status', e.target.value)}
-                          className="flex-1 min-w-0 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white"
-                        >
-                          <option value="All">All</option>
-                          {uniqueCustomerStatuses.map(status => (
-                            <option key={status} value={status}>{status}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700 w-12 flex-shrink-0">And</span>
-                        <select
-                          value={customerFilters.industry}
-                          onChange={(e) => updateCustomerFilter('industry', e.target.value)}
-                          className="w-24 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white flex-shrink-0"
-                        >
-                          <option value="All">Industry</option>
-                          {uniqueCustomerIndustries.map(industry => (
-                            <option key={industry} value={industry}>{industry}</option>
-                          ))}
-                        </select>
-                        <span className="text-sm text-gray-500 w-12 flex-shrink-0 text-center">equals</span>
-                        <select
-                          value={customerFilters.industry}
-                          onChange={(e) => updateCustomerFilter('industry', e.target.value)}
-                          className="flex-1 min-w-0 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white"
-                        >
-                          <option value="All">All</option>
-                          {uniqueCustomerIndustries.map(industry => (
-                            <option key={industry} value={industry}>{industry}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700 w-12 flex-shrink-0">And</span>
-                        <select
-                          value={customerFilters.region}
-                          onChange={(e) => updateCustomerFilter('region', e.target.value)}
-                          className="w-24 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white flex-shrink-0"
-                        >
-                          <option value="All">Region</option>
-                          {uniqueCustomerRegions.map(region => (
-                            <option key={region} value={region}>{region}</option>
-                          ))}
-                        </select>
-                        <span className="text-sm text-gray-500 w-12 flex-shrink-0 text-center">equals</span>
-                        <select
-                          value={customerFilters.region}
-                          onChange={(e) => updateCustomerFilter('region', e.target.value)}
-                          className="flex-1 min-w-0 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white"
-                        >
-                          <option value="All">All</option>
-                          {uniqueCustomerRegions.map(region => (
-                            <option key={region} value={region}>{region}</option>
-                          ))}
-                        </select>
-                      </div>
-
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-medium text-gray-700 w-12 flex-shrink-0">And</span>
-                        <select
-                          value={customerFilters.size}
-                          onChange={(e) => updateCustomerFilter('size', e.target.value)}
-                          className="w-24 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white flex-shrink-0"
-                        >
-                          <option value="All">Size</option>
-                          <option value="Small (<5 opportunities)">Small</option>
-                          <option value="Medium (5-20 opportunities)">Medium</option>
-                          <option value="Large (>20 opportunities)">Large</option>
-                        </select>
-                        <span className="text-sm text-gray-500 w-12 flex-shrink-0 text-center">equals</span>
-                        <select
-                          value={customerFilters.size}
-                          onChange={(e) => updateCustomerFilter('size', e.target.value)}
-                          className="flex-1 min-w-0 px-2 py-2 text-sm border border-gray-300 rounded-md bg-white"
-                        >
-                          <option value="All">All</option>
-                          <option value="Small (<5 opportunities)">Small (&lt;5 opportunities)</option>
-                          <option value="Medium (5-20 opportunities)">Medium (5-20 opportunities)</option>
-                          <option value="Large (>20 opportunities)">Large (&gt;20 opportunities)</option>
-                        </select>
-                      </div>
-
-                      <div className="pt-3 border-t border-gray-100">
-                        <button
-                          onClick={clearCustomerFilters}
-                          className="w-full px-3 py-2 text-sm text-gray-600 bg-gray-50 rounded-md hover:bg-gray-100 transition-colors"
-                        >
-                          Clear all filters
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
 
             {/* Bulk actions bar for customers - only visible when customers are selected */}
             {selectedCustomers.length > 0 && (
