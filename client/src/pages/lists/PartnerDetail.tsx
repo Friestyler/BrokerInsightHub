@@ -1918,7 +1918,6 @@ export default function PartnerDetail() {
                 )}
               </div>
             )}
-
             {/* Filter Section - positioned below tab separator on the right */}
             <div className="flex justify-end items-center gap-2 px-4">
               {/* Segment View Button */}
