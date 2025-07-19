@@ -494,36 +494,42 @@ function PartnersPage() {
         </Card>
       </div>
 
+      {/* Top Clear and Save Buttons */}
+      {(activeList || hasChanges()) && (
+        <div className="flex items-center justify-between px-4 py-2 bg-gray-50">
+          <button
+            onClick={() => {
+              setActiveList(null);
+              setFilters({ status: 'All', industry: 'All', size: 'All' });
+              setVisibleFields({
+                name: true,
+                industry: true,
+                customerCount: true,
+                opportunityCount: true,
+                totalValue: true,
+                status: true
+              });
+            }}
+            className="text-sm text-gray-600 hover:text-gray-800 flex items-center gap-1"
+          >
+            <X width="14" height="14" />
+            Clear
+          </button>
+          
+          <button
+            onClick={() => setShowSaveViewModal(true)}
+            className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+          >
+            <Bookmark width="14" height="14" />
+            Save as segment view
+          </button>
+        </div>
+      )}
+
       {/* Enhanced Toolbar Section */}
       <div className="bg-white mx-4 rounded-lg shadow-sm border border-[#E6E7F1]">
-        {/* Top-right controls */}
-        <div className="flex justify-end items-center gap-2 px-4 py-2 border-b border-[#E6E7F1]">
-          {/* Save/Update Segment View buttons */}
-          {hasChanges() && (
-            <div className="flex items-center gap-2 mr-2">
-              {activeView ? (
-                <button 
-                  className="flex items-center gap-1 px-3 py-1 text-sm text-indigo-600 hover:text-indigo-700 border border-indigo-200 rounded-md hover:bg-indigo-50"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                  </svg>
-                  Update segment view
-                </button>
-              ) : (
-                <button 
-                  onClick={() => setShowSaveViewModal(true)}
-                  className="flex items-center gap-1 px-3 py-1 text-sm text-indigo-600 hover:text-indigo-700 border border-indigo-200 rounded-md hover:bg-indigo-50"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                  </svg>
-                  Save as segment view
-                </button>
-              )}
-            </div>
-          )}
-
+        {/* Main Controls Row */}
+        <div className="flex items-center gap-3 px-4 py-2">
           {/* Segment View Button */}
           <div className="relative">
             <button 
@@ -653,14 +659,25 @@ function PartnersPage() {
             </button>
 
             {showFilter && (
-              <div className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-md">
+              <div className="absolute z-50 mt-1 w-[600px] rounded-md border border-[#E6E7F1] bg-white shadow-md">
                 <div className="p-4 space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                  {/* Where Status equals All */}
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-gray-600 w-12">Where</span>
+                    <select 
+                      value="status"
+                      className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                    >
+                      <option value="status">Status</option>
+                      <option value="industry">Industry</option>
+                      <option value="size">Size</option>
+                      <option value="region">Region</option>
+                    </select>
+                    <span className="text-sm text-gray-500">equals</span>
                     <select
                       value={filters.status}
                       onChange={(e) => updateFilter('status', e.target.value)}
-                      className="w-full px-2 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                      className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
                     >
                       <option value="All">All</option>
                       <option value="Active">Active</option>
@@ -668,12 +685,23 @@ function PartnersPage() {
                     </select>
                   </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Industry</label>
+                  {/* And Type equals All */}
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-gray-600 w-12">And</span>
+                    <select 
+                      value="type"
+                      className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                    >
+                      <option value="type">Type</option>
+                      <option value="industry">Industry</option>
+                      <option value="size">Size</option>
+                      <option value="region">Region</option>
+                    </select>
+                    <span className="text-sm text-gray-500">equals</span>
                     <select
                       value={filters.industry}
                       onChange={(e) => updateFilter('industry', e.target.value)}
-                      className="w-full px-2 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                      className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
                     >
                       <option value="All">All</option>
                       <option value="Insurance">Insurance</option>
@@ -682,15 +710,62 @@ function PartnersPage() {
                     </select>
                   </div>
 
-                  <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                  {/* And Size equals All */}
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-gray-600 w-12">And</span>
+                    <select 
+                      value="size"
+                      className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                    >
+                      <option value="size">Size</option>
+                      <option value="status">Status</option>
+                      <option value="industry">Industry</option>
+                      <option value="region">Region</option>
+                    </select>
+                    <span className="text-sm text-gray-500">equals</span>
+                    <select
+                      value={filters.size || 'All'}
+                      onChange={(e) => updateFilter('size', e.target.value)}
+                      className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                    >
+                      <option value="All">All</option>
+                      <option value="Small">Small</option>
+                      <option value="Medium">Medium</option>
+                      <option value="Large">Large</option>
+                    </select>
+                  </div>
+
+                  {/* And Stage equals All */}
+                  <div className="flex items-center gap-3">
+                    <span className="text-sm font-medium text-gray-600 w-12">And</span>
+                    <select 
+                      value="stage"
+                      className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                    >
+                      <option value="stage">Stage</option>
+                      <option value="status">Status</option>
+                      <option value="industry">Industry</option>
+                      <option value="size">Size</option>
+                    </select>
+                    <span className="text-sm text-gray-500">equals</span>
+                    <select
+                      value="All"
+                      className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                    >
+                      <option value="All">All</option>
+                      <option value="Prospecting">Prospecting</option>
+                      <option value="Qualified">Qualified</option>
+                      <option value="Proposal">Proposal</option>
+                    </select>
+                  </div>
+
+                  {/* Clear button at bottom */}
+                  <div className="pt-2">
                     <button
                       onClick={clearFilters}
                       className="text-sm text-red-600 hover:text-red-700 flex items-center gap-1"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M18 6 6 18"/>
-                        <path d="m6 6 12 12"/>
-                      </svg>
+                      <X width="14" height="14" />
                       Clear
                     </button>
                   </div>
@@ -870,38 +945,6 @@ function PartnersPage() {
                   </div>
                 );
               })}
-            </div>
-          )}
-          
-          {/* Clear and Save as Segment View buttons */}
-          {(activeList || hasChanges()) && (
-            <div className="flex items-center justify-between pt-4 border-t border-gray-200 mt-4">
-              <button
-                onClick={() => {
-                  setActiveList(null);
-                  setFilters({ status: 'All', industry: 'All', size: 'All' });
-                  setVisibleFields({
-                    name: true,
-                    industry: true,
-                    customerCount: true,
-                    opportunityCount: true,
-                    totalValue: true,
-                    status: true
-                  });
-                }}
-                className="text-sm text-gray-600 hover:text-gray-800 flex items-center gap-1"
-              >
-                <X width="14" height="14" />
-                Clear
-              </button>
-              
-              <button
-                onClick={() => setShowSaveViewModal(true)}
-                className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
-              >
-                <Bookmark width="14" height="14" />
-                Save as segment view
-              </button>
             </div>
           )}
         </div>
