@@ -499,8 +499,47 @@ function PartnersPage() {
       {/* Enhanced Toolbar Section */}
       <div className="bg-white mx-4 rounded-lg shadow-sm border border-[#E6E7F1]">
         {/* Main Controls Row */}
-        <div className="flex items-center gap-3 px-4 py-2">
-          {/* Segment View Button */}
+        <div className="flex items-center justify-between px-4 py-2">
+          {/* Left side - empty */}
+          <div></div>
+          
+          {/* Right side - Controls with Clear/Save above */}
+          <div className="flex flex-col items-end gap-2">
+            {/* Clear and Save buttons stacked on top */}
+            {(activeList || hasChanges()) && (
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => {
+                    setActiveList(null);
+                    setFilters({ status: 'All', industry: 'All', size: 'All' });
+                    setVisibleFields({
+                      name: true,
+                      industry: true,
+                      customerCount: true,
+                      opportunityCount: true,
+                      totalValue: true,
+                      status: true
+                    });
+                  }}
+                  className="text-sm text-gray-600 hover:text-gray-800 flex items-center gap-1"
+                >
+                  <X width="14" height="14" />
+                  Clear
+                </button>
+                
+                <button
+                  onClick={() => setShowSaveViewModal(true)}
+                  className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                >
+                  <Bookmark width="14" height="14" />
+                  Save as segment view
+                </button>
+              </div>
+            )}
+            
+            {/* Main controls row */}
+            <div className="flex items-center gap-3">
+              {/* Segment View Button */}
           <div className="relative">
             <button 
               ref={viewsButtonRef}
@@ -774,6 +813,8 @@ function PartnersPage() {
                 </div>
               </div>
             )}
+          </div>
+            </div>
           </div>
         </div>
 
