@@ -667,37 +667,7 @@ function PartnersPage() {
               </svg>
             </button>
 
-            {/* Clear and Save buttons positioned on the right */}
-            {(activeList || hasChanges()) && (
-              <>
-                <button
-                  onClick={() => {
-                    setActiveList(null);
-                    setFilters({ status: 'All', industry: 'All', size: 'All' });
-                    setVisibleFields({
-                      name: true,
-                      industry: true,
-                      customerCount: true,
-                      opportunityCount: true,
-                      totalValue: true,
-                      status: true
-                    });
-                  }}
-                  className="text-sm text-gray-600 hover:text-gray-800 flex items-center gap-1"
-                >
-                  <X width="14" height="14" />
-                  Clear
-                </button>
-                
-                <button
-                  onClick={() => setShowSaveViewModal(true)}
-                  className="text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
-                >
-                  <Bookmark width="14" height="14" />
-                  Save as segment view
-                </button>
-              </>
-            )}
+
 
             {showFilter && (
               <div className="absolute z-50 mt-1 right-0 w-[600px] rounded-md border border-[#E6E7F1] bg-white shadow-md">
