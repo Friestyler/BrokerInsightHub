@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Copy, Users, Trash2, MoreHorizontal, MoreVertical, MessageSquare, ArrowLeft, Plus, Mail, Calendar, Clock, Play, Pause, AlertCircle, CheckCircle, Eye, Edit, Filter, Package, Target, Crown, Bot, ChevronDown, ChevronRight, Share2 } from "lucide-react";
+import { Search, Copy, Users, Trash2, MoreHorizontal, MoreVertical, MessageSquare, ArrowLeft, Plus, Mail, Calendar, Clock, Play, Pause, AlertCircle, CheckCircle, Eye, Edit, Filter, Package, Target, Crown, Bot, ChevronDown, ChevronRight, Share2, X, Bookmark } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
@@ -584,6 +584,29 @@ export default function PartnerDetail() {
       toast({
         title: "Error",
         description: "Failed to save view. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const updateOpportunityViewMutation = useMutation({
+    mutationFn: async ({ id, data }: { id: number; data: any }) => {
+      return await apiRequest('PUT', `/api/saved-views/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
+      toast({
+        title: "Segment View Updated",
+        description: "Your opportunities segment view has been updated with the latest filters and field settings"
+      });
+      // Clear change detection state after successful update
+      setOriginalOpportunityFilters(null);
+      setOriginalOpportunityVisibleFields(null);
+    },
+    onError: () => {
+      toast({
+        title: "Error", 
+        description: "Failed to update view. Please try again.",
         variant: "destructive"
       });
     }
@@ -1899,6 +1922,64 @@ export default function PartnerDetail() {
               </div>
 
 
+
+              {/* Save/Update/Clear View Buttons - Show when any changes detected */}
+              {hasOpportunityChanges() && (
+                <>
+                  <button
+                    onClick={() => {
+                      // Reset both filters and fields to original state
+                      if (originalOpportunityFilters) {
+                        setOpportunityFilters(originalOpportunityFilters);
+                      }
+                      if (originalOpportunityVisibleFields) {
+                        setOpportunityVisibleFields(originalOpportunityVisibleFields);
+                      }
+                      // Clear change detection state
+                      setOriginalOpportunityFilters(null);
+                      setOriginalOpportunityVisibleFields(null);
+                    }}
+                    className="flex items-center gap-1 px-3 py-2 text-sm border border-[#E6E7F1] rounded-md bg-white text-gray-700 hover:bg-gray-50 transition-colors"
+                  >
+                    <X className="w-4 h-4" />
+                    Clear
+                  </button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowSaveOpportunityViewModal(true)}
+                    className="h-8 px-3 text-blue-600 border border-blue-200 hover:bg-blue-50"
+                  >
+                    <Bookmark className="w-4 h-4 mr-1" />
+                    Save as segment view
+                  </Button>
+                  {activeOpportunityView && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        // Update existing view with both filters and fields
+                        const updateData = {
+                          name: activeOpportunityView.name,
+                          description: activeOpportunityView.description || '',
+                          filters: opportunityFilters,
+                          field_visibility: opportunityVisibleFields,
+                          is_shared: activeOpportunityView.is_shared || false
+                        };
+                        
+                        updateOpportunityViewMutation.mutate({
+                          id: activeOpportunityView.id,
+                          data: updateData
+                        });
+                      }}
+                      className="h-8 px-3 text-blue-600 border border-blue-200 hover:bg-blue-50"
+                    >
+                      <Bookmark className="w-4 h-4 mr-1" />
+                      Update segment view
+                    </Button>
+                  )}
+                </>
+              )}
 
               {/* Fields Button */}
               <div className="relative" ref={opportunityFieldsDropdownRef}>
