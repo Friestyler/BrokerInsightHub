@@ -78,6 +78,16 @@ export default function CustomersPage() {
     totalValue: true,
     status: true
   });
+
+  // Track original fields for change detection
+  const [originalFields] = useState({
+    name: true,
+    industry: true,
+    size: true,
+    opportunityCount: true,
+    totalValue: true,
+    status: true
+  });
   
   // Filter state management
   const [hasActiveFilters, setHasActiveFilters] = useState(false);
@@ -110,6 +120,11 @@ export default function CustomersPage() {
 
   const { data: opportunities } = useQuery({
     queryKey: ['/api/opportunities'],
+    enabled: true
+  });
+
+  const { data: customerSavedViewsData = [] } = useQuery({
+    queryKey: ['/api/saved-views', { entity_type: 'customers' }],
     enabled: true
   });
 
@@ -162,7 +177,22 @@ export default function CustomersPage() {
   };
 
   const hasChanges = () => {
-    return filters.status !== 'All' || filters.industry !== 'All' || filters.size !== 'All' || activeList !== null;
+    // Check if filters have changed
+    const hasFilterChanges = filters.status !== 'All' || filters.industry !== 'All' || filters.size !== 'All';
+    
+    // Check if fields have changed
+    const hasFieldChanges = Object.keys(visibleFields).some(
+      (key) => visibleFields[key as keyof typeof visibleFields] !== originalFields[key as keyof typeof originalFields]
+    );
+    
+    return hasFilterChanges || hasFieldChanges || activeList !== null;
+  };
+
+  const clearAllChanges = () => {
+    setActiveList(null);
+    setFilters({ status: 'All', industry: 'All', size: 'All' });
+    setVisibleFields({ ...originalFields });
+    setHasActiveFilters(false);
   };
 
   // Event handlers
@@ -344,10 +374,7 @@ export default function CustomersPage() {
             {(activeList || hasChanges()) && (
               <div className="flex items-center gap-3">
                 <button
-                  onClick={() => {
-                    setActiveList(null);
-                    clearFilters();
-                  }}
+                  onClick={clearAllChanges}
                   className="text-sm text-gray-600 hover:text-gray-800 flex items-center gap-1"
                 >
                   <X width="14" height="14" />
@@ -480,6 +507,7 @@ export default function CustomersPage() {
                       <span className="text-sm font-medium text-gray-600 w-12">Where</span>
                       <select 
                         value="status"
+                        onChange={() => {}}
                         className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
                       >
                         <option value="status">Status</option>
@@ -503,6 +531,7 @@ export default function CustomersPage() {
                       <span className="text-sm font-medium text-gray-600 w-12">And</span>
                       <select 
                         value="industry"
+                        onChange={() => {}}
                         className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
                       >
                         <option value="industry">Industry</option>
@@ -527,6 +556,7 @@ export default function CustomersPage() {
                       <span className="text-sm font-medium text-gray-600 w-12">And</span>
                       <select 
                         value="size"
+                        onChange={() => {}}
                         className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
                       >
                         <option value="size">Size</option>
