@@ -215,26 +215,17 @@ export default function PartnerDetail() {
       return filtersChanged || fieldsChanged;
     }
     
-    // If no active view, check if any filters are changed from default "All" state
+    // If no active view, only show buttons when there are meaningful changes from default
     if (!activeOpportunityView) {
+      // Check if any filters are applied (changed from "All")
       const hasFilterChanges = opportunityFilters.status !== 'All' || 
                               opportunityFilters.stage !== 'All' || 
                               opportunityFilters.size !== 'All' || 
                               opportunityFilters.type !== 'All';
       
-      // Check if fields are different from default (all visible except Customer)
-      const defaultFields = {
-        title: true,
-        customer: false,
-        stage: true,
-        value: true,
-        priority: false,
-        type: true,
-        size: true,
-        accountManager: false,
-        lastActivity: false
-      };
-      const hasFieldChanges = JSON.stringify(opportunityVisibleFields) !== JSON.stringify(defaultFields);
+      // Check if any field is hidden (not all fields are visible)
+      const allFieldsVisible = Object.values(opportunityVisibleFields).every(Boolean);
+      const hasFieldChanges = !allFieldsVisible;
       
       return hasFilterChanges || hasFieldChanges;
     }
@@ -248,19 +239,9 @@ export default function PartnerDetail() {
       return JSON.stringify(opportunityVisibleFields) !== JSON.stringify(originalOpportunityVisibleFields);
     }
     
-    // If no active view, check against default field state
-    const defaultFields = {
-      title: true,
-      customer: false,
-      stage: true,
-      value: true,
-      priority: false,
-      type: true,
-      size: true,
-      accountManager: false,
-      lastActivity: false
-    };
-    return JSON.stringify(opportunityVisibleFields) !== JSON.stringify(defaultFields);
+    // If no active view, only show field changes when not all fields are visible
+    const allFieldsVisible = Object.values(opportunityVisibleFields).every(Boolean);
+    return !allFieldsVisible;
   };
 
   // Function to save original state when view is applied
