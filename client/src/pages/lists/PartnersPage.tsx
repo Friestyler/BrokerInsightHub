@@ -2,7 +2,7 @@ import { useState, useEffect, createContext, useContext, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { FieldsSelector } from '@/components/shared/FieldsSelector';
+import { FieldsDropdown } from '@/components/shared/FieldsDropdown';
 
 // Create a context for list editing state
 interface ListEditingContextType {
@@ -317,22 +317,30 @@ function PartnersTable() {
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
   // Column visibility state
-  const [visibleColumns, setVisibleColumns] = useState<string[]>([
-    'name', 'industry', 'size', 'region', 'status', 'customers', 'opportunities', 'contacts', 'template'
-  ]);
+  const [visibleColumns, setVisibleColumns] = useState({
+    name: true,
+    industry: true,
+    size: true,
+    region: true,
+    status: true,
+    customers: true,
+    opportunities: true,
+    contacts: true,
+    template: true
+  });
   
-  // Field definitions for column visibility
-  const fieldDefinitions = [
-    { key: 'name', label: 'Partner', required: true },
-    { key: 'industry', label: 'Industry' },
-    { key: 'size', label: 'Size' },
-    { key: 'region', label: 'Region' },
-    { key: 'status', label: 'Status' },
-    { key: 'customers', label: 'Customers' },
-    { key: 'opportunities', label: 'Opportunities' },
-    { key: 'contacts', label: 'Contacts' },
-    { key: 'template', label: 'Template' }
-  ];
+  // Field labels for column visibility
+  const fieldLabels = {
+    name: 'Partner',
+    industry: 'Industry',
+    size: 'Size',
+    region: 'Region',
+    status: 'Status',
+    customers: 'Customers',
+    opportunities: 'Opportunities',
+    contacts: 'Contacts',
+    template: 'Template'
+  };
   
   // Dropdown state for filters
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
@@ -1350,11 +1358,11 @@ function PartnersTable() {
                 )}
               </div>
               
-              {/* Fields Selector */}
-              <FieldsSelector
-                fields={fieldDefinitions}
+              {/* Fields Dropdown */}
+              <FieldsDropdown
                 visibleFields={visibleColumns}
                 onFieldsChange={setVisibleColumns}
+                fieldLabels={fieldLabels}
                 className="ml-2"
               />
               
@@ -2380,7 +2388,7 @@ function PartnersTable() {
                   />
                 </div>
               </th>
-              {visibleColumns.includes('name') && (
+              {visibleColumns.name && (
                 <SortableTableHead 
                   sortKey="name" 
                   currentSortKey={tableSortConfig.key} 
@@ -2391,7 +2399,7 @@ function PartnersTable() {
                   Partner
                 </SortableTableHead>
               )}
-              {visibleColumns.includes('industry') && (
+              {visibleColumns.industry && (
                 <SortableTableHead 
                   sortKey="industry" 
                   currentSortKey={tableSortConfig.key} 
@@ -2402,7 +2410,7 @@ function PartnersTable() {
                   Industry
                 </SortableTableHead>
               )}
-              {visibleColumns.includes('size') && (
+              {visibleColumns.size && (
                 <SortableTableHead 
                   sortKey="size" 
                   currentSortKey={tableSortConfig.key} 
@@ -2413,7 +2421,7 @@ function PartnersTable() {
                   Size
                 </SortableTableHead>
               )}
-              {visibleColumns.includes('region') && (
+              {visibleColumns.region && (
                 <SortableTableHead 
                   sortKey="region" 
                   currentSortKey={tableSortConfig.key} 
@@ -2424,7 +2432,7 @@ function PartnersTable() {
                   Region
                 </SortableTableHead>
               )}
-              {visibleColumns.includes('status') && (
+              {visibleColumns.status && (
                 <SortableTableHead 
                   sortKey="status" 
                   currentSortKey={tableSortConfig.key} 
@@ -2435,7 +2443,7 @@ function PartnersTable() {
                   Status
                 </SortableTableHead>
               )}
-              {visibleColumns.includes('customers') && (
+              {visibleColumns.customers && (
                 <SortableTableHead 
                   sortKey="customers" 
                   currentSortKey={tableSortConfig.key} 
@@ -2446,7 +2454,7 @@ function PartnersTable() {
                   Customers
                 </SortableTableHead>
               )}
-              {visibleColumns.includes('opportunities') && (
+              {visibleColumns.opportunities && (
                 <SortableTableHead 
                   sortKey="opportunities" 
                   currentSortKey={tableSortConfig.key} 
@@ -2457,7 +2465,7 @@ function PartnersTable() {
                   Opportunities
                 </SortableTableHead>
               )}
-              {visibleColumns.includes('contacts') && (
+              {visibleColumns.contacts && (
                 <SortableTableHead 
                   sortKey="contacts" 
                   currentSortKey={tableSortConfig.key} 
@@ -2468,7 +2476,7 @@ function PartnersTable() {
                   Contacts
                 </SortableTableHead>
               )}
-              {visibleColumns.includes('template') && (
+              {visibleColumns.template && (
                 <SortableTableHead 
                   sortKey="template" 
                   currentSortKey={tableSortConfig.key} 
@@ -2518,7 +2526,7 @@ function PartnersTable() {
                     }}
                   />
                 </td>
-                {visibleColumns.includes('name') && (
+                {visibleColumns.name && (
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
                     <div className="flex items-center">
                       <EntityAvatar
@@ -2532,23 +2540,23 @@ function PartnersTable() {
                     </div>
                   </td>
                 )}
-                {visibleColumns.includes('industry') && (
+                {visibleColumns.industry && (
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.industry}</td>
                 )}
-                {visibleColumns.includes('size') && (
+                {visibleColumns.size && (
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">{partner.size}</td>
                 )}
-                {visibleColumns.includes('region') && (
+                {visibleColumns.region && (
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">{partner.region}</td>
                 )}
-                {visibleColumns.includes('status') && (
+                {visibleColumns.status && (
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                     <Badge variant={partner.status === 'active' ? 'outline' : 'secondary'} className="capitalize">
                       {partner.status}
                     </Badge>
                   </td>
                 )}
-                {visibleColumns.includes('customers') && (
+                {visibleColumns.customers && (
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                     <Link 
                       href={`/lists/partners/${partner.id}?tab=customers`} 
@@ -2558,7 +2566,7 @@ function PartnersTable() {
                     </Link>
                   </td>
                 )}
-                {visibleColumns.includes('opportunities') && (
+                {visibleColumns.opportunities && (
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                     <Link 
                       href={`/lists/partners/${partner.id}?tab=opportunities`} 
@@ -2568,12 +2576,12 @@ function PartnersTable() {
                     </Link>
                   </td>
                 )}
-                {visibleColumns.includes('contacts') && (
+                {visibleColumns.contacts && (
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                     {partner.contacts || 0}
                   </td>
                 )}
-                {visibleColumns.includes('template') && (
+                {visibleColumns.template && (
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                     <TemplateBadges partnerId={partner.id} templateAssignments={templateAssignments} okrTags={okrTags} />
                   </td>
@@ -2583,7 +2591,7 @@ function PartnersTable() {
             
             {displayedPartners.length === 0 && !isEditingList && (
               <tr>
-                <td colSpan={visibleColumns.length + 1} className="py-10 text-center">
+                <td colSpan={Object.values(visibleColumns).filter(Boolean).length + 1} className="py-10 text-center">
                   <div className="flex flex-col items-center">
                     <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
                       <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
