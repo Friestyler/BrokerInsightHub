@@ -330,48 +330,109 @@ function PartnersPage() {
     );
   }
 
+  // Calculate statistics
+  const stats = {
+    totalPartners: displayedPartners.length,
+    totalOpportunities: displayedPartners.reduce((sum, partner) => sum + (partner.opportunityCount || 0), 0),
+    totalCustomers: displayedPartners.reduce((sum, partner) => sum + (partner.customerCount || 0), 0),
+    totalValue: displayedPartners.reduce((sum, partner) => sum + (partner.totalValue || 0), 0),
+    weightedValue: displayedPartners.reduce((sum, partner) => sum + (partner.totalValue || 0), 0)
+  };
+
   return (
-    <div className="min-h-screen bg-white">
-      {/* Partner cards grid - simplified display without toolbar */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 p-6">
-        {displayedPartners.map((partner) => (
-          <Card 
-            key={partner.id} 
-            className="border-[#E6E7F1] bg-white hover:shadow-md transition-all duration-200 cursor-pointer"
-            onClick={() => navigate(`/partners/${partner.id}`)}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-start justify-between mb-3">
-                <div className="flex-1">
-                  <h3 className="font-semibold text-[#282A3F] text-sm mb-1">{partner.name}</h3>
-                  <p className="text-xs text-gray-500">{partner.industry || 'Insurance'}</p>
-                </div>
-                {partner.logo && (
-                  <img 
-                    src={partner.logo} 
-                    alt={`${partner.name} logo`}
-                    className="w-8 h-8 object-contain rounded"
-                  />
-                )}
-              </div>
-              
-              <div className="space-y-2">
-                <div className="flex justify-between text-xs">
-                  <span className="text-gray-500">Customers:</span>
-                  <span className="font-medium text-[#282A3F]">{partner.customerCount || 0}</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-gray-500">Opportunities:</span>
-                  <span className="font-medium text-[#282A3F]">{partner.opportunityCount || 0}</span>
-                </div>
-                <div className="flex justify-between text-xs">
-                  <span className="text-gray-500">Value:</span>
-                  <span className="font-medium text-[#282A3F]">{formatCurrency(partner.totalValue || 0)}</span>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+    <div className="space-y-1">
+      {/* Statistics overview */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mx-4 py-6">
+        <Card className="border-[#E6E7F1] bg-white/70 backdrop-blur-sm hover:bg-white hover:shadow-sm hover:border-[#D6D7E4] transition-all duration-200 cursor-pointer">
+          <CardContent className="p-4">
+            <div className="text-xl font-semibold text-[#282A3F]">{stats.totalPartners}</div>
+            <div className="text-gray-500 font-medium text-[13px]">Total Partners</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-[#E6E7F1] bg-white/70 backdrop-blur-sm hover:bg-white hover:shadow-sm hover:border-[#D6D7E4] transition-all duration-200 cursor-pointer">
+          <CardContent className="p-4">
+            <div className="text-xl font-semibold text-[#282A3F]">{stats.totalOpportunities}</div>
+            <div className="text-sm text-gray-500">Total Opportunities</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-[#E6E7F1] bg-white/70 backdrop-blur-sm hover:bg-white hover:shadow-sm hover:border-[#D6D7E4] transition-all duration-200 cursor-pointer">
+          <CardContent className="p-4">
+            <div className="text-xl font-semibold text-[#282A3F]">{stats.totalCustomers}</div>
+            <div className="text-sm text-gray-500">Total Customers</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-[#E6E7F1] bg-white/70 backdrop-blur-sm hover:bg-white hover:shadow-sm hover:border-[#D6D7E4] transition-all duration-200 cursor-pointer">
+          <CardContent className="p-4">
+            <div className="text-xl font-semibold text-[#282A3F]">{formatCurrency(stats.totalValue)}</div>
+            <div className="text-sm text-gray-500">Total Value Opportunities</div>
+          </CardContent>
+        </Card>
+        
+        <Card className="border-[#E6E7F1] bg-white/70 backdrop-blur-sm hover:bg-white hover:shadow-sm hover:border-[#D6D7E4] transition-all duration-200 cursor-pointer">
+          <CardContent className="p-4">
+            <div className="text-xl font-semibold text-[#282A3F]">{formatCurrency(Math.round(stats.weightedValue))}</div>
+            <div className="text-sm text-gray-500">Weighted Value Opportunities</div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Partners table - without toolbar functionalities */}
+      <div className="mx-4">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b border-[#E6E7F1] text-left">
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Partner</th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Industry</th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Size</th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Region</th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Status</th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Customers</th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Opportunities</th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Contacts</th>
+                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Template</th>
+              </tr>
+            </thead>
+            <tbody>
+              {displayedPartners.map((partner) => (
+                <tr 
+                  key={partner.id} 
+                  className="border-b border-[#E6E7F1] hover:bg-gray-50 cursor-pointer"
+                  onClick={() => navigate(`/partners/${partner.id}`)}
+                >
+                  <td className="py-3 px-4">
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-8 w-8">
+                        <AvatarImage src={partner.logo} alt={partner.name} />
+                        <AvatarFallback className="text-xs">
+                          {partner.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium text-[#282A3F] text-sm">{partner.name}</div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-[#696C8C]">{partner.industry || 'Insurance'}</td>
+                  <td className="py-3 px-4 text-sm text-[#696C8C]">{partner.size || 'Medium'}</td>
+                  <td className="py-3 px-4 text-sm text-[#696C8C]">{partner.region || 'Europe'}</td>
+                  <td className="py-3 px-4">
+                    <Badge variant="secondary" className="bg-green-50 text-green-700 text-xs">
+                      {partner.status || 'Active'}
+                    </Badge>
+                  </td>
+                  <td className="py-3 px-4 text-sm text-[#696C8C]">{partner.customerCount || 0}</td>
+                  <td className="py-3 px-4 text-sm text-[#696C8C]">{partner.opportunityCount || 0}</td>
+                  <td className="py-3 px-4 text-sm text-[#696C8C]">172</td>
+                  <td className="py-3 px-4 text-sm text-[#696C8C]">No templates</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
