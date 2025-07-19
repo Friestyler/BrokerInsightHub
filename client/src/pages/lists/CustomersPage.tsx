@@ -15,7 +15,9 @@ import {
   ChevronDown, 
   Filter,
   LayoutGrid,
-  List
+  List,
+  MessageSquare,
+  Target
 } from 'lucide-react';
 import EntityAvatar from '@/components/EntityAvatar';
 import { useToast } from '@/hooks/use-toast';
@@ -69,6 +71,11 @@ export default function CustomersPage() {
   const [activeList, setActiveList] = useState<SavedList | null>(null);
   const [activeView, setActiveView] = useState<any | null>(null);
   const [newViewName, setNewViewName] = useState('');
+  
+  // Bulk action modals state
+  const [showAddToListModal, setShowAddToListModal] = useState(false);
+  const [showAddToCampaignModal, setShowAddToCampaignModal] = useState(false);
+  const [showAssignTemplateModal, setShowAssignTemplateModal] = useState(false);
   
   // Visible fields state
   const [visibleFields, setVisibleFields] = useState({
@@ -197,6 +204,23 @@ export default function CustomersPage() {
     setHasActiveFilters(false);
   };
 
+  // Bulk selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedCustomers(customers.map((customer: any) => customer.id));
+    } else {
+      setSelectedCustomers([]);
+    }
+  };
+
+  const handleSelectCustomer = (customerId: number) => {
+    setSelectedCustomers(prev => 
+      prev.includes(customerId)
+        ? prev.filter(id => id !== customerId)
+        : [...prev, customerId]
+    );
+  };
+
   // Event handlers
   const handleSaveView = () => {
     if (newViewName.trim()) {
@@ -315,6 +339,52 @@ export default function CustomersPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Bulk actions bar */}
+      {selectedCustomers.length > 0 && (
+        <div className="mx-4 p-3 bg-blue-50 border border-blue-200 rounded-lg flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <span className="font-medium text-blue-900">
+              {selectedCustomers.length} customer{selectedCustomers.length !== 1 ? 's' : ''} selected
+            </span>
+            <button
+              onClick={() => setSelectedCustomers([])}
+              className="text-blue-600 hover:text-blue-800 text-sm"
+            >
+              Clear selection
+            </button>
+          </div>
+          <div className="flex items-center gap-3">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAddToListModal(true)}
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+            >
+              <Plus className="w-4 h-4 mr-1" />
+              Add to list
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAddToCampaignModal(true)}
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+            >
+              <MessageSquare className="w-4 h-4 mr-1" />
+              Add to campaign
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowAssignTemplateModal(true)}
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+            >
+              <Target className="w-4 h-4 mr-1" />
+              Assign template
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Enhanced Toolbar Section */}
       <div className="bg-white mx-4 rounded-lg shadow-sm border border-[#E6E7F1]">
@@ -674,6 +744,18 @@ export default function CustomersPage() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-[#E6E7F1] text-left">
+                <th className="w-12 py-3 px-4 font-medium text-[#282A3F] text-sm">
+                  <div className={`transition-opacity ${
+                    selectedCustomers.length > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                  }`}>
+                    <input
+                      type="checkbox"
+                      checked={selectedCustomers.length === customers.length && customers.length > 0}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                  </div>
+                </th>
                 <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Customer</th>
                 <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Industry</th>
                 <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Size</th>
@@ -688,10 +770,21 @@ export default function CustomersPage() {
               {customers.map((customer: any) => (
                 <tr 
                   key={customer.id} 
-                  className="border-b border-[#E6E7F1] hover:bg-gray-50 cursor-pointer"
-                  onClick={() => window.location.href = `/lists/customers/${customer.id}`}
+                  className="border-b border-[#E6E7F1] hover:bg-gray-50"
                 >
                   <td className="py-3 px-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedCustomers.includes(customer.id)}
+                      onChange={() => handleSelectCustomer(customer.id)}
+                      className="rounded border-gray-300"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </td>
+                  <td 
+                    className="py-3 px-4 cursor-pointer"
+                    onClick={() => window.location.href = `/lists/customers/${customer.id}`}
+                  >
                     <div className="flex items-center gap-3">
                       <EntityAvatar entity={{ name: customer.name, id: customer.id }} />
                       <div>
@@ -735,6 +828,111 @@ export default function CustomersPage() {
               </Button>
               <Button onClick={handleSaveView}>
                 Save View
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add to List Modal */}
+      {showAddToListModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96">
+            <h3 className="text-lg font-medium mb-4">Add to List</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Add {selectedCustomers.length} selected customer{selectedCustomers.length !== 1 ? 's' : ''} to a list
+            </p>
+            <div className="space-y-2 mb-4">
+              <Button variant="outline" className="w-full justify-start">
+                Create new list
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                High-Value Prospects (5 customers)
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                Retirement Prospects (8 customers)
+              </Button>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setShowAddToListModal(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                toast({ title: "Success", description: "Customers added to list successfully" });
+                setShowAddToListModal(false);
+                setSelectedCustomers([]);
+              }}>
+                Add to List
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add to Campaign Modal */}
+      {showAddToCampaignModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96">
+            <h3 className="text-lg font-medium mb-4">Add to Campaign</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Add {selectedCustomers.length} selected customer{selectedCustomers.length !== 1 ? 's' : ''} to a campaign
+            </p>
+            <div className="space-y-2 mb-4">
+              <Button variant="outline" className="w-full justify-start">
+                Summer Insurance Campaign
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                Cyber Security Awareness
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                Create new campaign
+              </Button>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setShowAddToCampaignModal(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                toast({ title: "Success", description: "Customers added to campaign successfully" });
+                setShowAddToCampaignModal(false);
+                setSelectedCustomers([]);
+              }}>
+                Add to Campaign
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Template Modal */}
+      {showAssignTemplateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96">
+            <h3 className="text-lg font-medium mb-4">Assign Template</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Assign OKR template to {selectedCustomers.length} selected customer{selectedCustomers.length !== 1 ? 's' : ''}
+            </p>
+            <div className="space-y-2 mb-4">
+              <Button variant="outline" className="w-full justify-start">
+                Q1 Customer Growth Template
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                Customer Retention Template
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                Cross-sell Template
+              </Button>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setShowAssignTemplateModal(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                toast({ title: "Success", description: "Template assigned successfully" });
+                setShowAssignTemplateModal(false);
+                setSelectedCustomers([]);
+              }}>
+                Assign Template
               </Button>
             </div>
           </div>

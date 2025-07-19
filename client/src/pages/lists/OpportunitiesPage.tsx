@@ -472,6 +472,11 @@ function OpportunitiesTable() {
   const [selectedProbability, setSelectedProbability] = useState('all');
   const [selectedOpportunities, setSelectedOpportunities] = useState<number[]>([]);
   const [bulkStatusValue, setBulkStatusValue] = useState('');
+  
+  // Bulk action modals state
+  const [showAddToListModal, setShowAddToListModal] = useState(false);
+  const [showAddToCampaignModal, setShowAddToCampaignModal] = useState(false);
+  const [showAssignTemplateModal, setShowAssignTemplateModal] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
@@ -556,6 +561,23 @@ function OpportunitiesTable() {
   const partnerOptions = Array.from(new Set(opportunities.map((opp: any) => opp.partnerName).filter(Boolean))).sort();
   const probabilityOptions = Array.from(new Set(opportunities.map((opp: any) => opp.probability).filter(val => val !== null && val !== undefined))).sort((a, b) => a - b);
   
+  // Bulk selection handlers
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedOpportunities(filteredOpportunities.map((opp: any) => opp.id));
+    } else {
+      setSelectedOpportunities([]);
+    }
+  };
+
+  const handleSelectOpportunity = (opportunityId: number) => {
+    setSelectedOpportunities(prev => 
+      prev.includes(opportunityId)
+        ? prev.filter(id => id !== opportunityId)
+        : [...prev, opportunityId]
+    );
+  };
+
   // Handle click outside to close dropdowns
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -605,8 +627,7 @@ function OpportunitiesTable() {
   const [isEditingList, setIsEditingList] = useState(false);
   const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
   
-  // Assign Template functionality
-  const [showAssignTemplateModal, setShowAssignTemplateModal] = useState(false);
+  // Assign Template functionality (moved to bulk actions section above)
   const [selectedOKRTemplates, setSelectedOKRTemplates] = useState<number[]>([]);
   
   // Load template assignments for opportunities
@@ -1059,6 +1080,79 @@ function OpportunitiesTable() {
         </Card>
       </div>
 
+      {/* Bulk actions bar */}
+      <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4 mx-4" style={{ minHeight: '64px' }}>
+        {selectedOpportunities.length > 0 ? (
+          <>
+            <div className="flex items-center">
+              <span className="text-indigo-700 font-medium mr-2">
+                {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected
+              </span>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-gray-600"
+                onClick={() => setSelectedOpportunities([])}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <path d="M18 6 6 18"></path>
+                  <path d="m6 6 12 12"></path>
+                </svg>
+                Clear selection
+              </Button>
+            </div>
+            
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="bg-white border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                onClick={() => setShowAddToListModal(true)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                </svg>
+                Add to List
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="bg-white border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                onClick={() => setShowAddToCampaignModal(true)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                </svg>
+                Add to Campaign
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="bg-white border-indigo-200 text-indigo-700 hover:bg-indigo-50"
+                onClick={() => setShowAssignTemplateModal(true)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <path d="M9 12l2 2 4-4"></path>
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                </svg>
+                Assign Template
+              </Button>
+            </div>
+          </>
+        ) : (
+          <div className="flex items-center justify-center w-full min-h-[32px]">
+            <div className="flex items-center text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                <path d="M9 12l2 2 4-4"></path>
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              </svg>
+              <span className="text-sm">Select at least one opportunity from the list to perform bulk actions</span>
+            </div>
+          </div>
+        )}
+      </div>
+
       {/* Enhanced Toolbar Section */}
       <div className="bg-white mx-4 rounded-lg shadow-sm border border-[#E6E7F1]">
         {/* Main Controls Row */}
@@ -1394,6 +1488,18 @@ function OpportunitiesTable() {
           <table className="w-full">
             <thead>
               <tr className="border-b border-[#E6E7F1] text-left">
+                <th className="w-12 py-3 px-4 font-medium text-[#282A3F] text-sm">
+                  <div className={`transition-opacity ${
+                    selectedOpportunities.length > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                  }`}>
+                    <input
+                      type="checkbox"
+                      checked={selectedOpportunities.length === filteredOpportunities.length && filteredOpportunities.length > 0}
+                      onChange={(e) => handleSelectAll(e.target.checked)}
+                      className="rounded border-gray-300"
+                    />
+                  </div>
+                </th>
                 <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Opportunity</th>
                 <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Customer</th>
                 <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Partner</th>
@@ -1407,10 +1513,21 @@ function OpportunitiesTable() {
               {filteredOpportunities.map((opportunity: any) => (
                 <tr 
                   key={opportunity.id} 
-                  className="border-b border-[#E6E7F1] hover:bg-gray-50 cursor-pointer"
-                  onClick={() => window.location.href = `/opportunities/${opportunity.id}`}
+                  className="border-b border-[#E6E7F1] hover:bg-gray-50"
                 >
                   <td className="py-3 px-4">
+                    <input
+                      type="checkbox"
+                      checked={selectedOpportunities.includes(opportunity.id)}
+                      onChange={() => handleSelectOpportunity(opportunity.id)}
+                      className="rounded border-gray-300"
+                      onClick={(e) => e.stopPropagation()}
+                    />
+                  </td>
+                  <td 
+                    className="py-3 px-4 cursor-pointer"
+                    onClick={() => window.location.href = `/opportunities/${opportunity.id}`}
+                  >
                     <div className="flex items-center gap-3">
                       <Avatar className="h-8 w-8">
                         <AvatarFallback className="bg-blue-100 text-blue-600 text-xs font-medium">
