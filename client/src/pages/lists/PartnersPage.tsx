@@ -401,7 +401,7 @@ function PartnersPage() {
                 <tr 
                   key={partner.id} 
                   className="border-b border-[#E6E7F1] hover:bg-gray-50 cursor-pointer"
-                  onClick={() => navigate(`/partners/${partner.id}`)}
+                  onClick={() => navigate(`/lists/partners/${partner.id}`)}
                 >
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-3">

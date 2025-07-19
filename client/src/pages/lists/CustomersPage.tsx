@@ -526,7 +526,7 @@ export default function CustomersPageClean({ smartListFilter }: CustomersPageCle
                 <tr 
                   key={customer.id} 
                   className="border-b border-[#E6E7F1] hover:bg-gray-50 cursor-pointer"
-                  onClick={() => window.location.href = `/customers/${customer.id}`}
+                  onClick={() => window.location.href = `/lists/customers/${customer.id}`}
                 >
                   <td className="py-3 px-4">
                     <div className="flex items-center gap-3">
