@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, createContext, useContext } from 'react';
+import { useState, useEffect, useMemo, createContext, useContext, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useEnvironment } from "@/contexts/EnvironmentContext";
@@ -38,6 +38,8 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuCheckboxItem,
+  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,6 +54,27 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { FieldsSelector } from "@/components/shared/FieldsSelector";
+import { 
+  ChevronDown,
+  List,
+  BarChart3,
+  Settings,
+  Filter,
+  Users, 
+  Download, 
+  Plus, 
+  UserPlus,
+  Trash2,
+  MoreVertical,
+  Search,
+  ArrowUpDown,
+  Calendar,
+  Clock,
+  Mail,
+  Phone,
+  Building2,
+  DollarSign
+} from 'lucide-react';
 
 // Calculate total value from ALL opportunities linked to customers (not just displayed page)
 function calculateCustomerTotalValue(customers: any[], opportunities: any[] = []): number {
@@ -190,7 +213,7 @@ export default function CustomersPageClean({ smartListFilter }: CustomersPageCle
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // State management
+  // Enhanced state management for the new functionality
   const [isEditingList, setIsEditingList] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -200,6 +223,85 @@ export default function CustomersPageClean({ smartListFilter }: CustomersPageCle
     size: [] as string[],
     status: [] as string[]
   });
+  
+  // Enhanced filtering and UI state
+  const [showListsDropdown, setShowListsDropdown] = useState(false);
+  const [activeList, setActiveList] = useState<any>(null);
+  const [viewMode, setViewMode] = useState<'cards' | 'list'>('list');
+  const [filterText, setFilterText] = useState('');
+  
+  // Segment View state
+  const [activeView, setActiveView] = useState<any>(null);
+  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
+  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
+  const [viewNameInput, setViewNameInput] = useState('');
+  const viewsDropdownRef = useRef<HTMLDivElement>(null);
+  const viewsButtonRef = useRef<HTMLButtonElement>(null);
+  
+  // Fields state
+  const [showFieldsDropdown, setShowFieldsDropdown] = useState(false);
+  const [visibleFields, setVisibleFields] = useState({
+    name: true,
+    industry: true,
+    size: true,
+    status: true,
+    partner: true,
+    opportunities: true,
+    value: true,
+    template: true
+  });
+  
+  // Filter state
+  const [showFilter, setShowFilter] = useState(false);
+  const [filters, setFilters] = useState({
+    status: 'All',
+    industry: 'All',
+    size: 'All'
+  });
+  const [hasActiveFilters, setHasActiveFilters] = useState(false);
+  
+  // Original state for change detection
+  const [originalFilters, setOriginalFilters] = useState<any>(null);
+  const [originalVisibleFields, setOriginalVisibleFields] = useState<any>(null);
+  
+  // Helper functions for enhanced functionality
+  const hasChanges = () => {
+    if (!originalFilters || !originalVisibleFields) return false;
+    const filtersChanged = JSON.stringify(filters) !== JSON.stringify(originalFilters);
+    const fieldsChanged = JSON.stringify(visibleFields) !== JSON.stringify(originalVisibleFields);
+    return filtersChanged || fieldsChanged;
+  };
+  
+  const updateFilter = (key: string, value: string) => {
+    setFilters(prev => ({ ...prev, [key]: value }));
+    setHasActiveFilters(value !== 'All' || Object.values(filters).some(v => v !== 'All'));
+  };
+  
+  const clearFilters = () => {
+    setFilters({ status: 'All', industry: 'All', size: 'All' });
+    setHasActiveFilters(false);
+  };
+  
+  // Click outside handlers
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (viewsDropdownRef.current && !viewsDropdownRef.current.contains(event.target as Node) &&
+          viewsButtonRef.current && !viewsButtonRef.current.contains(event.target as Node)) {
+        setShowViewsDropdown(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  
+  // Set original state when view is selected
+  useEffect(() => {
+    if (activeView && !originalFilters && !originalVisibleFields) {
+      setOriginalFilters({ ...filters });
+      setOriginalVisibleFields({ ...visibleFields });
+    }
+  }, [activeView, filters, visibleFields, originalFilters, originalVisibleFields]);
   
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -222,25 +324,6 @@ export default function CustomersPageClean({ smartListFilter }: CustomersPageCle
   const [isNewListDialogOpen, setIsNewListDialogOpen] = useState(false);
   const [newListName, setNewListName] = useState('');
   const [newListDescription, setNewListDescription] = useState('');
-  const [showListsDropdown, setShowListsDropdown] = useState(false);
-  const [activeList, setActiveList] = useState<any>(null);
-  
-  // Segment Views state
-  const [activeView, setActiveView] = useState<any>(null);
-  const [showSaveSegmentViewModal, setShowSaveSegmentViewModal] = useState(false);
-  const [segmentViewNameInput, setSegmentViewNameInput] = useState('');
-  
-  // Account Mapping state
-  const [showAccountMappingModal, setShowAccountMappingModal] = useState(false);
-  const [selectedMappingFields, setSelectedMappingFields] = useState<string[]>([]);
-  const [showSegmentViewsDropdown, setShowSegmentViewsDropdown] = useState(false);
-  
-  // Filter dropdown states
-  const [showFilterModal, setShowFilterModal] = useState(false);
-  const [selectedStatus, setSelectedStatus] = useState('all');
-  const [selectedIndustry, setSelectedIndustry] = useState('all');
-  const [selectedSize, setSelectedSize] = useState('all');
-  const [selectedType, setSelectedType] = useState('all');
 
   // Debounce search term to prevent rapid API calls
   useEffect(() => {
@@ -256,19 +339,19 @@ export default function CustomersPageClean({ smartListFilter }: CustomersPageCle
     setCurrentPage(1);
   }, [debouncedSearchTerm, activeFilters]);
 
-  // Column visibility state
+  // Legacy column visibility (keeping for compatibility)
   const [visibleColumns, setVisibleColumns] = useState([
     'customer', 'product', 'partner', 'industry', 'type', 'status', 'value', 'template'
   ]);
 
-  // Update active filters when new filter states change
-  useEffect(() => {
-    setActiveFilters({
-      industry: selectedIndustry && selectedIndustry !== 'all' ? [selectedIndustry] : [],
-      size: selectedSize && selectedSize !== 'all' ? [selectedSize] : [],
-      status: selectedStatus && selectedStatus !== 'all' ? [selectedStatus] : []
-    });
-  }, [selectedStatus, selectedIndustry, selectedSize]);
+  // Format currency helper
+  const formatCurrency = (value: number): string => {
+    return new Intl.NumberFormat('nl-NL', { 
+      style: 'currency', 
+      currency: 'EUR',
+      maximumFractionDigits: 0
+    }).format(value);
+  };
   
   // Data fetching with pagination, search, and filters
   const { data: customersResponse, isLoading, error } = useCustomersData(currentPage, itemsPerPage, debouncedSearchTerm, activeFilters);
@@ -468,9 +551,7 @@ export default function CustomersPageClean({ smartListFilter }: CustomersPageCle
     weightedValue: calculateCustomerWeightedValue(customers as any[], opportunities as any[])
   };
 
-  const formatCurrency = (value: number) => {
-    return `€${Math.round(value).toLocaleString()}`;
-  };
+
 
   return (
     <div className="space-y-1">
@@ -505,7 +586,255 @@ export default function CustomersPageClean({ smartListFilter }: CustomersPageCle
         </Card>
       </div>
 
-      {/* Customers table - without toolbar functionalities */}
+      {/* Enhanced Toolbar Section */}
+      <div className="mx-4 space-y-2">
+        {/* Top Row: Chevron + Lists Dropdown and Top-Right Controls */}
+        <div className="flex items-center justify-between">
+          {/* Left: Chevron with Lists Dropdown */}
+          <div className="flex items-center gap-2">
+            <div className="relative">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 px-2 text-[#5567E5] hover:bg-[#5567E5]/10"
+                onClick={() => setShowListsDropdown(!showListsDropdown)}
+              >
+                <ChevronDown className="h-4 w-4" />
+                <span className="ml-1 text-sm font-medium">
+                  {activeList ? activeList.name : 'All Customers'}
+                </span>
+              </Button>
+              
+              {showListsDropdown && (
+                <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-[#E6E7F1] rounded-lg shadow-lg z-50">
+                  <div className="p-2">
+                    <div 
+                      className="flex items-center gap-2 px-3 py-2 text-sm text-[#282A3F] hover:bg-gray-50 rounded cursor-pointer"
+                      onClick={() => {
+                        setActiveList(null);
+                        setShowListsDropdown(false);
+                      }}
+                    >
+                      <List className="h-4 w-4" />
+                      All Customers
+                    </div>
+                    
+                    {customerSavedListsData.map((list: any) => (
+                      <div
+                        key={list.id}
+                        className="flex items-center gap-2 px-3 py-2 text-sm text-[#282A3F] hover:bg-gray-50 rounded cursor-pointer"
+                        onClick={() => {
+                          setActiveList(list);
+                          setShowListsDropdown(false);
+                        }}
+                      >
+                        <List className="h-4 w-4" />
+                        {list.name}
+                        <span className="text-xs text-gray-500 ml-auto">({list.item_count || 0})</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right: Controls - Segment View, Fields, Filter */}
+          <div className="flex items-center gap-2">
+            {/* Segment View Dropdown */}
+            <div className="relative">
+              <Button
+                ref={viewsButtonRef}
+                variant="ghost"
+                size="sm"
+                className="h-8 px-3 text-[#282A3F] hover:bg-gray-50 border border-[#E6E7F1]"
+                onClick={() => setShowViewsDropdown(!showViewsDropdown)}
+              >
+                <BarChart3 className="h-4 w-4 mr-1" />
+                <span className="text-sm">
+                  {activeView ? activeView.name : 'Segment View'}
+                </span>
+                <ChevronDown className="h-3 w-3 ml-1" />
+              </Button>
+              
+              {showViewsDropdown && (
+                <div ref={viewsDropdownRef} className="absolute top-full right-0 mt-1 w-56 bg-white border border-[#E6E7F1] rounded-lg shadow-lg z-50">
+                  <div className="p-2">
+                    {savedViewsData.length > 0 && (
+                      <>
+                        {savedViewsData.map((view: any) => (
+                          <div
+                            key={view.id}
+                            className="flex items-center justify-between px-3 py-2 text-sm text-[#282A3F] hover:bg-gray-50 rounded cursor-pointer"
+                            onClick={() => {
+                              setActiveView(view);
+                              setShowViewsDropdown(false);
+                            }}
+                          >
+                            <span>{view.name}</span>
+                            {hasChanges() && (
+                              <div className="flex gap-1">
+                                <Button variant="ghost" size="sm" className="h-6 px-2 text-xs">
+                                  Revert changes
+                                </Button>
+                                <Button variant="ghost" size="sm" className="h-6 px-2 text-xs text-[#5567E5]">
+                                  Save changes
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                        <hr className="my-2 border-[#E6E7F1]" />
+                      </>
+                    )}
+                    <div
+                      className="px-3 py-2 text-sm text-[#5567E5] hover:bg-[#5567E5]/10 rounded cursor-pointer"
+                      onClick={() => {
+                        setShowSaveViewModal(true);
+                        setShowViewsDropdown(false);
+                      }}
+                    >
+                      + New view
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Fields Dropdown */}
+            <DropdownMenu open={showFieldsDropdown} onOpenChange={setShowFieldsDropdown}>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="h-8 px-3 text-[#282A3F] hover:bg-gray-50 border border-[#E6E7F1]"
+                >
+                  <Settings className="h-4 w-4 mr-1" />
+                  <span className="text-sm">Fields</span>
+                  <ChevronDown className="h-3 w-3 ml-1" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48 border-[#E6E7F1]">
+                <DropdownMenuLabel className="text-xs text-gray-500 uppercase tracking-wide">
+                  Show Columns
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-[#E6E7F1]" />
+                {Object.entries(visibleFields).map(([field, visible]) => (
+                  <DropdownMenuCheckboxItem
+                    key={field}
+                    checked={visible}
+                    onCheckedChange={(checked) => {
+                      setVisibleFields(prev => ({ ...prev, [field]: checked }));
+                    }}
+                    className="text-sm capitalize"
+                  >
+                    {field === 'opportunities' ? 'Opportunities' : field}
+                  </DropdownMenuCheckboxItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {/* Filter Button */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className={`h-8 px-3 border border-[#E6E7F1] ${hasActiveFilters ? 'text-[#5567E5] bg-[#5567E5]/10' : 'text-[#282A3F] hover:bg-gray-50'}`}
+              onClick={() => setShowFilter(!showFilter)}
+            >
+              <Filter className="h-4 w-4 mr-1" />
+              <span className="text-sm">Filter</span>
+              {hasActiveFilters && <div className="w-2 h-2 bg-[#5567E5] rounded-full ml-2" />}
+            </Button>
+          </div>
+        </div>
+
+        {/* Search Bar */}
+        <div className="flex items-center gap-2">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search customers..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10 h-8 border-[#E6E7F1] focus:border-[#5567E5] focus:ring-[#5567E5]"
+            />
+          </div>
+        </div>
+
+        {/* Filter Panel (appears when Filter button is clicked) */}
+        {showFilter && (
+          <div className="bg-gray-50 border border-[#E6E7F1] rounded-lg p-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div>
+                <Label className="text-sm text-[#282A3F] mb-2 block">Status</Label>
+                <Select value={filters.status} onValueChange={(value) => updateFilter('status', value)}>
+                  <SelectTrigger className="h-8 border-[#E6E7F1]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All">All Statuses</SelectItem>
+                    <SelectItem value="Active">Active</SelectItem>
+                    <SelectItem value="Inactive">Inactive</SelectItem>
+                    <SelectItem value="Prospect">Prospect</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label className="text-sm text-[#282A3F] mb-2 block">Industry</Label>
+                <Select value={filters.industry} onValueChange={(value) => updateFilter('industry', value)}>
+                  <SelectTrigger className="h-8 border-[#E6E7F1]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All">All Industries</SelectItem>
+                    <SelectItem value="Technology">Technology</SelectItem>
+                    <SelectItem value="Healthcare">Healthcare</SelectItem>
+                    <SelectItem value="Finance">Finance</SelectItem>
+                    <SelectItem value="Manufacturing">Manufacturing</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label className="text-sm text-[#282A3F] mb-2 block">Size</Label>
+                <Select value={filters.size} onValueChange={(value) => updateFilter('size', value)}>
+                  <SelectTrigger className="h-8 border-[#E6E7F1]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="All">All Sizes</SelectItem>
+                    <SelectItem value="Small">Small (1-50)</SelectItem>
+                    <SelectItem value="Medium">Medium (51-250)</SelectItem>
+                    <SelectItem value="Large">Large (251+)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            <div className="flex justify-between items-center mt-4">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="text-[#282A3F] hover:bg-gray-100"
+              >
+                Clear all filters
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowFilter(false)}
+                className="text-[#5567E5] hover:bg-[#5567E5]/10"
+              >
+                Done
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Customers table */}
       <div className="mx-4">
         <div className="overflow-x-auto">
           <table className="w-full">

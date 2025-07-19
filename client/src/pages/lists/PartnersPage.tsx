@@ -304,9 +304,71 @@ function PartnersPage() {
 
   // Fetch partners from database
   const { data: partners = [], isLoading, error } = usePartnersData();
+  const { data: savedListsData = [] } = useSavedLists();
+  const { data: savedViewsData = [] } = useSavedViews();
   
-  // Calculate display partners (for now, show all partners)
-  const displayedPartners = partners;
+  // Enhanced state management for the new functionality
+  const [showListsDropdown, setShowListsDropdown] = useState(false);
+  const [activeList, setActiveList] = useState<any>(null);
+  const [viewMode, setViewMode] = useState<'cards' | 'list'>('list');
+  const [filterText, setFilterText] = useState('');
+  
+  // Segment View state
+  const [activeView, setActiveView] = useState<any>(null);
+  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
+  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
+  const [viewNameInput, setViewNameInput] = useState('');
+  const viewsDropdownRef = useRef<HTMLDivElement>(null);
+  const viewsButtonRef = useRef<HTMLButtonElement>(null);
+  
+  // Fields state
+  const [showFieldsDropdown, setShowFieldsDropdown] = useState(false);
+  const [visibleFields, setVisibleFields] = useState({
+    name: true,
+    industry: true,
+    customerCount: true,
+    opportunityCount: true,
+    totalValue: true,
+    status: true
+  });
+  
+  // Filter state
+  const [showFilter, setShowFilter] = useState(false);
+  const [filters, setFilters] = useState({
+    status: 'All',
+    industry: 'All',
+    size: 'All'
+  });
+  const [hasActiveFilters, setHasActiveFilters] = useState(false);
+  
+  // Original state for change detection
+  const [originalFilters, setOriginalFilters] = useState<any>(null);
+  const [originalVisibleFields, setOriginalVisibleFields] = useState<any>(null);
+  
+  // Calculate display partners with filters applied
+  let displayedPartners = partners;
+  
+  // Apply active list filter
+  if (activeList) {
+    const listMemberIds = activeList.members?.map((m: any) => m.id) || [];
+    displayedPartners = displayedPartners.filter((partner: any) => listMemberIds.includes(partner.id));
+  }
+  
+  // Apply text search filter
+  if (filterText) {
+    displayedPartners = displayedPartners.filter((partner: any) =>
+      partner.name?.toLowerCase().includes(filterText.toLowerCase()) ||
+      partner.industry?.toLowerCase().includes(filterText.toLowerCase())
+    );
+  }
+  
+  // Apply advanced filters
+  displayedPartners = displayedPartners.filter((partner: any) => {
+    if (filters.status !== 'All' && partner.status !== filters.status) return false;
+    if (filters.industry !== 'All' && partner.industry !== filters.industry) return false;
+    if (filters.size !== 'All' && partner.size !== filters.size) return false;
+    return true;
+  });
 
   // Format currency function
   const formatCurrency = (value: number) => {
@@ -337,6 +399,35 @@ function PartnersPage() {
     totalCustomers: displayedPartners.reduce((sum, partner) => sum + (partner.customerCount || 0), 0),
     totalValue: displayedPartners.reduce((sum, partner) => sum + (partner.totalValue || 0), 0),
     weightedValue: displayedPartners.reduce((sum, partner) => sum + (partner.totalValue || 0), 0)
+  };
+
+  // Helper functions
+  const hasChanges = () => {
+    if (activeView && (originalFilters || originalVisibleFields)) {
+      const filtersChanged = originalFilters && JSON.stringify(filters) !== JSON.stringify(originalFilters);
+      const fieldsChanged = originalVisibleFields && JSON.stringify(visibleFields) !== JSON.stringify(originalVisibleFields);
+      return filtersChanged || fieldsChanged;
+    }
+    
+    if (!activeView) {
+      const hasFilterChanges = filters.status !== 'All' || filters.industry !== 'All' || filters.size !== 'All';
+      const allFieldsVisible = Object.values(visibleFields).every(Boolean);
+      const hasFieldChanges = !allFieldsVisible;
+      return hasFilterChanges || hasFieldChanges;
+    }
+    
+    return false;
+  };
+
+  const clearFilters = () => {
+    setFilters({ status: 'All', industry: 'All', size: 'All' });
+    setHasActiveFilters(false);
+  };
+
+  const updateFilter = (key: string, value: string) => {
+    const newFilters = { ...filters, [key]: value };
+    setFilters(newFilters);
+    setHasActiveFilters(value !== 'All' || Object.values(newFilters).some(v => v !== 'All'));
   };
 
   return (
@@ -379,19 +470,339 @@ function PartnersPage() {
         </Card>
       </div>
 
-      {/* Partners table - without toolbar functionalities */}
+      {/* Enhanced Toolbar Section */}
+      <div className="bg-white mx-4 rounded-lg shadow-sm border border-[#E6E7F1]">
+        {/* Top-right controls */}
+        <div className="flex justify-end items-center gap-2 px-4 py-2 border-b border-[#E6E7F1]">
+          {/* Save/Update Segment View buttons */}
+          {hasChanges() && (
+            <div className="flex items-center gap-2 mr-2">
+              {activeView ? (
+                <button 
+                  className="flex items-center gap-1 px-3 py-1 text-sm text-indigo-600 hover:text-indigo-700 border border-indigo-200 rounded-md hover:bg-indigo-50"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  Update segment view
+                </button>
+              ) : (
+                <button 
+                  onClick={() => setShowSaveViewModal(true)}
+                  className="flex items-center gap-1 px-3 py-1 text-sm text-indigo-600 hover:text-indigo-700 border border-indigo-200 rounded-md hover:bg-indigo-50"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  Save as segment view
+                </button>
+              )}
+            </div>
+          )}
+
+          {/* Segment View Button */}
+          <div className="relative">
+            <button 
+              ref={viewsButtonRef}
+              className="flex items-center space-x-2 px-3 h-8 border border-[#E6E7F1] rounded-md text-sm font-medium bg-white hover:bg-gray-50"
+              onClick={() => setShowViewsDropdown(!showViewsDropdown)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <span className="text-gray-700">{activeView ? activeView.name : "Segment view"}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${showViewsDropdown ? 'rotate-180' : ''}`}>
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+
+            {showViewsDropdown && (
+              <div ref={viewsDropdownRef} className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-md">
+                <div className="p-2 border-b">
+                  {savedViewsData?.map((view: any) => (
+                    <div 
+                      key={view.id}
+                      className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${activeView?.id === view.id.toString() ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                      onClick={() => {
+                        setActiveView(view);
+                        setShowViewsDropdown(false);
+                      }}
+                    >
+                      <span>{view.name}</span>
+                      {activeView?.id === view.id.toString() && (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                      )}
+                    </div>
+                  ))}
+                  {(!savedViewsData || savedViewsData.length === 0) && (
+                    <div className="p-2 text-sm text-gray-500 italic">No saved views</div>
+                  )}
+                </div>
+                {activeView && (
+                  <div className="p-2">
+                    <button 
+                      className="flex w-full items-center p-2 text-sm rounded-md text-indigo-600 hover:bg-indigo-50"
+                      onClick={() => {
+                        setShowViewsDropdown(false);
+                        setActiveView(null);
+                        setFilters({ status: 'All', industry: 'All', size: 'All' });
+                        setHasActiveFilters(false);
+                        setOriginalFilters(null);
+                        setOriginalVisibleFields(null);
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <path d="M18 6L6 18"></path>
+                        <path d="M6 6l12 12"></path>
+                      </svg>
+                      Clear segment view
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Fields Button */}
+          <div className="relative">
+            <button
+              onClick={() => setShowFieldsDropdown(!showFieldsDropdown)}
+              className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-colors ${
+                Object.values(visibleFields).some(v => !v) 
+                  ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect width="7" height="7" x="3" y="3" rx="1"/>
+                <rect width="7" height="7" x="14" y="3" rx="1"/>
+                <rect width="7" height="7" x="14" y="14" rx="1"/>
+                <rect width="7" height="7" x="3" y="14" rx="1"/>
+              </svg>
+              <span>Fields</span>
+              <span className="text-xs">({Object.values(visibleFields).filter(Boolean).length}/{Object.keys(visibleFields).length})</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${showFieldsDropdown ? 'rotate-180' : ''}`}>
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+
+            {showFieldsDropdown && (
+              <div className="absolute z-50 mt-1 w-48 rounded-md border border-[#E6E7F1] bg-white shadow-md">
+                <div className="p-2">
+                  <div className="space-y-2">
+                    {Object.entries(visibleFields).map(([key, value]) => (
+                      <label key={key} className="flex items-center space-x-2 text-sm cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={value}
+                          onChange={(e) => setVisibleFields(prev => ({ ...prev, [key]: e.target.checked }))}
+                          className="rounded border-gray-300"
+                        />
+                        <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Filter Button */}
+          <div className="relative">
+            <button
+              onClick={() => setShowFilter(!showFilter)}
+              className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-colors ${
+                hasActiveFilters 
+                  ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                  : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+              </svg>
+              <span>Filter</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${showFilter ? 'rotate-180' : ''}`}>
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+
+            {showFilter && (
+              <div className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-md">
+                <div className="p-4 space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                    <select
+                      value={filters.status}
+                      onChange={(e) => updateFilter('status', e.target.value)}
+                      className="w-full px-2 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                    >
+                      <option value="All">All</option>
+                      <option value="Active">Active</option>
+                      <option value="Inactive">Inactive</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Industry</label>
+                    <select
+                      value={filters.industry}
+                      onChange={(e) => updateFilter('industry', e.target.value)}
+                      className="w-full px-2 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                    >
+                      <option value="All">All</option>
+                      <option value="Insurance">Insurance</option>
+                      <option value="Finance">Finance</option>
+                      <option value="Technology">Technology</option>
+                    </select>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                    <button
+                      onClick={clearFilters}
+                      className="text-sm text-red-600 hover:text-red-700 flex items-center gap-1"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M18 6 6 18"/>
+                        <path d="m6 6 12 12"/>
+                      </svg>
+                      Clear
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Saved Lists Section */}
+        <div className="px-4 py-2">
+          <div className="flex items-center justify-start gap-4 mb-2">
+            <button 
+              className="flex items-center space-x-2 text-lg font-semibold text-gray-900 hover:text-gray-700"
+              onClick={() => setShowListsDropdown(!showListsDropdown)}
+            >
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className={`transition-transform ${showListsDropdown ? 'rotate-90' : ''}`}
+              >
+                <polyline points="9 18 15 12 9 6" />
+              </svg>
+              <span>Saved Lists ({savedListsData.length})</span>
+            </button>
+            
+            {/* Show selected list when collapsed */}
+            {!showListsDropdown && activeList && (
+              <div className="bg-indigo-100 px-3 py-1 rounded-full flex items-center space-x-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                </svg>
+                <span className="text-sm text-indigo-700">{activeList.name}</span>
+                <button 
+                  className="hover:bg-indigo-200 rounded-full p-0.5 transition-colors"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveList(null);
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              </div>
+            )}
+          </div>
+
+          {/* Search Bar */}
+          <div className="relative w-60 mb-2">
+            <input
+              type="text"
+              placeholder="Search partners..."
+              value={filterText}
+              onChange={(e) => setFilterText(e.target.value)}
+              className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+            />
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+          </div>
+
+          {/* Collapsible Lists Content */}
+          {showListsDropdown && (
+            <div className="space-y-2">
+              {/* All Partners option */}
+              <div
+                className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${
+                  !activeList ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200 hover:border-gray-300'
+                }`}
+                onClick={() => setActiveList(null)}
+              >
+                <div className="flex-1">
+                  <div className="flex items-center space-x-3">
+                    <div>
+                      <h3 className="font-medium text-gray-900">All Partners</h3>
+                      <p className="text-sm text-gray-500">{partners.length} partners</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-lg font-semibold text-gray-900">{formatCurrency(stats.totalValue)}</p>
+                  <p className="text-xs text-gray-500">Total value</p>
+                </div>
+              </div>
+
+              {/* Saved Lists */}
+              {savedListsData.map((list: any, index: number) => (
+                <div
+                  key={list.id}
+                  className={`flex items-center justify-between p-4 rounded-lg border cursor-pointer transition-all hover:shadow-sm ${
+                    activeList?.id === list.id ? 'bg-blue-50 border-blue-200' : 'bg-white border-gray-200 hover:border-gray-300'
+                  }`}
+                  onClick={() => setActiveList(list)}
+                >
+                  <div className="flex-1">
+                    <div className="flex items-center space-x-3">
+                      <div>
+                        <h3 className="font-medium text-gray-900">{list.name}</h3>
+                        <p className="text-sm text-gray-500">{list.members?.length || 0} partners</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-lg font-semibold text-gray-900">€0</p>
+                    <p className="text-xs text-gray-500">List value</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Partners table - enhanced with field visibility */}
       <div className="mx-4">
         <div className="overflow-x-auto">
           <table className="w-full">
             <thead>
               <tr className="border-b border-[#E6E7F1] text-left">
-                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Partner</th>
-                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Industry</th>
+                {visibleFields.name && <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Partner</th>}
+                {visibleFields.industry && <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Industry</th>}
                 <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Size</th>
                 <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Region</th>
-                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Status</th>
-                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Customers</th>
-                <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Opportunities</th>
+                {visibleFields.status && <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Status</th>}
+                {visibleFields.customerCount && <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Customers</th>}
+                {visibleFields.opportunityCount && <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Opportunities</th>}
                 <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Contacts</th>
                 <th className="py-3 px-4 font-medium text-[#282A3F] text-sm">Template</th>
               </tr>
@@ -403,29 +814,33 @@ function PartnersPage() {
                   className="border-b border-[#E6E7F1] hover:bg-gray-50 cursor-pointer"
                   onClick={() => navigate(`/lists/partners/${partner.id}`)}
                 >
-                  <td className="py-3 px-4">
-                    <div className="flex items-center gap-3">
-                      <Avatar className="h-8 w-8">
-                        <AvatarImage src={partner.logo} alt={partner.name} />
-                        <AvatarFallback className="text-xs">
-                          {partner.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium text-[#282A3F] text-sm">{partner.name}</div>
+                  {visibleFields.name && (
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarImage src={partner.logo} alt={partner.name} />
+                          <AvatarFallback className="text-xs">
+                            {partner.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium text-[#282A3F] text-sm">{partner.name}</div>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="py-3 px-4 text-sm text-[#696C8C]">{partner.industry || 'Insurance'}</td>
+                    </td>
+                  )}
+                  {visibleFields.industry && <td className="py-3 px-4 text-sm text-[#696C8C]">{partner.industry || 'Insurance'}</td>}
                   <td className="py-3 px-4 text-sm text-[#696C8C]">{partner.size || 'Medium'}</td>
                   <td className="py-3 px-4 text-sm text-[#696C8C]">{partner.region || 'Europe'}</td>
-                  <td className="py-3 px-4">
-                    <Badge variant="secondary" className="bg-green-50 text-green-700 text-xs">
-                      {partner.status || 'Active'}
-                    </Badge>
-                  </td>
-                  <td className="py-3 px-4 text-sm text-[#696C8C]">{partner.customerCount || 0}</td>
-                  <td className="py-3 px-4 text-sm text-[#696C8C]">{partner.opportunityCount || 0}</td>
+                  {visibleFields.status && (
+                    <td className="py-3 px-4">
+                      <Badge variant="secondary" className="bg-green-50 text-green-700 text-xs">
+                        {partner.status || 'Active'}
+                      </Badge>
+                    </td>
+                  )}
+                  {visibleFields.customerCount && <td className="py-3 px-4 text-sm text-[#696C8C]">{partner.customerCount || 0}</td>}
+                  {visibleFields.opportunityCount && <td className="py-3 px-4 text-sm text-[#696C8C]">{partner.opportunityCount || 0}</td>}
                   <td className="py-3 px-4 text-sm text-[#696C8C]">172</td>
                   <td className="py-3 px-4 text-sm text-[#696C8C]">No templates</td>
                 </tr>
