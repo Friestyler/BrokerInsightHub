@@ -1647,6 +1647,267 @@ export default function PartnerDetail() {
             {/* Enhanced unified toolbar - same as OpportunitiesPage */}
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <div className="flex flex-col gap-4">
+                        <div className="p-2 border-b">
+                          {savedViews.map(view => (
+                            <div 
+                              key={view.id}
+                              className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${activeView?.id === view.id ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                              onClick={() => {
+                                setActiveView(view);
+                                setOriginalViewFilters({
+                                  status: view.filters.stage || undefined,
+                                  customer: view.filters.customer || undefined,
+                                  insuranceDescription: view.filters.insuranceDescription || undefined,
+                                });
+                                setFilterText(view.filters.searchText || '');
+                                setSelectedStatus(view.filters.stage || '');
+                                setSelectedCustomer(view.filters.customer || '');
+                                setSelectedInsuranceDescription(view.filters.insuranceDescription || '');
+                                setShowViewsDropdown(false);
+                              }}
+                            >
+                              <div className="flex items-center">
+                                {view.name}
+                              </div>
+                              {activeView?.id === view.id && (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                                  <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        {activeView && (
+                          <div className="p-2 border-t">
+                            <button 
+                              className="flex w-full items-center p-2 text-sm rounded-md text-indigo-600 hover:bg-indigo-50"
+                              onClick={() => {
+                                setShowViewsDropdown(false);
+                                // Clear active view
+                                setActiveView(null);
+                                setOriginalViewFilters(null);
+                                // Reset filters if needed
+                                setFilterText('');
+                                setSelectedStatus('');
+                                setSelectedCustomer('');
+                                setSelectedInsuranceDescription('');
+                              }}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                <path d="M18 6L6 18"></path>
+                                <path d="M6 6l12 12"></path>
+                              </svg>
+                              Clear view
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  
+                  {/* Unified Filter Button */}
+                  <div className="flex items-center gap-2 ml-3">
+                    <div className="relative" ref={unifiedFilterDropdownRef}>
+                      <button 
+                        className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                          selectedStatus || selectedCustomer || selectedInsuranceDescription
+                            ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
+                            : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                        }`}
+                        onClick={() => setShowUnifiedFilterDropdown(!showUnifiedFilterDropdown)}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg>
+                        <span>Filter</span>
+                        <svg 
+                          xmlns="http://www.w3.org/2000/svg" 
+                          width="14" 
+                          height="14" 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2" 
+                          strokeLinecap="round" 
+                          strokeLinejoin="round" 
+                          className={`ml-2 transition-transform ${showUnifiedFilterDropdown ? 'rotate-180' : ''}`}
+                        >
+                          <polyline points="6 9 12 15 18 9" />
+                        </svg>
+                      </button>
+                      
+                      {showUnifiedFilterDropdown && (
+                        <div className="absolute z-50 mt-1 w-[800px] rounded-md border border-gray-200 bg-white shadow-lg">
+                          <div className="p-4">
+                            <div className="space-y-4">
+                              {/* Stage Filter Row */}
+                              <div className="flex items-center gap-4">
+                                <div className="w-16 text-sm text-gray-700">Where</div>
+                                <div className="flex-1 grid grid-cols-3 gap-4">
+                                  <div>
+                                    <select 
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                      value="Stage"
+                                      disabled
+                                    >
+                                      <option>Stage</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <select 
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                      value="equals"
+                                      disabled
+                                    >
+                                      <option>equals</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <select 
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                      value={selectedStatus}
+                                      onChange={(e) => setSelectedStatus(e.target.value)}
+                                    >
+                                      <option value="">All</option>
+                                      {uniqueStatuses.map((status) => (
+                                        <option key={status} value={status}>{status}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Customer Filter Row */}
+                              <div className="flex items-center gap-4">
+                                <div className="w-16 text-sm text-gray-700">And</div>
+                                <div className="flex-1 grid grid-cols-3 gap-4">
+                                  <div>
+                                    <select 
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                      value="Customer"
+                                      disabled
+                                    >
+                                      <option>Customer</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <select 
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                      value="equals"
+                                      disabled
+                                    >
+                                      <option>equals</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <select 
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                      value={selectedCustomer}
+                                      onChange={(e) => setSelectedCustomer(e.target.value)}
+                                    >
+                                      <option value="">All</option>
+                                      {uniqueCustomers.map((customer) => (
+                                        <option key={customer} value={customer}>{customer}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
+                              
+                              {/* Insurance Description Filter Row */}
+                              <div className="flex items-center gap-4">
+                                <div className="w-16 text-sm text-gray-700">And</div>
+                                <div className="flex-1 grid grid-cols-3 gap-4">
+                                  <div>
+                                    <select 
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                      value="Insurance"
+                                      disabled
+                                    >
+                                      <option>Insurance</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <select 
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                      value="equals"
+                                      disabled
+                                    >
+                                      <option>equals</option>
+                                    </select>
+                                  </div>
+                                  <div>
+                                    <select 
+                                      className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                                      value={selectedInsuranceDescription}
+                                      onChange={(e) => setSelectedInsuranceDescription(e.target.value)}
+                                    >
+                                      <option value="">All</option>
+                                      {uniqueInsuranceDescriptions.map((description: string) => (
+                                        <option key={description} value={description}>{description}</option>
+                                      ))}
+                                    </select>
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            {/* Action Buttons */}
+                            <div className="flex items-center justify-between mt-4 pt-4 border-t">
+                              <button
+                                className="flex items-center text-sm text-red-600 hover:text-red-700"
+                                onClick={() => {
+                                  setSelectedStatus("");
+                                  setSelectedCustomer("");
+                                  setSelectedInsuranceDescription("");
+                                }}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                  <path d="M18 6L6 18"></path>
+                                  <path d="M6 6l12 12"></path>
+                                </svg>
+                                Clear
+                              </button>
+                              <button
+                                className="flex items-center text-sm text-green-600 hover:text-green-700"
+                                onClick={() => {
+                                  setShowUnifiedFilterDropdown(false);
+                                }}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                  <path d="M12 5v14M5 12h14"></path>
+                                </svg>
+                                Add filter
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Save as new view button - shows when filters are active and no view is active */}
+                    {!activeView && (selectedStatus || selectedCustomer || selectedInsuranceDescription) && (
+                      <button 
+                        className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7] ml-3"
+                        onClick={() => setShowSaveViewModal(true)}
+                        style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                          <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        <span className="text-[#3E4DC4] font-medium">Save as new view</span>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Enhanced unified toolbar - same as OpportunitiesPage */}
+            <div className="bg-white p-4 rounded-lg shadow-sm">
+              <div className="flex flex-col gap-4">
                 {/* Enhanced Saved Lists Section */}
                 <div className="mb-6">
                   {/* Header with chevron and view mode toggle */}
