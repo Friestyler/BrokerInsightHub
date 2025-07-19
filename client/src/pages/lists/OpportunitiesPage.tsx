@@ -457,6 +457,11 @@ function OpportunitiesTable() {
   const opportunitySavedListsData = savedListsData.filter((list: any) => 
     list.entity_type === 'opportunities'
   );
+  
+  // Filter saved views to only show opportunity-related views (client-side filtering)
+  const opportunitySavedViewsData = savedViewsData.filter((view: any) => 
+    view.entity_type === 'opportunities'
+  );
 
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('all');
@@ -504,7 +509,9 @@ function OpportunitiesTable() {
     stage: 'All',
     type: 'All'
   });
-  const [hasActiveFilters, setHasActiveFilters] = useState(false);
+
+  // Calculate if there are active filters
+  const hasActiveFilters = filters.status !== 'All' || filters.stage !== 'All' || filters.type !== 'All';
 
   // Helper functions for toolbar functionality (matching CustomersPage pattern)
   const hasChanges = () => {
@@ -543,10 +550,10 @@ function OpportunitiesTable() {
 
   // Database-driven filter options extracted from opportunities data
   const statusOptions = Array.from(new Set(opportunities.map((opp: any) => opp.status || '').filter(Boolean))).sort();
+  const stageOptions = Array.from(new Set(opportunities.map((opp: any) => opp.stage || '').filter(Boolean))).sort();
   const typeOptions = Array.from(new Set(opportunities.map((opp: any) => opp.type || '').filter(Boolean))).sort();
   const customerOptions = Array.from(new Set(opportunities.map((opp: any) => opp.clientName || opp.customerName).filter(Boolean))).sort();
   const partnerOptions = Array.from(new Set(opportunities.map((opp: any) => opp.partnerName).filter(Boolean))).sort();
-  const stageOptions = Array.from(new Set(opportunities.map((opp: any) => opp.stage).filter(Boolean))).sort();
   const probabilityOptions = Array.from(new Set(opportunities.map((opp: any) => opp.probability).filter(val => val !== null && val !== undefined))).sort((a, b) => a - b);
   
   // Handle click outside to close dropdowns
@@ -1134,45 +1141,127 @@ function OpportunitiesTable() {
             {/* Segment View Button */}
             <div className="relative">
               <button 
-                className="flex items-center space-x-2 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50"
+                className={`flex items-center space-x-2 px-3 py-2 text-sm border rounded-md transition-colors ${
+                  activeView ? 'bg-blue-50 border-blue-200 text-blue-700' : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
                 onClick={() => setShowViewsDropdown(!showViewsDropdown)}
               >
                 <BarChart3 width="14" height="14" />
                 <span>Segment view</span>
-                <ChevronDown width="14" height="14" />
+                <ChevronDown width="14" height="14" className={`transition-transform ${showViewsDropdown ? 'rotate-180' : ''}`} />
               </button>
+
+              {showViewsDropdown && (
+                <div className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-md">
+                  <div className="p-2 border-b">
+                    {opportunitySavedViewsData?.map((view: any) => (
+                      <div 
+                        key={view.id}
+                        className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${
+                          activeView?.id === view.id ? 'bg-blue-50 text-blue-700' : 'text-slate-700'
+                        }`}
+                        onClick={() => {
+                          setActiveView(view);
+                          setActiveList(null); // Clear active list when selecting a view
+                          setShowViewsDropdown(false);
+                          // Apply view filters if available
+                          if (view.filters) {
+                            try {
+                              const viewFilters = JSON.parse(view.filters);
+                              setFilters(viewFilters);
+                            } catch (e) {
+                              console.error('Error parsing view filters:', e);
+                            }
+                          }
+                          // Apply view fields if available
+                          if (view.visible_fields) {
+                            try {
+                              const viewFields = JSON.parse(view.visible_fields);
+                              setVisibleFields(viewFields);
+                            } catch (e) {
+                              console.error('Error parsing view fields:', e);
+                            }
+                          }
+                        }}
+                      >
+                        <span>{view.name}</span>
+                        {activeView?.id === view.id && (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
+                            <polyline points="20 6 9 17 4 12"/>
+                          </svg>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Fields Button */}
             <div className="relative">
-              <button 
-                className="flex items-center space-x-2 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50"
+              <button
                 onClick={() => setShowFieldsDropdown(!showFieldsDropdown)}
+                className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-colors ${
+                  Object.values(visibleFields).some(v => !v) 
+                    ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
               >
-                <span>Fields (6/6)</span>
-                <ChevronDown width="14" height="14" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect width="7" height="7" x="3" y="3" rx="1"/>
+                  <rect width="7" height="7" x="14" y="3" rx="1"/>
+                  <rect width="7" height="7" x="14" y="14" rx="1"/>
+                  <rect width="7" height="7" x="3" y="14" rx="1"/>
+                </svg>
+                <span>Fields</span>
+                <span className="text-xs">({Object.values(visibleFields).filter(Boolean).length}/{Object.keys(visibleFields).length})</span>
+                <ChevronDown width="14" height="14" className={`transition-transform ${showFieldsDropdown ? 'rotate-180' : ''}`} />
               </button>
+
+              {showFieldsDropdown && (
+                <div className="absolute z-50 mt-1 w-48 rounded-md border border-[#E6E7F1] bg-white shadow-md">
+                  <div className="p-2">
+                    <div className="space-y-2">
+                      {Object.entries(visibleFields).map(([key, value]) => (
+                        <label key={key} className="flex items-center space-x-2 text-sm cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={value}
+                            onChange={(e) => setVisibleFields(prev => ({ ...prev, [key]: e.target.checked }))}
+                            className="rounded border-gray-300"
+                          />
+                          <span className="capitalize">{key.replace(/([A-Z])/g, ' $1').trim()}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Filter Button */}
             <div className="relative">
-              <button 
-                className="flex items-center space-x-2 px-3 py-2 text-sm border border-gray-300 rounded-md bg-white hover:bg-gray-50"
+              <button
                 onClick={() => setShowFilter(!showFilter)}
+                className={`flex items-center gap-2 px-3 py-2 text-sm border rounded-md transition-colors ${
+                  hasActiveFilters 
+                    ? 'bg-blue-50 border-blue-200 text-blue-700' 
+                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
+                }`}
               >
                 <Filter width="14" height="14" />
                 <span>Filter</span>
-                <ChevronDown width="14" height="14" />
+                <ChevronDown width="14" height="14" className={`transition-transform ${showFilter ? 'rotate-180' : ''}`} />
               </button>
-              
-              {/* Filter Dropdown */}
+
               {showFilter && (
-                <div className="absolute right-0 top-full mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                <div className="absolute z-50 mt-1 right-0 w-[600px] rounded-md border border-[#E6E7F1] bg-white shadow-md">
                   <div className="p-4 space-y-4">
-                    <div className="flex items-center space-x-3">
-                      <select
+                    {/* Where Status equals */}
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-gray-600 w-12">Where</span>
+                      <select 
                         value="status"
-                        onChange={() => {}}
                         className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
                       >
                         <option value="status">Status</option>
@@ -1181,16 +1270,62 @@ function OpportunitiesTable() {
                       </select>
                       <span className="text-sm text-gray-500">equals</span>
                       <select
-                        value={filters.status || 'All'}
+                        value={filters.status}
                         onChange={(e) => updateFilter('status', e.target.value)}
                         className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
                       >
                         <option value="All">All</option>
-                        <option value="Open">Open</option>
-                        <option value="Qualifying">Qualifying</option>
-                        <option value="Proposal">Proposal</option>
-                        <option value="Closed Won">Closed Won</option>
-                        <option value="Closed Lost">Closed Lost</option>
+                        {statusOptions.map(status => (
+                          <option key={status} value={status}>{status}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* And Stage equals */}
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-gray-600 w-12">And</span>
+                      <select 
+                        value="stage"
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                      >
+                        <option value="stage">Stage</option>
+                        <option value="status">Status</option>
+                        <option value="type">Type</option>
+                      </select>
+                      <span className="text-sm text-gray-500">equals</span>
+                      <select
+                        value={filters.stage}
+                        onChange={(e) => updateFilter('stage', e.target.value)}
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                      >
+                        <option value="All">All</option>
+                        {stageOptions.map(stage => (
+                          <option key={stage} value={stage}>{stage}</option>
+                        ))}
+                      </select>
+                    </div>
+
+                    {/* And Type equals */}
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm font-medium text-gray-600 w-12">And</span>
+                      <select 
+                        value="type"
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                      >
+                        <option value="type">Type</option>
+                        <option value="stage">Stage</option>
+                        <option value="status">Status</option>
+                      </select>
+                      <span className="text-sm text-gray-500">equals</span>
+                      <select
+                        value={filters.type}
+                        onChange={(e) => updateFilter('type', e.target.value)}
+                        className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white flex-1"
+                      >
+                        <option value="All">All</option>
+                        {typeOptions.map(type => (
+                          <option key={type} value={type}>{type}</option>
+                        ))}
                       </select>
                     </div>
                   </div>
