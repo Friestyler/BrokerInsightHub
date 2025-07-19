@@ -2314,26 +2314,41 @@ export default function PartnerDetail() {
                     </button>
                     
                     {/* Show selected list when collapsed */}
-                    {!showListsDropdown && activeList && (
-                      <div className="bg-indigo-100 px-3 py-1 rounded-full flex items-center space-x-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
-                          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
-                        </svg>
-                        <span className="text-sm text-indigo-700">{activeList.name}</span>
-                        <button 
-                          className="ml-1 hover:bg-indigo-200 rounded-full p-0.5 transition-colors"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            setActiveList(null);
-                          }}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
-                            <line x1="18" y1="6" x2="6" y2="18"/>
-                            <line x1="6" y1="6" x2="18" y2="18"/>
+                    {!showListsDropdown && activeList && (() => {
+                      // Find the color for the active list
+                      const colorPalette = [
+                        { bg: 'bg-indigo-50', border: 'border-indigo-200', tag: 'bg-indigo-100', tagText: 'text-indigo-700', tagIcon: 'text-indigo-600', tagButton: 'text-indigo-500', tagButtonHover: 'hover:bg-indigo-200' },
+                        { bg: 'bg-emerald-50', border: 'border-emerald-200', tag: 'bg-emerald-100', tagText: 'text-emerald-700', tagIcon: 'text-emerald-600', tagButton: 'text-emerald-500', tagButtonHover: 'hover:bg-emerald-200' },
+                        { bg: 'bg-orange-50', border: 'border-orange-200', tag: 'bg-orange-100', tagText: 'text-orange-700', tagIcon: 'text-orange-600', tagButton: 'text-orange-500', tagButtonHover: 'hover:bg-orange-200' },
+                        { bg: 'bg-purple-50', border: 'border-purple-200', tag: 'bg-purple-100', tagText: 'text-purple-700', tagIcon: 'text-purple-600', tagButton: 'text-purple-500', tagButtonHover: 'hover:bg-purple-200' },
+                        { bg: 'bg-rose-50', border: 'border-rose-200', tag: 'bg-rose-100', tagText: 'text-rose-700', tagIcon: 'text-rose-600', tagButton: 'text-rose-500', tagButtonHover: 'hover:bg-rose-200' },
+                        { bg: 'bg-blue-50', border: 'border-blue-200', tag: 'bg-blue-100', tagText: 'text-blue-700', tagIcon: 'text-blue-600', tagButton: 'text-blue-500', tagButtonHover: 'hover:bg-blue-200' },
+                      ];
+                      
+                      const activeListIndex = partnerRelevantLists.findIndex((list: any) => list.id === activeList.id);
+                      const listColor = colorPalette[activeListIndex % colorPalette.length];
+                      
+                      return (
+                        <div className={`${listColor.tag} px-3 py-1 rounded-full flex items-center space-x-2`}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={listColor.tagIcon}>
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
                           </svg>
-                        </button>
-                      </div>
-                    )}
+                          <span className={`text-sm ${listColor.tagText}`}>{activeList.name}</span>
+                          <button 
+                            className={`ml-1 ${listColor.tagButtonHover} rounded-full p-0.5 transition-colors`}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveList(null);
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={listColor.tagButton}>
+                              <line x1="18" y1="6" x2="6" y2="18"/>
+                              <line x1="6" y1="6" x2="18" y2="18"/>
+                            </svg>
+                          </button>
+                        </div>
+                      );
+                    })()}
                     
                     {/* View Mode Toggle - Icon-based - positioned next to Saved Lists */}
                     {showListsDropdown && (
@@ -2483,18 +2498,30 @@ export default function PartnerDetail() {
                       })()}
                       
                       {/* Existing saved lists */}
-                      {partnerRelevantLists.map((list: any) => {
+                      {partnerRelevantLists.map((list: any, index: number) => {
                         const totalValue = Math.floor(Math.random() * 5000000);
                         const growth = Math.floor(Math.random() * 30) - 5; // Can be negative
                         const growthColor = growth >= 0 ? 'text-green-600' : 'text-red-600';
                         const growthSign = growth >= 0 ? '+' : '';
+                        
+                        // Define color palette for different lists
+                        const colorPalette = [
+                          { bg: 'bg-indigo-50', border: 'border-indigo-200', tag: 'bg-indigo-100', tagText: 'text-indigo-700', tagIcon: 'text-indigo-600', tagButton: 'text-indigo-500', tagButtonHover: 'hover:bg-indigo-200' },
+                          { bg: 'bg-emerald-50', border: 'border-emerald-200', tag: 'bg-emerald-100', tagText: 'text-emerald-700', tagIcon: 'text-emerald-600', tagButton: 'text-emerald-500', tagButtonHover: 'hover:bg-emerald-200' },
+                          { bg: 'bg-orange-50', border: 'border-orange-200', tag: 'bg-orange-100', tagText: 'text-orange-700', tagIcon: 'text-orange-600', tagButton: 'text-orange-500', tagButtonHover: 'hover:bg-orange-200' },
+                          { bg: 'bg-purple-50', border: 'border-purple-200', tag: 'bg-purple-100', tagText: 'text-purple-700', tagIcon: 'text-purple-600', tagButton: 'text-purple-500', tagButtonHover: 'hover:bg-purple-200' },
+                          { bg: 'bg-rose-50', border: 'border-rose-200', tag: 'bg-rose-100', tagText: 'text-rose-700', tagIcon: 'text-rose-600', tagButton: 'text-rose-500', tagButtonHover: 'hover:bg-rose-200' },
+                          { bg: 'bg-blue-50', border: 'border-blue-200', tag: 'bg-blue-100', tagText: 'text-blue-700', tagIcon: 'text-blue-600', tagButton: 'text-blue-500', tagButtonHover: 'hover:bg-blue-200' },
+                        ];
+                        
+                        const listColor = colorPalette[index % colorPalette.length];
                         
                         if (viewMode === 'cards') {
                           return (
                             <div
                               key={list.id}
                               className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
-                                activeList?.id === list.id ? 'bg-indigo-50 border-indigo-200' : 'bg-white border-gray-200 hover:border-gray-300'
+                                activeList?.id === list.id ? `${listColor.bg} ${listColor.border}` : 'bg-white border-gray-200 hover:border-gray-300'
                               }`}
                               onClick={() => setActiveList(list)}
                             >
