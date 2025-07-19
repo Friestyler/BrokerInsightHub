@@ -139,6 +139,10 @@ export default function PartnerDetail() {
   const [viewMode, setViewMode] = useState<'list' | 'cards'>('cards');
   const [showViewModeDropdown, setShowViewModeDropdown] = useState(false);
   
+  // Customer view mode state
+  const [customerViewMode, setCustomerViewMode] = useState<'list' | 'cards'>('cards');
+  const [showShareCustomerListModal, setShowShareCustomerListModal] = useState(false);
+  
   // Customer-specific state for enhanced unified toolbar
   const [customerSearchText, setCustomerSearchText] = useState('');
   const [selectedCustomerStatus, setSelectedCustomerStatus] = useState('');
@@ -2929,105 +2933,247 @@ export default function PartnerDetail() {
           <div className="space-y-4">
 
 
-            {/* Enhanced unified toolbar for customers */}
+            {/* Enhanced saved lists section for customers */}
+            <div className="bg-white rounded-lg">
+              <div className="space-y-3 p-0">
+                {/* Saved Lists Section */}
+                <div className="flex items-center justify-start gap-4 mb-1">
+                  <button 
+                    className="flex items-center space-x-2 text-lg font-semibold text-gray-900 hover:text-gray-700"
+                    onClick={() => setShowCustomerListsDropdown(!showCustomerListsDropdown)}
+                  >
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="16" 
+                      height="16" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className={`transition-transform ${showCustomerListsDropdown ? 'rotate-90' : ''}`}
+                    >
+                      <polyline points="9 18 15 12 9 6" />
+                    </svg>
+                    <span>Saved Lists ({(customerSavedLists as any[] || []).length})</span>
+                  </button>
+                  
+                  {/* Show selected list when collapsed */}
+                  {!showCustomerListsDropdown && activeCustomerList && (() => {
+                    // Find the color for the active list
+                    const colorPalette = [
+                      { bg: 'bg-indigo-50', border: 'border-indigo-200', tag: 'bg-indigo-100', tagText: 'text-indigo-700', tagIcon: 'text-indigo-600', tagButton: 'text-indigo-500', tagButtonHover: 'hover:bg-indigo-200' },
+                      { bg: 'bg-emerald-50', border: 'border-emerald-200', tag: 'bg-emerald-100', tagText: 'text-emerald-700', tagIcon: 'text-emerald-600', tagButton: 'text-emerald-500', tagButtonHover: 'hover:bg-emerald-200' },
+                      { bg: 'bg-orange-50', border: 'border-orange-200', tag: 'bg-orange-100', tagText: 'text-orange-700', tagIcon: 'text-orange-600', tagButton: 'text-orange-500', tagButtonHover: 'hover:bg-orange-200' },
+                      { bg: 'bg-purple-50', border: 'border-purple-200', tag: 'bg-purple-100', tagText: 'text-purple-700', tagIcon: 'text-purple-600', tagButton: 'text-purple-500', tagButtonHover: 'hover:bg-purple-200' },
+                      { bg: 'bg-rose-50', border: 'border-rose-200', tag: 'bg-rose-100', tagText: 'text-rose-700', tagIcon: 'text-rose-600', tagButton: 'text-rose-500', tagButtonHover: 'hover:bg-rose-200' },
+                      { bg: 'bg-blue-50', border: 'border-blue-200', tag: 'bg-blue-100', tagText: 'text-blue-700', tagIcon: 'text-blue-600', tagButton: 'text-blue-500', tagButtonHover: 'hover:bg-blue-200' },
+                    ];
+                    
+                    const activeListIndex = (customerSavedLists as any[] || []).findIndex((list: any) => list.id === activeCustomerList.id);
+                    const listColor = colorPalette[activeListIndex % colorPalette.length];
+                    
+                    return (
+                      <div className={`${listColor.tag} px-3 py-1 rounded-full flex items-center space-x-2`}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={listColor.tagIcon}>
+                          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+                        </svg>
+                        <span className={`text-sm ${listColor.tagText}`}>{activeCustomerList.name}</span>
+                        <button 
+                          className={`ml-1 ${listColor.tagButtonHover} rounded-full p-0.5 transition-colors`}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setActiveCustomerList(null);
+                          }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={listColor.tagButton}>
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                          </svg>
+                        </button>
+                      </div>
+                    );
+                  })()}
+                  
+                  {/* View Mode Toggle - Icon-based - positioned next to Saved Lists */}
+                  {showCustomerListsDropdown && (
+                    <div className="flex items-center bg-gray-100 rounded-lg p-1">
+                      <button
+                        className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                          customerViewMode === 'cards' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                        onClick={() => setCustomerViewMode('cards')}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                          <rect width="7" height="7" x="3" y="3" rx="1"/>
+                          <rect width="7" height="7" x="14" y="3" rx="1"/>
+                          <rect width="7" height="7" x="14" y="14" rx="1"/>
+                          <rect width="7" height="7" x="3" y="14" rx="1"/>
+                        </svg>
+                        Cards
+                      </button>
+                      <button
+                        className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
+                          customerViewMode === 'list' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                        }`}
+                        onClick={() => setCustomerViewMode('list')}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                          <line x1="8" y1="6" x2="21" y2="6"/>
+                          <line x1="8" y1="12" x2="21" y2="12"/>
+                          <line x1="8" y1="18" x2="21" y2="18"/>
+                          <line x1="3" y1="6" x2="3.01" y2="6"/>
+                          <line x1="3" y1="12" x2="3.01" y2="12"/>
+                          <line x1="3" y1="18" x2="3.01" y2="18"/>
+                        </svg>
+                        List
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Lists Content - Expanded */}
+                {showCustomerListsDropdown && (
+                  <div className="space-y-3">
+                    {/* Customer saved lists in cards/list view */}
+                    <div className={customerViewMode === 'cards' ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3" : "space-y-2"}>
+                      {/* "All Customers" card/item */}
+                      {(() => {
+                        const totalValue = Math.floor(Math.random() * 10000000);
+                        const growth = Math.floor(Math.random() * 30) - 5;
+                        const growthColor = growth >= 0 ? 'text-green-600' : 'text-red-600';
+                        const growthSign = growth >= 0 ? '+' : '';
+                        
+                        if (customerViewMode === 'cards') {
+                          return (
+                            <div
+                              className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
+                                !activeCustomerList ? 'bg-gray-50 border-gray-300' : 'bg-white border-gray-200 hover:border-gray-300'
+                              }`}
+                              onClick={() => setActiveCustomerList(null)}
+                            >
+                              <div className="flex-1">
+                                <div className="flex items-center space-x-3">
+                                  <h3 className="font-medium text-gray-900">All Customers</h3>
+                                  <span className="text-sm text-gray-500">{(relatedCustomers as any[] || []).length}</span>
+                                  <span className={`text-sm font-medium ${growthColor}`}>
+                                    {growthSign}{growth}%
+                                  </span>
+                                </div>
+                                <div className="flex items-center space-x-4 mt-1">
+                                  <span className="text-lg font-semibold text-gray-900">€{totalValue.toLocaleString()}</span>
+                                  <span className="text-xs text-gray-500 flex items-center">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                      <circle cx="12" cy="12" r="10"/>
+                                      <polyline points="12 6 12 12 16 14"/>
+                                    </svg>
+                                    Live data
+                                  </span>
+                                </div>
+                              </div>
+                              
+                              <div className="flex items-center space-x-2 mt-3">
+                                <button className="flex items-center px-3 py-1.5 text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 rounded">
+                                  Share
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        }
+                      })()}
+                      
+                      {/* Existing saved lists */}
+                      {(customerSavedLists as any[] || []).map((list: any, index: number) => {
+                        const totalValue = Math.floor(Math.random() * 5000000);
+                        const growth = Math.floor(Math.random() * 30) - 5;
+                        const growthColor = growth >= 0 ? 'text-green-600' : 'text-red-600';
+                        const growthSign = growth >= 0 ? '+' : '';
+                        
+                        // Define color palette for different lists
+                        const colorPalette = [
+                          { bg: 'bg-indigo-50', border: 'border-indigo-200', tag: 'bg-indigo-100', tagText: 'text-indigo-700', tagIcon: 'text-indigo-600', tagButton: 'text-indigo-500', tagButtonHover: 'hover:bg-indigo-200' },
+                          { bg: 'bg-emerald-50', border: 'border-emerald-200', tag: 'bg-emerald-100', tagText: 'text-emerald-700', tagIcon: 'text-emerald-600', tagButton: 'text-emerald-500', tagButtonHover: 'hover:bg-emerald-200' },
+                          { bg: 'bg-orange-50', border: 'border-orange-200', tag: 'bg-orange-100', tagText: 'text-orange-700', tagIcon: 'text-orange-600', tagButton: 'text-orange-500', tagButtonHover: 'hover:bg-orange-200' },
+                          { bg: 'bg-purple-50', border: 'border-purple-200', tag: 'bg-purple-100', tagText: 'text-purple-700', tagIcon: 'text-purple-600', tagButton: 'text-purple-500', tagButtonHover: 'hover:bg-purple-200' },
+                          { bg: 'bg-rose-50', border: 'border-rose-200', tag: 'bg-rose-100', tagText: 'text-rose-700', tagIcon: 'text-rose-600', tagButton: 'text-rose-500', tagButtonHover: 'hover:bg-rose-200' },
+                          { bg: 'bg-blue-50', border: 'border-blue-200', tag: 'bg-blue-100', tagText: 'text-blue-700', tagIcon: 'text-blue-600', tagButton: 'text-blue-500', tagButtonHover: 'hover:bg-blue-200' },
+                        ];
+                        
+                        const listColor = colorPalette[index % colorPalette.length];
+                        
+                        if (customerViewMode === 'cards') {
+                          return (
+                            <div
+                              key={list.id}
+                              className={`p-4 rounded-lg border cursor-pointer transition-all hover:shadow-md ${
+                                activeCustomerList?.id === list.id ? `${listColor.bg} ${listColor.border}` : 'bg-white border-gray-200 hover:border-gray-300'
+                              }`}
+                              onClick={() => setActiveCustomerList(list)}
+                            >
+                              <div className="mb-3">
+                                <h3 className="font-medium text-gray-900 mb-1">{list.name}</h3>
+                                <p className="text-sm text-gray-500">{list.members?.length || 0} customers</p>
+                              </div>
+                              
+                              <div className="mb-3">
+                                <p className="text-lg font-semibold text-gray-900">€{totalValue.toLocaleString()}</p>
+                                <p className="text-xs text-gray-500 flex items-center mt-1">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                    <circle cx="12" cy="12" r="10"/>
+                                    <polyline points="12 6 12 12 16 14"/>
+                                  </svg>
+                                  Updated {Math.floor(Math.random() * 24)} hours ago
+                                </p>
+                              </div>
+                              
+                              <div className="flex items-center justify-between">
+                                <span className={`text-sm font-medium ${growthColor}`}>
+                                  {growthSign}{growth}%
+                                </span>
+                                <div className="flex items-center">
+                                  <button 
+                                    className="flex items-center px-2 py-1 hover:bg-gray-100 rounded"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setActiveCustomerList(list);
+                                      setShowShareCustomerListModal(true);
+                                    }}
+                                  >
+                                    Share
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        }
+                      })}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Action buttons and search - positioned below saved lists */}
             <div className="bg-white p-4 rounded-lg shadow-sm">
               <div className="flex flex-col gap-4">
-                {/* Top row with saved lists and views */}
                 <div className="flex flex-wrap items-center justify-between">
-                  {/* Left side - Saved Lists with actions */}
                   <div className="flex items-center gap-3">
-                    {/* Lists heading */}
-                    <div className="flex flex-col mr-2">
-                      <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
-                    </div>
-                    {/* Saved Lists dropdown */}
-                    <div className="relative">
-                      <button 
-                        className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
-                        onClick={() => setShowCustomerListsDropdown(!showCustomerListsDropdown)}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
-                          <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
-                        </svg>
-                        <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                          {activeCustomerList ? activeCustomerList.name : 'All customers'}
-                        </span>
-                        <svg 
-                          xmlns="http://www.w3.org/2000/svg" 
-                          width="14" 
-                          height="14" 
-                          viewBox="0 0 24 24" 
-                          fill="none" 
-                          stroke="currentColor" 
-                          strokeWidth="2" 
-                          strokeLinecap="round" 
-                          strokeLinejoin="round" 
-                          className={`transition-transform ${showCustomerListsDropdown ? 'rotate-180' : ''}`}
-                        >
-                          <polyline points="6 9 12 15 18 9" />
+                    {/* Search field */}
+                    <div className="relative w-60">
+                      <input
+                        type="text"
+                        placeholder="Search customers..."
+                        value={customerSearchText}
+                        onChange={(e) => setCustomerSearchText(e.target.value)}
+                        className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+                      />
+                      <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                          <circle cx="11" cy="11" r="8"></circle>
+                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                         </svg>
                       </button>
-                      
-                      {/* Dropdown menu */}
-                      {showCustomerListsDropdown && (
-                        <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                          <div className="p-2">
-                            {/* Default "All customers" option */}
-                            <button
-                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
-                                !activeCustomerList ? 'bg-[#E1E4FB] text-[#3E4DC4]' : 'text-gray-700'
-                              }`}
-                              onClick={() => {
-                                setActiveCustomerList(null);
-                                setShowCustomerListsDropdown(false);
-                              }}
-                            >
-                              <div className="flex items-center space-x-2">
-                                <span>All customers ({(relatedCustomers as any[] || []).length})</span>
-                              </div>
-                            </button>
-                            
-                            {/* Customer saved lists */}
-                            {(customerSavedLists as any[] || []).length > 0 && (
-                              <div className="border-t border-gray-100 my-2 pt-2">
-                                {(customerSavedLists as any[] || []).map((list: any) => (
-                                  <div
-                                    key={list.id}
-                                    className={`flex items-center justify-between px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
-                                      activeCustomerList?.id === list.id ? 'bg-[#E1E4FB] text-[#3E4DC4]' : 'text-gray-700'
-                                    }`}
-                                  >
-                                    <button
-                                      className="flex-1 text-left"
-                                      onClick={() => {
-                                        setActiveCustomerList(list);
-                                        setShowCustomerListsDropdown(false);
-                                      }}
-                                    >
-                                      <div className="flex flex-col space-y-1">
-                                        <span>{list.name}</span>
-                                        {/* Show share icon if list is shared */}
-                                        {list.is_shared && (
-                                          <div className="flex items-center space-x-1">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
-                                              <circle cx="18" cy="5" r="3"></circle>
-                                              <circle cx="6" cy="12" r="3"></circle>
-                                              <circle cx="18" cy="19" r="3"></circle>
-                                              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                                              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                                            </svg>
-                                            <span className="text-xs text-gray-500">Shared list</span>
-                                          </div>
-                                        )}
-                                      </div>
-                                    </button>
-                                  </div>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                      )}
                     </div>
                   </div>
                   
@@ -3071,28 +3217,6 @@ export default function PartnerDetail() {
                       </svg>
                       New
                     </Button>
-                  </div>
-                </div>
-                
-                {/* Bottom row with search, views, and filters */}
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex flex-wrap items-center gap-3 flex-grow">
-                    {/* Search field */}
-                    <div className="relative w-60">
-                      <input
-                        type="text"
-                        placeholder="Search customers..."
-                        value={customerSearchText}
-                        onChange={(e) => setCustomerSearchText(e.target.value)}
-                        className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
-                      />
-                      <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                          <circle cx="11" cy="11" r="8"></circle>
-                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                        </svg>
-                      </button>
-                    </div>
                   </div>
                 </div>
               </div>
@@ -4833,6 +4957,105 @@ export default function PartnerDetail() {
           return true; // Return success
         }}
       />
+      
+      {/* Customer Share Modal */}
+      <ShareModal
+        isOpen={showShareCustomerListModal}
+        onClose={() => setShowShareCustomerListModal(false)}
+        itemName={activeCustomerList ? `${activeCustomerList.name} (Customer List #${activeCustomerList.id})` : 'Customers'}
+        listId={activeCustomerList?.id || 0}
+        envId="degoudse"
+        currentSharedLink={currentSharedLink || ''}
+        existingSharedLinks={existingSharedLinks}
+        collaborators={activeCustomerList ? (() => {
+          initializeCollaboratorsForList(activeCustomerList.id);
+          return getCollaboratorsForList(activeCustomerList.id);
+        })() : []}
+        onCopyLink={() => {
+          if (currentSharedLink) {
+            navigator.clipboard.writeText(currentSharedLink);
+            toast({
+              title: "Link copied",
+              description: "The share link has been copied to your clipboard.",
+            });
+          }
+        }}
+        onCreateShare={() => {
+          const shareId = Math.random().toString(36).substring(7);
+          const newLink = `${window.location.origin}/shared/customers/${shareId}`;
+          setCurrentSharedLink(newLink);
+          setExistingSharedLinks(prev => [...prev, {
+            id: shareId,
+            url: newLink,
+            createdAt: new Date(),
+            createdBy: 'Current User'
+          }]);
+          
+          toast({
+            title: "Share link created",
+            description: "A new share link has been generated for the selected customers.",
+          });
+        }}
+        onRemoveCollaborator={async (collaboratorId: string) => {
+          if (!activeCustomerList) return false;
+          
+          setListCollaborators(prev => ({
+            ...prev,
+            [activeCustomerList.id]: prev[activeCustomerList.id]?.filter(c => c.id !== collaboratorId) || []
+          }));
+          
+          toast({
+            title: "Access removed",
+            description: `Collaborator removed from "${activeCustomerList.name}" only.`,
+          });
+          
+          return true;
+        }}
+        onUpdateAccessLevel={async (collaboratorId: string, newAccessLevel: string) => {
+          if (!activeCustomerList) return false;
+          
+          setListCollaborators(prev => ({
+            ...prev,
+            [activeCustomerList.id]: prev[activeCustomerList.id]?.map(c => 
+              c.id === collaboratorId 
+                ? { ...c, accessLevel: newAccessLevel as 'viewer' | 'commenter' | 'editor' }
+                : c
+            ) || []
+          }));
+          
+          toast({
+            title: "Access updated",
+            description: `Access level updated for "${activeCustomerList.name}".`,
+          });
+          
+          return true;
+        }}
+        onSendEmailInvite={async (email: string, accessLevel: string) => {
+          if (!activeCustomerList) return false;
+          
+          const newCollaborator = {
+            id: Math.random().toString(36).substring(7),
+            name: email.split('@')[0],
+            email: email,
+            avatar: '',
+            accessLevel: accessLevel as 'viewer' | 'commenter' | 'editor',
+            addedAt: new Date()
+          };
+          
+          setListCollaborators(prev => ({
+            ...prev,
+            [activeCustomerList.id]: [...(prev[activeCustomerList.id] || []), newCollaborator]
+          }));
+          
+          toast({
+            title: "Invitation sent",
+            description: `Invitation sent to ${email} for "${activeCustomerList.name}".`,
+          });
+          
+          return true;
+        }}
+      />
+      
       {/* Logo Upload Modal */}
       <LogoUploadModal
         isOpen={showLogoUploadModal}
