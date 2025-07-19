@@ -1966,6 +1966,13 @@ export default function PartnerDetail() {
                       <span>Saved Lists ({partnerRelevantLists.length})</span>
                     </button>
                     
+                    {/* Show selected list when collapsed */}
+                    {!showListsDropdown && activeList && (
+                      <div className="bg-gray-100 px-3 py-1 rounded-full">
+                        <span className="text-sm text-gray-700">Filtered: {activeList.name}</span>
+                      </div>
+                    )}
+                    
                     {/* View Mode Toggle - Icon-based - positioned next to Saved Lists */}
                     {showListsDropdown && (
                       <div className="flex items-center bg-gray-100 rounded-lg p-1">
