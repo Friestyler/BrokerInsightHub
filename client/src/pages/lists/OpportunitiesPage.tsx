@@ -1533,6 +1533,111 @@ function OpportunitiesTable() {
           </table>
         </div>
       </div>
+
+      {/* Add to List Modal */}
+      {showAddToListModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96">
+            <h3 className="text-lg font-medium mb-4">Add to List</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Add {selectedOpportunities.length} selected opportunit{selectedOpportunities.length !== 1 ? 'ies' : 'y'} to a list
+            </p>
+            <div className="space-y-2 mb-4">
+              <Button variant="outline" className="w-full justify-start">
+                Create new list
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                Cyberverzekering Opportunities (18 opportunities)
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                Zonnepanelen Opportunities (25 opportunities)
+              </Button>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setShowAddToListModal(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                toast({ title: "Success", description: "Opportunities added to list successfully" });
+                setShowAddToListModal(false);
+                setSelectedOpportunities([]);
+              }}>
+                Add to List
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Add to Campaign Modal */}
+      {showAddToCampaignModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96">
+            <h3 className="text-lg font-medium mb-4">Add to Campaign</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Add {selectedOpportunities.length} selected opportunit{selectedOpportunities.length !== 1 ? 'ies' : 'y'} to a campaign
+            </p>
+            <div className="space-y-2 mb-4">
+              <Button variant="outline" className="w-full justify-start">
+                Summer Insurance Campaign
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                End of Term Renewal Campaign
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                Create new campaign
+              </Button>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setShowAddToCampaignModal(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                toast({ title: "Success", description: "Opportunities added to campaign successfully" });
+                setShowAddToCampaignModal(false);
+                setSelectedOpportunities([]);
+              }}>
+                Add to Campaign
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign Template Modal */}
+      {showAssignTemplateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96">
+            <h3 className="text-lg font-medium mb-4">Assign Template</h3>
+            <p className="text-sm text-gray-600 mb-4">
+              Assign OKR template to {selectedOpportunities.length} selected opportunit{selectedOpportunities.length !== 1 ? 'ies' : 'y'}
+            </p>
+            <div className="space-y-2 mb-4">
+              <Button variant="outline" className="w-full justify-start">
+                Q1 Sales Pipeline Template
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                Opportunity Conversion Template
+              </Button>
+              <Button variant="outline" className="w-full justify-start">
+                Revenue Growth Template
+              </Button>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setShowAssignTemplateModal(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                toast({ title: "Success", description: "Template assigned successfully" });
+                setShowAssignTemplateModal(false);
+                setSelectedOpportunities([]);
+              }}>
+                Assign Template
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
