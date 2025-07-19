@@ -1944,7 +1944,7 @@ export default function PartnerDetail() {
                 {/* Enhanced Saved Lists Section */}
                 <div className="mb-6">
                   {/* Header with chevron and view mode toggle */}
-                  <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center justify-start gap-4 mb-4">
                     <button 
                       className="flex items-center space-x-2 text-lg font-semibold text-gray-900 hover:text-gray-700"
                       onClick={() => setShowListsDropdown(!showListsDropdown)}
@@ -1966,7 +1966,7 @@ export default function PartnerDetail() {
                       <span>Saved Lists ({partnerRelevantLists.length})</span>
                     </button>
                     
-                    {/* View Mode Toggle - Icon-based */}
+                    {/* View Mode Toggle - Icon-based - positioned next to Saved Lists */}
                     {showListsDropdown && (
                       <div className="flex items-center bg-gray-100 rounded-lg p-1">
                         <button
