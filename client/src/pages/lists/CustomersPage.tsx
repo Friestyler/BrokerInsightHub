@@ -288,8 +288,55 @@ export default function CustomersPage() {
       <div className="bg-white mx-4 rounded-lg shadow-sm border border-[#E6E7F1]">
         {/* Main Controls Row */}
         <div className="flex items-center justify-between px-4 py-2">
-          {/* Left side - empty */}
-          <div></div>
+          {/* Left side - Saved Lists */}
+          <div className="flex items-center gap-4">
+            <button 
+              className="flex items-center space-x-2 text-lg font-semibold text-gray-900 hover:text-gray-700"
+              onClick={() => setShowListsDropdown(!showListsDropdown)}
+            >
+              {showListsDropdown ? (
+                <ChevronDown width="16" height="16" className="transition-transform" />
+              ) : (
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  className="transition-transform"
+                >
+                  <polyline points="9 18 15 12 9 6" />
+                </svg>
+              )}
+              <span>Saved Lists ({customerSavedListsData.length})</span>
+            </button>
+
+            {/* Cards/List View Toggle */}
+            {showListsDropdown && (
+              <div className="flex items-center space-x-2">
+                <button
+                  onClick={() => setViewMode('cards')}
+                  className={`p-1 rounded transition-colors ${
+                    viewMode === 'cards' ? 'bg-gray-200' : 'hover:bg-gray-100'
+                  }`}
+                >
+                  <LayoutGrid width="16" height="16" />
+                </button>
+                <button
+                  onClick={() => setViewMode('list')}
+                  className={`p-1 rounded transition-colors ${
+                    viewMode === 'list' ? 'bg-gray-200' : 'hover:bg-gray-100'
+                  }`}
+                >
+                  <List width="16" height="16" />
+                </button>
+              </div>
+            )}
+          </div>
           
           {/* Right side - Controls with Clear/Save above */}
           <div className="flex flex-col items-end gap-2">
@@ -505,102 +552,78 @@ export default function CustomersPage() {
           </div>
           </div>
         </div>
-      </div>
-
-      {/* Saved Lists Section */}
-      <div className="px-4 py-2">
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-4">
-            <button 
-              className="flex items-center space-x-2 text-lg font-semibold text-gray-900 hover:text-gray-700"
-              onClick={() => setShowListsDropdown(!showListsDropdown)}
+        
+        {/* Search Bar Row */}
+        <div className="px-4 pb-2">
+          <div className="relative">
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="16" 
+              height="16" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"
             >
-              {showListsDropdown ? (
-                <ChevronDown width="16" height="16" className="transition-transform" />
-              ) : (
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  className="transition-transform"
-                >
-                  <polyline points="9 18 15 12 9 6" />
-                </svg>
-              )}
-              <span>Saved Lists ({customerSavedListsData.length})</span>
-            </button>
-
-            {/* Cards/List View Toggle */}
-            {showListsDropdown && (
-              <div className="flex items-center space-x-2">
-                <button
-                  onClick={() => setViewMode('cards')}
-                  className={`p-1 rounded transition-colors ${
-                    viewMode === 'cards' ? 'bg-gray-200' : 'hover:bg-gray-100'
-                  }`}
-                >
-                  <LayoutGrid width="16" height="16" />
-                </button>
-                <button
-                  onClick={() => setViewMode('list')}
-                  className={`p-1 rounded transition-colors ${
-                    viewMode === 'list' ? 'bg-gray-200' : 'hover:bg-gray-100'
-                  }`}
-                >
-                  <List width="16" height="16" />
-                </button>
-              </div>
-            )}
+              <circle cx="11" cy="11" r="8"/>
+              <path d="m21 21-4.35-4.35"/>
+            </svg>
+            <input
+              type="text"
+              placeholder="Search customers..."
+              className="w-full pl-10 pr-4 py-2 text-sm border border-gray-300 rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
           </div>
         </div>
 
         {/* Lists Cards Display */}
         {showListsDropdown && (
-          <div className={`grid ${
-            viewMode === 'cards' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
-          } gap-3 mb-4`}>
-            {customerSavedListsData.map((list: SavedList) => {
-              const isSelected = activeList?.id === list.id;
-              return (
-                <div
-                  key={list.id}
-                  className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
-                    isSelected 
-                      ? 'border-[#5567E5] bg-[#F8F9FF] shadow-sm' 
-                      : 'border-[#E6E7F1] bg-white hover:border-[#D6D7E4] hover:shadow-sm'
-                  }`}
-                  onClick={() => setActiveList(list)}
-                >
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-3">
-                      <div>
-                        <h3 className="font-medium text-gray-900">{list.name}</h3>
-                        <p className="text-sm text-gray-500">{list.members?.length || 0} customers</p>
-                        {isSelected && (
-                          <div className="text-xs text-gray-400 mt-1">Updated 1 hours ago</div>
-                        )}
+          <div className="px-4 pb-4">
+            <div className={`grid ${
+              viewMode === 'cards' ? 'grid-cols-1 md:grid-cols-2 lg:grid-cols-3' : 'grid-cols-1'
+            } gap-3`}>
+              {customerSavedListsData.map((list: SavedList) => {
+                const isSelected = activeList?.id === list.id;
+                return (
+                  <div
+                    key={list.id}
+                    className={`p-4 border rounded-lg cursor-pointer transition-all duration-200 ${
+                      isSelected 
+                        ? 'border-[#5567E5] bg-[#F8F9FF] shadow-sm' 
+                        : 'border-[#E6E7F1] bg-white hover:border-[#D6D7E4] hover:shadow-sm'
+                    }`}
+                    onClick={() => setActiveList(list)}
+                  >
+                    <div className="flex-1">
+                      <div className="flex items-center space-x-3">
+                        <div>
+                          <h3 className="font-medium text-gray-900">{list.name}</h3>
+                          <p className="text-sm text-gray-500">{list.members?.length || 0} customers</p>
+                          {isSelected && (
+                            <div className="text-xs text-gray-400 mt-1">Updated 1 hours ago</div>
+                          )}
+                        </div>
                       </div>
                     </div>
+                    <div className="text-right">
+                      <p className="text-lg font-semibold text-gray-900">
+                        {list.name === 'High-Value Prospects' ? '€892,340' : 
+                         list.name === 'Retirement Prospects' ? '€1,456,890' :
+                         '€625,430'}
+                      </p>
+                      {isSelected && (
+                        <div className="text-xs text-green-600 font-medium">+8%</div>
+                      )}
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-lg font-semibold text-gray-900">
-                      {list.name === 'High-Value Prospects' ? '€892,340' : 
-                       list.name === 'Retirement Prospects' ? '€1,456,890' :
-                       '€625,430'}
-                    </p>
-                    {isSelected && (
-                      <div className="text-xs text-green-600 font-medium">+8%</div>
-                    )}
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
         )}
       </div>
