@@ -179,6 +179,14 @@ export default function PartnerDetail() {
   });
   const [hasActiveOpportunityFilters, setHasActiveOpportunityFilters] = useState(false);
 
+  // Opportunities saved views state
+  const [activeOpportunityView, setActiveOpportunityView] = useState<any>(null);
+  const [showOpportunityViewsDropdown, setShowOpportunityViewsDropdown] = useState(false);
+  const [showSaveOpportunityViewModal, setShowSaveOpportunityViewModal] = useState(false);
+  const [opportunityViewNameInput, setOpportunityViewNameInput] = useState('');
+  const opportunityViewsDropdownRef = useRef<HTMLDivElement>(null);
+  const opportunityViewsButtonRef = useRef<HTMLButtonElement>(null);
+
   
   // Stage editing state
   const [editingStageId, setEditingStageId] = useState<number | null>(null);
@@ -486,6 +494,14 @@ export default function PartnerDetail() {
     }
   }, [selectedStatus, selectedCustomer, activeView, originalViewFilters]);
 
+  // Effect to clear active opportunity view when opportunity filters are manually changed
+  useEffect(() => {
+    if (activeOpportunityView) {
+      // Any manual filter change should clear the active opportunity view
+      setActiveOpportunityView(null);
+    }
+  }, [opportunityFilters.status, opportunityFilters.stage, opportunityFilters.size, opportunityFilters.type]);
+
   // Mutation for creating saved views
   const createSavedViewMutation = useMutation({
     mutationFn: async (viewData: any) => {
@@ -499,6 +515,29 @@ export default function PartnerDetail() {
       });
       setShowSaveViewModal(false);
       setViewNameInput('');
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to save view. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Mutation for creating opportunities saved views
+  const createOpportunityViewMutation = useMutation({
+    mutationFn: async (viewData: any) => {
+      return await apiRequest('POST', '/api/saved-views', viewData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
+      toast({
+        title: "Segment View Saved",
+        description: "Your opportunities segment view has been saved successfully"
+      });
+      setShowSaveOpportunityViewModal(false);
+      setOpportunityViewNameInput('');
     },
     onError: () => {
       toast({
@@ -788,6 +827,10 @@ export default function PartnerDetail() {
       }
       if (opportunityFilterDropdownRef.current && !opportunityFilterDropdownRef.current.contains(event.target as Node)) {
         setShowOpportunityFilter(false);
+      }
+      if (opportunityViewsDropdownRef.current && !opportunityViewsDropdownRef.current.contains(event.target as Node) &&
+          opportunityViewsButtonRef.current && !opportunityViewsButtonRef.current.contains(event.target as Node)) {
+        setShowOpportunityViewsDropdown(false);
       }
     }
 
@@ -1708,7 +1751,101 @@ export default function PartnerDetail() {
         {activeTab === "opportunities" && (
           <div className="space-y-4">
             {/* Filter Section - positioned below tab separator on the right */}
-            <div className="flex justify-end px-4">
+            <div className="flex justify-end items-center gap-3 px-4">
+              {/* Segment View Button */}
+              <div className="relative">
+                <button 
+                  ref={opportunityViewsButtonRef}
+                  className={`flex items-center space-x-2 px-3 h-8 border border-[#E6E7F1] rounded-md text-sm font-medium bg-white hover:bg-gray-50`}
+                  onClick={() => setShowOpportunityViewsDropdown(!showOpportunityViewsDropdown)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  <span className="text-gray-700">{activeOpportunityView ? activeOpportunityView.name : "Segment view"}</span>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="14" 
+                    height="14" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className={`transition-transform ${showOpportunityViewsDropdown ? 'rotate-180' : ''}`}
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+
+                {showOpportunityViewsDropdown && (
+                  <div ref={opportunityViewsDropdownRef} className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-md">
+                    <div className="p-2 border-b">
+                      {savedViewsData?.map((view: any) => (
+                        <div 
+                          key={view.id}
+                          className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${activeOpportunityView?.id === view.id.toString() ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                          onClick={() => {
+                            setActiveOpportunityView(view);
+                            // Apply the saved view filters
+                            const viewFilters = view.filters || {};
+                            setOpportunityFilters({
+                              status: viewFilters.status || 'All',
+                              stage: viewFilters.stage || 'All',
+                              size: viewFilters.size || 'All',
+                              type: viewFilters.type || 'All'
+                            });
+                            setHasActiveOpportunityFilters(
+                              viewFilters.status || viewFilters.stage || viewFilters.size || viewFilters.type
+                            );
+                            setShowOpportunityViewsDropdown(false);
+                          }}
+                        >
+                          <div className="flex items-center">
+                            {view.name}
+                          </div>
+                          {activeOpportunityView?.id === view.id.toString() && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
+                        </div>
+                      ))}
+                      {(!savedViewsData || savedViewsData.length === 0) && (
+                        <div className="p-2 text-sm text-gray-500 italic">No saved views</div>
+                      )}
+                    </div>
+                    {activeOpportunityView && (
+                      <div className="p-2">
+                        <button 
+                          className="flex w-full items-center p-2 text-sm rounded-md text-indigo-600 hover:bg-indigo-50"
+                          onClick={() => {
+                            setShowOpportunityViewsDropdown(false);
+                            setActiveOpportunityView(null);
+                            // Reset filters to All
+                            setOpportunityFilters({
+                              status: 'All',
+                              stage: 'All',
+                              size: 'All',
+                              type: 'All'
+                            });
+                            setHasActiveOpportunityFilters(false);
+                          }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <path d="M18 6L6 18"></path>
+                            <path d="M6 6l12 12"></path>
+                          </svg>
+                          Clear segment view
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+
+              {/* Filter Button */}
               <div className="relative" ref={opportunityFilterDropdownRef}>
                 <button
                   onClick={() => setShowOpportunityFilter(!showOpportunityFilter)}
@@ -1820,13 +1957,17 @@ export default function PartnerDetail() {
                           </svg>
                           Clear
                         </button>
-                        <button className="text-sm text-green-600 hover:text-green-700 flex items-center gap-1">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"/>
-                            <line x1="5" y1="12" x2="19" y2="12"/>
-                          </svg>
-                          Add filter
-                        </button>
+                        {hasActiveOpportunityFilters && (
+                          <button 
+                            onClick={() => setShowSaveOpportunityViewModal(true)}
+                            className="text-sm text-indigo-600 hover:text-indigo-700 flex items-center gap-1"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            Save as segment view
+                          </button>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -4471,6 +4612,98 @@ export default function PartnerDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Save Opportunities View Modal */}
+      <Dialog 
+        open={showSaveOpportunityViewModal} 
+        onOpenChange={(open) => {
+          if (open) {
+            setOpportunityViewNameInput('');
+          }
+          setShowSaveOpportunityViewModal(open);
+        }}>
+        <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-[32px]">
+          <DialogHeader>
+            <DialogTitle>Save as segment view</DialogTitle>
+            <DialogDescription className="text-sm text-[#282A3F]">
+              Save your current opportunity filter settings as a segment view that you can easily access later.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="opportunityViewName">Segment View Name<span className="text-red-500">*</span></Label>
+              <Input 
+                id="opportunityViewName" 
+                placeholder="Enter a name for this segment view"
+                maxLength={50}
+                value={opportunityViewNameInput}
+                onChange={(e) => setOpportunityViewNameInput(e.target.value)}
+              />
+              <p className="text-xs text-gray-500">Maximum 50 characters</p>
+            </div>
+            
+            <div className="bg-[#EBEEFB] p-4 rounded-md border border-[#D4D9F3]">
+              <div className="text-sm font-medium mb-2 text-[#282A3F]">Filters saved in this view</div>
+              <div className="space-y-2">
+                {opportunityFilters.status !== 'All' && (
+                  <div className="flex items-center text-sm">
+                    <span className="font-medium w-32 text-[#3E4DC4]">Status:</span>
+                    <span className="text-[#282A3F]">{opportunityFilters.status}</span>
+                  </div>
+                )}
+                {opportunityFilters.stage !== 'All' && (
+                  <div className="flex items-center text-sm">
+                    <span className="font-medium w-32 text-[#3E4DC4]">Stage:</span>
+                    <span className="text-[#282A3F]">{opportunityFilters.stage}</span>
+                  </div>
+                )}
+                {opportunityFilters.size !== 'All' && (
+                  <div className="flex items-center text-sm">
+                    <span className="font-medium w-32 text-[#3E4DC4]">Size:</span>
+                    <span className="text-[#282A3F]">{opportunityFilters.size}</span>
+                  </div>
+                )}
+                {opportunityFilters.type !== 'All' && (
+                  <div className="flex items-center text-sm">
+                    <span className="font-medium w-32 text-[#3E4DC4]">Type:</span>
+                    <span className="text-[#282A3F]">{opportunityFilters.type}</span>
+                  </div>
+                )}
+                {!hasActiveOpportunityFilters && (
+                  <div className="text-sm text-[#5F6585] italic">No filters currently applied</div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter className="sm:justify-end">
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button
+              disabled={!opportunityViewNameInput.trim()}
+              onClick={() => {
+                createOpportunityViewMutation.mutate({
+                  name: opportunityViewNameInput.trim(),
+                  description: '',
+                  entity_type: 'opportunities',
+                  filters: {
+                    status: opportunityFilters.status !== 'All' ? opportunityFilters.status : undefined,
+                    stage: opportunityFilters.stage !== 'All' ? opportunityFilters.stage : undefined,
+                    size: opportunityFilters.size !== 'All' ? opportunityFilters.size : undefined,
+                    type: opportunityFilters.type !== 'All' ? opportunityFilters.type : undefined
+                  },
+                  is_shared: false
+                });
+              }}
+            >
+              Save Segment View
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Partner Details Dialog */}
       <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
         <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg max-w-2xl bg-[#ffffff] text-[#282A3F] pl-[32px] pr-[32px] pt-[32px] pb-[32px]">
