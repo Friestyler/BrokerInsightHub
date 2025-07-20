@@ -925,7 +925,7 @@ export default function PartnerDetailBrokerPOV() {
       withholdComments?: string;
       assessmentNotes?: string;
     }) => {
-      return await apiRequest('PUT', `/api/opportunities/${opportunityId}/assessment`, {
+      return await apiRequest('PUT', `/api/${actualCurrentEnvironment}/opportunities/${opportunityId}/assessment`, {
         assessmentStatus,
         withholdReasons,
         withholdComments,
@@ -938,7 +938,7 @@ export default function PartnerDetailBrokerPOV() {
       queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/opportunities`, activeOpportunitiesList?.id] });
       queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/opportunities`] });
       queryClient.invalidateQueries({ queryKey: ['/api/opportunities'] });
-      queryClient.invalidateQueries({ queryKey: [`/api/opportunities/${variables.opportunityId}/comments`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/opportunities/${variables.opportunityId}/comments`] });
       
       // CRITICAL FIX: Force refetch the EXACT queries used by broker view 
       queryClient.refetchQueries({ queryKey: [`/api/${actualCurrentEnvironment}/opportunities`, activeOpportunitiesList?.id] });
@@ -972,9 +972,9 @@ export default function PartnerDetailBrokerPOV() {
     }
   });
 
-  // Comments history query - match PartnerDetail.tsx exactly  
+  // Comments history query - CRITICAL FIX: Use environment-specific API path for broker view
   const { data: commentsHistoryData, refetch: refetchCommentsHistory } = useQuery({
-    queryKey: [`/api/opportunities/${selectedOpportunityForHistory?.id}/comments`],
+    queryKey: [`/api/${actualCurrentEnvironment}/opportunities/${selectedOpportunityForHistory?.id}/comments`],
     enabled: !!selectedOpportunityForHistory?.id && isCommentsHistoryDialogOpen,
     staleTime: 0, // Always fetch fresh data
     cacheTime: 0, // Don't cache
