@@ -28,7 +28,8 @@ import {
   List,
   MessageSquare,
   Target,
-  Users
+  Users,
+  Columns3
 } from 'lucide-react';
 import EntityAvatar from '@/components/EntityAvatar';
 import { useToast } from '@/hooks/use-toast';
@@ -504,12 +505,7 @@ export default function CustomersPage() {
                     : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-50'
                 }`}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <rect width="7" height="7" x="3" y="3" rx="1"/>
-                  <rect width="7" height="7" x="14" y="3" rx="1"/>
-                  <rect width="7" height="7" x="14" y="14" rx="1"/>
-                  <rect width="7" height="7" x="3" y="14" rx="1"/>
-                </svg>
+                <Columns3 className="h-4 w-4" />
                 <span>Fields</span>
                 <span className="text-xs">({Object.values(visibleFields).filter(Boolean).length}/{Object.keys(visibleFields).length})</span>
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`transition-transform ${showFieldsDropdown ? 'rotate-180' : ''}`}>

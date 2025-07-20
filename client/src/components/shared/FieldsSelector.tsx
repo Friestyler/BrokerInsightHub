@@ -7,6 +7,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
+import { Columns3 } from "lucide-react";
 
 interface FieldDefinition {
   key: string;
@@ -63,23 +64,7 @@ export function FieldsSelector({
           size="sm"
           className={`${className} text-gray-600 hover:text-gray-800 hover:bg-gray-50`}
         >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="16" 
-            height="16" 
-            viewBox="0 0 24 24" 
-            fill="none" 
-            stroke="currentColor" 
-            strokeWidth="2" 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            className="mr-2"
-          >
-            <rect width="6" height="14" x="3" y="5" rx="1"/>
-            <rect width="6" height="10" x="9" y="7" rx="1"/>
-            <rect width="6" height="14" x="15" y="5" rx="1"/>
-            <path d="m5 2 2 2-2 2"/>
-          </svg>
+          <Columns3 className="mr-2 h-4 w-4" />
           Fields
           <span className="ml-1 text-xs text-gray-500">({visibleCount}/{totalCount})</span>
         </Button>
