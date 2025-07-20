@@ -12,7 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Search, Bot, Copy, Users, Trash2, MoreHorizontal, MessageSquare } from "lucide-react";
+import { ArrowLeft, Search, Bot, Copy, Users, Trash2, MoreHorizontal, MessageSquare, CheckCircle, XCircle } from "lucide-react";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import EntityAvatar from "@/components/EntityAvatar";
 import PartnerCampaignBuilder from "@/pages/campaigns/PartnerCampaignBuilder";
@@ -209,6 +209,15 @@ export default function PartnerDetailBrokerPOV() {
   
   // Details dialog state
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+
+  // Assessment state variables
+  const [withholdDialogOpen, setWithholdDialogOpen] = useState(false);
+  const [selectedOpportunityForWithhold, setSelectedOpportunityForWithhold] = useState<any>(null);
+  const [withholdReasons, setWithholdReasons] = useState<string[]>([]);
+  const [withholdComments, setWithholdComments] = useState('');
+  const [commentsDialogOpen, setCommentsDialogOpen] = useState(false);
+  const [selectedOpportunityForComments, setSelectedOpportunityForComments] = useState<any>(null);
+  const [opportunityComments, setOpportunityComments] = useState<any[]>([]);
 
   // Stage editing state
   const [editingStageId, setEditingStageId] = useState<number | null>(null);
@@ -885,6 +894,52 @@ export default function PartnerDetailBrokerPOV() {
     },
   });
 
+  // Assessment mutations - copied from PartnerDetail.tsx
+  const updateAssessmentMutation = useMutation({
+    mutationFn: async ({ opportunityId, status, reasons, comments }: { 
+      opportunityId: number; 
+      status: 'accepted' | 'withheld'; 
+      reasons?: string[];
+      comments?: string;
+    }) => {
+      return await apiRequest('PUT', `/api/opportunities/${opportunityId}/assessment`, {
+        assessment_status: status,
+        withhold_reasons: reasons || [],
+        withhold_comments: comments || ''
+      });
+    },
+    onSuccess: () => {
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/opportunities`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/partners/${partnerId}/opportunities`] });
+      
+      toast({
+        title: "Assessment updated",
+        description: "Opportunity assessment has been updated successfully.",
+      });
+      
+      // Close any open dialogs
+      setWithholdDialogOpen(false);
+      setSelectedOpportunityForWithhold(null);
+      setWithholdReasons([]);
+      setWithholdComments('');
+    },
+    onError: (error) => {
+      console.error('Error updating assessment:', error);
+      toast({
+        title: "Error updating assessment",
+        description: "Failed to update opportunity assessment. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  const fetchWithholdReasonsMutation = useMutation({
+    mutationFn: async () => {
+      return await apiRequest('GET', '/api/withhold-reasons');
+    }
+  });
+
   const handleSubmitComment = () => {
     if (!comment.trim() || !selectedMetricForComment) return;
     
@@ -895,6 +950,43 @@ export default function PartnerDetailBrokerPOV() {
       entityId: parseInt(partnerId!),
       assignedTo: assignedTo || undefined,
       metricId: selectedMetricForComment.id,
+    });
+  };
+
+  // Assessment handler functions - copied from PartnerDetail.tsx
+  const handleAcceptOpportunity = (opportunity: any) => {
+    updateAssessmentMutation.mutate({
+      opportunityId: opportunity.id,
+      status: 'accepted'
+    });
+  };
+
+  const handleWithholdOpportunity = (opportunity: any) => {
+    setSelectedOpportunityForWithhold(opportunity);
+    setWithholdDialogOpen(true);
+    fetchWithholdReasonsMutation.mutate();
+  };
+
+  const handleWithholdSubmit = () => {
+    if (!selectedOpportunityForWithhold) return;
+    
+    updateAssessmentMutation.mutate({
+      opportunityId: selectedOpportunityForWithhold.id,
+      status: 'withheld',
+      reasons: withholdReasons,
+      comments: withholdComments
+    });
+  };
+
+  const openCommentsDialog = (opportunity: any) => {
+    setSelectedOpportunityForComments(opportunity);
+    setCommentsDialogOpen(true);
+    // Fetch comments for this opportunity
+    queryClient.fetchQuery({
+      queryKey: [`/api/${actualCurrentEnvironment}/opportunities/${opportunity.id}/comments`],
+      queryFn: () => apiRequest('GET', `/api/opportunities/${opportunity.id}/comments`)
+    }).then(data => {
+      setOpportunityComments(data || []);
     });
   };
 
@@ -1828,6 +1920,8 @@ export default function PartnerDetailBrokerPOV() {
                         <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Stage</TableHead>
                         <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Value</TableHead>
                         <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Close Date</TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Assessment</TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Comments</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -1923,6 +2017,73 @@ export default function PartnerDetailBrokerPOV() {
                           </TableCell>
                           <TableCell>
                             {opportunity.expected_close_date ? new Date(opportunity.expected_close_date).toLocaleDateString() : 'Not set'}
+                          </TableCell>
+                          {/* Assessment Column */}
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {opportunity.assessmentStatus === 'withheld' ? (
+                                <div className="flex items-center gap-1">
+                                  <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full">
+                                    Withheld
+                                  </span>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-6 w-6 p-0 hover:bg-green-100 text-green-600"
+                                    onClick={() => handleAcceptOpportunity(opportunity)}
+                                    title="Change to Accept"
+                                  >
+                                    <CheckCircle className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              ) : opportunity.assessmentStatus === 'accepted' ? (
+                                <div className="flex items-center gap-1">
+                                  <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                                    Accepted
+                                  </span>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-6 w-6 p-0 hover:bg-red-100 text-red-600"
+                                    onClick={() => handleWithholdOpportunity(opportunity)}
+                                    title="Change to Withhold"
+                                  >
+                                    <XCircle className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <div className="flex gap-1">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 px-3 text-xs hover:bg-green-50 hover:border-green-300 hover:text-green-700"
+                                    onClick={() => handleAcceptOpportunity(opportunity)}
+                                  >
+                                    Accept
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 px-3 text-xs hover:bg-red-50 hover:border-red-300 hover:text-red-700"
+                                    onClick={() => handleWithholdOpportunity(opportunity)}
+                                  >
+                                    Withhold
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                          {/* Comments Column */}
+                          <TableCell>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-8 w-8 p-0 hover:bg-gray-100"
+                              onClick={() => openCommentsDialog(opportunity)}
+                              title="View/Add Comments"
+                            >
+                              <MessageSquare className="w-4 h-4" />
+                            </Button>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -3169,6 +3330,116 @@ export default function PartnerDetailBrokerPOV() {
           
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDetailsDialog(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Withhold Assessment Dialog */}
+      <Dialog open={withholdDialogOpen} onOpenChange={setWithholdDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Withhold Opportunity</DialogTitle>
+            <DialogDescription>
+              Please select the reason(s) for withholding this opportunity and add any additional comments.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Withhold Reasons */}
+            <div>
+              <Label className="text-sm font-medium">Reasons</Label>
+              <div className="mt-2 space-y-2">
+                {fetchWithholdReasonsMutation.data?.map((reason: any) => (
+                  <div key={reason.id} className="flex items-center space-x-2">
+                    <Checkbox
+                      id={`reason-${reason.id}`}
+                      checked={withholdReasons.includes(reason.name)}
+                      onCheckedChange={(checked) => {
+                        if (checked) {
+                          setWithholdReasons([...withholdReasons, reason.name]);
+                        } else {
+                          setWithholdReasons(withholdReasons.filter(r => r !== reason.name));
+                        }
+                      }}
+                    />
+                    <Label htmlFor={`reason-${reason.id}`} className="text-sm">
+                      {reason.name}
+                    </Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Comments */}
+            <div>
+              <Label htmlFor="withhold-comments" className="text-sm font-medium">
+                Additional Comments
+              </Label>
+              <textarea
+                id="withhold-comments"
+                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                rows={3}
+                value={withholdComments}
+                onChange={(e) => setWithholdComments(e.target.value)}
+                placeholder="Add any additional context..."
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWithholdDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleWithholdSubmit}
+              disabled={withholdReasons.length === 0}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Withhold Opportunity
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Comments Dialog */}
+      <Dialog open={commentsDialogOpen} onOpenChange={setCommentsDialogOpen}>
+        <DialogContent className="max-w-2xl max-h-[80vh]">
+          <DialogHeader>
+            <DialogTitle>Comments & History</DialogTitle>
+            <DialogDescription>
+              View all comments and activity for this opportunity.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+            {opportunityComments.length > 0 ? (
+              opportunityComments.map((comment: any, index: number) => (
+                <div key={index} className="border-b pb-3 last:border-b-0">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="font-medium text-sm">{comment.userName || 'System'}</span>
+                    <span className="text-xs text-gray-500">
+                      {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : 'Recent'}
+                    </span>
+                  </div>
+                  <p className="text-sm text-gray-700">{comment.content}</p>
+                  {comment.type && (
+                    <span className="inline-block mt-1 px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
+                      {comment.type}
+                    </span>
+                  )}
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                No comments yet for this opportunity.
+              </div>
+            )}
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCommentsDialogOpen(false)}>
               Close
             </Button>
           </DialogFooter>
