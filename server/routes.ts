@@ -2362,53 +2362,70 @@ Prioritize actions that:
       const opportunityId = parseInt(req.params.id);
       const { assessmentStatus, withholdReasons, withholdComments, assessmentNotes, assessedById } = req.body;
       
-      const envDb = getEnvironmentDb(envId);
+      console.log(`Updating assessment for opportunity ${opportunityId} in environment ${envId}`);
+      console.log(`Assessment data:`, { assessmentStatus, withholdReasons, withholdComments, assessmentNotes, assessedById });
+      
+      const envPool = getEnvironmentPool(envId);
       
       // Get current assessment status for history tracking
-      const currentOpportunity = await envDb.select({
-        id: opportunities.id,
-        assessmentStatus: opportunities.assessmentStatus
-      }).from(opportunities)
-        .where(eq(opportunities.id, opportunityId))
-        .limit(1);
+      const currentResult = await envPool.query(`
+        SELECT id, assessment_status FROM ${envId}.opportunities WHERE id = $1
+      `, [opportunityId]);
       
-      if (currentOpportunity.length === 0) {
+      if (currentResult.rows.length === 0) {
         return res.status(404).json({ error: 'Opportunity not found' });
       }
       
-      const previousStatus = currentOpportunity[0].assessmentStatus;
+      const previousStatus = currentResult.rows[0].assessment_status;
+      console.log(`Previous status: ${previousStatus}, New status: ${assessmentStatus}`);
       
       // Update opportunity assessment
-      const updatedOpportunity = await envDb.update(opportunities)
-        .set({
-          assessmentStatus,
-          assessmentDate: new Date(),
-          assessedById,
-          withholdReasons: withholdReasons || [],
-          withholdComments,
-          assessmentNotes,
-          // Increment interaction count for comments/assessments
-          interactionCount: sql`COALESCE(interaction_count, 0) + 1`
-        })
-        .where(eq(opportunities.id, opportunityId))
-        .returning();
+      const updateResult = await envPool.query(`
+        UPDATE ${envId}.opportunities 
+        SET 
+          assessment_status = $1,
+          assessment_date = NOW(),
+          assessed_by_id = $2,
+          withhold_reasons = $3,
+          withhold_comments = $4,
+          assessment_notes = $5,
+          interaction_count = COALESCE(interaction_count, 0) + 1,
+          updated_at = NOW()
+        WHERE id = $6
+        RETURNING *
+      `, [
+        assessmentStatus,
+        assessedById || 4, // Default to user ID 4 (Albrecht Bouwman)
+        withholdReasons || [],
+        withholdComments,
+        assessmentNotes,
+        opportunityId
+      ]);
       
-      // Create assessment history record
-      await envDb.insert(opportunityAssessmentHistory).values({
-        opportunityId,
-        previousStatus,
-        newStatus: assessmentStatus,
-        changedById: assessedById,
-        reasons: withholdReasons || [],
-        comments: assessmentStatus === 'withheld' ? withholdComments : assessmentNotes
-      });
+      if (updateResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Failed to update opportunity' });
+      }
+      
+      // Create activity comment for assessment
+      const commentContent = assessmentStatus === 'withheld' 
+        ? `Opportunity withheld${withholdReasons && withholdReasons.length > 0 ? `. Reasons: ${withholdReasons.join(', ')}` : ''}${withholdComments ? `. Comments: ${withholdComments}` : ''}`
+        : `Opportunity accepted${assessmentNotes ? `. Notes: ${assessmentNotes}` : ''}`;
+      
+      await envPool.query(`
+        INSERT INTO ${envId}.activities (
+          activity_type, content, visible_to_partner, 
+          entity_type, entity_id, author_id,
+          created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+      `, ['comment', commentContent, true, 'opportunity', opportunityId, assessedById || 4]);
       
       // Clear cache for this opportunity
       clearCache();
       
+      console.log(`Assessment updated successfully for opportunity ${opportunityId}`);
       res.json({
         success: true,
-        opportunity: updatedOpportunity[0],
+        opportunity: updateResult.rows[0],
         message: `Opportunity ${assessmentStatus} successfully`
       });
     } catch (error) {

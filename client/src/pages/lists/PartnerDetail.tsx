@@ -873,47 +873,31 @@ export default function PartnerDetail() {
       comment: string,
       entityName: string 
     }) => {
-      // Create activity in both partner and entity hubs
-      const partnerActivityData = {
-        type: 'comment',
+      // Create activity comment using Activity Hub API
+      const activityData = {
         content: comment,
-        source_entity_type: entityType,
-        source_entity_id: entityId,
-        source_entity_name: entityName,
-        visible_to_partner: true,
-        assigned_to: 'current_user'
+        visibleToPartner: true,
+        entityType: entityType,
+        entityId: entityId,
+        authorId: 4 // Default to user ID 4 (Albrecht Bouwman)
       };
 
-      const entityActivityData = {
-        type: 'comment',
-        content: comment,
-        source_entity_type: 'partner',
-        source_entity_id: parseInt(id),
-        source_entity_name: partner?.data?.name || 'Partner',
-        visible_to_partner: true,
-        assigned_to: 'current_user'
-      };
+      console.log('Creating activity comment:', activityData);
 
-      // Create activity in partner hub
-      await apiRequest('POST', `/api/partners/${id}/activities`, partnerActivityData);
-      
-      // Create activity in entity hub (opportunity or customer)
-      const entityEndpoint = entityType === 'opportunity' 
-        ? `/api/opportunities/${entityId}/activities`
-        : `/api/customers/${entityId}/activities`;
-      
-      await apiRequest('POST', entityEndpoint, entityActivityData);
+      // Create comment in Activity Hub
+      await apiRequest('POST', `/api/degoudse/activity/comments`, activityData);
       
       return { success: true };
     },
     onSuccess: () => {
-      // Invalidate activity queries for both hubs
-      queryClient.invalidateQueries({ queryKey: [`/api/partners/${id}/activities`] });
-      queryClient.invalidateQueries({ queryKey: ['/api/activities'] });
+      // Invalidate activity queries for Activity Hub
+      queryClient.invalidateQueries({ queryKey: [`/api/degoudse/partners/${id}/activities`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/degoudse/partners/${id}/timeline`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/degoudse/unified-activities'] });
       
       toast({
         title: "Comment added",
-        description: "Your comment has been added to both partner and entity activity feeds.",
+        description: "Your comment has been added to the Activity Hub.",
       });
       
       // Reset comment dialog state
