@@ -3237,8 +3237,8 @@ export default function PartnerDetail() {
                           variant="ghost"
                           className="h-7 w-7 p-0 hover:bg-gray-100"
                           onClick={() => {
-                            setSelectedOpportunityForComment(opportunity);
-                            setIsOpportunityCommentDialogOpen(true);
+                            setSelectedOpportunityForHistory(opportunity);
+                            setIsCommentsHistoryDialogOpen(true);
                           }}
                         >
                           <MessageSquare className="w-4 h-4 text-gray-500" />
