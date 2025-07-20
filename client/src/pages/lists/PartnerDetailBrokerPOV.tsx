@@ -215,9 +215,11 @@ export default function PartnerDetailBrokerPOV() {
   const [selectedOpportunityForWithhold, setSelectedOpportunityForWithhold] = useState<any>(null);
   const [withholdReasons, setWithholdReasons] = useState<string[]>([]);
   const [withholdComments, setWithholdComments] = useState('');
-  const [commentsDialogOpen, setCommentsDialogOpen] = useState(false);
-  const [selectedOpportunityForComments, setSelectedOpportunityForComments] = useState<any>(null);
-  const [opportunityComments, setOpportunityComments] = useState<any[]>([]);
+  
+  // Comments history state - match PartnerDetail.tsx exactly
+  const [isCommentsHistoryDialogOpen, setIsCommentsHistoryDialogOpen] = useState(false);
+  const [selectedOpportunityForHistory, setSelectedOpportunityForHistory] = useState<any>(null);
+  const [opportunityComment, setOpportunityComment] = useState('');
 
   // Stage editing state
   const [editingStageId, setEditingStageId] = useState<number | null>(null);
@@ -940,6 +942,14 @@ export default function PartnerDetailBrokerPOV() {
     }
   });
 
+  // Comments history query - match PartnerDetail.tsx exactly  
+  const { data: commentsHistoryData, refetch: refetchCommentsHistory } = useQuery({
+    queryKey: [`/api/opportunities/${selectedOpportunityForHistory?.id}/comments`],
+    enabled: !!selectedOpportunityForHistory?.id && isCommentsHistoryDialogOpen,
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0, // Don't cache
+  });
+
   const handleSubmitComment = () => {
     if (!comment.trim() || !selectedMetricForComment) return;
     
@@ -978,17 +988,7 @@ export default function PartnerDetailBrokerPOV() {
     });
   };
 
-  const openCommentsDialog = (opportunity: any) => {
-    setSelectedOpportunityForComments(opportunity);
-    setCommentsDialogOpen(true);
-    // Fetch comments for this opportunity
-    queryClient.fetchQuery({
-      queryKey: [`/api/${actualCurrentEnvironment}/opportunities/${opportunity.id}/comments`],
-      queryFn: () => apiRequest('GET', `/api/opportunities/${opportunity.id}/comments`)
-    }).then(data => {
-      setOpportunityComments(data || []);
-    });
-  };
+
 
   // Group metrics by their tags
   const groupedMetrics = filteredMetrics.reduce((acc: any, metric: any) => {
@@ -2018,7 +2018,7 @@ export default function PartnerDetailBrokerPOV() {
                           <TableCell>
                             {opportunity.expected_close_date ? new Date(opportunity.expected_close_date).toLocaleDateString() : 'Not set'}
                           </TableCell>
-                          {/* Assessment Column */}
+                          {/* Assessment Column - copied exactly from PartnerDetail.tsx lines 3203-3257 */}
                           <TableCell>
                             <div className="flex items-center gap-2">
                               {opportunity.assessmentStatus === 'withheld' ? (
@@ -2056,33 +2056,37 @@ export default function PartnerDetailBrokerPOV() {
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    className="h-7 px-3 text-xs hover:bg-green-50 hover:border-green-300 hover:text-green-700"
+                                    className="h-7 px-2 text-xs bg-green-50 hover:bg-green-100 border-green-200 text-green-700"
                                     onClick={() => handleAcceptOpportunity(opportunity)}
                                   >
+                                    <CheckCircle className="w-3 h-3 mr-1" />
                                     Accept
                                   </Button>
                                   <Button
                                     size="sm"
                                     variant="outline"
-                                    className="h-7 px-3 text-xs hover:bg-red-50 hover:border-red-300 hover:text-red-700"
+                                    className="h-7 px-2 text-xs bg-red-50 hover:bg-red-100 border-red-200 text-red-700"
                                     onClick={() => handleWithholdOpportunity(opportunity)}
                                   >
+                                    <XCircle className="w-3 h-3 mr-1" />
                                     Withhold
                                   </Button>
                                 </div>
                               )}
                             </div>
                           </TableCell>
-                          {/* Comments Column */}
+                          {/* Comments Column - copied exactly from PartnerDetail.tsx lines 3261-3273 */}
                           <TableCell>
                             <Button
                               size="sm"
                               variant="ghost"
-                              className="h-8 w-8 p-0 hover:bg-gray-100"
-                              onClick={() => openCommentsDialog(opportunity)}
-                              title="View/Add Comments"
+                              className="h-7 w-7 p-0 hover:bg-gray-100"
+                              onClick={() => {
+                                setSelectedOpportunityForHistory(opportunity);
+                                setIsCommentsHistoryDialogOpen(true);
+                              }}
                             >
-                              <MessageSquare className="w-4 h-4" />
+                              <MessageSquare className="w-4 h-4 text-gray-500" />
                             </Button>
                           </TableCell>
                         </TableRow>
@@ -3403,46 +3407,90 @@ export default function PartnerDetailBrokerPOV() {
         </DialogContent>
       </Dialog>
 
-      {/* Comments Dialog */}
-      <Dialog open={commentsDialogOpen} onOpenChange={setCommentsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh]">
-          <DialogHeader>
-            <DialogTitle>Comments & History</DialogTitle>
-            <DialogDescription>
-              View all comments and activity for this opportunity.
-            </DialogDescription>
-          </DialogHeader>
+      {/* Comments History Dialog - copied exactly from PartnerDetail.tsx lines 6585-6769 */}
+      <Dialog open={isCommentsHistoryDialogOpen} onOpenChange={setIsCommentsHistoryDialogOpen}>
+        <DialogContent className="max-w-2xl bg-white border-0 shadow-xl rounded-2xl p-0 overflow-hidden h-[600px] flex flex-col">
+          <div className="p-6 pb-4 border-b border-gray-100">
+            <DialogHeader className="space-y-2 pb-0">
+              <div className="flex items-center justify-between">
+                <DialogTitle className="text-xl font-semibold text-[#282A3F] leading-tight">
+                  Comments & Notes: {commentsHistoryData?.opportunity?.customerName || 'Customer'}
+                </DialogTitle>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setIsCommentsHistoryDialogOpen(false)}
+                  className="text-gray-400 hover:text-gray-600 h-8 w-8 p-0"
+                >
+                  ×
+                </Button>
+              </div>
+              <DialogDescription className="text-sm text-gray-600 leading-relaxed">
+                All comments, notes, and withhold reasons for this customer
+              </DialogDescription>
+            </DialogHeader>
+          </div>
           
-          <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-            {opportunityComments.length > 0 ? (
-              opportunityComments.map((comment: any, index: number) => (
-                <div key={index} className="border-b pb-3 last:border-b-0">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-sm">{comment.userName || 'System'}</span>
-                    <span className="text-xs text-gray-500">
-                      {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : 'Recent'}
+          <div className="flex-1 overflow-hidden flex flex-col">
+            {/* Header with opportunity info and count */}
+            <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-medium">
+                      {commentsHistoryData?.opportunity?.title?.charAt(0) || 'O'}
                     </span>
                   </div>
-                  <p className="text-sm text-gray-700">{comment.content}</p>
-                  {comment.type && (
-                    <span className="inline-block mt-1 px-2 py-1 text-xs bg-gray-100 text-gray-600 rounded">
-                      {comment.type}
-                    </span>
-                  )}
+                  <div>
+                    <div className="font-medium text-[#282A3F]">
+                      {commentsHistoryData?.opportunity?.title}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {commentsHistoryData?.totalComments || 0} comments
+                    </div>
+                  </div>
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-8 text-gray-500">
-                No comments yet for this opportunity.
               </div>
-            )}
-          </div>
+            </div>
 
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setCommentsDialogOpen(false)}>
-              Close
-            </Button>
-          </DialogFooter>
+            {/* Comments section */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {commentsHistoryData?.comments?.length > 0 ? (
+                commentsHistoryData.comments.map((comment: any, index: number) => (
+                  <div key={index} className="flex gap-3 p-4 bg-gray-50 rounded-lg">
+                    <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-xs font-medium">
+                        {comment.userName?.charAt(0) || 'U'}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium text-sm text-[#282A3F]">
+                          {comment.userName || 'System'}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : 'Recent'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        {comment.content}
+                      </p>
+                      {comment.type && (
+                        <span className="inline-block mt-2 px-2 py-1 text-xs bg-gray-200 text-gray-600 rounded">
+                          {comment.type}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <p className="text-lg font-medium mb-1">No comments yet</p>
+                  <p className="text-sm">Be the first to add a comment for this opportunity.</p>
+                </div>
+              )}
+            </div>
+          </div>
         </DialogContent>
       </Dialog>
     </BrokerLayout>
