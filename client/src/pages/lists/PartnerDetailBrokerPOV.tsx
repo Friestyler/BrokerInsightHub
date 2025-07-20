@@ -7,12 +7,13 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Search, Bot, Copy, Users, Trash2, MoreHorizontal, MessageSquare, CheckCircle, XCircle } from "lucide-react";
+import { ArrowLeft, Search, Bot, Copy, Users, Trash2, MoreHorizontal, MessageSquare, CheckCircle, XCircle, Eye } from "lucide-react";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import EntityAvatar from "@/components/EntityAvatar";
 import PartnerCampaignBuilder from "@/pages/campaigns/PartnerCampaignBuilder";
@@ -990,6 +991,72 @@ export default function PartnerDetailBrokerPOV() {
       entityId: parseInt(partnerId!),
       assignedTo: assignedTo || undefined,
       metricId: selectedMetricForComment.id,
+    });
+  };
+
+  // CRITICAL FIX: Add opportunity comment creation functionality matching PartnerDetail.tsx
+  const createCrossEntityCommentMutation = useMutation({
+    mutationFn: async ({ entityType, entityId, comment, entityName }: { 
+      entityType: 'customer' | 'opportunity', 
+      entityId: number, 
+      comment: string,
+      entityName: string 
+    }) => {
+      // Create activity comment using Activity Hub API
+      const activityData = {
+        content: comment,
+        visibleToPartner: true,
+        entityType: entityType,
+        entityId: entityId,
+        authorId: 4 // Default to user ID 4 (Albrecht Bouwman)
+      };
+
+      console.log('Creating activity comment:', activityData);
+
+      // Create comment in Activity Hub
+      await apiRequest('POST', `/api/${actualCurrentEnvironment}/activity/comments`, activityData);
+      
+      return { success: true };
+    },
+    onSuccess: () => {
+      // Invalidate activity queries for Activity Hub
+      queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/partners/${partnerId}/activities`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/partners/${partnerId}/timeline`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/unified-activities`] });
+      
+      // Invalidate comments history query for refresh
+      if (selectedOpportunityForHistory?.id) {
+        queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/opportunities/${selectedOpportunityForHistory.id}/comments`] });
+        refetchCommentsHistory();
+      }
+      
+      toast({
+        title: "Comment added",
+        description: "Your comment has been added to the Activity Hub.",
+      });
+      
+      // Reset comment state
+      setOpportunityComment("");
+    },
+    onError: (error) => {
+      console.error('Error creating cross-entity comment:', error);
+      toast({
+        title: "Error creating comment",
+        description: "Failed to create comment. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // CRITICAL FIX: Add opportunity comment submission handler matching PartnerDetail.tsx  
+  const handleSubmitOpportunityComment = () => {
+    if (!opportunityComment.trim() || !selectedOpportunityForHistory) return;
+    
+    createCrossEntityCommentMutation.mutate({
+      entityType: 'opportunity',
+      entityId: selectedOpportunityForHistory.id,
+      comment: opportunityComment,
+      entityName: selectedOpportunityForHistory.title
     });
   };
 
@@ -3517,6 +3584,41 @@ export default function PartnerDetailBrokerPOV() {
                       {commentsHistoryData?.totalComments || 0} comments
                     </div>
                   </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" className="text-gray-600 h-8">
+                    <Eye className="w-4 h-4 mr-1" />
+                    Hide Private
+                  </Button>
+                  <Button variant="ghost" size="sm" className="text-gray-600 h-8">
+                    ⋯
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* CRITICAL FIX: Add comment creation section matching PartnerDetail.tsx */}
+            <div className="px-6 py-4 border-b border-gray-100">
+              <div className="space-y-3">
+                <Textarea
+                  placeholder="Add a comment or note..."
+                  value={opportunityComment}
+                  onChange={(e) => setOpportunityComment(e.target.value)}
+                  className="resize-none"
+                  rows={3}
+                />
+                <div className="flex items-center justify-between">
+                  <div className="text-xs text-gray-500">
+                    Tip: Use @mention to notify team members
+                  </div>
+                  <Button 
+                    onClick={handleSubmitOpportunityComment}
+                    disabled={!opportunityComment.trim() || createCrossEntityCommentMutation.isPending}
+                    size="sm"
+                    className="bg-[#5567E5] hover:bg-[#4553D3] text-white"
+                  >
+                    {createCrossEntityCommentMutation.isPending ? 'Adding...' : 'Comment'}
+                  </Button>
                 </div>
               </div>
             </div>
