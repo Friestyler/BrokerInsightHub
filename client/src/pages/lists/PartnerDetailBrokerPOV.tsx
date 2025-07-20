@@ -896,36 +896,45 @@ export default function PartnerDetailBrokerPOV() {
     },
   });
 
-  // Assessment mutations - copied from PartnerDetail.tsx
+  // Assessment mutations - copied exactly from PartnerDetail.tsx
   const updateAssessmentMutation = useMutation({
-    mutationFn: async ({ opportunityId, status, reasons, comments }: { 
-      opportunityId: number; 
-      status: 'accepted' | 'withheld'; 
-      reasons?: string[];
-      comments?: string;
+    mutationFn: async ({ 
+      opportunityId, 
+      assessmentStatus, 
+      withholdReasons, 
+      withholdComments, 
+      assessmentNotes 
+    }: {
+      opportunityId: number;
+      assessmentStatus: 'accepted' | 'withheld';
+      withholdReasons?: string[];
+      withholdComments?: string;
+      assessmentNotes?: string;
     }) => {
       return await apiRequest('PUT', `/api/opportunities/${opportunityId}/assessment`, {
-        assessment_status: status,
-        withhold_reasons: reasons || [],
-        withhold_comments: comments || ''
+        assessmentStatus,
+        withholdReasons,
+        withholdComments,
+        assessmentNotes,
+        assessedById: 1 // Current user ID
       });
     },
-    onSuccess: () => {
-      // Invalidate queries to refresh data immediately
-      queryClient.invalidateQueries({ queryKey: [`/api/opportunities`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/opportunities`] });
-      queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/partners/${partnerId}/opportunities`] });
+    onSuccess: (data, variables) => {
+      // Invalidate opportunity queries to refresh data immediately - copied from PartnerDetail.tsx
       queryClient.invalidateQueries({ queryKey: [`/api/partners/${partnerId}/opportunities`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/opportunities'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/opportunities/${variables.opportunityId}/comments`] });
       
-      // Force refetch the opportunities data immediately
-      queryClient.refetchQueries({ queryKey: [`/api/${actualCurrentEnvironment}/partners/${partnerId}/opportunities`] });
+      // Force refetch to ensure immediate UI update - copied from PartnerDetail.tsx
+      queryClient.refetchQueries({ queryKey: [`/api/partners/${partnerId}/opportunities`] });
+      queryClient.refetchQueries({ queryKey: ['/api/opportunities'] });
       
       toast({
         title: "Assessment updated",
-        description: "Opportunity assessment has been updated successfully.",
+        description: `Opportunity ${variables.assessmentStatus} successfully`,
       });
       
-      // Close any open dialogs
+      // Close modals and reset state - copied from PartnerDetail.tsx
       setWithholdDialogOpen(false);
       setSelectedOpportunityForWithhold(null);
       setWithholdReasons([]);
@@ -968,11 +977,11 @@ export default function PartnerDetailBrokerPOV() {
     });
   };
 
-  // Assessment handler functions - copied from PartnerDetail.tsx
+  // Assessment handler functions - copied exactly from PartnerDetail.tsx
   const handleAcceptOpportunity = (opportunity: any) => {
     updateAssessmentMutation.mutate({
       opportunityId: opportunity.id,
-      status: 'accepted'
+      assessmentStatus: 'accepted'
     });
   };
 
@@ -992,16 +1001,16 @@ export default function PartnerDetailBrokerPOV() {
     
     console.log('Submitting withhold with data:', {
       opportunityId: selectedOpportunityForWithhold.id,
-      status: 'withheld',
-      reasons: withholdReasons,
-      comments: withholdComments
+      assessmentStatus: 'withheld',
+      withholdReasons: withholdReasons,
+      withholdComments: withholdComments
     });
     
     updateAssessmentMutation.mutate({
       opportunityId: selectedOpportunityForWithhold.id,
-      status: 'withheld',
-      reasons: withholdReasons,
-      comments: withholdComments
+      assessmentStatus: 'withheld',
+      withholdReasons: withholdReasons,
+      withholdComments: withholdComments
     });
   };
 
