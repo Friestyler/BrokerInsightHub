@@ -278,6 +278,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
         SELECT o.id, o.title, o.clientId, o.productId, o.probability, o.estimatedValue, o.type, o.status, o.stage, o.ownerId, o.description, o.partnerId, o.createdAt, o.updatedAt, o.expectedCloseDate, 
+               o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes,
                STRING_AGG(DISTINCT c.name, ', ') as customer_names,
                STRING_AGG(DISTINCT p.name, ', ') as partner_names,
                STRING_AGG(DISTINCT pr.name, ', ') as product_names,
@@ -292,7 +293,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LEFT JOIN degoudse.products pr ON pr.id = op.product_id
         GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
                  o."expectedCloseDate", o."clientId", o."partnerId", o."productId", 
-                 o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
+                 o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt",
+                 o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes
         ORDER BY o.id
       `);
       console.log(`Returning ${result.rows.length} opportunities from De Goudse database`);
@@ -3007,6 +3009,7 @@ Prioritize actions that:
         SELECT o.id, o.title, o.description, o.status, o.stage, o.estimated_value, o.probability,
                o.expected_close_date, o.start_date, o.insurance_description, o.owner_id,
                o.client_id, o.partner_id, o.product_id, o.type, o.created_at, o.updated_at,
+               o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes,
                c.name as client_name,
                COUNT(DISTINCT contacts.id) as contact_count,
                am.name as account_manager_name
@@ -3018,10 +3021,13 @@ Prioritize actions that:
         GROUP BY o.id, o.title, o.description, o.status, o.stage, o.estimated_value, o.probability,
                  o.expected_close_date, o.start_date, o.insurance_description, o.owner_id, 
                  o.client_id, o.partner_id, o.product_id, o.type, 
-                 o.created_at, o.updated_at, c.name, am.name
+                 o.created_at, o.updated_at, c.name, am.name,
+                 o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes
         ORDER BY o.id
       `, [partnerId]);
       
+
+
       const opportunities = result.rows.map((opp: any) => ({
         id: opp.id,
         title: opp.title,
@@ -3035,7 +3041,13 @@ Prioritize actions that:
         start_date: opp.start_date,
         insurance_description: opp.insurance_description,
         account_manager_name: opp.account_manager_name,
-        contactCount: parseInt(opp.contact_count) || 0
+        contactCount: parseInt(opp.contact_count) || 0,
+        assessmentStatus: opp.assessment_status,
+        assessmentDate: opp.assessment_date,
+        assessedById: opp.assessed_by_id,
+        withholdReasons: opp.withhold_reasons,
+        withholdComments: opp.withhold_comments,
+        assessmentNotes: opp.assessment_notes
       }));
       
       res.json(opportunities);
