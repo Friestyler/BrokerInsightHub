@@ -3,6 +3,7 @@ import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeSchemas } from "./initDatabase";
 import { environmentMiddleware } from "./middleware/environmentMiddleware";
+import { seedAssessmentData } from "./seedAssessmentData";
 
 const app = express();
 app.use(express.json({ limit: '50mb' }));
@@ -42,6 +43,9 @@ app.use((req, res, next) => {
   try {
     // Initialize database schemas for all environments
     await initializeSchemas();
+    
+    // Seed assessment data
+    await seedAssessmentData();
     
     const server = await registerRoutes(app);
 

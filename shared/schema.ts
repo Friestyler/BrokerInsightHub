@@ -202,6 +202,14 @@ export const opportunities = pgTable("opportunities", {
   partnerId: integer("partner_id"),
   ownerId: integer("owner_id"),
   accountManagerId: integer("account_manager_id").references(() => users.id),
+  // Assessment fields
+  assessmentStatus: text("assessment_status").default("pending"), // pending, accepted, withheld
+  assessmentDate: timestamp("assessment_date"),
+  assessedById: integer("assessed_by_id").references(() => users.id),
+  withholdReasons: text("withhold_reasons").array(), // Array of reason categories
+  withholdComments: text("withhold_comments"), // Detailed comments for withhold
+  assessmentNotes: text("assessment_notes"), // General assessment notes
+  interactionCount: integer("interaction_count").default(0), // Count of comments/interactions
   createdAt: timestamp("created_at"),
   updatedAt: timestamp("updated_at"),
 });
@@ -282,8 +290,31 @@ export const productCatalog = pgTable("product_catalog", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Opportunity Withhold Reasons - predefined categories for withholding opportunities
+export const opportunityWithholdReasons = pgTable("opportunity_withhold_reasons", {
+  id: serial("id").primaryKey(),
+  category: text("category").notNull(), // "not_in_target_market", "budget_doesnt_align", etc.
+  displayName: text("display_name").notNull(), // "Not in target market"
+  description: text("description"), // Optional description
+  isActive: boolean("is_active").default(true),
+  sortOrder: integer("sort_order").default(0),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Opportunity Assessment History - track assessment changes over time
+export const opportunityAssessmentHistory = pgTable("opportunity_assessment_history", {
+  id: serial("id").primaryKey(),
+  opportunityId: integer("opportunity_id").notNull().references(() => opportunities.id),
+  previousStatus: text("previous_status"), // previous assessment status
+  newStatus: text("new_status").notNull(), // new assessment status
+  changedById: integer("changed_by_id").notNull().references(() => users.id),
+  reasons: text("reasons").array(), // withhold reasons if applicable
+  comments: text("comments"), // comments about the change
+  changedAt: timestamp("changed_at").defaultNow().notNull(),
+});
+
 // Define relationships
-export const opportunitiesRelations = relations(opportunities, ({ one }) => ({
+export const opportunitiesRelations = relations(opportunities, ({ one, many }) => ({
   client: one(clients, {
     fields: [opportunities.clientId],
     references: [clients.id],
@@ -291,6 +322,22 @@ export const opportunitiesRelations = relations(opportunities, ({ one }) => ({
   product: one(insuranceProducts, {
     fields: [opportunities.productId],
     references: [insuranceProducts.id],
+  }),
+  assessedBy: one(users, {
+    fields: [opportunities.assessedById],
+    references: [users.id],
+  }),
+  assessmentHistory: many(opportunityAssessmentHistory),
+}));
+
+export const opportunityAssessmentHistoryRelations = relations(opportunityAssessmentHistory, ({ one }) => ({
+  opportunity: one(opportunities, {
+    fields: [opportunityAssessmentHistory.opportunityId],
+    references: [opportunities.id],
+  }),
+  changedBy: one(users, {
+    fields: [opportunityAssessmentHistory.changedById],
+    references: [users.id],
   }),
 }));
 
@@ -405,6 +452,27 @@ export const insertOpportunitySchema = createInsertSchema(opportunities).pick({
   insuranceDescription: true,
   expectedCloseDate: true,
   startDate: true,
+  assessmentStatus: true,
+  withholdReasons: true,
+  withholdComments: true,
+  assessmentNotes: true,
+});
+
+export const insertOpportunityWithholdReasonSchema = createInsertSchema(opportunityWithholdReasons).pick({
+  category: true,
+  displayName: true,
+  description: true,
+  isActive: true,
+  sortOrder: true,
+});
+
+export const insertOpportunityAssessmentHistorySchema = createInsertSchema(opportunityAssessmentHistory).pick({
+  opportunityId: true,
+  previousStatus: true,
+  newStatus: true,
+  changedById: true,
+  reasons: true,
+  comments: true,
 });
 
 export const insertDocumentSchema = createInsertSchema(documents).pick({

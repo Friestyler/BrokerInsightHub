@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Copy, Users, Trash2, MoreHorizontal, MoreVertical, MessageSquare, ArrowLeft, Plus, Mail, Calendar, Clock, Play, Pause, AlertCircle, CheckCircle, Eye, Edit, Filter, Package, Target, Crown, Bot, ChevronDown, ChevronRight, Share2, X, Bookmark, Columns3 } from "lucide-react";
+import { Search, Copy, Users, Trash2, MoreHorizontal, MoreVertical, MessageSquare, ArrowLeft, Plus, Mail, Calendar, Clock, Play, Pause, AlertCircle, CheckCircle, Eye, Edit, Filter, Package, Target, Crown, Bot, ChevronDown, ChevronRight, Share2, X, Bookmark, Columns3, XCircle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
@@ -95,6 +95,13 @@ export default function PartnerDetail() {
   const [customerComment, setCustomerComment] = useState("");
   const [opportunityComment, setOpportunityComment] = useState("");
   const [isOpportunityModalOpen, setIsOpportunityModalOpen] = useState(false);
+
+  // Assessment state
+  const [isWithholdModalOpen, setIsWithholdModalOpen] = useState(false);
+  const [selectedOpportunityForAssessment, setSelectedOpportunityForAssessment] = useState<any>(null);
+  const [withholdReasons, setWithholdReasons] = useState<string[]>([]);
+  const [withholdComments, setWithholdComments] = useState("");
+  const [assessmentNotes, setAssessmentNotes] = useState("");
 
   // Back navigation state
   const [backUrl, setBackUrl] = useState("/partners");
@@ -802,7 +809,61 @@ export default function PartnerDetail() {
     }
   });
 
+  // Query to fetch withhold reasons
+  const { data: withholdReasonsData } = useQuery({
+    queryKey: ['/api/opportunity-withhold-reasons'],
+    queryFn: () => apiRequest('GET', '/api/opportunity-withhold-reasons')
+  });
 
+  // Mutation for updating opportunity assessment
+  const updateAssessmentMutation = useMutation({
+    mutationFn: async ({ 
+      opportunityId, 
+      assessmentStatus, 
+      withholdReasons, 
+      withholdComments, 
+      assessmentNotes 
+    }: {
+      opportunityId: number;
+      assessmentStatus: 'accepted' | 'withheld';
+      withholdReasons?: string[];
+      withholdComments?: string;
+      assessmentNotes?: string;
+    }) => {
+      return await apiRequest('PUT', `/api/opportunities/${opportunityId}/assessment`, {
+        assessmentStatus,
+        withholdReasons,
+        withholdComments,
+        assessmentNotes,
+        assessedById: 1 // Current user ID
+      });
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate opportunity queries to refresh data
+      queryClient.invalidateQueries({ queryKey: [`/api/partners/${id}/opportunities`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/opportunities'] });
+      
+      toast({
+        title: "Assessment updated",
+        description: `Opportunity ${variables.assessmentStatus} successfully`,
+      });
+      
+      // Close modals and reset state
+      setIsWithholdModalOpen(false);
+      setSelectedOpportunityForAssessment(null);
+      setWithholdReasons([]);
+      setWithholdComments("");
+      setAssessmentNotes("");
+    },
+    onError: (error) => {
+      console.error('Error updating assessment:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update opportunity assessment. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
 
   // Mutation for creating cross-entity comments
   const createCrossEntityCommentMutation = useMutation({
@@ -1444,6 +1505,39 @@ export default function PartnerDetail() {
       checked 
         ? [...prev, metricId]
         : prev.filter(id => id !== metricId)
+    );
+  };
+
+  // Assessment handlers
+  const handleWithholdOpportunity = (opportunity: any) => {
+    setSelectedOpportunityForAssessment(opportunity);
+    setIsWithholdModalOpen(true);
+  };
+
+  const handleAcceptOpportunity = (opportunity: any) => {
+    updateAssessmentMutation.mutate({
+      opportunityId: opportunity.id,
+      assessmentStatus: 'accepted'
+    });
+  };
+
+  const handleWithholdSubmit = () => {
+    if (!selectedOpportunityForAssessment) return;
+    
+    updateAssessmentMutation.mutate({
+      opportunityId: selectedOpportunityForAssessment.id,
+      assessmentStatus: 'withheld',
+      withholdReasons,
+      withholdComments,
+      assessmentNotes
+    });
+  };
+
+  const handleWithholdReasonToggle = (reason: string) => {
+    setWithholdReasons(prev => 
+      prev.includes(reason) 
+        ? prev.filter(r => r !== reason)
+        : [...prev, reason]
     );
   };
 
@@ -3009,17 +3103,30 @@ export default function PartnerDetail() {
                       </TableCell>
                       {opportunityVisibleFields.title && (
                         <TableCell>
-                          <Link 
-                            href={`/lists/opportunities/${opportunity.id}`}
-                            onClick={() => {
-                              // Store the current partner detail page as the referrer for smart back navigation
-                              sessionStorage.setItem('opportunityReferrer', window.location.pathname);
-                            }}
-                          >
-                            <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
-                              {opportunity.title}
-                            </span>
-                          </Link>
+                          <div className="flex items-center gap-2">
+                            <Link 
+                              href={`/lists/opportunities/${opportunity.id}`}
+                              onClick={() => {
+                                // Store the current partner detail page as the referrer for smart back navigation
+                                sessionStorage.setItem('opportunityReferrer', window.location.pathname);
+                              }}
+                            >
+                              <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
+                                {opportunity.title}
+                              </span>
+                            </Link>
+                            {/* Assessment Badge */}
+                            {opportunity.assessmentStatus === 'withheld' && (
+                              <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full">
+                                Withheld
+                              </span>
+                            )}
+                            {opportunity.assessmentStatus === 'accepted' && (
+                              <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                                Accept
+                              </span>
+                            )}
+                          </div>
                         </TableCell>
                       )}
                       {opportunityVisibleFields.customer && (
@@ -3106,9 +3213,25 @@ export default function PartnerDetail() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            <DropdownMenuItem onClick={() => handleOpportunityComment(opportunity)}>
+                            {/* Assessment Actions */}
+                            {opportunity.assessmentStatus !== 'accepted' && (
+                              <DropdownMenuItem onClick={() => handleAcceptOpportunity(opportunity)}>
+                                <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
+                                Accept
+                              </DropdownMenuItem>
+                            )}
+                            {opportunity.assessmentStatus !== 'withheld' && (
+                              <DropdownMenuItem onClick={() => handleWithholdOpportunity(opportunity)}>
+                                <XCircle className="mr-2 h-4 w-4 text-red-600" />
+                                Withhold
+                              </DropdownMenuItem>
+                            )}
+                            <DropdownMenuItem onClick={() => {
+                              setSelectedOpportunityForComment(opportunity);
+                              setIsOpportunityCommentDialogOpen(true);
+                            }}>
                               <MessageSquare className="mr-2 h-4 w-4" />
-                              Comment
+                              Comment & Notes
                             </DropdownMenuItem>
                             <DropdownMenuItem>
                               <Edit className="mr-2 h-4 w-4" />
@@ -6456,6 +6579,72 @@ export default function PartnerDetail() {
               className="bg-[#5567E5] hover:bg-[#4556D4] text-white h-8 px-4 rounded-lg font-medium shadow-sm"
             >
               {createCrossEntityCommentMutation.isPending ? "Adding..." : "Add comment"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Withhold Assessment Modal */}
+      <Dialog open={isWithholdModalOpen} onOpenChange={setIsWithholdModalOpen}>
+        <DialogContent className="max-w-md p-0 overflow-hidden rounded-xl bg-white shadow-xl">
+          <DialogHeader className="px-6 py-4 border-b border-gray-100">
+            <DialogTitle className="text-lg font-semibold text-[#282A3F] text-left">
+              Withhold Opportunity
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-600 text-left mt-1">
+              {selectedOpportunityForAssessment?.title}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="px-6 py-4 space-y-4">
+            {/* Withhold Reasons */}
+            <div>
+              <Label className="text-sm font-medium text-[#282A3F] mb-3 block">
+                Reason for withholding *
+              </Label>
+              <div className="space-y-2">
+                {withholdReasonsData?.map((reason: string) => (
+                  <label key={reason} className="flex items-center space-x-2 cursor-pointer">
+                    <Checkbox
+                      checked={withholdReasons.includes(reason)}
+                      onCheckedChange={() => handleWithholdReasonToggle(reason)}
+                      className="data-[state=checked]:bg-[#5567E5] data-[state=checked]:border-[#5567E5]"
+                    />
+                    <span className="text-sm text-[#282A3F]">{reason}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            {/* Comments */}
+            <div>
+              <Label htmlFor="withhold-comments" className="text-sm font-medium text-[#282A3F] mb-2 block">
+                Additional comments
+              </Label>
+              <Textarea
+                id="withhold-comments"
+                placeholder="Add any additional context or details..."
+                value={withholdComments}
+                onChange={(e) => setWithholdComments(e.target.value)}
+                className="min-h-[80px] border-gray-200 focus:border-[#5567E5] focus:ring-[#5567E5] resize-none rounded-lg text-[#282A3F] placeholder:text-[#888AA6]"
+              />
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50 border-t border-gray-100">
+            <Button 
+              variant="ghost" 
+              onClick={() => setIsWithholdModalOpen(false)}
+              className="text-gray-600 hover:text-[#282A3F] hover:bg-gray-100 h-8"
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleWithholdSubmit}
+              disabled={withholdReasons.length === 0 || updateAssessmentMutation.isPending}
+              className="bg-red-600 hover:bg-red-700 text-white h-8 px-4 rounded-lg font-medium shadow-sm"
+            >
+              {updateAssessmentMutation.isPending ? "Withholding..." : "Withhold opportunity"}
             </Button>
           </div>
         </DialogContent>

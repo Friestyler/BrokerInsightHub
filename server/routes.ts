@@ -32,6 +32,10 @@ import {
   insertProductTemplateSchema,
   activityReactions,
   insertActivityReactionSchema,
+  opportunityWithholdReasons,
+  opportunityAssessmentHistory,
+  insertOpportunityWithholdReasonSchema,
+  insertOpportunityAssessmentHistorySchema,
   type ProductCategory,
   type Product,
   type ProductTemplate,
@@ -2331,6 +2335,113 @@ Prioritize actions that:
     } catch (error) {
       console.error('Error bulk updating opportunity status:', error);
       res.status(500).json({ message: 'Failed to update opportunity status' });
+    }
+  });
+
+  // Get withhold reasons for opportunity assessment
+  app.get('/api/:envId/opportunity-withhold-reasons', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const envDb = getEnvironmentDb(envId);
+      
+      const reasons = await envDb.select().from(opportunityWithholdReasons)
+        .where(eq(opportunityWithholdReasons.isActive, true))
+        .orderBy(opportunityWithholdReasons.sortOrder);
+      
+      res.json(reasons);
+    } catch (error) {
+      console.error('Error fetching withhold reasons:', error);
+      res.status(500).json({ error: 'Failed to fetch withhold reasons' });
+    }
+  });
+
+  // Update opportunity assessment (accept/withhold)
+  app.put('/api/:envId/opportunities/:id/assessment', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const opportunityId = parseInt(req.params.id);
+      const { assessmentStatus, withholdReasons, withholdComments, assessmentNotes, assessedById } = req.body;
+      
+      const envDb = getEnvironmentDb(envId);
+      
+      // Get current assessment status for history tracking
+      const currentOpportunity = await envDb.select({
+        id: opportunities.id,
+        assessmentStatus: opportunities.assessmentStatus
+      }).from(opportunities)
+        .where(eq(opportunities.id, opportunityId))
+        .limit(1);
+      
+      if (currentOpportunity.length === 0) {
+        return res.status(404).json({ error: 'Opportunity not found' });
+      }
+      
+      const previousStatus = currentOpportunity[0].assessmentStatus;
+      
+      // Update opportunity assessment
+      const updatedOpportunity = await envDb.update(opportunities)
+        .set({
+          assessmentStatus,
+          assessmentDate: new Date(),
+          assessedById,
+          withholdReasons: withholdReasons || [],
+          withholdComments,
+          assessmentNotes,
+          // Increment interaction count for comments/assessments
+          interactionCount: sql`COALESCE(interaction_count, 0) + 1`
+        })
+        .where(eq(opportunities.id, opportunityId))
+        .returning();
+      
+      // Create assessment history record
+      await envDb.insert(opportunityAssessmentHistory).values({
+        opportunityId,
+        previousStatus,
+        newStatus: assessmentStatus,
+        changedById: assessedById,
+        reasons: withholdReasons || [],
+        comments: assessmentStatus === 'withheld' ? withholdComments : assessmentNotes
+      });
+      
+      // Clear cache for this opportunity
+      clearCache();
+      
+      res.json({
+        success: true,
+        opportunity: updatedOpportunity[0],
+        message: `Opportunity ${assessmentStatus} successfully`
+      });
+    } catch (error) {
+      console.error('Error updating opportunity assessment:', error);
+      res.status(500).json({ error: 'Failed to update opportunity assessment' });
+    }
+  });
+
+  // Get opportunity assessment history
+  app.get('/api/:envId/opportunities/:id/assessment-history', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const opportunityId = parseInt(req.params.id);
+      const envDb = getEnvironmentDb(envId);
+      
+      const history = await envDb.select({
+        id: opportunityAssessmentHistory.id,
+        previousStatus: opportunityAssessmentHistory.previousStatus,
+        newStatus: opportunityAssessmentHistory.newStatus,
+        reasons: opportunityAssessmentHistory.reasons,
+        comments: opportunityAssessmentHistory.comments,
+        changedAt: opportunityAssessmentHistory.changedAt,
+        changedByName: sql`u.full_name`,
+        changedByInitials: sql`u.avatar_initials`
+      }).from(opportunityAssessmentHistory)
+        .leftJoin(sql`degoudse.users u`, eq(opportunityAssessmentHistory.changedById, sql`u.id`))
+        .where(eq(opportunityAssessmentHistory.opportunityId, opportunityId))
+        .orderBy(sql`${opportunityAssessmentHistory.changedAt} DESC`);
+      
+      res.json(history);
+    } catch (error) {
+      console.error('Error fetching assessment history:', error);
+      res.status(500).json({ error: 'Failed to fetch assessment history' });
     }
   });
 
