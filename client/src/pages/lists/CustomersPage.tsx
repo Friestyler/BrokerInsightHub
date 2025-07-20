@@ -5,6 +5,16 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle
+} from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Search, 
@@ -17,7 +27,8 @@ import {
   LayoutGrid,
   List,
   MessageSquare,
-  Target
+  Target,
+  Users
 } from 'lucide-react';
 import EntityAvatar from '@/components/EntityAvatar';
 import { useToast } from '@/hooks/use-toast';
@@ -837,109 +848,244 @@ export default function CustomersPage() {
       )}
 
       {/* Add to List Modal */}
-      {showAddToListModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96">
-            <h3 className="text-lg font-medium mb-4">Add to List</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Add {selectedCustomers.length} selected customer{selectedCustomers.length !== 1 ? 's' : ''} to a list
-            </p>
-            <div className="space-y-2 mb-4">
-              <Button variant="outline" className="w-full justify-start">
-                Create new list
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                High-Value Prospects (5 customers)
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                Retirement Prospects (8 customers)
-              </Button>
+      <Dialog open={showAddToListModal} onOpenChange={setShowAddToListModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add to list</DialogTitle>
+            <DialogDescription>
+              Add selected customers to an existing list or create a new one.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="existing-list"
+                  name="list-option"
+                  value="existing"
+                  className="h-4 w-4 text-blue-600"
+                />
+                <label htmlFor="existing-list" className="text-sm font-medium">
+                  Add to existing list
+                </label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="new-list"
+                  name="list-option"
+                  value="new"
+                  defaultChecked
+                  className="h-4 w-4 text-blue-600"
+                />
+                <label htmlFor="new-list" className="text-sm font-medium">
+                  Create new list
+                </label>
+              </div>
             </div>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setShowAddToListModal(false)}>
-                Cancel
-              </Button>
-              <Button onClick={() => {
-                toast({ title: "Success", description: "Customers added to list successfully" });
-                setShowAddToListModal(false);
-                setSelectedCustomers([]);
-              }}>
-                Add to List
-              </Button>
+            
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="list-name">List Name</Label>
+                <Input
+                  id="list-name"
+                  placeholder="Enter a name for this list"
+                  className="mt-1"
+                />
+                <p className="text-xs text-gray-500 mt-1">Maximum 50 characters</p>
+              </div>
+              
+              <div>
+                <Label htmlFor="list-description">Description (Optional)</Label>
+                <Textarea
+                  id="list-description"
+                  placeholder="Add a short description for this list"
+                  className="mt-1 resize-none"
+                  rows={3}
+                />
+                <p className="text-xs text-gray-500 mt-1">Maximum 200 characters</p>
+              </div>
+            </div>
+            
+            <div className="bg-blue-50 p-3 rounded-md">
+              <p className="text-sm text-blue-800">
+                {selectedCustomers.length} customer{selectedCustomers.length !== 1 ? 's' : ''} will be added to this list.
+              </p>
             </div>
           </div>
-        </div>
-      )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddToListModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              toast({ title: "Success", description: "Customers added to list successfully" });
+              setShowAddToListModal(false);
+              setSelectedCustomers([]);
+            }}>
+              Create List
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Add to Campaign Modal */}
-      {showAddToCampaignModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96">
-            <h3 className="text-lg font-medium mb-4">Add to Campaign</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Add {selectedCustomers.length} selected customer{selectedCustomers.length !== 1 ? 's' : ''} to a campaign
-            </p>
-            <div className="space-y-2 mb-4">
-              <Button variant="outline" className="w-full justify-start">
-                Summer Insurance Campaign
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                Cyber Security Awareness
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                Create new campaign
-              </Button>
+      <Dialog open={showAddToCampaignModal} onOpenChange={setShowAddToCampaignModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add to Campaign</DialogTitle>
+            <DialogDescription>
+              Add selected customers to an existing campaign or create a new one.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="existing-campaign"
+                  name="campaign-option"
+                  value="existing"
+                  defaultChecked
+                  className="h-4 w-4 text-blue-600"
+                />
+                <label htmlFor="existing-campaign" className="text-sm font-medium">
+                  Add to existing campaign
+                </label>
+              </div>
+              <div className="space-y-2 ml-6">
+                <Button variant="outline" className="w-full justify-start text-left">
+                  Summer Insurance Campaign
+                </Button>
+                <Button variant="outline" className="w-full justify-start text-left">
+                  Cyber Security Awareness
+                </Button>
+                <Button variant="outline" className="w-full justify-start text-left">
+                  Customer Retention Drive
+                </Button>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="new-campaign"
+                  name="campaign-option"
+                  value="new"
+                  className="h-4 w-4 text-blue-600"
+                />
+                <label htmlFor="new-campaign" className="text-sm font-medium">
+                  Create new campaign
+                </label>
+              </div>
             </div>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setShowAddToCampaignModal(false)}>
-                Cancel
-              </Button>
-              <Button onClick={() => {
-                toast({ title: "Success", description: "Customers added to campaign successfully" });
-                setShowAddToCampaignModal(false);
-                setSelectedCustomers([]);
-              }}>
-                Add to Campaign
-              </Button>
+            
+            <div className="bg-blue-50 p-3 rounded-md">
+              <p className="text-sm text-blue-800">
+                {selectedCustomers.length} customer{selectedCustomers.length !== 1 ? 's' : ''} will be added to this campaign.
+              </p>
             </div>
           </div>
-        </div>
-      )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAddToCampaignModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              toast({ title: "Success", description: "Customers added to campaign successfully" });
+              setShowAddToCampaignModal(false);
+              setSelectedCustomers([]);
+            }}>
+              Add to Campaign
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* Assign Template Modal */}
-      {showAssignTemplateModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96">
-            <h3 className="text-lg font-medium mb-4">Assign Template</h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Assign OKR template to {selectedCustomers.length} selected customer{selectedCustomers.length !== 1 ? 's' : ''}
-            </p>
-            <div className="space-y-2 mb-4">
-              <Button variant="outline" className="w-full justify-start">
-                Q1 Customer Growth Template
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                Customer Retention Template
-              </Button>
-              <Button variant="outline" className="w-full justify-start">
-                Cross-sell Template
-              </Button>
+      <Dialog open={showAssignTemplateModal} onOpenChange={setShowAssignTemplateModal}>
+        <DialogContent className="sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Assign OKR Templates</DialogTitle>
+            <DialogDescription>
+              Select OKR templates to assign to {selectedCustomers.length} selected customer{selectedCustomers.length !== 1 ? 's' : ''}. Templates will be converted to active OKRs with tracking capabilities.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="bg-blue-50 p-3 rounded-md">
+              <div className="flex items-center space-x-2">
+                <Users className="h-4 w-4 text-blue-600" />
+                <span className="text-sm font-medium text-blue-800">
+                  {selectedCustomers.length} Customer{selectedCustomers.length !== 1 ? 's' : ''} Selected
+                </span>
+              </div>
+              <p className="text-xs text-blue-600 mt-1">
+                Amazon CS Motors, Baloise Verzekeringen, GMB Metaal, and {selectedCustomers.length - 3} more...
+              </p>
             </div>
-            <div className="flex justify-end space-x-2">
-              <Button variant="outline" onClick={() => setShowAssignTemplateModal(false)}>
-                Cancel
-              </Button>
-              <Button onClick={() => {
-                toast({ title: "Success", description: "Template assigned successfully" });
-                setShowAssignTemplateModal(false);
-                setSelectedCustomers([]);
-              }}>
-                Assign Template
-              </Button>
+            
+            <div>
+              <div className="flex items-center justify-between mb-3">
+                <h4 className="font-medium">Available OKR Templates</h4>
+                <span className="text-sm text-gray-500">0 of 14 selected</span>
+              </div>
+              
+              <div className="border rounded-lg p-3 mb-3">
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="select-all" />
+                  <Label htmlFor="select-all" className="font-medium">
+                    Select All Templates
+                  </Label>
+                </div>
+              </div>
+              
+              <div className="space-y-3 max-h-60 overflow-y-auto">
+                <div>
+                  <Badge variant="secondary" className="mb-2">Customer Growth (1)</Badge>
+                  <div className="border rounded-lg p-3">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Checkbox id="customer-acquisition" />
+                      <div className="flex-1">
+                        <Label htmlFor="customer-acquisition" className="font-medium">Customer Acquisition Rate</Label>
+                        <Badge variant="outline" className="ml-2 text-xs">activity</Badge>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600 ml-6">Monthly new customer acquisition target</p>
+                    <p className="text-xs text-gray-500 ml-6">🎯 150 none</p>
+                  </div>
+                </div>
+                
+                <div>
+                  <Badge variant="secondary" className="mb-2 bg-purple-100 text-purple-800">Customer Retention (1)</Badge>
+                  <div className="border rounded-lg p-3">
+                    <div className="flex items-center space-x-2 mb-2">
+                      <Checkbox id="retention-rate" />
+                      <div className="flex-1">
+                        <Label htmlFor="retention-rate" className="font-medium">Customer Lifetime Value</Label>
+                        <Badge variant="outline" className="ml-2 text-xs">activity</Badge>
+                      </div>
+                    </div>
+                    <p className="text-sm text-gray-600 ml-6">Average customer lifetime value growth</p>
+                    <p className="text-xs text-gray-500 ml-6">💰 €2,500 none</p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowAssignTemplateModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              toast({ title: "Success", description: "Templates assigned successfully" });
+              setShowAssignTemplateModal(false);
+              setSelectedCustomers([]);
+            }}>
+              Assign 0 Templates
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
