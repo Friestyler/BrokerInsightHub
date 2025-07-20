@@ -6623,14 +6623,14 @@ export default function PartnerDetail() {
                 Reason for withholding *
               </Label>
               <div className="space-y-2">
-                {withholdReasonsData?.map((reason: string) => (
-                  <label key={reason} className="flex items-center space-x-2 cursor-pointer">
+                {withholdReasonsData?.map((reason: any) => (
+                  <label key={reason.id || reason.displayName || reason} className="flex items-center space-x-2 cursor-pointer">
                     <Checkbox
-                      checked={withholdReasons.includes(reason)}
-                      onCheckedChange={() => handleWithholdReasonToggle(reason)}
+                      checked={withholdReasons.includes(reason.displayName || reason)}
+                      onCheckedChange={() => handleWithholdReasonToggle(reason.displayName || reason)}
                       className="data-[state=checked]:bg-[#5567E5] data-[state=checked]:border-[#5567E5]"
                     />
-                    <span className="text-sm text-[#282A3F]">{reason}</span>
+                    <span className="text-sm text-[#282A3F]">{reason.displayName || reason}</span>
                   </label>
                 ))}
               </div>
