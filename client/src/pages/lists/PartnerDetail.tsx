@@ -2246,9 +2246,10 @@ export default function PartnerDetail() {
                   }`}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <rect width="18" height="18" x="3" y="3" rx="2"/>
-                    <path d="M9 3v18"/>
-                    <path d="m16 15-3-3 3-3"/>
+                    <rect width="18" height="7" x="3" y="3" rx="1"/>
+                    <rect width="9" height="7" x="3" y="14" rx="1"/>
+                    <rect width="5" height="7" x="16" y="14" rx="1"/>
+                    <circle cx="18" cy="6" r="1"/>
                   </svg>
                   Fields
                   <span className="text-xs text-gray-500">
