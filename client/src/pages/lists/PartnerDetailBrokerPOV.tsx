@@ -920,13 +920,15 @@ export default function PartnerDetailBrokerPOV() {
       });
     },
     onSuccess: (data, variables) => {
-      // Invalidate opportunity queries to refresh data immediately - copied from PartnerDetail.tsx
-      queryClient.invalidateQueries({ queryKey: [`/api/partners/${partnerId}/opportunities`] });
+      // CRITICAL FIX: Invalidate the EXACT query keys used by broker view
+      queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/opportunities`, activeOpportunitiesList?.id] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/opportunities`] });
       queryClient.invalidateQueries({ queryKey: ['/api/opportunities'] });
       queryClient.invalidateQueries({ queryKey: [`/api/opportunities/${variables.opportunityId}/comments`] });
       
-      // Force refetch to ensure immediate UI update - copied from PartnerDetail.tsx
-      queryClient.refetchQueries({ queryKey: [`/api/partners/${partnerId}/opportunities`] });
+      // CRITICAL FIX: Force refetch the EXACT queries used by broker view 
+      queryClient.refetchQueries({ queryKey: [`/api/${actualCurrentEnvironment}/opportunities`, activeOpportunitiesList?.id] });
+      queryClient.refetchQueries({ queryKey: [`/api/${actualCurrentEnvironment}/opportunities`] });
       queryClient.refetchQueries({ queryKey: ['/api/opportunities'] });
       
       toast({
@@ -934,7 +936,7 @@ export default function PartnerDetailBrokerPOV() {
         description: `Opportunity ${variables.assessmentStatus} successfully`,
       });
       
-      // Close modals and reset state - copied from PartnerDetail.tsx
+      // Close modals and reset state
       setWithholdDialogOpen(false);
       setSelectedOpportunityForWithhold(null);
       setWithholdReasons([]);
