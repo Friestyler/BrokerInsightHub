@@ -3085,6 +3085,8 @@ export default function PartnerDetail() {
                     {opportunityVisibleFields.stage && <TableHead className="w-[180px]">Stage</TableHead>}
                     {opportunityVisibleFields.value && <TableHead>Value</TableHead>}
                     {opportunityVisibleFields.lastActivity && <TableHead>Close Date</TableHead>}
+                    <TableHead className="w-[200px]">Assessment</TableHead>
+                    <TableHead className="w-[80px]">Comments</TableHead>
                     <TableHead className="w-12">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -3115,17 +3117,6 @@ export default function PartnerDetail() {
                                 {opportunity.title}
                               </span>
                             </Link>
-                            {/* Assessment Badge */}
-                            {opportunity.assessmentStatus === 'withheld' && (
-                              <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full">
-                                Withheld
-                              </span>
-                            )}
-                            {opportunity.assessmentStatus === 'accepted' && (
-                              <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
-                                Accept
-                              </span>
-                            )}
                           </div>
                         </TableCell>
                       )}
@@ -3205,6 +3196,55 @@ export default function PartnerDetail() {
                           {opportunity.expected_close_date ? new Date(opportunity.expected_close_date).toLocaleDateString() : 'Not set'}
                         </TableCell>
                       )}
+                      {/* Assessment Column */}
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          {opportunity.assessmentStatus === 'withheld' ? (
+                            <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full">
+                              Withheld
+                            </span>
+                          ) : opportunity.assessmentStatus === 'accepted' ? (
+                            <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                              Accepted
+                            </span>
+                          ) : (
+                            <div className="flex gap-1">
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 px-2 text-xs bg-green-50 hover:bg-green-100 border-green-200 text-green-700"
+                                onClick={() => handleAcceptOpportunity(opportunity)}
+                              >
+                                <CheckCircle className="w-3 h-3 mr-1" />
+                                Accept
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="h-7 px-2 text-xs bg-red-50 hover:bg-red-100 border-red-200 text-red-700"
+                                onClick={() => handleWithholdOpportunity(opportunity)}
+                              >
+                                <XCircle className="w-3 h-3 mr-1" />
+                                Withhold
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      </TableCell>
+                      {/* Comments Column */}
+                      <TableCell>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-7 w-7 p-0 hover:bg-gray-100"
+                          onClick={() => {
+                            setSelectedOpportunityForComment(opportunity);
+                            setIsOpportunityCommentDialogOpen(true);
+                          }}
+                        >
+                          <MessageSquare className="w-4 h-4 text-gray-500" />
+                        </Button>
+                      </TableCell>
                       <TableCell>
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -3213,26 +3253,6 @@ export default function PartnerDetail() {
                             </Button>
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
-                            {/* Assessment Actions */}
-                            {opportunity.assessmentStatus !== 'accepted' && (
-                              <DropdownMenuItem onClick={() => handleAcceptOpportunity(opportunity)}>
-                                <CheckCircle className="mr-2 h-4 w-4 text-green-600" />
-                                Accept
-                              </DropdownMenuItem>
-                            )}
-                            {opportunity.assessmentStatus !== 'withheld' && (
-                              <DropdownMenuItem onClick={() => handleWithholdOpportunity(opportunity)}>
-                                <XCircle className="mr-2 h-4 w-4 text-red-600" />
-                                Withhold
-                              </DropdownMenuItem>
-                            )}
-                            <DropdownMenuItem onClick={() => {
-                              setSelectedOpportunityForComment(opportunity);
-                              setIsOpportunityCommentDialogOpen(true);
-                            }}>
-                              <MessageSquare className="mr-2 h-4 w-4" />
-                              Comment & Notes
-                            </DropdownMenuItem>
                             <DropdownMenuItem>
                               <Edit className="mr-2 h-4 w-4" />
                               Edit
