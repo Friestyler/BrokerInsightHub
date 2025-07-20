@@ -75,11 +75,10 @@ export function FieldsSelector({
             strokeLinejoin="round" 
             className="mr-2"
           >
-            <rect width="3" height="8" x="2" y="6" rx="1"/>
-            <rect width="3" height="8" x="6" y="6" rx="1"/>
-            <rect width="3" height="8" x="10" y="6" rx="1"/>
-            <rect width="3" height="8" x="14" y="6" rx="1"/>
-            <rect width="3" height="8" x="18" y="6" rx="1"/>
+            <rect width="6" height="14" x="3" y="5" rx="1"/>
+            <rect width="6" height="10" x="9" y="7" rx="1"/>
+            <rect width="6" height="14" x="15" y="5" rx="1"/>
+            <path d="m5 2 2 2-2 2"/>
           </svg>
           Fields
           <span className="ml-1 text-xs text-gray-500">({visibleCount}/{totalCount})</span>
