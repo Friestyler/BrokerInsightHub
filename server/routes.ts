@@ -2434,6 +2434,110 @@ Prioritize actions that:
     }
   });
 
+  // Get all comments and notes for an opportunity
+  app.get('/api/:envId/opportunities/:id/comments', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const opportunityId = parseInt(req.params.id);
+      
+      if (!opportunityId || isNaN(opportunityId)) {
+        return res.status(400).json({ error: 'Invalid opportunity ID' });
+      }
+      
+      const envPool = getEnvironmentPool(envId);
+      
+      // Get opportunity details for context
+      const opportunityResult = await envPool.query(`
+        SELECT o.title, c.name as customer_name 
+        FROM ${envId}.opportunities o
+        LEFT JOIN ${envId}.customers c ON o.client_id = c.id
+        WHERE o.id = $1
+      `, [opportunityId]);
+      
+      if (opportunityResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Opportunity not found' });
+      }
+      
+      const opportunity = opportunityResult.rows[0];
+      
+      // Get all activity comments for this opportunity
+      const commentsResult = await envPool.query(`
+        SELECT 
+          ac.id,
+          ac.content,
+          ac.created_at,
+          ac.updated_at,
+          ac.user_id,
+          u.name as author_name,
+          LEFT(u.name, 1) as author_initials,
+          CASE 
+            WHEN ac.content LIKE 'Opportunity withheld%' THEN 'withhold'
+            WHEN ac.content LIKE 'Opportunity accepted%' THEN 'accept'
+            ELSE 'comment'
+          END as comment_type
+        FROM ${envId}.activity_comments ac
+        LEFT JOIN ${envId}.users u ON ac.user_id = u.id
+        WHERE ac.entity_type = 'opportunity' AND ac.entity_id = $1
+        ORDER BY ac.created_at DESC
+      `, [opportunityId]);
+      
+      // Get assessment history from opportunity record
+      const assessmentResult = await envPool.query(`
+        SELECT 
+          assessment_status,
+          assessment_date,
+          assessed_by_id,
+          withhold_reasons,
+          withhold_comments,
+          assessment_notes,
+          u.name as assessed_by_name,
+          LEFT(u.name, 1) as assessed_by_initials
+        FROM ${envId}.opportunities o
+        LEFT JOIN ${envId}.users u ON o.assessed_by_id = u.id
+        WHERE o.id = $1 AND o.assessment_status IS NOT NULL
+      `, [opportunityId]);
+      
+      const comments = commentsResult.rows.map(row => ({
+        id: row.id,
+        content: row.content,
+        type: row.comment_type,
+        authorName: row.author_name || 'Unknown User',
+        authorInitials: row.avatar_initials || 'U',
+        createdAt: row.created_at,
+        updatedAt: row.updated_at
+      }));
+      
+      let currentAssessment = null;
+      if (assessmentResult.rows.length > 0) {
+        const assessment = assessmentResult.rows[0];
+        currentAssessment = {
+          status: assessment.assessment_status,
+          date: assessment.assessment_date,
+          assessedBy: assessment.assessed_by_name || 'Unknown User',
+          assessedByInitials: assessment.assessed_by_initials || 'U',
+          withholdReasons: assessment.withhold_reasons || [],
+          withholdComments: assessment.withhold_comments,
+          assessmentNotes: assessment.assessment_notes
+        };
+      }
+      
+      res.json({
+        opportunity: {
+          id: opportunityId,
+          title: opportunity.title,
+          customerName: opportunity.customer_name
+        },
+        comments,
+        currentAssessment,
+        totalComments: comments.length
+      });
+      
+    } catch (error) {
+      console.error('Error fetching opportunity comments:', error);
+      res.status(500).json({ error: 'Failed to fetch opportunity comments' });
+    }
+  });
+
   // Get opportunity assessment history
   app.get('/api/:envId/opportunities/:id/assessment-history', async (req, res) => {
     try {

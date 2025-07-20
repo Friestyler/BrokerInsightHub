@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Copy, Users, Trash2, MoreHorizontal, MoreVertical, MessageSquare, ArrowLeft, Plus, Mail, Calendar, Clock, Play, Pause, AlertCircle, CheckCircle, Eye, Edit, Filter, Package, Target, Crown, Bot, ChevronDown, ChevronRight, Share2, X, Bookmark, Columns3, XCircle } from "lucide-react";
+import { Search, Copy, Users, Trash2, MoreHorizontal, MoreVertical, MessageSquare, ArrowLeft, Plus, Mail, Calendar, Clock, Play, Pause, AlertCircle, CheckCircle, Eye, Edit, Filter, Package, Target, Crown, Bot, ChevronDown, ChevronRight, Share2, X, Bookmark, Columns3, XCircle, Send, MessageCircle, AlertTriangle } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
@@ -95,6 +95,8 @@ export default function PartnerDetail() {
   const [customerComment, setCustomerComment] = useState("");
   const [opportunityComment, setOpportunityComment] = useState("");
   const [isOpportunityModalOpen, setIsOpportunityModalOpen] = useState(false);
+  const [isCommentsHistoryDialogOpen, setIsCommentsHistoryDialogOpen] = useState(false);
+  const [selectedOpportunityForHistory, setSelectedOpportunityForHistory] = useState<any>(null);
 
   // Assessment state
   const [isWithholdModalOpen, setIsWithholdModalOpen] = useState(false);
@@ -895,6 +897,11 @@ export default function PartnerDetail() {
       queryClient.invalidateQueries({ queryKey: [`/api/degoudse/partners/${id}/timeline`] });
       queryClient.invalidateQueries({ queryKey: ['/api/degoudse/unified-activities'] });
       
+      // Invalidate comments history query for refresh
+      if (selectedOpportunityForHistory?.id) {
+        queryClient.invalidateQueries({ queryKey: [`/api/opportunities/${selectedOpportunityForHistory.id}/comments`] });
+      }
+      
       toast({
         title: "Comment added",
         description: "Your comment has been added to the Activity Hub.",
@@ -918,6 +925,14 @@ export default function PartnerDetail() {
     }
   });
 
+  // Fetch comments history for an opportunity
+  const { data: commentsHistoryData, refetch: refetchCommentsHistory } = useQuery({
+    queryKey: [`/api/opportunities/${selectedOpportunityForHistory?.id}/comments`],
+    enabled: !!selectedOpportunityForHistory?.id && isCommentsHistoryDialogOpen,
+    staleTime: 0, // Always fetch fresh data
+    cacheTime: 0, // Don't cache
+  });
+
   // Comment handler functions
   const handleCustomerComment = (customer: any) => {
     setSelectedCustomerForComment(customer);
@@ -925,8 +940,8 @@ export default function PartnerDetail() {
   };
 
   const handleOpportunityComment = (opportunity: any) => {
-    setSelectedOpportunityForComment(opportunity);
-    setIsOpportunityCommentDialogOpen(true);
+    setSelectedOpportunityForHistory(opportunity);
+    setIsCommentsHistoryDialogOpen(true);
   };
 
   const handleSubmitCustomerComment = () => {
@@ -6539,51 +6554,189 @@ export default function PartnerDetail() {
         </DialogContent>
       </Dialog>
 
-      {/* Opportunity Comment Dialog */}
-      <Dialog open={isOpportunityCommentDialogOpen} onOpenChange={setIsOpportunityCommentDialogOpen}>
-        <DialogContent className="sm:max-w-lg bg-white border-0 shadow-xl rounded-2xl p-0 overflow-hidden">
-          <div className="p-6 pb-4">
-            <DialogHeader className="space-y-3 pb-0">
-              <DialogTitle className="text-xl font-semibold text-[#282A3F] leading-tight">
-                Add Comment
-              </DialogTitle>
+      {/* Comments History Dialog */}
+      <Dialog open={isCommentsHistoryDialogOpen} onOpenChange={setIsCommentsHistoryDialogOpen}>
+        <DialogContent className="max-w-2xl bg-white border-0 shadow-xl rounded-2xl p-0 overflow-hidden h-[600px] flex flex-col">
+          <div className="p-6 pb-4 border-b border-gray-100">
+            <DialogHeader className="space-y-2 pb-0">
+              <div className="flex items-center justify-between">
+                <DialogTitle className="text-xl font-semibold text-[#282A3F] leading-tight">
+                  Comments & Notes: {commentsHistoryData?.opportunity?.customerName || 'Customer'}
+                </DialogTitle>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setIsCommentsHistoryDialogOpen(false)}
+                  className="text-gray-400 hover:text-gray-600 h-8 w-8 p-0"
+                >
+                  ×
+                </Button>
+              </div>
               <DialogDescription className="text-sm text-gray-600 leading-relaxed">
-                Add a comment for <span className="font-medium text-[#282A3F]">{selectedOpportunityForComment?.title}</span>. This will appear in both activity feeds.
+                All comments, notes, and withhold reasons for this customer
               </DialogDescription>
             </DialogHeader>
           </div>
           
-          <div className="px-6 pb-6">
-            <div className="space-y-1">
-              <Label htmlFor="opportunity-comment" className="text-sm font-medium text-[#282A3F]">
-                Comment
-              </Label>
-              <Textarea
-                id="opportunity-comment"
-                placeholder="What would you like to share about this opportunity?"
-                value={opportunityComment}
-                onChange={(e) => setOpportunityComment(e.target.value)}
-                className="min-h-[100px] border-gray-200 focus:border-[#5567E5] focus:ring-[#5567E5] resize-none rounded-lg text-[#282A3F] placeholder:text-[#888AA6]"
-                autoFocus
-              />
+          <div className="flex-1 overflow-hidden flex flex-col">
+            {/* Header with opportunity info and count */}
+            <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-medium">
+                      {commentsHistoryData?.opportunity?.title?.charAt(0) || 'O'}
+                    </span>
+                  </div>
+                  <div>
+                    <div className="font-medium text-[#282A3F]">
+                      {commentsHistoryData?.opportunity?.title}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {commentsHistoryData?.totalComments || 0} comments
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" className="text-gray-600 h-8">
+                    <Eye className="w-4 h-4 mr-1" />
+                    Hide Private
+                  </Button>
+                  <Button variant="ghost" size="sm" className="text-gray-600 h-8">
+                    ⋯
+                  </Button>
+                </div>
+              </div>
             </div>
-          </div>
-          
-          <div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50 border-t border-gray-100">
-            <Button 
-              variant="ghost" 
-              onClick={() => setIsOpportunityCommentDialogOpen(false)}
-              className="text-gray-600 hover:text-[#282A3F] hover:bg-gray-100 h-8"
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleSubmitOpportunityComment}
-              disabled={!opportunityComment.trim() || createCrossEntityCommentMutation.isPending}
-              className="bg-[#5567E5] hover:bg-[#4556D4] text-white h-8 px-4 rounded-lg font-medium shadow-sm"
-            >
-              {createCrossEntityCommentMutation.isPending ? "Adding..." : "Add comment"}
-            </Button>
+
+            {/* Add comment section */}
+            <div className="px-6 py-4 border-b border-gray-100">
+              <div className="space-y-3">
+                <Textarea
+                  placeholder="Add a comment or note..."
+                  value={opportunityComment}
+                  onChange={(e) => setOpportunityComment(e.target.value)}
+                  className="min-h-[80px] border-gray-200 focus:border-[#5567E5] focus:ring-[#5567E5] resize-none rounded-lg text-[#282A3F] placeholder:text-[#888AA6]"
+                />
+                <div className="flex items-center justify-between">
+                  <div className="text-xs text-gray-500">
+                    Tip: Use @mention to notify team members
+                  </div>
+                  <Button 
+                    onClick={() => {
+                      if (!opportunityComment.trim() || !selectedOpportunityForHistory) return;
+                      
+                      createCrossEntityCommentMutation.mutate({
+                        entityType: 'opportunity',
+                        entityId: selectedOpportunityForHistory.id,
+                        comment: opportunityComment,
+                        entityName: selectedOpportunityForHistory.title
+                      });
+                      
+                      // Clear comment field after submission
+                      setOpportunityComment("");
+                      
+                      // Refresh comments after adding
+                      setTimeout(() => {
+                        refetchCommentsHistory();
+                      }, 500);
+                    }}
+                    disabled={!opportunityComment.trim() || createCrossEntityCommentMutation.isPending}
+                    className="bg-[#5567E5] hover:bg-[#4556D4] text-white h-8 px-4 rounded-lg font-medium shadow-sm"
+                  >
+                    <Send className="w-4 h-4 mr-1" />
+                    {createCrossEntityCommentMutation.isPending ? "Adding..." : "Comment"}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Comments timeline */}
+            <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">
+              {commentsHistoryData?.comments?.length > 0 ? (
+                commentsHistoryData.comments.map((comment: any, index: number) => (
+                  <div key={comment.id || index} className="flex gap-3">
+                    <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-xs font-medium">
+                        {comment.authorInitials || 'CP'}
+                      </span>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium text-[#282A3F]">
+                          {comment.authorName || 'Current Partner'}
+                        </span>
+                        {comment.type === 'withhold' && (
+                          <span className="bg-red-100 text-red-800 text-xs px-2 py-1 rounded-full">
+                            Withhold Reason
+                          </span>
+                        )}
+                        {comment.type === 'accept' && (
+                          <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                            Accepted
+                          </span>
+                        )}
+                        <span className="text-xs text-gray-500">
+                          {new Date(comment.createdAt).toLocaleDateString('en-US', {
+                            month: 'numeric',
+                            day: 'numeric',
+                            year: 'numeric',
+                            hour: 'numeric',
+                            minute: '2-digit'
+                          })}
+                        </span>
+                      </div>
+                      
+                      {comment.type === 'withhold' && (
+                        <div className="bg-red-50 border border-red-200 rounded-lg p-3 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <AlertTriangle className="w-4 h-4 text-red-600" />
+                            <span className="font-medium text-red-800">Test</span>
+                          </div>
+                          <div className="bg-red-100 rounded-md p-2 space-y-1">
+                            <div className="text-sm">
+                              <span className="font-medium text-red-800">Opportunity:</span> 
+                              <span className="text-red-700 ml-1">{selectedOpportunityForHistory?.title}</span>
+                            </div>
+                            <div className="text-sm">
+                              <span className="font-medium text-red-800">Category:</span>
+                              <span className="text-red-700 ml-1">timing issues</span>
+                            </div>
+                            <div className="text-sm">
+                              <span className="font-medium text-red-800">Partner:</span>
+                              <span className="text-red-700 ml-1">Current Partner</span>
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {comment.type === 'comment' && (
+                        <div className="text-[#282A3F] text-sm leading-relaxed">
+                          {comment.content}
+                        </div>
+                      )}
+                      
+                      {comment.type === 'accept' && (
+                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+                          <div className="flex items-center gap-2 mb-2">
+                            <CheckCircle className="w-4 h-4 text-green-600" />
+                            <span className="font-medium text-green-800">Opportunity Accepted</span>
+                          </div>
+                          <div className="text-sm text-green-700">
+                            {comment.content.replace('Opportunity accepted. Notes: ', '')}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-8 text-gray-500">
+                  <MessageCircle className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <p>No comments yet</p>
+                  <p className="text-sm">Be the first to add a comment about this opportunity</p>
+                </div>
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
