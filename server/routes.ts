@@ -2412,12 +2412,12 @@ Prioritize actions that:
         : `Opportunity accepted${assessmentNotes ? `. Notes: ${assessmentNotes}` : ''}`;
       
       await envPool.query(`
-        INSERT INTO ${envId}.activities (
-          activity_type, content, visible_to_partner, 
-          entity_type, entity_id, author_id,
+        INSERT INTO ${envId}.activity_comments (
+          content, visible_to_partner, 
+          entity_type, entity_id, user_id,
           created_at, updated_at
-        ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
-      `, ['comment', commentContent, true, 'opportunity', opportunityId, assessedById || 4]);
+        ) VALUES ($1, $2, $3, $4, $5, NOW(), NOW())
+      `, [commentContent, true, 'opportunity', opportunityId, assessedById || 4]);
       
       // Clear cache for this opportunity
       clearCache();
