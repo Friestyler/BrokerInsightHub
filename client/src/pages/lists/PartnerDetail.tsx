@@ -841,9 +841,14 @@ export default function PartnerDetail() {
       });
     },
     onSuccess: (data, variables) => {
-      // Invalidate opportunity queries to refresh data
+      // Invalidate opportunity queries to refresh data immediately
       queryClient.invalidateQueries({ queryKey: [`/api/partners/${id}/opportunities`] });
       queryClient.invalidateQueries({ queryKey: ['/api/opportunities'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/opportunities/${variables.opportunityId}/comments`] });
+      
+      // Force refetch to ensure immediate UI update
+      queryClient.refetchQueries({ queryKey: [`/api/partners/${id}/opportunities`] });
+      queryClient.refetchQueries({ queryKey: ['/api/opportunities'] });
       
       toast({
         title: "Assessment updated",
@@ -3199,13 +3204,35 @@ export default function PartnerDetail() {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           {opportunity.assessmentStatus === 'withheld' ? (
-                            <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full">
-                              Withheld
-                            </span>
+                            <div className="flex items-center gap-1">
+                              <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full">
+                                Withheld
+                              </span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0 hover:bg-green-100 text-green-600"
+                                onClick={() => handleAcceptOpportunity(opportunity)}
+                                title="Change to Accept"
+                              >
+                                <CheckCircle className="w-3 h-3" />
+                              </Button>
+                            </div>
                           ) : opportunity.assessmentStatus === 'accepted' ? (
-                            <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
-                              Accepted
-                            </span>
+                            <div className="flex items-center gap-1">
+                              <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                                Accepted
+                              </span>
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 w-6 p-0 hover:bg-red-100 text-red-600"
+                                onClick={() => handleWithholdOpportunity(opportunity)}
+                                title="Change to Withhold"
+                              >
+                                <XCircle className="w-3 h-3" />
+                              </Button>
+                            </div>
                           ) : (
                             <div className="flex gap-1">
                               <Button
