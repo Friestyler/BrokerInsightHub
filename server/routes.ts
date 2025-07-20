@@ -6121,7 +6121,8 @@ Return as JSON in this exact format:
               if (members.length > 0) {
                 console.log(`Filtering to ${members.length} specific opportunities from list ${listId}`);
                 result = await envPool.query(`
-                  SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, 
+                  SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date,
+                         o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes,
                          c.name as customer_name,
                          p.name as partner_name,
                          pr.name as product_name,
@@ -6134,7 +6135,7 @@ Return as JSON in this exact format:
                   LEFT JOIN degoudse.users am ON o.owner_id = am.id
                   LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
                   WHERE o.id = ANY($1) AND o.id > 16
-                  GROUP BY o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, c.name, p.name, pr.name, am.name
+                  GROUP BY o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes, c.name, p.name, pr.name, am.name
                   ORDER BY o.id
                 `, [members]);
               } else {
@@ -6184,7 +6185,8 @@ Return as JSON in this exact format:
                 console.log(`Showing ${opportunityIdsArray.length} opportunities from ${sharedListsResult.rows.length} shared lists`);
                 
                 result = await envPool.query(`
-                  SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, 
+                  SELECT o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date,
+                         o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes,
                          c.name as customer_name,
                          p.name as partner_name,
                          pr.name as product_name,
@@ -6197,7 +6199,7 @@ Return as JSON in this exact format:
                   LEFT JOIN degoudse.users am ON o.owner_id = am.id
                   LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
                   WHERE o.id = ANY($1)
-                  GROUP BY o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, c.name, p.name, pr.name, am.name
+                  GROUP BY o.id, o.title, o.client_id, o.product_id, o.probability, o.estimated_value, o.type, o.status, o.stage, o.owner_id, o.description, o.partner_id, o.created_at, o.updated_at, o.expected_close_date, o.assessment_status, o.assessment_date, o.assessed_by_id, o.withhold_reasons, o.withhold_comments, o.assessment_notes, c.name, p.name, pr.name, am.name
                   ORDER BY o.id
                 `, [opportunityIdsArray]);
               } else {
@@ -6256,7 +6258,15 @@ Return as JSON in this exact format:
         probability: opp.probability,
         type: opp.type,
         createdAt: opp.created_at,
-        updatedAt: opp.updated_at
+        updatedAt: opp.updated_at,
+        // CRITICAL FIX: Include assessment fields in broker view response
+        assessmentStatus: opp.assessment_status,
+        assessment_status: opp.assessment_status, // Include both field names for compatibility
+        assessmentDate: opp.assessment_date,
+        assessedById: opp.assessed_by_id,
+        withholdReasons: opp.withhold_reasons,
+        withholdComments: opp.withhold_comments,
+        assessmentNotes: opp.assessment_notes
       }));
       
       console.log(`Returning ${opportunities.length} opportunities from De Goudse database`);
