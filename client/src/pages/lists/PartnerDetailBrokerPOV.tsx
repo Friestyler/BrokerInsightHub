@@ -977,8 +977,13 @@ export default function PartnerDetailBrokerPOV() {
   };
 
   const handleWithholdOpportunity = (opportunity: any) => {
+    console.log('Opening withhold dialog for opportunity:', opportunity.id);
     setSelectedOpportunityForWithhold(opportunity);
     setWithholdDialogOpen(true);
+    setWithholdReasons([]); // Reset reasons
+    setWithholdComments(''); // Reset comments
+    
+    // Fetch withhold reasons
     fetchWithholdReasonsMutation.mutate();
   };
 
@@ -3367,24 +3372,51 @@ export default function PartnerDetailBrokerPOV() {
             <div>
               <Label className="text-sm font-medium">Reasons</Label>
               <div className="mt-2 space-y-2">
-                {fetchWithholdReasonsMutation.data?.map((reason: any) => (
-                  <div key={reason.id} className="flex items-center space-x-2">
-                    <Checkbox
-                      id={`reason-${reason.id}`}
-                      checked={withholdReasons.includes(reason.name)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setWithholdReasons([...withholdReasons, reason.name]);
-                        } else {
-                          setWithholdReasons(withholdReasons.filter(r => r !== reason.name));
-                        }
-                      }}
-                    />
-                    <Label htmlFor={`reason-${reason.id}`} className="text-sm">
-                      {reason.name}
-                    </Label>
+                {fetchWithholdReasonsMutation.isLoading ? (
+                  <div className="text-sm text-gray-500">Loading reasons...</div>
+                ) : fetchWithholdReasonsMutation.data && fetchWithholdReasonsMutation.data.length > 0 ? (
+                  fetchWithholdReasonsMutation.data.map((reason: any) => (
+                    <div key={reason.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`reason-${reason.id}`}
+                        checked={withholdReasons.includes(reason.name)}
+                        onCheckedChange={(checked) => {
+                          console.log('Checkbox changed:', reason.name, checked);
+                          if (checked) {
+                            setWithholdReasons([...withholdReasons, reason.name]);
+                          } else {
+                            setWithholdReasons(withholdReasons.filter(r => r !== reason.name));
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`reason-${reason.id}`} className="text-sm">
+                        {reason.name}
+                      </Label>
+                    </div>
+                  ))
+                ) : (
+                  <div className="space-y-2">
+                    {['Insufficient Information', 'Budget Constraints', 'Timing Issues', 'Not a Priority', 'Technical Concerns'].map((reason, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`reason-fallback-${index}`}
+                          checked={withholdReasons.includes(reason)}
+                          onCheckedChange={(checked) => {
+                            console.log('Fallback checkbox changed:', reason, checked);
+                            if (checked) {
+                              setWithholdReasons([...withholdReasons, reason]);
+                            } else {
+                              setWithholdReasons(withholdReasons.filter(r => r !== reason));
+                            }
+                          }}
+                        />
+                        <Label htmlFor={`reason-fallback-${index}`} className="text-sm">
+                          {reason}
+                        </Label>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                )}
               </div>
             </div>
 
@@ -3410,10 +3442,10 @@ export default function PartnerDetailBrokerPOV() {
             </Button>
             <Button 
               onClick={handleWithholdSubmit}
-              disabled={withholdReasons.length === 0}
-              className="bg-red-600 hover:bg-red-700 text-white"
+              disabled={withholdReasons.length === 0 || updateAssessmentMutation.isPending}
+              className={`text-white ${withholdReasons.length > 0 && !updateAssessmentMutation.isPending ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-400 cursor-not-allowed'}`}
             >
-              Withhold Opportunity
+              {updateAssessmentMutation.isPending ? 'Saving...' : 'Withhold Opportunity'}
             </Button>
           </DialogFooter>
         </DialogContent>
