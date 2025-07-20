@@ -318,9 +318,23 @@ export default function PartnerDetailBrokerPOV() {
   // For broker view, fetch opportunities with proper list filtering
   const { data: allOpportunities = [], isLoading: opportunitiesLoading } = useQuery({
     queryKey: [`/api/${actualCurrentEnvironment}/opportunities`, activeOpportunitiesList?.id],
-    queryFn: () => {
+    queryFn: async () => {
       const listParam = activeOpportunitiesList?.id ? `?listId=${activeOpportunitiesList.id}&brokerView=true` : '?brokerView=true';
-      return apiRequest('GET', `/api/${actualCurrentEnvironment}/opportunities${listParam}`);
+      const result = await apiRequest('GET', `/api/${actualCurrentEnvironment}/opportunities${listParam}`);
+      console.log('🔍 BROKER VIEW - Opportunities data:', result);
+      // Log specific assessment status fields
+      if (result && result.length > 0) {
+        result.forEach((opp: any, index: number) => {
+          console.log(`🔍 Opportunity ${index}:`, {
+            id: opp.id,
+            title: opp.title,
+            assessmentStatus: opp.assessmentStatus,
+            assessment_status: opp.assessment_status,
+            allFields: Object.keys(opp)
+          });
+        });
+      }
+      return result;
     },
     staleTime: 2 * 60 * 1000,
   });
