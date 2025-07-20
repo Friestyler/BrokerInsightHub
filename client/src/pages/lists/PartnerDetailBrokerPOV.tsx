@@ -911,9 +911,14 @@ export default function PartnerDetailBrokerPOV() {
       });
     },
     onSuccess: () => {
-      // Invalidate queries to refresh data
+      // Invalidate queries to refresh data immediately
+      queryClient.invalidateQueries({ queryKey: [`/api/opportunities`] });
       queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/opportunities`] });
       queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/partners/${partnerId}/opportunities`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/partners/${partnerId}/opportunities`] });
+      
+      // Force refetch the opportunities data immediately
+      queryClient.refetchQueries({ queryKey: [`/api/${actualCurrentEnvironment}/partners/${partnerId}/opportunities`] });
       
       toast({
         title: "Assessment updated",
@@ -978,7 +983,14 @@ export default function PartnerDetailBrokerPOV() {
   };
 
   const handleWithholdSubmit = () => {
-    if (!selectedOpportunityForWithhold) return;
+    if (!selectedOpportunityForWithhold || withholdReasons.length === 0) return;
+    
+    console.log('Submitting withhold with data:', {
+      opportunityId: selectedOpportunityForWithhold.id,
+      status: 'withheld',
+      reasons: withholdReasons,
+      comments: withholdComments
+    });
     
     updateAssessmentMutation.mutate({
       opportunityId: selectedOpportunityForWithhold.id,
@@ -2021,7 +2033,7 @@ export default function PartnerDetailBrokerPOV() {
                           {/* Assessment Column - copied exactly from PartnerDetail.tsx lines 3203-3257 */}
                           <TableCell>
                             <div className="flex items-center gap-2">
-                              {opportunity.assessmentStatus === 'withheld' ? (
+                              {(opportunity.assessmentStatus === 'withheld' || opportunity.assessment_status === 'withheld') ? (
                                 <div className="flex items-center gap-1">
                                   <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full">
                                     Withheld
@@ -2036,7 +2048,7 @@ export default function PartnerDetailBrokerPOV() {
                                     <CheckCircle className="w-3 h-3" />
                                   </Button>
                                 </div>
-                              ) : opportunity.assessmentStatus === 'accepted' ? (
+                              ) : (opportunity.assessmentStatus === 'accepted' || opportunity.assessment_status === 'accepted') ? (
                                 <div className="flex items-center gap-1">
                                   <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
                                     Accepted
@@ -3399,7 +3411,7 @@ export default function PartnerDetailBrokerPOV() {
             <Button 
               onClick={handleWithholdSubmit}
               disabled={withholdReasons.length === 0}
-              className="bg-red-600 hover:bg-red-700"
+              className="bg-red-600 hover:bg-red-700 text-white"
             >
               Withhold Opportunity
             </Button>
