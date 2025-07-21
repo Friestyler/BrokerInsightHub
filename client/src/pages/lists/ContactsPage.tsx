@@ -72,7 +72,7 @@ const SortableHeader = ({
 export default function ContactsPage() {
   // UI State
   const [searchText, setSearchText] = useState('');
-  const [groupBy, setGroupBy] = useState('Leadership'); // Default to Leadership tag category
+  const [groupBy, setGroupBy] = useState('Role'); // Default to Role tag category
   const [sortConfig, setSortConfig] = useState<{field: string, direction: 'asc' | 'desc'}>({
     field: 'fullName',
     direction: 'asc'
@@ -207,10 +207,10 @@ export default function ContactsPage() {
 
   // Sort tag groups by priority based on selected category
   const sortedGroupedContacts = groupedContacts.sort((a, b) => {
-    if (groupBy === 'Leadership') {
-      const leadershipPriority = ['Executive', 'VP', 'Director', 'Manager', 'Other'];
-      const aIndex = leadershipPriority.indexOf(a.name);
-      const bIndex = leadershipPriority.indexOf(b.name);
+    if (groupBy === 'Role') {
+      const rolePriority = ['Executive', 'VP', 'Director', 'Manager', 'Other'];
+      const aIndex = rolePriority.indexOf(a.name);
+      const bIndex = rolePriority.indexOf(b.name);
       
       if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
       if (aIndex !== -1) return -1;
@@ -378,7 +378,7 @@ export default function ContactsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="Leadership">Leadership</SelectItem>
+              <SelectItem value="Role">Role</SelectItem>
               <SelectItem value="Department">Department</SelectItem>
             </SelectContent>
           </Select>
