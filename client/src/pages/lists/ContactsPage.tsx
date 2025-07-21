@@ -140,7 +140,7 @@ export default function ContactsPage() {
     }
   });
 
-  // Group contacts by selected tag category with nested tag grouping
+  // Group contacts by selected tag category with nested tag sub-grouping
   const groupedContacts = contacts.reduce((groups: any[], contact: Contact) => {
     // If contact has no tags, put in "No Tags" group
     if (!contact.tags || contact.tags.length === 0) {
@@ -185,48 +185,69 @@ export default function ContactsPage() {
       return groups;
     }
 
-    // Group by individual tags within the selected category - create nested structure
-    tagsInSelectedCategory.forEach((tag: any) => {
-      let group = groups.find(g => g.name === tag.name);
-      if (!group) {
-        group = {
-          name: tag.name,
+    // Create main groups by primary tag in selected category
+    tagsInSelectedCategory.forEach((primaryTag: any) => {
+      let mainGroup = groups.find(g => g.name === primaryTag.name);
+      if (!mainGroup) {
+        mainGroup = {
+          name: primaryTag.name,
           contacts: [],
           count: 0,
-          subGroups: [], // For potential further nesting
-          tagColor: tag.color
+          subGroups: [], // Sub-groups by secondary tags
+          tagColor: primaryTag.color
         };
-        groups.push(group);
+        groups.push(mainGroup);
       }
       
-      // Only add contact if not already in this group (avoid duplicates)
-      if (!group.contacts.find(c => c.id === contact.id)) {
-        group.contacts.push(contact);
-        group.count = group.contacts.length;
+      // Add contact to main group if not already there
+      if (!mainGroup.contacts.find(c => c.id === contact.id)) {
+        mainGroup.contacts.push(contact);
+        mainGroup.count = mainGroup.contacts.length;
       }
 
-      // Create sub-groups based on other tags this contact has
-      contact.tags.forEach((otherTag: any) => {
-        if (otherTag.id !== tag.id) { // Don't create sub-group for the same tag
-          const subGroupName = otherTag.name;
-          let subGroup = group.subGroups.find((sg: any) => sg.name === subGroupName);
+      // Create sub-groups by secondary tags (other tags this contact has)
+      const secondaryTags = contact.tags.filter((tag: any) => tag.id !== primaryTag.id);
+      
+      if (secondaryTags.length === 0) {
+        // Contact only has primary tag - put in "Only [PrimaryTag]" sub-group
+        const onlySubGroupName = `Only ${primaryTag.name}`;
+        let onlySubGroup = mainGroup.subGroups.find((sg: any) => sg.name === onlySubGroupName);
+        if (!onlySubGroup) {
+          onlySubGroup = {
+            name: onlySubGroupName,
+            contacts: [],
+            count: 0,
+            tagColor: primaryTag.color,
+            categoryName: 'Single Tag'
+          };
+          mainGroup.subGroups.push(onlySubGroup);
+        }
+        
+        if (!onlySubGroup.contacts.find((c: any) => c.id === contact.id)) {
+          onlySubGroup.contacts.push(contact);
+          onlySubGroup.count = onlySubGroup.contacts.length;
+        }
+      } else {
+        // Group by secondary tags
+        secondaryTags.forEach((secondaryTag: any) => {
+          let subGroup = mainGroup.subGroups.find((sg: any) => sg.name === secondaryTag.name);
           if (!subGroup) {
             subGroup = {
-              name: subGroupName,
+              name: secondaryTag.name,
               contacts: [],
               count: 0,
-              tagColor: otherTag.color,
-              categoryName: otherTag.category?.name || 'Other'
+              tagColor: secondaryTag.color,
+              categoryName: secondaryTag.category?.name || 'Other'
             };
-            group.subGroups.push(subGroup);
+            mainGroup.subGroups.push(subGroup);
           }
           
           if (!subGroup.contacts.find((c: any) => c.id === contact.id)) {
             subGroup.contacts.push(contact);
             subGroup.count = subGroup.contacts.length;
           }
-        }
-      });
+        });
+      }
     });
 
     return groups;
@@ -579,43 +600,83 @@ export default function ContactsPage() {
                 </table>
               </div>
 
-              {/* Sub-groups for additional tags */}
+              {/* Sub-groups by secondary tags */}
               {group.subGroups && group.subGroups.length > 0 && (
-                <div className="bg-gray-50 px-4 py-3 border-t border-[#E6E7F1]">
-                  <h4 className="text-sm font-medium text-gray-700 mb-3">
-                    Also tagged with:
+                <div className="bg-gray-50 px-4 py-4 border-t border-[#E6E7F1]">
+                  <h4 className="text-sm font-medium text-gray-700 mb-4">
+                    Grouped by secondary tags:
                   </h4>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div className="space-y-3">
                     {group.subGroups.map((subGroup: any) => (
-                      <div key={subGroup.name} className="bg-white rounded-lg p-3 border border-gray-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center space-x-2">
-                            <div 
-                              className="w-2 h-2 rounded-full" 
-                              style={{ backgroundColor: subGroup.tagColor }}
-                            />
-                            <span className="text-sm font-medium text-gray-700">
-                              {subGroup.name}
-                            </span>
-                            <span className="text-xs text-gray-500">
-                              ({subGroup.categoryName})
-                            </span>
+                      <div key={subGroup.name} className="bg-white rounded-lg border border-gray-200">
+                        {/* Sub-group header */}
+                        <div className="bg-blue-25 px-3 py-2 border-b border-gray-200 rounded-t-lg">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center space-x-2">
+                              <div 
+                                className="w-2.5 h-2.5 rounded-full" 
+                                style={{ backgroundColor: subGroup.tagColor }}
+                              />
+                              <span className="text-sm font-medium text-gray-800">
+                                {subGroup.name}
+                              </span>
+                              <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                                {subGroup.categoryName}
+                              </span>
+                            </div>
+                            <Badge variant="outline" className="text-xs">
+                              {subGroup.count} contact{subGroup.count !== 1 ? 's' : ''}
+                            </Badge>
                           </div>
-                          <Badge variant="secondary" className="text-xs">
-                            {subGroup.count}
-                          </Badge>
                         </div>
-                        <div className="space-y-1">
-                          {subGroup.contacts.slice(0, 3).map((contact: Contact) => (
-                            <div key={contact.id} className="text-xs text-gray-600">
-                              {contact.fullName}
-                            </div>
-                          ))}
-                          {subGroup.count > 3 && (
-                            <div className="text-xs text-gray-500 italic">
-                              +{subGroup.count - 3} more
-                            </div>
-                          )}
+                        
+                        {/* Sub-group contacts table */}
+                        <div className="p-3">
+                          <div className="overflow-x-auto">
+                            <table className="min-w-full">
+                              <tbody className="divide-y divide-gray-100">
+                                {subGroup.contacts.map((contact: Contact) => (
+                                  <tr key={contact.id} className="hover:bg-gray-50">
+                                    <td className="py-2 pr-4">
+                                      <div className="flex items-center">
+                                        <div className="bg-blue-100 rounded-full w-6 h-6 flex items-center justify-center mr-2">
+                                          <span className="text-blue-600 font-medium text-xs">
+                                            {getInitials(contact.fullName)}
+                                          </span>
+                                        </div>
+                                        <div>
+                                          <div className="font-medium text-sm text-gray-900">{contact.fullName}</div>
+                                          <div className="text-xs text-gray-500">{contact.company}</div>
+                                        </div>
+                                      </div>
+                                    </td>
+                                    <td className="py-2 pr-4">
+                                      <div className="text-sm text-gray-900">{contact.jobTitle}</div>
+                                      <div className="text-xs text-gray-500">{contact.department}</div>
+                                    </td>
+                                    <td className="py-2">
+                                      <div className="flex flex-wrap gap-1">
+                                        {contact.tags && Array.isArray(contact.tags) && contact.tags.length > 0 ? (
+                                          contact.tags.map((tag: any, index: number) => (
+                                            <Badge 
+                                              key={`${contact.id}-tag-${index}`}
+                                              style={{ backgroundColor: tag.color, color: 'white' }}
+                                              className="text-xs"
+                                              title={tag.category?.name ? `${tag.category.name}: ${tag.name}` : tag.name}
+                                            >
+                                              {tag.name}
+                                            </Badge>
+                                          ))
+                                        ) : (
+                                          <span className="text-gray-400 text-xs">No tags</span>
+                                        )}
+                                      </div>
+                                    </td>
+                                  </tr>
+                                ))}
+                              </tbody>
+                            </table>
+                          </div>
                         </div>
                       </div>
                     ))}
