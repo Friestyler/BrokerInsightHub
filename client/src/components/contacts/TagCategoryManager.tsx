@@ -47,10 +47,10 @@ export default function TagCategoryManager({ envId = 'degoudse' }: TagCategoryMa
     description: ''
   });
 
-  // Fetch tags
-  const { data: tags = [], isLoading } = useQuery({
-    queryKey: [`/api/${envId}/tags`],
-    queryFn: () => apiRequest('GET', `/api/${envId}/tags`),
+  // Fetch tag categories with nested tags
+  const { data: tagCategories = [], isLoading } = useQuery({
+    queryKey: [`/api/${envId}/tag-categories`],
+    queryFn: () => apiRequest('GET', `/api/${envId}/tag-categories`),
     staleTime: 5 * 60 * 1000
   });
 
@@ -61,6 +61,7 @@ export default function TagCategoryManager({ envId = 'degoudse' }: TagCategoryMa
     onSuccess: () => {
       setShowCreateTagDialog(false);
       resetForm();
+      queryClient.invalidateQueries({ queryKey: [`/api/${envId}/tag-categories`] });
       queryClient.invalidateQueries({ queryKey: [`/api/${envId}/tags`] });
       toast({ title: 'Tag created successfully' });
     },
@@ -80,6 +81,7 @@ export default function TagCategoryManager({ envId = 'degoudse' }: TagCategoryMa
       setShowEditDialog(false);
       setEditingTag(null);
       resetForm();
+      queryClient.invalidateQueries({ queryKey: [`/api/${envId}/tag-categories`] });
       queryClient.invalidateQueries({ queryKey: [`/api/${envId}/tags`] });
       toast({ title: 'Tag updated successfully' });
     },
@@ -93,6 +95,7 @@ export default function TagCategoryManager({ envId = 'degoudse' }: TagCategoryMa
     mutationFn: (tagId: number) => 
       apiRequest('DELETE', `/api/${envId}/tags/${tagId}`),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/${envId}/tag-categories`] });
       queryClient.invalidateQueries({ queryKey: [`/api/${envId}/tags`] });
       toast({ title: 'Tag deleted successfully' });
     },
@@ -146,12 +149,17 @@ export default function TagCategoryManager({ envId = 'degoudse' }: TagCategoryMa
     updateTagMutation.mutate({ ...formData, id: editingTag.id });
   };
 
-  // Group tags by category - only include tags that have a category
-  const tagsByCategory = tags.reduce((acc: Record<string, Tag[]>, tag: Tag) => {
-    if (tag.category && tag.category.trim()) {
-      const category = tag.category;
-      if (!acc[category]) acc[category] = [];
-      acc[category].push(tag);
+  // Convert tag categories to the expected format
+  const tagsByCategory = tagCategories.reduce((acc: Record<string, Tag[]>, category: any) => {
+    if (category.tags && category.tags.length > 0) {
+      acc[category.name] = category.tags.map((tag: any) => ({
+        id: tag.id,
+        name: tag.name,
+        color: tag.color,
+        category: category.name,
+        description: category.description,
+        usage_count: tag.usage_count || 0
+      }));
     }
     return acc;
   }, {});
