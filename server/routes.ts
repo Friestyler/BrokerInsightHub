@@ -6578,24 +6578,39 @@ Return as JSON in this exact format:
       const queryParams: any[] = [];
       
       if (linkedEntityType) {
-        queryConditions = 'WHERE is_active = true AND linked_entity_type = $1';
+        queryConditions = 'WHERE c.is_active = true AND c.linked_entity_type = $1';
         queryParams.push(linkedEntityType);
         if (linkedEntityId) {
-          queryConditions += ' AND linked_entity_id = $2';
+          queryConditions += ' AND c.linked_entity_id = $2';
           queryParams.push(parseInt(linkedEntityId as string));
         }
       } else {
-        queryConditions = 'WHERE is_active = true';
+        queryConditions = 'WHERE c.is_active = true';
       }
       
       const result = await envPool.query(`
-        SELECT id, first_name, last_name, full_name, email, phone, 
-               job_title, department, company, linked_entity_type, 
-               linked_entity_id, is_primary, notes, tags, is_active, 
-               created_at, updated_at
-        FROM degoudse.contacts 
+        SELECT 
+          c.id, c.first_name, c.last_name, c.full_name, c.email, c.phone, 
+          c.job_title, c.department, c.company, c.linked_entity_type, 
+          c.linked_entity_id, c.is_primary, c.notes, c.is_active, 
+          c.created_at, c.updated_at,
+          COALESCE(
+            json_agg(
+              CASE 
+                WHEN t.id IS NOT NULL THEN json_build_object('id', t.id, 'name', t.name, 'color', t.color)
+                ELSE NULL 
+              END
+            ) FILTER (WHERE t.id IS NOT NULL), '[]'::json
+          ) as tags
+        FROM degoudse.contacts c
+        LEFT JOIN degoudse.contact_tags ct ON c.id = ct.contact_id
+        LEFT JOIN degoudse.tags t ON ct.tag_id = t.id
         ${queryConditions}
-        ORDER BY first_name ASC, last_name ASC
+        GROUP BY c.id, c.first_name, c.last_name, c.full_name, c.email, c.phone, 
+                 c.job_title, c.department, c.company, c.linked_entity_type, 
+                 c.linked_entity_id, c.is_primary, c.notes, c.is_active, 
+                 c.created_at, c.updated_at
+        ORDER BY c.first_name ASC, c.last_name ASC
       `, queryParams);
       
       console.log(`Returning ${result.rows.length} contacts from De Goudse database`);
@@ -13540,7 +13555,8 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       const envPool = getEnvironmentPool(envId);
       
       const result = await envPool.query(`
-        SELECT t.*, tg.name as group_name, u.name as created_by_name,
+        SELECT t.id, t.name, t.color, t.group_id, t.created_by_id, t.created_at, t.updated_at,
+               tg.name as group_name, u.name as created_by_name,
                COUNT(ct.id) as contact_count
         FROM ${envId}.tags t
         LEFT JOIN ${envId}.tag_groups tg ON t.group_id = tg.id
