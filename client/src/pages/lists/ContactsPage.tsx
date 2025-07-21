@@ -362,6 +362,13 @@ export default function ContactsPage() {
       .slice(0, 2);
   };
 
+  const getTypeTag = (contact: Contact) => {
+    if (!contact.tags || !Array.isArray(contact.tags)) return null;
+    return contact.tags.find((tag: any) => 
+      tag.category?.name === 'Type' || tag.category === 'Type'
+    );
+  };
+
   const renderContactRow = (contact: Contact) => (
     <tr key={contact.id} className="border-b border-gray-100 hover:bg-gray-50">
       <td className="px-6 py-4 whitespace-nowrap">
@@ -372,14 +379,14 @@ export default function ContactsPage() {
             className="mr-3"
           />
           <div className="flex items-center">
-            <div className="bg-blue-100 rounded-full w-8 h-8 flex items-center justify-center mr-3">
-              <span className="text-blue-600 font-medium text-sm">
+            <div className="bg-blue-100 rounded-full w-7 h-7 flex items-center justify-center mr-3">
+              <span className="text-blue-600 font-medium text-xs">
                 {getInitials((contact as any).full_name || contact.fullName)}
               </span>
             </div>
             <div>
-              <div className="font-medium text-gray-900">{(contact as any).full_name || contact.fullName}</div>
-              <div className="text-sm text-gray-500">{contact.company}</div>
+              <div className="text-sm font-medium text-gray-900">{(contact as any).full_name || contact.fullName}</div>
+              <div className="text-xs text-gray-500">{contact.company}</div>
             </div>
           </div>
         </div>
@@ -387,20 +394,38 @@ export default function ContactsPage() {
       
       <td className="px-6 py-4 whitespace-nowrap">
         <div>
-          <div className="font-medium text-gray-900">{(contact as any).job_title || contact.jobTitle}</div>
-          <div className="text-sm text-gray-500">{contact.department}</div>
+          <div className="text-sm font-medium text-gray-900">{(contact as any).job_title || contact.jobTitle}</div>
+          <div className="text-xs text-gray-500">{contact.department}</div>
         </div>
       </td>
       
       <td className="px-6 py-4 whitespace-nowrap">
         <div>
           {(contact as any).supervisor_name ? (
-            <div className="font-medium text-gray-900">{(contact as any).supervisor_name}</div>
+            <div className="text-sm font-medium text-gray-900">{(contact as any).supervisor_name}</div>
           ) : contact.reportsTo ? (
-            <div className="font-medium text-gray-900">Contact #{contact.reportsTo}</div>
+            <div className="text-sm font-medium text-gray-900">Contact #{contact.reportsTo}</div>
           ) : (
-            <span className="text-gray-400 text-sm">-</span>
+            <span className="text-gray-400 text-xs">-</span>
           )}
+        </div>
+      </td>
+      
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div>
+          {(() => {
+            const typeTag = getTypeTag(contact);
+            return typeTag ? (
+              <Badge 
+                style={{ backgroundColor: typeTag.color, color: 'white' }}
+                className="text-xs"
+              >
+                {typeTag.name}
+              </Badge>
+            ) : (
+              <span className="text-gray-400 text-xs">-</span>
+            );
+          })()}
         </div>
       </td>
       
@@ -409,9 +434,9 @@ export default function ContactsPage() {
           {contact.tags && Array.isArray(contact.tags) && contact.tags.length > 0 ? (
             contact.tags
               .filter((tag: any) => {
-                // Hide tags that belong to the currently selected groupBy category
+                // Hide tags that belong to the currently selected groupBy category and Type category
                 const categoryName = tag.category?.name || tag.category || 'Uncategorized';
-                return categoryName !== groupBy;
+                return categoryName !== groupBy && categoryName !== 'Type';
               })
               .map((tag: any, index: number) => (
                 <Badge 
@@ -429,7 +454,7 @@ export default function ContactsPage() {
           {contact.tags && Array.isArray(contact.tags) && contact.tags.length > 0 && 
            contact.tags.filter((tag: any) => {
              const categoryName = tag.category?.name || tag.category || 'Uncategorized';
-             return categoryName !== groupBy;
+             return categoryName !== groupBy && categoryName !== 'Type';
            }).length === 0 && (
             <span className="text-gray-400 text-xs">-</span>
           )}
@@ -782,9 +807,11 @@ export default function ContactsPage() {
                         Reports To
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Type
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Attributes
                       </th>
-
                       <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Enrichment
                       </th>
