@@ -64,6 +64,20 @@ export default function BrokerCustomersTab({ partnerId, environment }: BrokerCus
   // Change detection for views
   const [originalFilters, setOriginalFilters] = useState<any>(null);
   const [originalVisibleFields, setOriginalVisibleFields] = useState<any>(null);
+
+  // Fields configuration for FieldsSelector
+  const customerFields = [
+    { key: 'name', label: 'Name', required: true },
+    { key: 'industry', label: 'Industry' },
+    { key: 'region', label: 'Region' },
+    { key: 'contactPerson', label: 'Contact Person' },
+    { key: 'phone', label: 'Phone' },
+    { key: 'email', label: 'Email' },
+    { key: 'opportunities', label: 'Opportunities' },
+    { key: 'totalValue', label: 'Total Value' },
+    { key: 'lastActivity', label: 'Last Activity' },
+    { key: 'actions', label: 'Actions', required: true }
+  ];
   
   // Data fetching
   const { data: allCustomers, isLoading: customersLoading } = useQuery({
@@ -186,9 +200,15 @@ export default function BrokerCustomersTab({ partnerId, environment }: BrokerCus
                     Share
                   </Button>
                   <FieldsSelector
-                    visibleFields={visibleFields}
-                    onFieldsChange={setVisibleFields}
-                    entityType="customers"
+                    fields={customerFields}
+                    visibleFields={Object.keys(visibleFields).filter(key => visibleFields[key as keyof typeof visibleFields])}
+                    onFieldsChange={(fieldKeys) => {
+                      const newVisibleFields = { ...visibleFields };
+                      Object.keys(visibleFields).forEach(key => {
+                        newVisibleFields[key as keyof typeof visibleFields] = fieldKeys.includes(key);
+                      });
+                      setVisibleFields(newVisibleFields);
+                    }}
                   />
                 </div>
               </div>

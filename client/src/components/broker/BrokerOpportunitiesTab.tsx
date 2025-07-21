@@ -70,6 +70,19 @@ export default function BrokerOpportunitiesTab({ partnerId, environment }: Broke
   // Change detection for views
   const [originalFilters, setOriginalFilters] = useState<any>(null);
   const [originalVisibleFields, setOriginalVisibleFields] = useState<any>(null);
+
+  // Fields configuration for FieldsSelector
+  const opportunityFields = [
+    { key: 'opportunity', label: 'Opportunity', required: true },
+    { key: 'customer', label: 'Customer', required: true },
+    { key: 'stage', label: 'Stage' },
+    { key: 'priority', label: 'Priority' },
+    { key: 'value', label: 'Value' },
+    { key: 'assessment', label: 'Assessment' },
+    { key: 'comments', label: 'Comments' },
+    { key: 'lastActivity', label: 'Last Activity' },
+    { key: 'actions', label: 'Actions', required: true }
+  ];
   
   // Data fetching
   const { data: allOpportunities, isLoading: opportunitiesLoading } = useQuery({
@@ -250,9 +263,15 @@ export default function BrokerOpportunitiesTab({ partnerId, environment }: Broke
                     Share
                   </Button>
                   <FieldsSelector
-                    visibleFields={visibleFields}
-                    onFieldsChange={setVisibleFields}
-                    entityType="opportunities"
+                    fields={opportunityFields}
+                    visibleFields={Object.keys(visibleFields).filter(key => visibleFields[key as keyof typeof visibleFields])}
+                    onFieldsChange={(fieldKeys) => {
+                      const newVisibleFields = { ...visibleFields };
+                      Object.keys(visibleFields).forEach(key => {
+                        newVisibleFields[key as keyof typeof visibleFields] = fieldKeys.includes(key);
+                      });
+                      setVisibleFields(newVisibleFields);
+                    }}
                   />
                 </div>
               </div>
