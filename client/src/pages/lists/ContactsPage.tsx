@@ -140,8 +140,8 @@ export default function ContactsPage() {
     }
   });
 
-  // Group contacts by selected tag category (Leadership, Department, etc.)
-  const groupedContacts = contacts.reduce((groups: CompanyGroup[], contact: Contact) => {
+  // Group contacts by selected tag category with nested tag grouping
+  const groupedContacts = contacts.reduce((groups: any[], contact: Contact) => {
     // If contact has no tags, put in "No Tags" group
     if (!contact.tags || contact.tags.length === 0) {
       let group = groups.find(g => g.name === 'No Tags');
@@ -149,7 +149,8 @@ export default function ContactsPage() {
         group = {
           name: 'No Tags',
           contacts: [],
-          count: 0
+          count: 0,
+          subGroups: []
         };
         groups.push(group);
       }
@@ -171,7 +172,8 @@ export default function ContactsPage() {
         group = {
           name: 'Other',
           contacts: [],
-          count: 0
+          count: 0,
+          subGroups: []
         };
         groups.push(group);
       }
@@ -183,14 +185,16 @@ export default function ContactsPage() {
       return groups;
     }
 
-    // Group by individual tags within the selected category
+    // Group by individual tags within the selected category - create nested structure
     tagsInSelectedCategory.forEach((tag: any) => {
       let group = groups.find(g => g.name === tag.name);
       if (!group) {
         group = {
           name: tag.name,
           contacts: [],
-          count: 0
+          count: 0,
+          subGroups: [], // For potential further nesting
+          tagColor: tag.color
         };
         groups.push(group);
       }
@@ -200,6 +204,29 @@ export default function ContactsPage() {
         group.contacts.push(contact);
         group.count = group.contacts.length;
       }
+
+      // Create sub-groups based on other tags this contact has
+      contact.tags.forEach((otherTag: any) => {
+        if (otherTag.id !== tag.id) { // Don't create sub-group for the same tag
+          const subGroupName = otherTag.name;
+          let subGroup = group.subGroups.find((sg: any) => sg.name === subGroupName);
+          if (!subGroup) {
+            subGroup = {
+              name: subGroupName,
+              contacts: [],
+              count: 0,
+              tagColor: otherTag.color,
+              categoryName: otherTag.category?.name || 'Other'
+            };
+            group.subGroups.push(subGroup);
+          }
+          
+          if (!subGroup.contacts.find((c: any) => c.id === contact.id)) {
+            subGroup.contacts.push(contact);
+            subGroup.count = subGroup.contacts.length;
+          }
+        }
+      });
     });
 
     return groups;
@@ -498,10 +525,16 @@ export default function ContactsPage() {
         ) : (
           filteredGroups.map(group => (
             <Card key={group.name} className="border border-[#E6E7F1] rounded-lg overflow-hidden">
-              {/* Company Header */}
+              {/* Tag Group Header */}
               <div className="bg-blue-50 px-4 py-3 border-b border-[#E6E7F1]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
+                    {group.tagColor && (
+                      <div 
+                        className="w-3 h-3 rounded-full mr-3" 
+                        style={{ backgroundColor: group.tagColor }}
+                      />
+                    )}
                     <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-0 mr-3">
                       {group.name}
                     </Badge>
@@ -512,7 +545,7 @@ export default function ContactsPage() {
                 </div>
               </div>
               
-              {/* Contacts Table */}
+              {/* Main Contacts Table */}
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -545,6 +578,50 @@ export default function ContactsPage() {
                   </tbody>
                 </table>
               </div>
+
+              {/* Sub-groups for additional tags */}
+              {group.subGroups && group.subGroups.length > 0 && (
+                <div className="bg-gray-50 px-4 py-3 border-t border-[#E6E7F1]">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">
+                    Also tagged with:
+                  </h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {group.subGroups.map((subGroup: any) => (
+                      <div key={subGroup.name} className="bg-white rounded-lg p-3 border border-gray-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center space-x-2">
+                            <div 
+                              className="w-2 h-2 rounded-full" 
+                              style={{ backgroundColor: subGroup.tagColor }}
+                            />
+                            <span className="text-sm font-medium text-gray-700">
+                              {subGroup.name}
+                            </span>
+                            <span className="text-xs text-gray-500">
+                              ({subGroup.categoryName})
+                            </span>
+                          </div>
+                          <Badge variant="secondary" className="text-xs">
+                            {subGroup.count}
+                          </Badge>
+                        </div>
+                        <div className="space-y-1">
+                          {subGroup.contacts.slice(0, 3).map((contact: Contact) => (
+                            <div key={contact.id} className="text-xs text-gray-600">
+                              {contact.fullName}
+                            </div>
+                          ))}
+                          {subGroup.count > 3 && (
+                            <div className="text-xs text-gray-500 italic">
+                              +{subGroup.count - 3} more
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </Card>
           ))
         )}
