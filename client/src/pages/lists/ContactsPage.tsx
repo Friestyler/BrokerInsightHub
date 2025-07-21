@@ -30,8 +30,7 @@ interface Contact {
   reportsTo?: number;
   supervisorName?: string;
   notes?: string;
-  linkedEntityType?: string;
-  linkedEntityId?: number;
+
   tags?: Array<{
     id: number;
     name: string;
@@ -120,7 +119,7 @@ export default function ContactsPage() {
     direction: 'asc'
   });
   const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
-  const [visibleFields, setVisibleFields] = useState<string[]>(['fullName', 'title', 'attributes', 'entities', 'network', 'enrichment', 'actions']);
+  const [visibleFields, setVisibleFields] = useState<string[]>(['fullName', 'title', 'attributes', 'network', 'enrichment', 'actions']);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showTagManager, setShowTagManager] = useState(false);
   
@@ -129,7 +128,7 @@ export default function ContactsPage() {
     { key: 'contact', label: 'Contact', required: true },
     { key: 'title', label: 'Title', required: false },
     { key: 'attributes', label: 'Attributes', required: false },
-    { key: 'entities', label: 'Entities', required: false },
+
     { key: 'network', label: 'Network', required: false },
     { key: 'enrichment', label: 'Enrichment', required: false },
     { key: 'actions', label: 'Actions', required: false },
@@ -437,13 +436,7 @@ export default function ContactsPage() {
         </div>
       </td>
       
-      <td className="px-6 py-4 whitespace-nowrap text-center">
-        <div className="text-blue-600">
-          <div>2</div>
-          <div className="text-xs text-gray-500">entities</div>
-        </div>
-      </td>
-      
+
       <td className="px-6 py-4 whitespace-nowrap text-center">
         {(() => {
           const percentage = calculateEnrichmentPercentage(contact);
@@ -791,9 +784,7 @@ export default function ContactsPage() {
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Attributes
                       </th>
-                      <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Entities
-                      </th>
+
                       <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Enrichment
                       </th>

@@ -34,8 +34,7 @@ export const contacts = pgTable("contacts", {
   jobTitle: text("job_title"),
   department: text("department"),
   company: text("company"),
-  linkedEntityType: text("linked_entity_type"), // partner, customer, vendor, opportunity
-  linkedEntityId: integer("linked_entity_id"),
+
   isPrimary: boolean("is_primary").notNull().default(false),
   notes: text("notes"),
   tags: text("tags").array(),
@@ -389,8 +388,7 @@ export const insertContactSchema = createInsertSchema(contacts).pick({
   jobTitle: true,
   department: true,
   company: true,
-  linkedEntityType: true,
-  linkedEntityId: true,
+
   isPrimary: true,
   notes: true,
   tags: true,
