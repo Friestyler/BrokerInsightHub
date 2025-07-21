@@ -140,7 +140,7 @@ export default function ContactsPage() {
     }
   });
 
-  // Group contacts by TAG (as requested)
+  // Group contacts by TAG CATEGORY (as requested)
   const groupedContacts = contacts.reduce((groups: CompanyGroup[], contact: Contact) => {
     // If contact has no tags, put in "No Tags" group
     if (!contact.tags || contact.tags.length === 0) {
@@ -158,12 +158,13 @@ export default function ContactsPage() {
       return groups;
     }
 
-    // For each tag, add contact to that tag group
+    // For each tag, add contact to the tag's CATEGORY group
     contact.tags.forEach((tag: any) => {
-      let group = groups.find(g => g.name === tag.name);
+      const categoryName = tag.category?.name || tag.category || 'Uncategorized';
+      let group = groups.find(g => g.name === categoryName);
       if (!group) {
         group = {
-          name: tag.name,
+          name: categoryName,
           contacts: [],
           count: 0
         };
@@ -180,16 +181,16 @@ export default function ContactsPage() {
     return groups;
   }, []);
 
-  // Sort tag groups by priority: C-level, Manager, Technical, etc.
+  // Sort category groups by priority: Leadership, Department, etc.
   const sortedGroupedContacts = groupedContacts.sort((a, b) => {
-    const tagPriority = ['C-level', 'Manager', 'Technical', 'Decision Maker', 'Implementer', 'Influencer'];
-    const aIndex = tagPriority.indexOf(a.name);
-    const bIndex = tagPriority.indexOf(b.name);
+    const categoryPriority = ['Leadership', 'Department', 'No Tags'];
+    const aIndex = categoryPriority.indexOf(a.name);
+    const bIndex = categoryPriority.indexOf(b.name);
     
     if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
     if (aIndex !== -1) return -1;
     if (bIndex !== -1) return 1;
-    return a.name.localeCompare(b.name);
+    return String(a.name || '').localeCompare(String(b.name || ''));
   });
 
   // Filter and search
