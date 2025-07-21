@@ -64,15 +64,18 @@ export default function TagCategoryManager({ envId = 'degoudse' }: TagCategoryMa
       queryClient.invalidateQueries({ queryKey: [`/api/${envId}/tags`] });
       toast({ title: 'Tag created successfully' });
     },
-    onError: () => {
+    onError: (error) => {
+      console.error('Create tag error:', error);
       toast({ title: 'Failed to create tag', variant: 'destructive' });
     }
   });
 
   // Update tag mutation
   const updateTagMutation = useMutation({
-    mutationFn: (tagData: { id: number } & typeof formData) => 
-      apiRequest(`/api/${envId}/tags/${tagData.id}`, 'PUT', tagData),
+    mutationFn: (tagData: { id: number } & typeof formData) => {
+      const { id, ...updateData } = tagData;
+      return apiRequest(`/api/${envId}/tags/${id}`, 'PUT', updateData);
+    },
     onSuccess: () => {
       setShowEditDialog(false);
       setEditingTag(null);
