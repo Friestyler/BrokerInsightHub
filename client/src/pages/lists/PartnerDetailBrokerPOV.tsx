@@ -20,8 +20,7 @@ import PartnerCampaignBuilder from "@/pages/campaigns/PartnerCampaignBuilder";
 import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTab";
 import { WhiteSpaceMatrix } from "@/components/entity/WhiteSpaceMatrixSimplified";
 import { SmartCrossSell } from "@/components/portfolio/SmartCrossSell";
-import BrokerOpportunitiesTab from "@/components/broker/BrokerOpportunitiesTab";
-import BrokerCustomersTab from "@/components/broker/BrokerCustomersTab";
+
 
 
 import { BrokerLayout } from "@/components/layouts/BrokerLayout";
@@ -3341,14 +3340,6 @@ export default function PartnerDetailBrokerPOV() {
 
         {/* Opportunities Tab */}
         {activeTab === "opportunities" && (
-          <BrokerOpportunitiesTab 
-            partnerId={partnerId || ""} 
-            environment={currentEnvironment} 
-          />
-        )}
-
-        {/* OLD OPPORTUNITIES TAB - TO BE REMOVED */}
-        {false && (
           <div className="space-y-0">
             {/* Save/Update/Clear View Buttons - Show when any changes detected */}
             {hasOpportunityChanges() && (
@@ -3602,14 +3593,6 @@ export default function PartnerDetailBrokerPOV() {
 
         {/* Customers Tab */}
         {activeTab === "customers" && (
-          <BrokerCustomersTab 
-            partnerId={partnerId || ""} 
-            environment={currentEnvironment} 
-          />
-        )}
-
-        {/* OLD CUSTOMERS TAB - TO BE REMOVED */}
-        {false && (
           <div className="space-y-4">
             {/* Enhanced saved lists section for customers */}
             <div className="bg-white rounded-lg">
