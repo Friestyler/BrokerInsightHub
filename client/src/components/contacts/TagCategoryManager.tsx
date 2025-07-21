@@ -146,11 +146,13 @@ export default function TagCategoryManager({ envId = 'degoudse' }: TagCategoryMa
     updateTagMutation.mutate({ ...formData, id: editingTag.id });
   };
 
-  // Group tags by category
+  // Group tags by category - only include tags that have a category
   const tagsByCategory = tags.reduce((acc: Record<string, Tag[]>, tag: Tag) => {
-    const category = tag.category || 'Uncategorized';
-    if (!acc[category]) acc[category] = [];
-    acc[category].push(tag);
+    if (tag.category && tag.category.trim()) {
+      const category = tag.category;
+      if (!acc[category]) acc[category] = [];
+      acc[category].push(tag);
+    }
     return acc;
   }, {});
 
@@ -269,47 +271,54 @@ export default function TagCategoryManager({ envId = 'degoudse' }: TagCategoryMa
 
       {/* Tag Lists by Category - Google/Apple Style */}
       <div className="space-y-6">
-        {Object.entries(tagsByCategory).map(([category, categoryTags]) => (
-          <div key={category} className="space-y-3">
-            <h3 className="text-sm font-medium text-gray-700 uppercase tracking-wide">
-              {category} ({categoryTags.length})
-            </h3>
-            <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
-              {categoryTags.map((tag) => (
-                <div key={tag.id} className="flex items-center justify-between p-3 hover:bg-gray-50">
-                  <div className="flex items-center space-x-3">
-                    <div
-                      className="w-4 h-4 rounded-full"
-                      style={{ backgroundColor: tag.color }}
-                    />
-                    <span className="text-sm font-medium text-gray-900">{tag.name}</span>
-                    <Badge variant="secondary" className="text-xs">
-                      {tag.usage_count || 0} contacts
-                    </Badge>
-                  </div>
-                  <div className="flex items-center space-x-1">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditTag(tag)}
-                      className="h-8 w-8 p-0"
-                    >
-                      <Edit className="h-3 w-3" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => deleteTagMutation.mutate(tag.id)}
-                      className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
+        {Object.keys(tagsByCategory).length === 0 ? (
+          <div className="text-center py-12 text-gray-500">
+            <p className="text-sm">No tags created yet.</p>
+            <p className="text-xs mt-1">Create your first category and tag to get started.</p>
           </div>
-        ))}
+        ) : (
+          Object.entries(tagsByCategory).map(([category, categoryTags]) => (
+            <div key={category} className="space-y-3">
+              <h3 className="text-sm font-medium text-gray-700 uppercase tracking-wide">
+                {category} ({categoryTags.length})
+              </h3>
+              <div className="bg-white rounded-lg border border-gray-200 divide-y divide-gray-100">
+                {categoryTags.map((tag) => (
+                  <div key={tag.id} className="flex items-center justify-between p-3 hover:bg-gray-50">
+                    <div className="flex items-center space-x-3">
+                      <div
+                        className="w-4 h-4 rounded-full"
+                        style={{ backgroundColor: tag.color }}
+                      />
+                      <span className="text-sm font-medium text-gray-900">{tag.name}</span>
+                      <Badge variant="secondary" className="text-xs">
+                        {tag.usage_count || 0} contacts
+                      </Badge>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleEditTag(tag)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Edit className="h-3 w-3" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteTagMutation.mutate(tag.id)}
+                        className="h-8 w-8 p-0 text-red-600 hover:text-red-700"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ))
+        )}
       </div>
 
       {/* Edit Tag Dialog */}
