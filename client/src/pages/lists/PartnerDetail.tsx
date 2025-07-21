@@ -3030,22 +3030,22 @@ export default function PartnerDetail() {
             )}
 
             {/* Statistics overview cards */}
-            {/* Statistics Overview - matching Customers tab design with increased spacing */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-              <div className="bg-white p-6 rounded-md border border-gray-200 shadow-sm">
-                <div className="text-3xl font-semibold text-[#282A3F] mb-2">{filteredOpportunities.length}</div>
+            {/* Statistics Overview - matching Customers tab design exactly */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="bg-white p-4 rounded-md border border-gray-200">
+                <div className="text-xl font-semibold text-[#282A3F]">{filteredOpportunities.length}</div>
                 <div className="text-sm text-gray-500">Total Opportunities</div>
               </div>
               
-              <div className="bg-white p-6 rounded-md border border-gray-200 shadow-sm">
-                <div className="text-3xl font-semibold text-[#282A3F] mb-2">
+              <div className="bg-white p-4 rounded-md border border-gray-200">
+                <div className="text-xl font-semibold text-[#282A3F]">
                   €{filteredOpportunities.reduce((sum: number, opp: any) => sum + (Number(opp.estimated_value) || 0), 0).toLocaleString()}
                 </div>
                 <div className="text-sm text-gray-500">Total Value</div>
               </div>
               
-              <div className="bg-white p-6 rounded-md border border-gray-200 shadow-sm">
-                <div className="text-3xl font-semibold text-[#282A3F] mb-2">
+              <div className="bg-white p-4 rounded-md border border-gray-200">
+                <div className="text-xl font-semibold text-[#282A3F]">
                   €{Math.round(filteredOpportunities.reduce((sum: number, opp: any) => {
                     const value = Number(opp.estimated_value) || 0;
                     const probability = opp.stage === 'Closed (Won)' ? 1.0 : 
@@ -3068,7 +3068,7 @@ export default function PartnerDetail() {
             </div>
 
             {/* Opportunities Table */}
-            <div className="bg-white rounded-lg shadow-sm mt-1" id="opportunities-table">
+            <div className="bg-white rounded-lg shadow-sm" id="opportunities-table">
               <Table>
                 <TableHeader>
                   <TableRow>
