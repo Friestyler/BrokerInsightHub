@@ -206,6 +206,21 @@ export default function ContactsPage() {
   const [newListDescription, setNewListDescription] = useState('');
   const [selectedExistingList, setSelectedExistingList] = useState<number | null>(null);
 
+  // Available fields for contacts
+  const availableFields = [
+    { key: 'full_name', label: 'Name', required: true },
+    { key: 'email', label: 'Email', required: false },
+    { key: 'phone', label: 'Phone', required: false },
+    { key: 'company', label: 'Company', required: false },
+    { key: 'job_title', label: 'Job Title', required: false },
+    { key: 'department', label: 'Department', required: false },
+    { key: 'is_primary', label: 'Primary Contact', required: false },
+    { key: 'notes', label: 'Notes', required: false },
+  ];
+
+  // Fields state
+  const [visibleFields, setVisibleFields] = useState<string[]>(['full_name', 'email', 'phone', 'company', 'job_title']);
+
   // Form state for creating new contact
   const [formData, setFormData] = useState({
     first_name: '',
@@ -374,10 +389,6 @@ export default function ContactsPage() {
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Contacts</h1>
         <div className="flex items-center gap-2">
-          <FieldsSelector 
-            entityType="contacts"
-            onFieldsChange={() => {}}
-          />
           <Button onClick={() => setShowCreateDialog(true)} className="h-8">
             <Plus className="w-4 h-4 mr-1" />
             Create new contact
