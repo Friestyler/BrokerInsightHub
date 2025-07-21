@@ -140,8 +140,8 @@ export default function ContactsPage() {
     }
   });
 
-  // Group contacts by selected tag category with nested tag sub-grouping
-  const groupedContacts = contacts.reduce((groups: any[], contact: Contact) => {
+  // Group contacts by selected tag category (Leadership, Department, etc.)
+  const groupedContacts = contacts.reduce((groups: CompanyGroup[], contact: Contact) => {
     // If contact has no tags, put in "No Tags" group
     if (!contact.tags || contact.tags.length === 0) {
       let group = groups.find(g => g.name === 'No Tags');
@@ -149,8 +149,7 @@ export default function ContactsPage() {
         group = {
           name: 'No Tags',
           contacts: [],
-          count: 0,
-          subGroups: []
+          count: 0
         };
         groups.push(group);
       }
@@ -172,8 +171,7 @@ export default function ContactsPage() {
         group = {
           name: 'Other',
           contacts: [],
-          count: 0,
-          subGroups: []
+          count: 0
         };
         groups.push(group);
       }
@@ -185,68 +183,22 @@ export default function ContactsPage() {
       return groups;
     }
 
-    // Create main groups by primary tag in selected category
-    tagsInSelectedCategory.forEach((primaryTag: any) => {
-      let mainGroup = groups.find(g => g.name === primaryTag.name);
-      if (!mainGroup) {
-        mainGroup = {
-          name: primaryTag.name,
+    // Group by individual tags within the selected category
+    tagsInSelectedCategory.forEach((tag: any) => {
+      let group = groups.find(g => g.name === tag.name);
+      if (!group) {
+        group = {
+          name: tag.name,
           contacts: [],
-          count: 0,
-          subGroups: [], // Sub-groups by secondary tags
-          tagColor: primaryTag.color
+          count: 0
         };
-        groups.push(mainGroup);
+        groups.push(group);
       }
       
-      // Add contact to main group if not already there
-      if (!mainGroup.contacts.find(c => c.id === contact.id)) {
-        mainGroup.contacts.push(contact);
-        mainGroup.count = mainGroup.contacts.length;
-      }
-
-      // Create sub-groups by secondary tags (other tags this contact has)
-      const secondaryTags = contact.tags.filter((tag: any) => tag.id !== primaryTag.id);
-      
-      if (secondaryTags.length === 0) {
-        // Contact only has primary tag - put in "Only [PrimaryTag]" sub-group
-        const onlySubGroupName = `Only ${primaryTag.name}`;
-        let onlySubGroup = mainGroup.subGroups.find((sg: any) => sg.name === onlySubGroupName);
-        if (!onlySubGroup) {
-          onlySubGroup = {
-            name: onlySubGroupName,
-            contacts: [],
-            count: 0,
-            tagColor: primaryTag.color,
-            categoryName: 'Single Tag'
-          };
-          mainGroup.subGroups.push(onlySubGroup);
-        }
-        
-        if (!onlySubGroup.contacts.find((c: any) => c.id === contact.id)) {
-          onlySubGroup.contacts.push(contact);
-          onlySubGroup.count = onlySubGroup.contacts.length;
-        }
-      } else {
-        // Group by secondary tags
-        secondaryTags.forEach((secondaryTag: any) => {
-          let subGroup = mainGroup.subGroups.find((sg: any) => sg.name === secondaryTag.name);
-          if (!subGroup) {
-            subGroup = {
-              name: secondaryTag.name,
-              contacts: [],
-              count: 0,
-              tagColor: secondaryTag.color,
-              categoryName: secondaryTag.category?.name || 'Other'
-            };
-            mainGroup.subGroups.push(subGroup);
-          }
-          
-          if (!subGroup.contacts.find((c: any) => c.id === contact.id)) {
-            subGroup.contacts.push(contact);
-            subGroup.count = subGroup.contacts.length;
-          }
-        });
+      // Only add contact if not already in this group (avoid duplicates)
+      if (!group.contacts.find(c => c.id === contact.id)) {
+        group.contacts.push(contact);
+        group.count = group.contacts.length;
       }
     });
 
@@ -546,16 +498,10 @@ export default function ContactsPage() {
         ) : (
           filteredGroups.map(group => (
             <Card key={group.name} className="border border-[#E6E7F1] rounded-lg overflow-hidden">
-              {/* Tag Group Header */}
+              {/* Company Header */}
               <div className="bg-blue-50 px-4 py-3 border-b border-[#E6E7F1]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
-                    {group.tagColor && (
-                      <div 
-                        className="w-3 h-3 rounded-full mr-3" 
-                        style={{ backgroundColor: group.tagColor }}
-                      />
-                    )}
                     <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-0 mr-3">
                       {group.name}
                     </Badge>
@@ -566,7 +512,7 @@ export default function ContactsPage() {
                 </div>
               </div>
               
-              {/* Main Contacts Table */}
+              {/* Contacts Table */}
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -599,90 +545,6 @@ export default function ContactsPage() {
                   </tbody>
                 </table>
               </div>
-
-              {/* Sub-groups by secondary tags */}
-              {group.subGroups && group.subGroups.length > 0 && (
-                <div className="bg-gray-50 px-4 py-4 border-t border-[#E6E7F1]">
-                  <h4 className="text-sm font-medium text-gray-700 mb-4">
-                    Grouped by secondary tags:
-                  </h4>
-                  <div className="space-y-3">
-                    {group.subGroups.map((subGroup: any) => (
-                      <div key={subGroup.name} className="bg-white rounded-lg border border-gray-200">
-                        {/* Sub-group header */}
-                        <div className="bg-blue-25 px-3 py-2 border-b border-gray-200 rounded-t-lg">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center space-x-2">
-                              <div 
-                                className="w-2.5 h-2.5 rounded-full" 
-                                style={{ backgroundColor: subGroup.tagColor }}
-                              />
-                              <span className="text-sm font-medium text-gray-800">
-                                {subGroup.name}
-                              </span>
-                              <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
-                                {subGroup.categoryName}
-                              </span>
-                            </div>
-                            <Badge variant="outline" className="text-xs">
-                              {subGroup.count} contact{subGroup.count !== 1 ? 's' : ''}
-                            </Badge>
-                          </div>
-                        </div>
-                        
-                        {/* Sub-group contacts table */}
-                        <div className="p-3">
-                          <div className="overflow-x-auto">
-                            <table className="min-w-full">
-                              <tbody className="divide-y divide-gray-100">
-                                {subGroup.contacts.map((contact: Contact) => (
-                                  <tr key={contact.id} className="hover:bg-gray-50">
-                                    <td className="py-2 pr-4">
-                                      <div className="flex items-center">
-                                        <div className="bg-blue-100 rounded-full w-6 h-6 flex items-center justify-center mr-2">
-                                          <span className="text-blue-600 font-medium text-xs">
-                                            {getInitials(contact.fullName)}
-                                          </span>
-                                        </div>
-                                        <div>
-                                          <div className="font-medium text-sm text-gray-900">{contact.fullName}</div>
-                                          <div className="text-xs text-gray-500">{contact.company}</div>
-                                        </div>
-                                      </div>
-                                    </td>
-                                    <td className="py-2 pr-4">
-                                      <div className="text-sm text-gray-900">{contact.jobTitle}</div>
-                                      <div className="text-xs text-gray-500">{contact.department}</div>
-                                    </td>
-                                    <td className="py-2">
-                                      <div className="flex flex-wrap gap-1">
-                                        {contact.tags && Array.isArray(contact.tags) && contact.tags.length > 0 ? (
-                                          contact.tags.map((tag: any, index: number) => (
-                                            <Badge 
-                                              key={`${contact.id}-tag-${index}`}
-                                              style={{ backgroundColor: tag.color, color: 'white' }}
-                                              className="text-xs"
-                                              title={tag.category?.name ? `${tag.category.name}: ${tag.name}` : tag.name}
-                                            >
-                                              {tag.name}
-                                            </Badge>
-                                          ))
-                                        ) : (
-                                          <span className="text-gray-400 text-xs">No tags</span>
-                                        )}
-                                      </div>
-                                    </td>
-                                  </tr>
-                                ))}
-                              </tbody>
-                            </table>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
             </Card>
           ))
         )}
