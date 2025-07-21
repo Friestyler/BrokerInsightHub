@@ -511,41 +511,46 @@ export default function ContactsPage() {
                     />
                   </th>
                   <SortableTableHead
-                    field="full_name"
-                    currentSort={sortConfig}
-                    onSort={setSortConfig}
+                    sortKey="full_name"
+                    currentSortKey={sortConfig.field}
+                    currentDirection={sortConfig.direction}
+                    onSort={(key) => setSortConfig({field: key, direction: sortConfig.field === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'})}
                     className="text-left"
                   >
                     Name
                   </SortableTableHead>
                   <SortableTableHead
-                    field="email"
-                    currentSort={sortConfig}
-                    onSort={setSortConfig}
+                    sortKey="email"
+                    currentSortKey={sortConfig.field}
+                    currentDirection={sortConfig.direction}
+                    onSort={(key) => setSortConfig({field: key, direction: sortConfig.field === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'})}
                     className="text-left"
                   >
                     Email
                   </SortableTableHead>
                   <SortableTableHead
-                    field="phone"
-                    currentSort={sortConfig}
-                    onSort={setSortConfig}
+                    sortKey="phone"
+                    currentSortKey={sortConfig.field}
+                    currentDirection={sortConfig.direction}
+                    onSort={(key) => setSortConfig({field: key, direction: sortConfig.field === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'})}
                     className="text-left"
                   >
                     Phone
                   </SortableTableHead>
                   <SortableTableHead
-                    field="company"
-                    currentSort={sortConfig}
-                    onSort={setSortConfig}
+                    sortKey="company"
+                    currentSortKey={sortConfig.field}
+                    currentDirection={sortConfig.direction}
+                    onSort={(key) => setSortConfig({field: key, direction: sortConfig.field === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'})}
                     className="text-left"
                   >
                     Company
                   </SortableTableHead>
                   <SortableTableHead
-                    field="job_title"
-                    currentSort={sortConfig}
-                    onSort={setSortConfig}
+                    sortKey="job_title"
+                    currentSortKey={sortConfig.field}
+                    currentDirection={sortConfig.direction}
+                    onSort={(key) => setSortConfig({field: key, direction: sortConfig.field === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'})}
                     className="text-left"
                   >
                     Job Title
