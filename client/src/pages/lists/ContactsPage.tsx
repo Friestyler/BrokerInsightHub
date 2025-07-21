@@ -140,28 +140,60 @@ export default function ContactsPage() {
     }
   });
 
-  // Group contacts by company (matching screenshot)
+  // Group contacts by TAG (as requested)
   const groupedContacts = contacts.reduce((groups: CompanyGroup[], contact: Contact) => {
-    const companyName = contact.company || 'Unknown Company';
-    let group = groups.find(g => g.name === companyName);
-    
-    if (!group) {
-      group = {
-        name: companyName,
-        contacts: [],
-        count: 0
-      };
-      groups.push(group);
+    // If contact has no tags, put in "No Tags" group
+    if (!contact.tags || contact.tags.length === 0) {
+      let group = groups.find(g => g.name === 'No Tags');
+      if (!group) {
+        group = {
+          name: 'No Tags',
+          contacts: [],
+          count: 0
+        };
+        groups.push(group);
+      }
+      group.contacts.push(contact);
+      group.count = group.contacts.length;
+      return groups;
     }
-    
-    group.contacts.push(contact);
-    group.count = group.contacts.length;
-    
+
+    // For each tag, add contact to that tag group
+    contact.tags.forEach((tag: any) => {
+      let group = groups.find(g => g.name === tag.name);
+      if (!group) {
+        group = {
+          name: tag.name,
+          contacts: [],
+          count: 0
+        };
+        groups.push(group);
+      }
+      
+      // Only add contact if not already in this group (avoid duplicates)
+      if (!group.contacts.find(c => c.id === contact.id)) {
+        group.contacts.push(contact);
+        group.count = group.contacts.length;
+      }
+    });
+
     return groups;
   }, []);
 
+  // Sort tag groups by priority: C-level, Manager, Technical, etc.
+  const sortedGroupedContacts = groupedContacts.sort((a, b) => {
+    const tagPriority = ['C-level', 'Manager', 'Technical', 'Decision Maker', 'Implementer', 'Influencer'];
+    const aIndex = tagPriority.indexOf(a.name);
+    const bIndex = tagPriority.indexOf(b.name);
+    
+    if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+    if (aIndex !== -1) return -1;
+    if (bIndex !== -1) return 1;
+    return a.name.localeCompare(b.name);
+  });
+
   // Filter and search
-  const filteredGroups = groupedContacts.filter(group => {
+  const filteredGroups = sortedGroupedContacts.filter(group => {
     if (!searchText) return true;
     
     const searchLower = searchText.toLowerCase();
