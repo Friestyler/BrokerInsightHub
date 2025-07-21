@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Search, Download } from 'lucide-react';
+import { Plus, Search, Download, ChevronDown, ChevronUp, Tag, X } from 'lucide-react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -17,36 +17,52 @@ import { SavedListsManager } from '@/components/shared/SavedListsManager';
 import { FieldsSelector } from '@/components/shared/FieldsSelector';
 import type { Contact, SavedList, SavedView } from '@shared/schema';
 
-// Mock data hook
-const useContactsData = () => {
-  return useQuery({
-    queryKey: ['/api/degoudse/contacts'],
-    queryFn: () => {
-      // Generate 172 mock contacts
-      const contacts = [];
-      for (let i = 1; i <= 172; i++) {
-        contacts.push({
-          id: i,
-          first_name: `Contact${i}`,
-          last_name: `Last${i}`,
-          full_name: `Contact${i} Last${i}`,
-          email: `contact${i}@example.com`,
-          phone: `+32 ${Math.floor(Math.random() * 1000)} ${Math.floor(Math.random() * 1000)} ${Math.floor(Math.random() * 1000)}`,
-          job_title: ['Manager', 'Director', 'Executive', 'Analyst', 'Coordinator'][Math.floor(Math.random() * 5)],
-          department: ['Sales', 'Marketing', 'Operations', 'HR', 'Finance'][Math.floor(Math.random() * 5)],
-          company: `Company ${Math.ceil(i / 3)}`,
-          notes: '',
-          is_primary: Math.random() > 0.7,
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        });
-      }
-      return contacts;
-    }
-  });
-};
+// Tag-related types
+interface TagGroup {
+  id: number;
+  name: string;
+  description?: string;
+  color_scheme?: string;
+  is_exclusive: boolean;
+  sort_order: number;
+  created_by_id?: number;
+  created_at: string;
+  updated_at: string;
+  tag_count?: number;
+}
 
-const SortableTableHead = ({ children, sortKey, currentSortKey, currentDirection, onSort, className = "" }) => {
+interface ContactTag {
+  id: number;
+  name: string;
+  color: string;
+  group_id?: number;
+  usage_count: number;
+  created_by_id?: number;
+  created_at: string;
+  updated_at: string;
+  contact_count?: number;
+}
+
+// Enhanced contact type with tags
+interface ContactWithTags extends Contact {
+  contactTags?: ContactTag[];
+}
+
+const SortableTableHead = ({ 
+  children, 
+  sortKey, 
+  currentSortKey, 
+  currentDirection, 
+  onSort, 
+  className = "" 
+}: {
+  children: React.ReactNode;
+  sortKey: string;
+  currentSortKey: string;
+  currentDirection: 'asc' | 'desc';
+  onSort: (key: string) => void;
+  className?: string;
+}) => {
   const isActive = currentSortKey === sortKey;
   
   return (
@@ -71,495 +87,437 @@ export default function ContactsPage() {
   const [searchText, setSearchText] = useState('');
   const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
   const [sortConfig, setSortConfig] = useState<{field: string, direction: 'asc' | 'desc'}>({
-    field: 'full_name',
+    field: 'fullName',
     direction: 'asc'
   });
   const [activeFilter, setActiveFilter] = useState('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [showShareModal, setShowShareModal] = useState(false);
-  const [showSaveListModal, setShowSaveListModal] = useState(false);
-  const [saveListMode, setSaveListMode] = useState<'new' | 'existing'>('new');
+  const [showTagDialog, setShowTagDialog] = useState(false);
+  const [selectedContactForTags, setSelectedContactForTags] = useState<number | null>(null);
   
   // Saved lists specific state
   const [activeList, setActiveList] = useState<SavedList | null>(null);
   const [activeView, setActiveView] = useState<SavedView | null>(null);
   const [filtersModified, setFiltersModified] = useState(false);
   const [isEditingView, setIsEditingView] = useState(false);
-  const [showViewNameInput, setShowViewNameInput] = useState(false);
-  const [pendingViewName, setPendingViewName] = useState('');
-  const [newListName, setNewListName] = useState('');
-  const [newListDescription, setNewListDescription] = useState('');
-  const [selectedExistingList, setSelectedExistingList] = useState<number | null>(null);
 
   // Available fields for contacts
   const availableFields = [
-    { key: 'full_name', label: 'Name', required: true },
+    { key: 'fullName', label: 'Name', required: true },
     { key: 'email', label: 'Email', required: false },
     { key: 'phone', label: 'Phone', required: false },
     { key: 'company', label: 'Company', required: false },
-    { key: 'job_title', label: 'Job Title', required: false },
+    { key: 'jobTitle', label: 'Job Title', required: false },
     { key: 'department', label: 'Department', required: false },
-    { key: 'is_primary', label: 'Primary Contact', required: false },
-    { key: 'notes', label: 'Notes', required: false },
+    { key: 'isPrimary', label: 'Primary Contact', required: false },
+    { key: 'tags', label: 'Tags', required: false },
   ];
 
   // Fields state
-  const [visibleFields, setVisibleFields] = useState<string[]>(['full_name', 'email', 'phone', 'company', 'job_title']);
+  const [visibleFields, setVisibleFields] = useState<string[]>(['fullName', 'email', 'phone', 'company', 'jobTitle', 'tags']);
 
   // Form state for creating new contact
   const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     phone: '',
-    job_title: '',
+    jobTitle: '',
     department: '',
     company: '',
     notes: ''
   });
 
   // Data fetching
-  const { data: contacts = [], isLoading: contactsLoading } = useContactsData();
-  const { data: savedLists = [] } = useQuery({
-    queryKey: ['/api/saved-lists', { entity_type: 'contacts' }],
-    queryFn: () => apiRequest('/api/saved-lists?entity_type=contacts')
+  const { data: contacts = [], isLoading: contactsLoading } = useQuery({
+    queryKey: ['/api/degoudse/contacts'],
+    queryFn: () => apiRequest('GET', '/api/degoudse/contacts')
   });
+
+  const { data: savedLists = [] } = useQuery({
+    queryKey: ['/api/saved-lists', 'contacts'],
+    queryFn: () => apiRequest('GET', '/api/saved-lists?entity_type=contacts')
+  });
+
   const { data: savedViews = [] } = useQuery({
-    queryKey: ['/api/saved-views', { entity_type: 'contacts' }],
-    queryFn: () => apiRequest('/api/saved-views?entity_type=contacts')
+    queryKey: ['/api/saved-views', 'contacts'],
+    queryFn: () => apiRequest('GET', '/api/saved-views?entity_type=contacts')
+  });
+
+  // Tag data fetching
+  const { data: tagGroups = [] } = useQuery({
+    queryKey: ['/api/degoudse/tag-groups'],
+    queryFn: () => apiRequest('GET', '/api/degoudse/tag-groups')
+  });
+
+  const { data: allTags = [] } = useQuery({
+    queryKey: ['/api/degoudse/tags'],
+    queryFn: () => apiRequest('GET', '/api/degoudse/tags')
   });
 
   // Mutations
-  const createListMutation = useMutation({
-    mutationFn: (data: { name: string; description: string; entity_type: string; entity_ids: number[] }) =>
-      apiRequest('/api/saved-lists', { method: 'POST', body: data }),
+  const createContactMutation = useMutation({
+    mutationFn: (contactData: typeof formData) => 
+      apiRequest('/api/degoudse/contacts', 'POST', {
+        firstName: contactData.firstName,
+        lastName: contactData.lastName,
+        fullName: `${contactData.firstName} ${contactData.lastName}`,
+        email: contactData.email,
+        phone: contactData.phone,
+        jobTitle: contactData.jobTitle,
+        department: contactData.department,
+        company: contactData.company,
+        notes: contactData.notes
+      }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
-      toast({ title: "Success", description: "List created successfully" });
-    }
-  });
-  
-  const createViewMutation = useMutation({
-    mutationFn: (data: { name: string; entity_type: string; filters: any }) =>
-      apiRequest('/api/saved-views', { method: 'POST', body: data }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
-      toast({ title: "Success", description: "View saved successfully" });
-    }
-  });
-  
-  const updateViewMutation = useMutation({
-    mutationFn: ({ viewId, data }: { viewId: number; data: any }) =>
-      apiRequest(`/api/saved-views/${viewId}`, { method: 'PUT', body: data }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
-      toast({ title: "Success", description: "View updated successfully" });
-    }
-  });
-  
-  const deleteViewMutation = useMutation({
-    mutationFn: (viewId: number) =>
-      apiRequest(`/api/saved-views/${viewId}`, { method: 'DELETE' }),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
-      toast({ title: "Success", description: "View deleted successfully" });
-    }
-  });
-  
-  const createSharedListMutation = useMutation({
-    mutationFn: (data: any) =>
-      apiRequest('/api/shared-lists', { method: 'POST', body: data }),
-    onSuccess: () => {
-      toast({ title: "Success", description: "List shared successfully" });
-    }
-  });
-
-  // Handler functions for saved lists and views
-  const handleListSelect = (listId: number | null) => {
-    const list = savedLists.find((l: any) => l.id === listId);
-    setActiveList(list || null);
-  };
-
-  const handleViewSelect = (view: SavedView) => {
-    setActiveView(view);
-  };
-
-  const handleRevertChanges = () => {
-    setFiltersModified(false);
-    // Reset any filters to the saved view state
-  };
-
-  const handleSaveAsNew = () => {
-    setShowViewNameInput(true);
-    setIsEditingView(false);
-    setPendingViewName('');
-  };
-
-  const handleSaveView = () => {
-    if (!pendingViewName.trim()) return;
-    
-    const viewData = {
-      name: pendingViewName,
-      entity_type: 'contacts',
-      filters: { /* current filter state */ }
-    };
-
-    if (isEditingView && activeView) {
-      updateViewMutation.mutate({ viewId: activeView.id, data: viewData });
-    } else {
-      createViewMutation.mutate(viewData);
-    }
-
-    setShowViewNameInput(false);
-    setPendingViewName('');
-    setIsEditingView(false);
-  };
-
-  // Filter and sort contacts
-  const filteredContacts = contacts.filter((contact: Contact) => {
-    const matchesSearch = !searchText || 
-      contact.full_name?.toLowerCase().includes(searchText.toLowerCase()) ||
-      contact.email?.toLowerCase().includes(searchText.toLowerCase()) ||
-      contact.company?.toLowerCase().includes(searchText.toLowerCase());
-
-    const matchesFilter = activeFilter === 'all' ||
-      (activeFilter === 'with-email' && contact.email) ||
-      (activeFilter === 'with-phone' && contact.phone) ||
-      (activeFilter === 'primary' && contact.is_primary);
-
-    return matchesSearch && matchesFilter;
-  });
-
-  const sortedContacts = [...filteredContacts].sort((a, b) => {
-    const aValue = a[sortConfig.field as keyof Contact] || '';
-    const bValue = b[sortConfig.field as keyof Contact] || '';
-    
-    if (sortConfig.direction === 'asc') {
-      return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
-    } else {
-      return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
-    }
-  });
-
-  // Pagination
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 25;
-  const totalPages = Math.ceil(sortedContacts.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedContacts = sortedContacts.slice(startIndex, startIndex + itemsPerPage);
-
-  const handleCreateContact = async () => {
-    try {
-      const contactData = {
-        ...formData,
-        full_name: `${formData.first_name} ${formData.last_name}`.trim()
-      };
-      
-      await apiRequest('POST', '/api/contacts', contactData);
-      
-      toast({
-        title: "Success",
-        description: "Contact created successfully",
-      });
-      
       queryClient.invalidateQueries({ queryKey: ['/api/degoudse/contacts'] });
       setShowCreateDialog(false);
       setFormData({
-        first_name: '',
-        last_name: '',
+        firstName: '',
+        lastName: '',
         email: '',
         phone: '',
-        job_title: '',
+        jobTitle: '',
         department: '',
         company: '',
         notes: ''
       });
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create contact",
-        variant: "destructive"
-      });
+      toast({ title: 'Contact created successfully' });
+    }
+  });
+
+  const assignTagMutation = useMutation({
+    mutationFn: ({ contactId, tagId }: { contactId: number; tagId: number }) =>
+      apiRequest('/api/degoudse/contact-tags', 'POST', { contactId, tagId, taggedById: 1 }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/degoudse/contacts'] });
+      toast({ title: 'Tag assigned successfully' });
+    }
+  });
+
+  // Filtering and sorting logic
+  const filteredAndSortedContacts = contacts
+    .filter((contact: Contact) => {
+      if (!contact.fullName) return false;
+      
+      const searchMatch = searchText === '' || 
+        contact.fullName.toLowerCase().includes(searchText.toLowerCase()) ||
+        contact.email?.toLowerCase().includes(searchText.toLowerCase()) ||
+        contact.company?.toLowerCase().includes(searchText.toLowerCase());
+
+      if (activeFilter === 'all') return searchMatch;
+      if (activeFilter === 'primary') return searchMatch && contact.isPrimary;
+      if (activeFilter === 'withEmail') return searchMatch && contact.email;
+      return searchMatch;
+    })
+    .sort((a: Contact, b: Contact) => {
+      const aValue = a.fullName || '';
+      const bValue = b.fullName || '';
+      
+      if (sortConfig.direction === 'asc') {
+        return aValue.localeCompare(bValue);
+      }
+      return bValue.localeCompare(aValue);
+    });
+
+  // Event handlers
+  const handleSort = (field: string) => {
+    setSortConfig(prev => ({
+      field,
+      direction: prev.field === field && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  const handleSelectContact = (contactId: number) => {
+    setSelectedContacts(prev => 
+      prev.includes(contactId) 
+        ? prev.filter(id => id !== contactId)
+        : [...prev, contactId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    if (selectedContacts.length === filteredAndSortedContacts.length) {
+      setSelectedContacts([]);
+    } else {
+      setSelectedContacts(filteredAndSortedContacts.map((contact: Contact) => contact.id));
     }
   };
 
-  const handleSaveToList = async () => {
-    if (selectedContacts.length === 0) return;
-
-    try {
-      if (saveListMode === 'new') {
-        if (!newListName.trim()) {
-          toast({
-            title: "Error",
-            description: "Please enter a list name",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        await createListMutation.mutateAsync({
-          name: newListName,
-          description: newListDescription,
-          entity_type: 'contacts',
-          entity_ids: selectedContacts
-        });
-      } else {
-        if (!selectedExistingList) {
-          toast({
-            title: "Error",
-            description: "Please select a list",
-            variant: "destructive"
-          });
-          return;
-        }
-
-        await apiRequest('POST', `/api/saved-lists/${selectedExistingList}/members`, {
-          members: selectedContacts
-        });
-      }
-
-      toast({
-        title: "Success",
-        description: `${selectedContacts.length} contact(s) saved to list successfully`,
-      });
-
-      setShowSaveListModal(false);
-      setNewListName('');
-      setNewListDescription('');
-      setSelectedExistingList(null);
-      setSelectedContacts([]);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to save contacts to list",
-        variant: "destructive"
-      });
+  const handleCreateContact = () => {
+    if (!formData.firstName || !formData.lastName) {
+      toast({ title: 'First name and last name are required', variant: 'destructive' });
+      return;
     }
+    createContactMutation.mutate(formData);
+  };
+
+  const handleOpenTagDialog = (contactId: number) => {
+    setSelectedContactForTags(contactId);
+    setShowTagDialog(true);
+  };
+
+  const handleAssignTag = (tagId: number) => {
+    if (selectedContactForTags) {
+      assignTagMutation.mutate({ contactId: selectedContactForTags, tagId });
+    }
+  };
+
+  const getInitials = (fullName: string) => {
+    return fullName
+      .split(' ')
+      .map(word => word.charAt(0))
+      .join('')
+      .toUpperCase()
+      .slice(0, 2);
   };
 
   return (
-    <div className="space-y-4 mx-4 py-6">
+    <div className="mx-4 py-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-gray-900">Contacts</h1>
-        <div className="flex items-center gap-2">
-          <Button onClick={() => setShowCreateDialog(true)} className="h-8">
-            <Plus className="w-4 h-4 mr-1" />
-            Create new contact
+        <div className="flex items-center space-x-2">
+          <Button
+            onClick={() => setShowCreateDialog(true)}
+            className="h-8"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Add contact
           </Button>
-        </div>
-      </div>
-
-      {/* Saved Lists Section */}
-      <SavedListsManager
-        entityType="contacts"
-        selectedItems={selectedContacts}
-        onListSelect={handleListSelect}
-        currentFilters={{
-          search: searchText,
-          filter: activeFilter,
-          sort: sortConfig
-        }}
-      />
-
-      {/* Toolbar */}
-      <div className="flex items-center justify-between p-2 border-b border-gray-100">
-        <div className="flex items-center gap-4">
-          <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-            <Input
-              placeholder="Search contacts..."
-              value={searchText}
-              onChange={(e) => setSearchText(e.target.value)}
-              className="pl-10 h-8 w-64"
-            />
-          </div>
-          <div className="flex gap-1">
-            {['all', 'with-email', 'with-phone', 'primary'].map(filter => (
-              <Button
-                key={filter}
-                variant={activeFilter === filter ? 'default' : 'ghost'}
-                size="sm"
-                className="h-8"
-                onClick={() => setActiveFilter(filter)}
-              >
-                {filter === 'all' ? 'All contacts' :
-                 filter === 'with-email' ? 'With email' :
-                 filter === 'with-phone' ? 'With phone' :
-                 'Primary contacts'}
-              </Button>
-            ))}
-          </div>
-        </div>
-        <div className="flex items-center gap-2">
-          <FieldsSelector
-            fields={availableFields}
-            visibleFields={visibleFields}
-            onFieldsChange={setVisibleFields}
-          />
-          <Button variant="outline" size="sm" className="h-8">
-            <Download className="w-4 h-4 mr-1" />
+          <Button variant="outline" className="h-8">
+            <Download className="h-4 w-4 mr-2" />
             Export
           </Button>
         </div>
       </div>
 
-      {/* Bulk Actions */}
-      {selectedContacts.length > 0 && (
-        <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
-          <span className="text-sm font-medium text-blue-900">
-            {selectedContacts.length} contact(s) selected
-          </span>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setSelectedContacts([])}
-              className="h-8"
-            >
-              Clear selection
+      {/* Toolbar */}
+      <div className="bg-white border border-[#E6E7F1] rounded-lg p-2 mb-4">
+        <div className="flex items-center justify-between">
+          {/* Left side - Search and Filters */}
+          <div className="flex items-center space-x-4">
+            <div className="relative">
+              <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <Input
+                placeholder="Search contacts..."
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                className="pl-10 h-8 w-64"
+              />
+            </div>
+            
+            <Select value={activeFilter} onValueChange={setActiveFilter}>
+              <SelectTrigger className="h-8 w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All contacts</SelectItem>
+                <SelectItem value="primary">Primary only</SelectItem>
+                <SelectItem value="withEmail">With email</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Right side - View controls */}
+          <div className="flex items-center space-x-2">
+            <Select>
+              <SelectTrigger className="h-8 w-40">
+                <SelectValue placeholder="Segment view" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All segments</SelectItem>
+                <SelectItem value="department">By department</SelectItem>
+                <SelectItem value="company">By company</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            <FieldsSelector
+              fields={availableFields}
+              visibleFields={visibleFields}
+              onFieldsChange={setVisibleFields}
+            />
+            
+            <Button variant="outline" size="sm" className="h-8">
+              Filter
             </Button>
-            <Button
-              size="sm"
-              onClick={() => setShowSaveListModal(true)}
-              className="h-8"
-            >
-              Add to list
-            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Saved Lists Manager */}
+      <SavedListsManager
+        entityType="contacts"
+        selectedItems={selectedContacts}
+        onListSelect={(list) => setActiveList(list)}
+        currentFilters={{
+          activeFilter,
+          searchText
+        }}
+      />
+
+      {/* Tag Groups Display (Exact match to screenshot) */}
+      {tagGroups.length > 0 && (
+        <div className="mb-6">
+          <div className="bg-white border border-[#E6E7F1] rounded-lg p-4">
+            <h3 className="text-sm font-medium text-gray-900 mb-3">Contact Directory</h3>
+            {tagGroups.map((group: TagGroup) => (
+              <div key={group.id} className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <h4 className="text-sm font-medium text-gray-700">{group.name}</h4>
+                  <span className="text-xs text-gray-500">{group.tag_count || 0} tags</span>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {allTags
+                    .filter((tag: ContactTag) => tag.group_id === group.id)
+                    .map((tag: ContactTag) => (
+                      <Badge
+                        key={tag.id}
+                        variant="outline"
+                        className="text-xs"
+                        style={{
+                          backgroundColor: `${tag.color}15`,
+                          borderColor: tag.color,
+                          color: tag.color
+                        }}
+                      >
+                        {tag.name}
+                        <span className="ml-1 text-xs opacity-70">
+                          {tag.contact_count || 0}
+                        </span>
+                      </Badge>
+                    ))}
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       )}
 
-      {/* Contacts Table */}
-      <div className="border rounded-lg">
+      {/* Table */}
+      <div className="bg-white border border-[#E6E7F1] rounded-lg overflow-hidden">
         <Table>
           <TableHeader>
-            <TableRow>
-              <th className="px-4 py-3 w-12">
+            <TableRow className="bg-gray-50">
+              <TableHead className="w-12">
                 <Checkbox
-                  checked={selectedContacts.length === paginatedContacts.length && paginatedContacts.length > 0}
-                  onCheckedChange={(checked) => {
-                    if (checked) {
-                      setSelectedContacts(paginatedContacts.map(c => c.id));
-                    } else {
-                      setSelectedContacts([]);
-                    }
-                  }}
+                  checked={selectedContacts.length === filteredAndSortedContacts.length}
+                  onCheckedChange={handleSelectAll}
                 />
-              </th>
-              <SortableTableHead
-                sortKey="full_name"
-                currentSortKey={sortConfig.field}
-                currentDirection={sortConfig.direction}
-                onSort={(key) => setSortConfig({field: key, direction: sortConfig.field === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'})}
-                className="text-left"
-              >
-                Name
-              </SortableTableHead>
-              <SortableTableHead
-                sortKey="email"
-                currentSortKey={sortConfig.field}
-                currentDirection={sortConfig.direction}
-                onSort={(key) => setSortConfig({field: key, direction: sortConfig.field === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'})}
-                className="text-left"
-              >
-                Email
-              </SortableTableHead>
-              <SortableTableHead
-                sortKey="phone"
-                currentSortKey={sortConfig.field}
-                currentDirection={sortConfig.direction}
-                onSort={(key) => setSortConfig({field: key, direction: sortConfig.field === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'})}
-                className="text-left"
-              >
-                Phone
-              </SortableTableHead>
-              <SortableTableHead
-                sortKey="company"
-                currentSortKey={sortConfig.field}
-                currentDirection={sortConfig.direction}
-                onSort={(key) => setSortConfig({field: key, direction: sortConfig.field === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'})}
-                className="text-left"
-              >
-                Company
-              </SortableTableHead>
-              <SortableTableHead
-                sortKey="job_title"
-                currentSortKey={sortConfig.field}
-                currentDirection={sortConfig.direction}
-                onSort={(key) => setSortConfig({field: key, direction: sortConfig.field === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'})}
-                className="text-left"
-              >
-                Job Title
-              </SortableTableHead>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                Type
-              </th>
+              </TableHead>
+              {visibleFields.includes('fullName') && (
+                <SortableTableHead
+                  sortKey="fullName"
+                  currentSortKey={sortConfig.field}
+                  currentDirection={sortConfig.direction}
+                  onSort={handleSort}
+                >
+                  Name
+                </SortableTableHead>
+              )}
+              {visibleFields.includes('email') && (
+                <TableHead>Email</TableHead>
+              )}
+              {visibleFields.includes('phone') && (
+                <TableHead>Phone</TableHead>
+              )}
+              {visibleFields.includes('company') && (
+                <TableHead>Company</TableHead>
+              )}
+              {visibleFields.includes('jobTitle') && (
+                <TableHead>Job Title</TableHead>
+              )}
+              {visibleFields.includes('tags') && (
+                <TableHead>Tags</TableHead>
+              )}
+              <TableHead>Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {contactsLoading ? (
               <TableRow>
-                <TableCell colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                <TableCell colSpan={8} className="text-center py-8">
                   Loading contacts...
                 </TableCell>
               </TableRow>
-            ) : paginatedContacts.length === 0 ? (
+            ) : filteredAndSortedContacts.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                <TableCell colSpan={8} className="text-center py-8">
                   No contacts found
                 </TableCell>
               </TableRow>
             ) : (
-              paginatedContacts.map((contact: Contact) => (
+              filteredAndSortedContacts.map((contact: Contact) => (
                 <TableRow key={contact.id} className="hover:bg-gray-50">
-                  <TableCell className="px-4 py-3">
+                  <TableCell>
                     <Checkbox
                       checked={selectedContacts.includes(contact.id)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setSelectedContacts([...selectedContacts, contact.id]);
-                        } else {
-                          setSelectedContacts(selectedContacts.filter(id => id !== contact.id));
-                        }
-                      }}
+                      onCheckedChange={() => handleSelectContact(contact.id)}
                     />
                   </TableCell>
-                  <TableCell className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <Avatar className="w-8 h-8">
-                        <AvatarFallback className="text-xs">
-                          {contact.first_name?.[0]}{contact.last_name?.[0]}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="font-medium text-gray-900">{contact.full_name}</div>
-                        {contact.department && (
-                          <div className="text-sm text-gray-500">{contact.department}</div>
+                  {visibleFields.includes('fullName') && (
+                    <TableCell>
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="text-xs">
+                            {getInitials(contact.fullName || '')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div>
+                          <div className="font-medium text-gray-900">
+                            {contact.fullName}
+                          </div>
+                          {contact.isPrimary && (
+                            <Badge variant="secondary" className="text-xs">Primary</Badge>
+                          )}
+                        </div>
+                      </div>
+                    </TableCell>
+                  )}
+                  {visibleFields.includes('email') && (
+                    <TableCell>{contact.email || '-'}</TableCell>
+                  )}
+                  {visibleFields.includes('phone') && (
+                    <TableCell>{contact.phone || '-'}</TableCell>
+                  )}
+                  {visibleFields.includes('company') && (
+                    <TableCell>{contact.company || '-'}</TableCell>
+                  )}
+                  {visibleFields.includes('jobTitle') && (
+                    <TableCell>{contact.jobTitle || '-'}</TableCell>
+                  )}
+                  {visibleFields.includes('tags') && (
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {contact.tags && contact.tags.length > 0 ? (
+                          contact.tags.slice(0, 2).map((tag, index) => (
+                            <Badge key={index} variant="outline" className="text-xs">
+                              {tag}
+                            </Badge>
+                          ))
+                        ) : (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleOpenTagDialog(contact.id)}
+                            className="h-6 px-2 text-xs"
+                          >
+                            <Tag className="h-3 w-3 mr-1" />
+                            Add tag
+                          </Button>
                         )}
                       </div>
-                    </div>
-                  </TableCell>
-                  <TableCell className="px-4 py-3">
-                    <div className="text-gray-900">{contact.email || '-'}</div>
-                  </TableCell>
-                  <TableCell className="px-4 py-3">
-                    <div className="text-gray-900">{contact.phone || '-'}</div>
-                  </TableCell>
-                  <TableCell className="px-4 py-3">
-                    <div className="text-gray-900">{contact.company || '-'}</div>
-                  </TableCell>
-                  <TableCell className="px-4 py-3">
-                    <div className="text-gray-900">{contact.job_title || '-'}</div>
-                  </TableCell>
-                  <TableCell className="px-4 py-3">
-                    <div className="flex gap-1">
-                      {contact.is_primary && (
-                        <Badge variant="outline" className="text-xs">
-                          Primary
-                        </Badge>
-                      )}
-                    </div>
+                    </TableCell>
+                  )}
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleOpenTagDialog(contact.id)}
+                      className="h-6"
+                    >
+                      <Tag className="h-3 w-3" />
+                    </Button>
                   </TableCell>
                 </TableRow>
               ))
@@ -568,102 +526,89 @@ export default function ContactsPage() {
         </Table>
       </div>
 
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between px-4 py-3">
-          <div className="text-sm text-gray-700">
-            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, sortedContacts.length)} of {sortedContacts.length} results
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-              className="h-8"
-            >
-              Previous
-            </Button>
-            <span className="text-sm font-medium">
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-              className="h-8"
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* Statistics */}
+      <div className="mt-4 text-sm text-gray-500">
+        Showing {filteredAndSortedContacts.length} of {contacts.length} contacts
+        {selectedContacts.length > 0 && (
+          <span className="ml-2">({selectedContacts.length} selected)</span>
+        )}
+      </div>
 
       {/* Create Contact Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create New Contact</DialogTitle>
+            <DialogTitle>Add New Contact</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="text-sm font-medium">First Name</label>
+                <label className="block text-sm font-medium mb-1">First Name *</label>
                 <Input
-                  value={formData.first_name}
-                  onChange={(e) => setFormData({...formData, first_name: e.target.value})}
+                  value={formData.firstName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                  placeholder="Enter first name"
                 />
               </div>
               <div>
-                <label className="text-sm font-medium">Last Name</label>
+                <label className="block text-sm font-medium mb-1">Last Name *</label>
                 <Input
-                  value={formData.last_name}
-                  onChange={(e) => setFormData({...formData, last_name: e.target.value})}
+                  value={formData.lastName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                  placeholder="Enter last name"
                 />
               </div>
             </div>
             <div>
-              <label className="text-sm font-medium">Email</label>
+              <label className="block text-sm font-medium mb-1">Email</label>
               <Input
                 type="email"
                 value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                placeholder="Enter email address"
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Phone</label>
+              <label className="block text-sm font-medium mb-1">Phone</label>
               <Input
                 value={formData.phone}
-                onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                placeholder="Enter phone number"
               />
             </div>
             <div>
-              <label className="text-sm font-medium">Company</label>
+              <label className="block text-sm font-medium mb-1">Company</label>
               <Input
                 value={formData.company}
-                onChange={(e) => setFormData({...formData, company: e.target.value})}
+                onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
+                placeholder="Enter company name"
               />
             </div>
-            <div>
-              <label className="text-sm font-medium">Job Title</label>
-              <Input
-                value={formData.job_title}
-                onChange={(e) => setFormData({...formData, job_title: e.target.value})}
-              />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium mb-1">Job Title</label>
+                <Input
+                  value={formData.jobTitle}
+                  onChange={(e) => setFormData(prev => ({ ...prev, jobTitle: e.target.value }))}
+                  placeholder="Enter job title"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Department</label>
+                <Input
+                  value={formData.department}
+                  onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
+                  placeholder="Enter department"
+                />
+              </div>
             </div>
             <div>
-              <label className="text-sm font-medium">Department</label>
-              <Input
-                value={formData.department}
-                onChange={(e) => setFormData({...formData, department: e.target.value})}
-              />
-            </div>
-            <div>
-              <label className="text-sm font-medium">Notes</label>
+              <label className="block text-sm font-medium mb-1">Notes</label>
               <Textarea
                 value={formData.notes}
-                onChange={(e) => setFormData({...formData, notes: e.target.value})}
+                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                placeholder="Enter notes"
+                rows={3}
               />
             </div>
           </div>
@@ -671,93 +616,51 @@ export default function ContactsPage() {
             <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={handleCreateContact}>
-              Create Contact
+            <Button 
+              onClick={handleCreateContact}
+              disabled={createContactMutation.isPending}
+            >
+              {createContactMutation.isPending ? 'Creating...' : 'Create Contact'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
-      {/* Save to List Dialog */}
-      <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
+      {/* Tag Assignment Dialog */}
+      <Dialog open={showTagDialog} onOpenChange={setShowTagDialog}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Save {selectedContacts.length} Contact(s) to List</DialogTitle>
+            <DialogTitle>Assign Tags</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <div className="space-y-2">
-              <label className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  value="new"
-                  checked={saveListMode === 'new'}
-                  onChange={() => setSaveListMode('new')}
-                />
-                <span>Create new list</span>
-              </label>
-              <label className="flex items-center space-x-2">
-                <input
-                  type="radio"
-                  value="existing"
-                  checked={saveListMode === 'existing'}
-                  onChange={() => setSaveListMode('existing')}
-                />
-                <span>Add to existing list</span>
-              </label>
-            </div>
-
-            {saveListMode === 'new' ? (
-              <div className="space-y-3">
-                <div>
-                  <label className="text-sm font-medium">List Name</label>
-                  <Input
-                    value={newListName}
-                    onChange={(e) => setNewListName(e.target.value)}
-                    placeholder="Enter list name"
-                  />
-                </div>
-                <div>
-                  <label className="text-sm font-medium">Description (optional)</label>
-                  <Textarea
-                    value={newListDescription}
-                    onChange={(e) => setNewListDescription(e.target.value)}
-                    placeholder="Enter description"
-                  />
-                </div>
-              </div>
-            ) : (
-              <div>
-                <label className="text-sm font-medium">Select List</label>
-                <Select
-                  value={selectedExistingList?.toString()}
-                  onValueChange={(value) => setSelectedExistingList(parseInt(value))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Choose a list" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {savedLists.map((list: any) => (
-                      <SelectItem key={list.id} value={list.id.toString()}>
-                        {list.name}
-                      </SelectItem>
+            {tagGroups.map((group: TagGroup) => (
+              <div key={group.id}>
+                <h4 className="font-medium mb-2">{group.name}</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {allTags
+                    .filter((tag: ContactTag) => tag.group_id === group.id)
+                    .map((tag: ContactTag) => (
+                      <Button
+                        key={tag.id}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAssignTag(tag.id)}
+                        className="justify-start"
+                      >
+                        <div
+                          className="w-3 h-3 rounded-full mr-2"
+                          style={{ backgroundColor: tag.color }}
+                        />
+                        {tag.name}
+                      </Button>
                     ))}
-                  </SelectContent>
-                </Select>
+                </div>
               </div>
-            )}
+            ))}
           </div>
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowSaveListModal(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={handleSaveToList}
-              disabled={createListMutation.isPending}
-            >
-              {createListMutation.isPending ? 'Saving...' : 'Save'}
+            <Button variant="outline" onClick={() => setShowTagDialog(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

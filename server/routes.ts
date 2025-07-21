@@ -36,13 +36,25 @@ import {
   opportunityAssessmentHistory,
   insertOpportunityWithholdReasonSchema,
   insertOpportunityAssessmentHistorySchema,
+  tagGroups,
+  tags,
+  contactTags,
+  insertTagGroupSchema,
+  insertTagSchema,
+  insertContactTagSchema,
   type ProductCategory,
   type Product,
   type ProductTemplate,
   type InsertProductTemplate,
   type Vendor,
   type ActivityReaction,
-  type InsertActivityReaction
+  type InsertActivityReaction,
+  type TagGroup,
+  type Tag,
+  type ContactTag,
+  type InsertTagGroup,
+  type InsertTag,
+  type InsertContactTag
 } from '@shared/schema';
 import { eq, sql } from 'drizzle-orm';
 import { db, pool, getEnvironmentPool, getEnvironmentDb } from './db';
@@ -13402,6 +13414,360 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
     } catch (error) {
       console.error('Error fetching aggregated portfolio overview:', error);
       res.status(500).json({ error: 'Failed to fetch aggregated portfolio overview' });
+    }
+  });
+
+  // ===== TAG API ENDPOINTS =====
+
+  // Get all tag groups
+  app.get('/api/:envId/tag-groups', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const envPool = getEnvironmentPool(envId);
+      
+      const query = `
+        SELECT tg.*, u.name as created_by_name,
+               COUNT(t.id) as tag_count
+        FROM "${envId}".tag_groups tg
+        LEFT JOIN "${envId}".users u ON tg.created_by_id = u.id
+        LEFT JOIN "${envId}".tags t ON tg.id = t.group_id
+        GROUP BY tg.id, tg.name, tg.description, tg.color_scheme, tg.is_exclusive, tg.sort_order, tg.created_by_id, tg.created_at, tg.updated_at, u.name
+        ORDER BY tg.sort_order ASC, tg.name ASC
+      `;
+      
+      const result = await envPool.query(query);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching tag groups:', error);
+      res.status(500).json({ error: 'Failed to fetch tag groups' });
+    }
+  });
+
+  // Create new tag group
+  app.post('/api/:envId/tag-groups', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const envPool = getEnvironmentPool(envId);
+      const validatedData = insertTagGroupSchema.parse(req.body);
+      
+      const result = await envPool.query(`
+        INSERT INTO ${envId}.tag_groups (
+          name, description, color_scheme, is_exclusive, sort_order, created_by_id
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6
+        ) RETURNING *
+      `, [
+        validatedData.name,
+        validatedData.description || '',
+        validatedData.colorScheme,
+        validatedData.isExclusive,
+        validatedData.sortOrder || 0,
+        validatedData.createdById
+      ]);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating tag group:', error);
+      res.status(500).json({ error: 'Failed to create tag group' });
+    }
+  });
+
+  // Update tag group
+  app.put('/api/:envId/tag-groups/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const tagGroupId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool(envId);
+      const { name, description, colorScheme, isExclusive, sortOrder } = req.body;
+      
+      const result = await envPool.query(`
+        UPDATE ${envId}.tag_groups 
+        SET 
+          name = $1, 
+          description = $2, 
+          color_scheme = $3, 
+          is_exclusive = $4, 
+          sort_order = $5, 
+          updated_at = NOW()
+        WHERE id = $6
+        RETURNING *
+      `, [
+        name, 
+        description || '', 
+        colorScheme, 
+        isExclusive, 
+        sortOrder, 
+        tagGroupId
+      ]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Tag group not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating tag group:', error);
+      res.status(500).json({ error: 'Failed to update tag group' });
+    }
+  });
+
+  // Delete tag group
+  app.delete('/api/:envId/tag-groups/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const tagGroupId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool(envId);
+      
+      const result = await envPool.query(`
+        DELETE FROM ${envId}.tag_groups WHERE id = $1 RETURNING *
+      `, [tagGroupId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Tag group not found' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting tag group:', error);
+      res.status(500).json({ error: 'Failed to delete tag group' });
+    }
+  });
+
+  // Get all tags
+  app.get('/api/:envId/tags', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const envPool = getEnvironmentPool(envId);
+      
+      const result = await envPool.query(`
+        SELECT t.*, tg.name as group_name, u.name as created_by_name,
+               COUNT(ct.id) as contact_count
+        FROM ${envId}.tags t
+        LEFT JOIN ${envId}.tag_groups tg ON t.group_id = tg.id
+        LEFT JOIN ${envId}.users u ON t.created_by_id = u.id
+        LEFT JOIN ${envId}.contact_tags ct ON t.id = ct.tag_id
+        GROUP BY t.id, t.name, t.color, t.group_id, t.created_by_id, t.created_at, t.updated_at, tg.name, u.name
+        ORDER BY tg.sort_order ASC, t.name ASC
+      `);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching tags:', error);
+      res.status(500).json({ error: 'Failed to fetch tags' });
+    }
+  });
+
+  // Get tags by group
+  app.get('/api/:envId/tag-groups/:groupId/tags', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const groupId = parseInt(req.params.groupId);
+      const envPool = getEnvironmentPool(envId);
+      
+      const query = `
+        SELECT t.*, u.name as created_by_name,
+               COUNT(ct.id) as contact_count
+        FROM "${envId}".tags t
+        LEFT JOIN "${envId}".users u ON t.created_by_id = u.id
+        LEFT JOIN "${envId}".contact_tags ct ON t.id = ct.tag_id
+        WHERE t.group_id = $1
+        GROUP BY t.id, t.name, t.color, t.group_id, t.created_by_id, t.created_at, t.updated_at, u.name
+        ORDER BY t.name ASC
+      `;
+      const result = await envPool.query(query, [groupId]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching tags by group:', error);
+      res.status(500).json({ error: 'Failed to fetch tags by group' });
+    }
+  });
+
+  // Create new tag
+  app.post('/api/:envId/tags', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const envPool = getEnvironmentPool(envId);
+      const validatedData = insertTagSchema.parse(req.body);
+      
+      const result = await envPool.query(`
+        INSERT INTO "${envId}".tags (
+          name, color, group_id, created_by_id, tag_type_id, status
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6
+        ) RETURNING *
+      `, [
+        validatedData.name,
+        validatedData.color,
+        validatedData.groupId,
+        validatedData.createdById,
+        1, // Default to Product Category tag type
+        'active'
+      ]);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating tag:', error);
+      res.status(500).json({ error: 'Failed to create tag' });
+    }
+  });
+
+  // Update tag
+  app.put('/api/:envId/tags/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const tagId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool(envId);
+      const { name, color, groupId } = req.body;
+      
+      const query = `
+        UPDATE "${envId}".tags 
+        SET 
+          name = $1, 
+          color = $2, 
+          group_id = $3, 
+          updated_at = NOW()
+        WHERE id = $4
+        RETURNING *
+      `;
+      const result = await envPool.query(query, [name, color, groupId, tagId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Tag not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating tag:', error);
+      res.status(500).json({ error: 'Failed to update tag' });
+    }
+  });
+
+  // Delete tag
+  app.delete('/api/:envId/tags/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const tagId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool(envId);
+      
+      const result = await envPool.query(`
+        DELETE FROM ${envId}.tags WHERE id = $1 RETURNING *
+      `, [tagId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Tag not found' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting tag:', error);
+      res.status(500).json({ error: 'Failed to delete tag' });
+    }
+  });
+
+  // Get contact tags
+  app.get('/api/:envId/contacts/:contactId/tags', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const contactId = parseInt(req.params.contactId);
+      const envPool = getEnvironmentPool(envId);
+      
+      const result = await envPool.query(`
+        SELECT ct.*, t.name as tag_name, t.color as tag_color, 
+               tg.name as group_name, u.name as tagged_by_name
+        FROM ${envId}.contact_tags ct
+        LEFT JOIN ${envId}.tags t ON ct.tag_id = t.id
+        LEFT JOIN ${envId}.tag_groups tg ON t.group_id = tg.id
+        LEFT JOIN ${envId}.users u ON ct.tagged_by_id = u.id
+        WHERE ct.contact_id = $1
+        ORDER BY tg.sort_order ASC, t.name ASC
+      `, [contactId]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching contact tags:', error);
+      res.status(500).json({ error: 'Failed to fetch contact tags' });
+    }
+  });
+
+  // Add tag to contact
+  app.post('/api/:envId/contacts/:contactId/tags', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const contactId = parseInt(req.params.contactId);
+      const envPool = getEnvironmentPool(envId);
+      const { tagId, taggedById } = req.body;
+      
+      // Check if tag is already assigned to this contact
+      const existingResult = await envPool.query(`
+        SELECT id FROM ${envId}.contact_tags 
+        WHERE contact_id = $1 AND tag_id = $2
+      `, [contactId, tagId]);
+      
+      if (existingResult.rows.length > 0) {
+        return res.status(400).json({ error: 'Tag already assigned to this contact' });
+      }
+      
+      const result = await envPool.query(`
+        INSERT INTO ${envId}.contact_tags (
+          contact_id, tag_id, tagged_by_id
+        ) VALUES (
+          $1, $2, $3
+        ) RETURNING *
+      `, [contactId, tagId, taggedById]);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error adding tag to contact:', error);
+      res.status(500).json({ error: 'Failed to add tag to contact' });
+    }
+  });
+
+  // Remove tag from contact
+  app.delete('/api/:envId/contacts/:contactId/tags/:tagId', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const contactId = parseInt(req.params.contactId);
+      const tagId = parseInt(req.params.tagId);
+      const envPool = getEnvironmentPool(envId);
+      
+      const result = await envPool.query(`
+        DELETE FROM ${envId}.contact_tags 
+        WHERE contact_id = $1 AND tag_id = $2 
+        RETURNING *
+      `, [contactId, tagId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Contact tag assignment not found' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error removing tag from contact:', error);
+      res.status(500).json({ error: 'Failed to remove tag from contact' });
+    }
+  });
+
+  // Get contacts by tag
+  app.get('/api/:envId/tags/:tagId/contacts', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const tagId = parseInt(req.params.tagId);
+      const envDb = getEnvironmentDb(envId);
+      
+      const result = await envDb.execute(sql`
+        SELECT c.*, ct.tagged_at, u.name as tagged_by_name
+        FROM ${envId}.contacts c
+        INNER JOIN ${envId}.contact_tags ct ON c.id = ct.contact_id
+        LEFT JOIN ${envId}.users u ON ct.tagged_by_id = u.id
+        WHERE ct.tag_id = ${tagId}
+        ORDER BY c.full_name ASC
+      `);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching contacts by tag:', error);
+      res.status(500).json({ error: 'Failed to fetch contacts by tag' });
     }
   });
 

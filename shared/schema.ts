@@ -517,6 +517,40 @@ export const insertProductCatalogSchema = createInsertSchema(productCatalog).pic
   aiContext: true,
 });
 
+// Tag Groups table - for organizing tags hierarchically
+export const tagGroups = pgTable("tag_groups", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  colorScheme: varchar("color_scheme", { length: 50 }),
+  isExclusive: boolean("is_exclusive").notNull().default(false), // only one tag per group can be assigned
+  sortOrder: integer("sort_order").default(0),
+  createdById: integer("created_by_id").references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Tags table - for contact categorization
+export const tags = pgTable("tags", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  color: varchar("color", { length: 7 }).notNull().default("#3B82F6"), // hex color code
+  groupId: integer("group_id").references(() => tagGroups.id),
+  usageCount: integer("usage_count").notNull().default(0),
+  createdById: integer("created_by_id").references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Contact Tags junction table - many-to-many relationship
+export const contactTags = pgTable("contact_tags", {
+  id: serial("id").primaryKey(),
+  contactId: integer("contact_id").notNull().references(() => contacts.id),
+  tagId: integer("tag_id").notNull().references(() => tags.id),
+  taggedById: integer("tagged_by_id").references(() => users.id),
+  taggedAt: timestamp("tagged_at").notNull().defaultNow(),
+});
+
 // Saved Lists table - for storing user-created lists of entities
 export const savedLists = pgTable("saved_lists", {
   id: serial("id").primaryKey(),
@@ -588,6 +622,42 @@ export const listCollaboratorsRelations = relations(listCollaborators, ({ one })
 export const savedViewsRelations = relations(savedViews, ({ one }) => ({
   createdBy: one(users, {
     fields: [savedViews.created_by],
+    references: [users.id],
+  }),
+}));
+
+// Tag relations
+export const tagGroupsRelations = relations(tagGroups, ({ one, many }) => ({
+  createdBy: one(users, {
+    fields: [tagGroups.createdById],
+    references: [users.id],
+  }),
+  tags: many(tags),
+}));
+
+export const tagsRelations = relations(tags, ({ one, many }) => ({
+  group: one(tagGroups, {
+    fields: [tags.groupId],
+    references: [tagGroups.id],
+  }),
+  createdBy: one(users, {
+    fields: [tags.createdById],
+    references: [users.id],
+  }),
+  contactTags: many(contactTags),
+}));
+
+export const contactTagsRelations = relations(contactTags, ({ one }) => ({
+  contact: one(contacts, {
+    fields: [contactTags.contactId],
+    references: [contacts.id],
+  }),
+  tag: one(tags, {
+    fields: [contactTags.tagId],
+    references: [tags.id],
+  }),
+  taggedBy: one(users, {
+    fields: [contactTags.taggedById],
     references: [users.id],
   }),
 }));
@@ -694,6 +764,29 @@ export const insertSavedViewSchema = createInsertSchema(savedViews).pick({
   created_by: true,
 });
 
+// Tag insert schemas
+export const insertTagGroupSchema = createInsertSchema(tagGroups).pick({
+  name: true,
+  description: true,
+  colorScheme: true,
+  isExclusive: true,
+  sortOrder: true,
+  createdById: true,
+});
+
+export const insertTagSchema = createInsertSchema(tags).pick({
+  name: true,
+  color: true,
+  groupId: true,
+  createdById: true,
+});
+
+export const insertContactTagSchema = createInsertSchema(contactTags).pick({
+  contactId: true,
+  tagId: true,
+  taggedById: true,
+});
+
 // Campaign template insert schemas
 export const insertCampaignTemplateSchema = createInsertSchema(campaignTemplates).pick({
   name: true,
@@ -764,6 +857,16 @@ export type SavedList = typeof savedLists.$inferSelect;
 
 export type InsertSavedView = z.infer<typeof insertSavedViewSchema>;
 export type SavedView = typeof savedViews.$inferSelect;
+
+// Tag types
+export type InsertTagGroup = z.infer<typeof insertTagGroupSchema>;
+export type TagGroup = typeof tagGroups.$inferSelect;
+
+export type InsertTag = z.infer<typeof insertTagSchema>;
+export type Tag = typeof tags.$inferSelect;
+
+export type InsertContactTag = z.infer<typeof insertContactTagSchema>;
+export type ContactTag = typeof contactTags.$inferSelect;
 
 // Partners model - broker and distribution partners
 export const partners = pgTable("partners", {

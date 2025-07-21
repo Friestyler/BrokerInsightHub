@@ -1,0 +1,187 @@
+# User Story: Tag and Group Tag Functionality for Stakeholder Management
+
+## Epic: Enhanced Stakeholder Organization and Categorization
+
+### User Story 1: Individual Contact Tagging
+
+**As a** sales manager or relationship manager**I want to** add custom tags to individual stakeholders**So that** I can categorize and organize contacts based on my specific business needs and quickly identify relevant contacts for different scenarios.
+
+#### Acceptance Criteria:
+
+- I can add multiple custom tags to any stakeholder contact
+- Tags are displayed as colored badges on stakeholder cards and list views
+- I can create new tags on-the-fly while tagging contacts
+- I can remove tags from contacts individually
+- Tags are searchable and filterable across all views (List, Network, Org Chart)
+- Tag colors are automatically assigned but can be customized
+- I can see a count of how many contacts have each tag
+- Tags persist across browser sessions and are saved to the database
+
+
+#### Technical Notes:
+
+- Tags should be stored as a many-to-many relationship between contacts and tags
+- Implement tag autocomplete/suggestions when typing
+- Consider tag hierarchy or categories for better organization
+
+
+---
+
+### User Story 2: Bulk Tagging Operations
+
+**As a** user managing large numbers of stakeholders**I want to** apply tags to multiple contacts simultaneously**So that** I can efficiently organize large contact lists without having to tag each contact individually.
+
+#### Acceptance Criteria:
+
+- I can select multiple contacts using checkboxes in list views
+- A bulk actions toolbar appears when contacts are selected
+- I can add tags to all selected contacts at once
+- I can remove specific tags from all selected contacts
+- I can see a preview of how many contacts will be affected before confirming
+- I can select all contacts in a filtered view for bulk operations
+- The system shows progress feedback for bulk operations on large datasets
+
+
+---
+
+### User Story 3: Tag-Based Filtering and Search
+
+**As a** user looking for specific types of contacts**I want to** filter stakeholders by tags**So that** I can quickly find contacts that match specific criteria or belong to certain categories.
+
+#### Acceptance Criteria:
+
+- I can filter contacts by one or multiple tags (AND/OR logic)
+- Tag filters work across all views (List, Network, Org Chart)
+- I can combine tag filters with existing filters (attributes, entity types, etc.)
+- Active tag filters are clearly displayed and can be easily removed
+- I can save frequently used tag filter combinations
+- Search functionality includes tag names in results
+- Filter counts update dynamically as I select/deselect tags
+
+
+---
+
+### User Story 4: Group Tag Management
+
+**As a** team lead or administrator**I want to** create and manage tag groups/categories**So that** I can organize tags hierarchically and ensure consistent tagging across my team.
+
+#### Acceptance Criteria:
+
+- I can create tag groups (e.g., "Industry", "Priority", "Status", "Relationship Type")
+- I can assign tags to specific groups for better organization
+- Tag groups are displayed in a hierarchical structure in the UI
+- I can set group-specific color schemes for visual consistency
+- I can define whether tags in a group are mutually exclusive or allow multiple selections
+- I can reorder tags within groups and reorder groups themselves
+- I can set permissions on who can create/edit tags in specific groups
+
+
+---
+
+### User Story 5: Smart Tag Suggestions
+
+**As a** user adding tags to contacts**I want to** receive intelligent tag suggestions**So that** I can maintain consistency and discover relevant tags I might not have considered.
+
+#### Acceptance Criteria:
+
+- The system suggests existing tags as I type
+- I see suggestions based on similar contacts (same company, department, attributes)
+- Recently used tags appear at the top of suggestions
+- I can see tag usage statistics (how many contacts have each tag)
+- The system suggests creating new tags when my input doesn't match existing ones
+- Popular tags within my organization are highlighted
+- I can mark certain tags as "favorites" for quick access
+
+
+---
+
+### User Story 6: Tag Analytics and Insights
+
+**As a** sales manager or team lead**I want to** view analytics about tag usage and distribution**So that** I can understand my contact portfolio composition and identify trends or gaps.
+
+#### Acceptance Criteria:
+
+- I can view a dashboard showing tag distribution across my contacts
+- I can see which tags are most/least used
+- I can analyze tag combinations to identify patterns
+- I can export tag-based reports for external analysis
+- I can see tag usage trends over time
+- I can identify contacts that are under-tagged or over-tagged
+- I can view tag performance metrics (e.g., conversion rates by tag)
+
+
+---
+
+## Technical Implementation Considerations:
+
+### Database Schema:
+
+```sql
+-- Tags table
+CREATE TABLE tags (
+  id UUID PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  color VARCHAR(7), -- hex color code
+  group_id UUID REFERENCES tag_groups(id),
+  created_by UUID REFERENCES users(id),
+  created_at TIMESTAMP,
+  updated_at TIMESTAMP
+);
+
+-- Tag groups table
+CREATE TABLE tag_groups (
+  id UUID PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  description TEXT,
+  color_scheme VARCHAR(50),
+  is_exclusive BOOLEAN DEFAULT false,
+  sort_order INTEGER,
+  created_by UUID REFERENCES users(id),
+  created_at TIMESTAMP
+);
+
+-- Contact tags junction table
+CREATE TABLE contact_tags (
+  contact_id UUID REFERENCES contacts(id),
+  tag_id UUID REFERENCES tags(id),
+  tagged_by UUID REFERENCES users(id),
+  tagged_at TIMESTAMP,
+  PRIMARY KEY (contact_id, tag_id)
+);
+```
+
+### API Endpoints:
+
+- `GET /api/tags` - List all tags with usage counts
+- `POST /api/tags` - Create new tag
+- `PUT /api/tags/:id` - Update tag
+- `DELETE /api/tags/:id` - Delete tag
+- `POST /api/contacts/:id/tags` - Add tags to contact
+- `DELETE /api/contacts/:id/tags/:tagId` - Remove tag from contact
+- `POST /api/contacts/bulk-tag` - Bulk tag operations
+- `GET /api/tag-groups` - List tag groups
+- `POST /api/tag-groups` - Create tag group
+
+
+### UI Components to Update:
+
+- Stakeholder cards (add tag display)
+- List view (add tag column and filters)
+- Filter sidebar (add tag filtering section)
+- Bulk actions toolbar
+- Tag management modal/page
+- Search functionality enhancement
+
+
+---
+
+## Definition of Done:
+
+- All acceptance criteria are met and tested
+- Unit tests cover tag functionality
+- Integration tests verify tag operations across views
+- Performance testing completed for bulk operations
+- UI/UX reviewed and approved
+- Documentation updated
+- Database migrations created and tested
+- API documentation updated
