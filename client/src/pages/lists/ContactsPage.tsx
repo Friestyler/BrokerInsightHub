@@ -609,7 +609,7 @@ export default function ContactsPage() {
                       <SelectItem value="none">No supervisor</SelectItem>
                       {contacts.filter((c: Contact) => c.id !== editingContact?.id).map((contact: Contact) => (
                         <SelectItem key={contact.id} value={contact.id.toString()}>
-                          {contact.fullName}
+                          {(contact as any).full_name || contact.fullName}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -712,7 +712,7 @@ export default function ContactsPage() {
                       <SelectItem value="none">No supervisor</SelectItem>
                       {contacts.filter((c: Contact) => c.id !== editingContact?.id).map((contact: Contact) => (
                         <SelectItem key={contact.id} value={contact.id.toString()}>
-                          {contact.fullName}
+                          {(contact as any).full_name || contact.fullName}
                         </SelectItem>
                       ))}
                     </SelectContent>
