@@ -92,6 +92,7 @@ export default function ContactsPage() {
   const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
   const [visibleFields, setVisibleFields] = useState<string[]>(['fullName', 'title', 'attributes', 'entities', 'network', 'enrichment', 'actions']);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showTagManager, setShowTagManager] = useState(false);
   
   // Available fields for contacts  
   const availableFields = [
@@ -463,35 +464,37 @@ export default function ContactsPage() {
         </div>
       </div>
 
-      {/* Tab Navigation */}
-      <Tabs defaultValue="contacts" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="contacts" className="flex items-center space-x-2">
-            <User className="h-4 w-4" />
-            <span>Contacts</span>
-          </TabsTrigger>
-          <TabsTrigger value="tags" className="flex items-center space-x-2">
-            <TagIcon className="h-4 w-4" />
-            <span>Tag Management</span>
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="contacts" className="space-y-6 mt-6">
-          {/* Contact Controls */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <span className="text-sm text-gray-600">Group by:</span>
-              <Select value={groupBy} onValueChange={setGroupBy}>
-                <SelectTrigger className="w-32">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Role">Role</SelectItem>
-                  <SelectItem value="Department">Department</SelectItem>
-                </SelectContent>
-              </Select>
+      {/* Contact Controls */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-3">
+          <span className="text-sm text-gray-600">Group by:</span>
+          <Select value={groupBy} onValueChange={setGroupBy}>
+            <SelectTrigger className="w-32">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Role">Role</SelectItem>
+              <SelectItem value="Department">Department</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <Dialog open={showTagManager} onOpenChange={setShowTagManager}>
+          <DialogTrigger asChild>
+            <Button variant="outline" size="sm" className="h-8">
+              <TagIcon className="h-4 w-4 mr-1" />
+              Manage tags
+            </Button>
+          </DialogTrigger>
+          <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
+            <DialogHeader>
+              <DialogTitle>Tag Management</DialogTitle>
+            </DialogHeader>
+            <div className="overflow-y-auto max-h-[80vh]">
+              <TagCategoryManager envId="degoudse" />
             </div>
-          </div>
+          </DialogContent>
+        </Dialog>
+      </div>
 
       {/* Toolbar */}
       <div className="flex items-center justify-between space-x-4 py-2">
@@ -796,12 +799,7 @@ export default function ContactsPage() {
           ))
         )}
       </div>
-        </TabsContent>
 
-        <TabsContent value="tags" className="space-y-6 mt-6">
-          <TagCategoryManager envId="degoudse" />
-        </TabsContent>
-      </Tabs>
     </div>
   );
 }
