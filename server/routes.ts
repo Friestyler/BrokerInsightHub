@@ -6568,6 +6568,40 @@ Return as JSON in this exact format:
     }
   });
 
+  // De Goudse Tag Categories endpoints
+  app.get('/api/degoudse/tag-categories', async (req, res) => {
+    const cacheKey = 'degoudse_tag_categories';
+    const cached = getCached(cacheKey);
+    
+    if (cached) {
+      return res.json(cached);
+    }
+    
+    try {
+      const envPool = pool;
+      const result = await envPool.query(`
+        SELECT 
+          tc.id, tc.name, tc.description, tc.color, tc.created_at,
+          json_agg(
+            json_build_object(
+              'id', t.id,
+              'name', t.name, 
+              'color', t.color
+            ) ORDER BY t.name
+          ) FILTER (WHERE t.id IS NOT NULL) as tags
+        FROM degoudse.tag_categories tc
+        LEFT JOIN degoudse.tags t ON tc.id = t.category_id
+        GROUP BY tc.id, tc.name, tc.description, tc.color, tc.created_at
+        ORDER BY tc.name ASC
+      `);
+      setCache(cacheKey, result.rows);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('De Goudse tag categories API error:', error);
+      res.status(500).json({ message: 'Failed to fetch tag categories for De Goudse environment' });
+    }
+  });
+
   // De Goudse Contacts endpoints
   app.get('/api/degoudse/contacts', async (req, res) => {
     try {
@@ -6597,7 +6631,16 @@ Return as JSON in this exact format:
           COALESCE(
             json_agg(
               CASE 
-                WHEN t.id IS NOT NULL THEN json_build_object('id', t.id, 'name', t.name, 'color', t.color)
+                WHEN t.id IS NOT NULL THEN json_build_object(
+                  'id', t.id, 
+                  'name', t.name, 
+                  'color', t.color,
+                  'category', json_build_object(
+                    'id', tc.id,
+                    'name', tc.name,
+                    'color', tc.color
+                  )
+                )
                 ELSE NULL 
               END
             ) FILTER (WHERE t.id IS NOT NULL), '[]'::json
@@ -6605,6 +6648,7 @@ Return as JSON in this exact format:
         FROM degoudse.contacts c
         LEFT JOIN degoudse.contact_tags ct ON c.id = ct.contact_id
         LEFT JOIN degoudse.tags t ON ct.tag_id = t.id
+        LEFT JOIN degoudse.tag_categories tc ON t.category_id = tc.id
         ${queryConditions}
         GROUP BY c.id, c.first_name, c.last_name, c.full_name, c.email, c.phone, 
                  c.job_title, c.department, c.company, c.linked_entity_type, 

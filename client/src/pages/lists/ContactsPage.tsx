@@ -239,15 +239,20 @@ export default function ContactsPage() {
       
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex flex-wrap gap-1">
-          {contact.tags?.map(tag => (
-            <Badge 
-              key={tag.id}
-              style={{ backgroundColor: tag.color, color: 'white' }}
-              className="text-xs"
-            >
-              {tag.name}
-            </Badge>
-          ))}
+          {contact.tags && Array.isArray(contact.tags) && contact.tags.length > 0 ? (
+            contact.tags.map((tag: any, index: number) => (
+              <Badge 
+                key={`${contact.id}-tag-${index}`}
+                style={{ backgroundColor: tag.color, color: 'white' }}
+                className="text-xs"
+                title={tag.category ? `${tag.category.name}: ${tag.name}` : tag.name}
+              >
+                {tag.name}
+              </Badge>
+            ))
+          ) : (
+            <span className="text-gray-400 text-xs">No tags</span>
+          )}
         </div>
       </td>
       
