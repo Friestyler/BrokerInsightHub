@@ -38,23 +38,23 @@ export function FieldsSelector({
     }
 
     if (checked) {
-      onFieldsChange([...visibleFields, fieldKey]);
+      onFieldsChange([...(visibleFields || []), fieldKey]);
     } else {
-      onFieldsChange(visibleFields.filter(f => f !== fieldKey));
+      onFieldsChange((visibleFields || []).filter(f => f !== fieldKey));
     }
   };
 
   const handleSelectAll = () => {
-    onFieldsChange(fields.map(f => f.key));
+    onFieldsChange((fields || []).map(f => f.key));
   };
 
   const handleDeselectAll = () => {
     // Only keep required fields
-    onFieldsChange(fields.filter(f => f.required).map(f => f.key));
+    onFieldsChange((fields || []).filter(f => f.required).map(f => f.key));
   };
 
-  const visibleCount = visibleFields.length;
-  const totalCount = fields.length;
+  const visibleCount = visibleFields?.length || 0;
+  const totalCount = fields?.length || 0;
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
@@ -96,11 +96,11 @@ export function FieldsSelector({
           <Separator />
           
           <div className="space-y-2 max-h-60 overflow-y-auto">
-            {fields.map((field) => (
+            {(fields || []).map((field) => (
               <div key={field.key} className="flex items-center space-x-2">
                 <Checkbox
                   id={field.key}
-                  checked={visibleFields.includes(field.key)}
+                  checked={(visibleFields || []).includes(field.key)}
                   onCheckedChange={(checked) => handleFieldToggle(field.key, checked as boolean)}
                   disabled={field.required}
                 />

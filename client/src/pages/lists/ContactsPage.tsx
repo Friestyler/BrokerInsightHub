@@ -228,17 +228,17 @@ const ContactsPage = () => {
         <h1 className="text-2xl font-bold text-gray-900">Contacts</h1>
         <div className="flex items-center space-x-2">
           <FieldsSelector
-            availableFields={[
-              { id: 'fullName', label: 'Full Name' },
-              { id: 'company', label: 'Company' },
-              { id: 'jobTitle', label: 'Job Title' },
-              { id: 'department', label: 'Department' },
-              { id: 'email', label: 'Email' },
-              { id: 'phone', label: 'Phone' },
-              { id: 'reportsTo', label: 'Reports To' },
-              { id: 'enrichment', label: 'Enrichment' }
+            fields={[
+              { key: 'fullName', label: 'Full Name' },
+              { key: 'company', label: 'Company' },
+              { key: 'jobTitle', label: 'Job Title' },
+              { key: 'department', label: 'Department' },
+              { key: 'email', label: 'Email' },
+              { key: 'phone', label: 'Phone' },
+              { key: 'reportsTo', label: 'Reports To' },
+              { key: 'enrichment', label: 'Enrichment' }
             ]}
-            selectedFields={selectedFields}
+            visibleFields={selectedFields}
             onFieldsChange={handleFieldsChange}
           />
           <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
