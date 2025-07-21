@@ -38,7 +38,7 @@ interface SavedList {
 }
 
 interface SavedListsManagerProps {
-  entityType: 'partner' | 'customer' | 'opportunity';
+  entityType: 'partner' | 'customer' | 'opportunity' | 'contacts';
   selectedItems: number[];
   onListSelect: (list: SavedList) => void;
   currentFilters?: any;

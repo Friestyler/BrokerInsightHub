@@ -352,24 +352,14 @@ export default function ContactsPage() {
 
       {/* Saved Lists Section */}
       <SavedListsManager
-        savedLists={savedLists}
-        savedViews={savedViews}
-        activeList={activeList}
-        activeView={activeView}
-        isEditingView={isEditingView}
-        filtersModified={filtersModified}
-        showViewNameInput={showViewNameInput}
-        pendingViewName={pendingViewName}
-        handleListSelect={handleListSelect}
-        handleViewSelect={handleViewSelect}
-        handleRevertChanges={handleRevertChanges}
-        handleSaveAsNew={handleSaveAsNew}
-        handleSaveView={handleSaveView}
-        onPendingViewNameChange={setPendingViewName}
-        onShowViewNameInput={setShowViewNameInput}
-        onEditingView={setIsEditingView}
-        currentCount={filteredContacts.length}
-        entityName="contacts"
+        entityType="contacts"
+        selectedItems={selectedContacts}
+        onListSelect={handleListSelect}
+        currentFilters={{
+          search: searchText,
+          filter: activeFilter,
+          sort: sortConfig
+        }}
       />
 
       {/* Toolbar */}
@@ -403,7 +393,7 @@ export default function ContactsPage() {
         </div>
         <div className="flex items-center gap-2">
           <FieldsSelector
-            availableFields={availableFields}
+            fields={availableFields}
             visibleFields={visibleFields}
             onFieldsChange={setVisibleFields}
           />
