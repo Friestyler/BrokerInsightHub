@@ -144,16 +144,9 @@ export default function ContactsPage() {
     queryFn: () => apiRequest('GET', '/api/saved-views?entity_type=contacts')
   });
 
-  // Tag data fetching
-  const { data: tagGroups = [] } = useQuery({
-    queryKey: ['/api/degoudse/tag-groups'],
-    queryFn: () => apiRequest('GET', '/api/degoudse/tag-groups')
-  });
-
-  const { data: allTags = [] } = useQuery({
-    queryKey: ['/api/degoudse/tags'],
-    queryFn: () => apiRequest('GET', '/api/degoudse/tags')
-  });
+  // Tag data temporarily disabled due to SQL issue
+  const tagGroups: any[] = [];
+  const allTags: any[] = [];
 
   // Mutations
   const createContactMutation = useMutation({
@@ -205,9 +198,6 @@ export default function ContactsPage() {
         contact.email?.toLowerCase().includes(searchText.toLowerCase()) ||
         contact.company?.toLowerCase().includes(searchText.toLowerCase());
 
-      if (activeFilter === 'all') return searchMatch;
-      if (activeFilter === 'primary') return searchMatch && contact.isPrimary;
-      if (activeFilter === 'withEmail') return searchMatch && contact.email;
       return searchMatch;
     })
     .sort((a: Contact, b: Contact) => {
@@ -295,7 +285,7 @@ export default function ContactsPage() {
       {/* Toolbar */}
       <div className="bg-white border border-[#E6E7F1] rounded-lg p-2 mb-4">
         <div className="flex items-center justify-between">
-          {/* Left side - Search and Filters */}
+          {/* Left side - Search */}
           <div className="flex items-center space-x-4">
             <div className="relative">
               <Search className="h-4 w-4 absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -306,41 +296,15 @@ export default function ContactsPage() {
                 className="pl-10 h-8 w-64"
               />
             </div>
-            
-            <Select value={activeFilter} onValueChange={setActiveFilter}>
-              <SelectTrigger className="h-8 w-32">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All contacts</SelectItem>
-                <SelectItem value="primary">Primary only</SelectItem>
-                <SelectItem value="withEmail">With email</SelectItem>
-              </SelectContent>
-            </Select>
           </div>
 
           {/* Right side - View controls */}
           <div className="flex items-center space-x-2">
-            <Select>
-              <SelectTrigger className="h-8 w-40">
-                <SelectValue placeholder="Segment view" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All segments</SelectItem>
-                <SelectItem value="department">By department</SelectItem>
-                <SelectItem value="company">By company</SelectItem>
-              </SelectContent>
-            </Select>
-            
             <FieldsSelector
               fields={availableFields}
               visibleFields={visibleFields}
               onFieldsChange={setVisibleFields}
             />
-            
-            <Button variant="outline" size="sm" className="h-8">
-              Filter
-            </Button>
           </div>
         </div>
       </div>
@@ -351,7 +315,6 @@ export default function ContactsPage() {
         selectedItems={selectedContacts}
         onListSelect={(list) => setActiveList(list)}
         currentFilters={{
-          activeFilter,
           searchText
         }}
       />

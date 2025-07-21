@@ -13547,7 +13547,7 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
         LEFT JOIN ${envId}.users u ON t.created_by_id = u.id
         LEFT JOIN ${envId}.contact_tags ct ON t.id = ct.tag_id
         GROUP BY t.id, t.name, t.color, t.group_id, t.created_by_id, t.created_at, t.updated_at, tg.name, u.name
-        ORDER BY tg.sort_order ASC, t.name ASC
+        ORDER BY t.name ASC
       `);
       
       res.json(result.rows);
