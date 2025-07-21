@@ -1729,7 +1729,7 @@ export default function PartnerDetailBrokerPOV() {
 
           {/* End of broker tab replacements */}
 
-          {false && activeTab === "opportunities_old" && (
+          {false && (
             <div className="space-y-4">
               {/* Removed all toolbar functionality as requested */}
 
@@ -2013,7 +2013,7 @@ export default function PartnerDetailBrokerPOV() {
             </div>
           )}
 
-          {activeTab === "customers" && (
+          {false && (
             <div className="space-y-4">
               {/* Enhanced unified toolbar - same as PartnerDetail.tsx */}
               <div className="bg-white p-4 rounded-lg shadow-sm">
