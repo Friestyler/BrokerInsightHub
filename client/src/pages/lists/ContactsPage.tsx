@@ -44,6 +44,32 @@ interface Contact {
   }>;
 }
 
+// Calculate enrichment percentage for contact
+const calculateEnrichmentPercentage = (contact: Contact): number => {
+  const totalFields = 8; // Total meaningful fields for enrichment
+  let completedFields = 0;
+  
+  // Core contact fields
+  if (contact.fullName?.trim()) completedFields++;
+  if (contact.email?.trim()) completedFields++;
+  if (contact.phone?.trim()) completedFields++;
+  if (contact.company?.trim()) completedFields++;
+  if (contact.jobTitle?.trim()) completedFields++;
+  if (contact.department?.trim()) completedFields++;
+  if (contact.reportsTo) completedFields++;
+  if (contact.notes?.trim()) completedFields++;
+  
+  return Math.round((completedFields / totalFields) * 100);
+};
+
+// Get enrichment status color
+const getEnrichmentColor = (percentage: number): string => {
+  if (percentage >= 80) return 'text-green-600 bg-green-50';
+  if (percentage >= 60) return 'text-blue-600 bg-blue-50';
+  if (percentage >= 40) return 'text-orange-600 bg-orange-50';
+  return 'text-red-600 bg-red-50';
+};
+
 interface CompanyGroup {
   name: string;
   contacts: Contact[];
@@ -415,30 +441,15 @@ export default function ContactsPage() {
       </td>
       
       <td className="px-6 py-4 whitespace-nowrap text-center">
-        <div className="text-blue-600">
-          <div>1</div>
-          <div className="text-xs text-gray-500">contact</div>
-        </div>
-      </td>
-      
-      <td className="px-6 py-4 whitespace-nowrap">
-        <div className="flex items-center">
-          <Star className="w-4 h-4 text-blue-400 mr-1" />
-          <span className="text-blue-600 font-medium">
-            {(() => {
-              let attributeCount = 0;
-              if (contact.email) attributeCount++;
-              if (contact.phone) attributeCount++;
-              if (contact.jobTitle) attributeCount++;
-              if (contact.department) attributeCount++;
-              if (contact.company) attributeCount++;
-              if (contact.reportsTo) attributeCount++;
-              if (contact.notes) attributeCount++;
-              if (contact.tags && contact.tags.length > 0) attributeCount += contact.tags.length;
-              return `${attributeCount} attributes`;
-            })()}
-          </span>
-        </div>
+        {(() => {
+          const percentage = calculateEnrichmentPercentage(contact);
+          const colorClass = getEnrichmentColor(percentage);
+          return (
+            <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${colorClass}`}>
+              {percentage}%
+            </div>
+          );
+        })()}
       </td>
       
       <td className="px-6 py-4 whitespace-nowrap">
@@ -780,9 +791,6 @@ export default function ContactsPage() {
                         Entities
                       </th>
                       <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Network
-                      </th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Enrichment
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
