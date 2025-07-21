@@ -582,6 +582,22 @@ export default function PartnerDetailBrokerPOV() {
 
   // All returned lists are already filtered to show only those shared with John Smith or partners
   const partnerRelevantLists = savedListsData || [];
+
+  // Add missing data queries for tab functionality
+  const { data: relatedProducts = [] } = useQuery({
+    queryKey: [`/api/${actualCurrentEnvironment}/partners/${partnerId}/products`],
+    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/partners/${partnerId}/products`),
+  });
+
+  const { data: relatedCampaigns = [] } = useQuery({
+    queryKey: [`/api/${actualCurrentEnvironment}/partners/${partnerId}/campaigns`],
+    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/partners/${partnerId}/campaigns`),
+  });
+
+  const { data: assignedMetrics = [] } = useQuery({
+    queryKey: [`/api/${actualCurrentEnvironment}/partners/${partnerId}/metrics`],
+    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/partners/${partnerId}/metrics`),
+  });
   
   console.log(`Showing ${partnerRelevantLists.length} lists shared with John Smith or partners:`, 
     partnerRelevantLists.map((list: any) => ({ name: list.name, id: list.id, collaborators: list.collaborator_emails })));
@@ -921,9 +937,9 @@ export default function PartnerDetailBrokerPOV() {
     queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/users`),
   });
 
-  // Get metrics assigned to the current partner
+  // Get metrics assigned to the current partner using filtered results from allMetrics
   // Template assignments use template_id to reference metrics, and entity_id for the partner
-  const assignedMetrics = allMetrics?.filter((metric: any) => {
+  const filteredAssignedMetrics = allMetrics?.filter((metric: any) => {
     return templateAssignments?.some((assignment: any) => 
       assignment.template_id === metric.id && assignment.entity_id === parseInt(partnerId || '12')
     );
@@ -931,10 +947,10 @@ export default function PartnerDetailBrokerPOV() {
 
   console.log('Broker view - Template assignments:', templateAssignments);
   console.log('Broker view - All metrics:', allMetrics);
-  console.log('Broker view - Assigned metrics for current partner:', assignedMetrics);
+  console.log('Broker view - Assigned metrics for current partner:', filteredAssignedMetrics);
   console.log('Broker view - Tags:', tags);
 
-  const okrMetrics = assignedMetrics;
+  const okrMetrics = filteredAssignedMetrics;
 
   // Filter metrics based on search and filters
   const filteredMetrics = okrMetrics.filter((metric: any) => {
