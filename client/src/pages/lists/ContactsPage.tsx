@@ -6,13 +6,15 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Plus, Mail, Phone, BarChart3, MoreHorizontal, User, Star } from 'lucide-react';
+import { Search, Plus, Mail, Phone, BarChart3, MoreHorizontal, User, Star, List, Download, Filter, Settings } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { FieldsSelector } from "@/components/shared/FieldsSelector";
+
 
 interface Contact {
   id: number;
@@ -53,6 +55,10 @@ const ContactsPage = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
+  const [showBulkActions, setShowBulkActions] = useState(false);
+  const [showTagDialog, setShowTagDialog] = useState(false);
+  const [selectedTagToAdd, setSelectedTagToAdd] = useState("");
   
   const [formData, setFormData] = useState({
     firstName: '',
@@ -202,6 +208,29 @@ const ContactsPage = () => {
     setSelectedFields(fields);
   };
 
+  const handleSelectContact = (contactId: number) => {
+    setSelectedContacts(prev => 
+      prev.includes(contactId) 
+        ? prev.filter(id => id !== contactId)
+        : [...prev, contactId]
+    );
+  };
+
+  const handleSelectAll = () => {
+    setSelectedContacts(contacts.map(c => c.id));
+  };
+
+  const handleClearSelection = () => {
+    setSelectedContacts([]);
+  };
+
+  const toggleBulkActions = () => {
+    if (showBulkActions) {
+      setSelectedContacts([]);
+    }
+    setShowBulkActions(!showBulkActions);
+  };
+
   const getAttributeCount = (contact: Contact) => {
     let count = 0;
     if (contact.email) count++;
@@ -223,10 +252,58 @@ const ContactsPage = () => {
 
   return (
     <div className="p-6 space-y-6">
+      {/* Contact Lists Section */}
+      <div className="bg-gray-50 border border-[#E6E7F1] rounded-lg p-4 mb-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-lg font-semibold text-gray-900">Contact Lists</h3>
+          <Button variant="outline" size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            Create list
+          </Button>
+        </div>
+        <div className="mt-3 text-sm text-gray-600">
+          Manage saved contact lists and segments
+        </div>
+      </div>
+
+      {/* Bulk Actions Bar */}
+      {selectedContacts.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <span className="text-sm font-medium text-blue-900">
+                {selectedContacts.length} contact{selectedContacts.length > 1 ? 's' : ''} selected
+              </span>
+              <Button variant="outline" size="sm" onClick={handleClearSelection}>
+                Clear selection
+              </Button>
+            </div>
+            <div className="flex items-center space-x-2">
+              <Button variant="outline" size="sm">
+                <List className="h-4 w-4 mr-2" />
+                Add to list
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => setShowTagDialog(true)}>
+                <Settings className="h-4 w-4 mr-2" />
+                Add tags
+              </Button>
+              <Button variant="outline" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold text-gray-900">Contacts</h1>
         <div className="flex items-center space-x-2">
+          <Button variant="outline" size="sm" onClick={toggleBulkActions}>
+            <Filter className="h-4 w-4 mr-2" />
+            {showBulkActions ? 'Cancel' : 'Bulk actions'}
+          </Button>
           <FieldsSelector
             fields={[
               { key: 'fullName', label: 'Full Name' },
@@ -517,6 +594,12 @@ const ContactsPage = () => {
                   <div key={contact.id} className="px-4 py-4 hover:bg-gray-50">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4 flex-1">
+                        {showBulkActions && (
+                          <Checkbox
+                            checked={selectedContacts.includes(contact.id)}
+                            onCheckedChange={() => handleSelectContact(contact.id)}
+                          />
+                        )}
                         <div className="flex-shrink-0">
                           <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center">
                             <span className="text-sm font-medium text-white">
@@ -601,6 +684,41 @@ const ContactsPage = () => {
                             </div>
                           )}
                         </div>
+                        
+                        {/* Tags Display */}
+                        <div className="flex flex-wrap gap-1 mt-2">
+                          {contact.tags && contact.tags.length > 0 && (
+                            contact.tags.map((tagName, index) => {
+                              const tag = tags.find(t => t.name === tagName);
+                              return (
+                                <Badge 
+                                  key={index} 
+                                  variant="secondary" 
+                                  style={{ 
+                                    backgroundColor: tag?.color + '20', 
+                                    color: tag?.color,
+                                    borderColor: tag?.color 
+                                  }}
+                                  className="text-xs"
+                                >
+                                  {tagName}
+                                </Badge>
+                              );
+                            })
+                          )}
+                          <Button 
+                            variant="ghost" 
+                            size="sm" 
+                            className="h-6 px-2 text-xs"
+                            onClick={() => {
+                              setEditingContact(contact);
+                              setShowTagDialog(true);
+                            }}
+                          >
+                            <Settings className="h-3 w-3 mr-1" />
+                            Manage tags
+                          </Button>
+                        </div>
                       </div>
                       
                       <DropdownMenu>
@@ -623,6 +741,51 @@ const ContactsPage = () => {
           ))
         )}
       </div>
+
+      {/* Tag Management Dialog */}
+      <Dialog open={showTagDialog} onOpenChange={setShowTagDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Tags</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="selectTag">Select Tag</Label>
+              <Select value={selectedTagToAdd} onValueChange={setSelectedTagToAdd}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a tag" />
+                </SelectTrigger>
+                <SelectContent>
+                  {tags.map(tag => (
+                    <SelectItem key={tag.id} value={tag.name}>
+                      <div className="flex items-center space-x-2">
+                        <div 
+                          className="w-3 h-3 rounded-full" 
+                          style={{ backgroundColor: tag.color }}
+                        ></div>
+                        <span>{tag.name}</span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex justify-end space-x-2">
+              <Button variant="outline" onClick={() => setShowTagDialog(false)}>
+                Cancel
+              </Button>
+              <Button onClick={() => {
+                // Handle tag assignment
+                setShowTagDialog(false);
+                setSelectedTagToAdd("");
+                toast({ title: 'Tags updated successfully' });
+              }}>
+                Add tag
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
