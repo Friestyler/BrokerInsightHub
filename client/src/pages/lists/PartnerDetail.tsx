@@ -3031,10 +3031,19 @@ export default function PartnerDetail() {
 
             {/* Statistics overview cards */}
             {/* Statistics Overview - matching Customers tab design exactly */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               <div className="bg-white p-4 rounded-md border border-gray-200">
                 <div className="text-xl font-semibold text-[#282A3F]">{filteredOpportunities.length}</div>
                 <div className="text-sm text-gray-500">Total Opportunities</div>
+              </div>
+              
+              <div className="bg-white p-4 rounded-md border border-gray-200">
+                <div className="text-xl font-semibold text-[#282A3F]">
+                  {(relatedCustomers as any[] || []).filter((customer: any) => 
+                    (relatedOpportunities as any[] || []).some((opp: any) => opp.clientName === customer.name)
+                  ).length}
+                </div>
+                <div className="text-sm text-gray-500">Total Customers</div>
               </div>
               
               <div className="bg-white p-4 rounded-md border border-gray-200">
@@ -3068,7 +3077,7 @@ export default function PartnerDetail() {
             </div>
 
             {/* Opportunities Table */}
-            <div className="bg-white rounded-lg shadow-sm mt-6" id="opportunities-table">
+            <div className="bg-white rounded-lg shadow-sm" id="opportunities-table">
               <Table>
                 <TableHeader>
                   <TableRow>
