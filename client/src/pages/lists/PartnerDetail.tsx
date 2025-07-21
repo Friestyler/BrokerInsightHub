@@ -3077,7 +3077,7 @@ export default function PartnerDetail() {
             </div>
 
             {/* Opportunities Table */}
-            <div className="bg-white rounded-lg shadow-sm mt-4" id="opportunities-table">
+            <div className="bg-white rounded-lg shadow-sm mt-4" id="opportunities-table" style={{marginTop: '1rem !important'}}>
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -4189,7 +4189,7 @@ export default function PartnerDetail() {
             </div>
 
             {/* Customers Table - Enhanced version matching opportunities tab */}
-            <div className="bg-white rounded-lg shadow-sm mt-4" id="customers-table">
+            <div className="bg-white rounded-lg shadow-sm mt-4" id="customers-table" style={{marginTop: '1rem !important'}}>
               <Table>
                 <TableHeader>
                   <TableRow>

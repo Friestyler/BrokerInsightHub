@@ -72,6 +72,12 @@
 
 /* Custom tab styling is now handled in the shadcn/ui tabs component */
 
+/* Force table spacing fix */
+#opportunities-table,
+#customers-table {
+  margin-top: 1rem !important;
+}
+
 /* Custom environment selector styling */
 .environment-selector-bg {
   background-color: #F5F6FA !important;
