@@ -285,6 +285,14 @@ export default function ContactsPage() {
       if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
       if (aIndex !== -1) return -1;
       if (bIndex !== -1) return 1;
+    } else if (groupBy === 'Type') {
+      const typePriority = ['User', 'Customer', 'Guest'];
+      const aIndex = typePriority.indexOf(a.name);
+      const bIndex = typePriority.indexOf(b.name);
+      
+      if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
     }
     
     return String(a.name || '').localeCompare(String(b.name || ''));
@@ -508,6 +516,7 @@ export default function ContactsPage() {
             <SelectContent>
               <SelectItem value="Role">Role</SelectItem>
               <SelectItem value="Department">Department</SelectItem>
+              <SelectItem value="Type">Type</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -810,7 +819,7 @@ export default function ContactsPage() {
                         Type
                       </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                        Attributes
+                        Tags
                       </th>
                       <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Enrichment
