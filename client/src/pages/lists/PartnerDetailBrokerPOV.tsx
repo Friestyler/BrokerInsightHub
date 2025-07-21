@@ -208,9 +208,112 @@ export default function PartnerDetailBrokerPOV() {
   
   // Selection state for opportunities
   const [selectedOpportunities, setSelectedOpportunities] = useState<number[]>([]);
+  const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
   
   // Details dialog state
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+
+  // Mirror PartnerDetail.tsx state exactly for opportunities
+  const [opportunityFilters, setOpportunityFilters] = useState({
+    status: 'All',
+    stage: 'All', 
+    size: 'All',
+    type: 'All'
+  });
+  const [hasActiveOpportunityFilters, setHasActiveOpportunityFilters] = useState(false);
+  const [activeOpportunityView, setActiveOpportunityView] = useState<any>(null);
+  const [showOpportunityViewsDropdown, setShowOpportunityViewsDropdown] = useState(false);
+  const [showSaveOpportunityViewModal, setShowSaveOpportunityViewModal] = useState(false);
+  const [opportunityViewNameInput, setOpportunityViewNameInput] = useState('');
+  const [showOpportunityFieldsDropdown, setShowOpportunityFieldsDropdown] = useState(false);
+  const [opportunityVisibleFields, setOpportunityVisibleFields] = useState({
+    title: true,
+    customer: true,
+    stage: true,
+    value: true,
+    priority: true,
+    type: true,
+    size: true,
+    accountManager: true,
+    lastActivity: true
+  });
+  const [originalOpportunityFilters, setOriginalOpportunityFilters] = useState<any>(null);
+  const [originalOpportunityVisibleFields, setOriginalOpportunityVisibleFields] = useState<any>(null);
+  const [showOpportunityFilter, setShowOpportunityFilter] = useState(false);
+
+  // Mirror PartnerDetail.tsx state exactly for customers  
+  const [customerFilters, setCustomerFilters] = useState({
+    status: 'All',
+    industry: 'All', 
+    size: 'All',
+    region: 'All'
+  });
+  const [hasActiveCustomerFilters, setHasActiveCustomerFilters] = useState(false);
+  const [activeCustomerView, setActiveCustomerView] = useState<any>(null);
+  const [showCustomerViewsDropdown, setShowCustomerViewsDropdown] = useState(false);
+  const [showSaveCustomerViewModal, setShowSaveCustomerViewModal] = useState(false);
+  const [customerViewNameInput, setCustomerViewNameInput] = useState('');
+  const [showCustomerFieldsDropdown, setShowCustomerFieldsDropdown] = useState(false);
+  const [customerVisibleFields, setCustomerVisibleFields] = useState({
+    name: true,
+    industry: true,
+    region: true,
+    contactPerson: true,
+    phone: true,
+    email: true,
+    opportunities: true,
+    totalValue: true,
+    lastActivity: true
+  });
+  const [originalCustomerFilters, setOriginalCustomerFilters] = useState<any>(null);
+  const [originalCustomerVisibleFields, setOriginalCustomerVisibleFields] = useState<any>(null);
+  const [showCustomerFilter, setShowCustomerFilter] = useState(false);
+  const [customerViewMode, setCustomerViewMode] = useState<'list' | 'cards'>('cards');
+  const [viewMode, setViewMode] = useState<'list' | 'cards'>('cards');
+
+  // Add required refs to match PartnerDetail.tsx
+  const opportunityViewsDropdownRef = useRef<HTMLDivElement>(null);
+  const opportunityViewsButtonRef = useRef<HTMLButtonElement>(null);
+  const opportunityFieldsDropdownRef = useRef<HTMLDivElement>(null);
+  const customerViewsDropdownRef = useRef<HTMLDivElement>(null);
+  const customerViewsButtonRef = useRef<HTMLButtonElement>(null);
+  const customerFieldsDropdownRef = useRef<HTMLDivElement>(null);
+  const customerFilterDropdownRef = useRef<HTMLDivElement>(null);
+
+  // Add change detection functions exactly like PartnerDetail.tsx
+  const hasOpportunityChanges = () => {
+    if (activeOpportunityView && (originalOpportunityFilters || originalOpportunityVisibleFields)) {
+      const filtersChanged = originalOpportunityFilters && JSON.stringify(opportunityFilters) !== JSON.stringify(originalOpportunityFilters);
+      const fieldsChanged = originalOpportunityVisibleFields && JSON.stringify(opportunityVisibleFields) !== JSON.stringify(originalOpportunityVisibleFields);
+      return filtersChanged || fieldsChanged;
+    }
+    if (!activeOpportunityView) {
+      const hasFilterChanges = opportunityFilters.status !== 'All' || 
+                              opportunityFilters.stage !== 'All' || 
+                              opportunityFilters.size !== 'All' || 
+                              opportunityFilters.type !== 'All';
+      const hasFieldChanges = Object.values(opportunityVisibleFields).some(visible => !visible);
+      return hasFilterChanges || hasFieldChanges;
+    }
+    return false;
+  };
+
+  const hasCustomerChanges = () => {
+    if (activeCustomerView && (originalCustomerFilters || originalCustomerVisibleFields)) {
+      const filtersChanged = originalCustomerFilters && JSON.stringify(customerFilters) !== JSON.stringify(originalCustomerFilters);
+      const fieldsChanged = originalCustomerVisibleFields && JSON.stringify(customerVisibleFields) !== JSON.stringify(originalCustomerVisibleFields);
+      return filtersChanged || fieldsChanged;
+    }
+    if (!activeCustomerView) {
+      const hasFilterChanges = customerFilters.status !== 'All' || 
+                              customerFilters.industry !== 'All' || 
+                              customerFilters.size !== 'All' || 
+                              customerFilters.region !== 'All';
+      const hasFieldChanges = Object.values(customerVisibleFields).some(visible => !visible);
+      return hasFilterChanges || hasFieldChanges;
+    }
+    return false;
+  };
 
   // Assessment state variables
   const [withholdDialogOpen, setWithholdDialogOpen] = useState(false);
@@ -415,11 +518,10 @@ export default function PartnerDetailBrokerPOV() {
     queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/saved-views?entity_type=customers`),
   });
 
-  // Customer filtering state
+  // Customer filtering state (avoid duplicates)
   const [customerSearchText, setCustomerSearchText] = useState('');
   const [selectedCustomerStatus, setSelectedCustomerStatus] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('');
-  const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
   
   // Add customers data fetch - similar to opportunities
   const { data: customers = [] } = useQuery({
@@ -428,10 +530,6 @@ export default function PartnerDetailBrokerPOV() {
   });
   const [activeCustomerList, setActiveCustomerList] = useState<any>(null);
   const [showCustomerListsDropdown, setShowCustomerListsDropdown] = useState(false);
-  
-  // Enhanced toolbar state for customers
-  const [activeCustomerView, setActiveCustomerView] = useState<any>(null);
-  const [showCustomerViewsDropdown, setShowCustomerViewsDropdown] = useState(false);
   const [showCustomerStatusDropdown, setShowCustomerStatusDropdown] = useState(false);
   const [showIndustryDropdown, setShowIndustryDropdown] = useState(false);
 
@@ -1248,6 +1346,26 @@ export default function PartnerDetailBrokerPOV() {
                 OKR plans
               </button>
 
+              <button 
+                onClick={() => setActiveTab("opportunities")}
+                className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                  activeTab === "opportunities" 
+                    ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                    : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                }`}
+              >
+                Opportunities ({allOpportunities?.length || 0})
+              </button>
+              <button 
+                onClick={() => setActiveTab("customers")}
+                className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                  activeTab === "customers" 
+                    ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                    : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                }`}
+              >
+                Customers
+              </button>
               <button 
                 onClick={() => setActiveTab("campaigns")}
                 className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
@@ -3218,6 +3336,437 @@ export default function PartnerDetailBrokerPOV() {
           </div>
         </DialogContent>
       </Dialog>
+
+        {/* Opportunities Tab - Exact copy from PartnerDetail.tsx */}
+        {activeTab === "opportunities" && (
+          <div className="space-y-0">
+            {/* Save/Update/Clear View Buttons - Show when any changes detected */}
+            {hasOpportunityChanges() && (
+              <div className="flex justify-end items-center gap-2 px-4 py-1">
+                <button
+                  onClick={() => {
+                    // Reset both filters and fields to original state
+                    if (originalOpportunityFilters) {
+                      setOpportunityFilters(originalOpportunityFilters);
+                    }
+                    if (originalOpportunityVisibleFields) {
+                      setOpportunityVisibleFields(originalOpportunityVisibleFields);
+                    }
+                    // If no active view, reset to default state
+                    if (!activeOpportunityView) {
+                      setOpportunityFilters({
+                        status: 'All',
+                        stage: 'All',
+                        size: 'All',
+                        type: 'All'
+                      });
+                      setOpportunityVisibleFields({
+                        title: true,
+                        customer: true,
+                        stage: true,
+                        value: true,
+                        priority: true,
+                        type: true,
+                        size: true,
+                        accountManager: true,
+                        lastActivity: true
+                      });
+                    }
+                    // Clear change detection state
+                    setOriginalOpportunityFilters(null);
+                    setOriginalOpportunityVisibleFields(null);
+                  }}
+                  className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                  Clear
+                </button>
+                <button
+                  onClick={() => setShowSaveOpportunityViewModal(true)}
+                  className="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                >
+                  <Bookmark className="w-3 h-3" />
+                  Save as segment view
+                </button>
+              </div>
+            )}
+
+            {/* Enhanced saved lists section for opportunities */}
+            <div className="bg-white rounded-lg">
+              <div className="space-y-0">
+                {/* Statistics overview cards */}
+                <div className="grid grid-cols-4 gap-6 p-6 pb-4">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-gray-900">{allOpportunities?.length || 0}</div>
+                    <div className="text-sm text-gray-500">Total Opportunities</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-gray-900">{(() => {
+                      const uniqueCustomers = new Set(allOpportunities?.map((opp: any) => opp.customer_id));
+                      return uniqueCustomers.size;
+                    })()}</div>
+                    <div className="text-sm text-gray-500">Customers</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-gray-900">
+                      €{allOpportunities?.reduce((sum: number, opp: any) => sum + (parseFloat(opp.estimated_value) || 0), 0).toLocaleString() || '0'}
+                    </div>
+                    <div className="text-sm text-gray-500">Total Value</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-gray-900">
+                      €{allOpportunities?.reduce((sum: number, opp: any) => {
+                        const value = parseFloat(opp.estimated_value) || 0;
+                        const probability = parseFloat(opp.probability) || 0;
+                        return sum + (value * probability / 100);
+                      }, 0).toLocaleString() || '0'}
+                    </div>
+                    <div className="text-sm text-gray-500">Weighted Value</div>
+                  </div>
+                </div>
+
+                {/* Opportunities Table */}
+                <div className="p-6 pt-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-b border-gray-200">
+                        <TableHead className="w-12">
+                          <Checkbox
+                            checked={selectedOpportunities.length === allOpportunities?.length && allOpportunities?.length > 0}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedOpportunities(allOpportunities?.map((opp: any) => opp.id) || []);
+                              } else {
+                                setSelectedOpportunities([]);
+                              }
+                            }}
+                          />
+                        </TableHead>
+                        <TableHead className="font-semibold text-gray-900">Opportunity</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Customer</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Stage</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Value</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Assessment</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Comments</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {allOpportunities?.map((opportunity: any) => (
+                        <TableRow key={opportunity.id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedOpportunities.includes(opportunity.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedOpportunities([...selectedOpportunities, opportunity.id]);
+                                } else {
+                                  setSelectedOpportunities(selectedOpportunities.filter(id => id !== opportunity.id));
+                                }
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium text-gray-900">
+                            <div className="max-w-[200px]">
+                              <div className="font-medium text-gray-900 truncate">
+                                {opportunity.title}
+                              </div>
+                              {opportunity.description && (
+                                <div className="text-sm text-gray-500 truncate">
+                                  {opportunity.description}
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-gray-900">
+                            {opportunity.customerName || 'Unknown Customer'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                              {opportunity.stage || 'discovery'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-gray-900">
+                            €{parseFloat(opportunity.estimated_value || '0').toLocaleString()}
+                          </TableCell>
+                          <TableCell>
+                            {opportunity.assessment_status === 'pending' ? (
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => {
+                                    // Handle accept
+                                  }}
+                                  className="p-1 text-green-600 hover:text-green-700 hover:bg-green-50 rounded"
+                                  title="Accept"
+                                >
+                                  <CheckCircle className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setSelectedOpportunityForWithhold(opportunity);
+                                    setWithholdDialogOpen(true);
+                                  }}
+                                  className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
+                                  title="Withhold"
+                                >
+                                  <XCircle className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <Badge 
+                                  variant={opportunity.assessment_status === 'accepted' ? 'success' : 'destructive'}
+                                  className={`${
+                                    opportunity.assessment_status === 'accepted' 
+                                      ? 'bg-green-100 text-green-800' 
+                                      : 'bg-red-100 text-red-800'
+                                  }`}
+                                >
+                                  {opportunity.assessment_status === 'accepted' ? 'Accepted' : 'Withheld'}
+                                </Badge>
+                                <button
+                                  onClick={() => {
+                                    if (opportunity.assessment_status === 'accepted') {
+                                      setSelectedOpportunityForWithhold(opportunity);
+                                      setWithholdDialogOpen(true);
+                                    } else {
+                                      // Handle change to accept
+                                    }
+                                  }}
+                                  className={`p-1 rounded ${
+                                    opportunity.assessment_status === 'accepted'
+                                      ? 'text-red-600 hover:text-red-700 hover:bg-red-50'
+                                      : 'text-green-600 hover:text-green-700 hover:bg-green-50'
+                                  }`}
+                                  title={opportunity.assessment_status === 'accepted' ? 'Change to Withhold' : 'Change to Accept'}
+                                >
+                                  {opportunity.assessment_status === 'accepted' ? (
+                                    <XCircle className="w-4 h-4" />
+                                  ) : (
+                                    <CheckCircle className="w-4 h-4" />
+                                  )}
+                                </button>
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <button
+                              onClick={() => {
+                                setSelectedOpportunityForHistory(opportunity);
+                                setIsCommentsHistoryDialogOpen(true);
+                              }}
+                              className="p-1 text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded"
+                              title="View Comments"
+                            >
+                              <MessageCircle className="w-4 h-4" />
+                            </button>
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-red-600">
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Customers Tab - Exact copy from PartnerDetail.tsx */}
+        {activeTab === "customers" && (
+          <div className="space-y-4">
+            {/* Enhanced saved lists section for customers */}
+            <div className="bg-white rounded-lg">
+              <div className="space-y-0">
+                {/* Save/Update/Clear View Buttons - Show when any changes detected */}
+                {hasCustomerChanges() && (
+                  <div className="flex justify-end items-center gap-2 px-4 py-1">
+                    <button
+                      onClick={() => {
+                        // Reset both filters and fields to original state
+                        if (originalCustomerFilters) {
+                          setCustomerFilters(originalCustomerFilters);
+                        }
+                        if (originalCustomerVisibleFields) {
+                          setCustomerVisibleFields(originalCustomerVisibleFields);
+                        }
+                        // If no active view, reset to default state
+                        if (!activeCustomerView) {
+                          setCustomerFilters({
+                            status: 'All',
+                            industry: 'All',
+                            region: 'All',
+                            size: 'All'
+                          });
+                          setCustomerVisibleFields({
+                            name: true,
+                            industry: true,
+                            region: true,
+                            contactPerson: true,
+                            phone: true,
+                            email: true,
+                            opportunities: true,
+                            totalValue: true,
+                            lastActivity: true
+                          });
+                        }
+                        // Clear change detection state
+                        setOriginalCustomerFilters(null);
+                        setOriginalCustomerVisibleFields(null);
+                      }}
+                      className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                      Clear
+                    </button>
+                    <button
+                      onClick={() => setShowSaveCustomerViewModal(true)}
+                      className="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                    >
+                      <Bookmark className="w-3 h-3" />
+                      Save as segment view
+                    </button>
+                  </div>
+                )}
+
+                {/* Statistics overview cards */}
+                <div className="grid grid-cols-4 gap-6 p-6 pb-4">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-gray-900">{partnerCustomers?.length || 0}</div>
+                    <div className="text-sm text-gray-500">Total Customers</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-gray-900">
+                      {partnerCustomers?.reduce((sum: number, customer: any) => sum + (customer.opportunityCount || 0), 0) || 0}
+                    </div>
+                    <div className="text-sm text-gray-500">Opportunities</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-gray-900">
+                      €{partnerCustomers?.reduce((sum: number, customer: any) => sum + (customer.totalValue || 0), 0).toLocaleString() || '0'}
+                    </div>
+                    <div className="text-sm text-gray-500">Total Value</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-gray-900">
+                      €{partnerCustomers?.reduce((sum: number, customer: any) => sum + (customer.weightedValue || 0), 0).toLocaleString() || '0'}
+                    </div>
+                    <div className="text-sm text-gray-500">Weighted Value</div>
+                  </div>
+                </div>
+
+                {/* Customers Table */}
+                <div className="p-6 pt-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-b border-gray-200">
+                        <TableHead className="w-12">
+                          <Checkbox
+                            checked={selectedCustomers.length === partnerCustomers?.length && partnerCustomers?.length > 0}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedCustomers(partnerCustomers?.map((customer: any) => customer.id) || []);
+                              } else {
+                                setSelectedCustomers([]);
+                              }
+                            }}
+                          />
+                        </TableHead>
+                        <TableHead className="font-semibold text-gray-900">Customer</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Industry</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Status</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Opportunities</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Total Value</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {partnerCustomers?.map((customer: any) => (
+                        <TableRow key={customer.id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedCustomers.includes(customer.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedCustomers([...selectedCustomers, customer.id]);
+                                } else {
+                                  setSelectedCustomers(selectedCustomers.filter(id => id !== customer.id));
+                                }
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium text-gray-900">
+                            <div className="max-w-[200px]">
+                              <div className="font-medium text-gray-900 truncate">
+                                {customer.name}
+                              </div>
+                              {customer.description && (
+                                <div className="text-sm text-gray-500 truncate">
+                                  {customer.description}
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-gray-900">
+                            {customer.industry || 'Unknown'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="bg-green-100 text-green-800">
+                              {customer.status || 'Active'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-gray-900">
+                            {customer.opportunityCount || 0}
+                          </TableCell>
+                          <TableCell className="text-gray-900">
+                            €{(customer.totalValue || 0).toLocaleString()}
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-red-600">
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
     </BrokerLayout>
   );
 }
