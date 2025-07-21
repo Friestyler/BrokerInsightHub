@@ -163,7 +163,7 @@ export default function ContactsPage() {
   // Mutations
   const createContactMutation = useMutation({
     mutationFn: (contactData: typeof formData) => 
-      apiRequest('/api/degoudse/contacts', 'POST', {
+      apiRequest('POST', '/api/degoudse/contacts', {
         ...contactData,
         fullName: `${contactData.firstName} ${contactData.lastName}`.trim()
       }),
@@ -187,7 +187,7 @@ export default function ContactsPage() {
 
   const updateContactMutation = useMutation({
     mutationFn: (contactData: { id: number } & typeof formData) => 
-      apiRequest(`/api/degoudse/contacts/${contactData.id}`, 'PUT', {
+      apiRequest('PUT', `/api/degoudse/contacts/${contactData.id}`, {
         ...contactData,
         fullName: `${contactData.firstName} ${contactData.lastName}`.trim()
       }),
