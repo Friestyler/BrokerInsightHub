@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Search, Plus, Mail, Phone, BarChart3, MoreHorizontal, User, Star } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
+import { apiRequest, queryClient } from "@/lib/queryClient";
 import { FieldsSelector } from "@/components/shared/FieldsSelector";
 
 interface Contact {
@@ -27,10 +27,18 @@ interface Contact {
   isPrimary?: boolean;
   reportsTo?: number;
   supervisorName?: string;
+  notes?: string;
+  linkedEntityType?: string;
+  linkedEntityId?: number;
   tags?: Array<{
     id: number;
     name: string;
     color: string;
+    category?: {
+      id: number;
+      name: string;
+      color: string;
+    };
   }>;
 }
 
@@ -103,8 +111,12 @@ export default function ContactsPage() {
     jobTitle: '',
     department: '',
     company: '',
+    reportsTo: null as number | null,
     notes: ''
   });
+
+  const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   const { toast } = useToast();
 
@@ -136,9 +148,25 @@ export default function ContactsPage() {
         jobTitle: '',
         department: '',
         company: '',
+        reportsTo: null,
         notes: ''
       });
+      queryClient.invalidateQueries({ queryKey: ['/api/degoudse/contacts'] });
       toast({ title: 'Contact created successfully' });
+    }
+  });
+
+  const updateContactMutation = useMutation({
+    mutationFn: (contactData: { id: number } & typeof formData) => 
+      apiRequest(`/api/degoudse/contacts/${contactData.id}`, 'PUT', {
+        ...contactData,
+        fullName: `${contactData.firstName} ${contactData.lastName}`.trim()
+      }),
+    onSuccess: () => {
+      setShowEditDialog(false);
+      setEditingContact(null);
+      queryClient.invalidateQueries({ queryKey: ['/api/degoudse/contacts'] });
+      toast({ title: 'Contact updated successfully' });
     }
   });
 
@@ -267,6 +295,31 @@ export default function ContactsPage() {
     createContactMutation.mutate(formData);
   };
 
+  const handleEditContact = (contact: Contact) => {
+    setEditingContact(contact);
+    setFormData({
+      firstName: contact.firstName || '',
+      lastName: contact.lastName || '',
+      email: contact.email || '',
+      phone: contact.phone || '',
+      jobTitle: contact.jobTitle || '',
+      department: contact.department || '',
+      company: contact.company || '',
+      reportsTo: contact.reportsTo || null,
+      notes: contact.notes || ''
+    });
+    setShowEditDialog(true);
+  };
+
+  const handleUpdateContact = () => {
+    if (!editingContact) return;
+    if (!formData.firstName || !formData.lastName) {
+      toast({ title: 'First name and last name are required', variant: 'destructive' });
+      return;
+    }
+    updateContactMutation.mutate({ id: editingContact.id, ...formData });
+  };
+
   const getInitials = (fullName: string) => {
     if (!fullName) return '??';
     return fullName
@@ -368,22 +421,30 @@ export default function ContactsPage() {
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex items-center">
           <Star className="w-4 h-4 text-blue-400 mr-1" />
-          <span className="text-blue-600 font-medium">72%</span>
+          <span className="text-blue-600 font-medium">
+            {(() => {
+              let attributeCount = 0;
+              if (contact.email) attributeCount++;
+              if (contact.phone) attributeCount++;
+              if (contact.jobTitle) attributeCount++;
+              if (contact.department) attributeCount++;
+              if (contact.company) attributeCount++;
+              if (contact.reportsTo) attributeCount++;
+              if (contact.notes) attributeCount++;
+              if (contact.tags && contact.tags.length > 0) attributeCount += contact.tags.length;
+              return `${attributeCount} attributes`;
+            })()}
+          </span>
         </div>
       </td>
       
       <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex items-center space-x-2">
-          <Button variant="ghost" size="sm">
-            <Mail className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="sm">
-            <Phone className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="sm">
-            <BarChart3 className="w-4 h-4" />
-          </Button>
-          <Button variant="ghost" size="sm">
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => handleEditContact(contact)}
+          >
             <MoreHorizontal className="w-4 h-4" />
           </Button>
         </div>
@@ -492,12 +553,148 @@ export default function ContactsPage() {
                     onChange={(e) => setFormData(prev => ({ ...prev, jobTitle: e.target.value }))}
                   />
                 </div>
+                <div>
+                  <Label htmlFor="department">Department</Label>
+                  <Input
+                    id="department"
+                    value={formData.department}
+                    onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="reportsTo">Reports To</Label>
+                  <Select value={formData.reportsTo?.toString() || "none"} onValueChange={(value) => setFormData(prev => ({ ...prev, reportsTo: value === "none" ? null : parseInt(value) }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select supervisor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No supervisor</SelectItem>
+                      {contacts.filter((c: Contact) => c.id !== editingContact?.id).map((contact: Contact) => (
+                        <SelectItem key={contact.id} value={contact.id.toString()}>
+                          {contact.fullName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="notes">Notes</Label>
+                  <Textarea
+                    id="notes"
+                    value={formData.notes}
+                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                    rows={3}
+                  />
+                </div>
                 <div className="flex justify-end space-x-2 pt-4">
                   <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
                     Cancel
                   </Button>
                   <Button onClick={handleCreateContact} disabled={createContactMutation.isPending}>
                     {createContactMutation.isPending ? 'Creating...' : 'Create contact'}
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
+
+          {/* Edit Contact Dialog */}
+          <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Edit Contact</DialogTitle>
+              </DialogHeader>
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label htmlFor="editFirstName">First Name</Label>
+                    <Input
+                      id="editFirstName"
+                      value={formData.firstName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, firstName: e.target.value }))}
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="editLastName">Last Name</Label>
+                    <Input
+                      id="editLastName"
+                      value={formData.lastName}
+                      onChange={(e) => setFormData(prev => ({ ...prev, lastName: e.target.value }))}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="editEmail">Email</Label>
+                  <Input
+                    id="editEmail"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="editPhone">Phone</Label>
+                  <Input
+                    id="editPhone"
+                    value={formData.phone}
+                    onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="editCompany">Company</Label>
+                  <Input
+                    id="editCompany"
+                    value={formData.company}
+                    onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="editJobTitle">Job Title</Label>
+                  <Input
+                    id="editJobTitle"
+                    value={formData.jobTitle}
+                    onChange={(e) => setFormData(prev => ({ ...prev, jobTitle: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="editDepartment">Department</Label>
+                  <Input
+                    id="editDepartment"
+                    value={formData.department}
+                    onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="editReportsTo">Reports To</Label>
+                  <Select value={formData.reportsTo?.toString() || "none"} onValueChange={(value) => setFormData(prev => ({ ...prev, reportsTo: value === "none" ? null : parseInt(value) }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select supervisor" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">No supervisor</SelectItem>
+                      {contacts.filter((c: Contact) => c.id !== editingContact?.id).map((contact: Contact) => (
+                        <SelectItem key={contact.id} value={contact.id.toString()}>
+                          {contact.fullName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="editNotes">Notes</Label>
+                  <Textarea
+                    id="editNotes"
+                    value={formData.notes}
+                    onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                    rows={3}
+                  />
+                </div>
+                <div className="flex justify-end space-x-2 pt-4">
+                  <Button variant="outline" onClick={() => setShowEditDialog(false)}>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleUpdateContact} disabled={updateContactMutation.isPending}>
+                    {updateContactMutation.isPending ? 'Updating...' : 'Update contact'}
                   </Button>
                 </div>
               </div>
