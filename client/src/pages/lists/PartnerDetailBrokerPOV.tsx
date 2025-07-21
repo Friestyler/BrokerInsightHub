@@ -13,7 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Search, Bot, Copy, Users, Trash2, MoreHorizontal, MessageSquare, CheckCircle, XCircle, Eye } from "lucide-react";
+import { ArrowLeft, Search, Bot, Copy, Users, Trash2, MoreHorizontal, MoreVertical, MessageSquare, MessageCircle, CheckCircle, XCircle, Eye, Edit, Filter, Package, Target, Crown, ChevronDown, ChevronRight, Share2, X, Bookmark, Columns3, Send, AlertTriangle, Plus, Mail, Calendar, Clock, Play, Pause, AlertCircle } from "lucide-react";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import EntityAvatar from "@/components/EntityAvatar";
 import PartnerCampaignBuilder from "@/pages/campaigns/PartnerCampaignBuilder";
