@@ -39,6 +39,7 @@ export const contacts = pgTable("contacts", {
   isPrimary: boolean("is_primary").notNull().default(false),
   notes: text("notes"),
   tags: text("tags").array(),
+  reportsTo: integer("reports_to").references(() => contacts.id),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
@@ -393,6 +394,7 @@ export const insertContactSchema = createInsertSchema(contacts).pick({
   isPrimary: true,
   notes: true,
   tags: true,
+  reportsTo: true,
   isActive: true,
 });
 

@@ -6626,8 +6626,9 @@ Return as JSON in this exact format:
         SELECT 
           c.id, c.first_name, c.last_name, c.full_name, c.email, c.phone, 
           c.job_title, c.department, c.company, c.linked_entity_type, 
-          c.linked_entity_id, c.is_primary, c.notes, c.is_active, 
+          c.linked_entity_id, c.is_primary, c.notes, c.reports_to, c.is_active, 
           c.created_at, c.updated_at,
+          supervisor.full_name as supervisor_name,
           COALESCE(
             json_agg(
               CASE 
@@ -6646,14 +6647,15 @@ Return as JSON in this exact format:
             ) FILTER (WHERE t.id IS NOT NULL), '[]'::json
           ) as tags
         FROM degoudse.contacts c
+        LEFT JOIN degoudse.contacts supervisor ON c.reports_to = supervisor.id
         LEFT JOIN degoudse.contact_tags ct ON c.id = ct.contact_id
         LEFT JOIN degoudse.tags t ON ct.tag_id = t.id
         LEFT JOIN degoudse.tag_categories tc ON t.category_id = tc.id
         ${queryConditions}
         GROUP BY c.id, c.first_name, c.last_name, c.full_name, c.email, c.phone, 
                  c.job_title, c.department, c.company, c.linked_entity_type, 
-                 c.linked_entity_id, c.is_primary, c.notes, c.is_active, 
-                 c.created_at, c.updated_at
+                 c.linked_entity_id, c.is_primary, c.notes, c.reports_to, c.is_active, 
+                 c.created_at, c.updated_at, supervisor.full_name
         ORDER BY c.first_name ASC, c.last_name ASC
       `, queryParams);
       

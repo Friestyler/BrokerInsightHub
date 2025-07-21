@@ -25,6 +25,8 @@ interface Contact {
   jobTitle?: string;
   department?: string;
   isPrimary?: boolean;
+  reportsTo?: number;
+  supervisorName?: string;
   tags?: Array<{
     id: number;
     name: string;
@@ -306,6 +308,18 @@ export default function ContactsPage() {
       </td>
       
       <td className="px-6 py-4 whitespace-nowrap">
+        <div>
+          {(contact as any).supervisor_name ? (
+            <div className="font-medium text-gray-900">{(contact as any).supervisor_name}</div>
+          ) : contact.reportsTo ? (
+            <div className="font-medium text-gray-900">Contact #{contact.reportsTo}</div>
+          ) : (
+            <span className="text-gray-400 text-sm">-</span>
+          )}
+        </div>
+      </td>
+      
+      <td className="px-6 py-4 whitespace-nowrap">
         <div className="flex flex-wrap gap-1">
           {contact.tags && Array.isArray(contact.tags) && contact.tags.length > 0 ? (
             contact.tags
@@ -536,6 +550,9 @@ export default function ContactsPage() {
                       <SortableHeader field="jobTitle" currentField={sortConfig.field} currentDirection={sortConfig.direction} onSort={handleSort}>
                         Title
                       </SortableHeader>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Reports To
+                      </th>
                       <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                         Attributes
                       </th>
