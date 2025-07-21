@@ -50,14 +50,14 @@ export default function TagCategoryManager({ envId = 'degoudse' }: TagCategoryMa
   // Fetch tags
   const { data: tags = [], isLoading } = useQuery({
     queryKey: [`/api/${envId}/tags`],
-    queryFn: () => apiRequest(`/api/${envId}/tags`),
+    queryFn: () => apiRequest('GET', `/api/${envId}/tags`),
     staleTime: 5 * 60 * 1000
   });
 
   // Create tag mutation
   const createTagMutation = useMutation({
     mutationFn: (tagData: typeof formData) => 
-      apiRequest(`/api/${envId}/tags`, 'POST', tagData),
+      apiRequest('POST', `/api/${envId}/tags`, tagData),
     onSuccess: () => {
       setShowCreateTagDialog(false);
       resetForm();
@@ -74,7 +74,7 @@ export default function TagCategoryManager({ envId = 'degoudse' }: TagCategoryMa
   const updateTagMutation = useMutation({
     mutationFn: (tagData: { id: number } & typeof formData) => {
       const { id, ...updateData } = tagData;
-      return apiRequest(`/api/${envId}/tags/${id}`, 'PUT', updateData);
+      return apiRequest('PUT', `/api/${envId}/tags/${id}`, updateData);
     },
     onSuccess: () => {
       setShowEditDialog(false);
@@ -91,7 +91,7 @@ export default function TagCategoryManager({ envId = 'degoudse' }: TagCategoryMa
   // Delete tag mutation
   const deleteTagMutation = useMutation({
     mutationFn: (tagId: number) => 
-      apiRequest(`/api/${envId}/tags/${tagId}`, 'DELETE'),
+      apiRequest('DELETE', `/api/${envId}/tags/${tagId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/${envId}/tags`] });
       toast({ title: 'Tag deleted successfully' });
