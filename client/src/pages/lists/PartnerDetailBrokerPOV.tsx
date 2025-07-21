@@ -20,8 +20,7 @@ import PartnerCampaignBuilder from "@/pages/campaigns/PartnerCampaignBuilder";
 import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTab";
 import { WhiteSpaceMatrix } from "@/components/entity/WhiteSpaceMatrixSimplified";
 import { SmartCrossSell } from "@/components/portfolio/SmartCrossSell";
-import BrokerOpportunitiesTab from "@/components/broker/BrokerOpportunitiesTab";
-import BrokerCustomersTab from "@/components/broker/BrokerCustomersTab";
+
 
 import { BrokerLayout } from "@/components/layouts/BrokerLayout";
 import PartnerCampaignShareModal from "@/components/campaigns/PartnerCampaignShareModal";
@@ -1248,26 +1247,7 @@ export default function PartnerDetailBrokerPOV() {
               >
                 OKR plans
               </button>
-              <button 
-                onClick={() => setActiveTab("opportunities")}
-                className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
-                  activeTab === "opportunities" 
-                    ? "bg-[#E1E4FB] text-[#3E4DC4]" 
-                    : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
-                }`}
-              >
-                Opportunities ({baseOpportunities?.length || 0})
-              </button>
-              <button 
-                onClick={() => setActiveTab("customers")}
-                className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
-                  activeTab === "customers" 
-                    ? "bg-[#E1E4FB] text-[#3E4DC4]" 
-                    : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
-                }`}
-              >
-                Customers
-              </button>
+
               <button 
                 onClick={() => setActiveTab("campaigns")}
                 className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
@@ -1627,28 +1607,7 @@ export default function PartnerDetailBrokerPOV() {
 
           {/* Smart Cross Sell tab is hidden in Partner POV */}
 
-          {activeTab === "opportunities" && (
-            <BrokerOpportunitiesTab
-              partnerId={partnerId || ""}
-              opportunities={allOpportunities}
-              selectedOpportunities={selectedOpportunities}
-              setSelectedOpportunities={setSelectedOpportunities}
-              handleAssessmentUpdate={handleAssessmentUpdate}
-              setSelectedOpportunityForWithhold={setSelectedOpportunityForWithhold}
-              setIsWithholdModalOpen={setIsWithholdModalOpen}
-              setSelectedOpportunityForHistory={setSelectedOpportunityForHistory}
-              setIsCommentsHistoryDialogOpen={setIsCommentsHistoryDialogOpen}
-            />
-          )}
 
-          {activeTab === "customers" && (
-            <BrokerCustomersTab
-              partnerId={partnerId || ""}
-              customers={customers}
-              selectedCustomers={selectedCustomers}
-              setSelectedCustomers={setSelectedCustomers}
-            />
-          )}
 
           {/* End of broker tab replacements */}
 
