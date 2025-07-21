@@ -9,7 +9,9 @@ import { Card } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Search, Plus, Mail, Phone, BarChart3, MoreHorizontal, User, Star } from 'lucide-react';
+import { Search, Plus, Mail, Phone, BarChart3, MoreHorizontal, User, Star, Tag as TagIcon } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import TagCategoryManager from "@/components/contacts/TagCategoryManager";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { FieldsSelector } from "@/components/shared/FieldsSelector";
@@ -459,19 +461,37 @@ export default function ContactsPage() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Contact Directory</h1>
         </div>
-        <div className="flex items-center space-x-3">
-          <span className="text-sm text-gray-600">Group by:</span>
-          <Select value={groupBy} onValueChange={setGroupBy}>
-            <SelectTrigger className="w-32">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Role">Role</SelectItem>
-              <SelectItem value="Department">Department</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
       </div>
+
+      {/* Tab Navigation */}
+      <Tabs defaultValue="contacts" className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="contacts" className="flex items-center space-x-2">
+            <User className="h-4 w-4" />
+            <span>Contacts</span>
+          </TabsTrigger>
+          <TabsTrigger value="tags" className="flex items-center space-x-2">
+            <TagIcon className="h-4 w-4" />
+            <span>Tag Management</span>
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="contacts" className="space-y-6 mt-6">
+          {/* Contact Controls */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <span className="text-sm text-gray-600">Group by:</span>
+              <Select value={groupBy} onValueChange={setGroupBy}>
+                <SelectTrigger className="w-32">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Role">Role</SelectItem>
+                  <SelectItem value="Department">Department</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
 
       {/* Toolbar */}
       <div className="flex items-center justify-between space-x-4 py-2">
@@ -776,6 +796,12 @@ export default function ContactsPage() {
           ))
         )}
       </div>
+        </TabsContent>
+
+        <TabsContent value="tags" className="space-y-6 mt-6">
+          <TagCategoryManager envId="degoudse" />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }

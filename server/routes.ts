@@ -13593,14 +13593,14 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
       const envPool = getEnvironmentPool(envId);
       
       const result = await envPool.query(`
-        SELECT t.id, t.name, t.color, t.group_id, t.created_by_id, t.created_at, t.updated_at,
+        SELECT t.id, t.name, t.color, t.category, t.description, t.group_id, t.created_by_id, t.created_at, t.updated_at, t.usage_count,
                tg.name as group_name, u.name as created_by_name,
                COUNT(ct.id) as contact_count
         FROM ${envId}.tags t
         LEFT JOIN ${envId}.tag_groups tg ON t.group_id = tg.id
         LEFT JOIN ${envId}.users u ON t.created_by_id = u.id
         LEFT JOIN ${envId}.contact_tags ct ON t.id = ct.tag_id
-        GROUP BY t.id, t.name, t.color, t.group_id, t.created_by_id, t.created_at, t.updated_at, tg.name, u.name
+        GROUP BY t.id, t.name, t.color, t.category, t.description, t.group_id, t.created_by_id, t.created_at, t.updated_at, t.usage_count, tg.name, u.name
         ORDER BY t.name ASC
       `);
       
@@ -13608,6 +13608,103 @@ app.delete('/api/:envId/product-catalogues/:id', async (req, res) => {
     } catch (error) {
       console.error('Error fetching tags:', error);
       res.status(500).json({ error: 'Failed to fetch tags' });
+    }
+  });
+
+  // Create new tag
+  app.post('/api/:envId/tags', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const { name, color, category, description } = req.body;
+
+      if (!name?.trim()) {
+        return res.status(400).json({ error: 'Tag name is required' });
+      }
+
+      const envPool = getEnvironmentPool(envId);
+      const result = await envPool.query(`
+        INSERT INTO ${envId}.tags (name, color, category, description, created_at, updated_at, usage_count)
+        VALUES ($1, $2, $3, $4, NOW(), NOW(), 0)
+        RETURNING *
+      `, [name.trim(), color || '#3B82F6', category || '', description || '']);
+
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating tag:', error);
+      if (error.constraint === 'tags_name_unique' || error.code === '23505') {
+        res.status(400).json({ error: 'Tag name already exists' });
+      } else {
+        res.status(500).json({ error: 'Failed to create tag' });
+      }
+    }
+  });
+
+  // Update tag
+  app.put('/api/:envId/tags/:tagId', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const tagId = parseInt(req.params.tagId);
+      const { name, color, category, description } = req.body;
+
+      if (!name?.trim()) {
+        return res.status(400).json({ error: 'Tag name is required' });
+      }
+
+      const envPool = getEnvironmentPool(envId);
+      const result = await envPool.query(`
+        UPDATE ${envId}.tags
+        SET name = $1, color = $2, category = $3, description = $4, updated_at = NOW()
+        WHERE id = $5
+        RETURNING *
+      `, [name.trim(), color || '#3B82F6', category || '', description || '', tagId]);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Tag not found' });
+      }
+
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating tag:', error);
+      if (error.constraint === 'tags_name_unique' || error.code === '23505') {
+        res.status(400).json({ error: 'Tag name already exists' });
+      } else {
+        res.status(500).json({ error: 'Failed to update tag' });
+      }
+    }
+  });
+
+  // Delete tag
+  app.delete('/api/:envId/tags/:tagId', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const tagId = parseInt(req.params.tagId);
+      const envPool = getEnvironmentPool(envId);
+
+      // Check usage count first
+      const usageResult = await envPool.query(`
+        SELECT COUNT(*) as count FROM ${envId}.contact_tags WHERE tag_id = $1
+      `, [tagId]);
+
+      if (usageResult.rows[0]?.count > 0) {
+        // Remove tag associations first
+        await envPool.query(`
+          DELETE FROM ${envId}.contact_tags WHERE tag_id = $1
+        `, [tagId]);
+      }
+
+      // Delete the tag
+      const result = await envPool.query(`
+        DELETE FROM ${envId}.tags WHERE id = $1 RETURNING id
+      `, [tagId]);
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Tag not found' });
+      }
+
+      res.json({ success: true, id: tagId });
+    } catch (error) {
+      console.error('Error deleting tag:', error);
+      res.status(500).json({ error: 'Failed to delete tag' });
     }
   });
 
