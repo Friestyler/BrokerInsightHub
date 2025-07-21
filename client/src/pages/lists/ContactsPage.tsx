@@ -72,7 +72,7 @@ const SortableHeader = ({
 export default function ContactsPage() {
   // UI State
   const [searchText, setSearchText] = useState('');
-  const [groupBy, setGroupBy] = useState('company'); // Match screenshot dropdown
+  const [groupBy, setGroupBy] = useState('Leadership'); // Default to Leadership tag category
   const [sortConfig, setSortConfig] = useState<{field: string, direction: 'asc' | 'desc'}>({
     field: 'fullName',
     direction: 'asc'
@@ -140,7 +140,7 @@ export default function ContactsPage() {
     }
   });
 
-  // Group contacts by TAG CATEGORY (as requested)
+  // Group contacts by selected tag category (Leadership, Department, etc.)
   const groupedContacts = contacts.reduce((groups: CompanyGroup[], contact: Contact) => {
     // If contact has no tags, put in "No Tags" group
     if (!contact.tags || contact.tags.length === 0) {
@@ -158,13 +158,37 @@ export default function ContactsPage() {
       return groups;
     }
 
-    // For each tag, add contact to the tag's CATEGORY group
-    contact.tags.forEach((tag: any) => {
+    // Find tags that belong to the selected category
+    const tagsInSelectedCategory = contact.tags.filter((tag: any) => {
       const categoryName = tag.category?.name || tag.category || 'Uncategorized';
-      let group = groups.find(g => g.name === categoryName);
+      return categoryName === groupBy;
+    });
+
+    // If no tags in selected category, put in "Other" group
+    if (tagsInSelectedCategory.length === 0) {
+      let group = groups.find(g => g.name === 'Other');
       if (!group) {
         group = {
-          name: categoryName,
+          name: 'Other',
+          contacts: [],
+          count: 0
+        };
+        groups.push(group);
+      }
+      
+      if (!group.contacts.find(c => c.id === contact.id)) {
+        group.contacts.push(contact);
+        group.count = group.contacts.length;
+      }
+      return groups;
+    }
+
+    // Group by individual tags within the selected category
+    tagsInSelectedCategory.forEach((tag: any) => {
+      let group = groups.find(g => g.name === tag.name);
+      if (!group) {
+        group = {
+          name: tag.name,
           contacts: [],
           count: 0
         };
@@ -181,15 +205,26 @@ export default function ContactsPage() {
     return groups;
   }, []);
 
-  // Sort category groups by priority: Leadership, Department, etc.
+  // Sort tag groups by priority based on selected category
   const sortedGroupedContacts = groupedContacts.sort((a, b) => {
-    const categoryPriority = ['Leadership', 'Department', 'No Tags'];
-    const aIndex = categoryPriority.indexOf(a.name);
-    const bIndex = categoryPriority.indexOf(b.name);
+    if (groupBy === 'Leadership') {
+      const leadershipPriority = ['Executive', 'VP', 'Director', 'Manager', 'Other'];
+      const aIndex = leadershipPriority.indexOf(a.name);
+      const bIndex = leadershipPriority.indexOf(b.name);
+      
+      if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
+    } else if (groupBy === 'Department') {
+      const departmentPriority = ['Marketing', 'Sales', 'HR', 'Operations', 'IT', 'General'];
+      const aIndex = departmentPriority.indexOf(a.name);
+      const bIndex = departmentPriority.indexOf(b.name);
+      
+      if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
+      if (aIndex !== -1) return -1;
+      if (bIndex !== -1) return 1;
+    }
     
-    if (aIndex !== -1 && bIndex !== -1) return aIndex - bIndex;
-    if (aIndex !== -1) return -1;
-    if (bIndex !== -1) return 1;
     return String(a.name || '').localeCompare(String(b.name || ''));
   });
 
@@ -278,7 +313,7 @@ export default function ContactsPage() {
                 key={`${contact.id}-tag-${index}`}
                 style={{ backgroundColor: tag.color, color: 'white' }}
                 className="text-xs"
-                title={tag.category ? `${tag.category.name}: ${tag.name}` : tag.name}
+                title={tag.category?.name ? `${tag.category.name}: ${tag.name}` : tag.name}
               >
                 {tag.name}
               </Badge>
@@ -343,9 +378,8 @@ export default function ContactsPage() {
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="company">Company</SelectItem>
-              <SelectItem value="department">Department</SelectItem>
-              <SelectItem value="title">Title</SelectItem>
+              <SelectItem value="Leadership">Leadership</SelectItem>
+              <SelectItem value="Department">Department</SelectItem>
             </SelectContent>
           </Select>
         </div>
