@@ -3030,22 +3030,22 @@ export default function PartnerDetail() {
             )}
 
             {/* Statistics overview cards */}
-            {/* Statistics Overview - matching Customers tab design */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-              <div className="bg-white p-4 rounded-md border border-gray-200">
-                <div className="text-2xl font-semibold text-[#282A3F]">{filteredOpportunities.length}</div>
+            {/* Statistics Overview - matching Customers tab design with increased spacing */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+              <div className="bg-white p-6 rounded-md border border-gray-200 shadow-sm">
+                <div className="text-3xl font-semibold text-[#282A3F] mb-2">{filteredOpportunities.length}</div>
                 <div className="text-sm text-gray-500">Total Opportunities</div>
               </div>
               
-              <div className="bg-white p-4 rounded-md border border-gray-200">
-                <div className="text-2xl font-semibold text-[#282A3F]">
+              <div className="bg-white p-6 rounded-md border border-gray-200 shadow-sm">
+                <div className="text-3xl font-semibold text-[#282A3F] mb-2">
                   €{filteredOpportunities.reduce((sum: number, opp: any) => sum + (Number(opp.estimated_value) || 0), 0).toLocaleString()}
                 </div>
                 <div className="text-sm text-gray-500">Total Value</div>
               </div>
               
-              <div className="bg-white p-4 rounded-md border border-gray-200">
-                <div className="text-2xl font-semibold text-[#282A3F]">
+              <div className="bg-white p-6 rounded-md border border-gray-200 shadow-sm">
+                <div className="text-3xl font-semibold text-[#282A3F] mb-2">
                   €{Math.round(filteredOpportunities.reduce((sum: number, opp: any) => {
                     const value = Number(opp.estimated_value) || 0;
                     const probability = opp.stage === 'Closed (Won)' ? 1.0 : 
