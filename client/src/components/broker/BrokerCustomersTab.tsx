@@ -17,40 +17,43 @@ export default function BrokerCustomersTab({
   selectedCustomers,
   setSelectedCustomers
 }: BrokerCustomersTabProps) {
+  
+  // Safety check for customers data
+  const safeCustomers = Array.isArray(customers) ? customers : [];
 
   return (
     <div className="space-y-4">
       {/* Statistics Overview for customers */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold text-[#282A3F]">{customers.length}</div>
+          <div className="text-xl font-semibold text-[#282A3F]">{safeCustomers.length}</div>
           <div className="text-sm text-gray-500">Total customers</div>
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
           <div className="text-xl font-semibold text-[#282A3F]">
-            {customers.reduce((total: number, customer: any) => total + (customer.opportunityCount || 0), 0)}
+            {safeCustomers.reduce((total: number, customer: any) => total + (customer.opportunityCount || 0), 0)}
           </div>
           <div className="text-sm text-gray-500">Total opportunities</div>
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
           <div className="text-xl font-semibold text-[#282A3F]">
-            €{customers.reduce((total: number, customer: any) => total + (customer.totalValue || 0), 0).toLocaleString()}
+            €{safeCustomers.reduce((total: number, customer: any) => total + (customer.totalValue || 0), 0).toLocaleString()}
           </div>
           <div className="text-sm text-gray-500">Total value</div>
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
           <div className="text-xl font-semibold text-[#282A3F]">
-            {customers.filter((customer: any) => customer.status === 'Active').length}
+            {safeCustomers.filter((customer: any) => customer.status === 'Active').length}
           </div>
           <div className="text-sm text-gray-500">Active</div>
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
           <div className="text-xl font-semibold text-[#282A3F]">
-            {customers.filter((customer: any) => customer.lastActivity && new Date(customer.lastActivity) > new Date(Date.now() - 30*24*60*60*1000)).length}
+            {safeCustomers.filter((customer: any) => customer.lastActivity && new Date(customer.lastActivity) > new Date(Date.now() - 30*24*60*60*1000)).length}
           </div>
           <div className="text-sm text-gray-500">Recent activity</div>
         </div>
@@ -63,10 +66,10 @@ export default function BrokerCustomersTab({
             <TableRow>
               <TableHead className="w-8">
                 <Checkbox 
-                  checked={selectedCustomers.length === customers.length && customers.length > 0}
+                  checked={selectedCustomers.length === safeCustomers.length && safeCustomers.length > 0}
                   onCheckedChange={(checked) => {
                     if (checked) {
-                      setSelectedCustomers(customers.map(customer => customer.id));
+                      setSelectedCustomers(safeCustomers.map(customer => customer.id));
                     } else {
                       setSelectedCustomers([]);
                     }
@@ -84,7 +87,7 @@ export default function BrokerCustomersTab({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {customers.map((customer: any) => (
+            {safeCustomers.map((customer: any) => (
               <TableRow key={customer.id}>
                 <TableCell>
                   <Checkbox 

@@ -1630,7 +1630,7 @@ export default function PartnerDetailBrokerPOV() {
           {activeTab === "opportunities" && (
             <BrokerOpportunitiesTab
               partnerId={partnerId || ""}
-              opportunities={opportunities}
+              opportunities={allOpportunities}
               selectedOpportunities={selectedOpportunities}
               setSelectedOpportunities={setSelectedOpportunities}
               handleAssessmentUpdate={handleAssessmentUpdate}
