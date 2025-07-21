@@ -54,6 +54,7 @@ import {
 
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
 
+
 // Type definitions
 interface SavedList {
   id: number;
@@ -206,6 +207,14 @@ export default function ContactsPage() {
   const [newListDescription, setNewListDescription] = useState('');
   const [selectedExistingList, setSelectedExistingList] = useState<number | null>(null);
 
+  // Saved lists and views state
+  const [activeList, setActiveList] = useState<number | null>(null);
+  const [activeView, setActiveView] = useState<SavedView | null>(null);
+  const [isEditingView, setIsEditingView] = useState(false);
+  const [pendingViewName, setPendingViewName] = useState('');
+  const [showViewNameInput, setShowViewNameInput] = useState(false);
+  const [filtersModified, setFiltersModified] = useState(false);
+
   // Available fields for contacts
   const availableFields = [
     { key: 'full_name', label: 'Name', required: true },
@@ -235,14 +244,59 @@ export default function ContactsPage() {
 
   // Data fetching
   const { data: contacts = [], isLoading: contactsLoading } = useContactsData();
-  const { data: savedLists = [] } = useSavedLists();
-  const { data: savedViews = [] } = useSavedSegmentViews();
+  const { data: savedLists = [] } = useQuery({
+    queryKey: ['/api/saved-lists', { entity_type: 'contacts' }],
+    queryFn: () => apiRequest('/api/saved-lists?entity_type=contacts')
+  });
+  const { data: savedViews = [] } = useQuery({
+    queryKey: ['/api/saved-views', { entity_type: 'contacts' }],
+    queryFn: () => apiRequest('/api/saved-views?entity_type=contacts')
+  });
 
   // Mutations
-  const createListMutation = useCreateSavedList();
-  const createViewMutation = useCreateSavedSegmentView();
-  const createSharedListMutation = useCreateSharedList();
-  const deleteListMutation = useDeleteSavedList();
+  const createListMutation = useMutation({
+    mutationFn: (data: { name: string; description: string; entity_type: string; entity_ids: number[] }) =>
+      apiRequest('/api/saved-lists', { method: 'POST', body: data }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      toast({ title: "Success", description: "List created successfully" });
+    }
+  });
+  
+  const createViewMutation = useMutation({
+    mutationFn: (data: { name: string; entity_type: string; filters: any }) =>
+      apiRequest('/api/saved-views', { method: 'POST', body: data }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
+      toast({ title: "Success", description: "View saved successfully" });
+    }
+  });
+  
+  const updateViewMutation = useMutation({
+    mutationFn: ({ viewId, data }: { viewId: number; data: any }) =>
+      apiRequest(`/api/saved-views/${viewId}`, { method: 'PUT', body: data }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
+      toast({ title: "Success", description: "View updated successfully" });
+    }
+  });
+  
+  const deleteViewMutation = useMutation({
+    mutationFn: (viewId: number) =>
+      apiRequest(`/api/saved-views/${viewId}`, { method: 'DELETE' }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
+      toast({ title: "Success", description: "View deleted successfully" });
+    }
+  });
+  
+  const createSharedListMutation = useMutation({
+    mutationFn: (data: any) =>
+      apiRequest('/api/shared-lists', { method: 'POST', body: data }),
+    onSuccess: () => {
+      toast({ title: "Success", description: "List shared successfully" });
+    }
+  });
 
   // Filter and sort contacts
   const filteredContacts = contacts.filter((contact: Contact) => {
@@ -265,6 +319,26 @@ export default function ContactsPage() {
     }
     return String(bVal).localeCompare(String(aVal));
   });
+
+  // Track filter modifications
+  useEffect(() => {
+    if (activeView && !filtersModified) {
+      const currentFilters = {
+        search: searchText,
+        filter: activeFilter,
+        sort: sortConfig
+      };
+      const originalFilters = activeView.filters || {};
+      
+      const hasChanged = currentFilters.search !== (originalFilters.search || '') ||
+                        currentFilters.filter !== (originalFilters.filter || 'all') ||
+                        JSON.stringify(currentFilters.sort) !== JSON.stringify(originalFilters.sort || {field: 'full_name', direction: 'asc'});
+      
+      if (hasChanged) {
+        setFiltersModified(true);
+      }
+    }
+  }, [searchText, activeFilter, sortConfig, activeView, filtersModified]);
 
   // Pagination
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -329,6 +403,84 @@ export default function ContactsPage() {
   };
 
   // Handle save to list
+  // Views and Lists Handlers
+  const handleViewSelect = (view: SavedView) => {
+    setActiveView(view);
+    setActiveList(null);
+    if (view.filters) {
+      // Apply view filters
+      const filters = view.filters;
+      if (filters.search) setSearchText(filters.search);
+      if (filters.filter) setActiveFilter(filters.filter);
+      if (filters.sort) setSortConfig(filters.sort);
+    }
+    setFiltersModified(false);
+  };
+
+  const handleListSelect = (listId: number) => {
+    setActiveList(listId);
+    setActiveView(null);
+    // Clear filters when selecting a list
+    setSearchText('');
+    setActiveFilter('all');
+    setSortConfig({field: 'full_name', direction: 'asc'});
+    setFiltersModified(false);
+  };
+
+  const getCurrentViewName = () => {
+    if (activeView) return activeView.name;
+    if (activeList) {
+      const list = savedLists.find((l: any) => l.id === activeList);
+      return list?.name || 'Unknown List';
+    }
+    return null;
+  };
+
+  const handleSaveView = () => {
+    if (!pendingViewName.trim()) return;
+    
+    const filters = {
+      search: searchText,
+      filter: activeFilter,
+      sort: sortConfig
+    };
+
+    if (activeView && isEditingView) {
+      updateViewMutation.mutate({
+        viewId: activeView.id,
+        data: { name: pendingViewName, filters }
+      });
+    } else {
+      createViewMutation.mutate({
+        name: pendingViewName,
+        entity_type: 'contacts',
+        filters
+      });
+    }
+    
+    setPendingViewName('');
+    setShowViewNameInput(false);
+    setIsEditingView(false);
+    setFiltersModified(false);
+  };
+
+  const handleRevertChanges = () => {
+    if (activeView) {
+      handleViewSelect(activeView);
+    } else {
+      setSearchText('');
+      setActiveFilter('all');
+      setSortConfig({field: 'full_name', direction: 'asc'});
+    }
+    setFiltersModified(false);
+  };
+
+  const handleSaveAsNew = () => {
+    setIsEditingView(false);
+    setShowViewNameInput(true);
+    setPendingViewName('');
+  };
+
   const handleSaveToList = async () => {
     if (selectedContacts.length === 0) return;
 
@@ -396,6 +548,96 @@ export default function ContactsPage() {
         </div>
       </div>
 
+      {/* Saved Lists Section */}
+      <div className="bg-[#E6E7F1] px-4 py-3 rounded-lg">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <h2 className="text-sm font-medium text-gray-900">Contact Lists</h2>
+            
+            {/* Lists Dropdown */}
+            <div className="relative">
+              <Select value={activeList?.toString() || ''} onValueChange={(value) => handleListSelect(parseInt(value))}>
+                <SelectTrigger className="w-48 h-8">
+                  <SelectValue placeholder="Select a list..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {savedLists.map((list: any) => (
+                    <SelectItem key={list.id} value={list.id.toString()}>
+                      {list.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Views Dropdown */}
+            <div className="relative">
+              <Select value={activeView?.id.toString() || ''} onValueChange={(value) => {
+                const view = savedViews.find((v: any) => v.id.toString() === value);
+                if (view) handleViewSelect(view);
+              }}>
+                <SelectTrigger className="w-48 h-8">
+                  <SelectValue placeholder="Select a view..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="new-view">+ Create new view</SelectItem>
+                  {savedViews.map((view: any) => (
+                    <SelectItem key={view.id} value={view.id.toString()}>
+                      {view.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {/* Action Buttons */}
+            {filtersModified && activeView && (
+              <div className="flex gap-2">
+                <Button size="sm" variant="ghost" onClick={handleRevertChanges}>
+                  Revert changes
+                </Button>
+                <Button size="sm" onClick={() => {
+                  setIsEditingView(true);
+                  setPendingViewName(activeView.name);
+                  setShowViewNameInput(true);
+                }}>
+                  Save changes
+                </Button>
+                <Button size="sm" variant="outline" onClick={handleSaveAsNew}>
+                  Save as new view
+                </Button>
+              </div>
+            )}
+          </div>
+          
+          <div className="text-sm text-gray-600">
+            {filteredContacts.length} contacts
+          </div>
+        </div>
+        
+        {/* View Name Input */}
+        {showViewNameInput && (
+          <div className="mt-3 flex items-center gap-2">
+            <Input
+              placeholder="Enter view name..."
+              value={pendingViewName}
+              onChange={(e) => setPendingViewName(e.target.value)}
+              className="w-48 h-8"
+            />
+            <Button size="sm" onClick={handleSaveView}>
+              Save
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => {
+              setShowViewNameInput(false);
+              setPendingViewName('');
+              setIsEditingView(false);
+            }}>
+              Cancel
+            </Button>
+          </div>
+        )}
+      </div>
+
       {/* Toolbar */}
       <div className="flex items-center justify-between p-2 border-b border-gray-100">
         <div className="flex items-center gap-4">
@@ -424,6 +666,13 @@ export default function ContactsPage() {
               </Button>
             ))}
           </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <FieldsSelector 
+            fields={availableFields}
+            visibleFields={visibleFields}
+            onFieldsChange={setVisibleFields}
+          />
         </div>
       </div>
 
