@@ -20,6 +20,8 @@ import PartnerCampaignBuilder from "@/pages/campaigns/PartnerCampaignBuilder";
 import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTab";
 import { WhiteSpaceMatrix } from "@/components/entity/WhiteSpaceMatrixSimplified";
 import { SmartCrossSell } from "@/components/portfolio/SmartCrossSell";
+import BrokerOpportunitiesTab from "@/components/broker/BrokerOpportunitiesTab";
+import BrokerCustomersTab from "@/components/broker/BrokerCustomersTab";
 
 import { BrokerLayout } from "@/components/layouts/BrokerLayout";
 import PartnerCampaignShareModal from "@/components/campaigns/PartnerCampaignShareModal";
@@ -419,6 +421,12 @@ export default function PartnerDetailBrokerPOV() {
   const [selectedCustomerStatus, setSelectedCustomerStatus] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('');
   const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
+  
+  // Add customers data fetch - similar to opportunities
+  const { data: customers = [] } = useQuery({
+    queryKey: [`/api/${currentEnvironment}/customers`],
+    enabled: activeTab === "customers"
+  });
   const [activeCustomerList, setActiveCustomerList] = useState<any>(null);
   const [showCustomerListsDropdown, setShowCustomerListsDropdown] = useState(false);
   
@@ -1620,6 +1628,31 @@ export default function PartnerDetailBrokerPOV() {
           {/* Smart Cross Sell tab is hidden in Partner POV */}
 
           {activeTab === "opportunities" && (
+            <BrokerOpportunitiesTab
+              partnerId={partnerId || ""}
+              opportunities={opportunities}
+              selectedOpportunities={selectedOpportunities}
+              setSelectedOpportunities={setSelectedOpportunities}
+              handleAssessmentUpdate={handleAssessmentUpdate}
+              setSelectedOpportunityForWithhold={setSelectedOpportunityForWithhold}
+              setIsWithholdModalOpen={setIsWithholdModalOpen}
+              setSelectedOpportunityForHistory={setSelectedOpportunityForHistory}
+              setIsCommentsHistoryDialogOpen={setIsCommentsHistoryDialogOpen}
+            />
+          )}
+
+          {activeTab === "customers" && (
+            <BrokerCustomersTab
+              partnerId={partnerId || ""}
+              customers={customers}
+              selectedCustomers={selectedCustomers}
+              setSelectedCustomers={setSelectedCustomers}
+            />
+          )}
+
+          {/* End of broker tab replacements */}
+
+          {false && activeTab === "opportunities_old" && (
             <div className="space-y-4">
               {/* Removed all toolbar functionality as requested */}
 
