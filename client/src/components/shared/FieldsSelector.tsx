@@ -53,8 +53,8 @@ export function FieldsSelector({
     onFieldsChange((fields || []).filter(f => f.required).map(f => f.key));
   };
 
-  const visibleCount = visibleFields?.length || 0;
-  const totalCount = fields?.length || 0;
+  const visibleCount = Array.isArray(visibleFields) ? visibleFields.length : 0;
+  const totalCount = Array.isArray(fields) ? fields.length : 0;
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>

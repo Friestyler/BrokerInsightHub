@@ -687,8 +687,10 @@ const ContactsPage = () => {
                         
                         {/* Tags Display */}
                         <div className="flex flex-wrap gap-1 mt-2">
-                          {contact.tags && contact.tags.length > 0 && (
-                            contact.tags.map((tagName, index) => {
+                          {Array.isArray(contact.tags) && contact.tags.length > 0 && (
+                            contact.tags.map((tagItem, index) => {
+                              // Handle both string tags and object tags
+                              const tagName = typeof tagItem === 'string' ? tagItem : tagItem?.name || '';
                               const tag = tags.find(t => t.name === tagName);
                               return (
                                 <Badge 
