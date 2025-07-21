@@ -49,14 +49,18 @@ const calculateEnrichmentPercentage = (contact: Contact): number => {
   const totalFields = 8; // Total meaningful fields for enrichment
   let completedFields = 0;
   
-  // Core contact fields
-  if (contact.fullName?.trim()) completedFields++;
+  // Core contact fields - check both camelCase and snake_case for compatibility
+  const fullName = (contact as any).full_name || contact.fullName;
+  const jobTitle = (contact as any).job_title || contact.jobTitle;
+  const reportsTo = (contact as any).reports_to || contact.reportsTo;
+  
+  if (fullName?.trim()) completedFields++;
   if (contact.email?.trim()) completedFields++;
   if (contact.phone?.trim()) completedFields++;
   if (contact.company?.trim()) completedFields++;
-  if (contact.jobTitle?.trim()) completedFields++;
+  if (jobTitle?.trim()) completedFields++;
   if (contact.department?.trim()) completedFields++;
-  if (contact.reportsTo) completedFields++;
+  if (reportsTo) completedFields++;
   if (contact.notes?.trim()) completedFields++;
   
   return Math.round((completedFields / totalFields) * 100);
@@ -327,14 +331,14 @@ export default function ContactsPage() {
   const handleEditContact = (contact: Contact) => {
     setEditingContact(contact);
     setFormData({
-      firstName: contact.firstName || '',
-      lastName: contact.lastName || '',
+      firstName: (contact as any).first_name || contact.firstName || '',
+      lastName: (contact as any).last_name || contact.lastName || '',
       email: contact.email || '',
       phone: contact.phone || '',
-      jobTitle: contact.jobTitle || '',
+      jobTitle: (contact as any).job_title || contact.jobTitle || '',
       department: contact.department || '',
       company: contact.company || '',
-      reportsTo: contact.reportsTo || null,
+      reportsTo: (contact as any).reports_to || contact.reportsTo || null,
       notes: contact.notes || ''
     });
     setShowEditDialog(true);
@@ -371,11 +375,11 @@ export default function ContactsPage() {
           <div className="flex items-center">
             <div className="bg-blue-100 rounded-full w-8 h-8 flex items-center justify-center mr-3">
               <span className="text-blue-600 font-medium text-sm">
-                {getInitials(contact.fullName)}
+                {getInitials((contact as any).full_name || contact.fullName)}
               </span>
             </div>
             <div>
-              <div className="font-medium text-gray-900">{contact.fullName}</div>
+              <div className="font-medium text-gray-900">{(contact as any).full_name || contact.fullName}</div>
               <div className="text-sm text-gray-500">{contact.company}</div>
             </div>
           </div>
@@ -384,7 +388,7 @@ export default function ContactsPage() {
       
       <td className="px-6 py-4 whitespace-nowrap">
         <div>
-          <div className="font-medium text-gray-900">{contact.jobTitle}</div>
+          <div className="font-medium text-gray-900">{(contact as any).job_title || contact.jobTitle}</div>
           <div className="text-sm text-gray-500">{contact.department}</div>
         </div>
       </td>
