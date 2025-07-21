@@ -1331,12 +1331,47 @@ export default function PartnerDetailBrokerPOV() {
 
         </div>
 
-        {/* Content area - Clean broker view without tabs */}
+        {/* Tabs - excluding Customer and Opportunity tabs as requested */}
+        <div className="border-b border-gray-200 mt-2">
+          <nav className="flex space-x-2 mb-1">
+            <button 
+              onClick={() => setActiveTab("products")}
+              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                activeTab === "products" 
+                  ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+              }`}
+            >
+              Products ({(relatedProducts as any[] || []).length})
+            </button>
+            <button 
+              onClick={() => setActiveTab("campaigns")}
+              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                activeTab === "campaigns" 
+                  ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+              }`}
+            >
+              Campaigns ({(relatedCampaigns as any[] || []).length})
+            </button>
+            <button 
+              onClick={() => setActiveTab("okr-plans")}
+              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                activeTab === "okr-plans" 
+                  ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+              }`}
+            >
+              OKR Plans ({assignedMetrics.length})
+            </button>
+          </nav>
+        </div>
+
+        {/* Tab Content - showing all tabs except Customer and Opportunity */}
         <div className="px-6 py-6">
-          <div className="text-center py-12">
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Broker Portal</h3>
-            <p className="text-gray-600">Welcome to your broker portal interface</p>
-          </div>
+          {/* Products tab content will go here */}
+          {/* Campaigns tab content will go here */}
+          {/* OKR Plans tab content will go here */}
         </div>
 
         {/* Close main container div */}
