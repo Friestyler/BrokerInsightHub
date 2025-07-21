@@ -343,9 +343,4 @@
     padding: 0 !important;
     background: transparent !important;
   }
-
-  /* CRITICAL: Hide customers tab toolbar in broker POV */
-  div[data-broker-pov] .bg-white.p-4.rounded-lg.shadow-sm {
-    display: none !important;
-  }
 }

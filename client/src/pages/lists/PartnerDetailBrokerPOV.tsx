@@ -13,14 +13,13 @@ import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Search, Bot, Copy, Users, Trash2, MoreHorizontal, MoreVertical, MessageSquare, MessageCircle, CheckCircle, XCircle, Eye, Edit, Filter, Package, Target, Crown, ChevronDown, ChevronRight, Share2, X, Bookmark, Columns3, Send, AlertTriangle, Plus, Mail, Calendar, Clock, Play, Pause, AlertCircle } from "lucide-react";
+import { ArrowLeft, Search, Bot, Copy, Users, Trash2, MoreHorizontal, MessageSquare, CheckCircle, XCircle, Eye } from "lucide-react";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import EntityAvatar from "@/components/EntityAvatar";
 import PartnerCampaignBuilder from "@/pages/campaigns/PartnerCampaignBuilder";
 import { PortfolioOverviewTab } from "@/components/portfolio/PortfolioOverviewTab";
 import { WhiteSpaceMatrix } from "@/components/entity/WhiteSpaceMatrixSimplified";
 import { SmartCrossSell } from "@/components/portfolio/SmartCrossSell";
-
 
 import { BrokerLayout } from "@/components/layouts/BrokerLayout";
 import PartnerCampaignShareModal from "@/components/campaigns/PartnerCampaignShareModal";
@@ -208,112 +207,9 @@ export default function PartnerDetailBrokerPOV() {
   
   // Selection state for opportunities
   const [selectedOpportunities, setSelectedOpportunities] = useState<number[]>([]);
-  const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
   
   // Details dialog state
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
-
-  // Mirror PartnerDetail.tsx state exactly for opportunities
-  const [opportunityFilters, setOpportunityFilters] = useState({
-    status: 'All',
-    stage: 'All', 
-    size: 'All',
-    type: 'All'
-  });
-  const [hasActiveOpportunityFilters, setHasActiveOpportunityFilters] = useState(false);
-  const [activeOpportunityView, setActiveOpportunityView] = useState<any>(null);
-  const [showOpportunityViewsDropdown, setShowOpportunityViewsDropdown] = useState(false);
-  const [showSaveOpportunityViewModal, setShowSaveOpportunityViewModal] = useState(false);
-  const [opportunityViewNameInput, setOpportunityViewNameInput] = useState('');
-  const [showOpportunityFieldsDropdown, setShowOpportunityFieldsDropdown] = useState(false);
-  const [opportunityVisibleFields, setOpportunityVisibleFields] = useState({
-    title: true,
-    customer: true,
-    stage: true,
-    value: true,
-    priority: true,
-    type: true,
-    size: true,
-    accountManager: true,
-    lastActivity: true
-  });
-  const [originalOpportunityFilters, setOriginalOpportunityFilters] = useState<any>(null);
-  const [originalOpportunityVisibleFields, setOriginalOpportunityVisibleFields] = useState<any>(null);
-  const [showOpportunityFilter, setShowOpportunityFilter] = useState(false);
-
-  // Mirror PartnerDetail.tsx state exactly for customers  
-  const [customerFilters, setCustomerFilters] = useState({
-    status: 'All',
-    industry: 'All', 
-    size: 'All',
-    region: 'All'
-  });
-  const [hasActiveCustomerFilters, setHasActiveCustomerFilters] = useState(false);
-  const [activeCustomerView, setActiveCustomerView] = useState<any>(null);
-  const [showCustomerViewsDropdown, setShowCustomerViewsDropdown] = useState(false);
-  const [showSaveCustomerViewModal, setShowSaveCustomerViewModal] = useState(false);
-  const [customerViewNameInput, setCustomerViewNameInput] = useState('');
-  const [showCustomerFieldsDropdown, setShowCustomerFieldsDropdown] = useState(false);
-  const [customerVisibleFields, setCustomerVisibleFields] = useState({
-    name: true,
-    industry: true,
-    region: true,
-    contactPerson: true,
-    phone: true,
-    email: true,
-    opportunities: true,
-    totalValue: true,
-    lastActivity: true
-  });
-  const [originalCustomerFilters, setOriginalCustomerFilters] = useState<any>(null);
-  const [originalCustomerVisibleFields, setOriginalCustomerVisibleFields] = useState<any>(null);
-  const [showCustomerFilter, setShowCustomerFilter] = useState(false);
-  const [customerViewMode, setCustomerViewMode] = useState<'list' | 'cards'>('cards');
-  const [viewMode, setViewMode] = useState<'list' | 'cards'>('cards');
-
-  // Add required refs to match PartnerDetail.tsx
-  const opportunityViewsDropdownRef = useRef<HTMLDivElement>(null);
-  const opportunityViewsButtonRef = useRef<HTMLButtonElement>(null);
-  const opportunityFieldsDropdownRef = useRef<HTMLDivElement>(null);
-  const customerViewsDropdownRef = useRef<HTMLDivElement>(null);
-  const customerViewsButtonRef = useRef<HTMLButtonElement>(null);
-  const customerFieldsDropdownRef = useRef<HTMLDivElement>(null);
-  const customerFilterDropdownRef = useRef<HTMLDivElement>(null);
-
-  // Add change detection functions exactly like PartnerDetail.tsx
-  const hasOpportunityChanges = () => {
-    if (activeOpportunityView && (originalOpportunityFilters || originalOpportunityVisibleFields)) {
-      const filtersChanged = originalOpportunityFilters && JSON.stringify(opportunityFilters) !== JSON.stringify(originalOpportunityFilters);
-      const fieldsChanged = originalOpportunityVisibleFields && JSON.stringify(opportunityVisibleFields) !== JSON.stringify(originalOpportunityVisibleFields);
-      return filtersChanged || fieldsChanged;
-    }
-    if (!activeOpportunityView) {
-      const hasFilterChanges = opportunityFilters.status !== 'All' || 
-                              opportunityFilters.stage !== 'All' || 
-                              opportunityFilters.size !== 'All' || 
-                              opportunityFilters.type !== 'All';
-      const hasFieldChanges = Object.values(opportunityVisibleFields).some(visible => !visible);
-      return hasFilterChanges || hasFieldChanges;
-    }
-    return false;
-  };
-
-  const hasCustomerChanges = () => {
-    if (activeCustomerView && (originalCustomerFilters || originalCustomerVisibleFields)) {
-      const filtersChanged = originalCustomerFilters && JSON.stringify(customerFilters) !== JSON.stringify(originalCustomerFilters);
-      const fieldsChanged = originalCustomerVisibleFields && JSON.stringify(customerVisibleFields) !== JSON.stringify(originalCustomerVisibleFields);
-      return filtersChanged || fieldsChanged;
-    }
-    if (!activeCustomerView) {
-      const hasFilterChanges = customerFilters.status !== 'All' || 
-                              customerFilters.industry !== 'All' || 
-                              customerFilters.size !== 'All' || 
-                              customerFilters.region !== 'All';
-      const hasFieldChanges = Object.values(customerVisibleFields).some(visible => !visible);
-      return hasFilterChanges || hasFieldChanges;
-    }
-    return false;
-  };
 
   // Assessment state variables
   const [withholdDialogOpen, setWithholdDialogOpen] = useState(false);
@@ -518,18 +414,17 @@ export default function PartnerDetailBrokerPOV() {
     queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/saved-views?entity_type=customers`),
   });
 
-  // Customer filtering state (avoid duplicates)
+  // Customer filtering state
   const [customerSearchText, setCustomerSearchText] = useState('');
   const [selectedCustomerStatus, setSelectedCustomerStatus] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('');
-  
-  // Add customers data fetch - similar to opportunities
-  const { data: customers = [] } = useQuery({
-    queryKey: [`/api/${currentEnvironment}/customers`],
-    enabled: activeTab === "customers"
-  });
+  const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
   const [activeCustomerList, setActiveCustomerList] = useState<any>(null);
   const [showCustomerListsDropdown, setShowCustomerListsDropdown] = useState(false);
+  
+  // Enhanced toolbar state for customers
+  const [activeCustomerView, setActiveCustomerView] = useState<any>(null);
+  const [showCustomerViewsDropdown, setShowCustomerViewsDropdown] = useState(false);
   const [showCustomerStatusDropdown, setShowCustomerStatusDropdown] = useState(false);
   const [showIndustryDropdown, setShowIndustryDropdown] = useState(false);
 
@@ -1345,7 +1240,6 @@ export default function PartnerDetailBrokerPOV() {
               >
                 OKR plans
               </button>
-
               <button 
                 onClick={() => setActiveTab("opportunities")}
                 className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
@@ -1354,7 +1248,7 @@ export default function PartnerDetailBrokerPOV() {
                     : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
                 }`}
               >
-                Opportunities ({allOpportunities?.length || 0})
+                Opportunities ({baseOpportunities?.length || 0})
               </button>
               <button 
                 onClick={() => setActiveTab("customers")}
@@ -1725,13 +1619,313 @@ export default function PartnerDetailBrokerPOV() {
 
           {/* Smart Cross Sell tab is hidden in Partner POV */}
 
-
-
-          {/* End of broker tab replacements */}
-
-          {false && (
+          {activeTab === "opportunities" && (
             <div className="space-y-4">
-              {/* Removed all toolbar functionality as requested */}
+              {/* Enhanced unified toolbar - same as OpportunitiesPage */}
+              <div className="bg-white p-4 rounded-lg shadow-sm">
+                <div className="flex flex-col gap-4">
+                  {/* Top row with saved lists and views */}
+                  <div className="flex flex-wrap items-center justify-between">
+                    {/* Left side - Saved Lists with actions */}
+                    <div className="flex items-center gap-3">
+                      {/* Lists heading */}
+                      <div className="flex flex-col mr-2">
+                        <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
+                      </div>
+                      {/* Saved Lists dropdown - functional implementation */}
+                      <div className="relative" ref={dropdownRef}>
+                        <button 
+                          className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
+                          onClick={() => setShowListsDropdown(!showListsDropdown)}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
+                            <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
+                          </svg>
+                          <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                            {activeOpportunitiesList ? activeOpportunitiesList.name : 'All opportunities'}
+                          </span>
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            width="14" 
+                            height="14" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="2" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            className={`transition-transform ${showListsDropdown ? 'rotate-180' : ''}`}
+                          >
+                            <polyline points="6 9 12 15 18 9" />
+                          </svg>
+                        </button>
+                        
+                        {/* Dropdown menu */}
+                        {showListsDropdown && (
+                          <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                            <div className="p-2">
+                              {/* Default "All opportunities" option */}
+                              <button
+                                className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
+                                  !activeOpportunitiesList ? 'bg-[#E1E4FB] text-[#3E4DC4]' : 'text-gray-700'
+                                }`}
+                                onClick={() => {
+                                  setActiveOpportunitiesList(null);
+                                  setShowListsDropdown(false);
+                                  // Remove list parameter from URL
+                                  const newUrl = new URL(window.location.href);
+                                  newUrl.searchParams.delete('list');
+                                  window.history.pushState({}, '', newUrl.toString());
+                                  // Force a re-render by updating the render key
+                                  setRenderKey(prev => prev + 1);
+                                }}
+                              >
+                                <div className="flex items-center space-x-2">
+                                  <span>All opportunities</span>
+                                </div>
+                              </button>
+                              
+                              {/* Partner-relevant saved lists */}
+                              {partnerRelevantLists.length > 0 && (
+                                <div className="border-t border-gray-100 my-2 pt-2">
+                                  {partnerRelevantLists.map((list: any) => (
+                                    <button
+                                      key={list.id}
+                                      className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
+                                        activeOpportunitiesList?.id === list.id ? 'bg-[#E1E4FB] text-[#3E4DC4]' : 'text-gray-700'
+                                      }`}
+                                      onClick={() => {
+                                        setActiveOpportunitiesList(list);
+                                        setShowListsDropdown(false);
+                                        // Update URL to reflect the selected list
+                                        const newUrl = new URL(window.location.href);
+                                        newUrl.searchParams.set('list', list.id.toString());
+                                        window.history.pushState({}, '', newUrl.toString());
+                                        // Force a re-render by updating the render key
+                                        setRenderKey(prev => prev + 1);
+                                      }}
+                                    >
+                                      <div className="flex flex-col space-y-1 w-full">
+                                        <span>{list.name}</span>
+                                        {/* Show share icon and environment name if list is shared */}
+                                        {list.is_shared && (
+                                          <div className="flex items-center space-x-1">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
+                                              <circle cx="18" cy="5" r="3"></circle>
+                                              <circle cx="6" cy="12" r="3"></circle>
+                                              <circle cx="18" cy="19" r="3"></circle>
+                                              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                            </svg>
+                                            <span className="text-xs text-gray-500">Shared by {partner.name}</span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Right-side action buttons */}
+                    <div className="flex items-center gap-2">
+                      {/* Edit list functionality HIDDEN IN BROKER VIEW for proper access control */}
+
+                      <Button variant="outline" size="sm" className="hidden md:flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                          <polyline points="7 10 12 15 17 10"></polyline>
+                          <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Export
+                      </Button>
+                      
+                      <Button 
+                        size="sm" 
+                        className="flex items-center bg-indigo-600 hover:bg-indigo-700"
+                        onClick={() => {/* Handle new opportunity creation */}}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                          <line x1="12" y1="5" x2="12" y2="19"></line>
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        New
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* Bottom row with search, views, and filters */}
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-3 flex-grow">
+                      {/* Search field */}
+                      <div className="relative w-60">
+                        <input
+                          type="text"
+                          placeholder="Search opportunities..."
+                          value={filterText}
+                          onChange={(e) => setFilterText(e.target.value)}
+                          className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+                        />
+                        <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                          </svg>
+                        </button>
+                      </div>
+                      
+                      {/* Views dropdown - next to search field */}
+                      <div className="relative">
+                        <button 
+                          className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium border-gray-300 hover:border-gray-400"
+                          onClick={() => {/* Handle views dropdown */}}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                          </svg>
+                          <span className="max-w-[120px] truncate">Views</span>
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            width="14" 
+                            height="14" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="2" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            className="transition-transform"
+                          >
+                            <polyline points="6 9 12 15 18 9" />
+                          </svg>
+                        </button>
+                      </div>
+                      
+                      {/* Filter dropdowns next to the views dropdown */}
+                      <div className="flex items-center gap-2 ml-3">
+                        {/* Stage filter dropdown */}
+                        <div className="relative" ref={stageDropdownRef}>
+                          <button 
+                            className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                              selectedStatus ? 'border-indigo-300 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'
+                            } hover:border-gray-400`}
+                            onClick={() => setShowStageDropdown(!showStageDropdown)}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                            </svg>
+                            <span>{selectedStatus || 'Stage'}</span>
+                            <svg 
+                              xmlns="http://www.w3.org/2000/svg" 
+                              width="14" 
+                              height="14" 
+                              viewBox="0 0 24 24" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              strokeWidth="2" 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round" 
+                              className={`ml-2 transition-transform ${showStageDropdown ? 'rotate-180' : ''}`}
+                            >
+                              <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                          </button>
+                          
+                          {showStageDropdown && (
+                            <div className="absolute z-50 mt-1 w-48 rounded-md border border-[#E6E7F1] bg-white shadow-lg">
+                              <div className="py-1">
+                                <button
+                                  className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                  onClick={() => {
+                                    setSelectedStatus('');
+                                    setShowStageDropdown(false);
+                                  }}
+                                >
+                                  All Stages
+                                </button>
+                                {uniqueStages.map((stage) => (
+                                  <button
+                                    key={stage}
+                                    className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    onClick={() => {
+                                      setSelectedStatus(stage);
+                                      setShowStageDropdown(false);
+                                    }}
+                                  >
+                                    {stage}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Customer filter dropdown */}
+                        <div className="relative" ref={customerDropdownRef}>
+                          <button 
+                            className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                              selectedCustomer ? 'border-indigo-300 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'
+                            } hover:border-gray-400`}
+                            onClick={() => setShowCustomerDropdown(!showCustomerDropdown)}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                            </svg>
+                            <span>{selectedCustomer || 'Customer'}</span>
+                            <svg 
+                              xmlns="http://www.w3.org/2000/svg" 
+                              width="14" 
+                              height="14" 
+                              viewBox="0 0 24 24" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              strokeWidth="2" 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round" 
+                              className={`ml-2 transition-transform ${showCustomerDropdown ? 'rotate-180' : ''}`}
+                            >
+                              <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                          </button>
+                          
+                          {showCustomerDropdown && (
+                            <div className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-lg">
+                              <div className="py-1">
+                                <button
+                                  className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                  onClick={() => {
+                                    setSelectedCustomer('');
+                                    setShowCustomerDropdown(false);
+                                  }}
+                                >
+                                  All Customers
+                                </button>
+                                {uniqueCustomers.map((customer) => (
+                                  <button
+                                    key={customer}
+                                    className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    onClick={() => {
+                                      setSelectedCustomer(customer);
+                                      setShowCustomerDropdown(false);
+                                    }}
+                                  >
+                                    <span className="truncate">{customer}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
               {/* Bulk actions bar - only visible when opportunities are selected */}
               {selectedOpportunities.length > 0 && (
@@ -2013,17 +2207,151 @@ export default function PartnerDetailBrokerPOV() {
             </div>
           )}
 
-          {false && (
+          {activeTab === "customers" && (
             <div className="space-y-4">
               {/* Enhanced unified toolbar - same as PartnerDetail.tsx */}
               <div className="bg-white p-4 rounded-lg shadow-sm">
                 <div className="flex flex-col gap-4">
                   {/* Top row with saved lists and views */}
                   <div className="flex flex-wrap items-center justify-between">
-                    {/* Removed saved lists dropdown as requested */}
+                    {/* Left side - Saved Lists with actions */}
+                    <div className="flex items-center gap-3">
+                      {/* Lists heading */}
+                      <div className="flex flex-col mr-2">
+                        <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
+                      </div>
+                      {/* Saved Lists dropdown - functional implementation */}
+                      <div className="relative">
+                        <button 
+                          className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
+                          onClick={() => setShowCustomerListsDropdown(!showCustomerListsDropdown)}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
+                            <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
+                          </svg>
+                          <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                            {activeCustomerList ? activeCustomerList.name : 'All customers'}
+                          </span>
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            width="14" 
+                            height="14" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="2" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            className={`transition-transform ${showCustomerListsDropdown ? 'rotate-180' : ''}`}
+                          >
+                            <polyline points="6 9 12 15 18 9" />
+                          </svg>
+                        </button>
+                        
+                        {/* Dropdown menu */}
+                        {showCustomerListsDropdown && (
+                          <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                            <div className="p-2">
+                              {/* Default "All customers" option */}
+                              <button
+                                className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
+                                  !activeCustomerList ? 'bg-[#E1E4FB] text-[#3E4DC4]' : 'text-gray-700'
+                                }`}
+                                onClick={() => {
+                                  setActiveCustomerList(null);
+                                  setShowCustomerListsDropdown(false);
+                                }}
+                              >
+                                <div className="flex items-center space-x-2">
+                                  <span>All customers ({partnerCustomers.length})</span>
+                                </div>
+                              </button>
+                              
+                              {/* Partner-relevant saved lists */}
+                              {customerSavedLists.length > 0 && (
+                                <div className="border-t border-gray-100 my-2 pt-2">
+                                  {customerSavedLists.map((list: any) => (
+                                    <div
+                                      key={list.id}
+                                      className={`flex items-center justify-between px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
+                                        activeCustomerList?.id === list.id ? 'bg-[#E1E4FB] text-[#3E4DC4]' : 'text-gray-700'
+                                      }`}
+                                    >
+                                      <button
+                                        className="flex-1 text-left"
+                                        onClick={() => {
+                                          setActiveCustomerList(list);
+                                          setShowCustomerListsDropdown(false);
+                                        }}
+                                      >
+                                        <div className="flex flex-col space-y-1">
+                                          <span>{list.name}</span>
+                                          {/* Show share icon if list is shared */}
+                                          {list.is_shared && (
+                                            <div className="flex items-center space-x-1">
+                                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
+                                                <circle cx="18" cy="5" r="3"></circle>
+                                                <circle cx="6" cy="12" r="3"></circle>
+                                                <circle cx="18" cy="19" r="3"></circle>
+                                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                              </svg>
+                                              <span className="text-xs text-gray-500">Shared list</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                     
                     {/* Right-side action buttons */}
-                    {/* Removed action buttons as requested */}
+                    <div className="flex items-center gap-2">
+                      {/* Show Share button only for active lists */}
+                      {activeCustomerList && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-indigo-600"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                          </svg>
+                          Share
+                        </Button>
+                      )}
+
+                      <Button variant="outline" size="sm" className="hidden md:flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                          <polyline points="7 10 12 15 17 10"></polyline>
+                          <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Export
+                      </Button>
+                      
+                      <Button 
+                        size="sm" 
+                        className="flex items-center bg-indigo-600 hover:bg-indigo-700"
+                        onClick={() => {/* Handle new customer creation */}}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                          <line x1="12" y1="5" x2="12" y2="19"></line>
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        New
+                      </Button>
+                    </div>
                   </div>
                   
                   {/* Bottom row with search, views, and filters */}
@@ -3336,437 +3664,6 @@ export default function PartnerDetailBrokerPOV() {
           </div>
         </DialogContent>
       </Dialog>
-
-        {/* Opportunities Tab - Exact copy from PartnerDetail.tsx */}
-        {activeTab === "opportunities" && (
-          <div className="space-y-0">
-            {/* Save/Update/Clear View Buttons - Show when any changes detected */}
-            {hasOpportunityChanges() && (
-              <div className="flex justify-end items-center gap-2 px-4 py-1">
-                <button
-                  onClick={() => {
-                    // Reset both filters and fields to original state
-                    if (originalOpportunityFilters) {
-                      setOpportunityFilters(originalOpportunityFilters);
-                    }
-                    if (originalOpportunityVisibleFields) {
-                      setOpportunityVisibleFields(originalOpportunityVisibleFields);
-                    }
-                    // If no active view, reset to default state
-                    if (!activeOpportunityView) {
-                      setOpportunityFilters({
-                        status: 'All',
-                        stage: 'All',
-                        size: 'All',
-                        type: 'All'
-                      });
-                      setOpportunityVisibleFields({
-                        title: true,
-                        customer: true,
-                        stage: true,
-                        value: true,
-                        priority: true,
-                        type: true,
-                        size: true,
-                        accountManager: true,
-                        lastActivity: true
-                      });
-                    }
-                    // Clear change detection state
-                    setOriginalOpportunityFilters(null);
-                    setOriginalOpportunityVisibleFields(null);
-                  }}
-                  className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded transition-colors"
-                >
-                  <X className="w-3 h-3" />
-                  Clear
-                </button>
-                <button
-                  onClick={() => setShowSaveOpportunityViewModal(true)}
-                  className="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
-                >
-                  <Bookmark className="w-3 h-3" />
-                  Save as segment view
-                </button>
-              </div>
-            )}
-
-            {/* Enhanced saved lists section for opportunities */}
-            <div className="bg-white rounded-lg">
-              <div className="space-y-0">
-                {/* Statistics overview cards */}
-                <div className="grid grid-cols-4 gap-6 p-6 pb-4">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-gray-900">{allOpportunities?.length || 0}</div>
-                    <div className="text-sm text-gray-500">Total Opportunities</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-gray-900">{(() => {
-                      const uniqueCustomers = new Set(allOpportunities?.map((opp: any) => opp.customer_id));
-                      return uniqueCustomers.size;
-                    })()}</div>
-                    <div className="text-sm text-gray-500">Customers</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-gray-900">
-                      €{allOpportunities?.reduce((sum: number, opp: any) => sum + (parseFloat(opp.estimated_value) || 0), 0).toLocaleString() || '0'}
-                    </div>
-                    <div className="text-sm text-gray-500">Total Value</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-gray-900">
-                      €{allOpportunities?.reduce((sum: number, opp: any) => {
-                        const value = parseFloat(opp.estimated_value) || 0;
-                        const probability = parseFloat(opp.probability) || 0;
-                        return sum + (value * probability / 100);
-                      }, 0).toLocaleString() || '0'}
-                    </div>
-                    <div className="text-sm text-gray-500">Weighted Value</div>
-                  </div>
-                </div>
-
-                {/* Opportunities Table */}
-                <div className="p-6 pt-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border-b border-gray-200">
-                        <TableHead className="w-12">
-                          <Checkbox
-                            checked={selectedOpportunities.length === allOpportunities?.length && allOpportunities?.length > 0}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedOpportunities(allOpportunities?.map((opp: any) => opp.id) || []);
-                              } else {
-                                setSelectedOpportunities([]);
-                              }
-                            }}
-                          />
-                        </TableHead>
-                        <TableHead className="font-semibold text-gray-900">Opportunity</TableHead>
-                        <TableHead className="font-semibold text-gray-900">Customer</TableHead>
-                        <TableHead className="font-semibold text-gray-900">Stage</TableHead>
-                        <TableHead className="font-semibold text-gray-900">Value</TableHead>
-                        <TableHead className="font-semibold text-gray-900">Assessment</TableHead>
-                        <TableHead className="font-semibold text-gray-900">Comments</TableHead>
-                        <TableHead className="font-semibold text-gray-900">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {allOpportunities?.map((opportunity: any) => (
-                        <TableRow key={opportunity.id} className="border-b border-gray-100 hover:bg-gray-50">
-                          <TableCell>
-                            <Checkbox
-                              checked={selectedOpportunities.includes(opportunity.id)}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setSelectedOpportunities([...selectedOpportunities, opportunity.id]);
-                                } else {
-                                  setSelectedOpportunities(selectedOpportunities.filter(id => id !== opportunity.id));
-                                }
-                              }}
-                            />
-                          </TableCell>
-                          <TableCell className="font-medium text-gray-900">
-                            <div className="max-w-[200px]">
-                              <div className="font-medium text-gray-900 truncate">
-                                {opportunity.title}
-                              </div>
-                              {opportunity.description && (
-                                <div className="text-sm text-gray-500 truncate">
-                                  {opportunity.description}
-                                </div>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-gray-900">
-                            {opportunity.customerName || 'Unknown Customer'}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
-                              {opportunity.stage || 'discovery'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-gray-900">
-                            €{parseFloat(opportunity.estimated_value || '0').toLocaleString()}
-                          </TableCell>
-                          <TableCell>
-                            {opportunity.assessment_status === 'pending' ? (
-                              <div className="flex items-center gap-2">
-                                <button
-                                  onClick={() => {
-                                    // Handle accept
-                                  }}
-                                  className="p-1 text-green-600 hover:text-green-700 hover:bg-green-50 rounded"
-                                  title="Accept"
-                                >
-                                  <CheckCircle className="w-4 h-4" />
-                                </button>
-                                <button
-                                  onClick={() => {
-                                    setSelectedOpportunityForWithhold(opportunity);
-                                    setWithholdDialogOpen(true);
-                                  }}
-                                  className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
-                                  title="Withhold"
-                                >
-                                  <XCircle className="w-4 h-4" />
-                                </button>
-                              </div>
-                            ) : (
-                              <div className="flex items-center gap-2">
-                                <Badge 
-                                  variant={opportunity.assessment_status === 'accepted' ? 'success' : 'destructive'}
-                                  className={`${
-                                    opportunity.assessment_status === 'accepted' 
-                                      ? 'bg-green-100 text-green-800' 
-                                      : 'bg-red-100 text-red-800'
-                                  }`}
-                                >
-                                  {opportunity.assessment_status === 'accepted' ? 'Accepted' : 'Withheld'}
-                                </Badge>
-                                <button
-                                  onClick={() => {
-                                    if (opportunity.assessment_status === 'accepted') {
-                                      setSelectedOpportunityForWithhold(opportunity);
-                                      setWithholdDialogOpen(true);
-                                    } else {
-                                      // Handle change to accept
-                                    }
-                                  }}
-                                  className={`p-1 rounded ${
-                                    opportunity.assessment_status === 'accepted'
-                                      ? 'text-red-600 hover:text-red-700 hover:bg-red-50'
-                                      : 'text-green-600 hover:text-green-700 hover:bg-green-50'
-                                  }`}
-                                  title={opportunity.assessment_status === 'accepted' ? 'Change to Withhold' : 'Change to Accept'}
-                                >
-                                  {opportunity.assessment_status === 'accepted' ? (
-                                    <XCircle className="w-4 h-4" />
-                                  ) : (
-                                    <CheckCircle className="w-4 h-4" />
-                                  )}
-                                </button>
-                              </div>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            <button
-                              onClick={() => {
-                                setSelectedOpportunityForHistory(opportunity);
-                                setIsCommentsHistoryDialogOpen(true);
-                              }}
-                              className="p-1 text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded"
-                              title="View Comments"
-                            >
-                              <MessageCircle className="w-4 h-4" />
-                            </button>
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem>
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="text-red-600">
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Customers Tab - Exact copy from PartnerDetail.tsx */}
-        {activeTab === "customers" && (
-          <div className="space-y-4">
-            {/* Enhanced saved lists section for customers */}
-            <div className="bg-white rounded-lg">
-              <div className="space-y-0">
-                {/* Save/Update/Clear View Buttons - Show when any changes detected */}
-                {hasCustomerChanges() && (
-                  <div className="flex justify-end items-center gap-2 px-4 py-1">
-                    <button
-                      onClick={() => {
-                        // Reset both filters and fields to original state
-                        if (originalCustomerFilters) {
-                          setCustomerFilters(originalCustomerFilters);
-                        }
-                        if (originalCustomerVisibleFields) {
-                          setCustomerVisibleFields(originalCustomerVisibleFields);
-                        }
-                        // If no active view, reset to default state
-                        if (!activeCustomerView) {
-                          setCustomerFilters({
-                            status: 'All',
-                            industry: 'All',
-                            region: 'All',
-                            size: 'All'
-                          });
-                          setCustomerVisibleFields({
-                            name: true,
-                            industry: true,
-                            region: true,
-                            contactPerson: true,
-                            phone: true,
-                            email: true,
-                            opportunities: true,
-                            totalValue: true,
-                            lastActivity: true
-                          });
-                        }
-                        // Clear change detection state
-                        setOriginalCustomerFilters(null);
-                        setOriginalCustomerVisibleFields(null);
-                      }}
-                      className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded transition-colors"
-                    >
-                      <X className="w-3 h-3" />
-                      Clear
-                    </button>
-                    <button
-                      onClick={() => setShowSaveCustomerViewModal(true)}
-                      className="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
-                    >
-                      <Bookmark className="w-3 h-3" />
-                      Save as segment view
-                    </button>
-                  </div>
-                )}
-
-                {/* Statistics overview cards */}
-                <div className="grid grid-cols-4 gap-6 p-6 pb-4">
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-gray-900">{partnerCustomers?.length || 0}</div>
-                    <div className="text-sm text-gray-500">Total Customers</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-gray-900">
-                      {partnerCustomers?.reduce((sum: number, customer: any) => sum + (customer.opportunityCount || 0), 0) || 0}
-                    </div>
-                    <div className="text-sm text-gray-500">Opportunities</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-gray-900">
-                      €{partnerCustomers?.reduce((sum: number, customer: any) => sum + (customer.totalValue || 0), 0).toLocaleString() || '0'}
-                    </div>
-                    <div className="text-sm text-gray-500">Total Value</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-3xl font-bold text-gray-900">
-                      €{partnerCustomers?.reduce((sum: number, customer: any) => sum + (customer.weightedValue || 0), 0).toLocaleString() || '0'}
-                    </div>
-                    <div className="text-sm text-gray-500">Weighted Value</div>
-                  </div>
-                </div>
-
-                {/* Customers Table */}
-                <div className="p-6 pt-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="border-b border-gray-200">
-                        <TableHead className="w-12">
-                          <Checkbox
-                            checked={selectedCustomers.length === partnerCustomers?.length && partnerCustomers?.length > 0}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedCustomers(partnerCustomers?.map((customer: any) => customer.id) || []);
-                              } else {
-                                setSelectedCustomers([]);
-                              }
-                            }}
-                          />
-                        </TableHead>
-                        <TableHead className="font-semibold text-gray-900">Customer</TableHead>
-                        <TableHead className="font-semibold text-gray-900">Industry</TableHead>
-                        <TableHead className="font-semibold text-gray-900">Status</TableHead>
-                        <TableHead className="font-semibold text-gray-900">Opportunities</TableHead>
-                        <TableHead className="font-semibold text-gray-900">Total Value</TableHead>
-                        <TableHead className="font-semibold text-gray-900">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {partnerCustomers?.map((customer: any) => (
-                        <TableRow key={customer.id} className="border-b border-gray-100 hover:bg-gray-50">
-                          <TableCell>
-                            <Checkbox
-                              checked={selectedCustomers.includes(customer.id)}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setSelectedCustomers([...selectedCustomers, customer.id]);
-                                } else {
-                                  setSelectedCustomers(selectedCustomers.filter(id => id !== customer.id));
-                                }
-                              }}
-                            />
-                          </TableCell>
-                          <TableCell className="font-medium text-gray-900">
-                            <div className="max-w-[200px]">
-                              <div className="font-medium text-gray-900 truncate">
-                                {customer.name}
-                              </div>
-                              {customer.description && (
-                                <div className="text-sm text-gray-500 truncate">
-                                  {customer.description}
-                                </div>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="text-gray-900">
-                            {customer.industry || 'Unknown'}
-                          </TableCell>
-                          <TableCell>
-                            <Badge variant="secondary" className="bg-green-100 text-green-800">
-                              {customer.status || 'Active'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-gray-900">
-                            {customer.opportunityCount || 0}
-                          </TableCell>
-                          <TableCell className="text-gray-900">
-                            €{(customer.totalValue || 0).toLocaleString()}
-                          </TableCell>
-                          <TableCell>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button variant="ghost" className="h-8 w-8 p-0">
-                                  <MoreVertical className="h-4 w-4" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem>
-                                  <Edit className="mr-2 h-4 w-4" />
-                                  Edit
-                                </DropdownMenuItem>
-                                <DropdownMenuItem className="text-red-600">
-                                  <Trash2 className="mr-2 h-4 w-4" />
-                                  Delete
-                                </DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
     </BrokerLayout>
   );
 }
