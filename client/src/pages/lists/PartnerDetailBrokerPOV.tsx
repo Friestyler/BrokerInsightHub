@@ -211,6 +211,13 @@ export default function PartnerDetailBrokerPOV() {
   // Details dialog state
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
 
+  // Save List functionality state
+  const [showSaveListModal, setShowSaveListModal] = useState(false);
+  const [saveListMode, setSaveListMode] = useState<'new' | 'existing'>('new');
+  const [selectedExistingList, setSelectedExistingList] = useState<number | null>(null);
+  const [newListName, setNewListName] = useState('');
+  const [newListDescription, setNewListDescription] = useState('');
+
   // Assessment state variables
   const [withholdDialogOpen, setWithholdDialogOpen] = useState(false);
   const [selectedOpportunityForWithhold, setSelectedOpportunityForWithhold] = useState<any>(null);
@@ -472,6 +479,12 @@ export default function PartnerDetailBrokerPOV() {
   // All returned lists are already filtered to show only those shared with John Smith or partners
   const partnerRelevantLists = savedListsData || [];
   
+  // Fetch all opportunity lists for the modal
+  const { data: opportunityLists } = useQuery({
+    queryKey: [`/api/${actualCurrentEnvironment}/saved-lists`, 'opportunities', 'all'],
+    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/saved-lists?entity_type=opportunities`),
+  });
+  
   console.log(`Showing ${partnerRelevantLists.length} lists shared with John Smith or partners:`, 
     partnerRelevantLists.map((list: any) => ({ name: list.name, id: list.id, collaborators: list.collaborator_emails })));
 
@@ -565,6 +578,119 @@ export default function PartnerDetailBrokerPOV() {
       });
     }
   });
+
+  // Create List Mutation
+  const createListMutation = useMutation({
+    mutationFn: async (listData: any) => {
+      console.log('Creating list with data:', listData);
+      const result = await apiRequest('POST', `/api/${actualCurrentEnvironment}/saved-lists`, listData);
+      console.log('List creation API result:', result);
+      return result;
+    },
+    onSuccess: (data) => {
+      // Invalidate queries to refresh the UI
+      queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/saved-lists`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/broker/shared-lists`] });
+      
+      toast({
+        title: "List created successfully",
+        description: `"${data.name}" has been created with ${selectedOpportunities.length} opportunities.`,
+      });
+      
+      // Reset form and close modal
+      setShowSaveListModal(false);
+      setNewListName('');
+      setNewListDescription('');
+      setSelectedOpportunities([]);
+      setSaveListMode('new');
+    },
+    onError: (error) => {
+      console.error('Error creating list:', error);
+      toast({
+        title: "Error creating list",
+        description: "Failed to create the list. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Update List Mutation
+  const updateListMutation = useMutation({
+    mutationFn: async ({ listId, opportunityIds }: { listId: number, opportunityIds: number[] }) => {
+      return await apiRequest('POST', `/api/${actualCurrentEnvironment}/saved-lists/${listId}/add-opportunities`, { opportunityIds });
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate queries to refresh the UI
+      queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/saved-lists`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/broker/shared-lists`] });
+      
+      const targetList = opportunityLists?.find((list: any) => list.id === variables.listId);
+      toast({
+        title: "Opportunities added",
+        description: `${variables.opportunityIds.length} opportunities added to "${targetList?.name}".`,
+      });
+      
+      // Reset form and close modal
+      setShowSaveListModal(false);
+      setSelectedOpportunities([]);
+      setSelectedExistingList(null);
+      setSaveListMode('new');
+    },
+    onError: (error) => {
+      console.error('Error adding to list:', error);
+      toast({
+        title: "Error adding to list",
+        description: "Failed to add opportunities to the list. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
+  // Save List Handler
+  const handleSaveList = () => {
+    if (selectedOpportunities.length === 0) {
+      toast({
+        title: "No opportunities selected",
+        description: "Please select opportunities to save to a list.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (saveListMode === 'new') {
+      if (!newListName.trim()) {
+        toast({
+          title: "List name required",
+          description: "Please enter a name for the new list.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      createListMutation.mutate({
+        name: newListName,
+        description: newListDescription,
+        entity_type: 'opportunities',
+        members: selectedOpportunities,
+        is_shared: false,
+        partner_id: parseInt(partnerId || '4')
+      });
+    } else {
+      if (!selectedExistingList) {
+        toast({
+          title: "No list selected",
+          description: "Please select a list to add opportunities to.",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      updateListMutation.mutate({
+        listId: selectedExistingList,
+        opportunityIds: selectedOpportunities
+      });
+    }
+  };
 
   // Edit list mutation
   const editListMutation = useMutation({
@@ -978,7 +1104,7 @@ export default function PartnerDetailBrokerPOV() {
     queryKey: [`/api/${actualCurrentEnvironment}/opportunities/${selectedOpportunityForHistory?.id}/comments`],
     enabled: !!selectedOpportunityForHistory?.id && isCommentsHistoryDialogOpen,
     staleTime: 0, // Always fetch fresh data
-    cacheTime: 0, // Don't cache
+    gcTime: 0, // Don't cache (gcTime replaces cacheTime in newer versions)
   });
 
   const handleSubmitComment = () => {
@@ -1949,6 +2075,18 @@ export default function PartnerDetailBrokerPOV() {
                   </div>
                   
                   <div className="flex items-center gap-2 flex-wrap">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="text-indigo-600"
+                      onClick={() => setShowSaveListModal(true)}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                        <path d="M5 12h14"></path>
+                        <path d="M12 5v14"></path>
+                      </svg>
+                      Save to List
+                    </Button>
                     <Button 
                       variant="outline" 
                       size="sm"
@@ -3464,7 +3602,7 @@ export default function PartnerDetailBrokerPOV() {
             <div>
               <Label className="text-sm font-medium">Reasons</Label>
               <div className="mt-2 space-y-2">
-                {fetchWithholdReasonsMutation.isLoading ? (
+                {fetchWithholdReasonsMutation.isPending ? (
                   <div className="text-sm text-gray-500">Loading reasons...</div>
                 ) : fetchWithholdReasonsMutation.data && fetchWithholdReasonsMutation.data.length > 0 ? (
                   fetchWithholdReasonsMutation.data.map((reason: any) => (
@@ -3662,6 +3800,111 @@ export default function PartnerDetailBrokerPOV() {
               )}
             </div>
           </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Save to List Modal */}
+      <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Save to List</DialogTitle>
+            <DialogDescription>
+              Save {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} to a list
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="new-list"
+                  name="saveMode"
+                  value="new"
+                  checked={saveListMode === 'new'}
+                  onChange={() => setSaveListMode('new')}
+                  className="h-4 w-4"
+                />
+                <label htmlFor="new-list" className="text-sm font-medium">
+                  Create new list
+                </label>
+              </div>
+              {saveListMode === 'new' && (
+                <div className="ml-6 space-y-3">
+                  <div>
+                    <label className="text-sm text-gray-600">List name</label>
+                    <Input
+                      value={newListName}
+                      onChange={(e) => setNewListName(e.target.value)}
+                      placeholder="Enter list name"
+                      className="mt-1"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-sm text-gray-600">Description (optional)</label>
+                    <Textarea
+                      value={newListDescription}
+                      onChange={(e) => setNewListDescription(e.target.value)}
+                      placeholder="Enter description"
+                      className="mt-1"
+                      rows={2}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  id="existing-list"
+                  name="saveMode"
+                  value="existing"
+                  checked={saveListMode === 'existing'}
+                  onChange={() => setSaveListMode('existing')}
+                  className="h-4 w-4"
+                />
+                <label htmlFor="existing-list" className="text-sm font-medium">
+                  Add to existing list
+                </label>
+              </div>
+              {saveListMode === 'existing' && (
+                <div className="ml-6">
+                  <Select 
+                    value={selectedExistingList ? selectedExistingList.toString() : ''} 
+                    onValueChange={(value) => setSelectedExistingList(parseInt(value))}
+                  >
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select a list" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {opportunityLists?.map((list: any) => (
+                        <SelectItem key={list.id} value={list.id.toString()}>
+                          {list.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowSaveListModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveList}
+              disabled={createListMutation.isPending || updateListMutation.isPending}
+            >
+              {createListMutation.isPending || updateListMutation.isPending ? 'Saving...' : 'Save'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </BrokerLayout>
