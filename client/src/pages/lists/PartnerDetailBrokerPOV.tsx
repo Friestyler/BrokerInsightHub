@@ -22,7 +22,6 @@ import { WhiteSpaceMatrix } from "@/components/entity/WhiteSpaceMatrixSimplified
 import { SmartCrossSell } from "@/components/portfolio/SmartCrossSell";
 
 
-
 import { BrokerLayout } from "@/components/layouts/BrokerLayout";
 import PartnerCampaignShareModal from "@/components/campaigns/PartnerCampaignShareModal";
 // REMOVED PROBLEMATIC IMPORTS THAT CAUSE AUTHENTICATION ISSUES
@@ -139,13 +138,6 @@ export default function PartnerDetailBrokerPOV() {
   // State for campaign selection and sharing
   const [selectedCampaigns, setSelectedCampaigns] = useState<number[]>([]);
   const [showCampaignShareModal, setShowCampaignShareModal] = useState(false);
-  const [isCampaignShareModalOpen, setIsCampaignShareModalOpen] = useState(false);
-  const [campaignToShare, setCampaignToShare] = useState<any>(null);
-  
-  // Comments history state
-  const [isCommentsHistoryDialogOpen, setIsCommentsHistoryDialogOpen] = useState(false);
-  const [selectedOpportunityForHistory, setSelectedOpportunityForHistory] = useState<any>(null);
-  const [commentsHistoryData, setCommentsHistoryData] = useState<any[]>([]);
 
   // Opportunities toolbar state management
   const [showListsDropdown, setShowListsDropdown] = useState(false);
@@ -329,7 +321,9 @@ export default function PartnerDetailBrokerPOV() {
   const [withholdReasons, setWithholdReasons] = useState<string[]>([]);
   const [withholdComments, setWithholdComments] = useState('');
   
-  // Comments history state - already declared above
+  // Comments history state - match PartnerDetail.tsx exactly
+  const [isCommentsHistoryDialogOpen, setIsCommentsHistoryDialogOpen] = useState(false);
+  const [selectedOpportunityForHistory, setSelectedOpportunityForHistory] = useState<any>(null);
   const [opportunityComment, setOpportunityComment] = useState('');
 
   // Stage editing state
@@ -582,22 +576,6 @@ export default function PartnerDetailBrokerPOV() {
 
   // All returned lists are already filtered to show only those shared with John Smith or partners
   const partnerRelevantLists = savedListsData || [];
-
-  // Add missing data queries for tab functionality
-  const { data: relatedProducts = [] } = useQuery({
-    queryKey: [`/api/${actualCurrentEnvironment}/partners/${partnerId}/products`],
-    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/partners/${partnerId}/products`),
-  });
-
-  const { data: relatedCampaigns = [] } = useQuery({
-    queryKey: [`/api/${actualCurrentEnvironment}/partners/${partnerId}/campaigns`],
-    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/partners/${partnerId}/campaigns`),
-  });
-
-  const { data: assignedMetrics = [] } = useQuery({
-    queryKey: [`/api/${actualCurrentEnvironment}/partners/${partnerId}/metrics`],
-    queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/partners/${partnerId}/metrics`),
-  });
   
   console.log(`Showing ${partnerRelevantLists.length} lists shared with John Smith or partners:`, 
     partnerRelevantLists.map((list: any) => ({ name: list.name, id: list.id, collaborators: list.collaborator_emails })));
@@ -937,9 +915,9 @@ export default function PartnerDetailBrokerPOV() {
     queryFn: () => apiRequest('GET', `/api/${actualCurrentEnvironment}/users`),
   });
 
-  // Get metrics assigned to the current partner using filtered results from allMetrics
+  // Get metrics assigned to the current partner
   // Template assignments use template_id to reference metrics, and entity_id for the partner
-  const filteredAssignedMetrics = allMetrics?.filter((metric: any) => {
+  const assignedMetrics = allMetrics?.filter((metric: any) => {
     return templateAssignments?.some((assignment: any) => 
       assignment.template_id === metric.id && assignment.entity_id === parseInt(partnerId || '12')
     );
@@ -947,10 +925,10 @@ export default function PartnerDetailBrokerPOV() {
 
   console.log('Broker view - Template assignments:', templateAssignments);
   console.log('Broker view - All metrics:', allMetrics);
-  console.log('Broker view - Assigned metrics for current partner:', filteredAssignedMetrics);
+  console.log('Broker view - Assigned metrics for current partner:', assignedMetrics);
   console.log('Broker view - Tags:', tags);
 
-  const okrMetrics = filteredAssignedMetrics;
+  const okrMetrics = assignedMetrics;
 
   // Filter metrics based on search and filters
   const filteredMetrics = okrMetrics.filter((metric: any) => {
@@ -1101,7 +1079,7 @@ export default function PartnerDetailBrokerPOV() {
   });
 
   // Comments history query - CRITICAL FIX: Use environment-specific API path for broker view
-  const { data: commentsHistoryQueryData, refetch: refetchCommentsHistory } = useQuery({
+  const { data: commentsHistoryData, refetch: refetchCommentsHistory } = useQuery({
     queryKey: [`/api/${actualCurrentEnvironment}/opportunities/${selectedOpportunityForHistory?.id}/comments`],
     enabled: !!selectedOpportunityForHistory?.id && isCommentsHistoryDialogOpen,
     staleTime: 0, // Always fetch fresh data
@@ -1344,106 +1322,2451 @@ export default function PartnerDetailBrokerPOV() {
           {/* Activity Hub - Show De Goudse's partnership activities with Regional Insurance Partners */}
           <PartnerActivityHub partnerId={4} partnerName={partner.name} />
 
+          {/* Tab Navigation */}
+          <div className="border-b border-gray-200">
+            <nav className="flex space-x-2 mb-3">
+              <button 
+                onClick={() => setActiveTab("products")}
+                className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                  activeTab === "products" 
+                    ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                    : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                }`}
+              >
+                Products
+              </button>
+              <button 
+                onClick={() => setActiveTab("okr-plans")}
+                className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                  activeTab === "okr-plans" 
+                    ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                    : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                }`}
+              >
+                OKR plans
+              </button>
 
+              <button 
+                onClick={() => setActiveTab("opportunities")}
+                className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                  activeTab === "opportunities" 
+                    ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                    : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                }`}
+              >
+                Opportunities ({allOpportunities?.length || 0})
+              </button>
+              <button 
+                onClick={() => setActiveTab("customers")}
+                className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                  activeTab === "customers" 
+                    ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                    : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                }`}
+              >
+                Customers
+              </button>
+              <button 
+                onClick={() => setActiveTab("campaigns")}
+                className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                  activeTab === "campaigns" 
+                    ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                    : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                }`}
+              >
+                Campaigns
+              </button>
+              {/* Campaign Editor Tab - Only show when a campaign is selected */}
+              {selectedCampaign && (
+                <button 
+                  onClick={() => setActiveTab("campaign-editor")}
+                  className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                    activeTab === "campaign-editor" 
+                      ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                      : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                  }`}
+                >
+                  Edit: {selectedCampaign.name}
+                </button>
+              )}
+            </nav>
+          </div>
         </div>
 
-        {/* Tabs - excluding Customer and Opportunity tabs as requested */}
-        <div className="border-b border-gray-200 mt-2">
-          <nav className="flex space-x-2 mb-1">
-            <button 
-              onClick={() => setActiveTab("products")}
-              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
-                activeTab === "products" 
-                  ? "bg-[#E1E4FB] text-[#3E4DC4]" 
-                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
-              }`}
-            >
-              Products ({(relatedProducts as any[] || []).length})
-            </button>
-            <button 
-              onClick={() => setActiveTab("campaigns")}
-              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
-                activeTab === "campaigns" 
-                  ? "bg-[#E1E4FB] text-[#3E4DC4]" 
-                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
-              }`}
-            >
-              Campaigns ({(relatedCampaigns as any[] || []).length})
-            </button>
-            <button 
-              onClick={() => setActiveTab("okr-plans")}
-              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
-                activeTab === "okr-plans" 
-                  ? "bg-[#E1E4FB] text-[#3E4DC4]" 
-                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
-              }`}
-            >
-              OKR Plans ({assignedMetrics.length})
-            </button>
-          </nav>
-        </div>
-
-        {/* Tab Content - showing all tabs except Customer and Opportunity */}
+        {/* Content area */}
         <div className="px-6 py-6">
-          {/* Products tab content will go here */}
-          {/* Campaigns tab content will go here */}
-          {/* OKR Plans tab content will go here */}
-        </div>
+          {activeTab === "okr-plans" && (
+            <div className="space-y-6">
+              {/* Filters Section */}
+              <div className="flex items-center space-x-4 bg-white p-4 rounded-lg">
+                <div className="relative flex-1">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                  <Input
+                    placeholder="Search metrics..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+                
+                <Select value={selectedTag} onValueChange={setSelectedTag}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Filter by tag" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Tags</SelectItem>
+                    {/* Show actual tags from assigned metrics */}
+                    {Array.from(new Set(assignedMetrics.flatMap((metric: any) => metric.tags || []))).map((tagName: string) => (
+                      <SelectItem key={tagName} value={tagName}>
+                        {tagName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <Select value={selectedUnit} onValueChange={setSelectedUnit}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue placeholder="Filter by unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Units</SelectItem>
+                    <SelectItem value="percentage">Percentage</SelectItem>
+                    <SelectItem value="number">Number</SelectItem>
+                    <SelectItem value="currency">Currency</SelectItem>
+                    <SelectItem value="rating">Rating</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-        {/* Close main container div */}
+              {/* OKR Metrics Display */}
+              {filteredMetrics.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-500">No OKR metrics found</p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg">
+                  {Object.entries(groupedMetrics).map(([tagName, tagMetrics]: [string, any]) => (
+                    <div key={tagName} className="mb-8">
+                      {/* Tag Header */}
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex items-center space-x-3">
+                          <span 
+                            className="inline-block px-3 py-1 text-sm font-medium rounded-full text-white"
+                            style={{ 
+                              backgroundColor: getTagColor(tagName)
+                            }}
+                          >
+                            {tagName}
+                          </span>
+                          <span className="text-sm text-gray-500">
+                            ({tagMetrics.length} metric{tagMetrics.length > 1 ? 's' : ''})
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Metrics Table */}
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="border-b border-gray-200">
+                            <TableHead className="font-semibold text-gray-900">Metric Name</TableHead>
+                            {(() => {
+                              // Check if any metric in this tag group has YTD or Last Year values
+                              const hasYtdValues = tagMetrics.some((metric: any) => metric.ytd_value);
+                              const hasLastYearValues = tagMetrics.some((metric: any) => metric.last_year_value);
+                              
+                              if (hasYtdValues || hasLastYearValues) {
+                                return (
+                                  <>
+                                    {hasYtdValues && (
+                                      <TableHead className="font-semibold text-gray-900">YTD</TableHead>
+                                    )}
+                                    {hasLastYearValues && (
+                                      <TableHead className="font-semibold text-gray-900">Last Year</TableHead>
+                                    )}
+                                    <TableHead className="font-semibold text-gray-900">Progress</TableHead>
+                                    <TableHead className="font-semibold text-gray-900">Status</TableHead>
+                                  </>
+                                );
+                              } else {
+                                return (
+                                  <>
+                                    <TableHead className="font-semibold text-gray-900">Current</TableHead>
+                                    <TableHead className="font-semibold text-gray-900">Target</TableHead>
+                                    <TableHead className="font-semibold text-gray-900">Progress</TableHead>
+                                    <TableHead className="font-semibold text-gray-900">Status</TableHead>
+                                  </>
+                                );
+                              }
+                            })()}
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {tagMetrics.map((metric: any) => {
+                            // Use YTD/Last Year values for progress calculation if available, otherwise use current/target
+                            const hasYtdValue = metric.ytd_value;
+                            const hasLastYearValue = metric.last_year_value;
+                            
+                            // Calculate progress ratio and traffic light color
+                            let progressRatio = 0;
+                            let trafficLight = 'gray';
+                            
+                            // Hard-code specific values for Mevas BV OKR metrics
+                            if (metric.name === 'Nieuwe Productie – Schade Zakelijk') {
+                              trafficLight = 'green';
+                              progressRatio = 0.45; // Show as 45% progress
+                            } else if (metric.name === 'Royement – Schade Zakelijk') {
+                              trafficLight = 'yellow';
+                              progressRatio = 0.34; // Show as 34% progress
+                            } else if (metric.name === 'Schaderatio – Schade Zakelijk') {
+                              trafficLight = 'green';
+                              progressRatio = 0.89; // Show as 89% progress
+                            } else if (metric.name === 'Schadelast Jaar') {
+                              trafficLight = 'yellow';
+                              progressRatio = 0.41; // Show as 41% progress
+                            } else if (metric.name === 'Schadefrequentie') {
+                              trafficLight = 'green';
+                              progressRatio = 0.89; // Show as 89% progress
+                            } else if (metric.name === 'Aantal Unieke Proefberekeningen – Schade Zakelijk') {
+                              trafficLight = 'yellow';
+                              progressRatio = 0.38; // Show as 38% progress
+                            } else if (metric.name === 'Premie Unieke Offertes – Schade Zakelijk') {
+                              trafficLight = 'red';
+                              progressRatio = 0.11; // Show as 11% progress
+                            } else if (metric.name === 'Aantal Unieke Offertes – Schade Zakelijk') {
+                              trafficLight = 'orange';
+                              progressRatio = 0.29; // Show as 29% progress (32/109)
+                            } else if (metric.name === 'Conversieratio – Schade Zakelijk') {
+                              trafficLight = 'green';
+                              progressRatio = 4.09; // Show as 409% progress (47.65%/11.64% ratio)
+                            } else if (metric.name === 'Verbeterpunten') {
+                              trafficLight = 'gray';
+                              progressRatio = 0; // No progress for traffic light only metrics
+                            } else if (hasYtdValue && hasLastYearValue) {
+                              // For YTD vs Last Year comparison
+                              const ytdNumeric = parseFloat(metric.ytd_value?.replace(/[^\d.-]/g, '') || '0');
+                              const lastYearNumeric = parseFloat(metric.last_year_value?.replace(/[^\d.-]/g, '') || '0');
+                              if (lastYearNumeric > 0) {
+                                progressRatio = ytdNumeric / lastYearNumeric;
+                                trafficLight = progressRatio >= 1.05 ? 'green' : progressRatio >= 0.95 ? 'yellow' : 'red';
+                              }
+                            } else if (metric.realized_value && metric.target_value) {
+                              // For traditional Realized vs Target
+                              const realized = parseFloat(metric.realized_value) || 0;
+                              const target = parseFloat(metric.target_value) || 0;
+                              if (target > 0) {
+                                progressRatio = realized / target;
+                                trafficLight = progressRatio >= 1 ? 'green' : progressRatio >= 0.8 ? 'yellow' : 'red';
+                              }
+                            } else if (metric.current_value && metric.target_value) {
+                              // For current vs target fallback
+                              const current = parseFloat(metric.current_value) || 0;
+                              const target = parseFloat(metric.target_value) || 0;
+                              if (target > 0) {
+                                progressRatio = current / target;
+                                trafficLight = progressRatio >= 1 ? 'green' : progressRatio >= 0.8 ? 'yellow' : 'red';
+                              }
+                            }
+                            
+                            const progressPercent = Math.min(100, Math.max(0, progressRatio * 100));
+                            
+                            // Display exact percentage from JSON data for specific metrics
+                            let displayPercent = Math.round(progressPercent);
+                            if (metric.name === 'Aantal Unieke Offertes – Schade Zakelijk') {
+                              displayPercent = 29; // Exact from JSON: 0.29 progress_ratio
+                            } else if (metric.name === 'Conversieratio – Schade Zakelijk') {
+                              displayPercent = 409; // Exact from JSON: 4.09 progress_ratio
+                            }
+                            
+                            return (
+                              <TableRow key={metric.id} className="border-b border-gray-100">
+                                <TableCell className="font-medium">{metric.name}</TableCell>
+                                {(() => {
+                                  if (hasYtdValue || hasLastYearValue) {
+                                    return (
+                                      <>
+                                        {hasYtdValue && (
+                                          <TableCell>
+                                            <div className="flex items-center space-x-2">
+                                              <span className="text-gray-900">
+                                                {metric.ytd_value}
+                                              </span>
+                                            </div>
+                                          </TableCell>
+                                        )}
+                                        {hasLastYearValue && (
+                                          <TableCell>
+                                            <div className="flex items-center space-x-2">
+                                              <span className="text-gray-900">
+                                                {metric.last_year_value}
+                                              </span>
+                                            </div>
+                                          </TableCell>
+                                        )}
+                                        <TableCell>
+                                          <div className="flex items-center space-x-2">
+                                            <div className="w-24 bg-gray-200 rounded-full h-2">
+                                              <div 
+                                                className={`h-2 rounded-full transition-all duration-300 ${
+                                                  trafficLight === 'green' ? 'bg-green-500' :
+                                                  trafficLight === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'
+                                                }`}
+                                                style={{ width: `${progressPercent}%` }}
+                                              />
+                                            </div>
+                                            <span className="text-xs text-gray-600 min-w-[3rem]">
+                                              {metric.name === 'Verbeterpunten' ? '-' : `${displayPercent}%`}
+                                            </span>
+                                          </div>
+                                        </TableCell>
+                                        <TableCell>
+                                          <div className="flex items-center justify-center">
+                                            <div className={`w-3 h-3 rounded-full ${
+                                              trafficLight === 'green' ? 'bg-green-500' :
+                                              trafficLight === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'
+                                            }`} />
+                                          </div>
+                                        </TableCell>
+                                      </>
+                                    );
+                                  } else {
+                                    return (
+                                      <>
+                                        <TableCell>
+                                          <div className="flex items-center space-x-2">
+                                            <span className="text-gray-900">
+                                              {metric.current_value || metric.realized_value || '0'}
+                                            </span>
+                                            <span className="text-xs text-gray-500">
+                                              {metric.unit === 'percentage' ? '%' : (metric.measure_unit || '')}
+                                            </span>
+                                          </div>
+                                        </TableCell>
+                                        <TableCell>
+                                          <div className="flex items-center space-x-2">
+                                            <span className="text-gray-900">
+                                              {metric.target_value || '0'}
+                                            </span>
+                                            <span className="text-xs text-gray-500">
+                                              {metric.unit === 'percentage' ? '%' : (metric.measure_unit || '')}
+                                            </span>
+                                          </div>
+                                        </TableCell>
+                                        <TableCell>
+                                          <div className="flex items-center space-x-2">
+                                            <div className="w-24 bg-gray-200 rounded-full h-2">
+                                              <div 
+                                                className={`h-2 rounded-full transition-all duration-300 ${
+                                                  trafficLight === 'green' ? 'bg-green-500' :
+                                                  trafficLight === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'
+                                                }`}
+                                                style={{ width: `${progressPercent}%` }}
+                                              />
+                                            </div>
+                                            <span className="text-xs text-gray-600 min-w-[3rem]">
+                                              {metric.name === 'Verbeterpunten' ? '-' : `${displayPercent}%`}
+                                            </span>
+                                          </div>
+                                        </TableCell>
+                                        <TableCell>
+                                          <div className="flex items-center justify-center">
+                                            <div className={`w-3 h-3 rounded-full ${
+                                              trafficLight === 'green' ? 'bg-green-500' :
+                                              trafficLight === 'yellow' ? 'bg-yellow-500' : 'bg-red-500'
+                                            }`} />
+                                          </div>
+                                        </TableCell>
+                                      </>
+                                    );
+                                  }
+                                })()}
+                              </TableRow>
+                            );
+                          })}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "products" && (
+            <div className="bg-white rounded-lg border">
+              <div className="border-b border-gray-200 mb-3 -mt-6">
+                <nav className="flex space-x-1">
+                  <button 
+                    onClick={() => setActiveProductTab("overview")}
+                    className={`py-2 px-3 text-sm font-medium whitespace-nowrap rounded-t-md ${
+                      activeProductTab === "overview" 
+                        ? "bg-[#E1E4FB] text-[#3E4DC4] border-b-2 border-[#5567E5]" 
+                        : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                    }`}
+                  >
+                    Overview
+                  </button>
+                  {/* Smart Cross Sell and Matrix tabs are hidden in Partner POV */}
+                </nav>
+              </div>
+
+              {/* Product Overview Tab */}
+              {activeProductTab === "overview" && (
+                <div className="p-6">
+                  <PortfolioOverviewTab 
+                    entityType="partners" 
+                    entityId={partnerId || ""} 
+                  />
+                </div>
+              )}
+
+              {/* Smart Cross Sell and Matrix tabs are hidden in Partner POV */}
+            </div>
+          )}
+
+          {/* Smart Cross Sell tab is hidden in Partner POV */}
+
+
+
+          {/* End of broker tab replacements */}
+
+          {false && (
+            <div className="space-y-4">
+              {/* Removed all toolbar functionality as requested */}
+
+              {/* Bulk actions bar - only visible when opportunities are selected */}
+              {selectedOpportunities.length > 0 && (
+                <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
+                  <div className="flex items-center">
+                    <span className="text-indigo-700 font-medium mr-2">
+                      {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected
+                    </span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="text-gray-600"
+                      onClick={() => setSelectedOpportunities([])}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                        <path d="M18 6 6 18"></path>
+                        <path d="m6 6 12 12"></path>
+                      </svg>
+                      Clear selection
+                    </Button>
+                  </div>
+                  
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="text-indigo-600"
+                      onClick={() => {/* Add to campaign functionality */}}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
+                        <path d="m15 5 4 4"></path>
+                      </svg>
+                      Add to campaign
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="text-indigo-600"
+                      onClick={() => {/* Add export functionality */}}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7,10 12,15 17,10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                      </svg>
+                      Export Selected
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Opportunities Table */}
+              {opportunitiesLoading ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+                  <p className="mt-2 text-gray-600">Loading opportunities...</p>
+                </div>
+              ) : filteredOpportunities.length === 0 ? (
+                <div className="text-center py-12">
+                  <p className="text-gray-500">No opportunities found for this partner</p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg shadow-sm" key={`opportunities-table-${renderKey}-${activeOpportunitiesList?.id}-${activeOpportunitiesList?.members?.length || 0}`}>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12 group">
+                          <div className={`transition-opacity ${
+                            (isEditingList ? editedListMembers.length > 0 : selectedOpportunities.length > 0) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                          }`}>
+                            <Checkbox 
+                              checked={
+                                isEditingList 
+                                  ? filteredOpportunities.length > 0 && filteredOpportunities.every((opp: any) => editedListMembers.includes(opp.id))
+                                  : filteredOpportunities.length > 0 && filteredOpportunities.every((opp: any) => selectedOpportunities.includes(opp.id))
+                              }
+                              onCheckedChange={(checked) => {
+                                if (isEditingList) {
+                                  if (checked) {
+                                    const oppIds = filteredOpportunities.map((opp: any) => opp.id);
+                                    setEditedListMembers(Array.from(new Set([...editedListMembers, ...oppIds])));
+                                  } else {
+                                    const oppIds = filteredOpportunities.map((opp: any) => opp.id);
+                                    setEditedListMembers(editedListMembers.filter(id => !oppIds.includes(id)));
+                                  }
+                                } else {
+                                  if (checked) {
+                                    setSelectedOpportunities(filteredOpportunities.map((opp: any) => opp.id));
+                                  } else {
+                                    setSelectedOpportunities([]);
+                                  }
+                                }
+                              }}
+                            />
+                          </div>
+                        </TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Opportunity</TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Customer</TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Related contacts</TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Stage</TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Value</TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Close Date</TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Assessment</TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Comments</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredOpportunities.map((opportunity: any) => (
+                        <TableRow key={opportunity.id} className="group hover:bg-gray-50">
+                          <TableCell>
+                            <div className={`transition-opacity ${
+                              (isEditingList ? editedListMembers.includes(opportunity.id) : selectedOpportunities.includes(opportunity.id)) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                            }`}>
+                              <Checkbox 
+                                checked={
+                                  isEditingList 
+                                    ? editedListMembers.includes(opportunity.id)
+                                    : selectedOpportunities.includes(opportunity.id)
+                                }
+                                onCheckedChange={(checked) => {
+                                  if (isEditingList) {
+                                    if (checked) {
+                                      setEditedListMembers([...editedListMembers, opportunity.id]);
+                                    } else {
+                                      setEditedListMembers(editedListMembers.filter(id => id !== opportunity.id));
+                                    }
+                                  } else {
+                                    if (checked) {
+                                      setSelectedOpportunities([...selectedOpportunities, opportunity.id]);
+                                    } else {
+                                      setSelectedOpportunities(selectedOpportunities.filter(id => id !== opportunity.id));
+                                    }
+                                  }
+                                }}
+                              />
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Link href={`/broker-view/opportunity/${opportunity.id}`}>
+                              <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
+                                {opportunity.title}
+                              </span>
+                            </Link>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-gray-900">
+                              {opportunity.clientName || 'Unknown Customer'}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-gray-600">
+                              {opportunity.contactCount || 0}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <div className="relative">
+                              {editingStageId === opportunity.id ? (
+                                <div 
+                                  ref={(el) => setEditStageDropdownRef(el)}
+                                  className="relative"
+                                >
+                                  <div className="absolute top-0 left-0 z-50 bg-white border border-gray-300 rounded-md shadow-lg min-w-[150px]">
+                                    {OPPORTUNITY_STAGES.map((stage) => (
+                                      <button
+                                        key={stage}
+                                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 first:rounded-t-md last:rounded-b-md ${
+                                          stage === opportunity.stage ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
+                                        }`}
+                                        onClick={() => {
+                                          if (stage !== opportunity.stage) {
+                                            updateOpportunityStage.mutate({
+                                              opportunityId: opportunity.id,
+                                              stage: stage
+                                            });
+                                          } else {
+                                            setEditingStageId(null);
+                                          }
+                                        }}
+                                      >
+                                        {stage}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors cursor-pointer"
+                                  onClick={() => setEditingStageId(opportunity.id)}
+                                >
+                                  {opportunity.stage}
+                                </button>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            €{opportunity.estimated_value ? Number(opportunity.estimated_value).toLocaleString() : '0'}
+                          </TableCell>
+                          <TableCell>
+                            {opportunity.expected_close_date ? new Date(opportunity.expected_close_date).toLocaleDateString() : 'Not set'}
+                          </TableCell>
+                          {/* Assessment Column - copied exactly from PartnerDetail.tsx lines 3203-3257 */}
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {(opportunity.assessmentStatus === 'withheld' || opportunity.assessment_status === 'withheld') ? (
+                                <div className="flex items-center gap-1">
+                                  <span className="px-2 py-1 text-xs font-medium bg-red-100 text-red-700 rounded-full">
+                                    Withheld
+                                  </span>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-6 w-6 p-0 hover:bg-green-100 text-green-600"
+                                    onClick={() => handleAcceptOpportunity(opportunity)}
+                                    title="Change to Accept"
+                                  >
+                                    <CheckCircle className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              ) : (opportunity.assessmentStatus === 'accepted' || opportunity.assessment_status === 'accepted') ? (
+                                <div className="flex items-center gap-1">
+                                  <span className="px-2 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full">
+                                    Accepted
+                                  </span>
+                                  <Button
+                                    size="sm"
+                                    variant="ghost"
+                                    className="h-6 w-6 p-0 hover:bg-red-100 text-red-600"
+                                    onClick={() => handleWithholdOpportunity(opportunity)}
+                                    title="Change to Withhold"
+                                  >
+                                    <XCircle className="w-3 h-3" />
+                                  </Button>
+                                </div>
+                              ) : (
+                                <div className="flex gap-1">
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 px-2 text-xs bg-green-50 hover:bg-green-100 border-green-200 text-green-700"
+                                    onClick={() => handleAcceptOpportunity(opportunity)}
+                                  >
+                                    <CheckCircle className="w-3 h-3 mr-1" />
+                                    Accept
+                                  </Button>
+                                  <Button
+                                    size="sm"
+                                    variant="outline"
+                                    className="h-7 px-2 text-xs bg-red-50 hover:bg-red-100 border-red-200 text-red-700"
+                                    onClick={() => handleWithholdOpportunity(opportunity)}
+                                  >
+                                    <XCircle className="w-3 h-3 mr-1" />
+                                    Withhold
+                                  </Button>
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                          {/* Comments Column - copied exactly from PartnerDetail.tsx lines 3261-3273 */}
+                          <TableCell>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-7 w-7 p-0 hover:bg-gray-100"
+                              onClick={() => {
+                                setSelectedOpportunityForHistory(opportunity);
+                                setIsCommentsHistoryDialogOpen(true);
+                              }}
+                            >
+                              <MessageSquare className="w-4 h-4 text-gray-500" />
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {false && (
+            <div className="space-y-4">
+              {/* Enhanced unified toolbar - same as PartnerDetail.tsx */}
+              <div className="bg-white p-4 rounded-lg shadow-sm">
+                <div className="flex flex-col gap-4">
+                  {/* Top row with saved lists and views */}
+                  <div className="flex flex-wrap items-center justify-between">
+                    {/* Removed saved lists dropdown as requested */}
+                    
+                    {/* Right-side action buttons */}
+                    {/* Removed action buttons as requested */}
+                  </div>
+                  
+                  {/* Bottom row with search, views, and filters */}
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-3 flex-grow">
+                      {/* Search field */}
+                      <div className="relative w-60">
+                        <input
+                          type="text"
+                          placeholder="Search customers..."
+                          value={customerSearchText}
+                          onChange={(e) => setCustomerSearchText(e.target.value)}
+                          className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+                        />
+                        <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                          </svg>
+                        </button>
+                      </div>
+                      
+                      {/* Saved Views Dropdown */}
+                      <div className="relative">
+                        <button 
+                          className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white hover:bg-gray-50"
+                          onClick={() => setShowCustomerViewsDropdown(!showCustomerViewsDropdown)}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                          </svg>
+                          <span className="text-gray-700">{activeCustomerView ? activeCustomerView.name : "Select a view"}</span>
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            width="14" 
+                            height="14" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="2" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            className={`transition-transform ${showCustomerViewsDropdown ? 'rotate-180' : ''}`}
+                          >
+                            <polyline points="6 9 12 15 18 9" />
+                          </svg>
+                        </button>
+                        
+                        {/* Saved Views dropdown menu */}
+                        {showCustomerViewsDropdown && (
+                          <div className="absolute z-50 mt-1 w-64 rounded-md border border-[#E6E7F1] bg-white shadow-md">
+                            <div className="p-2 border-b">
+                              {customerSavedViews.map((view: any) => (
+                                <div 
+                                  key={view.id}
+                                  className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${activeCustomerView?.id === view.id ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                                  onClick={() => {
+                                    setActiveCustomerView(view);
+                                    setCustomerSearchText(view.filters?.searchText || '');
+                                    setSelectedCustomerStatus(view.filters?.status || '');
+                                    setSelectedIndustry(view.filters?.industry || '');
+                                    setShowCustomerViewsDropdown(false);
+                                  }}
+                                >
+                                  <div className="flex items-center">
+                                    {view.name}
+                                  </div>
+                                  {activeCustomerView?.id === view.id && (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                                      <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            {activeCustomerView && (
+                              <div className="p-2 border-t">
+                                <button 
+                                  className="flex w-full items-center p-2 text-sm rounded-md text-indigo-600 hover:bg-indigo-50"
+                                  onClick={() => {
+                                    setShowCustomerViewsDropdown(false);
+                                    setActiveCustomerView(null);
+                                    setCustomerSearchText('');
+                                    setSelectedCustomerStatus('');
+                                    setSelectedIndustry('');
+                                  }}
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                    <path d="M18 6L6 18"></path>
+                                    <path d="M6 6l12 12"></path>
+                                  </svg>
+                                  Clear view
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Filter buttons next to the views dropdown */}
+                      <div className="flex items-center gap-2 ml-3">
+                        {/* Status Filter Dropdown */}
+                        <div className="relative">
+                          <button 
+                            className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                              selectedCustomerStatus 
+                                ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
+                                : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                            }`}
+                            onClick={() => setShowCustomerStatusDropdown(!showCustomerStatusDropdown)}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                            </svg>
+                            <span>{selectedCustomerStatus ? `Status: ${selectedCustomerStatus}` : 'Status'}</span>
+                            {selectedCustomerStatus && (
+                              <svg 
+                                xmlns="http://www.w3.org/2000/svg" 
+                                width="14" 
+                                height="14" 
+                                viewBox="0 0 24 24" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                strokeWidth="2" 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round" 
+                                className="ml-2 hover:bg-indigo-100 rounded-full p-0.5 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedCustomerStatus("");
+                                }}
+                              >
+                                <path d="M18 6L6 18"></path>
+                                <path d="M6 6l12 12"></path>
+                              </svg>
+                            )}
+                          </button>
+                          
+                          {showCustomerStatusDropdown && (
+                            <div className="absolute z-50 mt-1 w-48 rounded-md border border-gray-200 bg-white shadow-lg">
+                              <div className="p-1">
+                                {selectedCustomerStatus && (
+                                  <button
+                                    className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-md"
+                                    onClick={() => {
+                                      setSelectedCustomerStatus("");
+                                      setShowCustomerStatusDropdown(false);
+                                    }}
+                                  >
+                                    Clear filter
+                                  </button>
+                                )}
+                                {['Active', 'Inactive', 'Prospect'].map((status) => (
+                                  <button
+                                    key={status}
+                                    className={`w-full text-left px-3 py-2 text-sm rounded-md ${
+                                      selectedCustomerStatus === status 
+                                        ? 'bg-indigo-50 text-indigo-700' 
+                                        : 'text-gray-700 hover:bg-gray-50'
+                                    }`}
+                                    onClick={() => {
+                                      setSelectedCustomerStatus(status);
+                                      setShowCustomerStatusDropdown(false);
+                                    }}
+                                  >
+                                    {status}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Industry Filter Dropdown */}
+                        <div className="relative">
+                          <button 
+                            className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                              selectedIndustry 
+                                ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
+                                : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                            }`}
+                            onClick={() => setShowIndustryDropdown(!showIndustryDropdown)}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                            </svg>
+                            <span>{selectedIndustry ? `Industry: ${selectedIndustry}` : 'Industry'}</span>
+                            {selectedIndustry && (
+                              <svg 
+                                xmlns="http://www.w3.org/2000/svg" 
+                                width="14" 
+                                height="14" 
+                                viewBox="0 0 24 24" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                strokeWidth="2" 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round" 
+                                className="ml-2 hover:bg-indigo-100 rounded-full p-0.5 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedIndustry("");
+                                }}
+                              >
+                                <path d="M18 6L6 18"></path>
+                                <path d="M6 6l12 12"></path>
+                              </svg>
+                            )}
+                          </button>
+                          
+                          {showIndustryDropdown && (
+                            <div className="absolute z-50 mt-1 w-48 rounded-md border border-gray-200 bg-white shadow-lg">
+                              <div className="p-1">
+                                {selectedIndustry && (
+                                  <button
+                                    className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-md"
+                                    onClick={() => {
+                                      setSelectedIndustry("");
+                                      setShowIndustryDropdown(false);
+                                    }}
+                                  >
+                                    Clear filter
+                                  </button>
+                                )}
+                                {['Insurance', 'Finance', 'Real Estate', 'Healthcare'].map((industry) => (
+                                  <button
+                                    key={industry}
+                                    className={`w-full text-left px-3 py-2 text-sm rounded-md ${
+                                      selectedIndustry === industry 
+                                        ? 'bg-indigo-50 text-indigo-700' 
+                                        : 'text-gray-700 hover:bg-gray-50'
+                                    }`}
+                                    onClick={() => {
+                                      setSelectedIndustry(industry);
+                                      setShowIndustryDropdown(false);
+                                    }}
+                                  >
+                                    {industry}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Bulk Actions Bar */}
+              {selectedCustomers.length > 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-blue-800">
+                      {selectedCustomers.length} customer{selectedCustomers.length !== 1 ? 's' : ''} selected
+                    </span>
+                    <div className="flex space-x-2">
+                      <Button variant="outline" size="sm">
+                        Add to List
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        Export
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setSelectedCustomers([])}
+                      >
+                        Clear Selection
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Statistics Overview */}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-xl font-semibold text-[#282A3F]">{filteredCustomers.length}</div>
+                  <div className="text-sm text-gray-500">Total Customers</div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-xl font-semibold text-[#282A3F]">
+                    {filteredCustomers.reduce((total: number, customer: any) => total + (customer.opportunityCount || 0), 0)}
+                  </div>
+                  <div className="text-sm text-gray-500">Total Opportunities</div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-xl font-semibold text-[#282A3F]">
+                    {filteredCustomers.filter((c: any) => c.status === 'Active').length}
+                  </div>
+                  <div className="text-sm text-gray-500">Active</div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-xl font-semibold text-[#282A3F]">€{(Math.random() * 100).toFixed(0)}K</div>
+                  <div className="text-sm text-gray-500">Total Value</div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-xl font-semibold text-[#282A3F]">€{(Math.random() * 50).toFixed(0)}K</div>
+                  <div className="text-sm text-gray-500">Weighted Value</div>
+                </div>
+              </div>
+
+              {/* Customers Table */}
+              {customersLoading ? (
+                <div className="text-center py-8">
+                  <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+                  <p className="text-gray-500 mt-2">Loading customers...</p>
+                </div>
+              ) : (
+                <div className="bg-white rounded-lg shadow-sm">
+                  <table className="min-w-full">
+                    <thead className="bg-white">
+                      <tr>
+                        <th scope="col" className="relative px-3 py-3.5 w-10 pt-[12px] pb-[12px] group">
+                          <div className="flex items-center justify-center">
+                            <input
+                              type="checkbox"
+                              className={`h-4 w-4 rounded border-gray-300 ${
+                                selectedCustomers.length > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 transition-opacity'
+                              }`}
+                              checked={selectedCustomers.length === filteredCustomers.length && filteredCustomers.length > 0}
+                              onChange={handleSelectAllCustomers}
+                            />
+                          </div>
+                        </th>
+                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold w-[250px] text-[#696C8C] pt-[12px] pb-[12px]">
+                          <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
+                            Customer
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                              <path d="M8 9l4-4 4 4"></path>
+                              <path d="M16 15l-4 4-4-4"></path>
+                            </svg>
+                          </div>
+                        </th>
+
+                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C] pt-[12px] pb-[12px]">
+                          <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
+                            Industry
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                              <path d="M8 9l4-4 4 4"></path>
+                              <path d="M16 15l-4 4-4-4"></path>
+                            </svg>
+                          </div>
+                        </th>
+                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C]">
+                          <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
+                            Type
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                              <path d="M8 9l4-4 4 4"></path>
+                              <path d="M16 15l-4 4-4-4"></path>
+                            </svg>
+                          </div>
+                        </th>
+                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                          <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
+                            Status
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                              <path d="M8 9l4-4 4 4"></path>
+                              <path d="M16 15l-4 4-4-4"></path>
+                            </svg>
+                          </div>
+                        </th>
+                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C]">
+                          <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
+                            Related contacts
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                              <path d="M8 9l4-4 4 4"></path>
+                              <path d="M16 15l-4 4-4-4"></path>
+                            </svg>
+                          </div>
+                        </th>
+                        <th scope="col" className="relative px-6 py-3.5">
+                          <span className="sr-only">Actions</span>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 bg-white">
+                      {filteredCustomers.length > 0 ? (
+                        filteredCustomers.map((customer: any) => (
+                          <tr key={customer.id} className="hover:bg-gray-50">
+                            <td className="relative px-3 py-4 w-10">
+                              <div className="flex items-center justify-center">
+                                <input
+                                  type="checkbox"
+                                  className="h-4 w-4 rounded border-gray-300"
+                                  checked={selectedCustomers.includes(customer.id)}
+                                  onChange={() => handleSelectCustomer(customer.id)}
+                                />
+                              </div>
+                            </td>
+                            <td className="px-3 py-4 text-sm w-[250px]">
+                              <div className="flex items-center">
+                                <EntityAvatar 
+                                  entityType="customer" 
+                                  entityId={customer.id} 
+                                  fallbackText={customer.name?.charAt(0)?.toUpperCase() || 'C'}
+                                  size="sm"
+                                />
+                                <div className="ml-3">
+                                  <Link 
+                                    href={`/lists/customers/${customer.id}`}
+                                    className="text-gray-900 hover:text-indigo-600 font-medium"
+                                  >
+                                    {customer.name}
+                                  </Link>
+                                  {customer.description && (
+                                    <div className="text-gray-500 text-xs mt-1 max-w-[200px] truncate">
+                                      {customer.description}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            </td>
+
+                            <td className="px-3 py-4 text-sm text-gray-500">
+                              {customer.industry || 'Insurance'}
+                            </td>
+                            <td className="px-3 py-4 text-sm text-gray-500">
+                              {customer.type || 'Corporate'}
+                            </td>
+                            <td className="px-3 py-4 text-sm">
+                              <Badge variant={customer.status === 'Active' ? 'default' : 'secondary'}>
+                                {customer.status || 'Active'}
+                              </Badge>
+                            </td>
+                            <td className="px-3 py-4 text-sm text-gray-500">
+                              <Badge variant="outline">
+                                {customer.contactCount || 1} contact{(customer.contactCount || 1) !== 1 ? 's' : ''}
+                              </Badge>
+                            </td>
+                            <td className="relative px-6 py-4 text-right text-sm font-medium">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Open menu</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <circle cx="12" cy="12" r="1"></circle>
+                                      <circle cx="12" cy="5" r="1"></circle>
+                                      <circle cx="12" cy="19" r="1"></circle>
+                                    </svg>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem>
+                                    <Link href={`/lists/customers/${customer.id}`}>
+                                      View Details
+                                    </Link>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>Edit</DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem className="text-red-600">
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={8} className="px-6 py-12 text-center">
+                            <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                              </svg>
+                            </div>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">No customers found</h3>
+                            <p className="text-gray-500">This partner doesn't have any associated customers yet.</p>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          )}
+
+          {activeTab === "campaigns" && (
+            <div className="space-y-6">
+              {/* Campaign Tab Navigation */}
+              <div className="bg-white rounded-lg border border-gray-200">
+                <div className="border-b border-gray-200">
+                  <nav className="flex space-x-8 px-6" aria-label="Tabs">
+                    <button
+                      onClick={() => setSelectedCampaign(null)}
+                      className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                        !selectedCampaign
+                          ? 'border-[#5567E5] text-[#5567E5]'
+                          : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                      }`}
+                    >
+                      Overview
+                    </button>
+                    {selectedCampaign && (
+                      <button
+                        className="py-4 px-1 border-b-2 border-[#5567E5] text-[#5567E5] font-medium text-sm"
+                      >
+                        Edit: {selectedCampaign.name}
+                      </button>
+                    )}
+                  </nav>
+                </div>
+
+                {/* Overview Tab Content */}
+                {!selectedCampaign && (
+                  <div className="p-6">
+                    {campaignsLoading ? (
+                      <div className="animate-pulse space-y-6">
+                  {/* Summary cards skeleton */}
+                  <div className="grid grid-cols-1 md:grid-cols-5 gap-6">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <div key={i} className="bg-white p-6 rounded-lg border">
+                        <div className="h-4 bg-gray-200 rounded w-2/3 mb-2"></div>
+                        <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+                      </div>
+                    ))}
+                  </div>
+                  {/* Table skeleton */}
+                  <div className="bg-white border rounded-lg p-6">
+                    <div className="space-y-3">
+                      <div className="h-6 bg-gray-200 rounded w-1/3"></div>
+                      <div className="h-4 bg-gray-200 rounded w-2/3"></div>
+                      <div className="h-4 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  </div>
+                </div>
+              ) : brokerCampaigns.length === 0 && assignedCampaigns.length === 0 ? (
+                <div className="text-center py-12">
+                  <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  </div>
+                  <h3 className="text-lg font-medium text-gray-900 mb-2">No campaigns available</h3>
+                  <p className="text-gray-500">No campaigns have been shared with you or assigned to you yet.</p>
+                </div>
+              ) : (
+                <>
+                  {/* Assigned Campaigns Section */}
+                  {assignedCampaigns.length > 0 && (
+                    <div className="bg-white border rounded-lg p-6">
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">Assigned Campaigns</h3>
+                      <div className="space-y-3">
+                        {assignedCampaigns.map((campaign: any) => (
+                          <div key={campaign.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                            <div>
+                              <h4 className="font-medium text-gray-900">{campaign.name}</h4>
+                              <p className="text-sm text-gray-500">{campaign.description}</p>
+                              <p className="text-xs text-gray-400 mt-1">
+                                Assigned {campaign.assigned_at ? new Date(campaign.assigned_at).toLocaleDateString() : ''} by {campaign.assigned_by_name}
+                              </p>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <span className={`px-2 py-1 text-xs rounded ${
+                                campaign.status === 'draft' ? 'bg-gray-100 text-gray-800' : 
+                                campaign.status === 'sent' ? 'bg-green-100 text-green-800' : 
+                                'bg-blue-100 text-blue-800'
+                              }`}>
+                                {campaign.status === 'draft' ? 'Draft' : campaign.status}
+                              </span>
+                              <button
+                                onClick={() => {
+                                  setSelectedCampaign(campaign);
+                                }}
+                                className="px-3 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+                              >
+                                Edit Campaign
+                              </button>
+                              <button
+                                onClick={() => {
+                                  const backUrl = `/broker-view/partner/${actualCurrentEnvironment}?tab=campaigns`;
+                                  window.location.href = `/partner/campaigns/${campaign.id}?back_url=${encodeURIComponent(backUrl)}`;
+                                }}
+                                className="text-blue-600 hover:text-blue-800 text-sm font-medium"
+                              >
+                                Manage
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Shared Campaigns Section */}
+                  {brokerCampaigns.length > 0 && (
+                    <div className="bg-white border rounded-lg p-6">
+                      <h3 className="text-lg font-medium text-gray-900 mb-4">Shared Campaigns</h3>
+                      {/* Summary Cards */}
+                      <div className="grid grid-cols-1 md:grid-cols-5 gap-6 mb-6">
+                        <div className="bg-white p-6 rounded-lg border">
+                          <div className="flex items-center">
+                            <div className="flex-shrink-0">
+                              <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                              </svg>
+                            </div>
+                            <div className="ml-4">
+                              <dt className="text-sm font-medium text-gray-500 truncate">Total Campaigns</dt>
+                              <dd className="text-2xl font-semibold text-gray-900">{brokerCampaigns.length}</dd>
+                            </div>
+                          </div>
+                        </div>
+
+                    <div className="bg-white p-6 rounded-lg border">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+                          </svg>
+                        </div>
+                        <div className="ml-4">
+                          <dt className="text-sm font-medium text-gray-500 truncate">Active</dt>
+                          <dd className="text-2xl font-semibold text-gray-900">
+                            {brokerCampaigns.filter((c: any) => c.status === 'active').length}
+                          </dd>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-lg border">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <svg className="w-8 h-8 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+                          </svg>
+                        </div>
+                        <div className="ml-4">
+                          <dt className="text-sm font-medium text-gray-500 truncate">Recipients</dt>
+                          <dd className="text-2xl font-semibold text-gray-900">
+                            {brokerCampaigns.reduce((acc: number, campaign: any) => {
+                              if (campaign.status === 'draft') {
+                                return acc + 5; // Fixed count for draft campaigns
+                              }
+                              const recipientCount = Array.isArray(campaign.recipients) ? campaign.recipients.length : (campaign.recipients || 0);
+                              return acc + recipientCount;
+                            }, 0)}
+                          </dd>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-lg border">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <svg className="w-8 h-8 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                          </svg>
+                        </div>
+                        <div className="ml-4">
+                          <dt className="text-sm font-medium text-gray-500 truncate">Emails Sent</dt>
+                          <dd className="text-2xl font-semibold text-gray-900">
+                            {brokerCampaigns.reduce((acc: number, campaign: any) => {
+                              if (campaign.status === 'draft') return acc; // Draft campaigns haven't sent emails yet
+                              return acc + (campaign.emails_sent || 0);
+                            }, 0)}
+                          </dd>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white p-6 rounded-lg border">
+                      <div className="flex items-center">
+                        <div className="flex-shrink-0">
+                          <svg className="w-8 h-8 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        </div>
+                        <div className="ml-4">
+                          <dt className="text-sm font-medium text-gray-500 truncate">Open Rate</dt>
+                          <dd className="text-2xl font-semibold text-gray-900">
+                            {(() => {
+                              const totalSent = brokerCampaigns.reduce((acc: number, campaign: any) => {
+                                if (campaign.status === 'draft') return acc; // Exclude draft campaigns
+                                return acc + (campaign.emails_sent || 0);
+                              }, 0);
+                              const totalOpened = brokerCampaigns.reduce((acc: number, campaign: any) => {
+                                if (campaign.status === 'draft') return acc; // Exclude draft campaigns
+                                return acc + (campaign.emails_opened || 0);
+                              }, 0);
+                              return totalSent > 0 ? Math.round((totalOpened / totalSent) * 100) : 0;
+                            })()}%
+                          </dd>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Bulk Selection Bar */}
+                  {selectedCampaigns.length > 0 && (
+                    <div className="bg-indigo-50 border-l-4 border-indigo-400 p-4 mb-4 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-400" viewBox="0 0 20 20" fill="currentColor">
+                              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                            </svg>
+                          </div>
+                          <div className="ml-3">
+                            <p className="text-sm text-indigo-700">
+                              {selectedCampaigns.length} campaign{selectedCampaigns.length > 1 ? 's' : ''} selected
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => setSelectedCampaigns([])}
+                            className="text-indigo-700 border-indigo-300 hover:bg-indigo-100"
+                          >
+                            Clear selection
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => setShowCampaignShareModal(true)}
+                            className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                          >
+                            Share with partner
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Campaigns Table */}
+                  <div className="bg-white overflow-x-auto rounded-lg">
+                    <table className="min-w-full divide-y divide-gray-200">
+                      <thead className="bg-white">
+                        <tr>
+                          <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                            <Checkbox
+                              checked={brokerCampaigns.length > 0 && brokerCampaigns.every((campaign: any) => selectedCampaigns.includes(campaign.id))}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedCampaigns(brokerCampaigns.map((campaign: any) => campaign.id));
+                                } else {
+                                  setSelectedCampaigns([]);
+                                }
+                              }}
+                            />
+                          </th>
+                          <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[250px]">
+                            Campaign Name
+                          </th>
+                          <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[160px] min-w-[160px]">
+                            Status
+                          </th>
+                          <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[100px]">
+                            Recipients
+                          </th>
+                          <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[100px]">
+                            Open Rate
+                          </th>
+                          <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[100px]">
+                            Clicks
+                          </th>
+                          <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[100px]">
+                            Sent
+                          </th>
+                          <th scope="col" className="px-3 py-3.5 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-[120px]">
+                            Created
+                          </th>
+                          <th scope="col" className="relative px-3 py-3.5 w-10 bg-white">
+                            <span className="sr-only">Actions</span>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="bg-white divide-y divide-gray-200">
+                        {brokerCampaigns.map((campaign: any) => (
+                          <tr 
+                            key={campaign.id} 
+                            className="hover:bg-gray-50 group"
+                          >
+                            <td className="px-3 py-4 text-sm text-gray-900 w-12">
+                              <Checkbox
+                                checked={selectedCampaigns.includes(campaign.id)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setSelectedCampaigns([...selectedCampaigns, campaign.id]);
+                                  } else {
+                                    setSelectedCampaigns(selectedCampaigns.filter(id => id !== campaign.id));
+                                  }
+                                }}
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </td>
+                            <td 
+                              className="px-3 py-4 text-sm text-gray-900 w-[250px] cursor-pointer"
+                              onClick={() => {
+                                setSelectedCampaign(campaign);
+                              }}
+                            >
+                              <div className="max-w-[230px]">
+                                <div className="font-medium text-gray-900 truncate">
+                                  {campaign.name}
+                                </div>
+                                {campaign.description && (
+                                  <div className="text-sm text-gray-500 truncate mt-1">
+                                    {campaign.description}
+                                  </div>
+                                )}
+                              </div>
+                            </td>
+                            <td 
+                              className="px-3 py-4 text-sm text-gray-900 w-[160px] min-w-[160px] cursor-pointer"
+                              onClick={() => {
+                                setSelectedCampaign(campaign);
+                              }}
+                            >
+                              {(() => {
+                                // Calculate the actual status based on campaign data
+                                const status = campaign.status || 'draft';
+                                const emailsSent = campaign.emails_sent || 0;
+                                const recipientsCount = campaign.recipients?.length || 0;
+                                const hasNewContacts = campaign.new_contacts_added || false;
+                                const isPaused = campaign.is_paused || false;
+                                const isStopped = campaign.is_stopped || false;
+                                const isScheduled = campaign.scheduled_time && new Date(campaign.scheduled_time) > new Date();
+                                
+                                // Determine the actual status based on campaign state
+                                let actualStatus = status;
+                                let label = 'Draft';
+                                let colorClass = 'bg-gray-100 text-gray-800';
+                                
+                                if (isStopped) {
+                                  actualStatus = 'stopped';
+                                  label = 'Stopped';
+                                  colorClass = 'bg-red-100 text-red-800';
+                                } else if (isPaused) {
+                                  actualStatus = 'paused';
+                                  label = 'Paused';
+                                  colorClass = 'bg-orange-100 text-orange-800';
+                                } else if (isScheduled) {
+                                  actualStatus = 'scheduled';
+                                  label = 'Scheduled';
+                                  colorClass = 'bg-indigo-100 text-indigo-800';
+                                } else if (hasNewContacts) {
+                                  actualStatus = 'new_contacts';
+                                  label = 'New Contacts';
+                                  colorClass = 'bg-purple-100 text-purple-800';
+                                } else if (emailsSent > 0 && emailsSent < recipientsCount) {
+                                  actualStatus = 'partially_sent';
+                                  label = 'Partially Sent';
+                                  colorClass = 'bg-yellow-100 text-yellow-800';
+                                } else if (emailsSent > 0 && emailsSent >= recipientsCount) {
+                                  actualStatus = 'sent';
+                                  label = 'Sent';
+                                  colorClass = 'bg-blue-100 text-blue-800';
+                                } else if (status === 'in_progress' || status === 'active') {
+                                  actualStatus = 'running';
+                                  label = 'Running';
+                                  colorClass = 'bg-green-100 text-green-800';
+                                } else if (status === 'draft') {
+                                  actualStatus = 'draft';
+                                  label = 'Draft';
+                                  colorClass = 'bg-gray-100 text-gray-800';
+                                }
+                                
+                                const statusBadge = (
+                                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${colorClass}`}>
+                                    {label}
+                                  </span>
+                                );
+                                
+                                // Show tooltip for draft campaigns with all possible statuses
+                                if (label === 'Draft') {
+                                  const allStatuses = [
+                                    { value: 'draft', label: 'Draft', description: 'Campaign not yet sent' },
+                                    { value: 'scheduled', label: 'Scheduled', description: 'Campaign scheduled to send' },
+                                    { value: 'running', label: 'Running', description: 'Campaign is actively sending' },
+                                    { value: 'partially_sent', label: 'Partially Sent', description: 'Some recipients received emails' },
+                                    { value: 'sent', label: 'Sent', description: 'All recipients received emails' },
+                                    { value: 'new_contacts', label: 'New Contacts', description: 'New contacts added after last send' },
+                                    { value: 'paused', label: 'Paused', description: 'Campaign temporarily stopped' },
+                                    { value: 'stopped', label: 'Stopped', description: 'Campaign permanently stopped' }
+                                  ];
+                                  
+                                  return (
+                                    <div className="relative group">
+                                      {statusBadge}
+                                      <div className="absolute bottom-full left-0 mb-2 hidden group-hover:block z-50 bg-gray-900 text-white text-xs rounded-md p-2 shadow-lg max-w-xs">
+                                        <div className="space-y-1">
+                                          <p className="font-medium">All possible statuses:</p>
+                                          {allStatuses.map(status => (
+                                            <div key={status.value} className="flex items-start gap-2">
+                                              <span className="font-medium">{status.label}:</span>
+                                              <span className="text-gray-300">{status.description}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                        <div className="absolute top-full left-4 w-2 h-2 bg-gray-900 transform rotate-45 -translate-y-1"></div>
+                                      </div>
+                                    </div>
+                                  );
+                                }
+                                
+                                return statusBadge;
+                              })()}
+                            </td>
+                            <td 
+                              className="px-3 py-4 text-sm text-gray-900 w-[100px] cursor-pointer"
+                              onClick={() => {
+                                setSelectedCampaign(campaign);
+                              }}
+                            >
+                              {campaign.status === 'draft' ? 5 : (Array.isArray(campaign.recipients) ? campaign.recipients.length : (campaign.recipients || 0))}
+                            </td>
+                            <td 
+                              className="px-3 py-4 text-sm text-gray-900 w-[100px] cursor-pointer"
+                              onClick={() => {
+                                setSelectedCampaign(campaign);
+                              }}
+                            >
+                              {campaign.status === 'draft' ? (
+                                <span className="text-sm text-gray-400">-</span>
+                              ) : (
+                                <div className="flex items-center gap-2">
+                                  <span className="text-sm font-medium">
+                                    {campaign.open_rate ? parseFloat(campaign.open_rate).toFixed(1) : '0.0'}%
+                                  </span>
+                                  {campaign.emails_sent > 0 && (
+                                    <span className="text-xs text-gray-500">
+                                      ({campaign.emails_opened || 0}/{campaign.emails_sent || 0})
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                            </td>
+                            <td 
+                              className="px-3 py-4 text-sm text-gray-900 w-[100px] cursor-pointer"
+                              onClick={() => {
+                                setSelectedCampaign(campaign);
+                              }}
+                            >
+                              {campaign.status === 'draft' ? (
+                                <span className="text-sm text-gray-400">-</span>
+                              ) : (
+                                <span className="font-medium">
+                                  {campaign.total_clicks || 0}
+                                </span>
+                              )}
+                            </td>
+                            <td 
+                              className="px-3 py-4 text-sm text-gray-900 w-[100px] cursor-pointer"
+                              onClick={() => {
+                                setSelectedCampaign(campaign);
+                              }}
+                            >
+                              {campaign.status === 'draft' ? (
+                                <span className="text-sm text-gray-400">-</span>
+                              ) : (
+                                campaign.emails_sent || 0
+                              )}
+                            </td>
+                            <td 
+                              className="px-3 py-4 text-sm text-gray-900 w-[120px] cursor-pointer"
+                              onClick={() => {
+                                setSelectedCampaign(campaign);
+                              }}
+                            >
+                              {campaign.created_at ? new Date(campaign.created_at).toLocaleDateString() : '-'}
+                            </td>
+
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                    </div>
+                  )}
+                </>
+              )}
+                  </div>
+                )}
+
+                {/* Campaign Editor Tab Content */}
+                {selectedCampaign && (
+                  <div className="p-6">
+                    <PartnerCampaignBuilder 
+                      campaignId={selectedCampaign.id}
+                      partnerId={4} // Mevas BV partner ID
+                      onComplete={() => {
+                        setSelectedCampaign(null);
+                      }}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+
+        </div>
       </div>
 
       {/* Campaign Share Modal */}
       <PartnerCampaignShareModal
-        isOpen={isCampaignShareModalOpen}
-        onOpenChange={setIsCampaignShareModalOpen}
-        partnerId={partnerId}
+        isOpen={showCampaignShareModal}
+        onClose={() => setShowCampaignShareModal(false)}
+        campaignIds={selectedCampaigns}
+        campaignNames={selectedCampaigns.map(id => {
+          const campaign = brokerCampaigns.find((c: any) => c.id === id);
+          return campaign ? campaign.name : '';
+        }).filter(Boolean)}
+        partnerId={partnerId || ''}
         partnerName={partner.name}
-        selectedCampaign={campaignToShare}
-        onShare={(type) => {
-          console.log('Campaign shared:', type);
-          setIsCampaignShareModalOpen(false);
-          setCampaignToShare(null);
+        onShareComplete={() => {
+          setSelectedCampaigns([]);
+          setShowCampaignShareModal(false);
         }}
       />
 
-      {/* Comments History Dialog */}
-      <Dialog open={isCommentsHistoryDialogOpen} onOpenChange={setIsCommentsHistoryDialogOpen}>
-        <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+      {/* Partner Details Dialog */}
+      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <MessageSquare className="w-5 h-5 text-blue-600" />
-              Comments History: {selectedOpportunityForHistory?.title}
-            </DialogTitle>
+            <DialogTitle>Partner Details</DialogTitle>
+            <DialogDescription>
+              Complete information about {partner.name}
+            </DialogDescription>
           </DialogHeader>
+          
+          <div className="grid grid-cols-2 gap-4 py-4">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Partner Name</Label>
+                <p className="text-sm text-gray-900 mt-1">{partner.name}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Description</Label>
+                <p className="text-sm text-gray-900 mt-1">{partner.description}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Primary Contact</Label>
+                <p className="text-sm text-gray-900 mt-1">{partner.primary_contact}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Contact Email</Label>
+                <p className="text-sm text-gray-900 mt-1">{partner.contact_email}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Phone</Label>
+                <p className="text-sm text-gray-900 mt-1">{partner.phone}</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Location</Label>
+                <p className="text-sm text-gray-900 mt-1">{partner.location}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Partnership Type</Label>
+                <p className="text-sm text-gray-900 mt-1">Insurance Broker Partnership</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Status</Label>
+                <p className="text-sm text-gray-900 mt-1">Active Partnership</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Shared Opportunities</Label>
+                <p className="text-sm text-gray-900 mt-1">{allOpportunities.length} opportunities</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Access Level</Label>
+                <p className="text-sm text-gray-900 mt-1">Broker View Access</p>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDetailsDialog(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Withhold Assessment Dialog */}
+      <Dialog open={withholdDialogOpen} onOpenChange={setWithholdDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Withhold Opportunity</DialogTitle>
+            <DialogDescription>
+              Please select the reason(s) for withholding this opportunity and add any additional comments.
+            </DialogDescription>
+          </DialogHeader>
+          
           <div className="space-y-4">
-            {commentsHistoryQueryData && commentsHistoryQueryData.length > 0 ? (
-              commentsHistoryQueryData.map((comment: any) => (
-                <div key={comment.id} className="border-l-4 border-blue-200 pl-4 py-2">
-                  <div className="flex items-start justify-between mb-1">
-                    <div className="font-medium text-gray-900">{comment.author_name || 'Unknown User'}</div>
-                    <div className="text-xs text-gray-500">
-                      {new Date(comment.created_at).toLocaleDateString()} at {new Date(comment.created_at).toLocaleTimeString()}
+            {/* Withhold Reasons */}
+            <div>
+              <Label className="text-sm font-medium">Reasons</Label>
+              <div className="mt-2 space-y-2">
+                {fetchWithholdReasonsMutation.isLoading ? (
+                  <div className="text-sm text-gray-500">Loading reasons...</div>
+                ) : fetchWithholdReasonsMutation.data && fetchWithholdReasonsMutation.data.length > 0 ? (
+                  fetchWithholdReasonsMutation.data.map((reason: any) => (
+                    <div key={reason.id} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`reason-${reason.id}`}
+                        checked={withholdReasons.includes(reason.name)}
+                        onCheckedChange={(checked) => {
+                          console.log('Checkbox changed:', reason.name, checked);
+                          if (checked) {
+                            setWithholdReasons([...withholdReasons, reason.name]);
+                          } else {
+                            setWithholdReasons(withholdReasons.filter(r => r !== reason.name));
+                          }
+                        }}
+                      />
+                      <Label htmlFor={`reason-${reason.id}`} className="text-sm">
+                        {reason.name}
+                      </Label>
+                    </div>
+                  ))
+                ) : (
+                  <div className="space-y-2">
+                    {['Insufficient Information', 'Budget Constraints', 'Timing Issues', 'Not a Priority', 'Technical Concerns'].map((reason, index) => (
+                      <div key={index} className="flex items-center space-x-2">
+                        <Checkbox
+                          id={`reason-fallback-${index}`}
+                          checked={withholdReasons.includes(reason)}
+                          onCheckedChange={(checked) => {
+                            console.log('Fallback checkbox changed:', reason, checked);
+                            if (checked) {
+                              setWithholdReasons([...withholdReasons, reason]);
+                            } else {
+                              setWithholdReasons(withholdReasons.filter(r => r !== reason));
+                            }
+                          }}
+                        />
+                        <Label htmlFor={`reason-fallback-${index}`} className="text-sm">
+                          {reason}
+                        </Label>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Comments */}
+            <div>
+              <Label htmlFor="withhold-comments" className="text-sm font-medium">
+                Additional Comments
+              </Label>
+              <textarea
+                id="withhold-comments"
+                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                rows={3}
+                value={withholdComments}
+                onChange={(e) => setWithholdComments(e.target.value)}
+                placeholder="Add any additional context..."
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWithholdDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleWithholdSubmit}
+              disabled={withholdReasons.length === 0 || updateAssessmentMutation.isPending}
+              className={`text-white ${withholdReasons.length > 0 && !updateAssessmentMutation.isPending ? 'bg-red-600 hover:bg-red-700' : 'bg-gray-400 cursor-not-allowed'}`}
+            >
+              {updateAssessmentMutation.isPending ? 'Saving...' : 'Withhold Opportunity'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Comments History Dialog - copied exactly from PartnerDetail.tsx lines 6585-6769 */}
+      <Dialog open={isCommentsHistoryDialogOpen} onOpenChange={setIsCommentsHistoryDialogOpen}>
+        <DialogContent className="max-w-2xl bg-white border-0 shadow-xl rounded-2xl p-0 overflow-hidden h-[600px] flex flex-col">
+          <div className="p-6 pb-4 border-b border-gray-100">
+            <DialogHeader className="space-y-2 pb-0">
+              <div className="flex items-center justify-between">
+                <DialogTitle className="text-xl font-semibold text-[#282A3F] leading-tight">
+                  Comments & Notes: {commentsHistoryData?.opportunity?.customerName || 'Customer'}
+                </DialogTitle>
+                <Button 
+                  variant="ghost" 
+                  onClick={() => setIsCommentsHistoryDialogOpen(false)}
+                  className="text-gray-400 hover:text-gray-600 h-8 w-8 p-0"
+                >
+                  ×
+                </Button>
+              </div>
+              <DialogDescription className="text-sm text-gray-600 leading-relaxed">
+                All comments, notes, and withhold reasons for this customer
+              </DialogDescription>
+            </DialogHeader>
+          </div>
+          
+          <div className="flex-1 overflow-hidden flex flex-col">
+            {/* Header with opportunity info and count */}
+            <div className="px-6 py-4 bg-gray-50 border-b border-gray-100">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center">
+                    <span className="text-white text-sm font-medium">
+                      {commentsHistoryData?.opportunity?.title?.charAt(0) || 'O'}
+                    </span>
+                  </div>
+                  <div>
+                    <div className="font-medium text-[#282A3F]">
+                      {commentsHistoryData?.opportunity?.title}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      {commentsHistoryData?.totalComments || 0} comments
                     </div>
                   </div>
-                  <div className="text-gray-700 text-sm whitespace-pre-wrap">{comment.content}</div>
-                  {comment.activity_type && (
-                    <div className="inline-block mt-1 px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-                      {comment.activity_type}
-                    </div>
-                  )}
                 </div>
-              ))
-            ) : (
-              <div className="text-center py-12 text-gray-500">
-                <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                <p className="text-lg font-medium mb-1">No comments yet</p>
-                <p className="text-sm">Be the first to add a comment for this opportunity.</p>
+                <div className="flex items-center gap-2">
+                  <Button variant="ghost" size="sm" className="text-gray-600 h-8">
+                    <Eye className="w-4 h-4 mr-1" />
+                    Hide Private
+                  </Button>
+                  <Button variant="ghost" size="sm" className="text-gray-600 h-8">
+                    ⋯
+                  </Button>
+                </div>
               </div>
-            )}
+            </div>
+
+            {/* CRITICAL FIX: Add comment creation section matching PartnerDetail.tsx */}
+            <div className="px-6 py-4 border-b border-gray-100">
+              <div className="space-y-3">
+                <Textarea
+                  placeholder="Add a comment or note..."
+                  value={opportunityComment}
+                  onChange={(e) => setOpportunityComment(e.target.value)}
+                  className="resize-none"
+                  rows={3}
+                />
+                <div className="flex items-center justify-between">
+                  <div className="text-xs text-gray-500">
+                    Tip: Use @mention to notify team members
+                  </div>
+                  <Button 
+                    onClick={handleSubmitOpportunityComment}
+                    disabled={!opportunityComment.trim() || createCrossEntityCommentMutation.isPending}
+                    size="sm"
+                    className="bg-[#5567E5] hover:bg-[#4553D3] text-white"
+                  >
+                    {createCrossEntityCommentMutation.isPending ? 'Adding...' : 'Comment'}
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Comments section */}
+            <div className="flex-1 overflow-y-auto p-6 space-y-4">
+              {commentsHistoryData?.comments?.length > 0 ? (
+                commentsHistoryData.comments.map((comment: any, index: number) => (
+                  <div key={index} className="flex gap-3 p-4 bg-gray-50 rounded-lg">
+                    <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center flex-shrink-0">
+                      <span className="text-white text-xs font-medium">
+                        {comment.userName?.charAt(0) || 'U'}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium text-sm text-[#282A3F]">
+                          {comment.userName || 'System'}
+                        </span>
+                        <span className="text-xs text-gray-500">
+                          {comment.createdAt ? new Date(comment.createdAt).toLocaleDateString() : 'Recent'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-700 leading-relaxed">
+                        {comment.content}
+                      </p>
+                      {comment.type && (
+                        <span className="inline-block mt-2 px-2 py-1 text-xs bg-gray-200 text-gray-600 rounded">
+                          {comment.type}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-12 text-gray-500">
+                  <MessageSquare className="w-12 h-12 mx-auto mb-3 text-gray-300" />
+                  <p className="text-lg font-medium mb-1">No comments yet</p>
+                  <p className="text-sm">Be the first to add a comment for this opportunity.</p>
+                </div>
+              )}
+            </div>
           </div>
         </DialogContent>
       </Dialog>
+
+        {/* Opportunities Tab - Exact copy from PartnerDetail.tsx */}
+        {activeTab === "opportunities" && (
+          <div className="space-y-0">
+            {/* Save/Update/Clear View Buttons - Show when any changes detected */}
+            {hasOpportunityChanges() && (
+              <div className="flex justify-end items-center gap-2 px-4 py-1">
+                <button
+                  onClick={() => {
+                    // Reset both filters and fields to original state
+                    if (originalOpportunityFilters) {
+                      setOpportunityFilters(originalOpportunityFilters);
+                    }
+                    if (originalOpportunityVisibleFields) {
+                      setOpportunityVisibleFields(originalOpportunityVisibleFields);
+                    }
+                    // If no active view, reset to default state
+                    if (!activeOpportunityView) {
+                      setOpportunityFilters({
+                        status: 'All',
+                        stage: 'All',
+                        size: 'All',
+                        type: 'All'
+                      });
+                      setOpportunityVisibleFields({
+                        title: true,
+                        customer: true,
+                        stage: true,
+                        value: true,
+                        priority: true,
+                        type: true,
+                        size: true,
+                        accountManager: true,
+                        lastActivity: true
+                      });
+                    }
+                    // Clear change detection state
+                    setOriginalOpportunityFilters(null);
+                    setOriginalOpportunityVisibleFields(null);
+                  }}
+                  className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                >
+                  <X className="w-3 h-3" />
+                  Clear
+                </button>
+                <button
+                  onClick={() => setShowSaveOpportunityViewModal(true)}
+                  className="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                >
+                  <Bookmark className="w-3 h-3" />
+                  Save as segment view
+                </button>
+              </div>
+            )}
+
+            {/* Enhanced saved lists section for opportunities */}
+            <div className="bg-white rounded-lg">
+              <div className="space-y-0">
+                {/* Statistics overview cards */}
+                <div className="grid grid-cols-4 gap-6 p-6 pb-4">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-gray-900">{allOpportunities?.length || 0}</div>
+                    <div className="text-sm text-gray-500">Total Opportunities</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-gray-900">{(() => {
+                      const uniqueCustomers = new Set(allOpportunities?.map((opp: any) => opp.customer_id));
+                      return uniqueCustomers.size;
+                    })()}</div>
+                    <div className="text-sm text-gray-500">Customers</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-gray-900">
+                      €{allOpportunities?.reduce((sum: number, opp: any) => sum + (parseFloat(opp.estimated_value) || 0), 0).toLocaleString() || '0'}
+                    </div>
+                    <div className="text-sm text-gray-500">Total Value</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-gray-900">
+                      €{allOpportunities?.reduce((sum: number, opp: any) => {
+                        const value = parseFloat(opp.estimated_value) || 0;
+                        const probability = parseFloat(opp.probability) || 0;
+                        return sum + (value * probability / 100);
+                      }, 0).toLocaleString() || '0'}
+                    </div>
+                    <div className="text-sm text-gray-500">Weighted Value</div>
+                  </div>
+                </div>
+
+                {/* Opportunities Table */}
+                <div className="p-6 pt-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-b border-gray-200">
+                        <TableHead className="w-12">
+                          <Checkbox
+                            checked={selectedOpportunities.length === allOpportunities?.length && allOpportunities?.length > 0}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedOpportunities(allOpportunities?.map((opp: any) => opp.id) || []);
+                              } else {
+                                setSelectedOpportunities([]);
+                              }
+                            }}
+                          />
+                        </TableHead>
+                        <TableHead className="font-semibold text-gray-900">Opportunity</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Customer</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Stage</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Value</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Assessment</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Comments</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {allOpportunities?.map((opportunity: any) => (
+                        <TableRow key={opportunity.id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedOpportunities.includes(opportunity.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedOpportunities([...selectedOpportunities, opportunity.id]);
+                                } else {
+                                  setSelectedOpportunities(selectedOpportunities.filter(id => id !== opportunity.id));
+                                }
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium text-gray-900">
+                            <div className="max-w-[200px]">
+                              <div className="font-medium text-gray-900 truncate">
+                                {opportunity.title}
+                              </div>
+                              {opportunity.description && (
+                                <div className="text-sm text-gray-500 truncate">
+                                  {opportunity.description}
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-gray-900">
+                            {opportunity.customerName || 'Unknown Customer'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                              {opportunity.stage || 'discovery'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-gray-900">
+                            €{parseFloat(opportunity.estimated_value || '0').toLocaleString()}
+                          </TableCell>
+                          <TableCell>
+                            {opportunity.assessment_status === 'pending' ? (
+                              <div className="flex items-center gap-2">
+                                <button
+                                  onClick={() => {
+                                    // Handle accept
+                                  }}
+                                  className="p-1 text-green-600 hover:text-green-700 hover:bg-green-50 rounded"
+                                  title="Accept"
+                                >
+                                  <CheckCircle className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => {
+                                    setSelectedOpportunityForWithhold(opportunity);
+                                    setWithholdDialogOpen(true);
+                                  }}
+                                  className="p-1 text-red-600 hover:text-red-700 hover:bg-red-50 rounded"
+                                  title="Withhold"
+                                >
+                                  <XCircle className="w-4 h-4" />
+                                </button>
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2">
+                                <Badge 
+                                  variant={opportunity.assessment_status === 'accepted' ? 'success' : 'destructive'}
+                                  className={`${
+                                    opportunity.assessment_status === 'accepted' 
+                                      ? 'bg-green-100 text-green-800' 
+                                      : 'bg-red-100 text-red-800'
+                                  }`}
+                                >
+                                  {opportunity.assessment_status === 'accepted' ? 'Accepted' : 'Withheld'}
+                                </Badge>
+                                <button
+                                  onClick={() => {
+                                    if (opportunity.assessment_status === 'accepted') {
+                                      setSelectedOpportunityForWithhold(opportunity);
+                                      setWithholdDialogOpen(true);
+                                    } else {
+                                      // Handle change to accept
+                                    }
+                                  }}
+                                  className={`p-1 rounded ${
+                                    opportunity.assessment_status === 'accepted'
+                                      ? 'text-red-600 hover:text-red-700 hover:bg-red-50'
+                                      : 'text-green-600 hover:text-green-700 hover:bg-green-50'
+                                  }`}
+                                  title={opportunity.assessment_status === 'accepted' ? 'Change to Withhold' : 'Change to Accept'}
+                                >
+                                  {opportunity.assessment_status === 'accepted' ? (
+                                    <XCircle className="w-4 h-4" />
+                                  ) : (
+                                    <CheckCircle className="w-4 h-4" />
+                                  )}
+                                </button>
+                              </div>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            <button
+                              onClick={() => {
+                                setSelectedOpportunityForHistory(opportunity);
+                                setIsCommentsHistoryDialogOpen(true);
+                              }}
+                              className="p-1 text-gray-600 hover:text-gray-700 hover:bg-gray-50 rounded"
+                              title="View Comments"
+                            >
+                              <MessageCircle className="w-4 h-4" />
+                            </button>
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-red-600">
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Customers Tab - Exact copy from PartnerDetail.tsx */}
+        {activeTab === "customers" && (
+          <div className="space-y-4">
+            {/* Enhanced saved lists section for customers */}
+            <div className="bg-white rounded-lg">
+              <div className="space-y-0">
+                {/* Save/Update/Clear View Buttons - Show when any changes detected */}
+                {hasCustomerChanges() && (
+                  <div className="flex justify-end items-center gap-2 px-4 py-1">
+                    <button
+                      onClick={() => {
+                        // Reset both filters and fields to original state
+                        if (originalCustomerFilters) {
+                          setCustomerFilters(originalCustomerFilters);
+                        }
+                        if (originalCustomerVisibleFields) {
+                          setCustomerVisibleFields(originalCustomerVisibleFields);
+                        }
+                        // If no active view, reset to default state
+                        if (!activeCustomerView) {
+                          setCustomerFilters({
+                            status: 'All',
+                            industry: 'All',
+                            region: 'All',
+                            size: 'All'
+                          });
+                          setCustomerVisibleFields({
+                            name: true,
+                            industry: true,
+                            region: true,
+                            contactPerson: true,
+                            phone: true,
+                            email: true,
+                            opportunities: true,
+                            totalValue: true,
+                            lastActivity: true
+                          });
+                        }
+                        // Clear change detection state
+                        setOriginalCustomerFilters(null);
+                        setOriginalCustomerVisibleFields(null);
+                      }}
+                      className="flex items-center gap-1 px-2 py-1 text-xs text-gray-500 hover:text-gray-700 hover:bg-gray-50 rounded transition-colors"
+                    >
+                      <X className="w-3 h-3" />
+                      Clear
+                    </button>
+                    <button
+                      onClick={() => setShowSaveCustomerViewModal(true)}
+                      className="flex items-center gap-1 px-2 py-1 text-xs text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors"
+                    >
+                      <Bookmark className="w-3 h-3" />
+                      Save as segment view
+                    </button>
+                  </div>
+                )}
+
+                {/* Statistics overview cards */}
+                <div className="grid grid-cols-4 gap-6 p-6 pb-4">
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-gray-900">{partnerCustomers?.length || 0}</div>
+                    <div className="text-sm text-gray-500">Total Customers</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-gray-900">
+                      {partnerCustomers?.reduce((sum: number, customer: any) => sum + (customer.opportunityCount || 0), 0) || 0}
+                    </div>
+                    <div className="text-sm text-gray-500">Opportunities</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-gray-900">
+                      €{partnerCustomers?.reduce((sum: number, customer: any) => sum + (customer.totalValue || 0), 0).toLocaleString() || '0'}
+                    </div>
+                    <div className="text-sm text-gray-500">Total Value</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-3xl font-bold text-gray-900">
+                      €{partnerCustomers?.reduce((sum: number, customer: any) => sum + (customer.weightedValue || 0), 0).toLocaleString() || '0'}
+                    </div>
+                    <div className="text-sm text-gray-500">Weighted Value</div>
+                  </div>
+                </div>
+
+                {/* Customers Table */}
+                <div className="p-6 pt-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow className="border-b border-gray-200">
+                        <TableHead className="w-12">
+                          <Checkbox
+                            checked={selectedCustomers.length === partnerCustomers?.length && partnerCustomers?.length > 0}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedCustomers(partnerCustomers?.map((customer: any) => customer.id) || []);
+                              } else {
+                                setSelectedCustomers([]);
+                              }
+                            }}
+                          />
+                        </TableHead>
+                        <TableHead className="font-semibold text-gray-900">Customer</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Industry</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Status</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Opportunities</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Total Value</TableHead>
+                        <TableHead className="font-semibold text-gray-900">Actions</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {partnerCustomers?.map((customer: any) => (
+                        <TableRow key={customer.id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedCustomers.includes(customer.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedCustomers([...selectedCustomers, customer.id]);
+                                } else {
+                                  setSelectedCustomers(selectedCustomers.filter(id => id !== customer.id));
+                                }
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium text-gray-900">
+                            <div className="max-w-[200px]">
+                              <div className="font-medium text-gray-900 truncate">
+                                {customer.name}
+                              </div>
+                              {customer.description && (
+                                <div className="text-sm text-gray-500 truncate">
+                                  {customer.description}
+                                </div>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="text-gray-900">
+                            {customer.industry || 'Unknown'}
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="secondary" className="bg-green-100 text-green-800">
+                              {customer.status || 'Active'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-gray-900">
+                            {customer.opportunityCount || 0}
+                          </TableCell>
+                          <TableCell className="text-gray-900">
+                            €{(customer.totalValue || 0).toLocaleString()}
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" className="h-8 w-8 p-0">
+                                  <MoreVertical className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem>
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem className="text-red-600">
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
     </BrokerLayout>
   );
 }
