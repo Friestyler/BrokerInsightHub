@@ -6606,27 +6606,13 @@ Return as JSON in this exact format:
   app.get('/api/degoudse/contacts', async (req, res) => {
     try {
       const envPool = pool;
-      const { linkedEntityType, linkedEntityId } = req.query;
-      
-      let queryConditions = '';
+      const queryConditions = 'WHERE c.is_active = true';
       const queryParams: any[] = [];
-      
-      if (linkedEntityType) {
-        queryConditions = 'WHERE c.is_active = true AND c.linked_entity_type = $1';
-        queryParams.push(linkedEntityType);
-        if (linkedEntityId) {
-          queryConditions += ' AND c.linked_entity_id = $2';
-          queryParams.push(parseInt(linkedEntityId as string));
-        }
-      } else {
-        queryConditions = 'WHERE c.is_active = true';
-      }
       
       const result = await envPool.query(`
         SELECT 
           c.id, c.first_name, c.last_name, c.full_name, c.email, c.phone, 
-          c.job_title, c.department, c.company, c.linked_entity_type, 
-          c.linked_entity_id, c.is_primary, c.notes, c.reports_to, c.is_active, 
+          c.job_title, c.department, c.company, c.is_primary, c.notes, c.reports_to, c.is_active, 
           c.created_at, c.updated_at,
           supervisor.full_name as supervisor_name,
           COALESCE(
@@ -6653,8 +6639,7 @@ Return as JSON in this exact format:
         LEFT JOIN degoudse.tag_categories tc ON t.category_id = tc.id
         ${queryConditions}
         GROUP BY c.id, c.first_name, c.last_name, c.full_name, c.email, c.phone, 
-                 c.job_title, c.department, c.company, c.linked_entity_type, 
-                 c.linked_entity_id, c.is_primary, c.notes, c.reports_to, c.is_active, 
+                 c.job_title, c.department, c.company, c.is_primary, c.notes, c.reports_to, c.is_active, 
                  c.created_at, c.updated_at, supervisor.full_name
         ORDER BY c.first_name ASC, c.last_name ASC
       `, queryParams);
