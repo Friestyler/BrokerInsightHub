@@ -31,7 +31,7 @@ import ProductTemplates from "@/pages/ProductTemplates";
 import OKRTemplatesPage from "@/pages/templates/OKRMetricsPage";
 import GroupDetail from "@/pages/templates/GroupDetail";
 import UserManagement from "@/pages/Settings/UserManagement";
-import ContactsPage from "@/pages/Settings/ContactsPage";
+import ContactsListPage from "@/pages/lists/ContactsPage";
 import DeveloperPage from "@/pages/Settings/DeveloperPage";
 import DatabaseAdmin from "@/pages/Settings/DatabaseAdmin";
 import UploadSettingsPage from "@/pages/DataUpload/UploadSettingsPage";
@@ -114,7 +114,7 @@ function Router() {
           <Route path="/vendors" component={VendorsPage} />
           <Route path="/product-catalogue" component={ProductTemplates} />
           <Route path="/projects" component={ProjectsPage} />
-          <Route path="/contacts" component={ContactsPage} />
+          <Route path="/contacts" component={ContactsListPage} />
 
           {/* Campaign routes */}
           <Route path="/campaigns" component={CampaignsOverview} />
