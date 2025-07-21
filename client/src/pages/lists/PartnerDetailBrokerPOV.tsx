@@ -139,6 +139,13 @@ export default function PartnerDetailBrokerPOV() {
   // State for campaign selection and sharing
   const [selectedCampaigns, setSelectedCampaigns] = useState<number[]>([]);
   const [showCampaignShareModal, setShowCampaignShareModal] = useState(false);
+  const [isCampaignShareModalOpen, setIsCampaignShareModalOpen] = useState(false);
+  const [campaignToShare, setCampaignToShare] = useState<any>(null);
+  
+  // Comments history state
+  const [isCommentsHistoryDialogOpen, setIsCommentsHistoryDialogOpen] = useState(false);
+  const [selectedOpportunityForHistory, setSelectedOpportunityForHistory] = useState<any>(null);
+  const [commentsHistoryData, setCommentsHistoryData] = useState<any[]>([]);
 
   // Opportunities toolbar state management
   const [showListsDropdown, setShowListsDropdown] = useState(false);
@@ -322,9 +329,7 @@ export default function PartnerDetailBrokerPOV() {
   const [withholdReasons, setWithholdReasons] = useState<string[]>([]);
   const [withholdComments, setWithholdComments] = useState('');
   
-  // Comments history state - match PartnerDetail.tsx exactly
-  const [isCommentsHistoryDialogOpen, setIsCommentsHistoryDialogOpen] = useState(false);
-  const [selectedOpportunityForHistory, setSelectedOpportunityForHistory] = useState<any>(null);
+  // Comments history state - already declared above
   const [opportunityComment, setOpportunityComment] = useState('');
 
   // Stage editing state
@@ -1080,7 +1085,7 @@ export default function PartnerDetailBrokerPOV() {
   });
 
   // Comments history query - CRITICAL FIX: Use environment-specific API path for broker view
-  const { data: commentsHistoryData, refetch: refetchCommentsHistory } = useQuery({
+  const { data: commentsHistoryQueryData, refetch: refetchCommentsHistory } = useQuery({
     queryKey: [`/api/${actualCurrentEnvironment}/opportunities/${selectedOpportunityForHistory?.id}/comments`],
     enabled: !!selectedOpportunityForHistory?.id && isCommentsHistoryDialogOpen,
     staleTime: 0, // Always fetch fresh data
@@ -1361,8 +1366,8 @@ export default function PartnerDetailBrokerPOV() {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            {commentsHistoryData && commentsHistoryData.length > 0 ? (
-              commentsHistoryData.map((comment: any) => (
+            {commentsHistoryQueryData && commentsHistoryQueryData.length > 0 ? (
+              commentsHistoryQueryData.map((comment: any) => (
                 <div key={comment.id} className="border-l-4 border-blue-200 pl-4 py-2">
                   <div className="flex items-start justify-between mb-1">
                     <div className="font-medium text-gray-900">{comment.author_name || 'Unknown User'}</div>
