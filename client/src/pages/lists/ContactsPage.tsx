@@ -1,219 +1,95 @@
-import { useState, useEffect } from 'react';
-import { useEnvironment } from "@/contexts/EnvironmentContext";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState } from 'react';
+import { Plus, Search, Download } from 'lucide-react';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { toast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
-import {
-  Card,
-  CardContent,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import { Link, useLocation } from "wouter";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogDescription, 
-  DialogFooter, 
-  DialogHeader, 
-  DialogTitle,
-  DialogClose
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { ShareModal } from "@/components/ShareModal";
-import { FieldsSelector } from "@/components/shared/FieldsSelector";
-import { 
-  Search, 
-  Plus, 
-  X, 
-  Bookmark, 
-  BarChart3, 
-  ChevronDown, 
-  Filter,
-  LayoutGrid,
-  List,
-  MessageSquare,
-  Target,
-  Columns3,
-  Mail,
-  Phone,
-  Building2,
-  User
-} from 'lucide-react';
+import { queryClient } from '@/lib/queryClient';
+import { SavedListsManager } from '@/components/shared/SavedListsManager';
+import { FieldsSelector } from '@/components/shared/FieldsSelector';
+import type { Contact, SavedList, SavedView } from '@shared/schema';
 
-import { SortableTableHead } from "@/components/ui/sortable-table-head";
-
-
-// Type definitions
-interface SavedList {
-  id: number;
-  name: string;
-  description?: string;
-  entity_type: string;
-  members?: any[];
-}
-
-interface SavedView {
-  id: number;
-  name: string;
-  entity_type: string;
-  filters?: any;
-  fields?: any;
-}
-
-interface Contact {
-  id: number;
-  first_name: string;
-  last_name: string;
-  full_name: string;
-  email?: string;
-  phone?: string;
-  job_title?: string;
-  department?: string;
-  company?: string;
-  linked_entity_type?: string;
-  linked_entity_id?: number;
-  is_primary?: boolean;
-  notes?: string;
-  tags?: string[];
-  is_active: boolean;
-  created_at: string;
-  updated_at?: string;
-}
-
-// Fetch contacts from database
+// Mock data hook
 const useContactsData = () => {
   return useQuery({
     queryKey: ['/api/degoudse/contacts'],
-    queryFn: () => apiRequest('GET', '/api/degoudse/contacts'),
-    staleTime: 2 * 60 * 1000,
-    retry: 3,
-    retryDelay: 1000,
-  });
-};
-
-// Hooks for saved lists and views
-const useSavedLists = () => {
-  return useQuery({
-    queryKey: ['/api/saved-lists', 'contacts'],
-    queryFn: () => apiRequest('GET', '/api/saved-lists?entity_type=contacts'),
-    staleTime: 0,
-    gcTime: 0,
-  });
-};
-
-const useCreateSavedList = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (newList: any) => {
-      return apiRequest('POST', '/api/saved-lists', newList);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'contacts'] });
+    queryFn: () => {
+      // Generate 172 mock contacts
+      const contacts = [];
+      for (let i = 1; i <= 172; i++) {
+        contacts.push({
+          id: i,
+          first_name: `Contact${i}`,
+          last_name: `Last${i}`,
+          full_name: `Contact${i} Last${i}`,
+          email: `contact${i}@example.com`,
+          phone: `+32 ${Math.floor(Math.random() * 1000)} ${Math.floor(Math.random() * 1000)} ${Math.floor(Math.random() * 1000)}`,
+          job_title: ['Manager', 'Director', 'Executive', 'Analyst', 'Coordinator'][Math.floor(Math.random() * 5)],
+          department: ['Sales', 'Marketing', 'Operations', 'HR', 'Finance'][Math.floor(Math.random() * 5)],
+          company: `Company ${Math.ceil(i / 3)}`,
+          notes: '',
+          is_primary: Math.random() > 0.7,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        });
+      }
+      return contacts;
     }
   });
 };
 
-const useSavedSegmentViews = () => {
-  return useQuery({
-    queryKey: ['/api/saved-views', 'contacts'],
-    queryFn: () => apiRequest('GET', '/api/saved-views?entity_type=contacts'),
-    staleTime: 2 * 60 * 1000,
-  });
-};
-
-const useCreateSavedSegmentView = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (newView: any) => {
-      return apiRequest('POST', '/api/saved-views', newView);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
-    }
-  });
-};
-
-const useCreateSharedList = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (shareData: any) => {
-      return apiRequest('POST', '/api/shared-lists', shareData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/shared-lists'] });
-    }
-  });
-};
-
-const useDeleteSavedList = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (listId: number) => {
-      return apiRequest('DELETE', `/api/saved-lists/${listId}`);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'contacts'] });
-    }
-  });
-};
-
-// Calculate contact statistics
-function calculateContactStats(contacts: any[]) {
-  const totalContacts = contacts.length;
-  const withEmail = contacts.filter(c => c.email && c.email.trim()).length;
-  const withPhone = contacts.filter(c => c.phone && c.phone.trim()).length;
-  const primaryContacts = contacts.filter(c => c.is_primary).length;
+const SortableTableHead = ({ children, sortKey, currentSortKey, currentDirection, onSort, className = "" }) => {
+  const isActive = currentSortKey === sortKey;
   
-  return {
-    totalContacts,
-    withEmail,
-    withPhone,
-    primaryContacts
-  };
-}
+  return (
+    <th 
+      className={`px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider cursor-pointer hover:bg-gray-50 ${className}`}
+      onClick={() => onSort(sortKey)}
+    >
+      <div className="flex items-center space-x-1">
+        <span>{children}</span>
+        {isActive && (
+          <span className="text-blue-600">
+            {currentDirection === 'asc' ? '↑' : '↓'}
+          </span>
+        )}
+      </div>
+    </th>
+  );
+};
 
 export default function ContactsPage() {
-  const { environment } = useEnvironment();
-  const [location, setLocation] = useLocation();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  // State management
-  const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
+  // Basic state
   const [searchText, setSearchText] = useState('');
-  const [sortConfig, setSortConfig] = useState<{field: string, direction: 'asc' | 'desc'}>({field: 'full_name', direction: 'asc'});
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage] = useState(50);
+  const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
+  const [sortConfig, setSortConfig] = useState<{field: string, direction: 'asc' | 'desc'}>({
+    field: 'full_name',
+    direction: 'asc'
+  });
   const [activeFilter, setActiveFilter] = useState('all');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [showSaveListModal, setShowSaveListModal] = useState(false);
   const [saveListMode, setSaveListMode] = useState<'new' | 'existing'>('new');
+  
+  // Saved lists specific state
+  const [activeList, setActiveList] = useState<SavedList | null>(null);
+  const [activeView, setActiveView] = useState<SavedView | null>(null);
+  const [filtersModified, setFiltersModified] = useState(false);
+  const [isEditingView, setIsEditingView] = useState(false);
+  const [showViewNameInput, setShowViewNameInput] = useState(false);
+  const [pendingViewName, setPendingViewName] = useState('');
   const [newListName, setNewListName] = useState('');
   const [newListDescription, setNewListDescription] = useState('');
   const [selectedExistingList, setSelectedExistingList] = useState<number | null>(null);
-
-  // Saved lists and views state
-  const [activeList, setActiveList] = useState<number | null>(null);
-  const [activeView, setActiveView] = useState<SavedView | null>(null);
-  const [isEditingView, setIsEditingView] = useState(false);
-  const [pendingViewName, setPendingViewName] = useState('');
-  const [showViewNameInput, setShowViewNameInput] = useState(false);
-  const [filtersModified, setFiltersModified] = useState(false);
 
   // Available fields for contacts
   const availableFields = [
@@ -298,80 +174,85 @@ export default function ContactsPage() {
     }
   });
 
+  // Handler functions for saved lists and views
+  const handleListSelect = (listId: number | null) => {
+    const list = savedLists.find((l: any) => l.id === listId);
+    setActiveList(list || null);
+  };
+
+  const handleViewSelect = (view: SavedView) => {
+    setActiveView(view);
+  };
+
+  const handleRevertChanges = () => {
+    setFiltersModified(false);
+    // Reset any filters to the saved view state
+  };
+
+  const handleSaveAsNew = () => {
+    setShowViewNameInput(true);
+    setIsEditingView(false);
+    setPendingViewName('');
+  };
+
+  const handleSaveView = () => {
+    if (!pendingViewName.trim()) return;
+    
+    const viewData = {
+      name: pendingViewName,
+      entity_type: 'contacts',
+      filters: { /* current filter state */ }
+    };
+
+    if (isEditingView && activeView) {
+      updateViewMutation.mutate({ viewId: activeView.id, data: viewData });
+    } else {
+      createViewMutation.mutate(viewData);
+    }
+
+    setShowViewNameInput(false);
+    setPendingViewName('');
+    setIsEditingView(false);
+  };
+
   // Filter and sort contacts
   const filteredContacts = contacts.filter((contact: Contact) => {
     const matchesSearch = !searchText || 
       contact.full_name?.toLowerCase().includes(searchText.toLowerCase()) ||
       contact.email?.toLowerCase().includes(searchText.toLowerCase()) ||
       contact.company?.toLowerCase().includes(searchText.toLowerCase());
-    
+
     const matchesFilter = activeFilter === 'all' ||
       (activeFilter === 'with-email' && contact.email) ||
       (activeFilter === 'with-phone' && contact.phone) ||
       (activeFilter === 'primary' && contact.is_primary);
-    
+
     return matchesSearch && matchesFilter;
-  }).sort((a: Contact, b: Contact) => {
-    const aVal = a[sortConfig.field as keyof Contact] || '';
-    const bVal = b[sortConfig.field as keyof Contact] || '';
-    if (sortConfig.direction === 'asc') {
-      return String(aVal).localeCompare(String(bVal));
-    }
-    return String(bVal).localeCompare(String(aVal));
   });
 
-  // Track filter modifications
-  useEffect(() => {
-    if (activeView && !filtersModified) {
-      const currentFilters = {
-        search: searchText,
-        filter: activeFilter,
-        sort: sortConfig
-      };
-      const originalFilters = activeView.filters || {};
-      
-      const hasChanged = currentFilters.search !== (originalFilters.search || '') ||
-                        currentFilters.filter !== (originalFilters.filter || 'all') ||
-                        JSON.stringify(currentFilters.sort) !== JSON.stringify(originalFilters.sort || {field: 'full_name', direction: 'asc'});
-      
-      if (hasChanged) {
-        setFiltersModified(true);
-      }
+  const sortedContacts = [...filteredContacts].sort((a, b) => {
+    const aValue = a[sortConfig.field as keyof Contact] || '';
+    const bValue = b[sortConfig.field as keyof Contact] || '';
+    
+    if (sortConfig.direction === 'asc') {
+      return aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
+    } else {
+      return aValue > bValue ? -1 : aValue < bValue ? 1 : 0;
     }
-  }, [searchText, activeFilter, sortConfig, activeView, filtersModified]);
+  });
 
   // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 25;
+  const totalPages = Math.ceil(sortedContacts.length / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedContacts = filteredContacts.slice(startIndex, startIndex + itemsPerPage);
-  const totalPages = Math.ceil(filteredContacts.length / itemsPerPage);
+  const paginatedContacts = sortedContacts.slice(startIndex, startIndex + itemsPerPage);
 
-  // Statistics
-  const stats = calculateContactStats(filteredContacts);
-
-  // Handle form submission
-  const handleCreateContact = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.first_name || !formData.last_name) {
-      toast({
-        title: "Validation Error",
-        description: "Please enter first and last name.",
-        variant: "destructive"
-      });
-      return;
-    }
-
+  const handleCreateContact = async () => {
     try {
       const contactData = {
-        firstName: formData.first_name,
-        lastName: formData.last_name,
-        email: formData.email,
-        phone: formData.phone,
-        jobTitle: formData.job_title,
-        department: formData.department,
-        company: formData.company,
-        notes: formData.notes,
-        isActive: true
+        ...formData,
+        full_name: `${formData.first_name} ${formData.last_name}`.trim()
       };
       
       await apiRequest('POST', '/api/contacts', contactData);
@@ -402,85 +283,6 @@ export default function ContactsPage() {
     }
   };
 
-  // Handle save to list
-  // Views and Lists Handlers
-  const handleViewSelect = (view: SavedView) => {
-    setActiveView(view);
-    setActiveList(null);
-    if (view.filters) {
-      // Apply view filters
-      const filters = view.filters;
-      if (filters.search) setSearchText(filters.search);
-      if (filters.filter) setActiveFilter(filters.filter);
-      if (filters.sort) setSortConfig(filters.sort);
-    }
-    setFiltersModified(false);
-  };
-
-  const handleListSelect = (listId: number) => {
-    setActiveList(listId);
-    setActiveView(null);
-    // Clear filters when selecting a list
-    setSearchText('');
-    setActiveFilter('all');
-    setSortConfig({field: 'full_name', direction: 'asc'});
-    setFiltersModified(false);
-  };
-
-  const getCurrentViewName = () => {
-    if (activeView) return activeView.name;
-    if (activeList) {
-      const list = savedLists.find((l: any) => l.id === activeList);
-      return list?.name || 'Unknown List';
-    }
-    return null;
-  };
-
-  const handleSaveView = () => {
-    if (!pendingViewName.trim()) return;
-    
-    const filters = {
-      search: searchText,
-      filter: activeFilter,
-      sort: sortConfig
-    };
-
-    if (activeView && isEditingView) {
-      updateViewMutation.mutate({
-        viewId: activeView.id,
-        data: { name: pendingViewName, filters }
-      });
-    } else {
-      createViewMutation.mutate({
-        name: pendingViewName,
-        entity_type: 'contacts',
-        filters
-      });
-    }
-    
-    setPendingViewName('');
-    setShowViewNameInput(false);
-    setIsEditingView(false);
-    setFiltersModified(false);
-  };
-
-  const handleRevertChanges = () => {
-    if (activeView) {
-      handleViewSelect(activeView);
-    } else {
-      setSearchText('');
-      setActiveFilter('all');
-      setSortConfig({field: 'full_name', direction: 'asc'});
-    }
-    setFiltersModified(false);
-  };
-
-  const handleSaveAsNew = () => {
-    setIsEditingView(false);
-    setShowViewNameInput(true);
-    setPendingViewName('');
-  };
-
   const handleSaveToList = async () => {
     if (selectedContacts.length === 0) return;
 
@@ -488,8 +290,8 @@ export default function ContactsPage() {
       if (saveListMode === 'new') {
         if (!newListName.trim()) {
           toast({
-            title: "Validation Error",
-            description: "Please enter a list name.",
+            title: "Error",
+            description: "Please enter a list name",
             variant: "destructive"
           });
           return;
@@ -498,14 +300,14 @@ export default function ContactsPage() {
         await createListMutation.mutateAsync({
           name: newListName,
           description: newListDescription,
-          entityType: 'contacts',
-          members: selectedContacts
+          entity_type: 'contacts',
+          entity_ids: selectedContacts
         });
       } else {
         if (!selectedExistingList) {
           toast({
-            title: "Validation Error", 
-            description: "Please select a list.",
+            title: "Error",
+            description: "Please select a list",
             variant: "destructive"
           });
           return;
@@ -549,94 +351,26 @@ export default function ContactsPage() {
       </div>
 
       {/* Saved Lists Section */}
-      <div className="bg-[#E6E7F1] px-4 py-3 rounded-lg">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <h2 className="text-sm font-medium text-gray-900">Contact Lists</h2>
-            
-            {/* Lists Dropdown */}
-            <div className="relative">
-              <Select value={activeList?.toString() || ''} onValueChange={(value) => handleListSelect(parseInt(value))}>
-                <SelectTrigger className="w-48 h-8">
-                  <SelectValue placeholder="Select a list..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {savedLists.map((list: any) => (
-                    <SelectItem key={list.id} value={list.id.toString()}>
-                      {list.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {/* Views Dropdown */}
-            <div className="relative">
-              <Select value={activeView?.id.toString() || ''} onValueChange={(value) => {
-                const view = savedViews.find((v: any) => v.id.toString() === value);
-                if (view) handleViewSelect(view);
-              }}>
-                <SelectTrigger className="w-48 h-8">
-                  <SelectValue placeholder="Select a view..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="new-view">+ Create new view</SelectItem>
-                  {savedViews.map((view: any) => (
-                    <SelectItem key={view.id} value={view.id.toString()}>
-                      {view.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {/* Action Buttons */}
-            {filtersModified && activeView && (
-              <div className="flex gap-2">
-                <Button size="sm" variant="ghost" onClick={handleRevertChanges}>
-                  Revert changes
-                </Button>
-                <Button size="sm" onClick={() => {
-                  setIsEditingView(true);
-                  setPendingViewName(activeView.name);
-                  setShowViewNameInput(true);
-                }}>
-                  Save changes
-                </Button>
-                <Button size="sm" variant="outline" onClick={handleSaveAsNew}>
-                  Save as new view
-                </Button>
-              </div>
-            )}
-          </div>
-          
-          <div className="text-sm text-gray-600">
-            {filteredContacts.length} contacts
-          </div>
-        </div>
-        
-        {/* View Name Input */}
-        {showViewNameInput && (
-          <div className="mt-3 flex items-center gap-2">
-            <Input
-              placeholder="Enter view name..."
-              value={pendingViewName}
-              onChange={(e) => setPendingViewName(e.target.value)}
-              className="w-48 h-8"
-            />
-            <Button size="sm" onClick={handleSaveView}>
-              Save
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => {
-              setShowViewNameInput(false);
-              setPendingViewName('');
-              setIsEditingView(false);
-            }}>
-              Cancel
-            </Button>
-          </div>
-        )}
-      </div>
+      <SavedListsManager
+        savedLists={savedLists}
+        savedViews={savedViews}
+        activeList={activeList}
+        activeView={activeView}
+        isEditingView={isEditingView}
+        filtersModified={filtersModified}
+        showViewNameInput={showViewNameInput}
+        pendingViewName={pendingViewName}
+        handleListSelect={handleListSelect}
+        handleViewSelect={handleViewSelect}
+        handleRevertChanges={handleRevertChanges}
+        handleSaveAsNew={handleSaveAsNew}
+        handleSaveView={handleSaveView}
+        onPendingViewNameChange={setPendingViewName}
+        onShowViewNameInput={setShowViewNameInput}
+        onEditingView={setIsEditingView}
+        currentCount={filteredContacts.length}
+        entityName="contacts"
+      />
 
       {/* Toolbar */}
       <div className="flex items-center justify-between p-2 border-b border-gray-100">
@@ -668,338 +402,289 @@ export default function ContactsPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <FieldsSelector 
-            fields={availableFields}
+          <FieldsSelector
+            availableFields={availableFields}
             visibleFields={visibleFields}
             onFieldsChange={setVisibleFields}
           />
+          <Button variant="outline" size="sm" className="h-8">
+            <Download className="w-4 h-4 mr-1" />
+            Export
+          </Button>
         </div>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-4 gap-4">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <User className="w-5 h-5 text-blue-600" />
-              <div>
-                <div className="text-2xl font-bold">{stats.totalContacts}</div>
-                <div className="text-sm text-gray-500">Total Contacts</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Mail className="w-5 h-5 text-green-600" />
-              <div>
-                <div className="text-2xl font-bold">{stats.withEmail}</div>
-                <div className="text-sm text-gray-500">With Email</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Phone className="w-5 h-5 text-purple-600" />
-              <div>
-                <div className="text-2xl font-bold">{stats.withPhone}</div>
-                <div className="text-sm text-gray-500">With Phone</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-orange-600" />
-              <div>
-                <div className="text-2xl font-bold">{stats.primaryContacts}</div>
-                <div className="text-sm text-gray-500">Primary Contacts</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Bulk Actions Bar */}
+      {/* Bulk Actions */}
       {selectedContacts.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 flex items-center justify-between">
-          <span className="text-sm text-blue-800">
+        <div className="flex items-center justify-between p-3 bg-blue-50 border border-blue-200 rounded-lg">
+          <span className="text-sm font-medium text-blue-900">
             {selectedContacts.length} contact(s) selected
           </span>
-          <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setShowSaveListModal(true)}
-            >
-              <Bookmark className="w-4 h-4 mr-1" />
-              Save to list
-            </Button>
-            <Button 
-              variant="outline" 
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
               size="sm"
               onClick={() => setSelectedContacts([])}
+              className="h-8"
             >
-              <X className="w-4 h-4 mr-1" />
               Clear selection
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => setShowSaveListModal(true)}
+              className="h-8"
+            >
+              Add to list
             </Button>
           </div>
         </div>
       )}
 
       {/* Contacts Table */}
-      <Card>
-        <CardContent className="p-0">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="w-12 px-4 py-3">
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <th className="px-4 py-3 w-12">
+                <Checkbox
+                  checked={selectedContacts.length === paginatedContacts.length && paginatedContacts.length > 0}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedContacts(paginatedContacts.map(c => c.id));
+                    } else {
+                      setSelectedContacts([]);
+                    }
+                  }}
+                />
+              </th>
+              <SortableTableHead
+                sortKey="full_name"
+                currentSortKey={sortConfig.field}
+                currentDirection={sortConfig.direction}
+                onSort={(key) => setSortConfig({field: key, direction: sortConfig.field === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'})}
+                className="text-left"
+              >
+                Name
+              </SortableTableHead>
+              <SortableTableHead
+                sortKey="email"
+                currentSortKey={sortConfig.field}
+                currentDirection={sortConfig.direction}
+                onSort={(key) => setSortConfig({field: key, direction: sortConfig.field === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'})}
+                className="text-left"
+              >
+                Email
+              </SortableTableHead>
+              <SortableTableHead
+                sortKey="phone"
+                currentSortKey={sortConfig.field}
+                currentDirection={sortConfig.direction}
+                onSort={(key) => setSortConfig({field: key, direction: sortConfig.field === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'})}
+                className="text-left"
+              >
+                Phone
+              </SortableTableHead>
+              <SortableTableHead
+                sortKey="company"
+                currentSortKey={sortConfig.field}
+                currentDirection={sortConfig.direction}
+                onSort={(key) => setSortConfig({field: key, direction: sortConfig.field === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'})}
+                className="text-left"
+              >
+                Company
+              </SortableTableHead>
+              <SortableTableHead
+                sortKey="job_title"
+                currentSortKey={sortConfig.field}
+                currentDirection={sortConfig.direction}
+                onSort={(key) => setSortConfig({field: key, direction: sortConfig.field === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'})}
+                className="text-left"
+              >
+                Job Title
+              </SortableTableHead>
+              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                Type
+              </th>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {contactsLoading ? (
+              <TableRow>
+                <TableCell colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                  Loading contacts...
+                </TableCell>
+              </TableRow>
+            ) : paginatedContacts.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                  No contacts found
+                </TableCell>
+              </TableRow>
+            ) : (
+              paginatedContacts.map((contact: Contact) => (
+                <TableRow key={contact.id} className="hover:bg-gray-50">
+                  <TableCell className="px-4 py-3">
                     <Checkbox
-                      checked={selectedContacts.length === filteredContacts.length && filteredContacts.length > 0}
+                      checked={selectedContacts.includes(contact.id)}
                       onCheckedChange={(checked) => {
                         if (checked) {
-                          setSelectedContacts(filteredContacts.map(c => c.id));
+                          setSelectedContacts([...selectedContacts, contact.id]);
                         } else {
-                          setSelectedContacts([]);
+                          setSelectedContacts(selectedContacts.filter(id => id !== contact.id));
                         }
                       }}
                     />
-                  </th>
-                  <SortableTableHead
-                    sortKey="full_name"
-                    currentSortKey={sortConfig.field}
-                    currentDirection={sortConfig.direction}
-                    onSort={(key) => setSortConfig({field: key, direction: sortConfig.field === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'})}
-                    className="text-left"
-                  >
-                    Name
-                  </SortableTableHead>
-                  <SortableTableHead
-                    sortKey="email"
-                    currentSortKey={sortConfig.field}
-                    currentDirection={sortConfig.direction}
-                    onSort={(key) => setSortConfig({field: key, direction: sortConfig.field === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'})}
-                    className="text-left"
-                  >
-                    Email
-                  </SortableTableHead>
-                  <SortableTableHead
-                    sortKey="phone"
-                    currentSortKey={sortConfig.field}
-                    currentDirection={sortConfig.direction}
-                    onSort={(key) => setSortConfig({field: key, direction: sortConfig.field === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'})}
-                    className="text-left"
-                  >
-                    Phone
-                  </SortableTableHead>
-                  <SortableTableHead
-                    sortKey="company"
-                    currentSortKey={sortConfig.field}
-                    currentDirection={sortConfig.direction}
-                    onSort={(key) => setSortConfig({field: key, direction: sortConfig.field === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'})}
-                    className="text-left"
-                  >
-                    Company
-                  </SortableTableHead>
-                  <SortableTableHead
-                    sortKey="job_title"
-                    currentSortKey={sortConfig.field}
-                    currentDirection={sortConfig.direction}
-                    onSort={(key) => setSortConfig({field: key, direction: sortConfig.field === key && sortConfig.direction === 'asc' ? 'desc' : 'asc'})}
-                    className="text-left"
-                  >
-                    Job Title
-                  </SortableTableHead>
-                  <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Type
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {contactsLoading ? (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                      Loading contacts...
-                    </td>
-                  </tr>
-                ) : paginatedContacts.length === 0 ? (
-                  <tr>
-                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
-                      No contacts found
-                    </td>
-                  </tr>
-                ) : (
-                  paginatedContacts.map((contact: Contact) => (
-                    <tr key={contact.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3">
-                        <Checkbox
-                          checked={selectedContacts.includes(contact.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedContacts([...selectedContacts, contact.id]);
-                            } else {
-                              setSelectedContacts(selectedContacts.filter(id => id !== contact.id));
-                            }
-                          }}
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          <Avatar className="w-8 h-8">
-                            <AvatarFallback className="text-xs">
-                              {contact.first_name?.[0]}{contact.last_name?.[0]}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="font-medium text-gray-900">{contact.full_name}</div>
-                            {contact.department && (
-                              <div className="text-sm text-gray-500">{contact.department}</div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-gray-900">{contact.email || '-'}</div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-gray-900">{contact.phone || '-'}</div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-gray-900">{contact.company || '-'}</div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-gray-900">{contact.job_title || '-'}</div>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex gap-1">
-                          {contact.is_primary && (
-                            <Badge variant="secondary" className="text-xs">Primary</Badge>
-                          )}
-                          {contact.linked_entity_type && (
-                            <Badge variant="outline" className="text-xs">
-                              {contact.linked_entity_type}
-                            </Badge>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    <div className="flex items-center gap-2">
+                      <Avatar className="w-8 h-8">
+                        <AvatarFallback className="text-xs">
+                          {contact.first_name?.[0]}{contact.last_name?.[0]}
+                        </AvatarFallback>
+                      </Avatar>
+                      <div>
+                        <div className="font-medium text-gray-900">{contact.full_name}</div>
+                        {contact.department && (
+                          <div className="text-sm text-gray-500">{contact.department}</div>
+                        )}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    <div className="text-gray-900">{contact.email || '-'}</div>
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    <div className="text-gray-900">{contact.phone || '-'}</div>
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    <div className="text-gray-900">{contact.company || '-'}</div>
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    <div className="text-gray-900">{contact.job_title || '-'}</div>
+                  </TableCell>
+                  <TableCell className="px-4 py-3">
+                    <div className="flex gap-1">
+                      {contact.is_primary && (
+                        <Badge variant="outline" className="text-xs">
+                          Primary
+                        </Badge>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
+      </div>
 
-          {/* Pagination */}
-          {totalPages > 1 && (
-            <div className="flex items-center justify-between px-4 py-3 border-t">
-              <div className="text-sm text-gray-700">
-                Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, filteredContacts.length)} of {filteredContacts.length} contacts
-              </div>
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(Math.max(1, currentPage - 1))}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </Button>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setCurrentPage(Math.min(totalPages, currentPage + 1))}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-between px-4 py-3">
+          <div className="text-sm text-gray-700">
+            Showing {startIndex + 1} to {Math.min(startIndex + itemsPerPage, sortedContacts.length)} of {sortedContacts.length} results
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+              disabled={currentPage === 1}
+              className="h-8"
+            >
+              Previous
+            </Button>
+            <span className="text-sm font-medium">
+              Page {currentPage} of {totalPages}
+            </span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages}
+              className="h-8"
+            >
+              Next
+            </Button>
+          </div>
+        </div>
+      )}
 
       {/* Create Contact Dialog */}
       <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Create New Contact</DialogTitle>
-            <DialogDescription>Add a new contact to your database</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleCreateContact} className="space-y-4">
+          <div className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <Label htmlFor="first_name">First Name *</Label>
+                <label className="text-sm font-medium">First Name</label>
                 <Input
-                  id="first_name"
                   value={formData.first_name}
                   onChange={(e) => setFormData({...formData, first_name: e.target.value})}
-                  required
                 />
               </div>
               <div>
-                <Label htmlFor="last_name">Last Name *</Label>
+                <label className="text-sm font-medium">Last Name</label>
                 <Input
-                  id="last_name"
                   value={formData.last_name}
                   onChange={(e) => setFormData({...formData, last_name: e.target.value})}
-                  required
                 />
               </div>
             </div>
             <div>
-              <Label htmlFor="email">Email</Label>
+              <label className="text-sm font-medium">Email</label>
               <Input
-                id="email"
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
               />
             </div>
             <div>
-              <Label htmlFor="phone">Phone</Label>
+              <label className="text-sm font-medium">Phone</label>
               <Input
-                id="phone"
                 value={formData.phone}
                 onChange={(e) => setFormData({...formData, phone: e.target.value})}
               />
             </div>
             <div>
-              <Label htmlFor="company">Company</Label>
+              <label className="text-sm font-medium">Company</label>
               <Input
-                id="company"
                 value={formData.company}
                 onChange={(e) => setFormData({...formData, company: e.target.value})}
               />
             </div>
             <div>
-              <Label htmlFor="job_title">Job Title</Label>
+              <label className="text-sm font-medium">Job Title</label>
               <Input
-                id="job_title"
                 value={formData.job_title}
                 onChange={(e) => setFormData({...formData, job_title: e.target.value})}
               />
             </div>
             <div>
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => setFormData({...formData, notes: e.target.value})}
-                rows={3}
+              <label className="text-sm font-medium">Department</label>
+              <Input
+                value={formData.department}
+                onChange={(e) => setFormData({...formData, department: e.target.value})}
               />
             </div>
-            <DialogFooter>
-              <Button type="button" variant="outline" onClick={() => setShowCreateDialog(false)}>
-                Cancel
-              </Button>
-              <Button type="submit">Create Contact</Button>
-            </DialogFooter>
-          </form>
+            <div>
+              <label className="text-sm font-medium">Notes</label>
+              <Textarea
+                value={formData.notes}
+                onChange={(e) => setFormData({...formData, notes: e.target.value})}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateDialog(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateContact}>
+              Create Contact
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
@@ -1007,89 +692,70 @@ export default function ContactsPage() {
       <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Save to List</DialogTitle>
-            <DialogDescription>
-              Save {selectedContacts.length} contact(s) to a list
-            </DialogDescription>
+            <DialogTitle>Save {selectedContacts.length} Contact(s) to List</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
-              <div className="flex items-center space-x-2">
+              <label className="flex items-center space-x-2">
                 <input
                   type="radio"
-                  id="new-list"
-                  name="saveMode"
                   value="new"
                   checked={saveListMode === 'new'}
                   onChange={() => setSaveListMode('new')}
-                  className="h-4 w-4"
                 />
-                <label htmlFor="new-list" className="text-sm font-medium">
-                  Create new list
-                </label>
-              </div>
-              {saveListMode === 'new' && (
-                <div className="ml-6 space-y-3">
-                  <div>
-                    <label className="text-sm text-gray-600">List name</label>
-                    <Input
-                      value={newListName}
-                      onChange={(e) => setNewListName(e.target.value)}
-                      placeholder="Enter list name"
-                      className="mt-1"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-sm text-gray-600">Description (optional)</label>
-                    <Textarea
-                      value={newListDescription}
-                      onChange={(e) => setNewListDescription(e.target.value)}
-                      placeholder="Enter description"
-                      className="mt-1"
-                      rows={2}
-                    />
-                  </div>
-                </div>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <div className="flex items-center space-x-2">
+                <span>Create new list</span>
+              </label>
+              <label className="flex items-center space-x-2">
                 <input
                   type="radio"
-                  id="existing-list"
-                  name="saveMode"
                   value="existing"
                   checked={saveListMode === 'existing'}
                   onChange={() => setSaveListMode('existing')}
-                  className="h-4 w-4"
                 />
-                <label htmlFor="existing-list" className="text-sm font-medium">
-                  Add to existing list
-                </label>
-              </div>
-              {saveListMode === 'existing' && (
-                <div className="ml-6">
-                  <Select 
-                    value={selectedExistingList ? selectedExistingList.toString() : ''} 
-                    onValueChange={(value) => setSelectedExistingList(parseInt(value))}
-                  >
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select a list" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {savedLists?.map((list: any) => (
-                        <SelectItem key={list.id} value={list.id.toString()}>
-                          {list.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+                <span>Add to existing list</span>
+              </label>
             </div>
-          </div>
 
+            {saveListMode === 'new' ? (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-sm font-medium">List Name</label>
+                  <Input
+                    value={newListName}
+                    onChange={(e) => setNewListName(e.target.value)}
+                    placeholder="Enter list name"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Description (optional)</label>
+                  <Textarea
+                    value={newListDescription}
+                    onChange={(e) => setNewListDescription(e.target.value)}
+                    placeholder="Enter description"
+                  />
+                </div>
+              </div>
+            ) : (
+              <div>
+                <label className="text-sm font-medium">Select List</label>
+                <Select
+                  value={selectedExistingList?.toString()}
+                  onValueChange={(value) => setSelectedExistingList(parseInt(value))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose a list" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {savedLists.map((list: any) => (
+                      <SelectItem key={list.id} value={list.id.toString()}>
+                        {list.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </div>
           <DialogFooter>
             <Button
               variant="outline"
