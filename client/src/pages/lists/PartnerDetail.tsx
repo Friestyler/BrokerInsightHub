@@ -3077,7 +3077,7 @@ export default function PartnerDetail() {
             </div>
 
             {/* Opportunities Table */}
-            <div className="bg-white rounded-lg shadow-sm" id="opportunities-table">
+            <div className="bg-white rounded-lg shadow-sm mt-6" id="opportunities-table">
               <Table>
                 <TableHeader>
                   <TableRow>
