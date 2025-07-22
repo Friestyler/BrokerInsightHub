@@ -191,6 +191,19 @@ export default function PartnerDetailBrokerPOV() {
     setHasActiveOpportunityFilters(false);
   };
 
+  // Color palette for lists
+  const getListColor = (index: number) => {
+    const colors = [
+      { bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-700', accent: 'bg-blue-100' },
+      { bg: 'bg-emerald-50', border: 'border-emerald-200', text: 'text-emerald-700', accent: 'bg-emerald-100' },
+      { bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-700', accent: 'bg-purple-100' },
+      { bg: 'bg-amber-50', border: 'border-amber-200', text: 'text-amber-700', accent: 'bg-amber-100' },
+      { bg: 'bg-rose-50', border: 'border-rose-200', text: 'text-rose-700', accent: 'bg-rose-100' },
+      { bg: 'bg-indigo-50', border: 'border-indigo-200', text: 'text-indigo-700', accent: 'bg-indigo-100' },
+    ];
+    return colors[index % colors.length];
+  };
+
   // Debug logs after state declarations
   console.log('🚨 BROKER VIEW - RENDER - Render key:', renderKey);
   console.log('🚨 BROKER VIEW - Current environment (state):', currentEnvironment);
@@ -1929,12 +1942,14 @@ export default function PartnerDetailBrokerPOV() {
                           </div>
                           
                           {/* Shared lists cards */}
-                          {partnerRelevantLists.map((list: any) => (
+                          {partnerRelevantLists.map((list: any, index: number) => {
+                            const listColor = getListColor(index);
+                            return (
                             <div 
                               key={list.id}
-                              className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                              className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${
                                 activeOpportunitiesList?.id === list.id 
-                                  ? 'border-[#5567E5] bg-[#F8F9FF]' 
+                                  ? `${listColor.border} ${listColor.bg}` 
                                   : 'border-gray-200 hover:border-gray-300'
                               }`}
                               onClick={() => {
@@ -1946,8 +1961,12 @@ export default function PartnerDetailBrokerPOV() {
                               }}
                             >
                               <div className="flex items-center justify-between mb-2">
-                                <h3 className="font-medium text-gray-900">{list.name}</h3>
-                                <div className="text-sm text-gray-500">
+                                <h3 className={`font-medium ${
+                                  activeOpportunitiesList?.id === list.id ? listColor.text : 'text-gray-900'
+                                }`}>{list.name}</h3>
+                                <div className={`text-sm px-2 py-1 rounded-full ${
+                                  activeOpportunitiesList?.id === list.id ? `${listColor.accent} ${listColor.text}` : 'text-gray-500'
+                                }`}>
                                   {list.members?.length || 0} items
                                 </div>
                               </div>
@@ -1965,7 +1984,8 @@ export default function PartnerDetailBrokerPOV() {
                                 <p className="text-sm text-gray-600">{list.description}</p>
                               )}
                             </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       ) : (
                         <div className="space-y-2">
@@ -1993,12 +2013,14 @@ export default function PartnerDetailBrokerPOV() {
                           </div>
                           
                           {/* Shared lists items */}
-                          {partnerRelevantLists.map((list: any) => (
+                          {partnerRelevantLists.map((list: any, index: number) => {
+                            const listColor = getListColor(index);
+                            return (
                             <div 
                               key={list.id}
-                              className={`flex items-center justify-between p-3 border rounded-lg cursor-pointer transition-all ${
+                              className={`flex items-center justify-between p-3 border-2 rounded-lg cursor-pointer transition-all ${
                                 activeOpportunitiesList?.id === list.id 
-                                  ? 'border-[#5567E5] bg-[#F8F9FF]' 
+                                  ? `${listColor.border} ${listColor.bg}` 
                                   : 'border-gray-200 hover:border-gray-300'
                               }`}
                               onClick={() => {
@@ -2010,7 +2032,9 @@ export default function PartnerDetailBrokerPOV() {
                               }}
                             >
                               <div className="flex items-center space-x-3">
-                                <div className="font-medium text-gray-900">{list.name}</div>
+                                <div className={`font-medium ${
+                                  activeOpportunitiesList?.id === list.id ? listColor.text : 'text-gray-900'
+                                }`}>{list.name}</div>
                                 <div className="flex items-center space-x-1">
                                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
                                     <circle cx="18" cy="5" r="3"></circle>
@@ -2022,11 +2046,14 @@ export default function PartnerDetailBrokerPOV() {
                                   <span className="text-xs text-gray-500">Shared by De Goudse</span>
                                 </div>
                               </div>
-                              <div className="text-sm text-gray-500">
+                              <div className={`text-sm px-2 py-1 rounded-full ${
+                                activeOpportunitiesList?.id === list.id ? `${listColor.accent} ${listColor.text}` : 'text-gray-500'
+                              }`}>
                                 {list.members?.length || 0} items
                               </div>
                             </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       )}
                     </div>
