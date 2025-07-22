@@ -2274,6 +2274,64 @@ export default function PartnerDetailBrokerPOV() {
                 </div>
               )}
 
+              {/* Dynamic Totals Display */}
+              {!opportunitiesLoading && filteredOpportunities.length > 0 && (
+                <div className="bg-white rounded-lg shadow-sm border border-[#E6E7F1] mb-6">
+                  <div className="px-6 py-4">
+                    <div className="grid grid-cols-4 gap-8">
+                      {/* Total Opportunities */}
+                      <div className="flex flex-col">
+                        <div className="text-2xl font-bold text-gray-900">
+                          {filteredOpportunities.length}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          Total Opportunities
+                        </div>
+                      </div>
+                      
+                      {/* Closed Won */}
+                      <div className="flex flex-col">
+                        <div className="text-2xl font-bold text-gray-900">
+                          {filteredOpportunities.filter((opp: any) => 
+                            opp.stage === 'Closed (Won)' || opp.stage === 'closed_won'
+                          ).length}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          Closed Won
+                        </div>
+                      </div>
+                      
+                      {/* Total Value */}
+                      <div className="flex flex-col">
+                        <div className="text-2xl font-bold text-gray-900">
+                          €{filteredOpportunities.reduce((sum: number, opp: any) => {
+                            const value = parseFloat(opp.estimated_value) || 0;
+                            return sum + value;
+                          }, 0).toLocaleString()}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          Total Value
+                        </div>
+                      </div>
+                      
+                      {/* Weighted Value */}
+                      <div className="flex flex-col">
+                        <div className="text-2xl font-bold text-gray-900">
+                          €{filteredOpportunities.reduce((sum: number, opp: any) => {
+                            const value = parseFloat(opp.estimated_value) || 0;
+                            const probability = parseFloat(opp.probability) || 0;
+                            return sum + (value * probability / 100);
+                          }, 0).toLocaleString()}
+                        </div>
+                        <div className="text-sm text-gray-500">
+                          Weighted Value
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Opportunities Table */}
               {opportunitiesLoading ? (
                 <div className="text-center py-12">
