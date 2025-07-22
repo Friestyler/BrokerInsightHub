@@ -1752,10 +1752,10 @@ export default function PartnerDetailBrokerPOV() {
           )}
 
           {activeTab === "opportunities" && (
-            <div className="space-y-1">
+            <div className="space-y-0">
               {/* Enhanced unified toolbar - same as OpportunitiesPage */}
               <div className="bg-white p-2 rounded-lg shadow-sm">
-                <div className="flex flex-col gap-3">
+                <div className="flex flex-col">
                   {/* Saved Lists header with optional selected list indicator */}
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
@@ -1781,6 +1781,46 @@ export default function PartnerDetailBrokerPOV() {
                         <span>Saved Lists ({1 + partnerRelevantLists.length})</span>
                       </button>
                       
+                      {/* Cards/List toggle when expanded - moved next to chevron */}
+                      {expandedListsDropdown && (
+                        <div className="flex items-center border border-gray-200 rounded-md p-1">
+                          <button
+                            onClick={() => setViewMode('cards')}
+                            className={`flex items-center space-x-1 px-3 py-1.5 rounded text-xs transition-colors ${
+                              viewMode === 'cards' 
+                                ? 'bg-[#5567E5] text-white' 
+                                : 'text-gray-600 hover:text-gray-800'
+                            }`}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <rect x="3" y="3" width="7" height="7"></rect>
+                              <rect x="14" y="3" width="7" height="7"></rect>
+                              <rect x="14" y="14" width="7" height="7"></rect>
+                              <rect x="3" y="14" width="7" height="7"></rect>
+                            </svg>
+                            <span>Cards</span>
+                          </button>
+                          <button
+                            onClick={() => setViewMode('list')}
+                            className={`flex items-center space-x-1 px-3 py-1.5 rounded text-xs transition-colors ${
+                              viewMode === 'list' 
+                                ? 'bg-[#5567E5] text-white' 
+                                : 'text-gray-600 hover:text-gray-800'
+                              }`}
+                          >
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <line x1="8" y1="6" x2="21" y2="6"></line>
+                              <line x1="8" y1="12" x2="21" y2="12"></line>
+                              <line x1="8" y1="18" x2="21" y2="18"></line>
+                              <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                              <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                              <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                            </svg>
+                            <span>List</span>
+                          </button>
+                        </div>
+                      )}
+                      
                       {/* Show selected list when collapsed */}
                       {!expandedListsDropdown && activeOpportunitiesList && (
                         <div className="flex items-center space-x-2 px-3 py-1.5 bg-blue-50 border border-blue-200 rounded-md">
@@ -1804,51 +1844,11 @@ export default function PartnerDetailBrokerPOV() {
                         </div>
                       )}
                     </div>
-
-                    {/* Cards/List toggle when expanded - moved to same line */}
-                    {expandedListsDropdown && (
-                      <div className="flex items-center border border-gray-200 rounded-md p-1">
-                        <button
-                          onClick={() => setViewMode('cards')}
-                          className={`flex items-center space-x-1 px-3 py-1.5 rounded text-xs transition-colors ${
-                            viewMode === 'cards' 
-                              ? 'bg-[#5567E5] text-white' 
-                              : 'text-gray-600 hover:text-gray-800'
-                          }`}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <rect x="3" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="3" width="7" height="7"></rect>
-                            <rect x="14" y="14" width="7" height="7"></rect>
-                            <rect x="3" y="14" width="7" height="7"></rect>
-                          </svg>
-                          <span>Cards</span>
-                        </button>
-                        <button
-                          onClick={() => setViewMode('list')}
-                          className={`flex items-center space-x-1 px-3 py-1.5 rounded text-xs transition-colors ${
-                            viewMode === 'list' 
-                              ? 'bg-[#5567E5] text-white' 
-                              : 'text-gray-600 hover:text-gray-800'
-                            }`}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <line x1="8" y1="6" x2="21" y2="6"></line>
-                            <line x1="8" y1="12" x2="21" y2="12"></line>
-                            <line x1="8" y1="18" x2="21" y2="18"></line>
-                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
-                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
-                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
-                          </svg>
-                          <span>List</span>
-                        </button>
-                      </div>
-                    )}
                   </div>
                   
                   {/* Expandable cards/list section */}
                   {expandedListsDropdown && (
-                    <div className="border-t pt-3">
+                    <div className="pt-3">
                       
                       {/* Cards or List view content */}
                       {viewMode === 'cards' ? (
