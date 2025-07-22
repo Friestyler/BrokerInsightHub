@@ -138,6 +138,15 @@ export default function PartnerDetailBrokerPOV() {
   const [selectedCampaigns, setSelectedCampaigns] = useState<number[]>([]);
   const [showCampaignShareModal, setShowCampaignShareModal] = useState(false);
 
+  // Bulk action state
+  const [showBulkActionModal, setShowBulkActionModal] = useState(false);
+  const [bulkActionType, setBulkActionType] = useState<'stage' | 'assessment' | 'both'>('both');
+  const [bulkStageValue, setBulkStageValue] = useState('');
+  const [bulkAssessmentValue, setBulkAssessmentValue] = useState('');
+  const [showWithholdReasonModal, setShowWithholdReasonModal] = useState(false);
+  const [selectedWithholdReasons, setSelectedWithholdReasons] = useState<string[]>([]);
+  const [withholdComment, setWithholdComment] = useState('');
+
   // Opportunities toolbar state management
   const [showListsDropdown, setShowListsDropdown] = useState(false);
   const [activeOpportunitiesList, setActiveOpportunitiesList] = useState<any>(null);
@@ -998,6 +1007,12 @@ export default function PartnerDetailBrokerPOV() {
     }).filter(Boolean)
   )) as string[];
 
+  // Create filter options for bulk actions
+  const opportunityFilterOptions = {
+    stages: uniqueStages,
+    assessments: uniqueOpportunityAssessments
+  };
+
   // Fetch template assignments for Mevas BV (partner_id 12)
   const { data: templateAssignments } = useQuery({
     queryKey: [`/api/${actualCurrentEnvironment}/template-assignments/partner`],
@@ -1185,6 +1200,12 @@ export default function PartnerDetailBrokerPOV() {
     }
   });
 
+  // Fetch withhold reasons on component mount
+  const { data: withholdReasonsData } = useQuery({
+    queryKey: ['/api/withhold-reasons'],
+    queryFn: () => apiRequest('GET', '/api/withhold-reasons'),
+  });
+
   // Comments history query - CRITICAL FIX: Use environment-specific API path for broker view
   const { data: commentsHistoryData, refetch: refetchCommentsHistory } = useQuery({
     queryKey: [`/api/${actualCurrentEnvironment}/opportunities/${selectedOpportunityForHistory?.id}/comments`],
@@ -1204,6 +1225,101 @@ export default function PartnerDetailBrokerPOV() {
       assignedTo: assignedTo || undefined,
       metricId: selectedMetricForComment.id,
     });
+  };
+
+  // Bulk action handlers
+  const handleBulkUpdate = async () => {
+    if (selectedOpportunities.length === 0) return;
+
+    try {
+      for (const oppId of selectedOpportunities) {
+        const updateData: any = {};
+        
+        if (bulkActionType === 'stage' || bulkActionType === 'both') {
+          updateData.stage = bulkStageValue;
+        }
+        
+        if (bulkActionType === 'assessment' || bulkActionType === 'both') {
+          if (bulkAssessmentValue === 'Accepted') {
+            updateData.assessmentStatus = 'accepted';
+          }
+        }
+
+        await apiRequest('PUT', `/api/${actualCurrentEnvironment}/opportunities/${oppId}`, updateData);
+      }
+
+      // Reset bulk action state
+      setShowBulkActionModal(false);
+      setBulkActionType('both');
+      setBulkStageValue('');
+      setBulkAssessmentValue('');
+      setSelectedOpportunities([]);
+
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/opportunities`] });
+      queryClient.refetchQueries({ queryKey: [`/api/${actualCurrentEnvironment}/opportunities`] });
+
+      toast({
+        title: "Bulk update completed",
+        description: `Updated ${selectedOpportunities.length} opportunities successfully`,
+      });
+
+    } catch (error) {
+      console.error('Error in bulk update:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update opportunities. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const handleBulkWithhold = async () => {
+    if (selectedOpportunities.length === 0 || selectedWithholdReasons.length === 0 || !withholdComment.trim()) return;
+
+    try {
+      for (const oppId of selectedOpportunities) {
+        const updateData: any = {
+          assessmentStatus: 'withheld',
+          withholdReasons: selectedWithholdReasons,
+          withholdComments: withholdComment,
+          assessedById: 1
+        };
+        
+        if (bulkActionType === 'stage' || bulkActionType === 'both') {
+          updateData.stage = bulkStageValue;
+        }
+
+        await apiRequest('PUT', `/api/${actualCurrentEnvironment}/opportunities/${oppId}/assessment`, updateData);
+      }
+
+      // Reset all state
+      setShowWithholdReasonModal(false);
+      setShowBulkActionModal(false);
+      setBulkActionType('both');
+      setBulkStageValue('');
+      setBulkAssessmentValue('');
+      setSelectedWithholdReasons([]);
+      setWithholdComment('');
+      setSelectedOpportunities([]);
+
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: [`/api/${actualCurrentEnvironment}/opportunities`] });
+      queryClient.refetchQueries({ queryKey: [`/api/${actualCurrentEnvironment}/opportunities`] });
+
+      toast({
+        title: "Bulk withhold completed",
+        description: `Withheld ${selectedOpportunities.length} opportunities with reason and comment`,
+      });
+
+    } catch (error) {
+      console.error('Error in bulk withhold:', error);
+      toast({
+        title: "Error",
+        description: "Failed to withhold opportunities. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   // CRITICAL FIX: Add opportunity comment creation functionality matching PartnerDetail.tsx
@@ -2295,38 +2411,12 @@ export default function PartnerDetailBrokerPOV() {
                       variant="outline" 
                       size="sm"
                       className="text-indigo-600"
-                      onClick={() => setShowSaveListModal(true)}
+                      onClick={() => setShowBulkActionModal(true)}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                        <path d="M5 12h14"></path>
-                        <path d="M12 5v14"></path>
+                        <path d="M12 3a6.364 6.364 0 0 0 9 9 9 9 0 1 1-9-9Z"></path>
                       </svg>
-                      Save to List
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="text-indigo-600"
-                      onClick={() => {/* Add to campaign functionality */}}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"></path>
-                        <path d="m15 5 4 4"></path>
-                      </svg>
-                      Add to campaign
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="text-indigo-600"
-                      onClick={() => {/* Add export functionality */}}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                        <polyline points="7,10 12,15 17,10"></polyline>
-                        <line x1="12" y1="15" x2="12" y2="3"></line>
-                      </svg>
-                      Export Selected
+                      Action
                     </Button>
                   </div>
                 </div>
@@ -2558,6 +2648,195 @@ export default function PartnerDetailBrokerPOV() {
                   </Table>
                 </div>
               )}
+
+              {/* Bulk Action Modal */}
+              <Dialog open={showBulkActionModal} onOpenChange={setShowBulkActionModal}>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Bulk Action</DialogTitle>
+                    <div className="text-sm text-gray-600">
+                      {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected
+                    </div>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4">
+                    {/* Action Type Selection */}
+                    <div className="space-y-3">
+                      <label className="text-sm font-medium text-gray-700">What would you like to change?</label>
+                      <div className="space-y-2">
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="radio"
+                            name="bulkActionType"
+                            value="stage"
+                            checked={bulkActionType === 'stage'}
+                            onChange={(e) => setBulkActionType(e.target.value as 'stage' | 'assessment' | 'both')}
+                            className="w-4 h-4 text-indigo-600"
+                          />
+                          <span className="text-sm text-gray-700">Stage only</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="radio"
+                            name="bulkActionType"
+                            value="assessment"
+                            checked={bulkActionType === 'assessment'}
+                            onChange={(e) => setBulkActionType(e.target.value as 'stage' | 'assessment' | 'both')}
+                            className="w-4 h-4 text-indigo-600"
+                          />
+                          <span className="text-sm text-gray-700">Assessment only</span>
+                        </label>
+                        <label className="flex items-center space-x-2">
+                          <input
+                            type="radio"
+                            name="bulkActionType"
+                            value="both"
+                            checked={bulkActionType === 'both'}
+                            onChange={(e) => setBulkActionType(e.target.value as 'stage' | 'assessment' | 'both')}
+                            className="w-4 h-4 text-indigo-600"
+                          />
+                          <span className="text-sm text-gray-700">Both stage and assessment</span>
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Stage Selection */}
+                    {(bulkActionType === 'stage' || bulkActionType === 'both') && (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Stage</label>
+                        <select
+                          value={bulkStageValue}
+                          onChange={(e) => setBulkStageValue(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                        >
+                          <option value="">Select stage...</option>
+                          {opportunityFilterOptions?.stages?.map((stage: string) => (
+                            <option key={stage} value={stage}>{stage}</option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
+
+                    {/* Assessment Selection */}
+                    {(bulkActionType === 'assessment' || bulkActionType === 'both') && (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-gray-700">Assessment</label>
+                        <select
+                          value={bulkAssessmentValue}
+                          onChange={(e) => setBulkAssessmentValue(e.target.value)}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                        >
+                          <option value="">Select assessment...</option>
+                          <option value="Accepted">Accepted</option>
+                          <option value="Withheld">Withheld</option>
+                        </select>
+                      </div>
+                    )}
+                  </div>
+
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowBulkActionModal(false);
+                        setBulkActionType('both');
+                        setBulkStageValue('');
+                        setBulkAssessmentValue('');
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        if (bulkAssessmentValue === 'Withheld') {
+                          setShowBulkActionModal(false);
+                          setShowWithholdReasonModal(true);
+                        } else {
+                          // Handle direct bulk update
+                          handleBulkUpdate();
+                        }
+                      }}
+                      disabled={
+                        (bulkActionType === 'stage' && !bulkStageValue) ||
+                        (bulkActionType === 'assessment' && !bulkAssessmentValue) ||
+                        (bulkActionType === 'both' && (!bulkStageValue || !bulkAssessmentValue))
+                      }
+                    >
+                      Apply Changes
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+
+              {/* Withhold Reason Modal */}
+              <Dialog open={showWithholdReasonModal} onOpenChange={setShowWithholdReasonModal}>
+                <DialogContent className="max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>Withhold Reason</DialogTitle>
+                    <div className="text-sm text-gray-600">
+                      Select reason and comment for {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'}
+                    </div>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4">
+                    {/* Withhold Reasons */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Reason (select one)</label>
+                      <div className="space-y-2 max-h-32 overflow-y-auto">
+                        {withholdReasonsData?.map((reason: string) => (
+                          <label key={reason} className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              name="withholdReason"
+                              value={reason}
+                              checked={selectedWithholdReasons.includes(reason)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedWithholdReasons([reason]);
+                                }
+                              }}
+                              className="w-4 h-4 text-indigo-600"
+                            />
+                            <span className="text-sm text-gray-700">{reason}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Comment */}
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Comment</label>
+                      <textarea
+                        value={withholdComment}
+                        onChange={(e) => setWithholdComment(e.target.value)}
+                        placeholder="Add a comment for this withhold decision..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm resize-none"
+                        rows={3}
+                      />
+                    </div>
+                  </div>
+
+                  <DialogFooter>
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowWithholdReasonModal(false);
+                        setSelectedWithholdReasons([]);
+                        setWithholdComment('');
+                        setShowBulkActionModal(true); // Go back to bulk action modal
+                      }}
+                    >
+                      Back
+                    </Button>
+                    <Button
+                      onClick={handleBulkWithhold}
+                      disabled={selectedWithholdReasons.length === 0 || !withholdComment.trim()}
+                    >
+                      Apply Withhold
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
             </div>
           )}
 
